@@ -111,16 +111,17 @@ double GetStep(double radius)
 }
 
 void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int center_x = SettingsMap.GetInt("SLIDER_Galaxy_CenterX");
-    int center_y = SettingsMap.GetInt("SLIDER_Galaxy_CenterY");
-    int start_radius = SettingsMap.GetInt("SLIDER_Galaxy_Start_Radius");
-    int end_radius = SettingsMap.GetInt("SLIDER_Galaxy_End_Radius");
-    int start_angle = SettingsMap.GetInt("SLIDER_Galaxy_Start_Angle");
-    int revolutions = SettingsMap.GetInt("SLIDER_Galaxy_Revolutions");
-    int start_width = SettingsMap.GetInt("SLIDER_Galaxy_Start_Width");
-    int end_width = SettingsMap.GetInt("SLIDER_Galaxy_End_Width");
-    int duration = SettingsMap.GetInt("SLIDER_Galaxy_Duration");
-    int acceleration = SettingsMap.GetInt("SLIDER_Galaxy_Accel");
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos);
+    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos);
+    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos);
+    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos);
+    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos);
+    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos);
+    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos);
+    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos);
+    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos);
+    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos);
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");
@@ -129,7 +130,6 @@ void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     std::vector< std::vector<double> > temp_colors_pct(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
     std::vector< std::vector<double> > pixel_age(buffer.BufferWi, std::vector<double>(buffer.BufferHt));
 
-    double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int num_colors = buffer.palette.Size();
     xlColor color, c_old, c_new;
     HSVValue hsv1;

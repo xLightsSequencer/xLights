@@ -10,7 +10,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL29" variable="Panel6" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerGalaxyStart" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="wxID_ANY" variable="StaticText125" member="no">
@@ -26,6 +26,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_CenterX" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_CenterX" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -67,6 +77,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_CenterY" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_CenterY" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -113,6 +133,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Radius" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Start_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Start_Radius" variable="TextCtrl_Galaxy_Start_Radius" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
@@ -151,6 +181,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Width" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Start_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -196,6 +236,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Angle" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Start_Angle" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Start_Angle" variable="TextCtrl_Galaxy_Start_Angle" member="no">
 										<value>0</value>
 										<maxlength>3</maxlength>
@@ -226,7 +276,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL31" variable="Panel7" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerGalaxyEnd" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT130" variable="StaticText138" member="yes">
@@ -243,6 +293,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_End_Radius" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_End_Radius" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -289,6 +349,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_End_Width" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_End_Width" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_End_Width" variable="TextCtrl_Galaxy_End_Width" member="no">
 										<value>5</value>
 										<maxlength>3</maxlength>
@@ -331,6 +401,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Revolutions" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Revolutions" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Galaxy_Revolutions" variable="TextCtrl_Galaxy_Revolutions" member="no">
 										<value>4.0</value>
 										<maxlength>4</maxlength>
@@ -361,7 +441,7 @@
 					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL32" variable="Panel8" member="no">
 							<object class="wxFlexGridSizer" variable="GridBagSizerGalaxyOptions" member="no">
-								<cols>4</cols>
+								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT139" variable="StaticText141" member="yes">
@@ -378,6 +458,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Duration" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Duration" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -420,6 +510,16 @@
 										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Accel" subclass="ValueCurveButton" variable="ValueCurve_Galaxy_Accel" member="yes">
+										<bitmap code="valuecurvenotselected_24" />
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -471,6 +571,11 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Blend_Edges" variable="CheckBox_Galaxy_Blend_Edges" member="yes">
 										<label>Blend Edges:</label>
@@ -496,22 +601,17 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Galaxy_Inward" variable="CheckBox_Galaxy_Inward" member="yes">
 										<label>Inward:</label>
 										<style>wxALIGN_RIGHT</style>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
