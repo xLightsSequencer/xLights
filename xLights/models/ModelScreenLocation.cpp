@@ -111,10 +111,10 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         singleScale = true;
         PreviewScaleX = PreviewScaleY = wxAtof(tempstr);
     }
-    if(PreviewScaleX<0 || PreviewScaleX>1) {
+    if(PreviewScaleX<0) {
         PreviewScaleX = 0.33f;
     }
-    if(PreviewScaleY<0 || PreviewScaleY>1) {
+    if(PreviewScaleY<0) {
         PreviewScaleY = 0.33f;
     }
     PreviewRotation=wxAtoi(ModelNode->GetAttribute("PreviewRotation","0"));
