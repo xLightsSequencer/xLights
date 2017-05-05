@@ -665,8 +665,11 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
     else
     {
-        p -= GetTimingCount();
-        if (p < 0) p = 0;
+        if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW)
+        {
+            p -= GetTimingCount();
+            if (p < 0) p = 0;
+        }
     }
 
     wxArrayString addedModels;
