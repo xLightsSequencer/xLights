@@ -11,6 +11,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checklst.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -287,7 +288,10 @@ class xLightsImportChannelMapDialog: public wxDialog
     void Unmap(const wxDataViewItem& item);
     void Map(const wxDataViewItem& item, const std::string& mapping);
     void OnKeyDown(wxKeyEvent& event);
-    wxArrayString _importModels;
+    void SetCCROn();
+    void SetCCROff();
+    void PopulateAvailable(bool ccr);
+
     bool _dirty;
     wxFileName _filename;
     bool _allowTimingOffset;
@@ -295,15 +299,15 @@ class xLightsImportChannelMapDialog: public wxDialog
     bool _allowColorChoice;
     int _sortOrder;
     wxDataViewItem _dragItem;
+    bool _allowCCRStrand;
 
 	public:
    
-		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
-        bool Init();
-
+        bool InitImport();
         xLightsImportTreeModel *dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
@@ -315,6 +319,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxStaticText* StaticText_TimeAdjust;
 		wxStaticBoxSizer* TimingTrackPanel;
+		wxCheckBox* CheckBox_MapCCRStrand;
 		wxFlexGridSizer* SizerMap;
 		wxListCtrl* ListCtrl_Available;
 		//*)
@@ -324,6 +329,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         wxDataViewCtrl* TreeListCtrl_Mapping;
 
         std::vector<std::string> channelNames;
+        std::vector<std::string> ccrNames;
         std::map<std::string, xlColor> channelColors;
         std::vector<std::string> timingTracks;
         static const long ID_TREELISTCTRL1;
@@ -332,6 +338,7 @@ protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
 		static const long ID_SPINCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
@@ -353,6 +360,7 @@ protected:
 		void OnListCtrl_AvailableBeginDrag(wxListEvent& event);
 		void OnListCtrl_AvailableItemSelect(wxListEvent& event);
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
+		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

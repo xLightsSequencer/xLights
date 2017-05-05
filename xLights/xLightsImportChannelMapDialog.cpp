@@ -321,6 +321,7 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 
 //(*IdInit(xLightsImportChannelMapDialog)
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_LISTCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
@@ -334,12 +335,13 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, wxWindowID id,const wxPoint& pos,const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _sortOrder = 0;
     _allowTimingOffset = allowTimingOffset;
     _allowTimingTrack = allowTimingTrack;
     _allowColorChoice = allowColorChoice;
+    _allowCCRStrand = allowCCRStrand;
     _filename = filename;
     _dragItem = wxDataViewItem(nullptr);
 
@@ -359,6 +361,9 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	TimeAdjustSpinCtrl->SetValue(_T("0"));
 	Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_MapCCRStrand = new wxCheckBox(this, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_MapCCRStrand->SetValue(false);
+	Sizer->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Timing Tracks"));
 	TimingTrackListBox = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -388,6 +393,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
@@ -432,11 +438,22 @@ int CountChar(wxString& line, char c)
     return count;
 }
 
-bool xLightsImportChannelMapDialog::Init() {
+bool xLightsImportChannelMapDialog::InitImport() {
     if (channelNames.size() == 0)
     {
         wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
         return false;
+    }
+
+    int growableRow = 0;
+
+    if (!_allowCCRStrand)
+    {
+        CheckBox_MapCCRStrand->Hide();
+    }
+    else
+    {
+        growableRow++;
     }
 
     if (!_allowTimingOffset)
@@ -445,44 +462,25 @@ bool xLightsImportChannelMapDialog::Init() {
         StaticText_TimeAdjust->Hide();
         Sizer->Remove(Sizer_TimeAdjust);
     }
+    else
+    {
+        growableRow++;
+    }
 
-    if (timingTracks.empty() || !_allowTimingTrack) {
+    if (timingTracks.empty() || !_allowTimingTrack)
+    {
         Sizer->Remove(TimingTrackPanel);
         TimingTrackListBox->Hide();
-        if (!_allowTimingOffset)
-        {
-            Sizer->AddGrowableRow(0);
-        }
-        else
-        {
-            Sizer->AddGrowableRow(1);
-        }
-    } else {
-        if (!_allowTimingOffset)
-        {
-            Sizer->AddGrowableRow(1);
-        }
-        else
-        {
-            Sizer->AddGrowableRow(2);
-        }
-        for (auto it = timingTracks.begin(); it != timingTracks.end(); it++) {
+    }
+    else
+    {
+        for (auto it = timingTracks.begin(); it != timingTracks.end(); ++it) {
             TimingTrackListBox->Append(*it);
         }
+        growableRow++;
     }
-    Sizer->Fit(this);
-    Sizer->SetSizeHints(this);
 
-    // load the available list
-    ListCtrl_Available->AppendColumn("Available");
-    ListCtrl_Available->SetColumnWidth(0, 150);
-    int j = 0;
-    for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
-    {
-        ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
-        ListCtrl_Available->SetItemData(j, j);
-        j++;
-    }
+    PopulateAvailable(false);
 
     dataModel = new xLightsImportTreeModel();
 
@@ -497,6 +495,7 @@ bool xLightsImportChannelMapDialog::Init() {
     TreeListCtrl_Mapping->SetMinSize(wxSize(0, 300));
     SizerMap->Insert(0, TreeListCtrl_Mapping, 1, wxALL | wxEXPAND, 5);
     SizerMap->Layout();
+    Sizer->AddGrowableRow(growableRow);
     Sizer->Fit(this);
     Sizer->SetSizeHints(this);
     Sizer->Layout();
@@ -525,6 +524,39 @@ bool xLightsImportChannelMapDialog::Init() {
     }
 
     return true;
+}
+
+void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
+{
+    ListCtrl_Available->Freeze();
+    ListCtrl_Available->ClearAll();
+
+    // load the available list
+    ListCtrl_Available->AppendColumn("Available");
+    ListCtrl_Available->SetColumnWidth(0, 150);
+
+    if (ccr)
+    {
+        int j = 0;
+        for (auto it = ccrNames.begin(); it != ccrNames.end(); ++it)
+        {
+            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
+            ListCtrl_Available->SetItemData(j, j);
+            j++;
+        }
+    }
+    else
+    {
+        int j = 0;
+        for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
+        {
+            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
+            ListCtrl_Available->SetItemData(j, j);
+            j++;
+        }
+    }
+
+    ListCtrl_Available->Thaw();
 }
 
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
@@ -1342,3 +1374,25 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
 }
 
 #pragma endregion Drag and Drop
+
+void xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick(wxCommandEvent& event)
+{
+    if (CheckBox_MapCCRStrand->IsChecked())
+    {
+        SetCCROn();
+    }
+    else
+    {
+        SetCCROff();
+    }
+}
+
+void xLightsImportChannelMapDialog::SetCCROn()
+{
+    PopulateAvailable(true);
+}
+
+void xLightsImportChannelMapDialog::SetCCROff()
+{
+    PopulateAvailable(false);
+}
