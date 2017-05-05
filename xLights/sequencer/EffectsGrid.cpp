@@ -482,10 +482,10 @@ void EffectsGrid::FillRandomEffects()
                                                   "Random",
                                                   "",
                                                   "",
-                                                  eff->GetStartTimeMS(),
-                                                  eff->GetEndTimeMS(),
-                                                  EFFECT_SELECTED,
-                                                  false);
+                                                                  eff->GetStartTimeMS(),
+                                                                  eff->GetEndTimeMS(),
+                                                                  EFFECT_SELECTED,
+                                                                  false);
                         lastEffect = ef;
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
                         RaiseSelectedEffectChanged(ef, true, false);
@@ -1233,6 +1233,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                     mSelectedEffect = ef;
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
+                    RaiseSelectedEffectChanged(ef, false, false);
                     Refresh(false);
                     sendRenderDirtyEvent();
                     return;
@@ -1308,6 +1309,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
             }
             mCellRangeSelected = false;
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             Refresh(false);
             sendRenderDirtyEvent();
         }
@@ -1366,6 +1368,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                     mSelectedEffect = ef;
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
+                    RaiseSelectedEffectChanged(ef, false, false);
                     Refresh(false);
                     sendRenderDirtyEvent();
                     return;
@@ -1442,6 +1445,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
             }
             mCellRangeSelected = false;
             mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             sendRenderDirtyEvent();
             Refresh(false);
         }
