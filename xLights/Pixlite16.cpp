@@ -319,7 +319,6 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 first->GetDisplayAs() == "Star" ||
                 first->GetDisplayAs() == "Wreath" ||
                 first->GetDisplayAs() == "Icicles");
-            int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
 
             // upload it
             if (DecodeStringPortProtocol(protocol) >= 0)

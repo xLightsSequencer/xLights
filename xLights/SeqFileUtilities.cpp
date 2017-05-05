@@ -433,6 +433,7 @@ bool xLightsFrame::CloseSequence()
     }
 
     // clear everything to prepare for new sequence
+    displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
     xlightsFilename = "";
     mediaFilename.Clear();

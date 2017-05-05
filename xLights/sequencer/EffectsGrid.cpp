@@ -1124,7 +1124,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
 void EffectsGrid::CheckForPartialCell(int x_pos)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     mPartialCellSelected = false;
     // make sure a valid row and column is selected

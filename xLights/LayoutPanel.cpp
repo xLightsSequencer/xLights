@@ -772,8 +772,6 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
     }
 
-    int end_channel = model->GetLastChannel()+1;
-
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
                                                          GetModelTreeIcon(model, false),
                                                          GetModelTreeIcon(model, true),

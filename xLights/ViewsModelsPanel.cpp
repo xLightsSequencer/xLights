@@ -799,9 +799,19 @@ void ViewsModelsPanel::OnButton_RemoveAllClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void ViewsModelsPanel::Clear()
+{
+    ListCtrlModels->ClearAll();
+    ListCtrlNonModels->ClearAll();
+    ListCtrlViews->ClearAll();
+}
+
 void ViewsModelsPanel::Initialize()
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData->NumFrames() == 0) {
+        Clear();
+        return;
+    }
 
     PopulateViews();
     PopulateModels();
@@ -810,9 +820,9 @@ void ViewsModelsPanel::Initialize()
     if (_sequenceViewManager->GetView(_sequenceElements->GetCurrentView()) == nullptr) _sequenceElements->SetCurrentView(0);
 
     SelectView(_sequenceElements->GetViewName(_sequenceElements->GetCurrentView()));
-    Fit();
-    FitInside();
     ValidateWindow();
+    wxSizeEvent se;
+    OnResize(se);
 }
 
 void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager)
@@ -2055,7 +2065,6 @@ void ViewsModelsPanel::Undo()
 
     wxArrayString arr = wxSplit(undo, ',');
 
-    bool tim = true;
     for (auto it = arr.begin(); it != arr.end(); ++it)
     {
         Element* e = _sequenceElements->GetElement(it->ToStdString());

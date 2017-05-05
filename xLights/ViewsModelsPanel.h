@@ -102,6 +102,7 @@ class ViewsModelsPanel: public wxPanel
 		virtual ~ViewsModelsPanel();
 
         void Initialize();
+        void Clear();
         void SetViewChoice(wxChoice* choice);
         void SelectView(const std::string& view);
         void SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager);
