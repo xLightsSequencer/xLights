@@ -60,6 +60,8 @@ const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_BOTH_TIMES = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_CENTERPOINTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_MATCH_DURATION = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES_SHIFT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES_SHIFT = wxNewId();
 
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
@@ -221,6 +223,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_align_both_times = mnuAlignment->Append(ID_GRID_MNU_ALIGN_BOTH_TIMES,"Align Both Times");
         wxMenuItem* menu_align_centerpoints = mnuAlignment->Append(ID_GRID_MNU_ALIGN_CENTERPOINTS,"Align Centerpoints");
         wxMenuItem* menu_align_match_duration = mnuAlignment->Append(ID_GRID_MNU_ALIGN_MATCH_DURATION,"Align Match Duration");
+        wxMenuItem* menu_align_start_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_START_TIMES_SHIFT,"Shift Align Start Times");
+        wxMenuItem* menu_align_end_times_shift = mnuAlignment->Append(ID_GRID_MNU_ALIGN_END_TIMES_SHIFT,"Shift Align End Times");
         mnuAlignment->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         mnuLayer.AppendSubMenu(mnuAlignment, "Alignment" );
         if( (mSelectedEffect == nullptr) || !MultipleEffectsSelected() ) {
@@ -229,6 +233,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_align_both_times->Enable(false);
             menu_align_centerpoints->Enable(false);
             menu_align_match_duration->Enable(false);
+            menu_align_start_times_shift->Enable(false);
+            menu_align_end_times_shift->Enable(false);
         }
 
         // Miscellaneous
@@ -346,6 +352,14 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if( id == ID_GRID_MNU_ALIGN_MATCH_DURATION )
     {
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_MATCH_DURATION);
+    }
+    else if( id == ID_GRID_MNU_ALIGN_START_TIMES_SHIFT )
+    {
+        AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES_SHIFT);
+    }
+    else if( id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT )
+    {
+        AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES_SHIFT);
     }
     else if(id == ID_GRID_MNU_PRESETS)
     {
@@ -1804,12 +1818,20 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 int align_start, align_end, align_delta;
                 if( align_mode == ALIGN_START_TIMES ) {
                     align_start = sel_eff_start;
-                    align_delta = align_start - ef->GetStartTimeMS();
-                    align_end = ef->GetEndTimeMS() + align_delta;
+                    if( ef->GetEndTimeMS() > sel_eff_start ) {
+                        align_end = ef->GetEndTimeMS();
+                    } else {
+                        align_delta = align_start - ef->GetStartTimeMS();
+                        align_end = ef->GetEndTimeMS() + align_delta;
+                    }
                 } else if( align_mode == ALIGN_END_TIMES ) {
                     align_end = sel_eff_end;
-                    align_delta = align_end - ef->GetEndTimeMS();
-                    align_start = ef->GetStartTimeMS() + align_delta;
+                    if( ef->GetStartTimeMS() < sel_eff_end ) {
+                        align_start = ef->GetStartTimeMS();
+                    } else {
+                        align_delta = align_end - ef->GetEndTimeMS();
+                        align_start = ef->GetStartTimeMS() + align_delta;
+                    }
                 } else if( align_mode == ALIGN_BOTH_TIMES ) {
                     align_start = sel_eff_start;
                     align_end = sel_eff_end;
@@ -1827,6 +1849,14 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                     align_delta = sel_eff_end - sel_eff_start;
                     align_start = ef->GetStartTimeMS();
                     align_end = align_start + align_delta;
+                } else if ( align_mode == ALIGN_START_TIMES_SHIFT ) {
+                    align_start = sel_eff_start;
+                    align_delta = align_start - ef->GetStartTimeMS();
+                    align_end = ef->GetEndTimeMS() + align_delta;
+                } else if( align_mode == ALIGN_END_TIMES_SHIFT ) {
+                    align_end = sel_eff_end;
+                    align_delta = align_end - ef->GetEndTimeMS();
+                    align_start = ef->GetStartTimeMS() + align_delta;
                 } else {
                     return;
                 }
