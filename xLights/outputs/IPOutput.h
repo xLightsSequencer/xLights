@@ -20,7 +20,7 @@ public:
 
     #pragma region Static Functions
     static bool IsIPValid(const std::string &ip);
-    static bool IsIPValidOrHostname(const std::string &ip);
+    static bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
     static std::string CleanupIP(const std::string &ip);
     static void SetLocalIP(const std::string& localIP) { __localIP = localIP; }
     static std::string GetLocalIP() { return __localIP; }

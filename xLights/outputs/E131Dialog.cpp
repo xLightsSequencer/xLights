@@ -225,7 +225,7 @@ void E131Dialog::OnButton_CancelClick(wxCommandEvent& event)
 void E131Dialog::ValidateWindow()
 {
     if (TextCtrlIpAddr->GetValue().IsEmpty() ||
-        ((RadioButtonUnicast->GetValue() && !IPOutput::IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString())) ||
+        ((RadioButtonUnicast->GetValue() && !IPOutput::IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString(), true)) ||
          SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000)
         )
     {

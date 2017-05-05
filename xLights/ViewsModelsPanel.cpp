@@ -82,6 +82,8 @@ const long ViewsModelsPanel::ID_BUTTON3 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON4 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON5 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON6 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON9 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON10 = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
@@ -156,6 +158,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer5->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_RemoveAll = new wxButton(ScrolledWindowViewsModels, ID_BUTTON6, _("<<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	FlexGridSizer5->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_MoveUp = new wxButton(ScrolledWindowViewsModels, ID_BUTTON9, _("^"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	FlexGridSizer5->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MoveDown = new wxButton(ScrolledWindowViewsModels, ID_BUTTON10, _("v"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrollWindowSizer->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
@@ -212,6 +218,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
+	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
 	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
@@ -451,13 +459,13 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
         }
     }
-    
+
     ListCtrlNonModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
     if (ListCtrlNonModels->GetColumnWidth(0) < 22) {
         ListCtrlNonModels->SetColumnWidth(0, 22);
     }
     ListCtrlNonModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
-    
+
     ListCtrlModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
     ListCtrlModels->SetColumnWidth(1, wxLIST_AUTOSIZE);
     if (ListCtrlModels->GetColumnWidth(0) < 28) {
@@ -815,6 +823,24 @@ void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, Seq
 
 void ViewsModelsPanel::ValidateWindow()
 {
+    if (ListCtrlNonModels->GetItemCount() > 0)
+    {
+        Button_AddAll->Enable(true);
+    }
+    else
+    {
+        Button_AddAll->Enable(false);
+    }
+
+    if (ListCtrlModels->GetItemCount() > 0)
+    {
+        Button_RemoveAll->Enable(true);
+    }
+    else
+    {
+        Button_RemoveAll->Enable(false);
+    }
+
     if (ListCtrlNonModels->GetSelectedItemCount() == 0)
     {
         Button_AddSelected->Enable(false);
@@ -850,6 +876,17 @@ void ViewsModelsPanel::ValidateWindow()
     {
         Button_DeleteView->Enable(true);
         ButtonRename->Enable(true);
+    }
+
+    if (GetSelectedModelCount() > 0)
+    {
+        Button_MoveUp->Enable(true);
+        Button_MoveDown->Enable(true);
+    }
+    else
+    {
+        Button_MoveUp->Enable(false);
+        Button_MoveDown->Enable(false);
     }
 }
 
@@ -1970,61 +2007,10 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
     case 1:
         // Model dropped into models (a reorder)
         {
-            SaveUndo();
-
-            bool itemsMoved = false;
-
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             int flags = wxLIST_HITTEST_ONITEM;
             long index = ListCtrlModels->HitTest(wxPoint(x, y), flags, nullptr);
-            wxArrayString movedModels;
 
-            int selcnt = 0;
-            for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
-            {
-                if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
-                {
-                    movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                    int from = i - GetTimingCount();
-                    int to = -1;
-                    // we are moving this one
-                    itemsMoved = true;
-                    if (index == -1)
-                    {
-                        // moving to the end
-                        to = _sequenceElements->GetElementCount(_sequenceViewManager->GetSelectedViewIndex());
-                    }
-                    else
-                    {
-                        to = index + selcnt - GetTimingCount();
-                    }
-
-                    // not sure why we need to do this with the master only
-                    if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-                    {
-                        from += GetTimingCount();
-                        to += GetTimingCount();
-                    }
-
-                    if (from < to)
-                    {
-                        from -= selcnt;
-                    }
-
-                    _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
-                    SelectItem(ListCtrlModels, i, false);
-
-                    selcnt++;
-                }
-            }
-
-            if (itemsMoved)
-            {
-                MarkViewsChanged();
-                UpdateModelsForSelectedView();
-                PopulateModels(wxJoin(movedModels, ',').ToStdString());
-                _xlFrame->DoForceSequencerRefresh();
-            }
+            MoveSelectedModelsTo(index);
         }
         break;
     case 2:
@@ -2051,9 +2037,6 @@ void ViewsModelsPanel::SaveUndo()
     if (undo.size() > 0 && undo.back() != to)
     {
         _undo.push_back(to);
-
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Saving undo state: '%s' left %d", (const char *)to.c_str(), _undo.size());
     }
 }
 
@@ -2063,9 +2046,6 @@ void ViewsModelsPanel::Undo()
 
     std::string undo = _undo.back();
     _undo.pop_back();
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Undoing state to: '%s' left %d", (const char *)undo.c_str(), _undo.size());
 
     std::vector<std::string> timings;
     wxArrayString models;
@@ -2118,8 +2098,171 @@ void ViewsModelsPanel::Undo()
 void ViewsModelsPanel::ClearUndo()
 {
     _undo.clear();
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Clear undo");
 }
 
 #pragma endregion Undo
+
+void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
+{
+    if (GetSelectedModelCount() == 0) return;
+
+    SaveUndo();
+    bool itemsMoved = false;
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+
+    for (int i = ListCtrlModels->GetItemCount()-1; i >= 0; --i)
+    {
+        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            itemsMoved = true;
+            int from = i;
+            int to = i + 2;
+            if (to > ListCtrlModels->GetItemCount()) return;
+
+            movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+            from -= GetTimingCount();
+
+            to -= GetTimingCount();
+
+            // not sure why we need to do this with the master only
+            if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+            {
+                from += GetTimingCount();
+                to += GetTimingCount();
+            }
+
+            _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+            SelectItem(ListCtrlModels, i, false);
+
+            selcnt++;
+            i++;
+        }
+    }
+
+    if (itemsMoved)
+    {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+int ViewsModelsPanel::GetSelectedModelCount()
+{
+    int count = 0;
+
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
+{
+    SaveUndo();
+    bool itemsMoved = false;
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+        {
+            if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                int from = i - GetTimingCount();
+                int to = -1;
+                // we are moving this one
+                itemsMoved = true;
+                if (indexTo == -1)
+                {
+                    // moving to the end
+                    to = _sequenceElements->GetElementCount(_sequenceViewManager->GetSelectedViewIndex());
+                }
+                else
+                {
+                    to = indexTo + selcnt - GetTimingCount();
+                }
+
+                // not sure why we need to do this with the master only
+                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+                {
+                    from += GetTimingCount();
+                    to += GetTimingCount();
+                }
+
+                if (from < to)
+                {
+                    from -= selcnt;
+                    to -= selcnt;
+                }
+
+                _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+                SelectItem(ListCtrlModels, i, false);
+
+                selcnt++;
+                i--;
+            }
+        }
+
+    if (itemsMoved)
+    {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
+{
+    if (GetSelectedModelCount() == 0) return;
+
+    SaveUndo();
+    bool itemsMoved = false;
+
+    wxArrayString movedModels;
+    int selcnt = 0;
+
+        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+        {
+            if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                itemsMoved = true;
+                int from = i;
+                int to = i - 1;
+                if (to < GetTimingCount()) return;
+
+                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+                from -= GetTimingCount();
+                to -= GetTimingCount();
+
+                // not sure why we need to do this with the master only
+                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+                {
+                    from += GetTimingCount();
+                    to += GetTimingCount();
+                }
+
+                _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+                SelectItem(ListCtrlModels, i, false);
+
+                selcnt++;
+            }
+        }
+
+    if (itemsMoved)
+    {
+        MarkViewsChanged();
+        UpdateModelsForSelectedView();
+        PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        _xlFrame->DoForceSequencerRefresh();
+    }
+}

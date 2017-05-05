@@ -94,6 +94,26 @@
 												<border>2</border>
 												<option>1</option>
 											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON9" variable="Button_MoveUp" member="yes">
+													<label>^</label>
+													<size>32,32</size>
+													<handler function="OnButton_MoveUpClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON10" variable="Button_MoveDown" member="yes">
+													<label>v</label>
+													<size>32,32</size>
+													<handler function="OnButton_MoveDownClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<option>1</option>

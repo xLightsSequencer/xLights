@@ -22,10 +22,11 @@ IPOutput::IPOutput() : Output()
 #pragma endregion Constructors and Destructors
 
 #pragma region Static Functions
-bool IPOutput::IsIPValidOrHostname(const std::string &ip) {
+bool IPOutput::IsIPValidOrHostname(const std::string &ip, bool iponly) {
     if (IsIPValid(ip)) {
         return true;
     }
+
     bool hasChar = false;
     bool hasDot = false;
     //hostnames need at least one char in it if fully qualified
@@ -40,6 +41,7 @@ bool IPOutput::IsIPValidOrHostname(const std::string &ip) {
         }
     }
     if (hasChar || (!hasDot && !hasChar)) {
+        if (iponly) return true;
         wxIPV4address addr;
         addr.Hostname(ip);
         wxString ipAddr = addr.IPAddress();

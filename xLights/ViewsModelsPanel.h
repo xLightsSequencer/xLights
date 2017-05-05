@@ -93,6 +93,8 @@ class ViewsModelsPanel: public wxPanel
     void SaveUndo();
     void Undo();
     void ClearUndo();
+    void MoveSelectedModelsTo(int indexTo);
+    int GetSelectedModelCount();
 
     public:
 
@@ -109,6 +111,7 @@ class ViewsModelsPanel: public wxPanel
 
 		//(*Declarations(ViewsModelsPanel)
 		wxButton* Button_AddAll;
+		wxButton* Button_MoveUp;
 		wxListCtrl* ListCtrlNonModels;
 		wxFlexGridSizer* MainSizer;
 		wxButton* Button_AddSelected;
@@ -125,6 +128,7 @@ class ViewsModelsPanel: public wxPanel
 		wxScrolledWindow* ScrolledWindowViewsModels;
 		wxButton* ButtonClone;
 		wxButton* ButtonRename;
+		wxButton* Button_MoveDown;
 		wxButton* Button_RemoveSelected;
 		//*)
 
@@ -137,6 +141,8 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
+		static const long ID_BUTTON9;
+		static const long ID_BUTTON10;
 		static const long ID_STATICTEXT1;
 		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_BUTTON1;
@@ -185,6 +191,8 @@ class ViewsModelsPanel: public wxPanel
 		void OnButtonCloneClick(wxCommandEvent& event);
 		void OnButtonRenameClick(wxCommandEvent& event);
 		void OnListCtrlViewsItemDClick(wxListEvent& event);
+		void OnButton_MoveDownClick(wxCommandEvent& event);
+		void OnButton_MoveUpClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);
