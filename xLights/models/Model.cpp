@@ -798,7 +798,8 @@ void Model::AddSubmodel(wxXmlNode* n)
     ParseSubModel(n);
 
     // this may break if the submodel format changes and the user loads an old format ... if that happens this needs to go through a upgrade routine
-    wxXmlNode *f = new wxXmlNode(ModelXml, wxXML_ELEMENT_NODE, "subModel");
+    wxXmlNode *f = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
+    ModelXml->AddChild(f);
     for (auto a = n->GetAttributes(); a!= nullptr; a = a->GetNext())
     {
         f->AddAttribute(a->GetName(), a->GetValue());
@@ -2726,14 +2727,14 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             return model;
         }
         else if (root->GetName() == "matrixmodel") {
-            
+
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
             auto x = model->GetHcenterOffset();
             auto y = model->GetVcenterOffset();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
-            
+
             // not a custom model so delete the default model that was created
             if (model != nullptr) {
                 delete model;

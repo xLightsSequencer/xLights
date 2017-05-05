@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Custom model import will now keep submodels in original order instead of backwards.  Fixes: 787.
    -- enh (gil)     Allow boxed models to be sized past the window boundary. Fixes #853.
    -- enh (gil)     Add values curves to Galaxy Effect
    -- bug (gil)     Fix effect slider not responding after effect was moved up or down a row.
