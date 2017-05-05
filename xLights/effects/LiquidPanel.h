@@ -31,6 +31,7 @@ class LiquidPanel: public wxPanel
 		wxStaticText* StaticText22;
 		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_X3;
+		ValueCurveButton* BitmapButton_Liquid_SourceSize2;
 		wxSlider* Slider_LifeTime;
 		wxStaticText* StaticText45;
 		ValueCurveButton* BitmapButton_Velocity2;
@@ -48,13 +49,17 @@ class LiquidPanel: public wxPanel
 		wxSlider* Slider_X1;
 		ValueCurveButton* BitmapButton_LifeTime;
 		wxCheckBox* CheckBox_LeftBarrier;
+		wxStaticText* StaticText13;
 		wxStaticText* StaticText33;
 		wxTextCtrl* TextCtrl_Y2;
 		wxSlider* Slider_Y1;
 		wxStaticText* StaticText2;
 		wxPanel* Panel4;
+		wxStaticText* StaticText14;
+		ValueCurveButton* BitmapButton_Liquid_SourceSize1;
 		wxTextCtrl* TextCtrl_Velocity2;
 		ValueCurveButton* BitmapButton_Y4;
+		wxTextCtrl* TextCtrl_liquid_SourceSize4;
 		wxSlider* Slider_Direction2;
 		wxStaticText* StaticText26;
 		wxStaticText* StaticText6;
@@ -66,14 +71,18 @@ class LiquidPanel: public wxPanel
 		wxStaticText* StaticText42;
 		wxStaticText* StaticText32;
 		wxStaticText* StaticText8;
+		wxSlider* Slider_Liquid_SourceSize3;
 		ValueCurveButton* BitmapButton_Flow2;
 		wxSlider* Slider_Flow2;
+		wxStaticText* StaticText11;
 		wxTextCtrl* TextCtrl_LifeTime;
+		wxSlider* Slider_Liquid_SourceSize4;
 		wxCheckBox* CheckBox_RightBarrier;
 		wxPanel* Panel1;
 		wxStaticText* StaticText1;
 		wxSlider* Slider_Y2;
 		ValueCurveButton* BitmapButton_X2;
+		wxTextCtrl* TextCtrl_Liquid_SourceSize1;
 		wxStaticText* StaticText3;
 		ValueCurveButton* BitmapButton_X4;
 		wxSlider* Slider_Y3;
@@ -84,10 +93,12 @@ class LiquidPanel: public wxPanel
 		wxStaticText* StaticText44;
 		wxCheckBox* CheckBox_FlowMusic4;
 		wxPanel* Panel3;
+		ValueCurveButton* BitmapButton_Liquid_SourceSize3;
 		ValueCurveButton* BitmapButton_Flow3;
 		wxStaticText* StaticText23;
 		wxStaticText* StaticText24;
 		ValueCurveButton* BitmapButton_Flow4;
+		wxSlider* Slider_Liquid_SourceSize1;
 		wxTextCtrl* TextCtrl_Y3;
 		ValueCurveButton* BitmapButton_Direction1;
 		wxTextCtrl* TextCtrl_Flow4;
@@ -115,9 +126,11 @@ class LiquidPanel: public wxPanel
 		wxSlider* Slider_Flow4;
 		wxTextCtrl* TextCtrl_Direction3;
 		ValueCurveButton* BitmapButton_Direction2;
+		wxStaticText* StaticText12;
 		wxTextCtrl* TextCtrl_X2;
 		wxCheckBox* CheckBox_FlowMusic3;
 		wxStaticText* StaticText35;
+		wxSlider* Slider_Liquid_SourceSize2;
 		wxCheckBox* CheckBox_HoldColor;
 		wxTextCtrl* TextCtrl_X4;
 		wxSlider* Slider_X4;
@@ -126,6 +139,7 @@ class LiquidPanel: public wxPanel
 		wxCheckBox* CheckBox_MixColors;
 		wxTextCtrl* TextCtrl_Velocity1;
 		wxStaticText* StaticText25;
+		wxTextCtrl* TextCtrl_Liquid_SourceSize2;
 		wxCheckBox* CheckBox_Enabled3;
 		wxTextCtrl* TextCtrl_Velocity4;
 		wxStaticText* StaticText36;
@@ -134,12 +148,14 @@ class LiquidPanel: public wxPanel
 		wxSlider* Slider_Despeckle;
 		wxSlider* Slider_Direction1;
 		wxCheckBox* CheckBox_Enabled4;
+		wxTextCtrl* TextCtrl_Liquid_SourceSize3;
 		wxTextCtrl* TextCtrl_Direction2;
 		ValueCurveButton* BitmapButton_Flow1;
 		wxStaticText* StaticText46;
 		ValueCurveButton* BitmapButton_X3;
 		wxCheckBox* CheckBox_FlowMusic1;
 		wxSlider* Slider_WarmUpFrames;
+		ValueCurveButton* BitmapButton_Liquid_SourceSize4;
 		//*)
 
 	protected:
@@ -186,6 +202,10 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow1;
 		static const long ID_VALUECURVE_Flow1;
 		static const long ID_TEXTCTRL_Flow1;
+		static const long ID_STATICTEXT11;
+		static const long IDD_SLIDER_Liquid_SourceSize1;
+		static const long ID_VALUECURVE_Liquid_SourceSize1;
+		static const long ID_TEXTCTRL_Liquid_SourceSize1;
 		static const long ID_CHECKBOX_FlowMusic1;
 		static const long ID_PANEL1;
 		static const long ID_CHECKBOX_Enabled2;
@@ -209,6 +229,10 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow2;
 		static const long ID_VALUECURVE_Flow2;
 		static const long ID_TEXTCTRL_Flow2;
+		static const long ID_STATICTEXT12;
+		static const long IDD_SLIDER_Liquid_SourceSize2;
+		static const long ID_VALUECURVE_Liquid_SourceSize2;
+		static const long ID_TEXTCTRL_Liquid_SourceSize2;
 		static const long ID_CHECKBOX_FlowMusic2;
 		static const long ID_PANEL2;
 		static const long ID_CHECKBOX_Enabled3;
@@ -232,6 +256,10 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow3;
 		static const long ID_VALUECURVE_Flow3;
 		static const long ID_TEXTCTRL_Flow3;
+		static const long ID_STATICTEXT13;
+		static const long IDD_SLIDER_Liquid_SourceSize3;
+		static const long ID_VALUECURVE_Liquid_SourceSize3;
+		static const long ID_TEXTCTRL_Liquid_SourceSize3;
 		static const long ID_CHECKBOX_FlowMusic3;
 		static const long ID_PANEL3;
 		static const long ID_CHECKBOX_Enabled4;
@@ -255,6 +283,10 @@ class LiquidPanel: public wxPanel
 		static const long IDD_SLIDER_Flow4;
 		static const long ID_VALUECURVE_Flow4;
 		static const long ID_TEXTCTRL_Flow4;
+		static const long ID_STATICTEXT14;
+		static const long IDD_SLIDER_Liquid_SourceSize4;
+		static const long ID_VALUECURVE_Liquid_SourceSize4;
+		static const long ID_TEXTCTRL_Liquid_SourceSize4;
 		static const long ID_CHECKBOX_FlowMusic4;
 		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK1;
@@ -275,9 +307,11 @@ class LiquidPanel: public wxPanel
 		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
 		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-		void OnChoice_Liquid_MovementSelect(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_EnabledClick(wxCommandEvent& event);
+		void OnSlider_Liquid_SourceSize1CmdScroll(wxScrollEvent& event);
+		void OnSlider_Liquid_SourceSize3CmdScroll(wxScrollEvent& event);
+		void OnSlider_Liquid_SourceSize1CmdScroll1(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

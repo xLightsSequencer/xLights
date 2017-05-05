@@ -64,27 +64,31 @@ std::string JobPoolWorker::GetStatus()
 {
     std::stringstream ret;
     ret << "Thread: ";
-    
-    
+        
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
         << std::hex << GetId()
         << "    ";
+    
     if (currentJob != nullptr) {
         ret << currentJob->GetStatus();
     } else {
         ret << "<idle>";
     }
+    
     return ret.str();
 }
+
 void JobPoolWorker::Stop()
 {
     stopped = true;
+    
     if ( IsAlive() ) {
         std::unique_lock<std::mutex> mutLock(*lock);
         signal->notify_all();
     }
+    
     if ( IsAlive() ) {
         Delete();
     }
@@ -121,7 +125,7 @@ void JobPoolWorker::Start()
 Job *JobPoolWorker::GetJob()
 {
     std::unique_lock<std::mutex> mutLock(*lock);
-    Job *req(nullptr);
+    Job *req = nullptr;
     if (queue->empty()) {
         idleThreads++;
         long timeout = 100;
@@ -228,9 +232,11 @@ void JobPool::Start(size_t poolSize)
     if (poolSize > 250) {
         poolSize = 250;
     }
+    
     if (poolSize < 20) {
         poolSize = 20;
     }
+
     maxNumThreads = poolSize;
     idleThreads = 0;
     numThreads = 0;
