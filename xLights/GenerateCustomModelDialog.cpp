@@ -562,7 +562,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputMan
     StaticBitmap_Preview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseLeave, 0, this);
     StaticBitmap_Preview->Connect(wxEVT_ENTER_WINDOW, (wxObjectEventFunction)&GenerateCustomModelDialog::OnStaticBitmapMouseEnter, 0, this);
 
-    _vr = NULL;
+    _vr = nullptr;
     _draggingedge = -1;
 
     MTTabEntry();
@@ -575,7 +575,7 @@ GenerateCustomModelDialog::~GenerateCustomModelDialog()
 	//(*Destroy(GenerateCustomModelDialog)
 	//*)
 
-    if (_vr != NULL)
+    if (_vr != nullptr)
     {
         delete _vr;
     }
@@ -796,6 +796,9 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     _starttime = wxDateTime::UNow();
 
+    // Remember our outputting state
+    bool outputting = _outputManager->IsOutputting();
+
     _outputManager->StartOutput();
 
     int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);
@@ -825,7 +828,11 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     pd.Update(100);
 
     _outputManager->AllOff();
-    _outputManager->StopOutput();
+
+    if (!outputting)
+    {
+        _outputManager->StopOutput();
+    }
 
     pd.Update(100);
     pd.Close();
