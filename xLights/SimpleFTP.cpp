@@ -123,31 +123,41 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
         wxSocketOutputStream *out = dynamic_cast<wxSocketOutputStream*>(ftp.GetOutputStream((folder + "/" + basefilenew).c_str()));
         wxSocketBase sock;
         MySocketOutputStream sout(sock, (MySocketOutputStream*)out);
-        if (out)
+        if (out && length > 0)
         {
             uint8_t buffer[8192]; // 8KB at a time
             int lastDone = 0;
             while (!in.Eof() && !cancelled)
             {
                 ssize_t read = in.Read(&buffer[0], sizeof(buffer));
+                wxASSERT(read <= sizeof(buffer));
                 done += read;
+                //logger_base.debug("   FTP Upload read %lu so far %lu.", (unsigned long)read, (unsigned long)done);
 
                 int bufPos = 0;
                 while (read) {
                     out->Write(&buffer[bufPos], read);
-                    ssize_t written = out->LastWrite();
+                    size_t written = out->LastWrite();
                     bufPos += written;
                     read -= written;
+                    //logger_base.debug("   FTP Upload wrote %lu left %lu.", (unsigned long)written, (unsigned long)read);
                 }
-                ssize_t donePct = done * 100;
-                donePct = donePct / length;
+
+                int donePct = (int)(done * 100 / length);
                 if (donePct != lastDone) {
+                    wxASSERT(donePct > lastDone);
                     lastDone = donePct;
                     cancelled = !progress.Update(donePct, wxEmptyString, &cancelled);
                     wxYield();
                 }
             }
-            if (in.Eof())
+
+            if (length == 0)
+            {
+                progress.Update(100, wxEmptyString, &cancelled);
+                logger_base.error("   FTP Upload of file %s failed due to zero length.", (const char *)file.c_str());
+            }
+            else if (in.Eof())
             {
                 progress.Update(100, wxEmptyString, &cancelled);
                 logger_base.info("   FTP Upload of file %s done.", (const char *)file.c_str());
@@ -157,6 +167,7 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
                 progress.Update(100, wxEmptyString, &cancelled);
                 logger_base.warn("   FTP Upload of file %s cancelled.", (const char *)file.c_str());
             }
+
             in.Close();
             out->Close();
             delete out;

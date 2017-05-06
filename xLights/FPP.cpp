@@ -10,6 +10,7 @@
 #include "outputs/Output.h"
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+#include <wx/msgdlg.h>
 
 FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
@@ -276,12 +277,28 @@ bool FPP::UploadSequence(std::string file, wxWindow* parent)
     {
         cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
     }
+    else
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Unable to upload fseq file %s as it does not exist.", (const char *)fseq.c_str());
+        wxMessageBox("Unable to upload fseq file " + fseq + " as it does not exist.", "Error", 4, parent);
+    }
 
     if (!cancelled && media != "")
     {
         media = FixFile("", media);
         wxFileName fnmedia(media);
-        cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
+
+        if (fnmedia.Exists())
+        {
+            cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
+        }
+        else
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.error("Unable to upload media file %s as it does not exist.", (const char *)(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString()).c_str());
+            wxMessageBox("Unable to upload media file "+ fnmedia.GetName() + "." + fnmedia.GetExt() +" as it does not exist.", "Error", 4, parent);
+        }
     }
 
     return cancelled;
