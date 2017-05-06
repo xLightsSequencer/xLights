@@ -82,6 +82,8 @@ public:
         RenderHt=NewHt;
         RenderWi=NewWi;
     }
+    float GetRenderHt() { return RenderHt; }
+    float GetRenderWi() { return RenderWi; }
     float RenderHt,RenderWi;  // size of the rendered output
     int previewW,previewH;
 

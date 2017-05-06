@@ -63,6 +63,7 @@ const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
@@ -245,7 +246,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
-    
+
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
@@ -297,7 +298,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemCollapsed,0,this);
     propertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridItemExpanded,0,this);
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
-    
+
     logger_base.debug("LayoutPanel property grid created");
 
 
@@ -329,7 +330,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Window Frame", frame);
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
-    
+
     logger_base.debug("LayoutPanel model buttons created");
 
 
@@ -344,7 +345,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy,0,this);
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste,0,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo,0,this);
-    
+
     ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     ModelGroupWindow->SetSizer(sizer);
@@ -1654,6 +1655,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             if( need_sep ) {
                 mnu.AppendSeparator();
             }
+            if( model->GetDisplayAs() == "Matrix" )
+            {
+                mnu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
+            }
         }
         mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
         if (model != nullptr)
@@ -1724,6 +1729,25 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
+    {
+        Model* md=selectedModel;
+        if( md == nullptr ) return;
+        int screen_wi = md->GetModelScreenLocation().GetMWidth();
+        int screen_ht = md->GetModelScreenLocation().GetMHeight();
+        float render_ht = md->GetModelScreenLocation().GetRenderHt();
+        float render_wi = md->GetModelScreenLocation().GetRenderWi();
+        float ht_ratio = render_ht / (float)screen_ht;
+        float wi_ratio = render_wi / (float)screen_wi;
+        if( ht_ratio > wi_ratio) {
+            render_wi = render_wi / ht_ratio;
+            md->GetModelScreenLocation().SetMWidth((int)render_wi);
+        } else {
+            render_ht = render_ht / wi_ratio;
+            md->GetModelScreenLocation().SetMHeight((int)render_ht);
+        }
+        UpdatePreview();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
