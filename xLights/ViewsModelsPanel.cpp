@@ -438,18 +438,21 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         }
     }
 
-    if (topM + visibileM - 1< ListCtrlModels->GetItemCount())
-    {
-        ListCtrlModels->EnsureVisible(topM + visibileM - 1);
+    if (ListCtrlModels->GetItemCount() > 0) {
+        if (topM + visibileM - 1< ListCtrlModels->GetItemCount())
+        {
+            ListCtrlModels->EnsureVisible(topM + visibileM - 1);
+        }
+        ListCtrlModels->EnsureVisible(topM);
     }
-    ListCtrlModels->EnsureVisible(topM);
-
-    if (topN + visibileN - 1< ListCtrlNonModels->GetItemCount())
-    {
-        ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
+    if (ListCtrlNonModels->GetItemCount() > 0) {
+        if (topN + visibileN - 1< ListCtrlNonModels->GetItemCount())
+        {
+            ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
+        }
+        ListCtrlNonModels->EnsureVisible(topN);
     }
-    ListCtrlNonModels->EnsureVisible(topN);
-
+    
     if (selectModels != "")
     {
         wxArrayString models = wxSplit(selectModels, ',');
