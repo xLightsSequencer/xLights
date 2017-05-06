@@ -95,7 +95,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
     mTimingColor = new xlColor(255,255,255);
     mTimingVerticalLine = new xlColor(130,178,207);
-    mSelectionColor = new xlColor(0, 255, 153);
+    mSelectionColor = new xlColor(204, 102, 255);
     mSelectFocusColor = new xlColor(255,0,255);
 
     mLabelColor = new xlColor(255,255,204);
@@ -3253,7 +3253,7 @@ void EffectsGrid::DrawEffects()
                         if(effectIndex>0)
                         {
                             // Draw left line if effect has different start time then previous effect or
-                            // previous effect was not selected, or onlwidthy left was selected
+                            // previous effect was not selected, or only left was selected
                             if(effectLayer->GetEffect(effectIndex)->GetStartTimeMS() != effectLayer->GetEffect(effectIndex-1)->GetEndTimeMS() ||
                                effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_NOT_SELECTED ||
                                 effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_LT_SELECTED)
