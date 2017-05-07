@@ -378,15 +378,18 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         if( (numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
         {
-            if (numChan > SeqData.NumChannels())
+            if (SeqData.NumChannels() > 0)
             {
-                logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, SeqData.NumChannels());
-            }
-            else
-            {
-                if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames())
+                if (numChan > SeqData.NumChannels())
                 {
-                    logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.", CurrentSeqXmlFile->GetSequenceDurationMS() / ms), SeqData.NumFrames();
+                    logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, SeqData.NumChannels());
+                }
+                else
+                {
+                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames())
+                    {
+                        logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.", CurrentSeqXmlFile->GetSequenceDurationMS() / ms), SeqData.NumFrames();
+                    }
                 }
             }
             SeqData.init(GetMaxNumChannels(), mMediaLengthMS / ms, ms);
