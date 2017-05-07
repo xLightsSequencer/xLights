@@ -162,6 +162,7 @@ static wxFileName mapFileName(const wxFileName &orig) {
 
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool loaded_xml = false;
     bool loaded_fseq = false;
     wxString filename;
@@ -377,6 +378,17 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         if( (numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
         {
+            if (numChan > SeqData.NumChannels())
+            {
+                logger_base.warn("Fseq file had %u channels but sequence has %u channels so dumping the fseq data.", numChan, SeqData.NumChannels());
+            }
+            else
+            {
+                if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames())
+                {
+                    logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.", CurrentSeqXmlFile->GetSequenceDurationMS() / ms), SeqData.NumFrames();
+                }
+            }
             SeqData.init(GetMaxNumChannels(), mMediaLengthMS / ms, ms);
         }
         else if( !loaded_fseq )
@@ -441,11 +453,11 @@ bool xLightsFrame::CloseSequence()
     previewLoaded = false;
     previewPlaying = false;
     playType = 0;
-    selectedEffect = NULL;
+    selectedEffect = nullptr;
     if( CurrentSeqXmlFile )
     {
         delete CurrentSeqXmlFile;
-        CurrentSeqXmlFile = NULL;
+        CurrentSeqXmlFile = nullptr;
     }
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
