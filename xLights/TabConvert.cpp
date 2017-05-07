@@ -33,10 +33,14 @@ void FRAMECLASS ConversionError(const wxString& msg)
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
 }
 void FRAMECLASS SetStatusText(const wxString &msg, int section) {
-    if (section) {
-        FileNameText->SetLabel(msg);
+    if (_renderMode) {
+        printf("%s\n",msg.ToStdString().c_str());
     } else {
-        StatusText->SetLabel(msg);
+        if (section) {
+            FileNameText->SetLabel(msg);
+        } else {
+            StatusText->SetLabel(msg);
+        }
     }
 }
 
@@ -424,7 +428,7 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
 void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName, TestName;
-    int ch, p, csec, StartCSec;
+    int ch, p, csec, StartCSec=0;
     int intensity, LastIntensity;
     wxFile f;
     if (!f.Create(filename, true))
