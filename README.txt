@@ -26,11 +26,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add source size parameter to Liquid effect
    -- bug (keith)   Fix group rename not fixing group names in open sequence
    -- bug (keith)   Add back LOR import CCR level import
-   -- bug (keith)   Fix some potential crashes in FPP upload of 
+   -- bug (keith)   Fix some potential crashes in FPP upload
    -- enh (keith)   A bit of a speculative change ... optimise LOR output to only output changed data in each frame
                     Looking at FPP and the protocol it looks like it will use and should make it run better when not 
 					every channel changes every frame.
    -- bug (keith)   Fix crash when audio files are opened in quick succession
+   -- enh (keith)   Allow multiple import of xpresets
 2017.12  Apr  30, 2017
    -- bug (sean)    Fix for Vamp plugins for 64 bit xLights. Web page updated to remove direct download of Vamp
 2017.11  Apr  29, 2017

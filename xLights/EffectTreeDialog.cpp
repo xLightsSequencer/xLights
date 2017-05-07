@@ -597,7 +597,7 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
 #else
                                                 "Show files (xlights_rgbeffects.xml)|xlights_rgbeffects.xml",
 #endif
-                                                wxFD_OPEN, wxDefaultPosition);
+                                                wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE, wxDefaultPosition);
     OpenDialog->SetDirectory(xLightParent->CurrentDir);
     if (OpenDialog->ShowModal() == wxID_OK)
     {
@@ -615,50 +615,56 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
         }
 
         wxString fDir = OpenDialog->GetDirectory();
-        wxString filename = OpenDialog->GetFilename();
-        wxFileName name_and_path(filename);
-        name_and_path.SetPath(fDir);
-        wxString file_to_import = name_and_path.GetFullPath();
+        wxArrayString files;
+        OpenDialog->GetFilenames(files);
 
-        wxXmlDocument input_xml;
-        if (!input_xml.Load(file_to_import)) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
-            ValidateWindow();
-            return;
-        }
-
-        wxXmlNode* input_root = input_xml.GetRoot();
-
-        if (name_and_path.GetExt().Lower() == "xpreset")
+        for (auto it = files.begin(); it != files.end(); ++it)
         {
-            for (wxXmlNode *ele = input_root->GetChildren(); ele != nullptr; ele = ele->GetNext())
+            wxString filename = *it;
+            wxFileName name_and_path(filename);
+            name_and_path.SetPath(fDir);
+            wxString file_to_import = name_and_path.GetFullPath();
+
+            wxXmlDocument input_xml;
+            if (!input_xml.Load(file_to_import)) {
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.warn("EffectTreeDialog::Unable to load %s to import presets.", (const char *)file_to_import.c_str());
+                ValidateWindow();
+                return;
+            }
+
+            wxXmlNode* input_root = input_xml.GetRoot();
+
+            if (name_and_path.GetExt().Lower() == "xpreset")
             {
-                if (ele->GetName() == "effectGroup")
+                for (wxXmlNode *ele = input_root->GetChildren(); ele != nullptr; ele = ele->GetNext())
                 {
-                    AddGroup(ele, insertPoint);
-                }
-                else
-                {
-                    AddEffect(ele, insertPoint);
+                    if (ele->GetName() == "effectGroup")
+                    {
+                        AddGroup(ele, insertPoint);
+                    }
+                    else
+                    {
+                        AddEffect(ele, insertPoint);
+                    }
                 }
             }
-        }
-        else
-        {
-            for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext())
+            else
             {
-                if (e->GetName() == "effects")
+                for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext())
                 {
-                    for (wxXmlNode *ele = e->GetChildren(); ele != nullptr; ele = ele->GetNext())
+                    if (e->GetName() == "effects")
                     {
-                        if (ele->GetName() == "effectGroup")
+                        for (wxXmlNode *ele = e->GetChildren(); ele != nullptr; ele = ele->GetNext())
                         {
-                            AddGroup(ele, insertPoint);
-                        }
-                        else
-                        {
-                            AddEffect(ele, insertPoint);
+                            if (ele->GetName() == "effectGroup")
+                            {
+                                AddGroup(ele, insertPoint);
+                            }
+                            else
+                            {
+                                AddEffect(ele, insertPoint);
+                            }
                         }
                     }
                 }
