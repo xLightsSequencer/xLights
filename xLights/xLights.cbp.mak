@@ -2294,7 +2294,7 @@ TimingPanel.cpp: TimingPanel.h ../include/padlock16x16-blue.xpm models/Model.h e
 
 TopEffectsPanel.cpp: TopEffectsPanel.h xLightsMain.h sequencer/EffectDropTarget.h ../include/Off.xpm
 
-SeqFileUtilities.cpp: xLightsMain.h SeqSettingsDialog.h FileConverter.h DataLayer.h models/DmxModel.h VSAFile.h LMSImportChannelMapDialog.h xLightsImportChannelMapDialog.h SuperStarImportDialog.h VsaImportDialog.h SaveChangesDialog.h ConvertLogDialog.h xLightsVersion.h UtilFunctions.h osxMacUtils.h
+SeqFileUtilities.cpp: xLightsMain.h SeqSettingsDialog.h FileConverter.h DataLayer.h models/DmxModel.h VSAFile.h LMSImportChannelMapDialog.h xLightsImportChannelMapDialog.h SuperStarImportDialog.h VsaImportDialog.h SaveChangesDialog.h ConvertLogDialog.h xLightsVersion.h UtilFunctions.h models/ModelGroup.h osxMacUtils.h
 
 LMSImportChannelMapDialog.h: Color.h
 
@@ -2661,6 +2661,8 @@ effects/GIFImage.cpp: effects/GIFImage.h
 effects/GalaxyEffect.cpp: effects/GalaxyEffect.h effects/GalaxyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/galaxy-16.xpm ../include/galaxy-24.xpm ../include/galaxy-32.xpm ../include/galaxy-48.xpm ../include/galaxy-64.xpm
 
 effects/GalaxyEffect.h: effects/RenderableEffect.h
+
+effects/GalaxyPanel.h: ValueCurveButton.h
 
 effects/GalaxyPanel.cpp: effects/GalaxyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 

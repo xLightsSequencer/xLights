@@ -875,7 +875,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
         #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
-        i = TreeListViewModels->GetSize().GetWidth()-(sz*2);
+        
+        i = TreeListViewModels->GetSize().GetWidth()-(width*2);
         #endif
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
