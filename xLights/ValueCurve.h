@@ -5,6 +5,11 @@
 #include <string>
 #include <list>
 
+#define MINVOID -91234
+#define MAXVOID 91234
+#define MINVOIDF -9.1234f
+#define MAXVOIDF 9.1234f
+
 class vcSortablePoint
 {
 public:
@@ -72,25 +77,32 @@ class ValueCurve
     float _parameter4;
     bool _active;
     bool _wrap;
+    bool _realValues;
 
     void RenderType();
     void SetSerialisedValue(std::string k, std::string s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
     void FixChangedScale(float oldmin, float oldmax);
+    void ConvertToRealValues();
+    float Normalise(int parm, float value);
+    float Denormalise(int parm, float value);
+    float FixChangeScaleParm(int parm, float oldmin, float oldmax, float oldvalue);
 
 public:
-    ValueCurve() { SetDefault(); _min = -9.1234f; _max = -9.1234f; _divisor = 1; }
+    ValueCurve() { SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; _divisor = 1; }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     wxBitmap GetImage(int x, int y);
-    void SetDefault(float min = -9.1234f, float max = -9.1234f, int divisor = 91234);
+    void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
     std::string Serialise();
+    static void GetRangeParm(int parm, const std::string& type, int& low, int &high);
     bool IsOk() { return _id != ""; }
     void Deserialise(const std::string& s);
     void SetType(std::string type);
-    float GetMax() { return _max; }
-    float GetMin() { return _min; }
+    float GetMax() { wxASSERT(_max != MAXVOIDF); return _max; }
+    float GetMin() { wxASSERT(_min != MINVOIDF); return _min; }
+    int GetDivisor() { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
@@ -104,7 +116,6 @@ public:
     void SetDivisor(float divisor) { _divisor = divisor; }
     int GetPointCount() { return _values.size(); }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
-    void SetUnscaledParameter1(float v);
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
@@ -122,6 +133,10 @@ public:
     bool NearCustomPoint(float x, float y);
     std::string GetId() const { return _id; }
     void SetId(const std::string& id) { _id = id; }
+    static void GetRangeParm1(const std::string& type, int& low, int &high);
+    static void GetRangeParm2(const std::string& type, int& low, int &high);
+    static void GetRangeParm3(const std::string& type, int& low, int &high);
+    static void GetRangeParm4(const std::string& type, int& low, int &high);
 };
 
 #endif

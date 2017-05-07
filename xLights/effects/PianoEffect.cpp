@@ -161,7 +161,7 @@ void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 		        SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI"),
 		        SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps"),
 		        std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
-		        GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset),
+		        GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset, 0, 100),
 		        std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
                 SettingsMap.GetInt("SLIDER_Piano_XOffset", 0)
                 );

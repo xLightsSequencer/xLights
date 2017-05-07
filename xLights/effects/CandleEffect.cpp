@@ -127,10 +127,10 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
 void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int flameAgility = GetValueCurveInt("Candle_FlameAgility", 2, SettingsMap, oset);
-    int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset);
-    int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset);
-    int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset);
+    int flameAgility = GetValueCurveInt("Candle_FlameAgility", 2, SettingsMap, oset, 1, 10);
+    int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset, 0, 10);
+    int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, 0, 10);
+    int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, 0, 255);
 
     CandleRenderCache *cache = GetCache(buffer, id);
     wxByte& flameprimer = cache->flameprimer;

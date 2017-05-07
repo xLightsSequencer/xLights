@@ -101,10 +101,10 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int FillColor = GetWaveFillColor(SettingsMap["CHOICE_Fill_Colors"]);
 
     bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
-    int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset);
-    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset);
-    int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset);
-    int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset);
+    int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset, 180, 3600);
+    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset, 0, 100);
+    int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset, 0, 100);
+    int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset, 0, 50);
 
     bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
 

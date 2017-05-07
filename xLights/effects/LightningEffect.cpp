@@ -69,11 +69,11 @@ static inline int GetLightningEffect(const std::string &dir) {
 
 void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset);
-    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset);
+    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset, 1, 50);
+    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset, 1, 20);
     bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning", false);
-    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset);
-    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset);
+    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset, -50, 50);
+    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset, 0 ,100);
     int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 0);
     int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 0);
     int DIRECTION = GetLightningEffect(SettingsMap["CHOICE_Lightning_Direction"]);

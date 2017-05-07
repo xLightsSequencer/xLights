@@ -5,7 +5,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-
 #include "../../include/bars-16.xpm"
 #include "../../include/bars-24.xpm"
 #include "../../include/bars-32.xpm"
@@ -25,7 +24,6 @@ BarsEffect::~BarsEffect()
 wxPanel *BarsEffect::CreatePanel(wxWindow *parent) {
     return new BarsPanel(parent);
 }
-
 
 static inline int GetDirection(const std::string & DirectionString) {
     if ("up" == DirectionString) {
@@ -102,8 +100,8 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset);
-    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset);
+    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, 1, 50);
+    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, 0, 500, 10);
 
     int Center = SettingsMap.GetInt("SLIDER_Bars_Center", 0);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);

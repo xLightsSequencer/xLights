@@ -149,7 +149,7 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset);
+    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, 0.1f, 20.0f);
 
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);

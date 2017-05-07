@@ -164,7 +164,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
         color = hsv;
     }
     
-    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust);
+    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, 0, 100);
     if (transparency) {
         transparency *= 255;
         transparency /= 100;

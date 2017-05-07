@@ -66,9 +66,9 @@ void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect)
 void ShimmerEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset);
+    int Duty_Factor = GetValueCurveInt("Shimmer_Duty_Factor", 50, SettingsMap, oset, 1, 100);
     bool Use_All_Colors = SettingsMap.GetBool("CHECKBOX_Shimmer_Use_All_Colors", false);
-    double cycles = GetValueCurveDouble("Shimmer_Cycles", 1.0, SettingsMap, oset);
+    double cycles = GetValueCurveDouble("Shimmer_Cycles", 1.0, SettingsMap, oset, 0, 6000, 10);
     bool pre2017_7 = SettingsMap.GetBool("CHECKBOX_PRE_2017_7", false);
     int colorcnt=buffer.GetColorCount();
 

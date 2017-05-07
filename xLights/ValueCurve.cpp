@@ -3,15 +3,22 @@
 #include <wx/string.h>
 #include <log4cpp/Category.hh>
 
-void ValueCurve::SetUnscaledParameter1(float v)
-{
-    _parameter1 = SafeParameter(1, v * 100.0 / _max);
-    RenderType();
-}
-
 float ValueCurve::SafeParameter(size_t p, float v)
 {
-    return std::min(100.0f, std::max(0.0f, v));
+    int low;
+    int high;
+    ValueCurve::GetRangeParm(p, _type, low, high);
+
+    float lowf = low;
+    float highf = high;
+
+    if (low == MINVOID) lowf = _min;
+    if (high == MAXVOID) highf = _max;
+    
+    wxASSERT(_min != MINVOIDF);
+    wxASSERT(_max != MAXVOIDF);
+
+    return std::min(highf, std::max(lowf, v));
 }
 
 float ValueCurve::Safe01(float v)
@@ -19,84 +26,409 @@ float ValueCurve::Safe01(float v)
     return std::min(1.0f, std::max(0.0f, v));
 }
 
-void ValueCurve::FixChangedScale(float oldmin, float oldmax)
+void ValueCurve::GetRangeParm(int parm, const std::string& type, int& low, int &high)
 {
+    switch (parm)
+    {
+    case 1:
+        ValueCurve::GetRangeParm1(type, low, high);
+        break;
+    case 2:
+        ValueCurve::GetRangeParm2(type, low, high);
+        break;
+    case 3:
+        ValueCurve::GetRangeParm3(type, low, high);
+        break;
+    case 4:
+        ValueCurve::GetRangeParm4(type, low, high);
+        break;
+    default:
+        break;
+    }
+}
+
+float ValueCurve::Denormalise(int parm, float value)
+{
+    int low;
+    float lowf;
+    int high;
+    float highf;
+    ValueCurve::GetRangeParm(parm, _type, low, high);
+
+    lowf = low;
+    highf = high;
+
+    if (low == MINVOID)
+    {
+        wxASSERT(_min != MINVOIDF);
+        lowf = _min;
+    }
+    if (high == MAXVOID)
+    {
+        wxASSERT(_max != MAXVOIDF);
+        highf = _max;
+    }
+
+    float res = value;
+
+    if (low != 0 || high != 100)
+    {
+        float range = highf - lowf;
+        res = value * range / 100.0 + lowf;
+    }
+
+    if (res < lowf) res = lowf;
+    if (res > highf) res = highf;
+
+    return res;
+}
+
+void ValueCurve::ConvertToRealValues()
+{
+    _parameter1 = Denormalise(1, _parameter1);
+    _parameter2 = Denormalise(2, _parameter2);
+    _parameter3 = Denormalise(3, _parameter3);
+    _parameter4 = Denormalise(4, _parameter4);
+}
+
+void ValueCurve::GetRangeParm1(const std::string& type, int& low, int &high)
+{
+    low = 0;
+    high = 100;
+
+    if (type == "Custom")
+    {
+    }
+    else if (type == "Flat")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Saw Tooth")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Square")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Parabolic Down")
+    {
+    }
+    else if (type == "Parabolic Up")
+    {
+    }
+    else if (type == "Logarithmic Up")
+    {
+    }
+    else if (type == "Logarithmic Down")
+    {
+    }
+    else if (type == "Exponential Up")
+    {
+    }
+    else if (type == "Exponential Down")
+    {
+    }
+    else if (type == "Sine")
+    {
+    }
+    else if (type == "Abs Sine")
+    {
+    }
+}
+
+void ValueCurve::GetRangeParm2(const std::string& type, int& low, int &high)
+{
+    low = 0;
+    high = 100;
+
+    if (type == "Custom")
+    {
+    }
+    else if (type == "Flat")
+    {
+    }
+    else if (type == "Ramp")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Saw Tooth")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Square")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Parabolic Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Parabolic Up")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Logarithmic Up")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Logarithmic Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Exponential Up")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Exponential Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Abs Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+}
+
+void ValueCurve::GetRangeParm3(const std::string& type, int& low, int &high)
+{
+    low = 0;
+    high = 100;
+
+    if (type == "Custom")
+    {
+    }
+    else if (type == "Flat")
+    {
+    }
+    else if (type == "Ramp")
+    {
+    }
+    else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+    }
+    else if (type == "Saw Tooth")
+    {
+    }
+    else if (type == "Square")
+    {
+    }
+    else if (type == "Parabolic Down")
+    {
+    }
+    else if (type == "Parabolic Up")
+    {
+    }
+    else if (type == "Logarithmic Up")
+    {
+    }
+    else if (type == "Logarithmic Down")
+    {
+    }
+    else if (type == "Exponential Up")
+    {
+    }
+    else if (type == "Exponential Down")
+    {
+    }
+    else if (type == "Sine")
+    {
+    }
+    else if (type == "Abs Sine")
+    {
+    }
+}
+
+void ValueCurve::GetRangeParm4(const std::string& type, int& low, int &high)
+{
+    low = 0;
+    high = 100;
+
+    if (type == "Custom")
+    {
+    }
+    else if (type == "Flat")
+    {
+    }
+    else if (type == "Ramp")
+    {
+    }
+    else if (type == "Ramp Up/Down")
+    {
+    }
+    else if (type == "Ramp Up/Down Hold")
+    {
+    }
+    else if (type == "Saw Tooth")
+    {
+    }
+    else if (type == "Square")
+    {
+    }
+    else if (type == "Parabolic Down")
+    {
+    }
+    else if (type == "Parabolic Up")
+    {
+    }
+    else if (type == "Logarithmic Up")
+    {
+    }
+    else if (type == "Logarithmic Down")
+    {
+    }
+    else if (type == "Exponential Up")
+    {
+    }
+    else if (type == "Exponential Down")
+    {
+    }
+    else if (type == "Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Abs Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+}
+
+float ValueCurve::Normalise(int parm, float value)
+{
+    int low;
+    int high;
+    ValueCurve::GetRangeParm(parm, _type, low, high);
+
+    float lowf = low;
+    float highf = high;
+
+    if (low == MINVOID)
+    {
+        wxASSERT(_min != MINVOIDF);
+        lowf = _min;
+    }
+    if (high == MAXVOID)
+    {
+        wxASSERT(_max != MAXVOIDF);
+        highf = _max;
+    }
+
+    float res = value;
+    if (low != 0 || high != 100)
+    {
+        float range = highf - lowf;
+        res = (value - lowf) * 100 / range;
+    }
+
+    if (res < 0) res = 0;
+    if (res > 100) res = 100;
+
+    return res;
+}
+
+void ValueCurve::FixChangedScale(float newmin, float newmax)
+{
+    // now handle custom
     if (_type == "Custom")
     {
-#pragma todo lots to do here    
-    }
-    else if (_type == "Flat")
-    {
-    }
-    else if (_type == "Ramp")
-    {
-    }
-    else if (_type == "Ramp Up/Down")
-    {
-    }
-    else if (_type == "Ramp Up/Down Hold")
-    {
-    }
-    else if (_type == "Saw Tooth")
-    {
-    }
-    else if (_type == "Square")
-    {
-    }
-    else if (_type == "Parabolic Down")
-    {
-    }
-    else if (_type == "Parabolic Up")
-    {
-    }
-    else if (_type == "Logarithmic Up")
-    {
-    }
-    else if (_type == "Logarithmic Down")
-    {
-    }
-    else if (_type == "Exponential Up")
-    {
-    }
-    else if (_type == "Exponential Down")
-    {
-    }
-    else if (_type == "Sine")
-    {
-    }
-    else if (_type == "Abs Sine")
-    {
+        wxASSERT(_min != MINVOIDF);
+        wxASSERT(_max != MAXVOIDF);
+
+        float newrange = newmax - newmin;
+        float oldrange = _max - _min;
+        for (auto it = _values.begin(); it != _values.end(); ++it)
+        {
+            it->y = it->y * oldrange / newrange;
+        }
     }
 }
 
 void ValueCurve::RenderType()
 {
+    // dont render if we dont know our limits
+    if (_min == MINVOIDF || _max == MAXVOIDF || _divisor == MAXVOID) return;
+
+    float parameter1 = Normalise(1, _parameter1);
+    float parameter2 = Normalise(2, _parameter2);
+    float parameter3 = Normalise(3, _parameter3);
+    float parameter4 = Normalise(4, _parameter4);
+
     if (_type != "Custom")
     {
         _values.clear();
     }
     if (_type == "Flat")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.0f, parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, parameter1 / 100.0, false));
     }
     else if (_type == "Ramp")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.0f, parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, parameter2 / 100.0, false));
     }
     else if (_type == "Ramp Up/Down")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
-        _values.push_back(vcSortablePoint(0.5f, (float)_parameter2 / 100.0, false));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter3 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.0f, parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f, parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, parameter3 / 100.0, false));
     }
     else if (_type == "Ramp Up/Down Hold")
     {
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
-        _values.push_back(vcSortablePoint(0.5f - ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0, false));
-        _values.push_back(vcSortablePoint(0.5f + ((0.5f * (float)_parameter3) / 100.0), (float)_parameter2 / 100.0, false));
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.0f, parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f - ((0.5f * parameter3) / 100.0), parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.5f + ((0.5f * parameter3) / 100.0), parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, parameter1 / 100.0, false));
     }
     else if (_type == "Saw Tooth")
     {
@@ -106,11 +438,11 @@ void ValueCurve::RenderType()
             count = 1;
         }
         float per = 1.0f / count;
-        _values.push_back(vcSortablePoint(0.0f, (float)_parameter1 / 100.0, false));
+        _values.push_back(vcSortablePoint(0.0f, parameter1 / 100.0, false));
         for (int i = 0; i < count; i++)
         {
-            _values.push_back(vcSortablePoint(i * per + per / 2.0f, (float)_parameter2 / 100.0, false));
-            _values.push_back(vcSortablePoint((i + 1) * per, (float)_parameter1 / 100.0, false));
+            _values.push_back(vcSortablePoint(i * per + per / 2.0f, parameter2 / 100.0, false));
+            _values.push_back(vcSortablePoint((i + 1) * per, parameter1 / 100.0, false));
         }
     }
     else if (_type == "Square")
@@ -129,18 +461,18 @@ void ValueCurve::RenderType()
             {
                 if (i != 0)
                 {
-                    _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter2 / 100.0, false));
+                    _values.push_back(vcSortablePoint((float)i * per - 0.01f, parameter2 / 100.0, false));
                 }
-                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint((float)i * per, parameter1 / 100.0, false));
             }
             else
             {
-                _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter1 / 100.0, false));
-                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter2 / 100.0, false));
+                _values.push_back(vcSortablePoint((float)i * per - 0.01f, parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint((float)i * per, parameter2 / 100.0, false));
             }
             low = !low;
         }
-        _values.push_back(vcSortablePoint(1.0f, (float)_parameter2 / 100.0, false));
+        _values.push_back(vcSortablePoint(1.0f, parameter2 / 100.0, false));
     }
     else if (_type == "Parabolic Down")
     {
@@ -155,7 +487,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            float y = a * (i - 0.5f) * (i - 0.5f) + parameter2 / 100.0;
             bool wrapped = false;
             if (_wrap)
             {
@@ -188,7 +520,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = a * (i - 0.5f) * (i - 0.5f) + (float)_parameter2 / 100.0;
+            float y = a * (i - 0.5f) * (i - 0.5f) + parameter2 / 100.0;
             bool wrapped = false;
             if (_wrap)
             {
@@ -211,7 +543,7 @@ void ValueCurve::RenderType()
     else if (_type == "Logarithmic Up")
     {
         // p1 rate
-        float a = (float)_parameter1 / 25.0f;
+        float a = parameter1 / 25.0f;
         if (_parameter1 == 0)
         {
             a = 0.04f;
@@ -220,7 +552,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = ((float)_parameter2 - 50.0) / 50.0 + log(a + a*i) + 1.0f;
+            float y = (parameter2 - 50.0) / 50.0 + log(a + a*i) + 1.0f;
             bool wrapped = false;
             if (_wrap)
             {
@@ -243,7 +575,7 @@ void ValueCurve::RenderType()
     else if (_type == "Logarithmic Down")
     {
         // p1 rate
-        float a = (float)_parameter1 / 10.0f;
+        float a = parameter1 / 10.0f;
         if (_parameter1 == 0)
         {
             a = 0.1f;
@@ -252,7 +584,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = ((float)_parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f);
+            float y = (parameter2 - 50.0) / 50.0 + 1.5f + -1 * exp2(a * i - 1.0f);
             bool wrapped = false;
             if (_wrap)
             {
@@ -275,7 +607,7 @@ void ValueCurve::RenderType()
     else if (_type == "Exponential Up")
     {
         // p1 rate
-        float a = (float)_parameter1 / 10.0f;
+        float a = parameter1 / 10.0f;
         if (_parameter1 == 0)
         {
             a = 0.1f;
@@ -284,7 +616,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = ((float)_parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            float y = (parameter2 - 50.0) / 50.0 + (exp(a*i) - 1.0) / (exp(a) - 1.0);
             bool wrapped = false;
             if (_wrap)
             {
@@ -307,7 +639,7 @@ void ValueCurve::RenderType()
     else if (_type == "Exponential Down")
     {
         // p1 rate
-        float a = (float)_parameter1 / 10.0f;
+        float a = parameter1 / 10.0f;
         if (_parameter1 == 0)
         {
             a = 0.1f;
@@ -316,7 +648,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.05)
         {
             if (i > 1.0) i = 1.0;
-            float y = ((float)_parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0);
+            float y = (parameter2 - 50.0) / 50.0 + 1.0 - (exp(a*i) - 1.0) / (exp(a) - 1.0);
             bool wrapped = false;
             if (_wrap)
             {
@@ -343,12 +675,12 @@ void ValueCurve::RenderType()
         // p3 - cycles
         // one cycle = 2* PI
         static const double pi2 = 6.283185307;
-        float maxx = pi2 * std::max((float)_parameter3 / 10.0f, 0.1f);
+        float maxx = pi2 * std::max(parameter3 / 10.0f, 0.1f);
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
-            float y = ((float)_parameter4 - 50.0) / 50.0 + (sin(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
+            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
+            float y = (parameter4 - 50.0) / 50.0 + (sin(r) * (std::max(parameter2, 1.0f) / 200.0f)) + 0.5f;
             bool wrapped = false;
             if (_wrap)
             {
@@ -375,12 +707,12 @@ void ValueCurve::RenderType()
         // p3 - cycles
         // one cycle = 2* PI
         static const double pi2 = 6.283185307;
-        float maxx = pi2 * std::max((float)_parameter3 / 10.0f, 0.1f);
+        float maxx = pi2 * std::max(parameter3 / 10.0f, 0.1f);
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
-            float y = ((float)_parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max((float)_parameter2, 1.0f) / 100.0f)));
+            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
+            float y = (parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max(parameter2, 1.0f) / 100.0f)));
             bool wrapped = false;
             if (_wrap)
             {
@@ -410,6 +742,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _min = min;
     _max = max;
     _wrap = wrap;
+    _realValues = true;
     _divisor = divisor;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
@@ -422,31 +755,33 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
 void ValueCurve::SetDefault(float min, float max, int divisor)
 {
     _type = "Flat";
-    if (min != -9.1234f)
+    if (min != MINVOIDF)
     {
         _min = min;
     }
-    if (max != -9.1234f)
+    if (max != MAXVOIDF)
     {
         _max = max;
     }
-    _parameter1 = SafeParameter(1, 0);
-    _parameter2 = SafeParameter(2, 0);
-    _parameter3 = SafeParameter(3, 0);
-    _parameter4 = SafeParameter(4, 0);
+    _parameter1 = 0;
+    _parameter2 = 0;
+    _parameter3 = 0;
+    _parameter4 = 0;
     _active = false;
     _wrap = false;
-    if (divisor != 91234)
+    _realValues = true;
+    if (divisor != MAXVOID)
     {
         _divisor = divisor;
     }
+
     RenderType();
 }
 
 ValueCurve::ValueCurve(const std::string& s)
 {
-    _min = -9.1234f;
-    _max = -9.1234f;
+    _min = MINVOIDF;
+    _max = MAXVOIDF;
     SetDefault();
     _divisor = 1;
     Deserialise(s);
@@ -467,6 +802,7 @@ void ValueCurve::Deserialise(const std::string& s)
     }
     else
     {
+        _realValues = false;
         _active = true;
         _values.clear();
         _type = "Flat";
@@ -489,20 +825,33 @@ void ValueCurve::Deserialise(const std::string& s)
             }
         }
 
-        if ((oldmin != -9.1234f && oldmin != _min) || (oldmax != -9.1234f && oldmax != _max))
+        if (_active && !_realValues)
+        {
+            ConvertToRealValues();
+            _realValues = true;
+        }
+
+        if (_active && ((oldmin != MINVOIDF && oldmin != _min) || (oldmax != MAXVOIDF && oldmax != _max)))
         {
             FixChangedScale(oldmin, oldmax);
         }
 
+        if (oldmin != MINVOIDF) _min = oldmin;
+        if (oldmax != MAXVOIDF) _max = oldmax;
+
         RenderType();
     }
 }
+
 std::string ValueCurve::Serialise()
 {
     std::string res = "";
 
     if (IsActive())
     {
+        wxASSERT(_min != MINVOIDF);
+        wxASSERT(_max != MAXVOIDF);
+
         res += "Active=TRUE|";
         res += "Id=" + _id + "|";
         if (_type != "Flat")
@@ -530,6 +879,10 @@ std::string ValueCurve::Serialise()
         if (_wrap)
         {
             res += "WRAP=TRUE|";
+        }
+        if (_realValues)
+        {
+            res += "RV=TRUE|";
         }
         if (_type == "Custom")
         {
@@ -592,6 +945,10 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
         {
             _wrap = true;
         }
+        else if (kk == "RV")
+        {
+            _realValues = true;
+        }
         else if (kk == "P2")
         {
             _parameter2 = (float)wxAtoi(wxString(s.c_str()));
@@ -627,11 +984,15 @@ void ValueCurve::SetType(std::string type)
 
 float ValueCurve::GetOutputValue(float offset)
 {
+    wxASSERT(_min != MINVOIDF);
+    wxASSERT(_max != MAXVOIDF);
     return (_min + (_max - _min) * offset) / _divisor;
 }
 
 float ValueCurve::GetOutputValueAt(float offset)
 {
+    wxASSERT(_min != MINVOIDF);
+    wxASSERT(_max != MAXVOIDF);
     return _min + (_max - _min) * GetValueAt(offset);
 }
 
@@ -647,7 +1008,7 @@ float ValueCurve::GetValueAt(float offset)
 
     vcSortablePoint last = _values.front();
     auto it = _values.begin();
-    it++;
+    ++it;
 
     while (it != _values.end() && it->x < offset)
     {

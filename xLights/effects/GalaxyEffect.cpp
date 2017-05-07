@@ -112,16 +112,16 @@ double GetStep(double radius)
 
 void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos);
-    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos);
-    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos);
-    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos);
-    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos);
-    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos);
-    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos);
-    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos);
-    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos);
-    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos);
+    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, 0, 100);
+    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos, 0, 100);
+    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos, 0 ,250);
+    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos, 0, 250);
+    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos, 0, 360);
+    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos, 0, 3600, 360);
+    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos, 0, 255);
+    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos, 0, 255);
+    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos, 0, 100);
+    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos, -10, 10);
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");

@@ -55,12 +55,12 @@ const double PI  =3.141592653589793238463;
 
 void ShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos);
-    int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos);
-    int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 0, SettingsMap, eff_pos);
-    int end_radius = GetValueCurveInt("Shockwave_End_Radius", 0, SettingsMap, eff_pos);
-    int start_width = GetValueCurveInt("Shockwave_Start_Width", 0, SettingsMap, eff_pos);
-    int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos);
+    int center_x = GetValueCurveInt("Shockwave_CenterX", 50, SettingsMap, eff_pos, 0 ,100);
+    int center_y = GetValueCurveInt("Shockwave_CenterY", 50, SettingsMap, eff_pos, 0, 100);
+    int start_radius = GetValueCurveInt("Shockwave_Start_Radius", 0, SettingsMap, eff_pos, 0, 250);
+    int end_radius = GetValueCurveInt("Shockwave_End_Radius", 0, SettingsMap, eff_pos, 0 ,250);
+    int start_width = GetValueCurveInt("Shockwave_Start_Width", 0, SettingsMap, eff_pos, 0, 255);
+    int end_width = GetValueCurveInt("Shockwave_End_Width", 0, SettingsMap, eff_pos, 0, 255);
     int acceleration = SettingsMap.GetInt("SLIDER_Shockwave_Accel", 0);
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Shockwave_Blend_Edges");
 

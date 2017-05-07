@@ -87,14 +87,14 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     float oset = buffer.GetEffectTimeIntervalPosition();
 
     int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", 3);
-    int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset);
-    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset);
+    int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, -360, 360);
+    int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, 0, 100);
     bool pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation");
     const std::string &pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
-    int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset);
-    int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset);
-    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset);
-    int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset);
+    int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, -100, 100);
+    int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, -100, 100);
+    int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset, 0, 400);
+    int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, 0, 50);
     const std::string &pinwheel_style = SettingsMap["CHOICE_Pinwheel_Style"];
 
     double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;

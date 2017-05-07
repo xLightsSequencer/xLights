@@ -140,24 +140,28 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Slider_Parameter1 = new wxSlider(this, ID_SLIDER_Parameter1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter1"));
     FlexGridSizer2->Add(Slider_Parameter1, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter1 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter1"));
+    TextCtrl_Parameter1->SetMaxLength(5);
     FlexGridSizer2->Add(TextCtrl_Parameter1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P2 = new wxStaticText(this, ID_STATICTEXT2, _("Parameter 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_P2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter2 = new wxSlider(this, ID_SLIDER_Parameter2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter2"));
     FlexGridSizer2->Add(Slider_Parameter2, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter2 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter2"));
+    TextCtrl_Parameter2->SetMaxLength(5);
     FlexGridSizer2->Add(TextCtrl_Parameter2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P3 = new wxStaticText(this, ID_STATICTEXT5, _("Parameter 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer2->Add(StaticText_P3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter3 = new wxSlider(this, ID_SLIDER_Parameter3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter3"));
     FlexGridSizer2->Add(Slider_Parameter3, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter3 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter3"));
+    TextCtrl_Parameter3->SetMaxLength(5);
     FlexGridSizer2->Add(TextCtrl_Parameter3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P4 = new wxStaticText(this, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxSize(121,16), 0, _T("ID_STATICTEXT6"));
     FlexGridSizer2->Add(StaticText_P4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter4 = new wxSlider(this, ID_SLIDER_Parameter4, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter4"));
     FlexGridSizer2->Add(Slider_Parameter4, 1, wxALL|wxEXPAND, 2);
     TextCtrl_Parameter4 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxSize(40,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter4"));
+    TextCtrl_Parameter4->SetMaxLength(5);
     FlexGridSizer2->Add(TextCtrl_Parameter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_WrapValues = new wxCheckBox(this, ID_CHECKBOX_WrapValues, _("Wrap Values"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WrapValues"));
@@ -204,7 +208,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurveDialog::OnResize);
     //*)
 
-    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)NULL, this);
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
 
     _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
@@ -217,38 +221,22 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     _backup = *_vc;
 
     wxString sMin = "";
-    float min = _vc->GetMin();
-    int min0 = min;
-    int min1 = min * 10;
-    int min2 = min * 100;
-    if ((float)min2 / 100 != (float)min1 / 10)
-    {
-        sMin = wxString::Format("%.2f", min);
-    }
-    else if ((float)min1 / 10 != (float)min0)
-    {
-        sMin = wxString::Format("%.1f", min);
-    }
-    else
-    {
-        sMin = wxString::Format("%d", min0);
-    }
     wxString sMax = "";
-    float max = _vc->GetMax();
-    int max0 = max;
-    int max1 = max * 10;
-    int max2 = max * 100;
-    if ((float)max2 / 100 != (float)max1 / 10)
+
+    switch(_vc->GetDivisor())
     {
-        sMax = wxString::Format("%.2f", max);
-    }
-    else if ((float)max1 / 10 != (float)max0)
-    {
-        sMax = wxString::Format("%.1f", max);
-    }
-    else
-    {
-        sMax = wxString::Format("%d", max0);
+    case 100:
+        sMin = wxString::Format("%.2f", _vc->GetMin() / 100.0);
+        sMax = wxString::Format("%.2f", _vc->GetMax() / 100.0);
+        break;
+    case 10:
+        sMin = wxString::Format("%.1f", _vc->GetMin() / 10.0);
+        sMax = wxString::Format("%.1f", _vc->GetMax() / 10.0);
+        break;
+    default:
+        sMin = wxString::Format("%i", (int)_vc->GetMin());
+        sMax = wxString::Format("%i", (int)_vc->GetMax());
+        break;
     }
 
     StaticText_BottomValue->SetLabel(sMin);
@@ -259,10 +247,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Slider_Parameter2->SetValue((int)_vc->GetParameter2());
     Slider_Parameter3->SetValue((int)_vc->GetParameter3());
     Slider_Parameter4->SetValue((int)_vc->GetParameter4());
-    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
-    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
-    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
-    TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
+    SetTextCtrlsFromSliders();
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     Choice1->SetFocus();
 
@@ -294,26 +279,31 @@ void ValueCurveDialog::SetParameter(int p, int v)
     switch (p)
     {
     case 1:
+    {
         _vc->SetParameter1(v);
         Slider_Parameter1->SetValue(v);
-        TextCtrl_Parameter1->SetValue(wxString::Format("%d", v));
+    }
         break;
     case 2:
+    {
         _vc->SetParameter2(v);
         Slider_Parameter2->SetValue(v);
-        TextCtrl_Parameter2->SetValue(wxString::Format("%d", v));
+    }
         break;
     case 3:
+    {
         _vc->SetParameter3(v);
         Slider_Parameter3->SetValue(v);
-        TextCtrl_Parameter3->SetValue(wxString::Format("%d", v));
+    }
         break;
     case 4:
+    {
         _vc->SetParameter4(v);
         Slider_Parameter4->SetValue(v);
-        TextCtrl_Parameter4->SetValue(wxString::Format("%d", v));
+    }
         break;
     }
+    SetTextCtrlsFromSliders();
 }
 
 void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
@@ -633,22 +623,58 @@ void ValueCurveDialog::UpdateLinkedSlider(wxCommandEvent& event)
 
 void ValueCurveDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)
 {
-    wxSlider * slider = (wxSlider*)event.GetEventObject();
-    wxString name = slider->GetName();
-    if (name.Contains("ID_")) {
-        name.Replace("ID_SLIDER_", "IDD_TEXTCTRL_");
+    SetTextCtrlsFromSliders();
+}
+
+void ValueCurveDialog::SetTextCtrlFromSlider(int parm, wxTextCtrl* txt, int value)
+{
+    std::string type = Choice1->GetStringSelection().ToStdString();
+    int low, high;
+    ValueCurve::GetRangeParm(parm, type, low, high);
+
+    float v = value;
+
+    int d = _vc->GetDivisor();
+
+    if (low == MINVOID)
+    {
+        v /= d;
     }
-    else {
-        name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
+    else
+    {
+        d = 1;
     }
-    wxTextCtrl *txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
-    txt->ChangeValue(wxString::Format("%d", slider->GetValue()));
+
+    switch(d)
+    {
+    case 10:
+        txt->ChangeValue(wxString::Format("%.1f", v));
+        break;
+    case 100:
+        txt->ChangeValue(wxString::Format("%.2f", v));
+        break;
+    default:
+        txt->ChangeValue(wxString::Format("%d", value));
+        break;
+    }
+}
+
+void ValueCurveDialog::SetTextCtrlsFromSliders()
+{
+    SetTextCtrlFromSlider(1, TextCtrl_Parameter1, Slider_Parameter1->GetValue());
+    SetTextCtrlFromSlider(2, TextCtrl_Parameter2, Slider_Parameter2->GetValue());
+    SetTextCtrlFromSlider(3, TextCtrl_Parameter3, Slider_Parameter3->GetValue());
+    SetTextCtrlFromSlider(4, TextCtrl_Parameter4, Slider_Parameter4->GetValue());
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
-    int i = wxAtoi(TextCtrl_Parameter1->GetValue());
+    float i = wxAtof(TextCtrl_Parameter1->GetValue());
+    int low, high;
+    ValueCurve::GetRangeParm1(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low = MINVOID)
+        i *= _vc->GetDivisor();
     _vc->SetParameter1(i);
     _vcp->Refresh();
 }
@@ -663,7 +689,11 @@ void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
-    int i = wxAtoi(TextCtrl_Parameter2->GetValue());
+    float i = wxAtof(TextCtrl_Parameter2->GetValue());
+    int low, high;
+    ValueCurve::GetRangeParm2(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low = MINVOID)
+        i *= _vc->GetDivisor();
     _vc->SetParameter2(i);
     _vcp->Refresh();
 }
@@ -679,7 +709,11 @@ void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
-    int i = wxAtoi(TextCtrl_Parameter3->GetValue());
+    float i = wxAtof(TextCtrl_Parameter3->GetValue());
+    int low, high;
+    ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low = MINVOID)
+        i *= _vc->GetDivisor();
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
@@ -695,7 +729,11 @@ void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
 void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
-    int i = wxAtoi(TextCtrl_Parameter4->GetValue());
+    float i = wxAtof(TextCtrl_Parameter4->GetValue());
+    int low, high;
+    ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low = MINVOID)
+        i *= _vc->GetDivisor();
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }
@@ -722,7 +760,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
     pdc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
     pdc.SetBrush(*wxTRANSPARENT_BRUSH);
-    if (_vc != NULL)
+    if (_vc != nullptr)
     {
         pdc.SetPen(wxPen(*wxGREEN, 3, wxPENSTYLE_LONG_DASH));
         std::list<vcSortablePoint> pts = _vc->GetPoints();
@@ -730,7 +768,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
         if (pts.size() > 1)
         {
             std::list<vcSortablePoint>::iterator last = pts.begin();
-            for (auto p = pts.begin()++; p != pts.end(); p++)
+            for (auto p = pts.begin()++; p != pts.end(); ++p)
             {
                 if (last->IsWrapped() == p->IsWrapped())
                 {
@@ -744,7 +782,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
             }
         }
         pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
-        for (auto it = pts.begin(); it != pts.end(); it++)
+        for (auto it = pts.begin(); it != pts.end(); ++it)
         {
             pdc.DrawRectangle((it->x * w) - 2, h - (it->y * h) - 2, 5, 5);
         }
@@ -759,6 +797,28 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
 void ValueCurveDialog::ValidateWindow()
 {
     wxString type = Choice1->GetStringSelection();
+
+    int min = 0;
+    int max = 100;
+    ValueCurve::GetRangeParm1(type.ToStdString(), min, max);
+    if (min == MINVOID) min = _vc->GetMin();
+    if (max == MAXVOID) max = _vc->GetMax();
+    if (Slider_Parameter1->GetMin() != min || Slider_Parameter1->GetMax() != max) Slider_Parameter1->SetRange(min, max);
+
+    ValueCurve::GetRangeParm2(type.ToStdString(), min, max);
+    if (min == MINVOID) min = _vc->GetMin();
+    if (max == MAXVOID) max = _vc->GetMax();
+    if (Slider_Parameter2->GetMin() != min || Slider_Parameter2->GetMax() != max) Slider_Parameter2->SetRange(min, max);
+
+    ValueCurve::GetRangeParm3(type.ToStdString(), min, max);
+    if (min == MINVOID) min = _vc->GetMin();
+    if (max == MAXVOID) max = _vc->GetMax();
+    if (Slider_Parameter3->GetMin() != min || Slider_Parameter3->GetMax() != max) Slider_Parameter3->SetRange(min, max);
+
+    ValueCurve::GetRangeParm4(type.ToStdString(), min, max);
+    if (min == MINVOID) min = _vc->GetMin();
+    if (max == MAXVOID) max = _vc->GetMax();
+    if (Slider_Parameter4->GetMin() != min || Slider_Parameter4->GetMax() != max) Slider_Parameter4->SetRange(min, max);
 
     if (type == "Custom")
     {
@@ -924,6 +984,7 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("End Level");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter4(0);
     }
     else if (type == "Custom")
     {
@@ -1172,9 +1233,6 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     Slider_Parameter2->SetValue((int)_vc->GetParameter2());
     Slider_Parameter3->SetValue((int)_vc->GetParameter3());
     Slider_Parameter4->SetValue((int)_vc->GetParameter4());
-    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
-    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
-    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
-    TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
+    SetTextCtrlsFromSliders();
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
 }

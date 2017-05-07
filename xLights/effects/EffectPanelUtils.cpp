@@ -173,11 +173,11 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
         VALUE_CURVE_BUTTONS[slider] = vc;
     }
 
-    if (vc != NULL)
+    if (vc != nullptr)
     {
         if (vc->GetValue()->GetType() == "Flat")
         {
-            vc->GetValue()->SetUnscaledParameter1(slider->GetValue());
+            vc->GetValue()->SetParameter1(slider->GetValue());
         }
     }
     else
@@ -291,7 +291,7 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
     {
         if (vc->GetValue()->GetType() == "Flat")
         {
-            vc->GetValue()->SetUnscaledParameter1(slider->GetValue());
+            vc->GetValue()->SetParameter1(slider->GetValue());
         }
     }
     else

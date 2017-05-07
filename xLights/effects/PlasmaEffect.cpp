@@ -63,7 +63,7 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
     int Line_Density = SettingsMap.GetInt("SLIDER_Plasma_Line_Density", 1);
-    int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset);
+    int PlasmaSpeed = GetValueCurveInt("Plasma_Speed", 10, SettingsMap, oset, 0, 100);
     std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
 
     int PlasmaDirection = 0; //fixme?

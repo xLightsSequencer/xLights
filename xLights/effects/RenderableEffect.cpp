@@ -780,7 +780,7 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
-double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
 {
     double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);
 
@@ -790,13 +790,15 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
         ValueCurve valc(vc.ToStdString());
         if (valc.IsActive())
         {
+            valc.SetLimits(min, max);
+            valc.SetDivisor(divisor);
             res = valc.GetOutputValueAt(offset);
         }
     }
 
     return res;
 }
-int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset)
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, int divisor)
 {
     int res = def;
     const std::string sn = "SLIDER_" + name;
@@ -817,6 +819,8 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
         ValueCurve valc(vc.ToStdString());
         if (valc.IsActive())
         {
+            valc.SetLimits(min, max);
+            valc.SetDivisor(divisor);
             res = valc.GetOutputValueAt(offset);
         }
     }

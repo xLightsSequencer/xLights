@@ -51,12 +51,12 @@ void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset);
-    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset);
-    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset);
-    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset);
-    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset);
-    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset);
+    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, 1, 100);
+    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, 1, 100);
+    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, 1, 100);
+    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, -50, 50);
+    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, 0, 50);
+    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, 0, 50);
 
     int i,x,y,xc,yc,ColorIdx;
     int mod1440,d_mod;

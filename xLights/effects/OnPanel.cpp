@@ -115,6 +115,8 @@ OnPanel::OnPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_On_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OnPanel::UpdateLinkedSliderFloat);
 	//*)
 
+    BitmapButton_On_Transparency->SetLimits(0, 100);
+
     SetName("ID_PANEL_ON");
 }
 
