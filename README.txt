@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (cjd)     Output status messages to commandline when run in render mode
    -- enh (gil)     Add right-click option to correct aspect ratio of a Matrix model (equal width vs height spacing). Fixes #606.
    -- enh (gil)     Custom model import will now keep submodels in original order instead of backwards.  Fixes: 787.
    -- enh (gil)     Allow boxed models to be sized past the window boundary. Fixes #853.
