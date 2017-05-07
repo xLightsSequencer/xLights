@@ -77,13 +77,14 @@ class ValueCurve
     void SetSerialisedValue(std::string k, std::string s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
+    void FixChangedScale(float oldmin, float oldmax);
 
 public:
-    ValueCurve() { ValueCurve(""); };
+    ValueCurve() { SetDefault(); _min = -9.1234f; _max = -9.1234f; _divisor = 1; }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     wxBitmap GetImage(int x, int y);
-    void SetDefault(float min = -9.1234f, float max = -9.1234f);
+    void SetDefault(float min = -9.1234f, float max = -9.1234f, int divisor = 91234);
     std::string Serialise();
     bool IsOk() { return _id != ""; }
     void Deserialise(const std::string& s);

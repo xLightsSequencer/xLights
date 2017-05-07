@@ -19,6 +19,56 @@ float ValueCurve::Safe01(float v)
     return std::min(1.0f, std::max(0.0f, v));
 }
 
+void ValueCurve::FixChangedScale(float oldmin, float oldmax)
+{
+    if (_type == "Custom")
+    {
+#pragma todo lots to do here    
+    }
+    else if (_type == "Flat")
+    {
+    }
+    else if (_type == "Ramp")
+    {
+    }
+    else if (_type == "Ramp Up/Down")
+    {
+    }
+    else if (_type == "Ramp Up/Down Hold")
+    {
+    }
+    else if (_type == "Saw Tooth")
+    {
+    }
+    else if (_type == "Square")
+    {
+    }
+    else if (_type == "Parabolic Down")
+    {
+    }
+    else if (_type == "Parabolic Up")
+    {
+    }
+    else if (_type == "Logarithmic Up")
+    {
+    }
+    else if (_type == "Logarithmic Down")
+    {
+    }
+    else if (_type == "Exponential Up")
+    {
+    }
+    else if (_type == "Exponential Down")
+    {
+    }
+    else if (_type == "Sine")
+    {
+    }
+    else if (_type == "Abs Sine")
+    {
+    }
+}
+
 void ValueCurve::RenderType()
 {
     if (_type != "Custom")
@@ -369,7 +419,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     RenderType();
 }
 
-void ValueCurve::SetDefault(float min, float max)
+void ValueCurve::SetDefault(float min, float max, int divisor)
 {
     _type = "Flat";
     if (min != -9.1234f)
@@ -386,11 +436,18 @@ void ValueCurve::SetDefault(float min, float max)
     _parameter4 = SafeParameter(4, 0);
     _active = false;
     _wrap = false;
+    if (divisor != 91234)
+    {
+        _divisor = divisor;
+    }
     RenderType();
 }
 
 ValueCurve::ValueCurve(const std::string& s)
 {
+    _min = -9.1234f;
+    _max = -9.1234f;
+    SetDefault();
     _divisor = 1;
     Deserialise(s);
 }
@@ -418,6 +475,10 @@ void ValueCurve::Deserialise(const std::string& s)
         _parameter3 = 0.0f;
         _parameter4 = 0.0f;
         _wrap = false;
+
+        float oldmin = _min;
+        float oldmax = _max;
+
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
         for (auto vs = v.begin(); vs != v.end(); vs++)
         {
@@ -427,6 +488,12 @@ void ValueCurve::Deserialise(const std::string& s)
                 SetSerialisedValue(v1[0].ToStdString(), v1[1].ToStdString());
             }
         }
+
+        if ((oldmin != -9.1234f && oldmin != _min) || (oldmax != -9.1234f && oldmax != _max))
+        {
+            FixChangedScale(oldmin, oldmax);
+        }
+
         RenderType();
     }
 }
