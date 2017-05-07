@@ -1525,28 +1525,45 @@ void xLightsFrame::UploadFPPBridgeInput()
             ip = dlg.GetValue();
         }
 
-        // now upload it
         wxConfigBase* config = wxConfigBase::Get();
+        wxString fip;
+        config->Read("xLightsPiIP", &fip, "");
         wxString user;
         config->Read("xLightsPiUser", &user, "fpp");
+        wxString password;
+        config->Read("xLightsPiPassword", &password, "true");
 
-        wxString password = "";
-        bool usedefaultpwd;
-        config->Read("xLightsPiDefaultPassword", &usedefaultpwd, true);
+        auto ips = wxSplit(fip, '|');
+        auto users = wxSplit(user, '|');
+        auto passwords = wxSplit(password, '|');
 
-        if (usedefaultpwd)
+        // they should all be the same size ... but if not base it off the smallest
+        int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
+
+        wxString theUser = "fpp";
+        wxString thePassword = "true";
+        for (int i = 0; i < count; i++)
         {
-            if (user == "pi")
+            if (ips[i] == ip)
+            {
+                theUser = users[i];
+                thePassword = passwords[i];
+            }
+        }
+
+        if (thePassword == "true")
+        {
+            if (theUser == "pi")
             {
                 password = "raspberry";
             }
-            else if (user == "fpp")
+            else if (theUser == "fpp")
             {
                 password = "falcon";
             }
             else
             {
-                wxTextEntryDialog ted(this, "Enter password for " + user, "Password", ip);
+                wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
                 if (ted.ShowModal() == wxID_OK)
                 {
                     password = ted.GetValue();
@@ -1555,14 +1572,14 @@ void xLightsFrame::UploadFPPBridgeInput()
         }
         else
         {
-            wxTextEntryDialog ted(this, "Enter password for " + user, "Password", ip);
+            wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
             if (ted.ShowModal() == wxID_OK)
             {
                 password = ted.GetValue();
             }
         }
 
-        FPP fpp(&_outputManager, ip.ToStdString(), user.ToStdString(), password.ToStdString());
+        FPP fpp(&_outputManager, ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
 
         if (fpp.IsConnected())
         {

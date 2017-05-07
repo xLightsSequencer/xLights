@@ -222,22 +222,11 @@ std::string FPPConnectionDetails::GetPassword() const
     return "";
 }
 
-bool FPPConnectionDetails::IsDefaultPassword(const std::string& user, const std::string& password)
-{
-    if ((user == "pi" && password == "raspberry") ||
-        (user == "fpp" && password == "falcon"))
-    {
-        return true;
-    }
-
-    return false;
-}
-
 void FPPConnectDialog::SaveConnectionDetails()
 {
     std::string ip = ComboBox_IPAddress->GetValue().ToStdString();
     std::string user = TextCtr_Username->GetValue().ToStdString();
-    std::string password = (FPPConnectionDetails::IsDefaultPassword(user, TextCtrl_Password->GetValue().ToStdString()) ? "true" : "false");
+    std::string password = (FPP::IsDefaultPassword(user, TextCtrl_Password->GetValue().ToStdString()) ? "true" : "false");
 
     for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
     {

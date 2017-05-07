@@ -180,10 +180,10 @@ std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels) const
             wxString name(model->name);
             name.Replace(" ", "_");
             if (model->GetNumStrands() > 0) {
-                channelmemorymaps.Write(wxString::Format("%s,%d,%d,horizontal,TL,%d,%d\n",
+                channelmemorymaps.Write(wxString::Format("%s,%i,%i,horizontal,TL,%i,%i\n",
                     name,
                     ch,
-                    model->GetActChanCount(),
+                    (unsigned long)model->GetActChanCount(),
                     model->GetNumStrands(),
                     1));
             }
@@ -303,3 +303,15 @@ bool FPP::UploadSequence(std::string file, wxWindow* parent)
 
     return cancelled;
 }
+
+bool FPP::IsDefaultPassword(const std::string& user, const std::string& password)
+{
+    if ((user == "pi" && password == "raspberry") ||
+        (user == "fpp" && password == "falcon"))
+    {
+        return true;
+    }
+
+    return false;
+}
+

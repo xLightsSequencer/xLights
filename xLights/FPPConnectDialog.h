@@ -29,7 +29,6 @@ public:
     std::string _user;
     FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password);
     bool IsDefaultPassword() const;
-    static bool IsDefaultPassword(const std::string& user, const std::string& password);
     std::string GetPassword() const;
 };
 
