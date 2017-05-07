@@ -158,7 +158,7 @@ class AudioManager
 	xLightsVamp _vamp;
 	long _rate;
 	int _channels;
-	int _trackSize;
+	int64_t _trackSize;
 	int _bits;
 	int _extra;
 	std::string _resultMessage;

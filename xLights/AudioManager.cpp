@@ -544,6 +544,8 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
 
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	// save parameters and initialise defaults
     _ok = true;
 	_job = nullptr;
@@ -575,7 +577,18 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	if (_state == -1)
 	{
 		_state = 1;
-	}
+        logger_base.info("Audio file loaded.");
+        logger_base.info("    Filename: %s", (const char *)_audio_file.c_str());
+        logger_base.info("    Title: %s", (const char *)_title.c_str());
+        logger_base.info("    Album: %s", (const char *)_album.c_str());
+        logger_base.info("    Artist: %s", (const char *)_artist.c_str());
+        logger_base.info("    Length: %ldms", _lengthMS);
+        logger_base.info("    Channels %d, Bits: %d, Rate %ld", _channels, _bits, _rate);
+    }
+    else
+    {
+        logger_base.error("Audio file not loaded.");
+    }
 }
 
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id)
@@ -699,7 +712,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
-            
+
             if (first && features.size() > 0)
             {
                 logger_base.warn("Polyphonic transcription data process oddly retrieved data.");
@@ -730,7 +743,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 {
                     fn(dlg, (int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
                 }
-                
+
                 int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
                 int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
 
@@ -792,6 +805,8 @@ void AudioManager::DoPrepareFrameData()
 
 	// lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+
+    if (_data[0] == nullptr) return;
 
 	// if we have already done it ... bail
 	if (_frameDataPrepared)
@@ -1001,38 +1016,42 @@ void ProgressFunction(wxProgressDialog* pd, int p)
 // Get the pre-prepared data for this frame
 std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing)
 {
+    std::list<float>* rc = nullptr;
+
     // Grab the lock so we can safely access the frame data
     std::shared_lock<std::shared_timed_mutex> lock(_mutex);
 
-	// if the frame data has not been prepared
-	if (!_frameDataPrepared)
-	{
-		// prepare it
-		lock.unlock();
-		PrepareFrameData(false);
+    // make sure we have audio data
+    if (_data[0] == nullptr) return rc;
+
+    // if the frame data has not been prepared
+    if (!_frameDataPrepared)
+    {
+        // prepare it
+        lock.unlock();
+        PrepareFrameData(false);
 
         lock.lock();
-		// wait until the new thread grabs the lock
-		while (!_frameDataPrepared)
-		{
-			lock.unlock();
-			wxMilliSleep(5);
+        // wait until the new thread grabs the lock
+        while (!_frameDataPrepared)
+        {
+            lock.unlock();
+            wxMilliSleep(5);
             lock.lock();
-		}
-	}
+        }
+    }
     if (fdt == FRAMEDATA_NOTES && !_polyphonicTranscriptionDone) {
         //need to do the polyphonic stuff
         wxProgressDialog dlg("Processing Audio", "");
         DoPolyphonicTranscription(&dlg, ProgressFunction);
     }
 
-	// now we can grab the data we need
-	std::list<float>* rc = nullptr;
-	try
-	{
-		if (frame < (int)_frameData.size())
-		{
-			std::vector<std::list<float>>* framedata = &_frameData[frame];
+    // now we can grab the data we need
+    try
+    {
+        if (frame < (int)_frameData.size())
+        {
+            std::vector<std::list<float>>* framedata = &_frameData[frame];
 
             if (framedata == nullptr)
             {
@@ -1040,35 +1059,35 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
                 logger_base.crit("AudioManager::GetFrameData framedata is nullptr ... this is going to crash.");
             }
 
-			switch (fdt)
-			{
-			case FRAMEDATA_HIGH:
-				rc = &framedata->at(0);
-				break;
-			case FRAMEDATA_LOW:
-				rc = &framedata->at(1);
-				break;
-			case FRAMEDATA_SPREAD:
-				rc = &framedata->at(2);
-				break;
-			case FRAMEDATA_VU:
-				rc = &framedata->at(3);
-				break;
-			case FRAMEDATA_ISTIMINGMARK:
-				// we dont need to do anything here
-				break;
-			case FRAMEDATA_NOTES:
-				rc = &framedata->at(4);
-				break;
-			}
-		}
-	}
-	catch (...)
-	{
-		rc = nullptr;
-	}
+            switch (fdt)
+            {
+            case FRAMEDATA_HIGH:
+                rc = &framedata->at(0);
+                break;
+            case FRAMEDATA_LOW:
+                rc = &framedata->at(1);
+                break;
+            case FRAMEDATA_SPREAD:
+                rc = &framedata->at(2);
+                break;
+            case FRAMEDATA_VU:
+                rc = &framedata->at(3);
+                break;
+            case FRAMEDATA_ISTIMINGMARK:
+                // we dont need to do anything here
+                break;
+            case FRAMEDATA_NOTES:
+                rc = &framedata->at(4);
+                break;
+            }
+        }
+    }
+    catch (...)
+    {
+        rc = nullptr;
+    }
 
-	return rc;
+    return rc;
 }
 
 // Constant Bitrate Detection Functions
@@ -1083,6 +1102,7 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 		switch (layertype)
 		{
 		case 0:
+        default:
 			// invalid
 			return 0;
 		case 1: // L3
@@ -1114,6 +1134,7 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 		switch (layertype)
 		{
 		case 0:
+        default:
 			// invalid
 			return 0;
 		case 1: // L3
@@ -1174,7 +1195,8 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 		}
 		break;
 	case 1:
-		// invalid
+    default:
+        // invalid
 		return 0;
 	}
     return 0;
@@ -1195,6 +1217,7 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
 		case 2:
 			return 8000;
 		case 3:
+        default:
 			return 0;
 		}
 		break;
@@ -1208,6 +1231,7 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
 		case 2:
 			return 16000;
 		case 3:
+        default:
 			return 0;
 		}
 		break;
@@ -1221,10 +1245,12 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
 		case 2:
 			return 32000;
 		case 3:
+        default:
 			return 0;
 		}
 		break;
 	case 1:
+    default:
 		// invalid
 		return 0;
 	}
@@ -1297,6 +1323,13 @@ AudioManager::~AudioManager()
 		free(_pcmdata);
 		_pcmdata = nullptr;
 	}
+
+    // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
+    // this is only tripped if we try to open a new song too soon after opening another one
+
+    // Grab the lock so we know the background process isnt runnning
+    std::shared_lock<std::shared_timed_mutex> lock(_mutex);
+
 	if (_data[1] != _data[0] && _data[1] != nullptr)
 	{
 		free(_data[1]);
@@ -1426,6 +1459,7 @@ int AudioManager::OpenMediaFile()
 
     if (_data[0] == nullptr)
     {
+        wxASSERT(false);
         logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
@@ -1437,6 +1471,7 @@ int AudioManager::OpenMediaFile()
 		_data[1] = (float*)calloc(size, 1);
         if (_data[1] == nullptr)
         {
+            wxASSERT(false);
             logger_base.error("Unable to allocate %ld memory to load audio file %s.", (long)size, (const char *)_audio_file.c_str());
             _ok = false;
             return 1;
@@ -1695,7 +1730,10 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	// Clean up!
 	av_free(frame);
 
-	_lengthMS = (int)(((int64_t)_trackSize * 1000) / ((int64_t)(codecContext->time_base.den)));
+	_lengthMS = (int32_t)(((int64_t)_trackSize * 1000) / ((int64_t)(codecContext->time_base.den)));
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %dms", (long)_trackSize, codecContext->time_base.den, _lengthMS);
 }
 
 void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
@@ -1720,6 +1758,7 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 // Access a single piece of track data
 float AudioManager::GetLeftData(int offset)
 {
+    wxASSERT(_data[0] != nullptr);
 	if (offset > _trackSize)
 	{
 		return 0;
@@ -1730,7 +1769,8 @@ float AudioManager::GetLeftData(int offset)
 // Access a single piece of track data
 float AudioManager::GetRightData(int offset)
 {
-	if (offset > _trackSize)
+    wxASSERT(_data[1] != nullptr);
+    if (offset > _trackSize)
 	{
 		return 0;
 	}
@@ -1740,6 +1780,7 @@ float AudioManager::GetRightData(int offset)
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetLeftDataPtr(int offset)
 {
+    wxASSERT(_data[0] != nullptr);
 	if (offset > _trackSize)
 	{
 		return 0;
@@ -1750,6 +1791,7 @@ float* AudioManager::GetLeftDataPtr(int offset)
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetRightDataPtr(int offset)
 {
+    wxASSERT(_data[1] != nullptr);
 	if (offset > _trackSize)
 	{
 		return 0;

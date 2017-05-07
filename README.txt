@@ -30,6 +30,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   A bit of a speculative change ... optimise LOR output to only output changed data in each frame
                     Looking at FPP and the protocol it looks like it will use and should make it run better when not 
 					every channel changes every frame.
+   -- bug (keith)   Fix crash when audio files are opened in quick succession
 2017.12  Apr  30, 2017
    -- bug (sean)    Fix for Vamp plugins for 64 bit xLights. Web page updated to remove direct download of Vamp
 2017.11  Apr  29, 2017

@@ -177,7 +177,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         {
             float f = 0.0;
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != NULL)
+            if (pf != nullptr)
             {
                 f = *pf->begin();
             }
