@@ -129,15 +129,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         CreateDefaultEffectsXml();
     }
 	wxXmlNode* viewsNode = nullptr;
+	wxXmlNode* colorsNode = nullptr;
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
-		if (e->GetName() == "views") 
-		{
-			viewsNode = e;
-		}
+		if (e->GetName() == "views") viewsNode = e;
+		if (e->GetName() == "colors") colorsNode = e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
         if (e->GetName() == "layoutGroups") LayoutGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
@@ -170,6 +169,15 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 	else
 	{
 		_sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
+	}
+
+    if (colorsNode == nullptr)
+    {
+        UnsavedRgbEffectsChanges = true;
+    }
+	else
+	{
+		color_mgr.Load(colorsNode);
 	}
 
     if (ModelGroupsNode == nullptr)
@@ -528,6 +536,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 	// Make sure the views are up to date before we save it
 	_sequenceViewManager.Save(&EffectsXml);
 
+	color_mgr.Save(&EffectsXml);
+
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     if (backup)
@@ -802,7 +812,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         ProgressBar->SetValue(100);
         ProgressBar->Hide();
         GaugeSizer->Layout();
-        
+
         logger_base.info("Saving fseq file.");
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
         WriteFalconPiFile(xlightsFilename);
@@ -814,7 +824,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
         mSavedChangeCount = mSequenceElements.GetChangeCount();
         mLastAutosaveCount = mSavedChangeCount;
-        
+
         CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames);
     } );
 }

@@ -14,6 +14,7 @@
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 class MainSequencer;
+class xLightsFrame;
 
 class RowHeading : public wxWindow
 {
@@ -25,7 +26,6 @@ class RowHeading : public wxWindow
 
         void SetSequenceElements(SequenceElements* elements);
         void SetSelectedRow(int row_number);
-        static const xlColor* GetTimingColor(int index);
         int getWidth();
         int getHeight();
         int GetMaxRows();
@@ -48,9 +48,7 @@ class RowHeading : public wxWindow
         void BreakdownTimingPhrases(TimingElement* element);
         void BreakdownTimingWords(TimingElement* element);
         const xlColor* GetHeaderColor(Row_Information_Struct* info);
-        const xlColor * mHeaderColorModel;
-        const xlColor * mHeaderColorTiming;
-        const xlColor * mHeaderSelectedColor;
+
         wxBitmap papagayo_icon;
         wxBitmap model_group_icon;
 

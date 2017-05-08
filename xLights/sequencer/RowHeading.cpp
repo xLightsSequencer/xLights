@@ -4,7 +4,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
-#include <wx/numdlg.h> 
+#include <wx/numdlg.h>
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -50,9 +50,6 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
                        wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     DOUBLE_BUFFER(this);
-    mHeaderColorModel = new xlColor(212,208,200);
-    mHeaderColorTiming = new xlColor(130,178,207);
-    mHeaderSelectedColor = new xlColor(130,178,207);
     wxString tooltip;
     papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, false);
     model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, false);
@@ -61,9 +58,6 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 
 RowHeading::~RowHeading()
 {
-    if (mHeaderColorModel != NULL) delete mHeaderColorModel;
-    if (mHeaderColorTiming != NULL) delete mHeaderColorTiming;
-    if (mHeaderSelectedColor != NULL) delete mHeaderSelectedColor;
 }
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
@@ -352,7 +346,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 				wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
 				wxPostEvent(GetParent(), eventRowHeaderChanged);
 			}
-			
+
 		}
 	}
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
@@ -624,7 +618,7 @@ void RowHeading::Draw()
     wxCoord w,h;
     wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
-    wxBrush brush(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush brush(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor")->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row=0;
@@ -745,7 +739,7 @@ void RowHeading::Draw()
         }
         row++;
     }
-    wxBrush b(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush b(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor")->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
 }
@@ -754,17 +748,16 @@ const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
     if (info->element->GetType() == ELEMENT_TYPE_TIMING)
     {
-        return GetTimingColor(info->colorIndex);
+        return mSequenceElements->GetXLightsFrame()->color_mgr.GetTimingColor(info->colorIndex);
     }
 
     if (info->RowNumber == mSelectedRow )
-    //if (info->element->GetSelected())
     {
-        return  mHeaderSelectedColor;
+        return  mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderSelectedColor");
     }
     else
     {
-        return mHeaderColorModel;
+        return mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor");
     }
 }
 
@@ -786,35 +779,5 @@ int RowHeading::getHeight()
 {
     return GetSize().y;
 }
-
-const xlColor* RowHeading::GetTimingColor(int colorIndex)
-{
-    const xlColor* value;
-    switch(colorIndex%5)
-    {
-        case 0:
-            //
-            value = &xlCYAN;
-            break;
-        case 1:
-            value = &xlRED;
-            break;
-        case 2:
-            value = &xlGREEN;
-            break;
-        case 3:
-            value = &xlBLUE;
-            break;
-        default:
-            value = &xlYELLOW;
-            break;
-    }
-    return value;
-}
-
-
-
-
-
 
 

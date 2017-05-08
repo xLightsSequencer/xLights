@@ -184,8 +184,6 @@ private:
     xlColor * mWordColor;
     xlColor * mPhonemeColor;
 
-    xlColor * mSelectionColor;
-    xlColor * mSelectFocusColor;
     wxWindow* mParent;
     TimeLine* mTimeline;
 

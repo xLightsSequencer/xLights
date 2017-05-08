@@ -37,6 +37,7 @@
 #include "SequenceCheck.h"
 #include "FPPConnectDialog.h"
 #include "IPEntryDialog.h"
+#include "ColorManagerDialog.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -219,6 +220,7 @@ const long xLightsFrame::ID_MENUITEM_Grid_Icon_Backgrounds = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM8 = wxNewId();
+const long xLightsFrame::ID_COLOR_MANAGER = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
@@ -379,7 +381,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
-    layoutPanel(nullptr)
+    layoutPanel(nullptr), color_mgr(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -782,6 +784,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemGridNodeValuesOff = new wxMenuItem(MenuItem1, ID_MENUITEM_GRID_NODE_VALUES_OFF, _("Off"), wxEmptyString, wxITEM_CHECK);
     MenuItem1->Append(MenuItemGridNodeValuesOff);
     MenuSettings->Append(ID_MENUITEM8, _("Grid Node Values"), MenuItem1, wxEmptyString);
+    MenuItemColorManager = new wxMenuItem(MenuSettings, ID_COLOR_MANAGER, _("Color Manager"), wxEmptyString, wxITEM_NORMAL);
+    MenuSettings->Append(MenuItemColorManager);
     MenuItemRenderMode = new wxMenu();
     MenuItemRenderEraseMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderEraseMode);
@@ -970,6 +974,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
+    Connect(ID_COLOR_MANAGER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemColorManagerSelected);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
@@ -4967,4 +4972,12 @@ void xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxComm
 void xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event)
 {
     _excludeAudioFromPackagedSequences = MenuItem_ExcludeAudioPackagedSequence->IsChecked();
+}
+
+void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
+{
+    ColorManagerDialog dlg(this, color_mgr);
+    dlg.Fit();
+    dlg.SetMainSequencer(mainSequencer);
+    dlg.ShowModal();
 }

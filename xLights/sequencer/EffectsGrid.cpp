@@ -95,8 +95,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
     mTimingColor = new xlColor(255,255,255);
     mTimingVerticalLine = new xlColor(130,178,207);
-    mSelectionColor = new xlColor(204, 102, 255);
-    mSelectFocusColor = new xlColor(255,0,255);
 
     mLabelColor = new xlColor(255,255,204);
     mLabelOutlineColor = new xlColor(103, 103, 103);
@@ -116,8 +114,6 @@ EffectsGrid::~EffectsGrid()
 	delete mGridlineColor;
 	delete mTimingColor;
 	delete mTimingVerticalLine;
-	delete mSelectionColor;
-	delete mSelectFocusColor;
 }
 
 EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
@@ -3328,11 +3324,11 @@ void EffectsGrid::DrawEffects()
                 int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
                 if( selected_timing_row >= 0 )
                 {
-                    highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
+                    highlight_color = *xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
                 }
                 else
                 {
-                    highlight_color = *RowHeading::GetTimingColor(0);
+                    highlight_color = *xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = 128;
                 selectedBoxes.AddRect(mDropStartX,y3,mDropStartX+mDropEndX-mDropStartX,y3+DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
@@ -3346,8 +3342,8 @@ void EffectsGrid::DrawEffects()
         it->second.Reset();
     }
     DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
-    DrawGLUtils::Draw(selectedLines, *mSelectionColor, GL_LINES);
-    DrawGLUtils::Draw(selectFocusLines, *mSelectFocusColor, GL_LINES);
+    DrawGLUtils::Draw(selectedLines, *xlights->color_mgr.GetColor("EffectSelected"), GL_LINES);
+    DrawGLUtils::Draw(selectFocusLines, *xlights->color_mgr.GetColor("ReferenceEffect"), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
     DrawGLUtils::Draw(timingEffLines, xlWHITE, GL_LINES);
@@ -3383,7 +3379,8 @@ void EffectsGrid::DrawTimingEffects(int row)
     DrawGLUtils::xlVertexAccumulator * linesRight;
     DrawGLUtils::xlVertexAccumulator * linesLeft;
     DrawGLUtils::xlVertexAccumulator * linesCenter;
-    xlColor c(*RowHeading::GetTimingColor(ri->colorIndex));
+    xlColor c(*xlights->color_mgr.GetTimingColor(ri->colorIndex));
+    //xlColor c(*RowHeading::GetTimingColor(ri->colorIndex));
     c.alpha = 128;
 
     int toffset = 0;
@@ -3550,7 +3547,7 @@ void EffectsGrid::DrawSelectedCells()
             int start_y = adjusted_start_row*DEFAULT_ROW_HEADING_HEIGHT;
             int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
             xlColor highlight_color;
-            highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+            highlight_color = *xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
             LOG_GL_ERRORV(glEnable(GL_BLEND));
             DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
             LOG_GL_ERRORV(glDisable(GL_BLEND));

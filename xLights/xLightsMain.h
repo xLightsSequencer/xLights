@@ -76,6 +76,7 @@
 #include "JobPool.h"
 #include <log4cpp/Category.hh>
 #include "SequenceViewManager.h"
+#include "ColorManager.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -473,6 +474,7 @@ private:
     void OnButton_DDPClick(wxCommandEvent& event);
     void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
+    void OnMenuItemColorManagerSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -614,6 +616,7 @@ private:
     static const long ID_MENUITEM_GRID_NODE_VALUES_ON;
     static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
     static const long ID_MENUITEM8;
+    static const long ID_COLOR_MANAGER;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
@@ -749,6 +752,7 @@ private:
     xlAuiToolBar* MainToolBar;
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxTimer Timer_AutoSave;
+    wxMenuItem* MenuItemColorManager;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
@@ -1221,6 +1225,8 @@ public:
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
+
+    ColorManager color_mgr;
 
     wxString GetSeqXmlFileName();
 	void DoPlaySequence();

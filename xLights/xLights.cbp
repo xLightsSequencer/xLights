@@ -499,6 +499,10 @@
 		<Unit filename="ColorCurve.cpp" />
 		<Unit filename="ColorCurveDialog.cpp" />
 		<Unit filename="ColorCurveDialog.h" />
+		<Unit filename="ColorManager.cpp" />
+		<Unit filename="ColorManager.h" />
+		<Unit filename="ColorManagerDialog.cpp" />
+		<Unit filename="ColorManagerDialog.h" />
 		<Unit filename="ColorPanel.cpp" />
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
@@ -1080,6 +1084,7 @@
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
+		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
@@ -1224,6 +1229,7 @@
 					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
 					<wxPanel wxs="wxsmith/MainSequencer.wxs" src="sequencer/MainSequencer.cpp" hdr="sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
 					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/ColorManagerDialog.wxs" src="ColorManagerDialog.cpp" hdr="ColorManagerDialog.h" fwddecl="0" i18n="1" name="ColorManagerDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />

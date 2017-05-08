@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (cjd)     Output status messages to commandline when run in render mode
+   -- enh (gil)     New Color Manager Dialog so user can customize colors in the program.  Fixes #363.
    -- enh (gil)     Add right-click option to correct aspect ratio of a Matrix model (equal width vs height spacing). Fixes #606.
    -- enh (gil)     Custom model import will now keep submodels in original order instead of backwards.  Fixes: 787.
    -- enh (gil)     Allow boxed models to be sized past the window boundary. Fixes #853.
@@ -29,7 +30,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Add back LOR import CCR level import
    -- bug (keith)   Fix some potential crashes in FPP upload
    -- enh (keith)   A bit of a speculative change ... optimise LOR output to only output changed data in each frame
-                    Looking at FPP and the protocol it looks like it will use and should make it run better when not 
+                    Looking at FPP and the protocol it looks like it will use and should make it run better when not
 					every channel changes every frame.
    -- bug (keith)   Fix crash when audio files are opened in quick succession
    -- enh (keith)   Allow multiple import of xpresets

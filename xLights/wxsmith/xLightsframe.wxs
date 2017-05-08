@@ -1142,6 +1142,10 @@
 						<checkable>1</checkable>
 					</object>
 				</object>
+				<object class="wxMenuItem" name="ID_COLOR_MANAGER" variable="MenuItemColorManager" member="yes">
+					<label>Color Manager</label>
+					<handler function="OnMenuItemColorManagerSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>
 					<enabled>0</enabled>
