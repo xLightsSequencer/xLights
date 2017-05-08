@@ -160,6 +160,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColorManager.cpp" />
+    <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
@@ -461,6 +463,8 @@
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColorManager.h" />
+    <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
     <ClInclude Include="effects\CandlePanel.h" />

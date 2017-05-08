@@ -867,6 +867,9 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());
                 xLightsImportModelNode* mni = TreeContainsModel(model.ToStdString(), strand.ToStdString(), node.ToStdString());
 
+                if (mni == msi) mni = nullptr;
+                if (msi == mi) msi = nullptr;
+
                 if (mi == nullptr || (msi == nullptr && strand != "") || (mni == nullptr && node != ""))
                 {
                     if (!strandwarning)

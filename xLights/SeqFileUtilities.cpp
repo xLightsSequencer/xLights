@@ -921,19 +921,36 @@ void MapXLightsEffects(Element *target,
                        std::map<std::string, Element *> &elementMap,
                        std::map<std::string, EffectLayer *> &layerMap,
                        std::vector<EffectLayer *> &mapped) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (target->GetType() == ElementType::ELEMENT_TYPE_STRAND)
+    {
+        wxString strandName = wxString::Format("Strand %d", ((StrandElement*)target)->GetStrand()+1);
+        logger_base.debug("Mapping xLights effect from %s to %s%s.", (const char *)name.c_str(), (const char *)target->GetFullName().c_str(), (const char*)strandName.c_str());
+    }
+    else
+    {
+        logger_base.debug("Mapping xLights effect from %s to %s.", (const char *)name.c_str(), (const char *)target->GetFullName().c_str());
+    }
+
     EffectLayer *src = layerMap[name];
     Element *el = elementMap[name];
+
     if (src != nullptr) {
         MapXLightsEffects(target->GetEffectLayer(0), src, mapped);
         return;
     }
+
     if (el == nullptr) {
         el = seqEl.GetElement(name);
     }
+
     if (el == nullptr) {
+        logger_base.debug("Mapping xLights effect from %s to %s failed as the effect was not found in the source sequence.", (const char *)name.c_str(), (const char *)target->GetName().c_str());
         //printf("Source element %s doesn't exist\n", name.c_str());
         return;
     }
+
     while (target->GetEffectLayerCount() < el->GetEffectLayerCount()) {
         target->AddEffectLayer();
     }
