@@ -3077,7 +3077,7 @@ void EffectsGrid::DrawLines()
         }
     }
 
-    DrawGLUtils::Draw(va, *xlights->color_mgr.GetColor("Gridlines"), GL_LINES);
+    DrawGLUtils::Draw(va, xlights->color_mgr.GetColor("Gridlines"), GL_LINES);
     DrawGLUtils::SetLineWidth(1.0f);
 }
 
@@ -3308,11 +3308,11 @@ void EffectsGrid::DrawEffects()
                 int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
                 if( selected_timing_row >= 0 )
                 {
-                    highlight_color = *xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
+                    highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(selected_timing_row)->colorIndex);
                 }
                 else
                 {
-                    highlight_color = *xlights->color_mgr.GetTimingColor(0);
+                    highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = 128;
                 selectedBoxes.AddRect(mDropStartX,y3,mDropStartX+mDropEndX-mDropStartX,y3+DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
@@ -3325,12 +3325,12 @@ void EffectsGrid::DrawEffects()
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);
         it->second.Reset();
     }
-    DrawGLUtils::Draw(lines, *xlights->color_mgr.GetColor("EffectDefault"), GL_LINES);
-    DrawGLUtils::Draw(selectedLines, *xlights->color_mgr.GetColor("EffectSelected"), GL_LINES);
-    DrawGLUtils::Draw(selectFocusLines, *xlights->color_mgr.GetColor("ReferenceEffect"), GL_LINES);
+    DrawGLUtils::Draw(lines, xlights->color_mgr.GetColor("EffectDefault"), GL_LINES);
+    DrawGLUtils::Draw(selectedLines, xlights->color_mgr.GetColor("EffectSelected"), GL_LINES);
+    DrawGLUtils::Draw(selectFocusLines, xlights->color_mgr.GetColor("ReferenceEffect"), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
-    DrawGLUtils::Draw(timingEffLines, *xlights->color_mgr.GetColor("TimingDefault"), GL_LINES);
+    DrawGLUtils::Draw(timingEffLines, xlights->color_mgr.GetColor("TimingDefault"), GL_LINES);
     DrawGLUtils::Draw(textBackgrounds, GL_TRIANGLES);
     DrawGLUtils::SetLineWidth(1.0);
     DrawGLUtils::Draw(timingLines, GL_LINES, GL_BLEND);
@@ -3363,7 +3363,7 @@ void EffectsGrid::DrawTimingEffects(int row)
     DrawGLUtils::xlVertexAccumulator * linesRight;
     DrawGLUtils::xlVertexAccumulator * linesLeft;
     DrawGLUtils::xlVertexAccumulator * linesCenter;
-    xlColor c(*xlights->color_mgr.GetTimingColor(ri->colorIndex));
+    xlColor c(xlights->color_mgr.GetTimingColor(ri->colorIndex));
     c.alpha = 128;
 
     int toffset = 0;
@@ -3440,7 +3440,7 @@ void EffectsGrid::DrawTimingEffects(int row)
                     int width = std::min(text_width, max_width);
                     int center = x1 + (x2-x1)/2;
                     int label_start = center - width/2;
-                    xlColor* label_color = xlights->color_mgr.GetColor("Labels");
+                    xlColor label_color = xlights->color_mgr.GetColor("Labels");
                     if( ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
                     {
                         label_color = xlights->color_mgr.GetColor("Phrases");
@@ -3453,8 +3453,8 @@ void EffectsGrid::DrawTimingEffects(int row)
                     {
                         label_color = xlights->color_mgr.GetColor("Phonemes");
                     }
-                    textBackgrounds.AddRect(label_start,y1-2,label_start+width,y2+2, *label_color);
-                    timingLines.AddLinesRect(label_start-0.4,y1-2-0.4,label_start+width+0.4,y2+2+0.4, *xlights->color_mgr.GetColor("LabelOutline"));
+                    textBackgrounds.AddRect(label_start,y1-2,label_start+width,y2+2, label_color);
+                    timingLines.AddLinesRect(label_start-0.4,y1-2-0.4,label_start+width+0.4,y2+2+0.4, xlights->color_mgr.GetColor("LabelOutline"));
                     texts.AddVertex(label_start + 4, y2 + toffset, effectLayer->GetEffect(effectIndex)->GetEffectName());
                 }
             }
@@ -3530,7 +3530,7 @@ void EffectsGrid::DrawSelectedCells()
             int start_y = adjusted_start_row*DEFAULT_ROW_HEADING_HEIGHT;
             int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
             xlColor highlight_color;
-            highlight_color = *xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+            highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
             LOG_GL_ERRORV(glEnable(GL_BLEND));
             DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
             LOG_GL_ERRORV(glDisable(GL_BLEND));

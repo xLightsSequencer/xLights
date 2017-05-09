@@ -125,8 +125,8 @@ class ColorManagerDialog: public wxDialog
 
 		DECLARE_EVENT_TABLE()
 
-		void SetButtonColor(wxBitmapButton* btn, const xlColor* color);
-		void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
+		void SetButtonColor(wxBitmapButton* btn, const xlColor color);
+		void SetButtonColor(wxBitmapButton* btn, const wxColour c);
 		void UpdateButtonColors();
         void RefreshColors();
 

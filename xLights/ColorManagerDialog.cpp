@@ -253,22 +253,22 @@ void ColorManagerDialog::SetMainSequencer(MainSequencer* sequencer)
     main_sequencer = sequencer;
 }
 
-void ColorManagerDialog::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
+void ColorManagerDialog::SetButtonColor(wxBitmapButton* btn, const wxColour c)
 {
-    btn->SetBackgroundColour(*c);
-    btn->SetForegroundColour(*c);
+    btn->SetBackgroundColour(c);
+    btn->SetForegroundColour(c);
 
     wxImage image(36,18);
-    image.SetRGB(wxRect(0,0,36,18), c->Red(), c->Green(), c->Blue());
+    image.SetRGB(wxRect(0,0,36,18), c.Red(), c.Green(), c.Blue());
     wxBitmap bmp(image);
 
     btn->SetBitmap(bmp);
 }
 
-void ColorManagerDialog::SetButtonColor(wxBitmapButton* btn, const xlColor* color)
+void ColorManagerDialog::SetButtonColor(wxBitmapButton* btn, const xlColor color)
 {
-    wxColour c = (wxColour)(*color);
-    SetButtonColor(btn, &c);
+    wxColour c = (wxColour)(color);
+    SetButtonColor(btn, c);
 }
 
 void ColorManagerDialog::ColorButtonSelected(wxCommandEvent& event)
@@ -284,10 +284,11 @@ void ColorManagerDialog::ColorButtonSelected(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         color = retData.GetColour();
-        SetButtonColor(button, &color);
+        SetButtonColor(button, color);
         xlColor c(color);
-        color_mgr.SetNewColor(name.ToStdString(), &c);
+        color_mgr.SetNewColor(name.ToStdString(), c);
         RefreshColors();
+        color_mgr->SetDirty();
     }
 }
 
@@ -301,6 +302,7 @@ void ColorManagerDialog::OnButton_Reset_DefaultsClick(wxCommandEvent& event)
     color_mgr.ResetDefaults();
     UpdateButtonColors();
     RefreshColors();
+    color_mgr->SetDirty();
 }
 
 void ColorManagerDialog::RefreshColors()

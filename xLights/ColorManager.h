@@ -15,9 +15,9 @@ class ColorManager
         virtual ~ColorManager();
 
         void ResetDefaults();
-        const xlColor* GetTimingColor(int colorIndex);
-        void SetNewColor(std::string name, xlColor* color);
-        xlColor* GetColor(std::string name);
+        const xlColor GetTimingColor(int colorIndex);
+        void SetNewColor(std::string name, xlColor& color);
+        xlColor GetColor(std::string name);
 
         void Snapshot();
         void RestoreSnapshot();
@@ -25,14 +25,15 @@ class ColorManager
         void Save(wxXmlDocument* doc);
         void Load(wxXmlNode* colors_node);
 
+        void SetDirty();
+
     protected:
 
     private:
         wxXmlNode* Save() const;
-        void Clear();
 
-        std::map<std::string, xlColor*> colors;
-        std::map<std::string, xlColor*> colors_backup;
+        std::map<std::string, xlColor> colors;
+        std::map<std::string, xlColor> colors_backup;
         xLightsFrame* xlights;
 
 };
