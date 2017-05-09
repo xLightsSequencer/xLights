@@ -288,7 +288,7 @@ void ColorManagerDialog::ColorButtonSelected(wxCommandEvent& event)
         xlColor c(color);
         color_mgr.SetNewColor(name.ToStdString(), c);
         RefreshColors();
-        color_mgr->SetDirty();
+        color_mgr.SetDirty();
     }
 }
 
@@ -302,7 +302,7 @@ void ColorManagerDialog::OnButton_Reset_DefaultsClick(wxCommandEvent& event)
     color_mgr.ResetDefaults();
     UpdateButtonColors();
     RefreshColors();
-    color_mgr->SetDirty();
+    color_mgr.SetDirty();
 }
 
 void ColorManagerDialog::RefreshColors()
