@@ -88,6 +88,7 @@ class ColorManagerDialog: public wxDialog
 
 		MainSequencer* main_sequencer;
 		ColorManager& color_mgr;
+        wxBitmap color_fan;
 
 };
 

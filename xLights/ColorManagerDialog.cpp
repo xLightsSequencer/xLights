@@ -4,6 +4,7 @@
 #include <wx/colordlg.h>
 #include "ColorManager.h"
 #include "xLightsMain.h"
+#include "ColorFanImage.h"
 
 //(*InternalHeaders(ColorManagerDialog)
 #include <wx/bitmap.h>
@@ -47,6 +48,8 @@ END_EVENT_TABLE()
 ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_,wxWindowID id,const wxPoint& pos,const wxSize& size)
 : color_mgr(color_mgr_)
 {
+    color_fan = wxBITMAP_PNG_FROM_DATA(colorfan);
+
 	//(*Initialize(ColorManagerDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer10;
@@ -68,7 +71,7 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	wxFont StaticText1Font(16,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText1->SetFont(StaticText1Font);
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBitmap1 = new wxStaticBitmap(this, ID_STATICBITMAP1, wxBitmap(wxImage(_T("C:\\Software Development\\Git\\xLights\\include\\ColorFan.jpg"))), wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap1 = new wxStaticBitmap(this, ID_STATICBITMAP1, color_fan, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
 	FlexGridSizer2->Add(StaticBitmap1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
