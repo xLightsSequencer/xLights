@@ -2201,11 +2201,13 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         if (left) {
             n = first;
             first++;
-            if (buffFirst == -1) {
-                buffFirst = Nodes[n]->Coords[0].bufX;
-            }
-            if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                left = false;
+            if (NodeRenderOrder() == 1) {
+                if (buffFirst == -1) {
+                    buffFirst = Nodes[n]->Coords[0].bufX;
+                }
+                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                    left = false;
+                }
             }
         } else {
             last--;
@@ -2386,11 +2388,13 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             if (left) {
                 n = first;
                 first++;
-                if (buffFirst == -1) {
-                    buffFirst = Nodes[n]->Coords[0].bufX;
-                }
-                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                    left = false;
+                if (NodeRenderOrder() == 1) {
+                    if (buffFirst == -1) {
+                        buffFirst = Nodes[n]->Coords[0].bufX;
+                    }
+                    if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                        left = false;
+                    }
                 }
             } else {
                 last--;

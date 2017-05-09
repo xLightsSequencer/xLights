@@ -238,6 +238,7 @@ public:
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
+    virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
