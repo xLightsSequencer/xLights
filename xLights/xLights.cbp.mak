@@ -2376,7 +2376,7 @@ ColorCurve.cpp: ColorCurve.h ColorCurveDialog.h UtilFunctions.h
 
 ColorManager.cpp: ColorManager.h xLightsMain.h
 
-ColorManagerDialog.cpp: ColorManagerDialog.h ColorManager.h xLightsMain.h
+ColorManagerDialog.cpp: ColorManagerDialog.h ColorManager.h xLightsMain.h ../include/ColorFanImage.h
 
 ColorPanel.cpp: ColorPanel.h xLightsMain.h ../include/padlock16x16-green.xpm ../include/padlock16x16-red.xpm ../include/padlock16x16-blue.xpm ColorCurve.h ../include/cc_time.xpm ../include/cc_timelocked.xpm ../include/cc_left.xpm ../include/cc_right.xpm ../include/cc_up.xpm ../include/cc_down.xpm ../include/cc_na.xpm ../include/cc_ccw.xpm ../include/cc_cw.xpm ../include/cc_radialin.xpm ../include/cc_radialout.xpm effects/EffectPanelUtils.h ../include/save.xpm ../include/delete.xpm ../include/switch.xpm
 
