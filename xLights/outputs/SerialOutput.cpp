@@ -205,7 +205,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 {
     std::list<std::string> res;
 
-#ifdef __WXMSW__ 
+#ifdef __WXMSW__
     TCHAR valname[32];
     TCHAR portname[32];
     DWORD vallen = sizeof(valname);
@@ -327,6 +327,12 @@ void SerialOutput::Close()
 {
     if (_serial != nullptr)
     {
+        int i = 0;
+        while( !TxEmpty() && (i < 10) )
+        {
+            wxMilliSleep(5);
+            i++;
+        }
         delete _serial;
         _serial = nullptr;
     }

@@ -36,7 +36,6 @@ public:
 
     #pragma region Start and Stop
     virtual bool Open() override;
-    virtual void Close() override;
     #pragma endregion Start and Stop
 
     #pragma region Frame Handling
