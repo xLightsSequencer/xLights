@@ -33,10 +33,8 @@ class ColorManagerDialog: public wxDialog
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText14;
-		wxBitmapButton* BitmapButton_HeaderSelectedColor;
 		wxStaticText* StaticText6;
 		wxStaticBitmap* StaticBitmap1;
-		wxBitmapButton* BitmapButton_HeaderColor;
 		wxStaticText* StaticText19;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText11;
@@ -44,6 +42,7 @@ class ColorManagerDialog: public wxDialog
 		wxBitmapButton* BitmapButton_TimingDefault;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxBitmapButton* BitmapButton_RowHeader;
 		wxButton* Button_Reset;
 		wxBitmapButton* BitmapButton_Timing1;
 		wxBitmapButton* BitmapButton_EffectSelected;
@@ -58,6 +57,7 @@ class ColorManagerDialog: public wxDialog
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText12;
 		wxBitmapButton* BitmapButton_Words;
+		wxBitmapButton* BitmapButton_RowHeaderSelected;
 		wxButton* Button_Close;
 		wxStaticText* StaticText17;
 		wxStaticText* StaticText4;
@@ -92,9 +92,9 @@ class ColorManagerDialog: public wxDialog
 		static const long ID_STATICTEXT9;
 		static const long ID_BITMAPBUTTON_ReferenceEffect;
 		static const long ID_STATICTEXT10;
-		static const long ID_BITMAPBUTTON_HeaderColor;
+		static const long ID_BITMAPBUTTON_RowHeader;
 		static const long ID_STATICTEXT11;
-		static const long ID_BITMAPBUTTON_HeaderSelectedColor;
+		static const long ID_BITMAPBUTTON_RowHeaderSelected;
 		static const long ID_STATICTEXT13;
 		static const long ID_BITMAPBUTTON_Gridlines;
 		static const long ID_STATICTEXT14;

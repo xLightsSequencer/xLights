@@ -44,8 +44,8 @@ void ColorManager::ResetDefaults()
     colors["Phrases"] = new xlColor(153, 255, 153);
     colors["Words"] = new xlColor(255, 218, 145);
     colors["Phonemes"] = new xlColor(255, 181, 218);
-    colors["HeaderColor"] = new xlColor(212,208,200);
-    colors["HeaderSelectedColor"] = new xlColor(130,178,207);
+    colors["RowHeader"] = new xlColor(212,208,200);
+    colors["RowHeaderSelected"] = new xlColor(130,178,207);
 
     colors["ModelSelected"] = new xlColor(255, 255, 0);     // xlYELLOW
 

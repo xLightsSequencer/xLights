@@ -211,14 +211,14 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
-											<label>Header Color</label>
+											<label>Row Header</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_HeaderColor" variable="BitmapButton_HeaderColor" member="yes">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RowHeader" variable="BitmapButton_RowHeader" member="yes">
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -227,14 +227,14 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
-											<label>Header Selected Color</label>
+											<label>Row Header Selected</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_HeaderSelectedColor" variable="BitmapButton_HeaderSelectedColor" member="yes">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RowHeaderSelected" variable="BitmapButton_RowHeaderSelected" member="yes">
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

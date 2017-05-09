@@ -618,7 +618,7 @@ void RowHeading::Draw()
     wxCoord w,h;
     wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
-    wxBrush brush(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor")->asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush brush(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("RowHeader")->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row=0;
@@ -739,7 +739,7 @@ void RowHeading::Draw()
         }
         row++;
     }
-    wxBrush b(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor")->asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush b(mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("RowHeader")->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
 }
@@ -753,11 +753,11 @@ const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 
     if (info->RowNumber == mSelectedRow )
     {
-        return  mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderSelectedColor");
+        return  mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("RowHeaderSelected");
     }
     else
     {
-        return mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("HeaderColor");
+        return mSequenceElements->GetXLightsFrame()->color_mgr.GetColor("RowHeader");
     }
 }
 
