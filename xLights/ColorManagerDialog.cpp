@@ -10,7 +10,6 @@
 #include <wx/bitmap.h>
 #include <wx/font.h>
 #include <wx/intl.h>
-#include <wx/button.h>
 #include <wx/image.h>
 #include <wx/string.h>
 //*)
@@ -38,6 +37,8 @@ const long ColorManagerDialog::ID_STATICTEXT11 = wxNewId();
 const long ColorManagerDialog::ID_BITMAPBUTTON_HeaderSelectedColor = wxNewId();
 const long ColorManagerDialog::ID_STATICTEXT8 = wxNewId();
 const long ColorManagerDialog::ID_BITMAPBUTTON_ModelSelected = wxNewId();
+const long ColorManagerDialog::ID_BUTTON_RESET = wxNewId();
+const long ColorManagerDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ColorManagerDialog,wxDialog)
@@ -52,16 +53,15 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 
 	//(*Initialize(ColorManagerDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticBoxSizer* StaticBoxSizer3;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -132,12 +132,12 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	StaticBoxSizer3->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer10->Add(StdDialogButtonSizer1, 1, wxALL, 5);
-	FlexGridSizer1->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
+	Button_Reset = new wxButton(this, ID_BUTTON_RESET, _("Reset Defaults"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RESET"));
+	FlexGridSizer7->Add(Button_Reset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Close = new wxButton(this, ID_BUTTON_Close, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
+	FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_RIGHT, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -152,8 +152,21 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	Connect(ID_BITMAPBUTTON_HeaderColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::ColorButtonSelected);
 	Connect(ID_BITMAPBUTTON_HeaderSelectedColor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::ColorButtonSelected);
 	Connect(ID_BITMAPBUTTON_ModelSelected,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::ColorButtonSelected);
+	Connect(ID_BUTTON_RESET,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButton_Reset_DefaultsClick);
+	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButton_OkClick);
 	//*)
 
+    UpdateButtonColors();
+}
+
+ColorManagerDialog::~ColorManagerDialog()
+{
+	//(*Destroy(ColorManagerDialog)
+	//*)
+}
+
+void ColorManagerDialog::UpdateButtonColors()
+{
 	SetButtonColor( BitmapButton_Timing1, color_mgr.GetColor("Timing1"));
 	SetButtonColor( BitmapButton_Timing2, color_mgr.GetColor("Timing2"));
 	SetButtonColor( BitmapButton_Timing3, color_mgr.GetColor("Timing3"));
@@ -164,14 +177,6 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	SetButtonColor( BitmapButton_ModelSelected, color_mgr.GetColor("ModelSelected"));
 	SetButtonColor( BitmapButton_HeaderColor, color_mgr.GetColor("HeaderColor"));
 	SetButtonColor( BitmapButton_HeaderSelectedColor, color_mgr.GetColor("HeaderSelectedColor"));
-
-	Layout();
-}
-
-ColorManagerDialog::~ColorManagerDialog()
-{
-	//(*Destroy(ColorManagerDialog)
-	//*)
 }
 
 void ColorManagerDialog::SetMainSequencer(MainSequencer* sequencer)
@@ -216,4 +221,20 @@ void ColorManagerDialog::ColorButtonSelected(wxCommandEvent& event)
         main_sequencer->PanelEffectGrid->ForceRefresh();
         main_sequencer->PanelRowHeadings->Refresh();
     }
+}
+
+void ColorManagerDialog::OnButton_Reset_DefaultsClick(wxCommandEvent& event)
+{
+    if (wxMessageBox("Are you sure you want to reset all colors to the defaults?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+    {
+        return;
+    }
+
+    color_mgr.ResetDefaults();
+    UpdateButtonColors();
+}
+
+void ColorManagerDialog::OnButton_OkClick(wxCommandEvent& event)
+{
+    EndModal(wxID_OK);
 }

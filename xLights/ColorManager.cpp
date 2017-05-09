@@ -5,6 +5,29 @@
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
 {
+    ResetDefaults();
+}
+
+ColorManager::~ColorManager()
+{
+    Clear();
+}
+
+void ColorManager::Clear()
+{
+    for (auto it = colors.begin(); it != colors.end(); ++it)
+	{
+        if( it->second != nullptr )
+        {
+            delete it->second;
+        }
+	}
+}
+
+void ColorManager::ResetDefaults()
+{
+    Clear();
+
     colors["Timing1"] = new xlColor(  0, 255, 255); // xlCYAN
     colors["Timing2"] = new xlColor(255,   0,   0); // xlRED
     colors["Timing3"] = new xlColor(  0, 255,   0); // xlGREEN
@@ -17,14 +40,8 @@ ColorManager::ColorManager(xLightsFrame* frame)
 
     colors["HeaderColor"] = new xlColor(212,208,200);
     colors["HeaderSelectedColor"] = new xlColor(130,178,207);
-}
 
-ColorManager::~ColorManager()
-{
-    for(std::map<std::string, xlColor*>::iterator itr = colors.begin(); itr != colors.end(); itr++)
-    {
-        delete itr->second;
-    }
+    xlights->UnsavedRgbEffectsChanges = true;
 }
 
 void ColorManager::SetNewColor(std::string name, xlColor* color)

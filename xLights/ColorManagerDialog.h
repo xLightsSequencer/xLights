@@ -8,6 +8,7 @@
 #include <wx/stattext.h>
 #include <wx/bmpbuttn.h>
 #include <wx/statbmp.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 //*)
 
@@ -37,12 +38,14 @@ class ColorManagerDialog: public wxDialog
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxButton* Button_Reset;
 		wxBitmapButton* BitmapButton_Timing1;
 		wxBitmapButton* BitmapButton_EffectSelected;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		wxBitmapButton* BitmapButton_Timing4;
 		wxBitmapButton* BitmapButton_Timing5;
+		wxButton* Button_Close;
 		wxStaticText* StaticText4;
 		wxBitmapButton* BitmapButton_Timing3;
 		wxBitmapButton* BitmapButton_ModelSelected;
@@ -73,18 +76,23 @@ class ColorManagerDialog: public wxDialog
 		static const long ID_BITMAPBUTTON_HeaderSelectedColor;
 		static const long ID_STATICTEXT8;
 		static const long ID_BITMAPBUTTON_ModelSelected;
+		static const long ID_BUTTON_RESET;
+		static const long ID_BUTTON_Close;
 		//*)
 
 	private:
 
 		//(*Handlers(ColorManagerDialog)
 		void ColorButtonSelected(wxCommandEvent& event);
+		void OnButton_Reset_DefaultsClick(wxCommandEvent& event);
+		void OnButton_OkClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
 
 		void SetButtonColor(wxBitmapButton* btn, const xlColor* color);
 		void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
+		void UpdateButtonColors();
 
 		MainSequencer* main_sequencer;
 		ColorManager& color_mgr;

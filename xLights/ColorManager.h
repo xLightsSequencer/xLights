@@ -14,6 +14,7 @@ class ColorManager
         ColorManager(xLightsFrame*);
         virtual ~ColorManager();
 
+        void ResetDefaults();
         const xlColor* GetTimingColor(int colorIndex);
         void SetNewColor(std::string name, xlColor* color);
         xlColor* GetColor(std::string name);
@@ -25,6 +26,7 @@ class ColorManager
 
     private:
         wxXmlNode* Save() const;
+        void Clear();
 
         std::map<std::string, xlColor*> colors;
         xLightsFrame* xlights;
