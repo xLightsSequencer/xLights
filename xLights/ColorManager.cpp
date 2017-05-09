@@ -60,6 +60,7 @@ void ColorManager::Snapshot()
         if( it->second != nullptr )
         {
             delete it->second;
+            it->second = nullptr;
         }
 	}
 
