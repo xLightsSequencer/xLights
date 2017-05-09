@@ -3216,7 +3216,7 @@ void EffectsGrid::DrawEffects()
                     break;
                 }
                 // Draw Left line
-                if( e == mSelectedEffect || mSelectedEffect == nullptr )
+                if( e == mSelectedEffect )
                 {
                     linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                                        effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectFocusLines;
