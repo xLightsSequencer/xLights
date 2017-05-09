@@ -34,14 +34,53 @@ void ColorManager::ResetDefaults()
     colors["Timing4"] = new xlColor(  0,   0, 255); // xlBLUE
     colors["Timing5"] = new xlColor(255, 255,   0); // xlYELLOW
 
+    colors["TimingDefault"] = new xlColor(255,255,255);
+    colors["EffectDefault"] = new xlColor(192,192,192);
     colors["EffectSelected"] = new xlColor(204, 102, 255);
     colors["ReferenceEffect"] = new xlColor(255,0,255);
-    colors["ModelSelected"] = new xlColor(255, 255, 0);     // xlYELLOW
-
+    colors["Gridlines"] = new xlColor(40,40,40);
+    colors["Labels"] = new xlColor(255,255,204);
+    colors["LabelOutline"] = new xlColor(103, 103, 103);
+    colors["Phrases"] = new xlColor(153, 255, 153);
+    colors["Words"] = new xlColor(255, 218, 145);
+    colors["Phonemes"] = new xlColor(255, 181, 218);
     colors["HeaderColor"] = new xlColor(212,208,200);
     colors["HeaderSelectedColor"] = new xlColor(130,178,207);
 
+    colors["ModelSelected"] = new xlColor(255, 255, 0);     // xlYELLOW
+
     xlights->UnsavedRgbEffectsChanges = true;
+}
+
+void ColorManager::Snapshot()
+{
+    // delete the old snapshot
+    for (auto it = colors_backup.begin(); it != colors_backup.end(); ++it)
+	{
+        if( it->second != nullptr )
+        {
+            delete it->second;
+        }
+	}
+
+	// store a new snapshot
+    for (auto it = colors.begin(); it != colors.end(); ++it)
+	{
+	    xlColor* dummy = colors_backup[it->first];
+        colors_backup[it->first] = new xlColor(*it->second);
+        if( dummy != nullptr )
+        {
+            delete dummy;
+        }
+	}
+}
+
+void ColorManager::RestoreSnapshot()
+{
+    for (auto it = colors_backup.begin(); it != colors_backup.end(); ++it)
+	{
+        *colors[it->first] = *it->second;
+	}
 }
 
 void ColorManager::SetNewColor(std::string name, xlColor* color)

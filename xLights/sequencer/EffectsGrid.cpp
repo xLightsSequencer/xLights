@@ -90,18 +90,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
-    mEffectColor = new xlColor(192,192,192);
-    mGridlineColor = new xlColor(40,40,40);
-
-    mTimingColor = new xlColor(255,255,255);
-    mTimingVerticalLine = new xlColor(130,178,207);
-
-    mLabelColor = new xlColor(255,255,204);
-    mLabelOutlineColor = new xlColor(103, 103, 103);
-    mPhraseColor = new xlColor(153, 255, 153);
-    mWordColor = new xlColor(255, 218, 145);
-    mPhonemeColor = new xlColor(255, 181, 218);
-
     SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = nullptr;
@@ -110,10 +98,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
 EffectsGrid::~EffectsGrid()
 {
-	delete mEffectColor;
-	delete mGridlineColor;
-	delete mTimingColor;
-	delete mTimingVerticalLine;
 }
 
 EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
@@ -3093,7 +3077,7 @@ void EffectsGrid::DrawLines()
         }
     }
 
-    DrawGLUtils::Draw(va, *mGridlineColor, GL_LINES);
+    DrawGLUtils::Draw(va, *xlights->color_mgr.GetColor("Gridlines"), GL_LINES);
     DrawGLUtils::SetLineWidth(1.0f);
 }
 
@@ -3341,12 +3325,12 @@ void EffectsGrid::DrawEffects()
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);
         it->second.Reset();
     }
-    DrawGLUtils::Draw(lines, *mEffectColor, GL_LINES);
+    DrawGLUtils::Draw(lines, *xlights->color_mgr.GetColor("EffectDefault"), GL_LINES);
     DrawGLUtils::Draw(selectedLines, *xlights->color_mgr.GetColor("EffectSelected"), GL_LINES);
     DrawGLUtils::Draw(selectFocusLines, *xlights->color_mgr.GetColor("ReferenceEffect"), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
-    DrawGLUtils::Draw(timingEffLines, xlWHITE, GL_LINES);
+    DrawGLUtils::Draw(timingEffLines, *xlights->color_mgr.GetColor("TimingDefault"), GL_LINES);
     DrawGLUtils::Draw(textBackgrounds, GL_TRIANGLES);
     DrawGLUtils::SetLineWidth(1.0);
     DrawGLUtils::Draw(timingLines, GL_LINES, GL_BLEND);
@@ -3380,7 +3364,6 @@ void EffectsGrid::DrawTimingEffects(int row)
     DrawGLUtils::xlVertexAccumulator * linesLeft;
     DrawGLUtils::xlVertexAccumulator * linesCenter;
     xlColor c(*xlights->color_mgr.GetTimingColor(ri->colorIndex));
-    //xlColor c(*RowHeading::GetTimingColor(ri->colorIndex));
     c.alpha = 128;
 
     int toffset = 0;
@@ -3457,21 +3440,21 @@ void EffectsGrid::DrawTimingEffects(int row)
                     int width = std::min(text_width, max_width);
                     int center = x1 + (x2-x1)/2;
                     int label_start = center - width/2;
-                    xlColor* label_color = mLabelColor;
+                    xlColor* label_color = xlights->color_mgr.GetColor("Labels");
                     if( ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
                     {
-                        label_color = mPhraseColor;
+                        label_color = xlights->color_mgr.GetColor("Phrases");
                     }
                     else if( ri->layerIndex == 1 )
                     {
-                        label_color = mWordColor;
+                        label_color = xlights->color_mgr.GetColor("Words");
                     }
                     else if( ri->layerIndex == 2 )
                     {
-                        label_color = mPhonemeColor;
+                        label_color = xlights->color_mgr.GetColor("Phonemes");
                     }
                     textBackgrounds.AddRect(label_start,y1-2,label_start+width,y2+2, *label_color);
-                    timingLines.AddLinesRect(label_start-0.4,y1-2-0.4,label_start+width+0.4,y2+2+0.4, *mLabelOutlineColor);
+                    timingLines.AddLinesRect(label_start-0.4,y1-2-0.4,label_start+width+0.4,y2+2+0.4, *xlights->color_mgr.GetColor("LabelOutline"));
                     texts.AddVertex(label_start + 4, y2 + toffset, effectLayer->GetEffect(effectIndex)->GetEffectName());
                 }
             }

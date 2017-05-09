@@ -53,7 +53,7 @@
 											<label>Timing 1</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -61,7 +61,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -69,7 +69,7 @@
 											<label>Timing 2</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -77,7 +77,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -85,7 +85,7 @@
 											<label>Timing 3</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -93,7 +93,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -101,7 +101,7 @@
 											<label>Timing 4</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -109,7 +109,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -117,7 +117,7 @@
 											<label>Timing 5</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -125,7 +125,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>
@@ -146,11 +146,43 @@
 								<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 									<cols>2</cols>
 									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT19" variable="StaticText19" member="yes">
+											<label>Timings</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TimingDefault" variable="BitmapButton_TimingDefault" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+											<label>Effects</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_EffectDefault" variable="BitmapButton_EffectDefault" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
 											<label>Effect Selected</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -158,7 +190,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -166,7 +198,7 @@
 											<label>Reference Effect</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -174,7 +206,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -182,7 +214,7 @@
 											<label>Header Color</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -190,7 +222,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -198,7 +230,7 @@
 											<label>Header Selected Color</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -206,7 +238,103 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText13" member="yes">
+											<label>Gridlines</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Gridlines" variable="BitmapButton_Gridlines" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText14" member="yes">
+											<label>Labels</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Labels" variable="BitmapButton_Labels" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText15" member="yes">
+											<label>Label Outline</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_LabelOutline" variable="BitmapButton_LabelOutline" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText16" member="yes">
+											<label>Phrases</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Phrases" variable="BitmapButton_Phrases" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT17" variable="StaticText17" member="yes">
+											<label>Words</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Words" variable="BitmapButton_Words" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT18" variable="StaticText18" member="yes">
+											<label>Phonemes</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Phonemes" variable="BitmapButton_Phonemes" member="yes">
+											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>
@@ -231,7 +359,7 @@
 											<label>Reserved</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -239,7 +367,7 @@
 											<handler function="ColorButtonSelected" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>
@@ -266,6 +394,15 @@
 							<handler function="OnButton_Reset_DefaultsClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_Cancel" variable="Button_Cancel" member="yes">
+							<label>Cancel</label>
+							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

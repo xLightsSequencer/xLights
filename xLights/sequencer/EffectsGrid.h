@@ -174,15 +174,6 @@ private:
     // for effect count
     std::vector<GLuint> m_EffectTextures;
     int mStartPixelOffset;
-    xlColor * mEffectColor;
-    xlColor * mGridlineColor;
-    xlColor * mTimingColor;
-    xlColor * mTimingVerticalLine;
-    xlColor * mLabelColor;
-    xlColor * mLabelOutlineColor;
-    xlColor * mPhraseColor;
-    xlColor * mWordColor;
-    xlColor * mPhonemeColor;
 
     wxWindow* mParent;
     TimeLine* mTimeline;

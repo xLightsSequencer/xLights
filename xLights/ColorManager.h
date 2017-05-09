@@ -19,6 +19,9 @@ class ColorManager
         void SetNewColor(std::string name, xlColor* color);
         xlColor* GetColor(std::string name);
 
+        void Snapshot();
+        void RestoreSnapshot();
+
         void Save(wxXmlDocument* doc);
         void Load(wxXmlNode* colors_node);
 
@@ -29,6 +32,7 @@ class ColorManager
         void Clear();
 
         std::map<std::string, xlColor*> colors;
+        std::map<std::string, xlColor*> colors_backup;
         xLightsFrame* xlights;
 
 };
