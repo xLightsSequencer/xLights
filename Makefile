@@ -45,7 +45,7 @@ wxwidgets31: FORCE
 		fi; \
 		sed '/^== Patch/$!d' README.linux |grep -v '^==' | patch wxWidgets-3.1.0/src/gtk/button.cpp;\
 		cd wxWidgets-3.1.0;\
-			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2; \
+			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff; \
 			${MAKE} ;\
 	fi
 
