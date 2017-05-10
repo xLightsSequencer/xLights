@@ -70,9 +70,9 @@ void ColorManager::SetDirty()
     xlights->UnsavedRgbEffectsChanges = true;
 }
 
-xlColor ColorManager::GetColor(std::string name)
+xlColor ColorManager::GetColor(ColorNames name)
 {
-    return colors[name];
+    return colors[xLights_color[name].name];
 }
 
 const xlColor ColorManager::GetTimingColor(int colorIndex)
