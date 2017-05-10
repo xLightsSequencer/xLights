@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.13  May 10, 2017
    -- bug (dkulp)   Only do the "outside -> in" render for the Tree model.  Fixes #573.
    -- enh (cjd)     Output status messages to commandline when run in render mode
    -- enh (gil)     New Color Manager Dialog so user can customize colors in the program.  Fixes #363.
