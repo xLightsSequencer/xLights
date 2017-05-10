@@ -171,12 +171,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 		_sequenceViewManager.Load(viewsNode, mSequenceElements.GetCurrentView());
 	}
 
-    if (colorsNode == nullptr)
+    if (colorsNode != nullptr)
     {
-        UnsavedRgbEffectsChanges = true;
-    }
-	else
-	{
 		color_mgr.Load(colorsNode);
 	}
 
