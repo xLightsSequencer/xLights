@@ -312,6 +312,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_UNDO)
     {
         mSequenceElements->get_undo_mgr().UndoLastStep();
+        sendRenderDirtyEvent();
     }
     else if( id == ID_GRID_MNU_ALIGN_START_TIMES )
     {
@@ -1896,6 +1897,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
             }
         }
     }
+    sendRenderDirtyEvent();
     xlights->DoForceSequencerRefresh();
 }
 

@@ -101,6 +101,8 @@ public:
 
     static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS);
 
+    void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
+    void sendRenderDirtyEvent();
 protected:
     virtual void InitializeGLCanvas();
 
@@ -109,8 +111,6 @@ private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms);
 
-    void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
-    void sendRenderDirtyEvent();
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
 	void mouseMoved(wxMouseEvent& event);
