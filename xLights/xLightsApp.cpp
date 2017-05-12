@@ -40,6 +40,10 @@
 #ifdef _WIN64
 wxString windows_get_stacktrace(void *data)
 {
+    if (data == nullptr) return "No trace.";
+
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxString trace;
     CONTEXT *context = (CONTEXT*)data;
     SymInitialize(GetCurrentProcess(), 0, true);
@@ -56,8 +60,9 @@ wxString windows_get_stacktrace(void *data)
         while (!mapFile.Eof()) {
             line = mapFile.GetNextLine();
             line.Trim(true).Trim(false);
-            if (line.StartsWith("0x")) {
+            if (line.StartsWith("0x") && !line.EndsWith(".o") && !line.EndsWith(".o)")) {
                 mapLines.Add(line);
+                //logger_base.debug("Map file line: %s", (const char *)line.c_str());
             }
         }
         mapLines.Sort();
@@ -83,6 +88,8 @@ wxString windows_get_stacktrace(void *data)
                    SymGetModuleBase64,
                    0 ) )
     {
+        //logger_base.debug("Rip: %I64x Rsp: %I64x Rbp: %I64x", frame.AddrPC.Offset, frame.AddrStack.Offset, frame.AddrFrame.Offset);
+
         static char symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + 255 ];
         memset( symbolBuffer , 0 , sizeof(IMAGEHLP_SYMBOL) + 255 );
         IMAGEHLP_SYMBOL * symbol = (IMAGEHLP_SYMBOL*) symbolBuffer;
@@ -92,7 +99,7 @@ wxString windows_get_stacktrace(void *data)
         symbol->MaxNameLength   = 254;
 
         // The displacement from the beginning of the symbol is stored here: pretty useless
-        unsigned displacement = 0;
+        DWORD64 displacement = 0;
 
         // Get the symbol information from the address of the instruction pointer register:
         if (SymGetSymFromAddr64(
@@ -104,10 +111,11 @@ wxString windows_get_stacktrace(void *data)
             // Add the name of the function to the function list:
             char buffer[2048]; sprintf( buffer , "0x%08llx %s\n" ,  frame.AddrPC.Offset , symbol->Name );
             trace += buffer;
+            //logger_base.debug("SymGetSymFromAddr64: %s", (const char *)buffer);
         } else {
             // Print an unknown location:
             // functionNames.push_back("unknown location");
-            wxString buffer(wxString::Format("0x%08x" , frame.AddrPC.Offset));
+            wxString buffer(wxString::Format("0x%016llx" , frame.AddrPC.Offset));
             for (size_t x = 1; x < mapLines.GetCount(); x++) {
                 if (wxString(buffer) < mapLines[x]) {
                     buffer += mapLines[x - 1].substr(12).Trim();
@@ -115,6 +123,7 @@ wxString windows_get_stacktrace(void *data)
                 }
             }
             trace += buffer + "\n";
+            //logger_base.debug("Unknown: %s", (const char *)buffer);
         }
     }
 
@@ -124,6 +133,8 @@ wxString windows_get_stacktrace(void *data)
 #else
 wxString windows_get_stacktrace(void *data)
 {
+    if (data == nullptr) return "No trace.";
+
     wxString trace;
     CONTEXT *context = (CONTEXT*)data;
     SymInitialize(GetCurrentProcess(), 0, true);
