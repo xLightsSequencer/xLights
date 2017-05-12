@@ -1374,29 +1374,23 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
         // universe:channel
         long startChannel;
         Output* output = outputManager->GetOutput(lastChannel, startChannel);
+        
         if (output == nullptr) {
             return wxString::Format("%u", lastChannel).ToStdString();
         }
 
-        if (output == nullptr)
+        if (CountChar(ModelStartChannel, ':') == 1)
         {
-            return wxString::Format("%u", lastChannel).ToStdString();
+            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
         }
         else
         {
-            if (CountChar(ModelStartChannel, ':') == 1)
+            std::string ip = "<err>";
+            if (output->IsIpOutput())
             {
-                return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
+                ip = ((IPOutput*)output)->GetIP();
             }
-            else
-            {
-                std::string ip = "<err>";
-                if (output->IsIpOutput())
-                {
-                    ip = ((IPOutput*)output)->GetIP();
-                }
-                return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
-            }
+            return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
         }
     }
     else if (ModelStartChannel[0] == '@' || ModelStartChannel[0] == '>' || CountChar(ModelStartChannel, ':') == 0)
