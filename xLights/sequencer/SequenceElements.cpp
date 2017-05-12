@@ -202,22 +202,7 @@ bool SequenceElements::ElementExists(const std::string &elementName, int view)
         {
             return true;
         }
-
-        // This would allow this to return true if it is a submodel ... but i am not sure if that would have wider implications - KW
-        //if (((ModelElement*)mAllViews[view][i])->GetType() == ELEMENT_TYPE_MODEL)
-        //{
-        //    if (std::find(elementName.begin(), elementName.end(), '/') != elementName.end())
-        //    {
-        //        for (int j = 0; j < ((ModelElement*)mAllViews[view][i])->GetSubModelCount(); j++)
-        //        {
-        //            if (((ModelElement*)mAllViews[view][i])->GetSubModel(j)->GetFullName() == elementName)
-        //            {
-        //                return true;
-        //            }
-        //        }
-        //    }
-        //}
-    }
+}
     return false;
 }
 
@@ -886,14 +871,10 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 }
                 if(!ElementExists(model1->GetName()))
                 {
-                    Element* elem = AddElement(modelName, "model", visible, false, false, false);
+                    Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false);
                     if (elem != nullptr)
                     {
                         elem->AddEffectLayer();
-                    }
-                    else
-                    {
-                        // I dont think this should happen ... Dan ... this path gets taken if a model group has a submodel in it ... should that be possible
                     }
                 }
             }

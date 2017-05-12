@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix crash if expand group with submodels and model doesn't exist in sequence
    -- bug (dkulp)   Hook up the renderDirty event to the align options and undo to render the changes
 2017.13  May 10, 2017
    -- bug (dkulp)   Only do the "outside -> in" render for the Tree model.  Fixes #573.
