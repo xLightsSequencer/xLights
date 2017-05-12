@@ -1378,18 +1378,25 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             return wxString::Format("%u", lastChannel).ToStdString();
         }
 
-        if (CountChar(ModelStartChannel, ':') == 1)
+        if (output == nullptr)
         {
-            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
+            return wxString::Format("%u", lastChannel).ToStdString();
         }
         else
         {
-            std::string ip = "<err>";
-            if (output->IsIpOutput())
+            if (CountChar(ModelStartChannel, ':') == 1)
             {
-                ip = ((IPOutput*)output)->GetIP();
+                return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
             }
-            return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
+            else
+            {
+                std::string ip = "<err>";
+                if (output->IsIpOutput())
+                {
+                    ip = ((IPOutput*)output)->GetIP();
+                }
+                return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
+            }
         }
     }
     else if (ModelStartChannel[0] == '@' || ModelStartChannel[0] == '>' || CountChar(ModelStartChannel, ':') == 0)
@@ -1403,7 +1410,14 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
         long startChannel;
         Output* output = outputManager->GetOutput(lastChannel, startChannel);
 
-        return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, lastChannel).ToStdString();
+        if (output == nullptr)
+        {
+            return wxString::Format("%u", lastChannel).ToStdString();
+        }
+        else
+        {
+            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, lastChannel).ToStdString();
+        }
     }
 }
 
