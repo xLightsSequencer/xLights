@@ -958,6 +958,8 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
 
 void SequenceElements::PopulateView(const std::string &models, int view)
 {
+    if (view >= mAllViews.size()) return;
+
     mAllViews[view].clear();
 
     if(models.length()> 0)

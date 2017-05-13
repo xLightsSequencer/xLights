@@ -19,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Allow bulk uploading of sequences to all known FPP instances
    -- enh (keith)   Add select used/unused models to Display Elements model list right click menu
    -- enh (keith)   Add a per node option to candle effect
+   -- bug (keith)   Fix some drag and drop issues in the master view in display elements panel
 2017.13  May 10, 2017
    -- bug (dkulp)   Only do the "outside -> in" render for the Tree model.  Fixes #573.
    -- enh (cjd)     Output status messages to commandline when run in render mode

@@ -670,11 +670,8 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
     else
     {
-        if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW)
-        {
-            p -= GetTimingCount();
-            if (p < 0) p = 0;
-        }
+        p -= GetTimingCount();
+        if (p < 0) p = 0;
     }
 
     wxArrayString addedModels;
@@ -943,8 +940,6 @@ void ViewsModelsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 
 void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
 {
-    //int index = event.m_itemIndex;
-    //SelectView(ListCtrlViews->GetItemText(index, 1).ToStdString());
     Element* e = (Element*)event.GetClientData();
     if (e == nullptr)
     {
@@ -2174,13 +2169,6 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
             to -= GetTimingCount();
 
-            // not sure why we need to do this with the master only
-            if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-            {
-                from += GetTimingCount();
-                to += GetTimingCount();
-            }
-
             _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
             SelectItem(ListCtrlModels, i, false);
 
@@ -2227,6 +2215,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
                 movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
                 int from = i - GetTimingCount();
                 int to = -1;
+    
                 // we are moving this one
                 itemsMoved = true;
                 if (indexTo == -1)
@@ -2238,13 +2227,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
                 {
                     to = indexTo + selcnt - GetTimingCount();
                 }
-
-                // not sure why we need to do this with the master only
-                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-                {
-                    from += GetTimingCount();
-                    to += GetTimingCount();
-                }
+                if (to < 0) to = 0;
 
                 if (from < to)
                 {
@@ -2279,32 +2262,25 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
     wxArrayString movedModels;
     int selcnt = 0;
 
-        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
         {
-            if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
-            {
-                itemsMoved = true;
-                int from = i;
-                int to = i - 1;
-                if (to < GetTimingCount()) return;
+            itemsMoved = true;
+            int from = i;
+            int to = i - 1;
+            if (to < GetTimingCount()) return;
 
-                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                from -= GetTimingCount();
-                to -= GetTimingCount();
+            movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+            from -= GetTimingCount();
+            to -= GetTimingCount();
 
-                // not sure why we need to do this with the master only
-                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-                {
-                    from += GetTimingCount();
-                    to += GetTimingCount();
-                }
+            _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+            SelectItem(ListCtrlModels, i, false);
 
-                _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
-                SelectItem(ListCtrlModels, i, false);
-
-                selcnt++;
-            }
+            selcnt++;
         }
+    }
 
     if (itemsMoved)
     {
