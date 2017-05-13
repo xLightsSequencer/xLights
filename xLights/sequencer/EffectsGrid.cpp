@@ -1853,13 +1853,23 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 bool all_clear = false;
                 int str_time_for_check = align_start;
                 int end_time_for_check = align_end;
-                if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                    all_clear = true;
-                } else {
-                    if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                        end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
-                    } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
-                        str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
+                if( align_mode == ALIGN_BOTH_TIMES ) {
+                    if( align_start < ef->GetStartTimeMS() && align_end > ef->GetEndTimeMS() ) {
+                        if( el->GetRangeIsClearMS( align_start, ef->GetStartTimeMS()) &&
+                            el->GetRangeIsClearMS( ef->GetEndTimeMS(), align_end) ) {
+                            all_clear = true;
+                        }
+                    }
+                }
+                if( !all_clear ) {
+                    if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
+                        all_clear = true;
+                    } else {
+                        if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
+                            end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
+                        } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
+                            str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
+                        }
                     }
                 }
 
