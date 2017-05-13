@@ -92,20 +92,30 @@ void ShimmerEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         // If cycles are too high maximise out at on and off
         if (cycles > ((double)buffer.curEffEndPer - (double)buffer.curEffStartPer) / 2.0)
         {
-            cycles = ((double)buffer.curEffEndPer - (double)buffer.curEffStartPer) / 2.0;
+            ColorIdx = (buffer.curPeriod - buffer.curEffStartPer) % (2 * colorcnt);
+            if (ColorIdx % 2 == 0)
+            {
+                ColorIdx /= 2;
+            }
+            else
+            {
+                return;
+            }
         }
+        else
+        {
+            double position = buffer.GetEffectTimeIntervalPosition(cycles);
+            if (position > 1.0) position = 0.0;
 
-        double position = buffer.GetEffectTimeIntervalPosition(cycles);
-        if (position == 1.0) position = 0.0;
+            // black if we are beyond the duty factor
+            if (position >= (double)Duty_Factor / 100.0) return;
 
-        // black if we are beyond the duty factor
-        if (position >= (double)Duty_Factor / 100.0) return;
+            // now we need to work out the color
 
-        // now we need to work out the color
-
-        // scale up the position
-        int cycle = ((buffer.curPeriod - buffer.curEffStartPer) * cycles) / (buffer.curEffEndPer - buffer.curEffStartPer);
-        ColorIdx = cycle % colorcnt;
+            // scale up the position
+            int cycle = ((buffer.curPeriod - buffer.curEffStartPer) * cycles) / (buffer.curEffEndPer - buffer.curEffStartPer);
+            ColorIdx = cycle % colorcnt;
+        }
     }
 
     xlColor color;
