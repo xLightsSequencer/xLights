@@ -1390,7 +1390,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             {
                 ip = ((IPOutput*)output)->GetIP();
             }
-            return wxString::Format("#%d:%s:%ld (%u)", output->GetUniverse(), ip, startChannel, lastChannel).ToStdString();
+            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, lastChannel).ToStdString();
         }
     }
     else if (ModelStartChannel[0] == '@' || ModelStartChannel[0] == '>' || CountChar(ModelStartChannel, ':') == 0)
