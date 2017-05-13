@@ -3498,7 +3498,7 @@ void EffectsGrid::Draw()
         if(mDragging && (mSequenceElements->GetSelectedTimingRow() == -1))
         {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
-            DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
+            DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
         }
     }
 

@@ -225,6 +225,7 @@ class LayoutPanel: public wxPanel
         void UpdateModelList(bool full_refresh);
         void UpdateModelList(bool full_refresh, std::vector<Model*> &modelList);
         void RefreshLayout();
+        void RenderLayout();
 
     private:
         enum

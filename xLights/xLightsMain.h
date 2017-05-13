@@ -1081,6 +1081,7 @@ public:
     void RowHeadingsChanged( wxCommandEvent& event);
     void DoForceSequencerRefresh();
     void RefreshLayout();
+    void RenderLayout();
     void AddPreviewOption(LayoutGroup* grp);
     void RemovePreviewOption(LayoutGroup* grp);
     ModelPreview* GetLayoutPreview() const {return modelPreview;}

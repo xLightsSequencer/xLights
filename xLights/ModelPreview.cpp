@@ -15,6 +15,7 @@
 #include "PreviewPane.h"
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
+#include "ColorManager.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -75,9 +76,9 @@ void ModelPreview::render( wxPaintEvent& event )
     }
 }
 
-void ModelPreview::Render() 
+void ModelPreview::Render()
 {
-    if (PreviewModels != nullptr) 
+    if (PreviewModels != nullptr)
     {
         bool isModelSelected = false;
         for (int i = 0; i < PreviewModels->size(); ++i) {
@@ -88,16 +89,16 @@ void ModelPreview::Render()
         }
 
         for (int i=0; i<PreviewModels->size(); ++i) {
-			const xlColor *color = &xlLIGHT_GREY;
+			const xlColor *color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
 			if (((*PreviewModels)[i])->Selected) {
-				color = &xlYELLOW;
+				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
 			} else if (((*PreviewModels)[i])->GroupSelected) {
-				color = &xlYELLOW;
+				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
 			} else if (((*PreviewModels)[i])->Overlapping && isModelSelected) {
-				color = &xlRED;
+				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
 			}
             if (!allowSelected) {
-                color = &xlLIGHT_GREY;
+                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
             (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, color, allowSelected);
         }
@@ -280,7 +281,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    
+
     LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
     DrawGLUtils::PushMatrix();
     // Rotate Axis and translate

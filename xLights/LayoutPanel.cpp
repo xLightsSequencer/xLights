@@ -644,17 +644,23 @@ void LayoutPanel::RefreshLayout()
     ShowPropGrid(true);
 }
 
-void LayoutPanel::UpdatePreview()
+void LayoutPanel::RenderLayout()
 {
-    SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
     if(!modelPreview->StartDrawing(mPointSize)) return;
     modelPreview->Render();
     if(m_creating_bound_rect)
     {
-        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y, xlYELLOW);
+        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y,
+                                                          ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
         modelPreview->GetAccumulator().Finish(GL_LINES);
     }
     modelPreview->EndDrawing();
+}
+
+void LayoutPanel::UpdatePreview()
+{
+    SetDirtyHiLight(xlights->UnsavedRgbEffectsChanges);
+    RenderLayout();
 }
 
 void LayoutPanel::resetPropertyGrid() {
@@ -875,7 +881,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
         #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
-        
+
         i = TreeListViewModels->GetSize().GetWidth()-(width*2);
         #endif
         if (i > 10) {

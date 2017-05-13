@@ -211,6 +211,7 @@ void ColorManagerDialog::RefreshColors()
 {
     main_sequencer->PanelEffectGrid->ForceRefresh();
     main_sequencer->PanelRowHeadings->Refresh();
+    color_mgr.RefreshColors();
 }
 
 void ColorManagerDialog::OnButton_OkClick(wxCommandEvent& event)

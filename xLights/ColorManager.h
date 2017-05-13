@@ -24,13 +24,17 @@ class ColorManager
             COLOR_REFERENCE_EFFECT,
             COLOR_ROW_HEADER,
             COLOR_ROW_HEADER_SELECTED,
+            COLOR_GRID_DASHES,
             COLOR_GRIDLINES,
             COLOR_LABELS,
             COLOR_LABEL_OUTLINE,
             COLOR_PHRASES,
             COLOR_WORDS,
             COLOR_PHONEMES,
+            COLOR_MODEL_DEFAULT,
             COLOR_MODEL_SELECTED,
+            COLOR_MODEL_OVERLAP,
+            COLOR_LAYOUT_DASHES,
             NUM_COLORS
         };
 
@@ -53,10 +57,14 @@ class ColorManager
         ColorManager(xLightsFrame*);
         virtual ~ColorManager();
 
+        static ColorManager* instance();
+
+        void RefreshColors();
         void ResetDefaults();
         const xlColor GetTimingColor(int colorIndex);
         void SetNewColor(std::string name, xlColor& color);
         xlColor GetColor(ColorNames name);
+        const xlColor* GetColorPtr(ColorNames name);
 
         void Snapshot();
         void RestoreSnapshot();
@@ -80,6 +88,7 @@ class ColorManager
             {COLOR_REFERENCE_EFFECT,    "ReferenceEffect",   "Reference Effect",    xlColor(255,0,255),     COLOR_CAT_EFFECT_GRID},
             {COLOR_ROW_HEADER,          "RowHeader",         "RowHeader",           xlColor(212,208,200),   COLOR_CAT_EFFECT_GRID},
             {COLOR_ROW_HEADER_SELECTED, "RowHeaderSelected", "Row Header Selected", xlColor(130,178,207),   COLOR_CAT_EFFECT_GRID},
+            {COLOR_GRID_DASHES,         "GridDashes",        "Dashed Select",       xlYELLOW,               COLOR_CAT_EFFECT_GRID},
             {COLOR_GRIDLINES,           "Gridlines",         "Gridlines",           xlColor(40,40,40),      COLOR_CAT_EFFECT_GRID},
             {COLOR_LABELS,              "Labels",            "Labels",              xlColor(255,255,204),   COLOR_CAT_EFFECT_GRID},
             {COLOR_LABEL_OUTLINE,       "LabelOutline",      "Label Outline",       xlColor(103, 103, 103), COLOR_CAT_EFFECT_GRID},
@@ -87,7 +96,10 @@ class ColorManager
             {COLOR_WORDS,               "Words",             "Words",               xlColor(255, 218, 145), COLOR_CAT_EFFECT_GRID},
             {COLOR_PHONEMES,            "Phonemes",          "Phonemes",            xlColor(255, 181, 218), COLOR_CAT_EFFECT_GRID},
 
-            {COLOR_MODEL_SELECTED,      "ModelSelected",     "Model Selected",      xlYELLOW,               COLOR_CAT_LAYOUT_TAB}
+            {COLOR_MODEL_DEFAULT,       "ModelDefault",      "Model Default",       xlLIGHT_GREY,           COLOR_CAT_LAYOUT_TAB},
+            {COLOR_MODEL_SELECTED,      "ModelSelected",     "Model Selected",      xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
+            {COLOR_MODEL_OVERLAP,       "ModelOverlap",      "Model Overlap",       xlRED,                  COLOR_CAT_LAYOUT_TAB},
+            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB}
         };
 
     protected:
@@ -97,7 +109,9 @@ class ColorManager
 
         std::map<std::string, xlColor> colors;
         std::map<std::string, xlColor> colors_backup;
+        std::map<std::string, xlColor> colors_default;
         xLightsFrame* xlights;
+        static ColorManager* pInstance;
 };
 
 #endif // COLORMANAGER_H
