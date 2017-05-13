@@ -465,6 +465,7 @@
   <ItemGroup>
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
+    <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
     <ClInclude Include="effects\CandlePanel.h" />

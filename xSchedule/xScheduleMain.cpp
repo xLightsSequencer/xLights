@@ -1840,7 +1840,7 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
     http.Connect("dankulp.com");
 
     const char *bound = "--------------------------b29a7c2fe47b9481";
- 
+
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
@@ -2273,7 +2273,7 @@ void xScheduleFrame::SendStatus()
         else
         {
             std::string msg;
-            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");    
+            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
         }
         _webServer->SendMessageToAllWebSockets(result);
     }

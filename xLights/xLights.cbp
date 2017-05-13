@@ -578,6 +578,7 @@
 		<Unit filename="MIDI/MidiEventList.cpp" />
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
+		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />

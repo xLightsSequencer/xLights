@@ -1841,6 +1841,9 @@
     <ClInclude Include="ColorManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MSWStackWalk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc">

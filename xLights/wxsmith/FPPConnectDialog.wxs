@@ -35,6 +35,20 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+										<label>Description</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Description" member="yes" />
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 										<label>Username</label>
 									</object>

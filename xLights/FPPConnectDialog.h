@@ -27,7 +27,8 @@ class FPPConnectionDetails
 public:
     std::string _ip;
     std::string _user;
-    FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password);
+    std::string _description;
+    FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password, const std::string& description);
     bool IsDefaultPassword() const;
     std::string GetPassword() const;
 };
@@ -57,10 +58,12 @@ class FPPConnectDialog: public wxDialog
 		wxNotebook* Notebook_FPP;
 		wxCheckBox* CheckBox_UploadModels;
 		wxButton* Button_Upload;
+		wxTextCtrl* TextCtrl_Description;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_USB;
 		wxChoice* Choice_Drives;
 		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
+		wxStaticText* StaticText6;
 		wxComboBox* ComboBox_IPAddress;
 		wxButton* Button_Console;
 		wxStaticText* StaticText1;
@@ -79,6 +82,8 @@ class FPPConnectDialog: public wxDialog
 		//(*Identifiers(FPPConnectDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_COMBOBOX_IPAddress;
+		static const long ID_STATICTEXT6;
+		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Username;
 		static const long ID_STATICTEXT3;

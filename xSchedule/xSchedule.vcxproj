@@ -294,6 +294,7 @@
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
+    <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
     <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
