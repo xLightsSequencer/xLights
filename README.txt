@@ -18,6 +18,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Allow entering of a description for a FPP instance in the connection dialog
    -- enh (keith)   Allow bulk uploading of sequences to all known FPP instances
    -- enh (keith)   Add select used/unused models to Display Elements model list right click menu
+   -- enh (keith)   Add a per node option to candle effect
 2017.13  May 10, 2017
    -- bug (dkulp)   Only do the "outside -> in" render for the Tree model.  Fixes #573.
    -- enh (cjd)     Output status messages to commandline when run in render mode

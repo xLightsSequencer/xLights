@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/bitmap.h>
 #include <wx/slider.h>
 #include <wx/settings.h>
@@ -34,6 +35,7 @@ const long CandlePanel::IDD_SLIDER_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_VALUECURVE_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_TEXTCTRL_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_BITMAPBUTTON_Candle_WindCalmness = wxNewId();
+const long CandlePanel::ID_CHECKBOX_PerNode = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(CandlePanel,wxPanel)
@@ -115,6 +117,12 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	BitmapButton_Candle_WindCalmness = new wxBitmapButton(this, ID_BITMAPBUTTON_Candle_WindCalmness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Candle_WindCalmness"));
 	BitmapButton_Candle_WindCalmness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer38->Add(BitmapButton_Candle_WindCalmness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer38->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_PerNode = new wxCheckBox(this, ID_CHECKBOX_PerNode, _("Per node"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PerNode"));
+	CheckBox_PerNode->SetValue(false);
+	FlexGridSizer38->Add(CheckBox_PerNode, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer38->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer38->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer38);
 	FlexGridSizer38->Fit(this);
 	FlexGridSizer38->SetSizeHints(this);
@@ -163,3 +171,4 @@ void CandlePanel::OnCheckBox_Candle_GrowWithMusicClick(wxCommandEvent& event)
 void CandlePanel::ValidateWindow()
 {
 }
+
