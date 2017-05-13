@@ -80,9 +80,10 @@ std::string FPP::GetURL(const std::string& url, bool logresult)
 
 bool FPP::Exists(const std::string& ip)
 {
+    if (ip == "") return false;
+
     wxHTTP http;
     bool connected = http.Connect(ip);
-    int err = http.GetError();
 
     if (connected)
     {

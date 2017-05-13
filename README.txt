@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Hook up the renderDirty event to the align options and undo to render the changes
    -- bug (keith)   Fix 64 bit stack walking on windows.
    -- enh (keith)   Allow entering of a description for a FPP instance in the connection dialog
+   -- enh (keith)   Allow bulk uploading of sequences to all known FPP instances
 2017.13  May 10, 2017
    -- bug (dkulp)   Only do the "outside -> in" render for the Tree model.  Fixes #573.
    -- enh (cjd)     Output status messages to commandline when run in render mode
