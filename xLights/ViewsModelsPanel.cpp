@@ -102,6 +102,8 @@ const long ViewsModelsPanel::ID_MODELS_SHOWALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SELECTALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_HIDEUNUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_REMOVEUNUSED = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SELECTUNUSED = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SELECTUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAME = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
@@ -1432,6 +1434,8 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnu.Append(ID_MODELS_HIDEUNUSED, "Hide Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SHOWALL, "Show All")->Enable(items > 0);
     mnu.Append(ID_MODELS_REMOVEUNUSED, "Remmove Unused")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SELECTUNUSED, "Select Unused")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SELECTUSED, "Select Used")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTALL, "Select All")->Enable(items >0);
 
     wxMenu* mnuSort = new wxMenu();
@@ -1480,6 +1484,14 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     {
         RemoveUnusedModels();
     }
+    else if (id == ID_MODELS_SELECTUNUSED)
+    {
+        SelectUnusedModels();
+    }
+    else if (id == ID_MODELS_SELECTUSED)
+    {
+        SelectUsedModels();
+    }
     else if (id == ID_MODELS_SORTBYNAME)
     {
         SortModelsByName();
@@ -1527,7 +1539,7 @@ void ViewsModelsPanel::HideUnusedModels()
     _xlFrame->DoForceSequencerRefresh();
 }
 
-void ViewsModelsPanel::RemoveUnusedModels()
+void ViewsModelsPanel::SelectUnusedModels()
 {
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
@@ -1541,6 +1553,27 @@ void ViewsModelsPanel::RemoveUnusedModels()
             SelectItem(ListCtrlModels, i, false);
         }
     }
+}
+
+void ViewsModelsPanel::SelectUsedModels()
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        Element* element = (Element*)ListCtrlModels->GetItemData(i);
+        if (!element->HasEffects())
+        {
+            SelectItem(ListCtrlModels, i, false);
+        }
+        else
+        {
+            SelectItem(ListCtrlModels, i, true);
+        }
+    }
+}
+
+void ViewsModelsPanel::RemoveUnusedModels()
+{
+    SelectUnusedModels();
     RemoveSelectedModels();
     _xlFrame->DoForceSequencerRefresh();
 }
