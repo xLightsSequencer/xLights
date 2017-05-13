@@ -23,7 +23,10 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
 
     if (_connected)
     {
+        int oldTimeout = _http.GetTimeout();
+        _http.SetTimeout(2);
         std::string version = GetURL("//");
+        _http.SetTimeout(oldTimeout);
 
         //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
         static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9]+)", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -73,6 +76,33 @@ std::string FPP::GetURL(const std::string& url, bool logresult)
 
     wxDELETE(httpStream);
     return res.ToStdString();
+}
+
+bool FPP::Exists(const std::string& ip)
+{
+    wxHTTP http;
+    bool connected = http.Connect(ip);
+    int err = http.GetError();
+
+    if (connected)
+    {
+        http.SetMethod("GET");
+        http.SetTimeout(2);
+        wxInputStream *httpStream = http.GetInputStream("//");
+
+        if (http.GetError() == wxPROTO_NOERR)
+        {
+            // ok
+        }
+        else
+        {
+            connected = false;
+        }
+
+        http.Close();
+    }
+
+    return connected;
 }
 
 void FPP::RestartFFPD()

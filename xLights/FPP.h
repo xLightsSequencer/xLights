@@ -36,7 +36,7 @@ public:
     std::string SaveFPPChannelMemoryMaps(ModelManager* allmodels) const;
     bool UploadSequence(std::string file, wxWindow* parent);
     static bool IsDefaultPassword(const std::string& user, const std::string& password);
-
+    static bool Exists(const std::string& ip);
 };
 
 #endif

@@ -297,15 +297,18 @@ void FPPConnectDialog::LoadConnectionDetails()
 
     for (int i = 0; i < count; ++i)
     {
-        auto cd = FPPConnectionDetails(ips[i].ToStdString(), users[i].ToStdString(), passwords[i].ToStdString(), descriptions[i].ToStdString());
-        _connectionDetails.push_back(cd);
-        ComboBox_IPAddress->AppendString(ips[i]);
-        if (i == 0)
+        if (FPP::Exists(ips[i].ToStdString()))
         {
-            ComboBox_IPAddress->SetSelection(0);
-            TextCtr_Username->SetValue(cd._user);
-            TextCtrl_Description->SetValue(cd._description);
-            TextCtrl_Password->SetValue(cd.GetPassword());
+            auto cd = FPPConnectionDetails(ips[i].ToStdString(), users[i].ToStdString(), passwords[i].ToStdString(), descriptions[i].ToStdString());
+            _connectionDetails.push_back(cd);
+            ComboBox_IPAddress->AppendString(ips[i]);
+            if (i == 0)
+            {
+                ComboBox_IPAddress->SetSelection(0);
+                TextCtr_Username->SetValue(cd._user);
+                TextCtrl_Description->SetValue(cd._description);
+                TextCtrl_Password->SetValue(cd.GetPassword());
+            }
         }
     }
 }
