@@ -1440,6 +1440,28 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
     }
 }
 
+int SequenceElements::GetIndexOfModelFromModelIndex(int modelIndex)
+{
+    int count = 0;
+
+    for (int i = 0; i < GetElementCount(); ++i)
+    {
+        if (GetElement(i)->GetType() == ELEMENT_TYPE_TIMING)
+        {
+        }
+        else
+        {
+            if (count == modelIndex)
+            {
+                return i;
+            }
+            count++;
+        }
+    }
+
+    return -1;
+}
+
 void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount(nullptr);

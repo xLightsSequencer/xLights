@@ -1096,7 +1096,9 @@ void xScheduleFrame::UpdateSchedule()
     if (wxDateTime::Now().GetSecond() != 0)
     {
         _timerSchedule.Stop();
-        _timerSchedule.Start((60 - wxDateTime::Now().GetSecond()) * 1000, false);
+        int time = (60 - wxDateTime::Now().GetSecond()) * 1000;
+        if (time == 0) time = 1;
+        _timerSchedule.Start(time, false);
     }
     else if (_timerSchedule.GetInterval() != 60000)
     {
