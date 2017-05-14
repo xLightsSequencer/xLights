@@ -296,4 +296,17 @@ int SerialPort::SendBreak()
     // no error
     return 0;
 }
+
+int SerialPort::Purge()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (PurgeComm(_fd, PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXABORT | PURGE_TXCLEAR) == 0)
+    {
+        logger_base.error("Error purging commport 0x%lx.", (long)GetLastError());
+        return -1;
+    }
+
+    return 0;
+}
 #pragma endregion Read and Write

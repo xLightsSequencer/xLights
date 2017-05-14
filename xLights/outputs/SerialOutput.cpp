@@ -327,6 +327,9 @@ void SerialOutput::Close()
 {
     if (_serial != nullptr)
     {
+        // throw away any pending data
+        _serial->Purge();
+
         int i = 0;
         while( !TxEmpty() && (i < 10) )
         {
