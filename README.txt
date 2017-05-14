@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (gil)     Add additional colors to color manager.
    -- bug (gil)     Fix Align Both Times case that was failing.
+   -- bug (gil)     Fix effect panel not updating icon when using drop-down combo.
    -- bug (dkulp)   Fix crash if model using #x:y notation has end channel beyond end of setup. Fixes #859
    -- bug (dkulp)   Fix crash if expand group with submodels and model doesn't exist in sequence
    -- bug (dkulp)   Hook up the renderDirty event to the align options and undo to render the changes

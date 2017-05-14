@@ -101,7 +101,7 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
     logger_base.debug("CreateSequencer: Done.");
-    
+
     mainSequencer->SetupTouchBar(effectManager, colorPanel->SetupTouchBar(mainSequencer->touchBarSupport));
 }
 
@@ -761,7 +761,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 			SetAudioControls();
         }
     }
-    if (event.updateUI) {
+    if (event.updateUI || event.updateBtn) {
         RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
         effectsPnl->SetDragIconBuffer(eff->GetEffectIcon(16));
         effectsPnl->BitmapButtonSelectedEffect->SetEffect(eff, mIconSize);
