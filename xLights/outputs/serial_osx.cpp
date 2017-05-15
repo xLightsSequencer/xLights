@@ -219,5 +219,6 @@ int SerialPort::Write(char* buf,size_t len)
 
 int SerialPort::Purge()
 {
-    return (tcflush(_fd, TCIOFLUSH);
+    return 0;
+    //return (tcflush(_fd, TCIOFLUSH));
 };
