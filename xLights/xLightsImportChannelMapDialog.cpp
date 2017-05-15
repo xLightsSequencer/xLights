@@ -401,10 +401,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	//*)
 
     ListCtrl_Available->SetSize(150, -1);
-    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    if (ListCtrl_Available->GetColumnWidth(0) < 150)
+    if (ListCtrl_Available->GetColumnCount() > 0)
     {
-        ListCtrl_Available->SetColumnWidth(0, 150);
+        ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
+        if (ListCtrl_Available->GetColumnWidth(0) < 150)
+        {
+            ListCtrl_Available->SetColumnWidth(0, 150);
+        }
     }
 
     if (_filename != "")
@@ -533,7 +536,11 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     // load the available list
     ListCtrl_Available->AppendColumn("Available");
-    ListCtrl_Available->SetColumnWidth(0, 150);
+    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrl_Available->GetColumnWidth(0) < 150)
+    {
+        ListCtrl_Available->SetColumnWidth(0, 150);
+    }
 
     if (ccr)
     {
