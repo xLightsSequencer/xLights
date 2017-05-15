@@ -197,7 +197,7 @@ public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
-            clearAllFrames(false), supportsModelBlending(false), abort(false)
+            supportsModelBlending(false), abort(false)
     {
         if (row != nullptr) {
             name = row->GetModelName();
@@ -427,8 +427,7 @@ public:
         startFrame = start;
         endFrame = end;
     }
-    void SetRangeRestriction(const std::list<NodeRange> &rng, bool clear) {
-        clearAllFrames = clear;
+    void SetRangeRestriction(const std::list<NodeRange> &rng) {
         rangeRestriction = rng;
     }
     void SetModelBlending() {
@@ -531,14 +530,7 @@ public:
             for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d", frame, true);
-                if (clearAllFrames) {
-                    for (auto it = rangeRestriction.begin(); it != rangeRestriction.end(); ++it) {
-                        FrameData fd = (*seqData)[frame];
-                        for (int x = it->start; x <= it->end; ++x) {
-                            fd[x] = (unsigned char)0;
-                        }
-                    }
-                }
+                
                 if (abort) {
                     break;
                 }
@@ -690,7 +682,6 @@ private:
     int numLayers;
     xLightsFrame *xLights;
     SequenceData *seqData;
-    bool clearAllFrames;
     std::list<NodeRange> rangeRestriction;
     bool supportsModelBlending;
     RenderEvent renderEvent;
@@ -1064,7 +1055,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
                     }
 
                     job->setRenderRange(startFrame, endFrame);
-                    job->SetRangeRestriction(ranges, false);
+                    job->SetRangeRestriction(ranges);
                     if (mSequenceElements.SupportsModelBlending()) {
                         job->SetModelBlending();
                     }
@@ -1104,18 +1095,23 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
     if (progressDialog) {
         renderProgressDialog = new RenderProgressDialog(this);
     }
-    bool first = true;
     unsigned int count = 0;
+    if (clear) {
+        for (int f = startFrame; f <= endFrame; f++) {
+            for (auto it = ranges.begin(); it != ranges.end(); ++it) {
+                FrameData fd = SeqData[f];
+                for (int x = it->start; x <= it->end; ++x) {
+                    fd[x] = (unsigned char)0;
+                }
+            }
+        }
+    }
     for (row = 0; row < numRows; ++row) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
                 //start all the jobs that don't depend on anything above them
                 //get them rendering while we setup the rest
                 jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
-                if (first && clear) {
-                    jobs[row]->SetRangeRestriction(ranges, clear);
-                    first = false;
-                }
                 jobPool.PushJob(jobs[row]);
                 ++count;
             }

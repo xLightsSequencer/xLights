@@ -243,6 +243,7 @@
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
+    <ClInclude Include="..\xLights\MSWStackWalk.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

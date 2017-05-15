@@ -53,6 +53,7 @@ public:
     int Close();
     int Open( const std::string& portName, int baudRate, const char* protocol = "8N1" );
     bool IsOpen();
+    int Purge();
     #pragma endregion Start and Stop
 };
 

@@ -14,7 +14,6 @@
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 class MainSequencer;
-class xLightsFrame;
 
 class RowHeading : public wxWindow
 {

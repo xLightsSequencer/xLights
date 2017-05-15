@@ -198,11 +198,11 @@ bool SequenceElements::ElementExists(const std::string &elementName, int view)
 {
     for(size_t i=0;i<mAllViews[view].size();i++)
     {
-        if(mAllViews[view][i]->GetName() == elementName)
+        if (mAllViews[view][i]->GetName() == elementName)
         {
             return true;
         }
-    }
+}
     return false;
 }
 
@@ -871,8 +871,11 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 }
                 if(!ElementExists(model1->GetName()))
                 {
-                   Element* elem = AddElement(modelName,"model",visible,false,false,false);
-                   elem->AddEffectLayer();
+                    Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false);
+                    if (elem != nullptr)
+                    {
+                        elem->AddEffectLayer();
+                    }
                 }
             }
         }
@@ -955,6 +958,8 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
 
 void SequenceElements::PopulateView(const std::string &models, int view)
 {
+    if (view >= mAllViews.size()) return;
+
     mAllViews[view].clear();
 
     if(models.length()> 0)
@@ -1433,6 +1438,28 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
         Element * e = GetElement(i, view);
         e->SetVisible(visibility);
     }
+}
+
+int SequenceElements::GetIndexOfModelFromModelIndex(int modelIndex)
+{
+    int count = 0;
+
+    for (int i = 0; i < GetElementCount(); ++i)
+    {
+        if (GetElement(i)->GetType() == ELEMENT_TYPE_TIMING)
+        {
+        }
+        else
+        {
+            if (count == modelIndex)
+            {
+                return i;
+            }
+            count++;
+        }
+    }
+
+    return -1;
 }
 
 void SequenceElements::MoveSequenceElement(int index, int dest, int view)

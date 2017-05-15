@@ -6,6 +6,7 @@ ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
 {
     ResetDefaults();
+    pInstance = this;
 }
 
 ColorManager::~ColorManager()
@@ -14,28 +15,25 @@ ColorManager::~ColorManager()
     colors_backup.clear();
 }
 
+ColorManager* ColorManager::pInstance = nullptr;
+
+ColorManager* ColorManager::instance()
+{
+    if( pInstance == nullptr ) {
+        // this should not be possible since the main application should
+        // always have constructed this object before any clients need it
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.error("Color Manager instance was still a nullptr.");
+    }
+    return pInstance;
+}
+
 void ColorManager::ResetDefaults()
 {
-    colors["Timing1"] = xlCYAN;
-    colors["Timing2"] = xlRED;
-    colors["Timing3"] = xlGREEN;
-    colors["Timing4"] = xlBLUE;
-    colors["Timing5"] = xlYELLOW;
-
-    colors["TimingDefault"] = xlWHITE;
-    colors["EffectDefault"] = xlColor(192,192,192);
-    colors["EffectSelected"] = xlColor(204, 102, 255);
-    colors["ReferenceEffect"] = xlColor(255,0,255);
-    colors["Gridlines"] = xlColor(40,40,40);
-    colors["Labels"] = xlColor(255,255,204);
-    colors["LabelOutline"] = xlColor(103, 103, 103);
-    colors["Phrases"] = xlColor(153, 255, 153);
-    colors["Words"] = xlColor(255, 218, 145);
-    colors["Phonemes"] = xlColor(255, 181, 218);
-    colors["RowHeader"] = xlColor(212,208,200);
-    colors["RowHeaderSelected"] = xlColor(130,178,207);
-
-    colors["ModelSelected"] = xlYELLOW;
+    for( size_t i = 0; i < NUM_COLORS; ++i )
+	{
+        colors[xLights_color[i].name] = xLights_color[i].color;
+	}
 }
 
 void ColorManager::Snapshot()
@@ -73,6 +71,16 @@ void ColorManager::SetDirty()
 xlColor ColorManager::GetColor(ColorNames name)
 {
     return colors[xLights_color[name].name];
+}
+
+const xlColor* ColorManager::GetColorPtr(ColorNames name)
+{
+    return &colors[xLights_color[name].name];
+}
+
+void ColorManager::RefreshColors()
+{
+    xlights->RenderLayout();
 }
 
 const xlColor ColorManager::GetTimingColor(int colorIndex)

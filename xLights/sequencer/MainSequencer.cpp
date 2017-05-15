@@ -531,6 +531,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                    mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
                     PanelEffectGrid->Refresh();
+                    PanelEffectGrid->sendRenderDirtyEvent();
                 }
                 event.StopPropagation();
             }
@@ -571,6 +572,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
        && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->Refresh();
+        PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
 void MainSequencer::DoRedo(wxCommandEvent& event) {

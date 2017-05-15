@@ -7,16 +7,19 @@
 #include <wx/progdlg.h>
 #include <wx/config.h>
 #include "outputs/Output.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(FPPConnectDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();
 const long FPPConnectDialog::ID_COMBOBOX_IPAddress = wxNewId();
+const long FPPConnectDialog::ID_BUTTON2 = wxNewId();
+const long FPPConnectDialog::ID_STATICTEXT6 = wxNewId();
+const long FPPConnectDialog::ID_TEXTCTRL1 = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT2 = wxNewId();
 const long FPPConnectDialog::ID_TEXTCTRL_Username = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
@@ -33,6 +36,7 @@ const long FPPConnectDialog::ID_CHECKBOX_UploadController = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
 const long FPPConnectDialog::ID_CHECKLISTBOX_Sequences = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
+const long FPPConnectDialog::ID_BUTTON1 = wxNewId();
 //*)
 
 const long FPPConnectDialog::ID_MNU_SELECTALL = wxNewId();
@@ -48,7 +52,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     _outputManager = outputManager;
 
 	//(*Initialize(FPPConnectDialog)
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
@@ -64,8 +70,17 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(Panel_FTP, ID_STATICTEXT1, _("IP Address"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
 	ComboBox_IPAddress = new wxComboBox(Panel_FTP, ID_COMBOBOX_IPAddress, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX_IPAddress"));
-	FlexGridSizer2->Add(ComboBox_IPAddress, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(ComboBox_IPAddress, 1, wxALL|wxEXPAND, 5);
+	Button_Forget = new wxButton(Panel_FTP, ID_BUTTON2, _("Forget"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer5->Add(Button_Forget, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(Panel_FTP, ID_STATICTEXT6, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer2->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Description = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(Panel_FTP, ID_STATICTEXT2, _("Username"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtr_Username = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Username, _("fpp"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Username"));
@@ -106,15 +121,25 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
 	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
 	FlexGridSizer1->Add(CheckListBox_Sequences, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
-	FlexGridSizer1->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_UploadToAll = new wxButton(this, ID_BUTTON1, _("Upload To All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer4->Add(Button_UploadToAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_COMBOBOX_IPAddress,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&FPPConnectDialog::OnComboBox_IPAddressSelected);
+	Connect(ID_COMBOBOX_IPAddress,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnComboBox_IPAddressTextEnter);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_ForgetClick);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_DescriptionText);
+	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_DescriptionTextEnter);
 	Connect(ID_TEXTCTRL_Username,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtr_UsernameText);
+	Connect(ID_TEXTCTRL_Username,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtr_UsernameTextEnter);
 	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordText);
+	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordTextEnter);
 	Connect(ID_BUTTON_Console,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_ConsoleClick);
 	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged);
 	Connect(ID_NOTEBOOK_FPP,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnNotebook_FPPPageChanged);
@@ -122,6 +147,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadModelsClick);
 	Connect(ID_CHECKLISTBOX_Sequences,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckListBox_SequencesToggled);
 	Connect(ID_BUTTON_Upload,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadToAllClick);
 	//*)
 
     CheckListBox_Sequences->Connect(ID_CHECKLISTBOX_Sequences, wxEVT_RIGHT_UP, (wxObjectEventFunction)&FPPConnectDialog::OnSequenceRClick, nullptr, this);
@@ -199,11 +225,12 @@ bool FPPConnectionDetails::IsDefaultPassword() const
     return _password == "true";
 }
 
-FPPConnectionDetails::FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password)
+FPPConnectionDetails::FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password, const std::string& description)
 {
     _ip = ip;
     _user = user;
     _password = password;
+    _description = description;
 }
 
 std::string FPPConnectionDetails::GetPassword() const
@@ -227,8 +254,9 @@ void FPPConnectDialog::SaveConnectionDetails()
     std::string ip = ComboBox_IPAddress->GetValue().ToStdString();
     std::string user = TextCtr_Username->GetValue().ToStdString();
     std::string password = (FPP::IsDefaultPassword(user, TextCtrl_Password->GetValue().ToStdString()) ? "true" : "false");
+    std::string description = TextCtrl_Description->GetValue().ToStdString();
 
-    for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
+    for (auto it = _allConnectionDetails.begin(); it != _allConnectionDetails.end(); ++it)
     {
         if (it->_ip == ComboBox_IPAddress->GetValue().ToStdString())
         {
@@ -238,6 +266,7 @@ void FPPConnectDialog::SaveConnectionDetails()
         {
             ip += "|" + it->_ip;
             user += "|" + it->_user;
+            description += "|" + it->_description;
             password += "|" + std::string(it->IsDefaultPassword() ? "true" : "false");
         }
     }
@@ -245,6 +274,7 @@ void FPPConnectDialog::SaveConnectionDetails()
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("xLightsPiIP", wxString(ip));
     config->Write("xLightsPiUser", wxString(user));
+    config->Write("xLightsPiDescription", wxString(description));
     config->Write("xLightsPiPassword", wxString(password));
     config->Flush();
 }
@@ -267,26 +297,39 @@ void FPPConnectDialog::LoadConnectionDetails()
     config->Read("xLightsPiIP", &ip, "");
     wxString user;
     config->Read("xLightsPiUser", &user, "fpp");
+    wxString description;
+    config->Read("xLightsPiDescription", &description, "");
     wxString password;
     config->Read("xLightsPiPassword", &password, "true");
 
     auto ips = wxSplit(ip, '|');
     auto users = wxSplit(user, '|');
     auto passwords = wxSplit(password, '|');
+    auto descriptions = wxSplit(description, '|');
 
     // they should all be the same size ... but if not base it off the smallest
     int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
 
+    while (descriptions.size() < count)
+    {
+        descriptions.push_back("");
+    }
+
     for (int i = 0; i < count; ++i)
     {
-        auto cd = FPPConnectionDetails(ips[i].ToStdString(), users[i].ToStdString(), passwords[i].ToStdString());
-        _connectionDetails.push_back(cd);
-        ComboBox_IPAddress->AppendString(ips[i]);
-        if (i == 0)
+        auto cd = FPPConnectionDetails(ips[i].ToStdString(), users[i].ToStdString(), passwords[i].ToStdString(), descriptions[i].ToStdString());
+        _allConnectionDetails.push_back(cd);
+        if (FPP::Exists(ips[i].ToStdString()))
         {
-            ComboBox_IPAddress->SetSelection(0);
-            TextCtr_Username->SetValue(cd._user);
-            TextCtrl_Password->SetValue(cd.GetPassword());
+            _connectionDetails.push_back(cd);
+            ComboBox_IPAddress->AppendString(ips[i]);
+            if (i == 0)
+            {
+                ComboBox_IPAddress->SetSelection(0);
+                TextCtr_Username->SetValue(cd._user);
+                TextCtrl_Description->SetValue(cd._description);
+                TextCtrl_Password->SetValue(cd.GetPassword());
+            }
         }
     }
 }
@@ -327,6 +370,7 @@ FPPConnectDialog::~FPPConnectDialog()
 {
 	//(*Destroy(FPPConnectDialog)
 	//*)
+    _connectionDetails.clear();
 }
 
 void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
@@ -420,20 +464,56 @@ void FPPConnectDialog::ValidateWindow()
 {
     if (Notebook_FPP->GetSelection() == 0)
     {
+        if (IsValidIP(ComboBox_IPAddress->GetValue()))
+        {
+            bool found = false;
+            for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
+            {
+                if (it->_ip == ComboBox_IPAddress->GetValue().ToStdString())
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                Button_Forget->Enable();
+            }
+            else
+            {
+                Button_Forget->Enable(false);
+            }
+        }
+        else
+        {
+            Button_Forget->Enable(false);
+        }
+
         wxArrayInt tmp;
         CheckListBox_Sequences->GetCheckedItems(tmp);
         if (TextCtr_Username->GetValue() != "" && IsValidIP(ComboBox_IPAddress->GetValue()) && (CheckBox_UploadModels->IsChecked() || CheckBox_UploadController->IsChecked() || tmp.size() > 0))
         {
             Button_Upload->Enable();
+            if (!CheckBox_UploadController->IsChecked() && !CheckBox_UploadModels->IsChecked())
+            {
+                Button_UploadToAll->Enable(true);
+            }
+            else
+            {
+                Button_UploadToAll->Enable(false);
+            }
         }
         else
         {
             Button_Upload->Disable();
+            Button_UploadToAll->Enable(false);
         }
     }
     else
     {
-        #ifdef __WXMSW__
+        Button_UploadToAll->Enable(false);
+#ifdef __WXMSW__
         wxArrayInt tmp;
         CheckListBox_Sequences->GetCheckedItems(tmp);
         if (Choice_Drives->GetCount() > 0 && (CheckBox_UploadController->IsChecked() || tmp.size() > 0))
@@ -623,6 +703,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     Button_Upload->Disable();
     TextCtr_Username->Disable();
+    TextCtrl_Description->Disable();
     ComboBox_IPAddress->Disable();
     TextCtrl_Password->Disable();
     CheckListBox_Sequences->Disable();
@@ -641,6 +722,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     Button_Upload->Enable();
     TextCtr_Username->Enable();
+    TextCtrl_Description->Enable();
     ComboBox_IPAddress->Enable();
     TextCtrl_Password->Enable();
     CheckListBox_Sequences->Enable();
@@ -764,16 +846,25 @@ void FPPConnectDialog::OnCheckBox_UploadControllerClick(wxCommandEvent& event)
 
 void FPPConnectDialog::OnTextCtrl_IPAddressText(wxCommandEvent& event)
 {
+    // remember user name and ip address
+    SaveConnectionDetails();
+
     ValidateWindow();
 }
 
 void FPPConnectDialog::OnTextCtr_UsernameText(wxCommandEvent& event)
 {
+    // remember user name and ip address
+    SaveConnectionDetails();
+
     ValidateWindow();
 }
 
 void FPPConnectDialog::OnTextCtrl_PasswordText(wxCommandEvent& event)
 {
+    // remember user name and ip address
+    SaveConnectionDetails();
+
     ValidateWindow();
 }
 
@@ -805,7 +896,108 @@ void FPPConnectDialog::OnComboBox_IPAddressSelected(wxCommandEvent& event)
         if (it->_ip == ip)
         {
             TextCtr_Username->SetValue(it->_user);
+            TextCtrl_Description->SetValue(it->_description);
             TextCtrl_Password->SetValue(it->GetPassword());
         }
     }
+}
+
+void FPPConnectDialog::OnButton_UploadToAllClick(wxCommandEvent& event)
+{
+    bool cancelled = false;
+
+    SetCursor(wxCURSOR_WAIT);
+
+    Button_Upload->Disable();
+    TextCtr_Username->Disable();
+    TextCtrl_Description->Disable();
+    ComboBox_IPAddress->Disable();
+    TextCtrl_Password->Disable();
+    CheckListBox_Sequences->Disable();
+    Choice_Drives->Disable();
+    CheckBox_UploadController->Disable();
+    CheckBox_UploadModels->Disable();
+
+    // remember user name and ip address
+    SaveConnectionDetails();
+
+    wxString done = ComboBox_IPAddress->GetValue();
+    cancelled = FTPUpload();
+
+    int i = 0;
+    while (!cancelled && i < ComboBox_IPAddress->GetCount())
+    {
+        ComboBox_IPAddress->SetSelection(i);
+        if (ComboBox_IPAddress->GetValue() != done)
+        {
+            cancelled = FTPUpload();
+        }
+        i++;
+    }
+
+    Button_Upload->Enable();
+    TextCtr_Username->Enable();
+    TextCtrl_Description->Enable();
+    ComboBox_IPAddress->Enable();
+    TextCtrl_Password->Enable();
+    CheckListBox_Sequences->Enable();
+    Choice_Drives->Enable();
+    CheckBox_UploadController->Enable();
+    CheckBox_UploadModels->Enable();
+
+    SetCursor(wxCURSOR_ARROW);
+
+    if (!cancelled)
+    {
+        EndDialog(0);
+    }
+}
+
+void FPPConnectDialog::OnButton_ForgetClick(wxCommandEvent& event)
+{
+    for (auto it = _connectionDetails.begin(); it != _connectionDetails.end(); ++it)
+    {
+        if (it->_ip == ComboBox_IPAddress->GetValue().ToStdString())
+        {
+            _connectionDetails.remove(*it);
+            _allConnectionDetails.remove(*it);
+            ComboBox_IPAddress->Remove(ComboBox_IPAddress->GetSelection(), ComboBox_IPAddress->GetSelection());
+            ComboBox_IPAddress->SetSelection(-1);
+            TextCtr_Username->SetValue("");
+            TextCtrl_Description->SetValue("");
+            TextCtrl_Password->SetValue("");
+            ValidateWindow();
+            break;
+        }
+    }
+}
+
+void FPPConnectDialog::OnTextCtrl_DescriptionTextEnter(wxCommandEvent& event)
+{
+    // remember user name and ip address
+    SaveConnectionDetails();
+}
+
+void FPPConnectDialog::OnTextCtr_UsernameTextEnter(wxCommandEvent& event)
+{
+    // remember user name and ip address
+    SaveConnectionDetails();
+}
+
+void FPPConnectDialog::OnTextCtrl_PasswordTextEnter(wxCommandEvent& event)
+{
+    // remember user name and ip address
+    SaveConnectionDetails();
+}
+
+void FPPConnectDialog::OnComboBox_IPAddressTextEnter(wxCommandEvent& event)
+{
+    // remember user name and ip address
+    SaveConnectionDetails();
+}
+
+void FPPConnectDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
+{
+    // remember user name and ip address
+    SaveConnectionDetails();
 }

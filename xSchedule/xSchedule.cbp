@@ -278,6 +278,7 @@
 		<Unit filename="../xLights/AudioManager.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
+		<Unit filename="../xLights/MSWStackWalk.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />

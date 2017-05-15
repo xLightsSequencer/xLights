@@ -3,6 +3,7 @@
 
 //(*Headers(CandlePanel)
 #include <wx/panel.h>
+class wxCheckBox;
 class wxTextCtrl;
 class wxStaticText;
 class wxSlider;
@@ -33,6 +34,7 @@ class CandlePanel: public wxPanel
 		wxTextCtrl* TextCtrl_Candle_WindBaseline;
 		wxBitmapButton* BitmapButton_Candle_WindCalmness;
 		wxBitmapButton* BitmapButton_Cande_WindBaseline;
+		wxCheckBox* CheckBox_PerNode;
 		wxSlider* Slider_Candle_WindBaseline;
 		wxStaticText* StaticText132;
 		wxSlider* Slider_Candle_WindVariability;
@@ -62,6 +64,7 @@ class CandlePanel: public wxPanel
 		static const long ID_VALUECURVE_Candle_WindCalmness;
 		static const long ID_TEXTCTRL_Candle_WindCalmness;
 		static const long ID_BITMAPBUTTON_Candle_WindCalmness;
+		static const long ID_CHECKBOX_PerNode;
 		//*)
 
 	public:
@@ -75,13 +78,14 @@ class CandlePanel: public wxPanel
 		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Candle_GrowWithMusicClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
-        void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        //*)
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnCheckBox1Click(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

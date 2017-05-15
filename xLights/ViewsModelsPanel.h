@@ -78,6 +78,8 @@ class ViewsModelsPanel: public wxPanel
     void ShowAllModels(bool show);
     void HideUnusedModels();
     void RemoveUnusedModels();
+    void SelectUnusedModels();
+    void SelectUsedModels();
     void SelectAllModels();
     void SortModelsByName();
     void SortModelsByNameGM();
@@ -162,6 +164,8 @@ class ViewsModelsPanel: public wxPanel
         static const long ID_MODELS_SELECTALL;
         static const long ID_MODELS_HIDEUNUSED;
         static const long ID_MODELS_REMOVEUNUSED;
+        static const long ID_MODELS_SELECTUNUSED;
+        static const long ID_MODELS_SELECTUSED;
         static const long ID_MODELS_SORT;
         static const long ID_MODELS_SORTBYNAME;
         static const long ID_MODELS_SORTBYNAMEGM;

@@ -312,6 +312,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_UNDO)
     {
         mSequenceElements->get_undo_mgr().UndoLastStep();
+        sendRenderDirtyEvent();
     }
     else if( id == ID_GRID_MNU_ALIGN_START_TIMES )
     {
@@ -1852,13 +1853,23 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 bool all_clear = false;
                 int str_time_for_check = align_start;
                 int end_time_for_check = align_end;
-                if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                    all_clear = true;
-                } else {
-                    if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                        end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
-                    } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
-                        str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
+                if( align_mode == ALIGN_BOTH_TIMES ) {
+                    if( align_start < ef->GetStartTimeMS() && align_end > ef->GetEndTimeMS() ) {
+                        if( el->GetRangeIsClearMS( align_start, ef->GetStartTimeMS()) &&
+                            el->GetRangeIsClearMS( ef->GetEndTimeMS(), align_end) ) {
+                            all_clear = true;
+                        }
+                    }
+                }
+                if( !all_clear ) {
+                    if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
+                        all_clear = true;
+                    } else {
+                        if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
+                            end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
+                        } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
+                            str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
+                        }
                     }
                 }
 
@@ -1896,6 +1907,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
             }
         }
     }
+    sendRenderDirtyEvent();
     xlights->DoForceSequencerRefresh();
 }
 
@@ -3496,7 +3508,7 @@ void EffectsGrid::Draw()
         if(mDragging && (mSequenceElements->GetSelectedTimingRow() == -1))
         {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
-            DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
+            DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
         }
     }
 

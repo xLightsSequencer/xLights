@@ -103,7 +103,7 @@
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shimmer_Cycles" variable="TextCtrl47" member="no">
 					<value>1.0</value>
-					<maxlength>4</maxlength>
+					<maxlength>5</maxlength>
 					<size>20,-1d</size>
 					<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 				</object>

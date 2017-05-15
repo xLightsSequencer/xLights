@@ -1096,7 +1096,9 @@ void xScheduleFrame::UpdateSchedule()
     if (wxDateTime::Now().GetSecond() != 0)
     {
         _timerSchedule.Stop();
-        _timerSchedule.Start((60 - wxDateTime::Now().GetSecond()) * 1000, false);
+        int time = (60 - wxDateTime::Now().GetSecond()) * 1000;
+        if (time == 0) time = 1;
+        _timerSchedule.Start(time, false);
     }
     else if (_timerSchedule.GetInterval() != 60000)
     {
@@ -1840,7 +1842,7 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
     http.Connect("dankulp.com");
 
     const char *bound = "--------------------------b29a7c2fe47b9481";
- 
+
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
@@ -2273,7 +2275,7 @@ void xScheduleFrame::SendStatus()
         else
         {
             std::string msg;
-            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");    
+            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
         }
         _webServer->SendMessageToAllWebSockets(result);
     }

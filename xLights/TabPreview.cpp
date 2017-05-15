@@ -19,6 +19,11 @@ void xLightsFrame::RefreshLayout()
     layoutPanel->RefreshLayout();
 }
 
+void xLightsFrame::RenderLayout()
+{
+    layoutPanel->RenderLayout();
+}
+
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
 

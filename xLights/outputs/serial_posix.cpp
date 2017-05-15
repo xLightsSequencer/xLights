@@ -228,3 +228,9 @@ int SerialPort::Write(char* buf, size_t len)
     if((n < 0) && (errno == EAGAIN)) return 0;
     return n;
 };
+
+int SerialPort::Purge()
+{
+    return 0;
+    //return (tcflush(_fd, TCIOFLUSH));
+};

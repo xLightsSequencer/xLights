@@ -1,6 +1,8 @@
 #include "CandleEffect.h"
 #include "CandlePanel.h"
 
+#include <map>
+
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -41,13 +43,8 @@ wxPanel *CandleEffect::CreatePanel(wxWindow *parent) {
     return new CandlePanel(parent);
 }
 
-
-
-class CandleRenderCache : public EffectRenderCache {
-public:
-    CandleRenderCache() {};
-    virtual ~CandleRenderCache() {};
-
+struct CandleState
+{
     wxByte flameprimer;
     wxByte flamer;
     wxByte wind;
@@ -55,6 +52,23 @@ public:
     wxByte flameg;
 };
 
+class CandleRenderCache : public EffectRenderCache {
+public:
+    std::map<int, CandleState*> _states;
+
+    CandleRenderCache() {};
+    virtual ~CandleRenderCache()
+    {
+        while (_states.size() > 0)
+        {
+            int index = _states.begin()->first;
+            CandleState* todelete = _states[index];
+            _states.erase(index);
+            delete todelete;
+        }
+
+    };
+};
 
 static CandleRenderCache* GetCache(RenderBuffer &buffer, int id) {
     CandleRenderCache *cache = (CandleRenderCache*)buffer.infoCache[id];
@@ -80,6 +94,8 @@ void CandleEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(fp->Slider_Candle_WindBaseline, 30);
     SetSliderValue(fp->Slider_Candle_WindCalmness, 2);
     SetSliderValue(fp->Slider_Candle_WindVariability, 5);
+
+    SetCheckBoxValue(fp->CheckBox_PerNode, false);
 }
 
 void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
@@ -123,6 +139,23 @@ void CandleEffect::Update(wxByte& flameprime, wxByte& flame, wxByte& wind, size_
     //We don't. It adds to the realism.
 }
 
+void InitialiseState(int node, std::map<int, CandleState*>& states)
+{
+    if (states.find(node) == states.end())
+    {
+        CandleState* state = new CandleState();
+        states[node] = state;
+    }
+
+    states[node]->flamer = rand01() * 255;
+    states[node]->flameprimer = rand01() * 255;
+
+    states[node]->flameg = rand01() * states[node]->flamer;
+    states[node]->flameprimeg = rand01() * states[node]->flameprimer;
+
+    states[node]->wind = rand01() * 255;
+}
+
 // 10 <= HeightPct <= 100
 void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
@@ -131,40 +164,71 @@ void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset, 0, 10);
     int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, 0, 10);
     int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, 0, 255);
+    bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
 
     CandleRenderCache *cache = GetCache(buffer, id);
-    wxByte& flameprimer = cache->flameprimer;
-    wxByte& flamer = cache->flamer;
-    wxByte& wind = cache->wind;
-    wxByte& flameprimeg = cache->flameprimeg;
-    wxByte& flameg = cache->flameg;
+    std::map<int, CandleState*>& states = cache->_states;
 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
 
-        flamer = rand01() * 255;
-        flameprimer = rand01() * 255;
-
-        flameg = rand01() * flamer;
-        flameprimeg = rand01() * flameprimer;
-
-        wind = rand01() * 255;
+        if (perNode)
+        {
+            for (size_t x = 0; x < buffer.BufferWi; ++x)
+            {
+                for (size_t y = 0; y < buffer.BufferHt; ++y)
+                {
+                    size_t index = y * buffer.BufferWi + x;
+                    InitialiseState(index, states);
+                }
+            }
+        }
+        else
+        {
+            InitialiseState(0, states);
+        }
     }
 
-    Update(flameprimer, flamer, wind, windVariability, flameAgility, windCalmness, windBaseline);
-    Update(flameprimeg, flameg, wind, windVariability, flameAgility, windCalmness, windBaseline);
-
-    if (flameprimeg > flameprimer) flameprimeg = flameprimer;
-    if (flameg > flamer) flameprimeg = flameprimer;
-
-    //  Now play Candle
-    xlColor c = xlColor(flameprimer, flameprimeg / 2, 0);
-    for (size_t y=0; y<buffer.BufferHt; y++)
+    if (perNode)
     {
-        for (size_t x=0; x<buffer.BufferWi; x++)
+        for (size_t y = 0; y < buffer.BufferHt; y++)
         {
-            buffer.SetPixel(x, y, c);
+            for (size_t x = 0; x < buffer.BufferWi; x++)
+            {
+                size_t index = y * buffer.BufferWi + x;
+                CandleState* state = states[index];
+
+                Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+                Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+
+                if (state->flameprimeg > state->flameprimer) state->flameprimeg = state->flameprimer;
+                if (state->flameg > state->flamer) state->flameprimeg = state->flameprimer;
+
+                //  Now play Candle
+                xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+                buffer.SetPixel(x, y, c);
+            }
+        }
+    }
+    else
+    {
+        CandleState* state = states[0];
+
+        Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+        Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+
+        if (state->flameprimeg > state->flameprimer) state->flameprimeg = state->flameprimer;
+        if (state->flameg > state->flamer) state->flameprimeg = state->flameprimer;
+
+        //  Now play Candle
+        xlColor c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
+        for (size_t y = 0; y < buffer.BufferHt; y++)
+        {
+            for (size_t x = 0; x < buffer.BufferWi; x++)
+            {
+                buffer.SetPixel(x, y, c);
+            }
         }
     }
 }

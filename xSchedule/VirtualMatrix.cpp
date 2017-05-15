@@ -78,18 +78,18 @@ wxXmlNode* VirtualMatrix::Save()
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "VMatrix");
 
     res->AddAttribute("Name", _name);
-    res->AddAttribute("Width", wxString::Format(wxT("%i"), _width));
-    res->AddAttribute("Height", wxString::Format(wxT("%i"), _height));
+    res->AddAttribute("Width", wxString::Format(wxT("%i"), (long)_width));
+    res->AddAttribute("Height", wxString::Format(wxT("%i"), (long)_height));
     if (!_topMost)
     {
         res->AddAttribute("TopMost", "FALSE");
     }
     res->AddAttribute("Rotation", DecodeRotation(_rotation));
     res->AddAttribute("Quality", DecodeScalingQuality(_quality));
-    res->AddAttribute("WW", wxString::Format(wxT("%i"), _size.GetWidth()));
-    res->AddAttribute("WH", wxString::Format(wxT("%i"), _size.GetHeight()));
-    res->AddAttribute("X", wxString::Format(wxT("%i"), _location.x));
-    res->AddAttribute("Y", wxString::Format(wxT("%i"), _location.y));
+    res->AddAttribute("WW", wxString::Format(wxT("%i"), (long)_size.GetWidth()));
+    res->AddAttribute("WH", wxString::Format(wxT("%i"), (long)_size.GetHeight()));
+    res->AddAttribute("X", wxString::Format(wxT("%i"), (long)_location.x));
+    res->AddAttribute("Y", wxString::Format(wxT("%i"), (long)_location.y));
     res->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (int)_startChannel));
 
     return res;

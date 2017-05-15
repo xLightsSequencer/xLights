@@ -75,7 +75,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	FlexGridSizer2->Add(BitmapButton_Shimmer_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer56->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	TextCtrl47 = new wxTextCtrl(this, ID_TEXTCTRL_Shimmer_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shimmer_Cycles"));
-	TextCtrl47->SetMaxLength(4);
+	TextCtrl47->SetMaxLength(5);
 	FlexGridSizer56->Add(TextCtrl47, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton5 = new wxBitmapButton(this, ID_BITMAPBUTTON24, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
 	BitmapButton5->SetMinSize(wxSize(13,13));
@@ -91,12 +91,12 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	BitmapButton_Shimmer_Use_All_Colors->SetMinSize(wxSize(13,13));
 	BitmapButton_Shimmer_Use_All_Colors->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer56->Add(BitmapButton_Shimmer_Use_All_Colors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_PRE_2017_7 = new wxCheckBox(this, ID_CHECKBOX_PRE_2017_7, _("Pre v2017.7 Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PRE_2017_7"));
 	CheckBox_PRE_2017_7->SetValue(false);
 	FlexGridSizer56->Add(CheckBox_PRE_2017_7, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer56->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer56);
 	FlexGridSizer56->Fit(this);
 	FlexGridSizer56->SetSizeHints(this);

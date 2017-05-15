@@ -27,15 +27,21 @@ class FPPConnectionDetails
 public:
     std::string _ip;
     std::string _user;
-    FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password);
+    std::string _description;
+    FPPConnectionDetails(const std::string& ip, const std::string& user, const std::string& password, const std::string& description);
     bool IsDefaultPassword() const;
     std::string GetPassword() const;
+    void SetPassword(const std::string& user, const std::string& password);
+    bool operator==(const FPPConnectionDetails& c2) const { return  _ip == c2._ip; }
+    bool operator==(const std::string& c2) const { return  _ip == c2; }
 };
 
 class FPPConnectDialog: public wxDialog
 {
     std::list<FPPConnectionDetails> _connectionDetails;
+    std::list<FPPConnectionDetails> _allConnectionDetails;
     OutputManager* _outputManager;
+    bool _updating;
     void LoadSequencesFromFolder(wxString dir);
     void LoadSequences();
     bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
@@ -57,20 +63,24 @@ class FPPConnectDialog: public wxDialog
 		wxNotebook* Notebook_FPP;
 		wxCheckBox* CheckBox_UploadModels;
 		wxButton* Button_Upload;
+		wxTextCtrl* TextCtrl_Description;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_USB;
 		wxChoice* Choice_Drives;
 		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
+		wxStaticText* StaticText6;
 		wxComboBox* ComboBox_IPAddress;
 		wxButton* Button_Console;
 		wxStaticText* StaticText1;
 		wxCheckBox* CheckBox_UploadController;
 		wxStaticText* StaticText3;
+		wxButton* Button_Forget;
 		wxStaticText* StaticText5;
 		wxCheckListBox* CheckListBox_Sequences;
 		wxPanel* Panel_FTP;
 		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_Password;
+		wxButton* Button_UploadToAll;
 		wxTextCtrl* TextCtr_Username;
 		//*)
 
@@ -79,6 +89,9 @@ class FPPConnectDialog: public wxDialog
 		//(*Identifiers(FPPConnectDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_COMBOBOX_IPAddress;
+		static const long ID_BUTTON2;
+		static const long ID_STATICTEXT6;
+		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Username;
 		static const long ID_STATICTEXT3;
@@ -95,6 +108,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKLISTBOX_Sequences;
 		static const long ID_BUTTON_Upload;
+		static const long ID_BUTTON1;
 		//*)
 
         static const long ID_MNU_SELECTALL;
@@ -114,6 +128,13 @@ class FPPConnectDialog: public wxDialog
 		void OnFilePickerCtrl_MediaFolderFileChanged(wxFileDirPickerEvent& event);
 		void OnCheckBox_UploadModelsClick(wxCommandEvent& event);
 		void OnComboBox_IPAddressSelected(wxCommandEvent& event);
+		void OnButton_UploadToAllClick(wxCommandEvent& event);
+		void OnButton_ForgetClick(wxCommandEvent& event);
+		void OnTextCtrl_DescriptionTextEnter(wxCommandEvent& event);
+		void OnTextCtr_UsernameTextEnter(wxCommandEvent& event);
+		void OnTextCtrl_PasswordTextEnter(wxCommandEvent& event);
+		void OnComboBox_IPAddressTextEnter(wxCommandEvent& event);
+		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
 		//*)
 
         void OnSequenceRClick(wxMouseEvent& event);

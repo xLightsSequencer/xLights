@@ -1,5 +1,7 @@
 #include "ViewsModelsPanel.h"
 
+//#define TRACEMOVES
+
 //(*InternalHeaders(ViewsModelsPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -102,6 +104,8 @@ const long ViewsModelsPanel::ID_MODELS_SHOWALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SELECTALL = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_HIDEUNUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_REMOVEUNUSED = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SELECTUNUSED = wxNewId();
+const long ViewsModelsPanel::ID_MODELS_SELECTUSED = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORT = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAME = wxNewId();
 const long ViewsModelsPanel::ID_MODELS_SORTBYNAMEGM = wxNewId();
@@ -660,7 +664,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     int p = pos;
 
     std::string type = "model";
-    int current_view = _sequenceElements->GetCurrentView();
+    int currentView = _sequenceElements->GetCurrentView();
 
     if (p == -1)
     {
@@ -668,10 +672,12 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
     else
     {
-        if (_sequenceViewManager->GetSelectedViewIndex() != MASTER_VIEW)
+        p -= GetTimingCount();
+        if (p < 0) p = 0;
+
+        if (currentView == MASTER_VIEW)
         {
-            p -= GetTimingCount();
-            if (p < 0) p = 0;
+            p = _sequenceElements->GetIndexOfModelFromModelIndex(p);
         }
     }
 
@@ -684,7 +690,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
         }
     }
 
-    if (current_view == MASTER_VIEW)
+    if (currentView == MASTER_VIEW)
     {
         int selcnt = 0;
 
@@ -695,6 +701,13 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
                 Element* ee = (Element*)ListCtrlNonModels->GetItemData(i);
                 if (ee != nullptr && ee->GetType() != ELEMENT_TYPE_TIMING)
                 {
+#ifdef TRACEMOVES
+                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                    logger_base.debug("Timing count in models list: %d", GetTimingCount());
+                    logger_base.debug("Adding '%s' to %d '%s'", (const char *)ListCtrlNonModels->GetItemText(i, 1).c_str(),
+                        p + selcnt, (const char *)(_sequenceElements->GetElement(p + selcnt) == nullptr) ? "N/A" : _sequenceElements->GetElement(p + selcnt)->GetName().c_str());
+#endif
+
                     Element* e = _sequenceElements->AddElement(p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false);
                     if (e != nullptr)
                     {
@@ -736,7 +749,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
         }
 
         std::string modelsString = _sequenceElements->GetViewModels(view->GetName());
-        _sequenceElements->PopulateView(modelsString, current_view);
+        _sequenceElements->PopulateView(modelsString, currentView);
 
         std::vector<std::string> timings;
         for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
@@ -908,14 +921,14 @@ void ViewsModelsPanel::ValidateWindow()
 
 void ViewsModelsPanel::UpdateModelsForSelectedView()
 {
-    int current_view = _sequenceElements->GetCurrentView();
-    if (current_view != MASTER_VIEW)
+    int currentView = _sequenceElements->GetCurrentView();
+    if (currentView != MASTER_VIEW)
     {
-        wxString viewName = ListCtrlViews->GetItemText(current_view, 1);
+        wxString viewName = ListCtrlViews->GetItemText(currentView, 1);
         wxString models = "";
-        for (int i = 0; i < _sequenceElements->GetElementCount(current_view); i++)
+        for (int i = 0; i < _sequenceElements->GetElementCount(currentView); i++)
         {
-            Element* elem = _sequenceElements->GetElement(i, current_view);
+            Element* elem = _sequenceElements->GetElement(i, currentView);
             if (elem->GetType() == ELEMENT_TYPE_MODEL)
             {
                 if (models != "")
@@ -941,8 +954,6 @@ void ViewsModelsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 
 void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
 {
-    //int index = event.m_itemIndex;
-    //SelectView(ListCtrlViews->GetItemText(index, 1).ToStdString());
     Element* e = (Element*)event.GetClientData();
     if (e == nullptr)
     {
@@ -1432,6 +1443,8 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnu.Append(ID_MODELS_HIDEUNUSED, "Hide Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SHOWALL, "Show All")->Enable(items > 0);
     mnu.Append(ID_MODELS_REMOVEUNUSED, "Remmove Unused")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SELECTUNUSED, "Select Unused")->Enable(items > 0);
+    mnu.Append(ID_MODELS_SELECTUSED, "Select Used")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTALL, "Select All")->Enable(items >0);
 
     wxMenu* mnuSort = new wxMenu();
@@ -1480,6 +1493,14 @@ void ViewsModelsPanel::OnModelsPopup(wxCommandEvent &event)
     {
         RemoveUnusedModels();
     }
+    else if (id == ID_MODELS_SELECTUNUSED)
+    {
+        SelectUnusedModels();
+    }
+    else if (id == ID_MODELS_SELECTUSED)
+    {
+        SelectUsedModels();
+    }
     else if (id == ID_MODELS_SORTBYNAME)
     {
         SortModelsByName();
@@ -1527,7 +1548,7 @@ void ViewsModelsPanel::HideUnusedModels()
     _xlFrame->DoForceSequencerRefresh();
 }
 
-void ViewsModelsPanel::RemoveUnusedModels()
+void ViewsModelsPanel::SelectUnusedModels()
 {
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
@@ -1541,6 +1562,27 @@ void ViewsModelsPanel::RemoveUnusedModels()
             SelectItem(ListCtrlModels, i, false);
         }
     }
+}
+
+void ViewsModelsPanel::SelectUsedModels()
+{
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        Element* element = (Element*)ListCtrlModels->GetItemData(i);
+        if (!element->HasEffects())
+        {
+            SelectItem(ListCtrlModels, i, false);
+        }
+        else
+        {
+            SelectItem(ListCtrlModels, i, true);
+        }
+    }
+}
+
+void ViewsModelsPanel::RemoveUnusedModels()
+{
+    SelectUnusedModels();
     RemoveSelectedModels();
     _xlFrame->DoForceSequencerRefresh();
 }
@@ -1967,6 +2009,8 @@ wxDragResult MyTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
 
 bool MyTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
+    if (data == "") return false;
+
     long mousePos = x;
     mousePos = mousePos << 16;
     mousePos += y;
@@ -2123,6 +2167,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
     SaveUndo();
     bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
 
     wxArrayString movedModels;
     int selcnt = 0;
@@ -2133,22 +2178,29 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
         {
             itemsMoved = true;
             int from = i;
-            int to = i + 2;
-            if (to > ListCtrlModels->GetItemCount()) return;
 
             movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
             from -= GetTimingCount();
 
-            to -= GetTimingCount();
-
             // not sure why we need to do this with the master only
-            if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+            int to = from + 2;
+            if (currentView == MASTER_VIEW)
             {
-                from += GetTimingCount();
-                to += GetTimingCount();
+                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
+                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
             }
 
-            _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+            if (to < 0) to = _sequenceElements->GetElementCount(currentView);
+            if (to < 0 || to > _sequenceElements->GetElementCount(currentView)) return;
+
+#ifdef TRACEMOVES
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Timing count in models list: %d", GetTimingCount());
+            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+
+            _sequenceElements->MoveSequenceElement(from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;
@@ -2184,6 +2236,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 {
     SaveUndo();
     bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
 
     wxArrayString movedModels;
     int selcnt = 0;
@@ -2193,24 +2246,28 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
             {
                 movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
                 int from = i - GetTimingCount();
-                int to = -1;
+    
                 // we are moving this one
                 itemsMoved = true;
+                int to = -1;
                 if (indexTo == -1)
                 {
                     // moving to the end
-                    to = _sequenceElements->GetElementCount(_sequenceViewManager->GetSelectedViewIndex());
+                    to = _sequenceElements->GetElementCount(currentView);
                 }
                 else
                 {
                     to = indexTo + selcnt - GetTimingCount();
-                }
+                    if (to < 0) to = 0;
 
-                // not sure why we need to do this with the master only
-                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-                {
-                    from += GetTimingCount();
-                    to += GetTimingCount();
+                    // not sure why we need to do this with the master only
+                    if (_sequenceViewManager->GetSelectedViewIndex() == 0)
+                    {
+                        from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
+                        to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
+                    }
+
+                    if (to < 0) to = 0;
                 }
 
                 if (from < to)
@@ -2219,7 +2276,14 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
                     to -= selcnt;
                 }
 
-                _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
+#ifdef TRACEMOVES
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.debug("Timing count in models list: %d", GetTimingCount());
+                logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                    to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+
+                _sequenceElements->MoveSequenceElement(from, to, currentView);
                 SelectItem(ListCtrlModels, i, false);
 
                 selcnt++;
@@ -2242,36 +2306,44 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
     SaveUndo();
     bool itemsMoved = false;
+    int currentView = _sequenceViewManager->GetSelectedViewIndex();
 
     wxArrayString movedModels;
     int selcnt = 0;
 
-        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
         {
-            if (IsItemSelected(ListCtrlModels, i) && ((Element*)ListCtrlModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
+            itemsMoved = true;
+            int from = i;
+
+            movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
+            from -= GetTimingCount();
+
+            // not sure why we need to do this with the master only
+            int to = from - 1;
+            if (currentView == MASTER_VIEW)
             {
-                itemsMoved = true;
-                int from = i;
-                int to = i - 1;
-                if (to < GetTimingCount()) return;
-
-                movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
-                from -= GetTimingCount();
-                to -= GetTimingCount();
-
-                // not sure why we need to do this with the master only
-                if (_sequenceViewManager->GetSelectedViewIndex() == 0)
-                {
-                    from += GetTimingCount();
-                    to += GetTimingCount();
-                }
-
-                _sequenceElements->MoveSequenceElement(from, to, _sequenceViewManager->GetSelectedViewIndex());
-                SelectItem(ListCtrlModels, i, false);
-
-                selcnt++;
+                from = _sequenceElements->GetIndexOfModelFromModelIndex(from);
+                to = _sequenceElements->GetIndexOfModelFromModelIndex(to);
             }
+
+            if (to < 0) return;
+
+#ifdef TRACEMOVES
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("Timing count in models list: %d", GetTimingCount());
+            logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
+                to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
+#endif
+
+            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            SelectItem(ListCtrlModels, i, false);
+
+            selcnt++;
         }
+    }
 
     if (itemsMoved)
     {
