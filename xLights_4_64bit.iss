@@ -32,7 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 
 
 AppName=xLights
-AppVersion=2017.13
+AppVersion=2017.14
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
