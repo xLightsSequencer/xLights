@@ -26,6 +26,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
+        int GetEyeBrightnessChannel() {return eye_brightness_channel;}
         int GetRedChannel() {return red_channel;}
         int GetGreenChannel() {return green_channel;}
         int GetBlueChannel() {return blue_channel;}
@@ -72,6 +73,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int tilt_channel;
         int nod_channel;
         int jaw_channel;
+        int eye_brightness_channel;
         int eye_ud_channel;
         int eye_lr_channel;
         int red_channel;

@@ -275,6 +275,11 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetAttribute("Min", 0);
         p->SetAttribute("Max", 2500);
         p->SetEditor("SpinCtrl");
+
+        p = grid->Append(new wxUIntProperty("Eye Brightness Channel", "DmxEyeBrtChannel", eye_brightness_channel));
+        p->SetAttribute("Min", 0);
+        p->SetAttribute("Max", 512);
+        p->SetEditor("SpinCtrl");
     }
 
     p = grid->Append(new wxUIntProperty("Red Channel", "DmxRedChannel", red_channel));
@@ -473,6 +478,11 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxEyeBrtChannel");
+        ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     } else if ("DmxEyeUDChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDChannel");
         ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -634,6 +644,7 @@ void DmxModel::InitModel() {
             jaw_channel = wxAtoi(ModelXml->GetAttribute("DmxJawChannel", "1"));
             jaw_min_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMinLimit", "500"));
             jaw_max_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMaxLimit", "750"));
+            eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
             eye_ud_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeUDChannel", "7"));
             eye_ud_min_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMinLimit", "575"));
             eye_ud_max_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000"));
@@ -712,6 +723,8 @@ void DmxModel::InitModel() {
             ModelXml->AddAttribute("DmxJawMinLimit", wxString::Format("%d", jaw_min_limit));
             ModelXml->DeleteAttribute("DmxJawMaxLimit");
             ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", jaw_max_limit));
+            ModelXml->DeleteAttribute("DmxEyeBrtChannel");
+            ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", eye_brightness_channel));
             ModelXml->DeleteAttribute("DmxEyeUDChannel");
             ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", eye_ud_channel));
             ModelXml->DeleteAttribute("DmxEyeUDMinLimit");
@@ -1770,6 +1783,7 @@ void DmxModel::ExportXlightsModel()
     wxString jc = ModelXml->GetAttribute("DmxJawChannel", "1");
     wxString jml = ModelXml->GetAttribute("DmxJawMinLimit", "500");
     wxString jmxl = ModelXml->GetAttribute("DmxJawMaxLimit", "750");
+    wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel","15");
     wxString eudc = ModelXml->GetAttribute("DmxEyeUDChannel", "7");
     wxString eudml = ModelXml->GetAttribute("DmxEyeUDMinLimit", "575");
     wxString eudmxl = ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000");
@@ -1820,6 +1834,7 @@ void DmxModel::ExportXlightsModel()
     f.Write(wxString::Format("DmxJawChannel=\"%s\" ", jc));
     f.Write(wxString::Format("DmxJawMinLimit=\"%s\" ", jml));
     f.Write(wxString::Format("DmxJawMaxLimit=\"%s\" ", jmxl));
+    f.Write(wxString::Format("DmxEyeBrtChannel=\"%s\" ", eb));
     f.Write(wxString::Format("DmxEyeUDChannel=\"%s\" ", eudc));
     f.Write(wxString::Format("DmxEyeUDMinLimit=\"%s\" ", eudml));
     f.Write(wxString::Format("DmxEyeUDMaxLimit=\"%s\" ", eudmxl));
@@ -1890,6 +1905,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             wxString jc = root->GetAttribute("DmxJawChannel");
             wxString jml = root->GetAttribute("DmxJawMinLimit");
             wxString jmxl = root->GetAttribute("DmxJawMaxLimit");
+            wxString eb = root->GetAttribute("DmxEyeBrtChannel");
             wxString eudc = root->GetAttribute("DmxEyeUDChannel");
             wxString eudml = root->GetAttribute("DmxEyeUDMinLimit");
             wxString eudmxl = root->GetAttribute("DmxEyeUDMaxLimit");
@@ -1942,6 +1958,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             SetProperty("DmxJawChannel", jc);
             SetProperty("DmxJawMinLimit", jml);
             SetProperty("DmxJawMaxLimit", jmxl);
+            SetProperty("DmxEyeBrtChannel", eb);
             SetProperty("DmxEyeUDChannel", eudc);
             SetProperty("DmxEyeUDMinLimit", eudml);
             SetProperty("DmxEyeUDMaxLimit", eudmxl);
