@@ -248,6 +248,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     _numNonModels = 0;
     _sequenceElements = nullptr;
     _mainViewsChoice = nullptr;
+    _seqData = nullptr;
 
     ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
     ListCtrlModels->AddImage((char**)timing_16);
@@ -593,7 +594,7 @@ void ViewsModelsPanel::OnListView_ViewItemsKeyDown(wxListEvent& event)
 
 void ViewsModelsPanel::RemoveSelectedModels()
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
 
@@ -657,7 +658,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
 
 void ViewsModelsPanel::AddSelectedModels(int pos)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
 
@@ -824,7 +825,7 @@ void ViewsModelsPanel::Clear()
 
 void ViewsModelsPanel::Initialize()
 {
-    if (_seqData->NumFrames() == 0) {
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) {
         Clear();
         return;
     }
@@ -1024,7 +1025,7 @@ void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
 
 void ViewsModelsPanel::SelectView(const std::string& view)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     if (view != _sequenceViewManager->GetSelectedView()->GetName())
     {
@@ -1127,7 +1128,7 @@ void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
 
 void ViewsModelsPanel::OnButton_AddViewClick(wxCommandEvent& event)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     std::string viewName = "";
     int DlgResult = wxID_OK;
@@ -1166,7 +1167,7 @@ wxString ViewsModelsPanel::GetMasterViewModels() const
 
 void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     int itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
@@ -1226,7 +1227,7 @@ void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
 
 void ViewsModelsPanel::OnListCtrlViewsItemDClick(wxListEvent& event)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
     if (event.GetIndex() > 0)
     {
         RenameView(event.GetIndex());
@@ -1258,7 +1259,7 @@ void ViewsModelsPanel::RenameView(int itemIndex)
 
 void ViewsModelsPanel::OnButtonRenameClick(wxCommandEvent& event)
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     int itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
@@ -1267,7 +1268,7 @@ void ViewsModelsPanel::OnButtonRenameClick(wxCommandEvent& event)
 
 void ViewsModelsPanel::DeleteSelectedView()
 {
-    if (_seqData->NumFrames() == 0) return;
+    if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     int result = wxMessageBox("Are you sure you want to delete this View?", "Confirm Deletion", wxOK | wxCANCEL | wxCENTER);
     if (result != wxOK) return;

@@ -58,6 +58,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         if (data == nullptr)
         {
             logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", numFrames, numChannels, sz);
+            logger_base.crit("***** THIS IS GOING TO CRASH *****");
         }
         else
         {

@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17) controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.14  May 17, 2017
    -- enh (gil)     Add additional colors to color manager.
    -- bug (gil)     Fix Align Both Times case that was failing.
    -- bug (gil)     Fix effect panel not updating icon when using drop-down combo.

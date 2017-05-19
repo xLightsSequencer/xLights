@@ -97,10 +97,11 @@ void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         min_limit = dmx->GetEyeLRMinLimit();
                         max_limit = dmx->GetEyeLRMaxLimit();
                     }
+                    int brt_channel = dmx->GetEyeBrightnessChannel();
                     int red_channel = dmx->GetRedChannel();
                     int grn_channel = dmx->GetGreenChannel();
                     int blu_channel = dmx->GetBlueChannel();
-                    if( red_channel == (i+1) || grn_channel == (i+1) || blu_channel == (i+1) ) {
+                    if( red_channel == (i+1) || grn_channel == (i+1) || blu_channel == (i+1) || brt_channel == (i+1) ) {
                         min_limit = 0;
                         max_limit = 255;
                     }
