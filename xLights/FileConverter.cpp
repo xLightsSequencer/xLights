@@ -302,7 +302,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.AppendConvertStatus (string_format(wxString("Channels found so far: %d"),channelCount));
+                        params.AppendConvertStatus(string_format(wxString("Channels found so far: %d"),channelCount));
                         params.SetStatusText(string_format(wxString("Channels found so far: %d"),channelCount));
                     }
 
@@ -454,7 +454,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 cnt = context.size();
                 if (cnt == 2)
                 {
-                    if (empty && curchannel != -1)
+                    if (empty && curchannel >= 0)
                     {
                         chindex--;
                         params.AppendConvertStatus (wxString("WARNING: ")+ChannelNames[curchannel] + " is empty");
@@ -517,6 +517,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         network--;
                         network += lorUnitSizes.size();
                         curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
+                        if (curchannel < 0) curchannel = -1;
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -527,6 +528,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         }
                         chindex += circuit-1;
                         curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
+                        if (curchannel < 0) curchannel = -1;
                     } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                         curchannel = -1;
                     } else {

@@ -1130,6 +1130,11 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
                 if (!el->HitTestEffectByTime(startTime, effectIndex)) {
                     Effect* eff = tel->GetEffect(mRangeStartCol);
 
+                    if (eff == nullptr)
+                    {
+                        logger_base.crit("EffectsGrid::CheckForPartialCell eff is nullptr ... this is going to crash.");
+                    }
+
                     mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
                     mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
                     mDropStartTimeMS = eff->GetStartTimeMS();
