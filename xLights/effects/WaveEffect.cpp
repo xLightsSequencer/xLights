@@ -209,7 +209,14 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 xx = buffer.BufferWi - x - 1;
             }
 
-            ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + xx) * waves) % (int)(2 * amp) - amp);
+            if (amp == 0)
+            {
+                ystart = 0;
+            }
+            else
+            {
+                ystart = (buffer.BufferHt - amp) / 2 + abs((int)((state / 10 + xx) * waves) % (int)(2 * amp) - amp);
+            }
             if (ystart > buffer.BufferHt - 1) ystart = buffer.BufferHt - 1;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
             int eff_x = (WaveDirection? x: buffer.BufferWi - x - 1) + buffer.BufferWi * (state / 2 / buffer.BufferWi); //effective x before wrap
