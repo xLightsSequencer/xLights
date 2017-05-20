@@ -1,4 +1,5 @@
 #include "DMXPanel.h"
+#include "DMXEffect.h"
 
 #include "EffectPanelUtils.h"
 //(*InternalHeaders(DMXPanel)
@@ -363,24 +364,24 @@ DMXPanel::DMXPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPanel::OnVCChanged, 0, this);
 
-    ValueCurve_DMX1->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX2->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX3->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX4->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX5->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX6->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX7->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX8->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX9->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX10->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX11->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX12->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX13->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX14->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX15->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX16->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX17->GetValue()->SetLimits(0, 255);
-    ValueCurve_DMX18->GetValue()->SetLimits(0, 255);
+    ValueCurve_DMX1->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX2->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX3->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX4->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX5->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX6->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX7->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX8->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX9->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX10->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX11->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX12->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX13->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX14->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX15->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX16->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX17->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
+    ValueCurve_DMX18->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
 }
 
 DMXPanel::~DMXPanel()

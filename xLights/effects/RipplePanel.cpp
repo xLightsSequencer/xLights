@@ -1,6 +1,7 @@
 #include "RipplePanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "RippleEffect.h"
 
 //(*InternalHeaders(RipplePanel)
 #include <wx/sizer.h>
@@ -150,9 +151,9 @@ RipplePanel::RipplePanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&RipplePanel::OnVCChanged, 0, this);
 
-    BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(0, 300);
+    BitmapButton_Ripple_CyclesVC->GetValue()->SetLimits(RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX);
     BitmapButton_Ripple_CyclesVC->GetValue()->SetDivisor(10);
-    BitmapButton_Ripple_ThicknessVC->GetValue()->SetLimits(1, 100);
+    BitmapButton_Ripple_ThicknessVC->GetValue()->SetLimits(RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX);
 
     ValidateWindow();
 }

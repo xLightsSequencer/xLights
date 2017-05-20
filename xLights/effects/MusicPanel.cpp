@@ -2,6 +2,7 @@
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "../xLightsMain.h"
+#include "MusicEffect.h"
 
 //(*InternalHeaders(MusicPanel)
 #include <wx/sizer.h>
@@ -213,7 +214,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MusicPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Music_OffsetVC->GetValue()->SetLimits(0, 100);
+    BitmapButton_Music_OffsetVC->GetValue()->SetLimits(MUSIC_OFFSET_MIN, MUSIC_OFFSET_MAX);
 
 	ValidateWindow();
 }

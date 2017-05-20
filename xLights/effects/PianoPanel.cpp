@@ -3,6 +3,7 @@
 #include "EffectPanelUtils.h"
 #include <wx/textfile.h>
 #include "../sequencer/Effect.h"
+#include "PianoEffect.h"
 
 //(*InternalHeaders(PianoPanel)
 #include <wx/sizer.h>
@@ -148,7 +149,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PianoPanel::OnVCChanged, nullptr, this);
     
     // Set value curve limits
-    BitmapButton_Piano_ScaleVC->GetValue()->SetLimits(0, 100);
+    BitmapButton_Piano_ScaleVC->GetValue()->SetLimits(PIANO_SCALE_MIN, PIANO_SCALE_MAX);
 
 	ValidateWindow();
 }

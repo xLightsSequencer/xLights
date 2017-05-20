@@ -1,5 +1,5 @@
 #include "FillPanel.h"
-
+#include "FillEffect.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
@@ -186,10 +186,10 @@ FillPanel::FillPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FillPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Fill_Position->GetValue()->SetLimits(0, 100);
-    BitmapButton_Fill_Band_Size->GetValue()->SetLimits(0, 250);
-    BitmapButton_Fill_Skip_Size->GetValue()->SetLimits(0, 250);
-    BitmapButton_Fill_Offset->GetValue()->SetLimits(0, 100);
+    BitmapButton_Fill_Position->GetValue()->SetLimits(FILL_POSITION_MIN, FILL_POSITION_MAX);
+    BitmapButton_Fill_Band_Size->GetValue()->SetLimits(FILL_BANDSIZE_MIN, FILL_BANDSIZE_MAX);
+    BitmapButton_Fill_Skip_Size->GetValue()->SetLimits(FILL_SKIPSIZE_MIN, FILL_SKIPSIZE_MAX);
+    BitmapButton_Fill_Offset->GetValue()->SetLimits(FILL_OFFSET_MIN, FILL_OFFSET_MAX);
 }
 
 FillPanel::~FillPanel()

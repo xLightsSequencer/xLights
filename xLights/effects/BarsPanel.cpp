@@ -1,6 +1,7 @@
 #include "BarsPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "BarsEffect.h"
 
 //(*InternalHeaders(BarsPanel)
 #include <wx/sizer.h>
@@ -169,8 +170,8 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BarsPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 50);
-    BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 500);
+    BitmapButton_Bars_BarCount->GetValue()->SetLimits(BARCOUNT_MIN, BARCOUNT_MAX);
+    BitmapButton_Bars_Cycles->GetValue()->SetLimits(BARCYCLES_MIN, BARCYCLES_MAX);
     BitmapButton_Bars_Cycles->GetValue()->SetDivisor(10);
 
     ValidateWindow();

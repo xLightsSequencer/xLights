@@ -3,6 +3,18 @@
 
 #include "RenderableEffect.h"
 
+#define FILL_POSITION_MIN 0
+#define FILL_POSITION_MAX 100
+
+#define FILL_BANDSIZE_MIN 0
+#define FILL_BANDSIZE_MAX 250
+
+#define FILL_SKIPSIZE_MIN 0
+#define FILL_SKIPSIZE_MAX 250
+
+#define FILL_OFFSET_MIN 0
+#define FILL_OFFSET_MAX 100
+
 class FillEffect : public RenderableEffect
 {
     public:

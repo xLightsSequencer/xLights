@@ -14,7 +14,6 @@
 #include "../../include/servo-48.xpm"
 #include "../../include/servo-64.xpm"
 
-
 ServoEffect::ServoEffect(int id) : RenderableEffect(id, "Servo", servo_16, servo_24, servo_32, servo_48, servo_64)
 {
     //ctor
@@ -42,7 +41,7 @@ void ServoEffect::SetDefaultParameters(Model *cls) {
 void ServoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     std::string sel_chan = SettingsMap["CHOICE_Channel"];
-    float position = GetValueCurveDouble("Servo", 0, SettingsMap, eff_pos, 0, 100);
+    float position = GetValueCurveDouble("Servo", 0, SettingsMap, eff_pos, SERVO_MIN, SERVO_MAX);
     bool is_16bit = SettingsMap.GetBool("CHECKBOX_16bit");
 
     if (buffer.cur_model == "") {

@@ -6,6 +6,9 @@
 #include <string>
 #include <list>
 
+#define VUMETER_OFFSET_MIN -100
+#define VUMETER_OFFSET_MAX 100
+
 class VUMeterEffect : public RenderableEffect
 {
     public:

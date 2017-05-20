@@ -1,4 +1,5 @@
 #include "OnPanel.h"
+#include "OnEffect.h"
 
 //(*InternalHeaders(OnPanel)
 #include <wx/sizer.h>
@@ -115,7 +116,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_On_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OnPanel::UpdateLinkedSliderFloat);
 	//*)
 
-    BitmapButton_On_Transparency->SetLimits(0, 100);
+    BitmapButton_On_Transparency->SetLimits(ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX);
 
     SetName("ID_PANEL_ON");
 }

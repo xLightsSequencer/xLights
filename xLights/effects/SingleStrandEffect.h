@@ -3,6 +3,15 @@
 
 #include "RenderableEffect.h"
 
+#define SINGLESTRAND_ROTATIONS_MIN 1
+#define SINGLESTRAND_ROTATIONS_MAX 200
+
+#define SINGLESTRAND_CHASES_MIN 1
+#define SINGLESTRAND_CHASES_MAX 20
+
+#define SINGLESTRAND_COLOURMIX_MIN 1
+#define SINGLESTRAND_COLOURMIX_MAX 100
+
 class SingleStrandEffect : public RenderableEffect
 {
     public:

@@ -160,10 +160,10 @@ void InitialiseState(int node, std::map<int, CandleState*>& states)
 void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int flameAgility = GetValueCurveInt("Candle_FlameAgility", 2, SettingsMap, oset, 1, 10);
-    int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset, 0, 10);
-    int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, 0, 10);
-    int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, 0, 255);
+    int flameAgility = GetValueCurveInt("Candle_FlameAgility", 2, SettingsMap, oset, CANDLE_AGILITY_MIN, CANDLE_AGILITY_MAX);
+    int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset, CANDLE_WINDCALMNESS_MIN, CANDLE_WINDCALMNESS_MAX);
+    int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, CANDLE_WINDVARIABILITY_MIN, CANDLE_WINDVARIABILITY_MAX);
+    int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX);
     bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
 
     CandleRenderCache *cache = GetCache(buffer, id);

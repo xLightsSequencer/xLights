@@ -1,6 +1,7 @@
 #include "PlasmaPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "PlasmaEffect.h"
 
 //(*InternalHeaders(PlasmaPanel)
 #include <wx/sizer.h>
@@ -123,7 +124,7 @@ PlasmaPanel::PlasmaPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&PlasmaPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Plasma_SpeedVC->GetValue()->SetLimits(0, 100);
+    BitmapButton_Plasma_SpeedVC->GetValue()->SetLimits(PLASMA_SPEED_MIN, PLASMA_SPEED_MAX);
 
     SetName("ID_PANEL_PLASMA");
 }

@@ -3,6 +3,8 @@
 
 #include "RenderableEffect.h"
 
+#define DMX_MIN 0
+#define DMX_MAX 255
 
 class DMXEffect : public RenderableEffect
 {

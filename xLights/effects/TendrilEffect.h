@@ -10,6 +10,24 @@
 #include <wx/dcmemory.h>
 class wxString;
 
+#define TENDRIL_MOVEMENT_MIN 0
+#define TENDRIL_MOVEMENT_MAX 20
+
+#define TENDRIL_THICKNESS_MIN 1
+#define TENDRIL_THICKNESS_MAX 20
+
+#define TENDRIL_MANUALX_MIN 0
+#define TENDRIL_MANUALX_MAX 100
+
+#define TENDRIL_MANUALY_MIN 0
+#define TENDRIL_MANUALY_MAX 100
+
+#define TENDRIL_OFFSETX_MIN -100
+#define TENDRIL_OFFSETX_MAX 100
+
+#define TENDRIL_OFFSETY_MIN -100
+#define TENDRIL_OFFSETY_MAX 100
+
 class TendrilNode
 {
     public:

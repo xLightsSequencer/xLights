@@ -1,6 +1,7 @@
 #include "SingleStrandPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "SingleStrandEffect.h"
 
 //(*InternalHeaders(SingleStrandPanel)
 #include <wx/notebook.h>
@@ -303,10 +304,10 @@ SingleStrandPanel::SingleStrandPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SingleStrandPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Chase_Rotations->GetValue()->SetLimits(1, 200);
+    BitmapButton_Chase_Rotations->GetValue()->SetLimits(SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX);
     BitmapButton_Chase_Rotations->GetValue()->SetDivisor(10);
-    BitmapButton_Number_ChasesVC->GetValue()->SetLimits(1, 20);
-    BitmapButton_Color_Mix1VC->GetValue()->SetLimits(1, 100);
+    BitmapButton_Number_ChasesVC->GetValue()->SetLimits(SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX);
+    BitmapButton_Color_Mix1VC->GetValue()->SetLimits(SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX);
 
     SetName("ID_PANEL_SINGLESTRAND");
 }

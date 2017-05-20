@@ -3,6 +3,8 @@
 
 #include "RenderableEffect.h"
 
+#define ON_TRANSPARENCY_MIN 0
+#define ON_TRANSPARENCY_MAX 100
 
 class OnEffect : public RenderableEffect
 {

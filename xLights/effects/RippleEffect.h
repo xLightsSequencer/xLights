@@ -5,6 +5,12 @@
 
 #include "../Color.h"
 
+#define RIPPLE_CYCLES_MIN 0
+#define RIPPLE_CYCLES_MAX 300
+
+#define RIPPLE_THICKNESS_MIN 1
+#define RIPPLE_THICKNESS_MAX 100
+
 class RippleEffect : public RenderableEffect
 {
     public:

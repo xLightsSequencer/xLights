@@ -5,6 +5,18 @@
 
 class xlColor;
 
+#define LIGHTNING_TOPX_MIN -50
+#define LIGHTNING_TOPX_MAX 50
+
+#define LIGHTNING_TOPY_MIN 0
+#define LIGHTNING_TOPY_MAX 100
+
+#define LIGHTNING_BOLTS_MIN 1
+#define LIGHTNING_BOLTS_MAX 50
+
+#define LIGHTNING_SEGMENTS_MIN 1
+#define LIGHTNING_SEGMENTS_MAX 20
+
 class LightningEffect : public RenderableEffect
 {
     public:

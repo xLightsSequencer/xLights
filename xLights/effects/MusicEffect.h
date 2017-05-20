@@ -9,6 +9,9 @@
 
 class MusicEvent;
 
+#define MUSIC_OFFSET_MIN 0
+#define MUSIC_OFFSET_MAX 100
+
 class MusicEffect : public RenderableEffect
 {
     public:

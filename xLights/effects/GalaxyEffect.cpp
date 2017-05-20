@@ -112,16 +112,16 @@ double GetStep(double radius)
 
 void GalaxyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, 0, 100);
-    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos, 0, 100);
-    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos, 0 ,250);
-    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos, 0, 250);
-    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos, 0, 360);
-    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos, 0, 3600, 360);
-    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos, 0, 255);
-    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos, 0, 255);
-    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos, 0, 100);
-    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos, -10, 10);
+    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX);
+    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos, GALAXY_CENTREY_MIN, GALAXY_CENTREY_MAX);
+    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos, GALAXY_STARTRADIUS_MIN , GALAXY_STARTRADIUS_MAX);
+    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos, GALAXY_ENDRADIUS_MIN, GALAXY_ENDRADIUS_MAX);
+    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos, GALAXY_STARTANGLE_MIN, GALAXY_STARTANGLE_MAX);
+    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos, GALAXY_REVOLUTIONS_MIN, GALAXY_REVOLUTIONS_MAX, 360);
+    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos, GALAXY_STARTWIDTH_MIN, GALAXY_STARTWIDTH_MAX);
+    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos, GALAXY_ENDWIDTH_MIN, GALAXY_ENDWIDTH_MAX);
+    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos, GALAXY_DURATION_MIN, GALAXY_DURATION_MAX);
+    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos, GALAXY_ACCEL_MIN, GALAXY_ACCEL_MAX);
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
     bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
     bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");

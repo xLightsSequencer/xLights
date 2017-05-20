@@ -3,6 +3,24 @@
 
 #include "RenderableEffect.h"
 
+#define SHOCKWAVE_X_MIN 0
+#define SHOCKWAVE_X_MAX 100
+
+#define SHOCKWAVE_Y_MIN 0
+#define SHOCKWAVE_Y_MAX 100
+
+#define SHOCKWAVE_STARTWIDTH_MIN 0
+#define SHOCKWAVE_STARTWIDTH_MAX 255
+
+#define SHOCKWAVE_ENDWIDTH_MIN 0
+#define SHOCKWAVE_ENDWIDTH_MAX 255
+
+#define SHOCKWAVE_STARTRADIUS_MIN 0
+#define SHOCKWAVE_STARTRADIUS_MAX 250
+
+#define SHOCKWAVE_ENDRADIUS_MIN 0
+#define SHOCKWAVE_ENDRADIUS_MAX 250
+
 class ShockwaveEffect : public RenderableEffect
 {
     public:

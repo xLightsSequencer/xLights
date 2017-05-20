@@ -6,6 +6,15 @@
 class RgbBalls;
 class MetaBall;
 
+#define CIRCLES_COUNT_MIN 1
+#define CIRCLES_COUNT_MAX 10
+
+#define CIRCLES_SIZE_MIN 1
+#define CIRCLES_SIZE_MAX 20
+
+#define CIRCLES_SPEED_MIN 1
+#define CIRCLES_SPEED_MAX 30
+
 class CirclesEffect : public RenderableEffect
 {
     public:

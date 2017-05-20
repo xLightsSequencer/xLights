@@ -1,6 +1,7 @@
 #include "ColorWashPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "ColorWashEffect.h"
 
 //(*InternalHeaders(ColorWashPanel)
 #include <wx/sizer.h>
@@ -106,7 +107,7 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorWashPanel::OnVCChanged, 0, this);
 
-    BitmapButton_ColorWash_CyclesVC->GetValue()->SetLimits(0.1f, 20);
+    BitmapButton_ColorWash_CyclesVC->GetValue()->SetLimits(COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX);
     
     SetName("ID_PANEL_COLORWASH");
 }

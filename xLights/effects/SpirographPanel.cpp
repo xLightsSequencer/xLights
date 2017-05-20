@@ -1,6 +1,7 @@
 #include "SpirographPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "SpirographEffect.h"
 
 //(*InternalHeaders(SpirographPanel)
 #include <wx/sizer.h>
@@ -13,6 +14,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "SpirographEffect.h"
 //*)
 
 //(*IdInit(SpirographPanel)
@@ -199,12 +201,12 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SpirographPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Spirograph_AnimateVC->GetValue()->SetLimits(-50, 50);
-    BitmapButton_Spirograph_LengthVC->GetValue()->SetLimits(0, 50);
-    BitmapButton_Spirograph_RVC->GetValue()->SetLimits(1, 100);
-    BitmapButton_Spirograph_rVC->GetValue()->SetLimits(1, 100);
-    BitmapButton_Spirograph_SpeedrVC->GetValue()->SetLimits(0, 50);
-    BitmapButton_Spirograph_dVC->GetValue()->SetLimits(1, 100);
+    BitmapButton_Spirograph_AnimateVC->GetValue()->SetLimits(SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX);
+    BitmapButton_Spirograph_LengthVC->GetValue()->SetLimits(SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
+    BitmapButton_Spirograph_RVC->GetValue()->SetLimits(SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX);
+    BitmapButton_Spirograph_rVC->GetValue()->SetLimits(SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX);
+    BitmapButton_Spirograph_SpeedrVC->GetValue()->SetLimits(SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX);
+    BitmapButton_Spirograph_dVC->GetValue()->SetLimits(SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX);
 }
 
 SpirographPanel::~SpirographPanel()

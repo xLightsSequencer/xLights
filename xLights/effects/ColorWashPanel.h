@@ -13,6 +13,9 @@ class wxFlexGridSizer;
 
 #include "../ValueCurveButton.h"
 
+#define COLOURWASH_CYCLES_MIN 0.1f
+#define COLOURWASH_CYCLES_MAX 20
+
 class ColorWashPanel: public wxPanel
 {
 	public:

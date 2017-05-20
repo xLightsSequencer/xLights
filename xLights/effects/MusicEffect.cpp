@@ -1,5 +1,5 @@
-#include "MusicEffect.h"
 #include "MusicPanel.h"
+#include "MusicEffect.h"
 #include "../AudioManager.h"
 #include "../sequencer/SequenceElements.h"
 
@@ -101,7 +101,7 @@ void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         SettingsMap.GetInt("SLIDER_Music_Sensitivity", 50),
         SettingsMap.GetBool("CHECKBOX_Music_Scale", false),
         std::string(SettingsMap.Get("CHOICE_Music_Scaling", "None")),
-        GetValueCurveInt("Music_Offset", 0, SettingsMap, oset, 0, 100),
+        GetValueCurveInt("Music_Offset", 0, SettingsMap, oset, MUSIC_OFFSET_MIN, MUSIC_OFFSET_MAX),
         SettingsMap.GetInt("SLIDER_Music_StartNote", 60),
         SettingsMap.GetInt("SLIDER_Music_EndNote", 80),
         SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),

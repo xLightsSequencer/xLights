@@ -100,8 +100,8 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, 1, 50);
-    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, 0, 500, 10);
+    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX);
+    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, 10);
 
     int Center = SettingsMap.GetInt("SLIDER_Bars_Center", 0);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);

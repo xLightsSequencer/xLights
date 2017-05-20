@@ -143,7 +143,7 @@ void VUMeterEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         SettingsMap.GetInt("SLIDER_VUMeter_StartNote", 0),
         SettingsMap.GetInt("SLIDER_VUMeter_EndNote", 127),
         SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
-        GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, -100, 100)
+        GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX)
     );
 }
 

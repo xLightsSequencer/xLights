@@ -51,12 +51,12 @@ void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, 1, 100);
-    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, 1, 100);
-    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, 1, 100);
-    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, -50, 50);
-    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, 0, 50);
-    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, 0, 50);
+    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX);
+    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX);
+    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX);
+    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX);
+    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX);
+    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
 
     int i,x,y,xc,yc,ColorIdx;
     int mod1440,d_mod;

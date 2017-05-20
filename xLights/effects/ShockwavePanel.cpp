@@ -1,6 +1,7 @@
 #include "ShockwavePanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "ShockwaveEffect.h"
 
 //(*InternalHeaders(ShockwavePanel)
 #include <wx/notebook.h>
@@ -15,6 +16,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "ShockwaveEffect.h"
 //*)
 
 //(*IdInit(ShockwavePanel)
@@ -217,12 +219,12 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_SHOCKWAVE");
 
-    BitmapButton_Shockwave_CenterX->GetValue()->SetLimits(0, 100);
-    BitmapButton_Shockwave_CenterY->GetValue()->SetLimits(0, 100);
-    BitmapButton_Shockwave_Start_Width->GetValue()->SetLimits(0, 255);
-    BitmapButton_Shockwave_End_Width->GetValue()->SetLimits(0, 255);
-    BitmapButton_Shockwave_Start_Radius->GetValue()->SetLimits(0, 250);
-    BitmapButton_Shockwave_End_Radius->GetValue()->SetLimits(0, 250);
+    BitmapButton_Shockwave_CenterX->GetValue()->SetLimits(SHOCKWAVE_X_MIN, SHOCKWAVE_X_MAX);
+    BitmapButton_Shockwave_CenterY->GetValue()->SetLimits(SHOCKWAVE_Y_MIN, SHOCKWAVE_Y_MAX);
+    BitmapButton_Shockwave_Start_Width->GetValue()->SetLimits(SHOCKWAVE_STARTWIDTH_MIN, SHOCKWAVE_STARTWIDTH_MAX);
+    BitmapButton_Shockwave_End_Width->GetValue()->SetLimits(SHOCKWAVE_ENDWIDTH_MIN, SHOCKWAVE_ENDWIDTH_MAX);
+    BitmapButton_Shockwave_Start_Radius->GetValue()->SetLimits(SHOCKWAVE_STARTRADIUS_MIN, SHOCKWAVE_STARTRADIUS_MAX);
+    BitmapButton_Shockwave_End_Radius->GetValue()->SetLimits(SHOCKWAVE_ENDRADIUS_MIN, SHOCKWAVE_ENDRADIUS_MAX);
 }
 
 ShockwavePanel::~ShockwavePanel()

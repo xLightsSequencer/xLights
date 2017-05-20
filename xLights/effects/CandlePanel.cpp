@@ -1,6 +1,7 @@
 #include "CandlePanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "CandleEffect.h"
 
 //(*InternalHeaders(CandlePanel)
 #include <wx/sizer.h>
@@ -147,10 +148,10 @@ CandlePanel::CandlePanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CandlePanel::OnVCChanged, 0, this);
 
-    BitmapButton_Candle_FlameAgilityVC->GetValue()->SetLimits(1, 10);
-    BitmapButton_Candle_WindBaselineVC->GetValue()->SetLimits(0, 255);
-    BitmapButton_Candle_WindVariabilityVC->GetValue()->SetLimits(0, 10);
-    BitmapButton_Candle_WindCalmnessVC->GetValue()->SetLimits(0, 10);
+    BitmapButton_Candle_FlameAgilityVC->GetValue()->SetLimits(CANDLE_AGILITY_MIN, CANDLE_AGILITY_MAX);
+    BitmapButton_Candle_WindBaselineVC->GetValue()->SetLimits(CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX);
+    BitmapButton_Candle_WindVariabilityVC->GetValue()->SetLimits(CANDLE_WINDVARIABILITY_MIN, CANDLE_WINDVARIABILITY_MAX);
+    BitmapButton_Candle_WindCalmnessVC->GetValue()->SetLimits(CANDLE_WINDCALMNESS_MIN, CANDLE_WINDCALMNESS_MAX);
 
     SetName("ID_PANEL_Candle");
     ValidateWindow();

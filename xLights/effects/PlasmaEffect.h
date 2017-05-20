@@ -3,6 +3,8 @@
 
 #include "RenderableEffect.h"
 
+#define PLASMA_SPEED_MIN 0
+#define PLASMA_SPEED_MAX 100
 
 class PlasmaEffect : public RenderableEffect
 {
