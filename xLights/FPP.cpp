@@ -148,7 +148,7 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, wxWindow* parent)
 
 bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
 {
-    if (_ftp.IsConnected())
+    //if (_ftp.IsConnected())
     {
         // now create a universes file
         std::string file = SaveFPPUniverses("", std::list<int>(), false);
@@ -194,7 +194,7 @@ std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels) const
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn;
     fn.AssignTempFileName("channelmemorymaps");
-    std::string file = fn.GetFullName().ToStdString();
+    std::string file = fn.GetFullPath().ToStdString();
 
     logger_base.debug("FPP models memory map file written to %s.", (const char *)file.c_str());
 
@@ -230,7 +230,7 @@ std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxFileName fn;
     fn.AssignTempFileName("universes");
-    std::string file = fn.GetFullName().ToStdString();
+    std::string file = fn.GetFullPath().ToStdString();
 
     logger_base.debug("FPP universes file written to %s.", (const char *)file.c_str());
 
