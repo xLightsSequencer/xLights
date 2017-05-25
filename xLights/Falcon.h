@@ -3,10 +3,10 @@
 
 #include <wx/protocol/http.h>
 #include <list>
-#include "models/ModelManager.h"
 
 class Output;
 class OutputManager;
+class ModelManager;
 
 class Falcon
 {
@@ -29,9 +29,7 @@ class Falcon
 public:
     Falcon(const std::string& ip);
     bool IsConnected() const { return _connected; };
-    ~Falcon();
-    //void SetInputUniverses(const std::list<Output*>& inputs);
-    //void SetInputUniverses(OutputManager* outputManager);
+    virtual ~Falcon();
     void SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };

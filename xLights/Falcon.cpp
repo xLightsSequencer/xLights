@@ -7,6 +7,7 @@
 #include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
+#include "Models/ModelManager.h"
 
 Falcon::Falcon(const std::string& ip)
 {
@@ -102,6 +103,7 @@ std::string Falcon::GetURL(const std::string& url, bool logresult)
     {
         logger_base.error("Unable to connect to falcon '%s'.", (const char *)url.c_str());
         wxMessageBox(_T("Unable to connect!"));
+        res = "";
     }
 
     wxDELETE(httpStream);
