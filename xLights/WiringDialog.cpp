@@ -13,6 +13,10 @@
 #include <wx/image.h>
 #include <wx/menu.h>
 #include <wx/filepicker.h>
+#include <wx/config.h>
+
+#define MINFONTSIZE 8
+#define FONTSIZEINCREMENT 4
 
 //(*IdInit(WiringDialog)
 const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
@@ -21,6 +25,8 @@ const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
 const long WiringDialog::ID_MNU_EXPORT = wxNewId();
 const long WiringDialog::ID_MNU_DARK = wxNewId();
 const long WiringDialog::ID_MNU_LIGHT = wxNewId();
+const long WiringDialog::ID_MNU_FONTSMALLER = wxNewId();
+const long WiringDialog::ID_MNU_FONTLARGER = wxNewId();
 
 BEGIN_EVENT_TABLE(WiringDialog,wxDialog)
 	//(*EventTable(WiringDialog)
@@ -67,6 +73,9 @@ WiringDialog::WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxStrin
         }
     }
 
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Read("xLightsWDFontSize", &_fontSize, 12);
+
     Render();
 }
 
@@ -109,7 +118,7 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
     if (r == 0) r = 1;
     if (r > 5) r = 5;
 
-    wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
+    wxFont font(_fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     int last = -10;
@@ -171,12 +180,12 @@ void WiringDialog::RenderNodes(std::map<int, std::list<wxPoint>>& points, int wi
     if (_dark)
     {
         RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
-        RenderText("Model: " + _modelname, dc, 20, 40, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, 20, 20 + _fontSize + 4, *wxGREEN, *wxBLACK);
     }
     else
     {
         RenderText("CAUTION: Reverse view", dc, 20, 20, *wxBLACK, *wxWHITE);
-        RenderText("Model: " + _modelname, dc, 20, 40, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, 20, 20 + _fontSize + 4, *wxBLACK, *wxWHITE);
     }
 
     dc.SetPen(*wxBLACK_PEN);
@@ -204,7 +213,7 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
     }
     dc.DrawRectangle(wxPoint(0, 0), _bmp.GetScaledSize());
 
-    wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
+    wxFont font(_fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
     int cindex = 0;
@@ -256,12 +265,12 @@ void WiringDialog::RenderMultiLight(std::map<int, std::list<wxPoint>>& points, i
     if (_dark)
     {
         RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
-        RenderText("Model: " + _modelname, dc, 20, 40, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, 20, 20 + _fontSize + 4, *wxGREEN, *wxBLACK);
     }
     else
     {
         RenderText("CAUTION: Reverse view", dc, 20, 20, *wxBLACK, *wxWHITE);
-        RenderText("Model: " + _modelname, dc, 20, 40, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, 20, 20 + _fontSize + 4, *wxBLACK, *wxWHITE);
     }
 }
 
@@ -324,6 +333,9 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
     {
         light->Check();
     }
+    auto fontSmaller = mnuLayer.Append(ID_MNU_FONTSMALLER, "Smaller Font");
+    if (_fontSize <= MINFONTSIZE) fontSmaller->Enable(false);
+    mnuLayer.Append(ID_MNU_FONTLARGER, "Larger Font");
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&WiringDialog::OnPopup, nullptr, this);
     PopupMenu(&mnuLayer);
 }
@@ -348,6 +360,21 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     else if (id == ID_MNU_LIGHT)
     {
         _dark = false;
+        Render();
+    }
+    else if (id == ID_MNU_FONTLARGER)
+    {
+        _fontSize += FONTSIZEINCREMENT;
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("xLightsWDFontSize"), _fontSize);
+        Render();
+    }
+    else if (id == ID_MNU_FONTSMALLER)
+    {
+        _fontSize -= FONTSIZEINCREMENT;
+        if (_fontSize < MINFONTSIZE) _fontSize = MINFONTSIZE;
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("xLightsWDFontSize"), _fontSize);
         Render();
     }
 }

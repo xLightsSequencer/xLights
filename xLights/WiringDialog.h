@@ -19,6 +19,7 @@ class WiringDialog: public wxDialog
     bool _dark;
     bool _multilight;
     wxGrid* _grid;
+    int _fontSize;
     std::map<int, std::list<wxPoint>> _points;
     void RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height);
     void RenderNodes(std::map<int, std::list<wxPoint>>& points, int width, int height);
@@ -28,6 +29,8 @@ class WiringDialog: public wxDialog
     static const long ID_MNU_EXPORT;
     static const long ID_MNU_DARK;
     static const long ID_MNU_LIGHT;
+    static const long ID_MNU_FONTSMALLER;
+    static const long ID_MNU_FONTLARGER;
     void Render();
 
     public:
