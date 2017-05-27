@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix crash if submodel is part of a preview
+   -- enh (keith)   Add E6804 controller configuration support
+   -- bug (keith)   Fix errors with FPP config
+   -- bug (keith)   Fix xyzzy on matrixs on start channels other than 1
+   -- bug (keith)   Fix triangle wave effect crash
 2017.14  May 17, 2017
    -- enh (gil)     Add additional colors to color manager.
    -- bug (gil)     Fix Align Both Times case that was failing.

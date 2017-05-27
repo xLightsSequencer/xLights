@@ -848,6 +848,8 @@ private:
     void UploadFPPBridgeOutput();
     void UploadFalconInput();
     void UploadFalconOutput();
+    void UploadE6804Input();
+    void UploadE6804Output();
     void UploadPixlite16Output();
 
     void DeleteSelectedNetworks();
@@ -1214,6 +1216,8 @@ private:
     static const long ID_NETWORK_UCOFPPB;
     static const long ID_NETWORK_UCIFALCON;
     static const long ID_NETWORK_UCOFALCON;
+    static const long ID_NETWORK_UCIE6804;
+    static const long ID_NETWORK_UCOE6804;
     static const long ID_NETWORK_UCOPixlite16;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)

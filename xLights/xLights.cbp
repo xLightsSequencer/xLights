@@ -527,6 +527,8 @@
 		<Unit filename="DrawGLUtils.h" />
 		<Unit filename="DrawGLUtils21.cpp" />
 		<Unit filename="DrawGLUtils31.cpp" />
+		<Unit filename="E6804.cpp" />
+		<Unit filename="E6804.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
