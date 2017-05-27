@@ -1185,15 +1185,88 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
     theValueCurve.Deserialise(valueCurve);
 }
 
-void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress) {
     if (subBuffer == STR_EMPTY) {
         return;
     }
-    wxArrayString v = wxSplit(subBuffer, 'x');
-    float x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
-    float y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
-    float x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
-    float y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+
+    wxString sb = subBuffer;
+    sb.Replace("Max", "yyz");
+
+    wxArrayString v = wxSplit(sb, 'x');
+
+    bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
+    bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
+    bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
+    bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
+
+    float x1;
+    if (fx1vc)
+    {
+        v[0].Replace("yyz", "Max");
+        ValueCurve vc(v[0].ToStdString());
+        vc.SetLimits(-100, 200);
+        x1 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 0)
+    {
+        x1 = wxAtof(v[0]);
+    }
+    else
+    {
+        x1 = 0.0;
+    }
+
+    float y1;
+    if (fy1vc)
+    {
+        v[1].Replace("yyz", "Max");
+        ValueCurve vc(v[1].ToStdString());
+        vc.SetLimits(-100, 200);
+        y1 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 1)
+    {
+        y1 = wxAtof(v[1]);
+    }
+    else
+    {
+        y1 = 0.0;
+    }
+
+    float x2;
+    if (fx2vc)
+    {
+        v[2].Replace("yyz", "Max");
+        ValueCurve vc(v[2].ToStdString());
+        vc.SetLimits(-100, 200);
+        x2 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 2)
+    {
+        x2 = wxAtof(v[2]);
+    }
+    else
+    {
+        x2 = 100.0;
+    }
+
+    float y2;
+    if (fy2vc)
+    {
+        v[3].Replace("yyz", "Max");
+        ValueCurve vc(v[3].ToStdString());
+        vc.SetLimits(-100, 200);
+        y2 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 3)
+    {
+        y2 = wxAtof(v[3]);
+    }
+    else
+    {
+        y2 = 100.0;
+    }
 
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
@@ -1255,6 +1328,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0)/100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
 
+    inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
@@ -1281,7 +1356,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
         ComputeValueCurve(saturationAdjustValueCurve, inf->SaturationAdjustValueCurve);
@@ -1441,6 +1516,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
+    wxASSERT(!std::isinf(offset)); // this function will hang if it is
+
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
@@ -1530,6 +1607,29 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     xlColor color;
     HSVValue hsv;
     int curStep;
+
+    // create the sub buffer if it is using a value curve
+    for (int layer = 0; layer < numLayers; layer++)
+    {
+        const std::string &subBuffer = layers[layer]->subBuffer;
+        if (subBuffer.find("Active=TRUE") != std::string::npos)
+        {
+            int effStartPer, effEndPer;
+            layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+            float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+            offset = std::min(offset, 1.0f);
+            const std::string &type = layers[layer]->type;
+            const std::string &transform = layers[layer]->transform;
+            int origNodeCount = layers[layer]->buffer.Nodes.size();
+            layers[layer]->buffer.Nodes.clear();
+            model->InitRenderBufferNodes(type, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+            if (origNodeCount != 0 && origNodeCount != layers[layer]->buffer.Nodes.size()) {
+                layers[layer]->buffer.Nodes.clear();
+                model->InitRenderBufferNodes(type, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+            }
+            ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
+        }
+    }
 
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++)

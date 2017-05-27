@@ -149,6 +149,8 @@ private:
         int fadeOutSteps;
         std::string inTransitionType;
         std::string outTransitionType;
+        std::string type;
+        std::string transform;
         int inTransitionAdjust;
         int outTransitionAdjust;
         bool inTransitionReverse;

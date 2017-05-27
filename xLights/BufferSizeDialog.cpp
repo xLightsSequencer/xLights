@@ -1,20 +1,27 @@
 #include "BufferSizeDialog.h"
 
 //(*InternalHeaders(BufferSizeDialog)
+#include <wx/bitmap.h>
 #include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/image.h>
 #include <wx/string.h>
+#include "ValueCurveDialog.h"
 //*)
 
 //(*IdInit(BufferSizeDialog)
 const long BufferSizeDialog::ID_STATICTEXT1 = wxNewId();
 const long BufferSizeDialog::ID_SPINCTRL1 = wxNewId();
+const long BufferSizeDialog::ID_VALUECURVE_BufferTop = wxNewId();
 const long BufferSizeDialog::ID_STATICTEXT2 = wxNewId();
 const long BufferSizeDialog::ID_SPINCTRL2 = wxNewId();
+const long BufferSizeDialog::ID_VALUECURVE_BufferLeft = wxNewId();
 const long BufferSizeDialog::ID_STATICTEXT3 = wxNewId();
 const long BufferSizeDialog::ID_SPINCTRL3 = wxNewId();
+const long BufferSizeDialog::ID_VALUECURVE_BufferBottom = wxNewId();
 const long BufferSizeDialog::ID_STATICTEXT4 = wxNewId();
 const long BufferSizeDialog::ID_SPINCTRL4 = wxNewId();
+const long BufferSizeDialog::ID_VALUECURVE_BufferRight = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(BufferSizeDialog,wxDialog)
@@ -35,28 +42,36 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Top"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Top = new wxSpinCtrl(this, ID_SPINCTRL1, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, _T("ID_SPINCTRL1"));
 	SpinCtrl_Top->SetValue(_T("100"));
 	FlexGridSizer2->Add(SpinCtrl_Top, 1, wxALL|wxEXPAND, 5);
+	ValueCurve_Top = new ValueCurveButton(this, ID_VALUECURVE_BufferTop, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferTop"));
+	FlexGridSizer2->Add(ValueCurve_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Left"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Left = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_Left->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_Left, 1, wxALL|wxEXPAND, 5);
+	ValueCurve_Left = new ValueCurveButton(this, ID_VALUECURVE_BufferLeft, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferLeft"));
+	FlexGridSizer2->Add(ValueCurve_Left, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Bottom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Bottom = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_Bottom->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_Bottom, 1, wxALL|wxEXPAND, 5);
+	ValueCurve_Bottom = new ValueCurveButton(this, ID_VALUECURVE_BufferBottom, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferBottom"));
+	FlexGridSizer2->Add(ValueCurve_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Right"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Right = new wxSpinCtrl(this, ID_SPINCTRL4, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, _T("ID_SPINCTRL4"));
 	SpinCtrl_Right->SetValue(_T("100"));
 	FlexGridSizer2->Add(SpinCtrl_Right, 1, wxALL|wxEXPAND, 5);
+	ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
+	FlexGridSizer2->Add(ValueCurve_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -68,10 +83,21 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_TopChange);
+	Connect(ID_VALUECURVE_BufferTop,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
 	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_LeftChange);
+	Connect(ID_VALUECURVE_BufferLeft,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
 	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_BottomChange);
+	Connect(ID_VALUECURVE_BufferBottom,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
 	Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&BufferSizeDialog::OnSpinCtrl_RightChange);
+	Connect(ID_VALUECURVE_BufferRight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BufferSizeDialog::OnValueCurve_Click);
 	//*)
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferSizeDialog::OnVCChanged, nullptr, this);
+
+    ValueCurve_Top->SetLimits(-100, 200);
+    ValueCurve_Bottom->SetLimits(-100, 200);
+    ValueCurve_Left->SetLimits(-100, 200);
+    ValueCurve_Right->SetLimits(-100, 200);
 }
 
 BufferSizeDialog::~BufferSizeDialog()
@@ -80,7 +106,7 @@ BufferSizeDialog::~BufferSizeDialog()
 	//*)
 }
 
-void BufferSizeDialog::SetSizes(int top, int left, int bottom, int right)
+void BufferSizeDialog::SetSizes(int top, int left, int bottom, int right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc)
 {
     SpinCtrl_Top->SetValue(top);
     SpinCtrl_Bottom->SetValue(bottom);
@@ -89,24 +115,136 @@ void BufferSizeDialog::SetSizes(int top, int left, int bottom, int right)
     SpinCtrl_Left->SetValue(left);
     SpinCtrl_Right->SetValue(right);
     if (SpinCtrl_Left->GetValue() >= SpinCtrl_Right->GetValue()) SpinCtrl_Right->SetValue(SpinCtrl_Left->GetValue() + 1);
+
+    ValueCurve_Top->SetValue(topvc);
+    ValueCurve_Bottom->SetValue(bottomvc);
+    ValueCurve_Left->SetValue(leftvc);
+    ValueCurve_Right->SetValue(rightvc);
+
+    ValidateWindow();
 }
 
 void BufferSizeDialog::OnSpinCtrl_TopChange(wxSpinEvent& event)
 {
     if (SpinCtrl_Top->GetValue() <= SpinCtrl_Bottom->GetValue()) SpinCtrl_Bottom->SetValue(SpinCtrl_Top->GetValue() - 1);
+    ValidateWindow();
 }
 
 void BufferSizeDialog::OnSpinCtrl_LeftChange(wxSpinEvent& event)
 {
     if (SpinCtrl_Left->GetValue() >= SpinCtrl_Right->GetValue()) SpinCtrl_Right->SetValue(SpinCtrl_Left->GetValue() + 1);
+    ValidateWindow();
 }
 
 void BufferSizeDialog::OnSpinCtrl_BottomChange(wxSpinEvent& event)
 {
     if (SpinCtrl_Top->GetValue() <= SpinCtrl_Bottom->GetValue()) SpinCtrl_Top->SetValue(SpinCtrl_Bottom->GetValue() + 1);
+    ValidateWindow();
 }
 
 void BufferSizeDialog::OnSpinCtrl_RightChange(wxSpinEvent& event)
 {
     if (SpinCtrl_Left->GetValue() >= SpinCtrl_Right->GetValue()) SpinCtrl_Left->SetValue(SpinCtrl_Right->GetValue() - 1);
+    ValidateWindow();
+}
+
+void BufferSizeDialog::OnValueCurve_Click(wxCommandEvent& event)
+{
+    ValueCurveButton * vc = (ValueCurveButton*)event.GetEventObject();
+    int id = event.GetId();
+    wxSpinCtrl* spin = nullptr;
+    if (id == ID_VALUECURVE_BufferTop)
+    {
+        spin = SpinCtrl_Top;
+    }
+    else if (id == ID_VALUECURVE_BufferBottom)
+    {
+        spin = SpinCtrl_Bottom;
+    }
+    else if (id == ID_VALUECURVE_BufferLeft)
+    {
+        spin = SpinCtrl_Left;
+    }
+    else if (id == ID_VALUECURVE_BufferRight)
+    {
+        spin = SpinCtrl_Right;
+    }
+
+    vc->ToggleActive();
+    if (vc->GetValue()->IsActive())
+    {
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
+        if (vcd.ShowModal() != wxOK)
+        {
+            vc->SetActive(false);
+        }
+        else
+        {
+            if (vc->GetValue()->GetType() == "Flat")
+            {
+                spin->SetValue(vc->GetValue()->GetParameter1());
+            }
+        }
+        vc->UpdateState();
+    }
+
+    ValidateWindow();
+}
+
+void BufferSizeDialog::ValidateWindow()
+{
+    if (ValueCurve_Top->GetValue()->IsActive())
+    {
+        SpinCtrl_Top->Enable(false);
+    }
+    else
+    {
+        SpinCtrl_Top->Enable();
+    }
+    if (ValueCurve_Bottom->GetValue()->IsActive())
+    {
+        SpinCtrl_Bottom->Enable(false);
+    }
+    else
+    {
+        SpinCtrl_Bottom->Enable();
+    }
+    if (ValueCurve_Left->GetValue()->IsActive())
+    {
+        SpinCtrl_Left->Enable(false);
+    }
+    else
+    {
+        SpinCtrl_Left->Enable();
+    }
+    if (ValueCurve_Right->GetValue()->IsActive())
+    {
+        SpinCtrl_Right->Enable(false);
+    }
+    else
+    {
+        SpinCtrl_Right->Enable();
+    }
+
+    if (ValueCurve_Top->GetValue()->GetType() == "Flat")
+    {
+        ValueCurve_Top->GetValue()->SetUnscaledParameter1(SpinCtrl_Top->GetValue());
+    }
+    if (ValueCurve_Bottom->GetValue()->GetType() == "Flat")
+    {
+        ValueCurve_Bottom->GetValue()->SetUnscaledParameter1(SpinCtrl_Bottom->GetValue());
+    }
+    if (ValueCurve_Left->GetValue()->GetType() == "Flat")
+    {
+        ValueCurve_Left->GetValue()->SetUnscaledParameter1(SpinCtrl_Left->GetValue());
+    }
+    if (ValueCurve_Right->GetValue()->GetType() == "Flat")
+    {
+        ValueCurve_Right->GetValue()->SetUnscaledParameter1(SpinCtrl_Right->GetValue());
+    }
+}
+
+void BufferSizeDialog::OnVCChanged(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

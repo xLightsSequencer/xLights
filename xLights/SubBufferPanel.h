@@ -35,9 +35,9 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         void Convert(float &x, float &y, wxMouseEvent& event);
     
         float x1, y1, x2, y2;
-    
-        int draggingHandle;
-    
+        std::string x1vc, y1vc, x2vc, y2vc;
+
+        int draggingHandle;    
 };
 
 #endif // SUBBUFFERPANEL_H
