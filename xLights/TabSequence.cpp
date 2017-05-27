@@ -7,6 +7,7 @@
 #include "xLightsXmlFile.h"
 #include "effects/RenderableEffect.h"
 #include "models/ModelGroup.h"
+#include "models/SubModel.h"
 #include "SequenceViewManager.h"
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
@@ -640,12 +641,18 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
 
 static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewModels) {
     for (auto it2 = grp->Models().begin(); it2 != grp->Models().end(); it2++) {
+        Model *model = dynamic_cast<Model*>(*it2);
         ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
+        SubModel *sm = dynamic_cast<SubModel*>(*it2);
+        
+        if (sm != nullptr) {
+            model = sm->GetParent();
+        }
         if (g2 != nullptr) {
             AddModelsToPreview(g2, PreviewModels);
-        } else {
-            if (std::find(PreviewModels.begin(), PreviewModels.end(), *it2) == PreviewModels.end()) {
-                PreviewModels.push_back(*it2);
+        } else if (model != nullptr) {
+            if (std::find(PreviewModels.begin(), PreviewModels.end(), model) == PreviewModels.end()) {
+                PreviewModels.push_back(model);
             }
         }
     }
