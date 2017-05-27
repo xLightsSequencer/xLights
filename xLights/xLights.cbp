@@ -473,6 +473,7 @@
 					<Add library="../lib/windows64/swresample.lib" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cppd.a" />
+					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add directory="$(#wx64)/lib/gcc_dll" />
 				</Linker>
 				<ExtraCommands>
