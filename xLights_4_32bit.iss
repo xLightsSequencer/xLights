@@ -33,78 +33,69 @@ SolidCompression=yes
 OutputDir=output
 OutputBaseFilename=xLights32_2017_x
 
-
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
 
-
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
+Source: "bin/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xLights.ico"; DestDir: "{app}"
+Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
+
+; xSchedule
 Source: "bin/xSchedule.exe"; DestDir: "{app}"
+Source: "bin/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
+Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-;Source: "bin\glut32.dll";          DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-
 Source: "bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin/xlights.windows.properties"; DestDir: "{app}";
 
-
-;Source: "lib/windows/avcodec.lib"; DestDir: "{app}";  Flags: "ignoreversion"
-;Source: "lib/windows/avformat.lib"; DestDir: "{app}";  Flags: "ignoreversion"
-;Source: "lib/windows/avutil.lib"; DestDir: "{app}";  Flags: "ignoreversion"
-
+; avlib - video and audio
 Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; SDL - audio playing
 Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-; No longer needed as of 2016.10. Source: "bin/ffmpeg.exe";          DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin/xlights.map";         DestDir: "{app}"; Flags: "ignoreversion"
 ; Added files for doing Papagayo effects
 Source: "bin/extended_dictionary"; DestDir: "{app}"
 Source: "bin/phoneme_mapping";     DestDir: "{app}"
 Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
-;
 
-; xschedule
-Source: "bin/xschedule.windows.properties";     DestDir: "{app}"
-Source: "bin/xSchedule.map";     DestDir: "{app}"
-Source: "bin/xScheduleWeb\*.*";     DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
-
-
+; Path editor
 Source: "bin/PathEditor.exe";      DestDir: "{app}"
-Source: "include\xLights.ico";     DestDir: "{app}"
-Source: "include\xSchedule.ico";     DestDir: "{app}"
-;mar4 Source: "include\xLights_orig.ico"; DestDir: "{app}"
-Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
-;Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
+
+; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";
 Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
-;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
+
+; Color Curves
 Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameversion recursesubdirs
+
+; controllers
+; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 
 [Icons] 
 Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
 
-
-
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
-
 
 [Registry]
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
-
 
 [Code]
 
