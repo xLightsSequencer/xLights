@@ -15,15 +15,23 @@
 class WiringDialog: public wxDialog
 {
     wxString _modelname;
-    wxBitmap bmp;
-    wxBitmap sizedbmp;
+    wxBitmap _bmp;
+    bool _dark;
+    bool _multilight;
+    wxGrid* _grid;
+    int _fontSize;
+    std::map<int, std::list<wxPoint>> _points;
     void RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height);
     void RenderNodes(std::map<int, std::list<wxPoint>>& points, int width, int height);
     std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
-    void ResizeBitmap(void);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     static const long ID_MNU_EXPORT;
+    static const long ID_MNU_DARK;
+    static const long ID_MNU_LIGHT;
+    static const long ID_MNU_FONTSMALLER;
+    static const long ID_MNU_FONTLARGER;
+    void Render();
 
     public:
 

@@ -2620,11 +2620,11 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & filename, xLightsFr
 
         if( sequence_loaded )
         {
-            effectLayer->AddEffect(0,labels[k],"","",starts[k],ends[k],EFFECT_NOT_SELECTED,false);
+            effectLayer->AddEffect(0,labels[k],"","", TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency()), TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency()),EFFECT_NOT_SELECTED,false);
         }
         else
         {
-            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", starts[k]), string_format("%d", ends[k]));
+            AddTimingEffect(layer, labels[k], "0", "0", string_format("%d", TimeLine::RoundToMultipleOfPeriod(starts[k], GetFrequency())), string_format("%d", TimeLine::RoundToMultipleOfPeriod(ends[k], GetFrequency())));
         }
     }
 }
