@@ -3,6 +3,9 @@
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
+; These files should be installed in C:\Program Files (x86)\Vamp Plugins
+; There is a fair chance they wont work if they are installed anywhere else
+
 #define MyTitleName "Audacity Vamp Plugins" 
 
 [Setup]
@@ -19,17 +22,9 @@ SolidCompression=yes
 OutputDir=output
 OutputBaseFilename=Vamp_Plugin32
 
-
-
 [Files]
 
 Source: "bin\Vamp\Vamp Plugins/*.*"; DestDir: "{pf32}/Vamp Plugins"    ; Flags: recursesubdirs
-Source: "bin/Vamp/*.dll"; DestDir: "{pf32}/xLights"   ; Flags: recursesubdirs
-
-;Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
-
-
 
 [Icons]
-Name: "{group}\Audacity Vamp Plugins"; Filename: "{app}\Vamp_Plugins64.exe"
-
+Name: "{group}\Audacity Vamp Plugins"; Filename: "{app}\Vamp_Plugins32.exe"
