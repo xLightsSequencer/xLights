@@ -1379,6 +1379,12 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             return wxString::Format("%u", lastChannel).ToStdString();
         }
 
+        if (output->IsOutputCollection())
+        {
+            output = output->GetActualOutput(lastChannel);
+            startChannel = lastChannel - output->GetStartChannel() + 1;
+        }
+
         if (CountChar(ModelStartChannel, ':') == 1)
         {
             return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
