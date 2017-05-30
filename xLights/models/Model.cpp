@@ -1563,6 +1563,20 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y) {
     it2.bufX = x;
     it2.bufY = y;
 }
+
+static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int maxX, int maxY, int scale) {
+    if (maxX != -1) {
+        x = x * maxX;
+        x = x / scale;
+    }
+    if (maxY != -1) {
+        y = y * maxY;
+        y = y / scale;
+    }
+    it2.bufX = x;
+    it2.bufY = y;
+}
+
 void Model::ApplyTransform(const std::string &type,
                     std::vector<NodeBaseClassPtr> &newNodes,
                     int &bufferWi, int &bufferHi) const {
@@ -1637,13 +1651,15 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         int cnt = 0;
         int strand = 0;
+        int strandLen = GetStrandLength(0);
         for (int x = firstNode; x < newNodes.size();) {
-            if (cnt >= GetStrandLength(strand)) {
+            if (cnt >= strandLen) {
                 strand++;
+                strandLen = GetStrandLength(strand);
                 cnt = 0;
             } else {
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                    SetCoords(*it2, strand, cnt);
+                    SetCoords(*it2, strand, cnt, -1, bufferHi, strandLen);
                 }
                 cnt++;
                 x++;
@@ -1657,13 +1673,15 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         int cnt = 0;
         int strand = 0;
+        int strandLen = GetStrandLength(0);
         for (int x = firstNode; x < newNodes.size();) {
-            if (cnt >= GetStrandLength(strand)) {
+            if (cnt >= strandLen) {
                 strand++;
+                strandLen = GetStrandLength(strand);
                 cnt = 0;
             } else {
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-                    SetCoords(*it2, cnt, strand);
+                    SetCoords(*it2, cnt, strand, bufferWi, -1, strandLen);
                 }
                 cnt++;
                 x++;

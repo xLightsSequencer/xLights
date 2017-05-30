@@ -347,6 +347,18 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     AdjustForTransform(transform, BufferWi, BufferHi);
 }
 
+static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int maxX, int maxY, int scale) {
+    if (maxX != -1) {
+        x = x * maxX;
+        x = x / scale;
+    }
+    if (maxY != -1) {
+        y = y * maxY;
+        y = y / scale;
+    }
+    it2.bufX = x;
+    it2.bufY = y;
+}
 
 void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        const std::string &transform,
@@ -445,9 +457,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 for (int x = startBM; x < Nodes.size(); x++) {
                     for (auto it = Nodes[x]->Coords.begin(); it != Nodes[x]->Coords.end(); it++) {
                         if (horiz) {
-                            it->bufX += curS;
+                            SetCoords(*it, it->bufX + curS, it->bufY, -1, BufferHi, bh);
                         } else {
-                            it->bufY += curS;
+                            SetCoords(*it, it->bufX, it->bufY + curS, BufferWi, -1, bw);
                         }
                     }
                 }
