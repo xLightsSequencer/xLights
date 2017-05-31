@@ -1979,12 +1979,33 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
         int jy = rng() % actualpixels;
         int jx = rng() % actualpixels;
 
-        int x = jx % xpixels * adjust;
-        int y = jy % ypixels * adjust;
+        int x = (jx % xpixels) * adjust;
+        int y = (jy % ypixels) * adjust;
         if (mask[x * BufferHt + y] == m2) {
-            i--;
+
+            // check if there is anything left to mask
+            bool undone = false;
+            for (int tx = 0; tx < std::min(xpixels, actualpixels) && undone == false; ++tx)
+            {
+                for (int ty = 0; ty < std::min(ypixels, actualpixels) && undone == false; ++ty)
+                {
+                    if (mask[tx * adjust * BufferHt + ty * adjust] == m1)
+                    {
+                        undone = true;
+                    }
+                }
+            }
+
+            if (undone)
+            {
+                i--;
+            }
+            else
+            {
+                break;
+            }
         } else {
-            for (int k = 0; k < adjust; k++) {
+            for (int k = 0; k < adjust; ++k) {
                 if ((x + k) < BufferWi) {
                     for (int l = 0; l < adjust; l++) {
                         if ((y + l) < BufferHt) {
