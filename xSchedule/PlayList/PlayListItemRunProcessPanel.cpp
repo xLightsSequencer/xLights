@@ -61,6 +61,7 @@ PlayListItemRunProcessPanel::PlayListItemRunProcessPanel(wxWindow* parent, PlayL
 
     TextCtrl_RunProcessName->SetValue(process->GetRawName());
     TextCtrl_Command->SetValue(process->GetCommand());
+    TextCtrl_Command->SetToolTip(PlayListItemRunProcess::GetTooltip());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)process->GetDelay() / 1000.0));
     CheckBox_WaitForCompletion->SetValue(process->GetWaitForCompletion());
 }

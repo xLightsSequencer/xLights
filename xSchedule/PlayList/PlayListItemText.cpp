@@ -207,6 +207,34 @@ void PlayListItemText::Stop()
 {
 }
 
+std::string PlayListItemText::GetTooltip(const std::string& type)
+{
+    std::string tt = "Available variables:\n";
+    
+    tt += "    %TEXT% - text field\n\n";
+
+    tt += "    Current Date/Time\n";
+    tt += "        %DAY%, %MONTH%, %YEAR4%, %YEAR2%\n";
+    tt += "        %HOUR24%, %HOUR12%, %MIN%, %SEC%, %MS%, %AMPM%\n\n";
+    
+    if (type == "Countdown")
+    {
+        tt += "    Time until countdowndate\n";
+        tt += "        %CDD_DAYS%, %CDD_HOURS%, %CDD_MINS%, %CDD_SECS%, %CDD_MS%\n";
+        tt += "        %CDD_TSECS% -total seconds until countdown date\n\n";
+    }
+
+    tt += "    Time until playlist item end\n";
+    tt += "        %CD_DAYS%, %CD_HOURS%, %CD_MINS%, %CD_SECS%, %CD_MS%\n";
+    tt += "        %CD_TSECS% -total seconds until playlist item end\n\n";
+
+    tt += "    Time since playlist item start\n";
+    tt += "        %CU_DAYS%, %CU_HOURS%, %CU_MINS%, %CU_SECS%, %CU_MS%\n";
+    tt += "        %CU_TSECS% -total seconds since playlist item start\n";
+
+    return tt;
+}
+
 std::string PlayListItemText::GetText(size_t ms)
 {
     wxString working = wxString(_format);
