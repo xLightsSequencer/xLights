@@ -17,6 +17,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix xyzzy on matrixs on start channels other than 1
    -- bug (keith)   Fix triangle wave effect crash
    -- enh (keith)   Enhance wiring view and add light background option
+   -- bug (keith)   Fix hang in blend transition
+   -- enh (keith)   Add documentation of xSchedule variables into the UI
+   -- bug (keith)   Fix some issues with layer counts in preset window
+   -- bug (keith)   Fix end channel display if multiple universes are grouped under one output
+   -- bug (keith)   Fix 64 bit vamp performance on windows
 2017.14  May 17, 2017
    -- enh (gil)     Add additional colors to color manager.
    -- bug (gil)     Fix Align Both Times case that was failing.

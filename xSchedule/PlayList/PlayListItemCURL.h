@@ -30,6 +30,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    static std::string GetTooltip();
     std::string GetNameNoTime() const override;
     std::string GetRawName() const { return _name; }
     void SetURL(const std::string& url) { if (_url != url) { _url = url; _changeCount++; } }

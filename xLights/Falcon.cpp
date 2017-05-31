@@ -7,7 +7,7 @@
 #include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
-#include "Models/ModelManager.h"
+#include "models/ModelManager.h"
 
 Falcon::Falcon(const std::string& ip)
 {

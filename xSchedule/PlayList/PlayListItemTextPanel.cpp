@@ -216,6 +216,7 @@ void PlayListItemTextPanel::OnChoice_TypeSelect(wxCommandEvent& event)
 
 void PlayListItemTextPanel::ValidateWindow()
 {
+    TextCtrl_Format->SetToolTip(PlayListItemText::GetTooltip(Choice_Type->GetStringSelection().ToStdString()));
     if (Choice_Type->GetStringSelection() == "Normal")
     {
         StaticText_Text->SetLabel("Text");

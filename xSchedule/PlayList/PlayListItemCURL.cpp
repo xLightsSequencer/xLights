@@ -85,6 +85,11 @@ std::string PlayListItemCURL::GetNameNoTime() const
     return "CURL";
 }
 
+std::string PlayListItemCURL::GetTooltip()
+{
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule";
+}
+
 std::string PlayListItemCURL::PrepareString(const std::string s)
 {
 	wxString res(s);

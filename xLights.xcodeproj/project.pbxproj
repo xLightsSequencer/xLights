@@ -517,6 +517,7 @@
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
+		67FA3BAB1EDDAE8D00B84576 /* E6804.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA3BA91EDDAE8D00B84576 /* E6804.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
@@ -1402,6 +1403,8 @@
 		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
 		67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGLCanvas.cpp; sourceTree = "<group>"; };
 		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
+		67FA3BA91EDDAE8D00B84576 /* E6804.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = E6804.cpp; sourceTree = "<group>"; };
+		67FA3BAA1EDDAE8D00B84576 /* E6804.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = E6804.h; sourceTree = "<group>"; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
@@ -2021,6 +2024,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67FA3BA91EDDAE8D00B84576 /* E6804.cpp */,
+				67FA3BAA1EDDAE8D00B84576 /* E6804.h */,
 				67B71D201EC09FDB00690109 /* ColorManager.cpp */,
 				67B71D211EC09FDB00690109 /* ColorManager.h */,
 				67B71D221EC09FDB00690109 /* ColorManagerDialog.cpp */,
@@ -2720,6 +2725,7 @@
 				67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */,
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
+				67FA3BAB1EDDAE8D00B84576 /* E6804.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,

@@ -521,6 +521,24 @@ long E131Output::GetEndChannel() const
     }
 }
 
+Output* E131Output::GetActualOutput(long startChannel)
+{
+    if (!IsOutputCollection())
+    {
+        return this;
+    }
+
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if ((*it)->GetStartChannel() <= startChannel && (*it)->GetEndChannel() >= startChannel)
+        {
+            return *it;
+        }
+    }
+
+    return this;
+}
+
 std::string E131Output::GetLongDescription() const
 {
     std::string res = "";

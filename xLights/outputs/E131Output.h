@@ -59,6 +59,7 @@ public:
     virtual bool IsOutputCollection() const override { return _numUniverses > 1; }
     virtual int GetUniverses() const override { return _numUniverses; }
     virtual void SetTransientData(int on, long startChannel, int nullnumber) override;
+    virtual Output* GetActualOutput(long startChannel) override;
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;

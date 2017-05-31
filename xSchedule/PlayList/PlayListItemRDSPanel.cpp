@@ -130,6 +130,7 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 
     TextCtrl_StationName->SetValue(_rds->GetStationName());
     TextCtrl_Text->SetValue(_rds->GetText());
+    TextCtrl_Text->SetToolTip(PlayListItemRDS::GetTooltip());
     SpinCtrl_StationDuration->SetValue(_rds->GetStationDuration());
     SpinCtrl_TextDuration->SetValue(_rds->GetLineDuration());
     SetChoiceFromString(Choice_CommPort, _rds->GetCommPort());

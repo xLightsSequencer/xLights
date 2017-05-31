@@ -106,6 +106,11 @@ std::string PlayListItemRDS::GetNameNoTime() const
     return "RDS";
 }
 
+std::string PlayListItemRDS::GetTooltip()
+{
+    return "Available variables:\n    %STEPNAME% - current playlist step\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %ALBUM% - from mp3";
+}
+
 void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)

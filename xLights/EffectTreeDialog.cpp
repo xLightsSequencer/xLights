@@ -308,20 +308,29 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
                 {
                     cf1 = true;
                 }
-
-                if (cf1 && efdata.size() > 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None")
+                else
                 {
-                    int row = wxAtoi(efdata[efdata.size() - 6]);
-                    if (row < start) start = row;
-                    if (row > end) end = row;
-                    //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
-                }
-                else if (!cf1 && efdata.size() > 2 && efdata[0] != "None")
-                {
-                    int row = wxAtoi(efdata[efdata.size() - 2]);
-                    if (row < start) start = row;
-                    if (row > end) end = row;
-                    //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                    if (cf1 && efdata.size() > 6 && efdata[0] != "CopyFormat1" && efdata[0] != "None" && efdata.back() != "NO_PASTE_BY_CELL")
+                    {
+                        int row = wxAtoi(efdata[efdata.size() - 6]);
+                        if (row < start) start = row;
+                        if (row > end) end = row;
+                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                    }
+                    else if (!cf1 && efdata.size() > 2 && efdata[0] != "None")
+                    {
+                        int row = wxAtoi(efdata[efdata.size() - 2]);
+                        if (row < start) start = row;
+                        if (row > end) end = row;
+                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                    }
+                    else if (efdata.back() == "NO_PASTE_BY_CELL" && efdata.size() > 3 && efdata[0] != "None")
+                    {
+                        int row = wxAtoi(efdata[efdata.size() - 3]);
+                        if (row < start) start = row;
+                        if (row > end) end = row;
+                        //logger_base.debug("        row: %d start: %d end: %d", row, start, end);
+                    }
                 }
             }
         }

@@ -44,6 +44,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    static std::string GetTooltip(const std::string& type);
     std::string GetRawName() const { return _name; }
     void SetSpeed(int speed) { if (_speed != speed) { _speed = speed; _changeCount++; } }
     int GetSpeed() const { return _speed; }
