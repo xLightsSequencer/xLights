@@ -671,12 +671,14 @@ void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const std::s
 {
     _dirty = true;
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+    MarkUsed();
 }
 
 void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
 {
     _dirty = true;
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 1);
+    MarkUsed();
 }
 
 void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
@@ -942,6 +944,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
             }
         }
     }
+    MarkUsed();
 }
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
@@ -1381,6 +1384,8 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
     }
 
     TreeListCtrl_Mapping->Refresh();
+
+    MarkUsed();
 }
 
 #pragma endregion Drag and Drop
@@ -1405,4 +1410,60 @@ void xLightsImportChannelMapDialog::SetCCROn()
 void xLightsImportChannelMapDialog::SetCCROff()
 {
     PopulateAvailable(false);
+}
+
+void xLightsImportChannelMapDialog::MarkUsed()
+{
+    std::list<std::string> used;
+
+    // go through each tree row where mapping is not blank
+    for (int i = 0; i < dataModel->GetChildCount(); ++i)
+    {
+        auto model = dataModel->GetNthChild(i);
+        if (model->_mapping != "")
+        {
+            if (std::find(used.begin(), used.end(), model->_mapping) == used.end())
+            {
+                used.push_back(model->_mapping.ToStdString());
+            }
+        }
+
+        for (int j = 0; j < model->GetChildCount(); j++)
+        {
+            auto strand = model->GetNthChild(j);
+            if (strand->_mapping != "")
+            {
+                if (std::find(used.begin(), used.end(), strand->_mapping) == used.end())
+                {
+                    used.push_back(strand->_mapping.ToStdString());
+                }
+            }
+
+            for (int k = 0; k < strand->GetChildCount(); k++)
+            {
+                auto node = strand->GetNthChild(k);
+                if (node->_mapping != "")
+                {
+                    if (std::find(used.begin(), used.end(), node->_mapping) == used.end())
+                    {
+                        used.push_back(node->_mapping.ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
+    {
+        if (std::find(used.begin(), used.end(), ListCtrl_Available->GetItemText(i)) == used.end())
+        {
+            // not used
+            ListCtrl_Available->SetItemTextColour(i, *wxBLACK);
+        }
+        else
+        {
+            //used
+            ListCtrl_Available->SetItemTextColour(i, *wxLIGHT_GREY);
+        }
+    }
 }

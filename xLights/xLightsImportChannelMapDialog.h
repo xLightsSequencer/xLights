@@ -291,6 +291,7 @@ class xLightsImportChannelMapDialog: public wxDialog
     void SetCCROn();
     void SetCCROff();
     void PopulateAvailable(bool ccr);
+    void MarkUsed();
 
     bool _dirty;
     wxFileName _filename;
