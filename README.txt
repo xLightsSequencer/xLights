@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix some resize issues in import dialog
+   -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)
+   -- bug (dkulp)   Fix sorting in available models on import dialog
    -- bug (gil)     Correct 3D DMX model rotating opposite of other view types.
 2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview

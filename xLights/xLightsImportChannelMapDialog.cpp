@@ -351,7 +351,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	wxButton* Button02;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
-	SetMaxSize(wxDLG_UNIT(parent,wxSize(-1,500)));
 	Sizer = new wxFlexGridSizer(0, 1, 0, 0);
 	Sizer->AddGrowableCol(0);
 	Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
@@ -366,12 +365,12 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Sizer->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Timing Tracks"));
 	TimingTrackListBox = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
-	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
 	Sizer->Add(TimingTrackPanel, 0, wxEXPAND, 0);
 	SizerMap = new wxFlexGridSizer(0, 2, 0, 0);
 	SizerMap->AddGrowableCol(0);
 	SizerMap->AddGrowableRow(0);
-	ListCtrl_Available = new wxListCtrl(this, ID_LISTCTRL1, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
+	ListCtrl_Available = new wxListCtrl(this, ID_LISTCTRL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(100,-1)), wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL1"));
 	SizerMap->Add(ListCtrl_Available, 1, wxALL|wxEXPAND, 5);
 	Sizer->Add(SizerMap, 0, wxEXPAND, 0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 5, 0, 0);
@@ -390,10 +389,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Sizer->Fit(this);
 	Sizer->SetSizeHints(this);
 
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnCheckBox_MapCCRStrandClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
@@ -453,6 +452,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
     if (!_allowCCRStrand)
     {
         CheckBox_MapCCRStrand->Hide();
+        Sizer->Detach(CheckBox_MapCCRStrand);
     }
     else
     {
@@ -463,7 +463,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
     {
         TimeAdjustSpinCtrl->Hide();
         StaticText_TimeAdjust->Hide();
-        Sizer->Remove(Sizer_TimeAdjust);
+        Sizer->Detach(Sizer_TimeAdjust);
     }
     else
     {
@@ -472,7 +472,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     if (timingTracks.empty() || !_allowTimingTrack)
     {
-        Sizer->Remove(TimingTrackPanel);
+        Sizer->Detach(TimingTrackPanel);
         TimingTrackListBox->Hide();
     }
     else
@@ -513,6 +513,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     MDTextDropTarget* mdt = new MDTextDropTarget(this, TreeListCtrl_Mapping, "Map");
     TreeListCtrl_Mapping->SetDropTarget(mdt);
+    TreeListCtrl_Mapping->SetIndent(8);
 
     int ms = 0;
     for (size_t i = 0; i<mSequenceElements->GetElementCount(); ++i) {
@@ -544,21 +545,28 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     if (ccr)
     {
+        std::multiset<std::string> ccrNamesSorted(ccrNames.begin(), ccrNames.end());
         int j = 0;
         for (auto it = ccrNames.begin(); it != ccrNames.end(); ++it)
         {
-            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
-            ListCtrl_Available->SetItemData(j, j);
+            wxString name = *it;
+            ListCtrl_Available->InsertItem(j, name);
+            int idx = std::distance(ccrNamesSorted.begin(), ccrNamesSorted.find(*it));
+            ListCtrl_Available->SetItemData(j, idx);
             j++;
         }
     }
     else
     {
+        std::multiset<std::string> channelNamesSorted(channelNames.begin(), channelNames.end());
+        
         int j = 0;
         for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
         {
-            ListCtrl_Available->InsertItem(j, wxString(it->c_str()));
-            ListCtrl_Available->SetItemData(j, j);
+            wxString name = *it;
+            ListCtrl_Available->InsertItem(j, name);
+            int idx = std::distance(channelNamesSorted.begin(), channelNamesSorted.find(*it));
+            ListCtrl_Available->SetItemData(j, idx);
             j++;
         }
     }
@@ -1178,17 +1186,12 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& 
 
 int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    wxListCtrl * pListCtrl = (wxListCtrl *)sortData;
-    wxString str1 = pListCtrl->GetItemText(item1);
-    wxString str2 = pListCtrl->GetItemText(item2);
-
-    //now compare the strings
-    return str1.Cmp(str2);
+    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
 }
 
 int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-    return -1 * MyCompareFunctionAsc(item1, item2, sortData);
+    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
 }
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)
