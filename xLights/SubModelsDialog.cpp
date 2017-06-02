@@ -555,6 +555,44 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     }
 }
 
+void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo& sm, int segments, int segment, bool horizontal, int count)
+{
+    if (horizontal)
+    {
+        float perx = 100.0 / segments;
+        int offset = segment % segments;
+        int startx = offset * perx;
+        int endx = startx + perx - 1;
+        if ((segment + 1) % segments == 0) endx = 100;
+
+        float per = 100.0 / (count / segments);
+        int start = segment / segments * per;
+        int end = (segment / segments + 1.0) * per - 1;
+
+        if ((segment + 1) / segments == count / segments) end = 100;
+
+        sm.isRanges = false;
+        sm.subBuffer = wxString::Format("%ix%ix%ix%i", startx, start, endx, end);
+    }
+    else
+    {
+        float pery = 100.0 / segments;
+        int offset = segment % segments;
+        int starty = offset * pery;
+        int endy = starty + pery - 1;
+        if ((segment + 1) % segments == 0) endy = 100;
+
+        float per = 100.0 / (count / segments);
+        int start = segment / segments * per;
+        int end = (segment / segments + 1.0) * per - 1;
+
+        if ((segment + 1) / segments == count /segments) end = 100;
+
+        sm.isRanges = false;
+        sm.subBuffer = wxString::Format("%ix%ix%ix%i", start, starty, end, endy);
+    }
+}
+
 void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
 {
     SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
@@ -580,30 +618,29 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
                 sm.strands.push_back("");
                 NameChoice->Append(name);
 
-                if (dialog.GetType() == "Horizontal Subbuffer")
+                if (dialog.GetType() == "Vertical Slices")
                 {
-                    float per = 100.0 / dialog.GetCount();
-                    int start = last;
-                    int end = (i + 1.0) * per;
-
-                    if (i == dialog.GetCount() - 1)
-                    {
-                        end = 100;
-                    }
-
-                    sm.isRanges = false;
-                    sm.subBuffer = wxString::Format("%ix%ix%ix%i", start, 0, end, 100);
-                    last = end + 1;
+                    GenerateSegment(sm, 1, i, false, dialog.GetCount());
                 }
-                else if (dialog.GetType() == "Vertical Subbuffer")
+                else if (dialog.GetType() == "Horizontal Slices")
                 {
-                    float per = 100.0 / dialog.GetCount();
-                    int start = last;
-                    int end = (i + 1.0) * per;
-
-                    sm.isRanges = false;
-                    sm.subBuffer = wxString::Format("%ix%ix%ix%i", 0, start, 100, end);
-                    last = end + 1;
+                    GenerateSegment(sm, 1, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 2 Wide")
+                {
+                    GenerateSegment(sm, 2, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 2 High")
+                {
+                    GenerateSegment(sm, 2, i, false, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 3 Wide")
+                {
+                    GenerateSegment(sm, 3, i, true, dialog.GetCount());
+                }
+                else if (dialog.GetType() == "Segments 3 High")
+                {
+                    GenerateSegment(sm, 3, i, false, dialog.GetCount());
                 }
                 else if (dialog.GetType() == "Nodes")
                 {

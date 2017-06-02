@@ -1,6 +1,8 @@
 ; -- Audacity Vamp Plugins_64.iss --
 ; Demonstrates copying 3 files and creating an icon.
 
+; http://www.jrsoftware.org/isinfo.php
+
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 ; These files should be installed in C:\Program Files\Vamp Plugins

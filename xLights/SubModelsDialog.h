@@ -19,16 +19,14 @@ class wxGridEvent;
 class wxChoice;
 //*)
 
-
-class wxBookCtrlEvent;
-
 class Model;
+class wxBookCtrlEvent;
 class ModelPreview;
 class SubBufferPanel;
 
 class SubModelsDialog: public wxDialog
 {
-	public:
+    public:
 
 		SubModelsDialog(wxWindow* parent);
 		virtual ~SubModelsDialog();
@@ -96,19 +94,20 @@ private:
     void SelectRow(int r);
     void Select(const wxString &name);
     void DisplayRange(const wxString &range);
-    
+
     class SubModelInfo {
     public:
         SubModelInfo() {}
         SubModelInfo(const wxString &n) : name(n) {}
-        
+
         wxString name;
         bool vertical;
         bool isRanges;
         wxString subBuffer;
         std::vector<wxString> strands;
     };
-    
+
+    void GenerateSegment(SubModelInfo& sm, int segments, int segment, bool horizontal, int count);
     SubModelInfo &GetSubModelInfo(const wxString &str);
     int GetSubModelInfoIndex(const wxString &str);
     
