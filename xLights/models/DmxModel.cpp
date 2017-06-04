@@ -1099,41 +1099,43 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
         while (pan_angle_raw > 360.0f ) pan_angle_raw -= 360.0f;
         pan_angle_raw = 360.0f - pan_angle_raw;
-
-        dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
-
         bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
-        if( facing_right ) {
+        if( shutter_open ) {
+            dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
+
+
+            if( facing_right ) {
+                va.AddVertex(p2.x, p2.y, beam_color_end);
+                va.AddVertex(p4.x, p4.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            } else {
+                va.AddVertex(p1.x, p1.y, beam_color_end);
+                va.AddVertex(p3.x, p3.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            }
+
+            va.AddVertex(p1.x, p1.y, beam_color_end);
             va.AddVertex(p2.x, p2.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+
+            va.AddVertex(p3.x, p3.y, beam_color_end);
             va.AddVertex(p4.x, p4.y, beam_color_end);
             va.AddVertex(p0.x, p0.y, beam_color);
-        } else {
-            va.AddVertex(p1.x, p1.y, beam_color_end);
-            va.AddVertex(p3.x, p3.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
-        }
 
-        va.AddVertex(p1.x, p1.y, beam_color_end);
-        va.AddVertex(p2.x, p2.y, beam_color_end);
-        va.AddVertex(p0.x, p0.y, beam_color);
-
-        va.AddVertex(p3.x, p3.y, beam_color_end);
-        va.AddVertex(p4.x, p4.y, beam_color_end);
-        va.AddVertex(p0.x, p0.y, beam_color);
-
-        if( !facing_right ) {
-            va.AddVertex(p2.x, p2.y, beam_color_end);
-            va.AddVertex(p4.x, p4.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
-        } else {
-            va.AddVertex(p1.x, p1.y, beam_color_end);
-            va.AddVertex(p3.x, p3.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
+            if( !facing_right ) {
+                va.AddVertex(p2.x, p2.y, beam_color_end);
+                va.AddVertex(p4.x, p4.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            } else {
+                va.AddVertex(p1.x, p1.y, beam_color_end);
+                va.AddVertex(p3.x, p3.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            }
         }
 
         if( facing_right ) {
