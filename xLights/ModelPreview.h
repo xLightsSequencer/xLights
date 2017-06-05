@@ -12,6 +12,7 @@
 
 class Model;
 class PreviewPane;
+class LayoutGroup;
 
 class ModelPreview : public xlGLCanvas
 {
@@ -20,8 +21,10 @@ public:
     ModelPreview(wxPanel* parent);
 	ModelPreview(wxPanel* parent,
                  std::vector<Model*> &models,
+                 std::vector<LayoutGroup *> &groups,
                  bool allowSelected,
-                 int style = 0);
+                 int style = 0,
+                 bool allowPreviewChange = false);
 	virtual ~ModelPreview();
 
     // Public Methods
@@ -88,6 +91,7 @@ private:
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
+    void OnPopup(wxCommandEvent& event);
 
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
@@ -101,13 +105,16 @@ private:
     xLightsDrawable* sprite;
     std::vector<Model*> previewModels;
     std::vector<Model*> *PreviewModels;
+    std::vector<Model*> *HouseModels;
+    std::vector<LayoutGroup *> *LayoutGroups;
     bool allowSelected;
+    bool allowPreviewChange;
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
 
     double currentPixelScaleFactor = 1.0;
-    
+
     int maxVertexCount;
 
 	DECLARE_EVENT_TABLE()

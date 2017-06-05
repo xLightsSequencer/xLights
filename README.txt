@@ -14,7 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (dkulp)   Fix some resize issues in import dialog
    -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)
    -- bug (dkulp)   Fix sorting in available models on import dialog
-   -- bug (gil)     Correct 3D DMX model rotating opposite of other view types.
+   -- bug (gil)     Correct 3D DMX model rotating opposite of other view types.\
+   -- enh (gil)     Add ability to right-click House Preview and switch to custom previews you've created.
 2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview
    -- enh (keith)   Add E6804 controller configuration support

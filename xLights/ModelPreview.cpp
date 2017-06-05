@@ -16,6 +16,7 @@
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
 #include "ColorManager.h"
+#include "LayoutGroup.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -40,11 +41,6 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
-    event.ResumePropagation(1);
-    event.Skip (); // continue the event
-}
-
-void ModelPreview::rightClick(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -122,12 +118,42 @@ void ModelPreview::Render(const unsigned char *data) {
 }
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
-//void ModelPreview::rightClick(wxMouseEvent& event) {}
+
+void ModelPreview::rightClick(wxMouseEvent& event) {
+    if( allowPreviewChange ) {
+        wxMenu mnuSelectPreview;
+        mnuSelectPreview.Append(0,"House Preview");
+        int index = 1;
+        for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); it++) {
+            LayoutGroup* grp = (LayoutGroup*)(*it);
+            mnuSelectPreview.Append(index++,grp->GetName());
+        }
+        mnuSelectPreview.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
+        PopupMenu(&mnuSelectPreview);
+    }
+}
+
+void ModelPreview::OnPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    if(id == 0) {
+        SetModels(*HouseModels);
+    }
+    else {
+        if( id <= LayoutGroups->size() ) {
+            SetModels( (*LayoutGroups)[id-1]->GetModels());
+        }
+    }
+    Refresh();
+    Update();
+}
+
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, bool a, int styles)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true), PreviewModels(&models), allowSelected(a)
+ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
+      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);

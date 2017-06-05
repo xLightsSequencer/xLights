@@ -248,7 +248,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 
     logger_base.debug("LayoutPanel basic setup complete");
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, xlights->LayoutGroups, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
