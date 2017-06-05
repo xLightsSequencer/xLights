@@ -283,6 +283,7 @@ std::string SequenceElements::GetViewName(int which_view) const
 void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
 {
     _viewsManager = viewsManager;
+    _viewsManager->SetSelectedView(mCurrentView);
 }
 
 void SequenceElements::SetModelsNode(wxXmlNode* node)
@@ -348,7 +349,7 @@ Element* SequenceElements::GetElement(const std::string &name)
                     return sme;
                 }
             }
-        }        
+        }
     }
     return NULL;
 }
@@ -411,7 +412,7 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
     }
-    
+
     PopulateRowInformation();
 }
 
@@ -854,6 +855,7 @@ void SequenceElements::RemoveView(int view_index)
 void SequenceElements::SetCurrentView(int view)
 {
     mCurrentView = view;
+    _viewsManager->SetSelectedView(view);
 }
 
 void SequenceElements::AddMissingModelsToSequence(const std::string &models, bool visible)
