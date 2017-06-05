@@ -22,18 +22,24 @@ Pixlite16::Pixlite16(const std::string& ip)
 
     if (discovery == nullptr)
     {
-        logger_base.error("Error initialising Pixlite16 discovery datagram.");
+        logger_base.error("Error initialising Pixlite discovery datagram.");
         return;
     }
 
     if (!discovery->IsOk())
     {
-        logger_base.error("Error initialising Pixlite16 discovery datagram ... is network connected.");
+        logger_base.error("Error initialising Pixlite discovery datagram ... is network connected.");
+        return;
+    }
+
+    if (discovery->Error())
+    {
+        logger_base.error("Error creating socket to broadcast from => %d.", discovery->LastError());
         return;
     }
 
     wxString broadcast = "255.255.255.255";
-    logger_base.debug("Pixlite 16 broadcasting to %s.", (const char *)broadcast.c_str());
+    logger_base.debug("Pixlite broadcasting to %s.", (const char *)broadcast.c_str());
     wxIPV4address broadcastAddr;
     broadcastAddr.Hostname(broadcast);
     broadcastAddr.Service(49150);
@@ -53,18 +59,25 @@ Pixlite16::Pixlite16(const std::string& ip)
     discoveryData[11] = 0x05;
     discovery->SendTo(broadcastAddr, discoveryData, sizeof(discoveryData));
 
+    if (discovery->Error())
+    {
+        logger_base.debug("Pixlite error broadcasting to %s => %d.", (const char *)broadcast.c_str(), discovery->LastError());
+        return;
+    }
+
     wxMilliSleep(500);
 
     // look through responses for one that matches my ip
 
     wxByte data[384];
+    memset(data, 0x00, sizeof(data));
 
     wxIPV4address pixliteAddr;
     while (discovery->IsData())
     {
         discovery->RecvFrom(pixliteAddr, data, sizeof(data));
 
-        if (data[10] == 0x02 && data[11] == 0x04)
+        if (!discovery->Error() && data[10] == 0x02 && data[11] == 0x04)
         {
             wxString rcvIP = wxString::Format("%i.%i.%i.%i", data[141], data[142], data[143], data[144]);
 
@@ -88,6 +101,10 @@ Pixlite16::Pixlite16(const std::string& ip)
                 break;
             }
         }
+        else if (discovery->Error())
+        {
+            logger_base.error("Error reading broadcast response => %d.", discovery->LastError());
+        }
     }
 
     if (!_connected)
@@ -100,11 +117,13 @@ Pixlite16::Pixlite16(const std::string& ip)
 
 int Pixlite16::GetMaxStringOutputs() const
 {
+    // of course it could be 4 if it was a pixlite 4
     return 16;
 }
 
 int Pixlite16::GetMaxSerialOutputs() const
 {
+    // and 1 if this was a pixlite 4
     return 4;
 }
 
@@ -125,17 +144,17 @@ bool Pixlite16::SendConfig(bool logresult)
 
     if (config == nullptr)
     {
-        logger_base.error("Error initialising Pixlite16 config datagram.");
+        logger_base.error("Error initialising Pixlite config datagram.");
         return false;
     }
 
     if (!config->IsOk())
     {
-        logger_base.error("Error initialising Pixlite16 config datagram ... is network connected.");
+        logger_base.error("Error initialising Pixlite config datagram ... is network connected.");
         return false;
     }
 
-    logger_base.debug("Pixlite 16 sending config to %s.", (const char *)_ip.c_str());
+    logger_base.debug("Pixlite sending config to %s.", (const char *)_ip.c_str());
     wxIPV4address toAddr;
     toAddr.Hostname(_ip);
     toAddr.Service(49150);
@@ -160,7 +179,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     //ResetStringOutputs(); // this shouldnt be used normally
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Pixlite 16 Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    logger_base.debug("Pixlite Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     // build a list of models on this controller
     std::list<Model*> models;
@@ -194,7 +213,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         // this universe is sent to the Pixlite
         if (((*ito)->GetType() == "ArtNET") != isArtNET)
         {
-            logger_base.warn("Pixlite 16 controllers require all output to be e1.31 or ArtNET ... you cant mix them.");
+            logger_base.warn("Pixlite controllers require all output to be e1.31 or ArtNET ... you cant mix them.");
         }
 
         // find all the models in this range
@@ -257,7 +276,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                                 {
                                     if (protocol != it->second->GetProtocol())
                                     {
-                                        logger_base.warn("Pixlite 16 only supports one bulb protocol.");
+                                        logger_base.warn("Pixlite only supports one bulb protocol.");
                                     }
                                 }
                                 if (it->second->GetPort() > maxport)
@@ -359,7 +378,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                             _pixliteData[71 + (i + j) * 2] = (bulbs & 0xFF00) >> 8;
                             _pixliteData[71 + (i + j) * 2 + 1] = (bulbs & 0x00FF);
 
-                            logger_base.debug("Uploading to Pixlite16 %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i + j, universe, sc, bulbs);
+                            logger_base.debug("Uploading to Pixlite %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i + j, universe, sc, bulbs);
                         }
                     }
                 }
@@ -391,7 +410,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                         _pixliteData[71 + i * 2] = (bulbs & 0xFF00) >> 8;
                         _pixliteData[71 + i * 2 + 1] = (bulbs & 0x00FF);
 
-                        logger_base.debug("Uploading to Pixlite16 %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i, universe, sc, bulbs);
+                        logger_base.debug("Uploading to Pixlite %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i, universe, sc, bulbs);
                     }
                 }                    
             }
@@ -439,7 +458,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _pixliteData[259 + *it * 2] = (universe & 0xFF00) >> 8;
                 _pixliteData[259 + *it * 2 + 1] = (universe & 0x00FF);
                 _pixliteData[256 + *it] = 0x01; // turn it on
-                logger_base.debug("Uploading to Pixlite16 %s dmx output %d, universe %d.", (const char *)_ip.c_str(), *it, universe);
+                logger_base.debug("Uploading to Pixlite %s dmx output %d, universe %d.", (const char *)_ip.c_str(), *it, universe);
             }
         }
     }

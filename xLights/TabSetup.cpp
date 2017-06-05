@@ -1336,7 +1336,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPixlite16, "Pixlite 16");
+    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPixlite16, "Pixlite");
     if (!AllSelectedSupportIP())
     {
         beUCOPixlite16->Enable(false);
@@ -1775,7 +1775,7 @@ void xLightsFrame::UploadFalconOutput()
 
 void xLightsFrame::UploadPixlite16Output()
 {
-    if (wxMessageBox("This will upload the output controller configuration for a Pixlite 16 controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    if (wxMessageBox("This will upload the output controller configuration for a Pixlite controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
@@ -1783,7 +1783,7 @@ void xLightsFrame::UploadPixlite16Output()
 
         if (ip == "")
         {
-            wxTextEntryDialog dlg(this, "Pixlite 16 IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "Pixlite IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
                 SetCursor(wxCURSOR_ARROW);
