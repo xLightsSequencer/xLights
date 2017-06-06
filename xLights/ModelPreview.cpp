@@ -138,7 +138,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     int id = event.GetId() - 1;
     if(id == 0) {
         SetModels(*HouseModels);
-    } else if (id > 1 && id <= LayoutGroups->size()) {
+    } else if (id > 0 && id <= LayoutGroups->size()) {
         SetModels( (*LayoutGroups)[id-1]->GetModels());
     }
     Refresh();
