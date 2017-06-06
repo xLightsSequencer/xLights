@@ -122,8 +122,8 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if( allowPreviewChange ) {
         wxMenu mnuSelectPreview;
-        mnuSelectPreview.Append(0,"House Preview");
-        int index = 1;
+        mnuSelectPreview.Append(1,"House Preview");
+        int index = 2;
         for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); it++) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
             mnuSelectPreview.Append(index++,grp->GetName());
@@ -135,14 +135,11 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
 
 void ModelPreview::OnPopup(wxCommandEvent& event)
 {
-    int id = event.GetId();
+    int id = event.GetId() - 1;
     if(id == 0) {
         SetModels(*HouseModels);
-    }
-    else {
-        if( id <= LayoutGroups->size() ) {
-            SetModels( (*LayoutGroups)[id-1]->GetModels());
-        }
+    } else if (id > 1 && id <= LayoutGroups->size()) {
+        SetModels( (*LayoutGroups)[id-1]->GetModels());
     }
     Refresh();
     Update();
