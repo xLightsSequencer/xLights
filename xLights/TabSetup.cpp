@@ -22,6 +22,7 @@
 #include "Falcon.h"
 #include "Pixlite16.h"
 #include "E6804.h"
+#include "J1Sys.h"
 
 // dialogs
 #include "outputs/Output.h"
@@ -59,6 +60,7 @@ const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIE6804 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOE6804 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1437,6 +1439,62 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
+    wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
+    if (!AllSelectedSupportIP())
+    {
+        beUCOJ1SYS->Enable(false);
+    }
+    else
+    {
+        if (selcnt == 1)
+        {
+            beUCOJ1SYS->Enable(true);
+        }
+        else
+        {
+            bool valid = true;
+            // check all are multicast or one ip address
+            wxString ip;
+            wxString type;
+
+            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+            while (item != -1)
+            {
+                Output* o = _outputManager.GetOutput(item);
+
+                if (ip != o->GetIP())
+                {
+                    if (ip == "")
+                    {
+                        ip = o->GetIP();
+                    }
+                    else
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (type == "")
+                {
+                    type = o->GetType();
+                }
+                else
+                {
+                    if (type != o->GetType())
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+                
+                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            }
+            beUCOJ1SYS->Enable(valid);
+        }
+    }
+
     mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
 
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
@@ -1532,6 +1590,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_UCOE6804)
     {
         UploadE6804Output();
+    }
+    else if (id == ID_NETWORK_UCOJ1SYS)
+    {
+        UploadJ1SYSOutput();
     }
     else if (id == ID_NETWORK_UCOPixlite16)
     {
@@ -1852,6 +1914,34 @@ void xLightsFrame::UploadE6804Output()
         if (e6804.IsConnected())
         {
             e6804.SetOutputs(&AllModels, &_outputManager, selected, this);
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void xLightsFrame::UploadJ1SYSOutput()
+{
+    if (wxMessageBox("This will upload the output controller configuration for a J1SYS controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        std::list<int> selected = GetSelectedOutputs(ip);
+
+        if (ip == "")
+        {
+            wxTextEntryDialog dlg(this, "J1SYS IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK)
+            {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        J1Sys j1sys(ip.ToStdString());
+        if (j1sys.IsConnected())
+        {
+            j1sys.SetOutputs(&AllModels, &_outputManager, selected, this);
         }
         SetCursor(wxCURSOR_ARROW);
     }
