@@ -2270,7 +2270,7 @@ ModelFaceDialog.cpp: ModelFaceDialog.h xLightsXmlFile.h NodesGridCellEditor.h Mo
 
 ModelGroupPanel.cpp: ModelGroupPanel.h xLightsMain.h models/ModelManager.h models/ModelGroup.h LayoutPanel.h
 
-ModelPreview.cpp: ModelPreview.h models/Model.h PreviewPane.h DrawGLUtils.h osxMacUtils.h ColorManager.h
+ModelPreview.cpp: ModelPreview.h models/Model.h PreviewPane.h DrawGLUtils.h osxMacUtils.h ColorManager.h LayoutGroup.h
 
 ModelStateDialog.cpp: ModelStateDialog.h xLightsXmlFile.h NodesGridCellEditor.h ModelPreview.h DimmingCurve.h SevenSegmentDialog.h models/Model.h
 
