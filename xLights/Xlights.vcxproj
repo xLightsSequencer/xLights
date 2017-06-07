@@ -172,6 +172,7 @@
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="J1Sys.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -467,6 +468,7 @@
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="E6804.h" />
+    <ClInclude Include="J1Sys.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />

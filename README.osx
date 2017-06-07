@@ -48,10 +48,10 @@ Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=c++11 -g" 
-  export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
-  export CPPFLAGS="-stdlib=libc++ -g" 
-  export LDFLAGS="-stdlib=libc++" 
+  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -g -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CPPFLAGS="-stdlib=libc++ -g -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export LDFLAGS="-stdlib=libc++"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
@@ -59,27 +59,27 @@ Then, from inside a Terminal window:
   export CFLAGS="-g"
   ../configure  --prefix=/opt/local --libdir=/opt/local/libdbg \
                --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
-               --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
+               --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
                --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-               --enable-backtrace --enable-exceptions --enable-aui --without-liblzma --disable-lzma --with-expat=builtin
+               --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make
   make install
 
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -std=c++11" 
-  export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
-  export CPPFLAGS="-stdlib=libc++" 
-  export LDFLAGS="-stdlib=libc++" 
+  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CPPFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export LDFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
   export CPP="clang -E" 
   ../configure  --prefix=/opt/local --enable-macosx_arch=x86_64 \
-                --enable-mediactrl --with-osx_cocoa --without-osx_carbon --with-opengl --disable-dependency-tracking \
+                --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma --disable-lzma --with-expat=builtin
+                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make 
   make install
 

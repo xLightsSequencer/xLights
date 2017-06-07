@@ -382,7 +382,6 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
     if (current_view > 0)
     {
-        _sequenceViewManager->SetSelectedView(current_view);
         SequenceView * view = _sequenceViewManager->GetSelectedView();
         if (view != nullptr)
         {
@@ -457,7 +456,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         }
         ListCtrlNonModels->EnsureVisible(topN);
     }
-    
+
     if (selectModels != "")
     {
         wxArrayString models = wxSplit(selectModels, ',');
@@ -1040,7 +1039,6 @@ void ViewsModelsPanel::SelectView(const std::string& view)
         _sequenceElements->AddMissingModelsToSequence(modelsString);
         _sequenceElements->PopulateView(modelsString, selected_view);
     }
-    _sequenceViewManager->SetSelectedView(selected_view);
     _sequenceElements->SetCurrentView(selected_view);
     _sequenceElements->SetTimingVisibility(view);
     PopulateModels();
@@ -2247,7 +2245,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
             {
                 movedModels.push_back(ListCtrlModels->GetItemText(i, 2));
                 int from = i - GetTimingCount();
-    
+
                 // we are moving this one
                 itemsMoved = true;
                 int to = -1;

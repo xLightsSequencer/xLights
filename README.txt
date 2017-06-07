@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix some resize issues in import dialog
+   -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)
+   -- bug (dkulp)   Fix sorting in available models on import dialog
+   -- bug (gil)     Correct 3D DMX model rotating opposite of other view types.
+   -- bug (gil)     Fix crash when deleting last view in the list.  Fixes #869.
+   -- enh (gil)     Add ability to right-click House Preview and switch to custom previews you've created.
+   -- enh (keith)   Get Pixlite 4 controller upload working
+   -- enh (keith)   Get J1Sys P2 controller upload working
+   -- enh (keith)   Show models already used in mapping dialog
+   -- enh (keith)   Add more submodel generation options
+2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview
    -- enh (keith)   Add E6804 controller configuration support
    -- bug (keith)   Fix errors with FPP config

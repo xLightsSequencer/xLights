@@ -15,7 +15,9 @@ class SubModelGenerateDialog: public wxDialog
     int _modelWidth;
     int _modelHeight;
     int _modelNodes;
+    int _lastCount;
 
+    int SetSpinValue(int step, bool down);
     void ValidateWindow();
 
 	public:
@@ -51,6 +53,7 @@ class SubModelGenerateDialog: public wxDialog
 
 		//(*Handlers(SubModelGenerateDialog)
 		void OnChoice1Select(wxCommandEvent& event);
+		void OnSpinCtrl_CountChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

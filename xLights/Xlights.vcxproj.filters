@@ -954,6 +954,9 @@
     <ClCompile Include="E6804.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="J1Sys.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1848,6 +1851,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="E6804.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="J1Sys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxDialog" name="xLightsImportChannelMapDialog">
 		<title>Map Channels</title>
-		<maxsize>-1,500d</maxsize>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="Sizer" member="yes">
@@ -50,7 +49,7 @@
 						<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
 							<style>wxVSCROLL</style>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
 					</object>
 				</object>
@@ -63,7 +62,7 @@
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
-							<size>150,-1</size>
+							<size>100,-1d</size>
 							<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
 							<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 							<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
@@ -71,7 +70,7 @@
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
-						<minsize>150,-1</minsize>
+						<minsize>100,-1d</minsize>
 						<option>1</option>
 					</object>
 				</object>

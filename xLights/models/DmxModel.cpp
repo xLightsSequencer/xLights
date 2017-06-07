@@ -1097,42 +1097,45 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         xlColor beam_color_end(beam_color);
         ApplyTransparency(beam_color_end, 100);
 
-        dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-        dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
-
         while (pan_angle_raw > 360.0f ) pan_angle_raw -= 360.0f;
-
+        pan_angle_raw = 360.0f - pan_angle_raw;
         bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
-        if( facing_right ) {
+        if( shutter_open ) {
+            dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
+
+
+            if( facing_right ) {
+                va.AddVertex(p2.x, p2.y, beam_color_end);
+                va.AddVertex(p4.x, p4.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            } else {
+                va.AddVertex(p1.x, p1.y, beam_color_end);
+                va.AddVertex(p3.x, p3.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            }
+
+            va.AddVertex(p1.x, p1.y, beam_color_end);
             va.AddVertex(p2.x, p2.y, beam_color_end);
+            va.AddVertex(p0.x, p0.y, beam_color);
+
+            va.AddVertex(p3.x, p3.y, beam_color_end);
             va.AddVertex(p4.x, p4.y, beam_color_end);
             va.AddVertex(p0.x, p0.y, beam_color);
-        } else {
-            va.AddVertex(p1.x, p1.y, beam_color_end);
-            va.AddVertex(p3.x, p3.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
-        }
 
-        va.AddVertex(p1.x, p1.y, beam_color_end);
-        va.AddVertex(p2.x, p2.y, beam_color_end);
-        va.AddVertex(p0.x, p0.y, beam_color);
-
-        va.AddVertex(p3.x, p3.y, beam_color_end);
-        va.AddVertex(p4.x, p4.y, beam_color_end);
-        va.AddVertex(p0.x, p0.y, beam_color);
-
-        if( !facing_right ) {
-            va.AddVertex(p2.x, p2.y, beam_color_end);
-            va.AddVertex(p4.x, p4.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
-        } else {
-            va.AddVertex(p1.x, p1.y, beam_color_end);
-            va.AddVertex(p3.x, p3.y, beam_color_end);
-            va.AddVertex(p0.x, p0.y, beam_color);
+            if( !facing_right ) {
+                va.AddVertex(p2.x, p2.y, beam_color_end);
+                va.AddVertex(p4.x, p4.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            } else {
+                va.AddVertex(p1.x, p1.y, beam_color_end);
+                va.AddVertex(p3.x, p3.y, beam_color_end);
+                va.AddVertex(p0.x, p0.y, beam_color);
+            }
         }
 
         if( facing_right ) {
@@ -1631,7 +1634,6 @@ void DmxModel::Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, f
 {
     // draw the head
     float pan_angle1 = pan_angle + 270.0f;  // needs to be rotated from reference we drew it
-    if (pan_angle1 > 360.0f ) pan_angle1 -= 360.0f;
     dmxPoint3 p31(-2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p32(2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p33(4,0,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);

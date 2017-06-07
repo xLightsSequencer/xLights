@@ -41,16 +41,13 @@ SubModelGenerateDialog::SubModelGenerateDialog(wxWindow* parent, int modelWidth,
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice1 = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	Choice1->SetSelection( Choice1->Append(_("Horizontal Subbuffer")) );
-	Choice1->Append(_("Vertical Subbuffer"));
-	Choice1->Append(_("Nodes"));
 	FlexGridSizer1->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Count = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 2, 100, 5, _T("ID_SPINCTRL1"));
 	SpinCtrl_Count->SetValue(_T("5"));
 	FlexGridSizer1->Add(SpinCtrl_Count, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -61,7 +58,18 @@ SubModelGenerateDialog::SubModelGenerateDialog(wxWindow* parent, int modelWidth,
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SubModelGenerateDialog::OnChoice1Select);
+	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&SubModelGenerateDialog::OnSpinCtrl_CountChange);
 	//*)
+
+    Choice1->SetSelection(Choice1->Append(_("Vertical Slices")));
+    Choice1->Append(_("Horizontal Slices"));
+    Choice1->Append(_("Segments 2 Wide"));
+    Choice1->Append(_("Segments 2 High"));
+    Choice1->Append(_("Segments 3 Wide"));
+    Choice1->Append(_("Segments 3 High"));
+    Choice1->Append(_("Nodes"));
+
+    _lastCount = SpinCtrl_Count->GetValue();
 
     ValidateWindow();
 }
@@ -95,11 +103,11 @@ wxString SubModelGenerateDialog::GetType() const
 
 void SubModelGenerateDialog::ValidateWindow()
 {
-    if (GetType() == "Horizontal Subbuffer")
+    if (GetType() == "Vertical Slices")
     {
         SpinCtrl_Count->SetRange(2,_modelWidth);
     }
-    else if (GetType() == "Vertical Subbuffer")
+    else if (GetType() == "Horizontal Slices")
     {
         SpinCtrl_Count->SetRange(2,_modelHeight);
     }
@@ -107,4 +115,61 @@ void SubModelGenerateDialog::ValidateWindow()
     {
         SpinCtrl_Count->SetRange(2,_modelNodes);
     }
+    else if (GetType() == "Segments 2 Wide" || GetType() == "Segments 2 High")
+    {
+        SpinCtrl_Count->SetValue(SpinCtrl_Count->GetValue() - SpinCtrl_Count->GetValue() % 2);
+    }
+    else if (GetType() == "Segments 3 Wide" || GetType() == "Segments 3 High")
+    {
+        SpinCtrl_Count->SetValue(SpinCtrl_Count->GetValue() - SpinCtrl_Count->GetValue() % 3);
+    }
+
+    _lastCount = SpinCtrl_Count->GetValue();
+}
+
+int SubModelGenerateDialog::SetSpinValue(int step, bool down)
+{
+    int newValue = SpinCtrl_Count->GetValue();
+
+    if (SpinCtrl_Count->GetValue() % step != 0)
+    {
+        if (down)
+        {
+            newValue -= SpinCtrl_Count->GetValue() % step;
+            if (newValue < step) newValue = step;
+            SpinCtrl_Count->SetValue(newValue);
+        }
+        else
+        {
+            newValue += (step - SpinCtrl_Count->GetValue() % step);
+            if (newValue > SpinCtrl_Count->GetMax() - SpinCtrl_Count->GetMax() % step)
+            {
+                newValue = SpinCtrl_Count->GetMax() - SpinCtrl_Count->GetMax() % step;
+            }
+            SpinCtrl_Count->SetValue(newValue);
+        }
+    }
+
+    return newValue;
+}
+
+void SubModelGenerateDialog::OnSpinCtrl_CountChange(wxSpinEvent& event)
+{
+    bool down = false;
+    if (SpinCtrl_Count->GetValue() < _lastCount)
+    {
+        down = true;
+    }
+
+    int newValue = SpinCtrl_Count->GetValue();
+    if (GetType() == "Segments 2 Wide" || GetType() == "Segments 2 High")
+    {
+        newValue = SetSpinValue(2, down);
+    }
+    else if (GetType() == "Segments 3 Wide" || GetType() == "Segments 3 High")
+    {
+        newValue = SetSpinValue(3, down);
+    }
+
+    _lastCount = newValue;
 }

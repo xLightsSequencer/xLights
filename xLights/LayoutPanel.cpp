@@ -248,7 +248,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 
     logger_base.debug("LayoutPanel basic setup complete");
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, true);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, xlights->LayoutGroups, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -367,22 +367,23 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 }
 
 
-void AddIcon(wxImageList &list, const std::string &id) {
+void AddIcon(wxImageList &list, const std::string &id, double scaleFactor) {
     wxSize iconSize = list.GetSize();
     wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(id), wxART_LIST, wxDefaultSize);
     if (bmp.GetSize() != iconSize) {
+#ifdef __WXOSX__
+        wxImage img = bmp.ConvertToImage();
+        img.Rescale(iconSize.x * scaleFactor, iconSize.y * scaleFactor);
+        wxBitmap bmp2 = wxBitmap(img);
+        wxIcon icon(bmp2.CreateIconRef(), iconSize);
+        list.Add(icon);
+#else
         wxImage img = bmp.ConvertToImage();
         img.Rescale(iconSize.x, iconSize.y);
         wxBitmap bmp2 = wxBitmap(img);
         wxIcon icon;
         icon.CopyFromBitmap(bmp2);
-        int i = list.Add(icon);
-#ifdef __WXOSX__
-        img = bmp.ConvertToImage();
-        img.Rescale(iconSize.x * bmp.GetScaleFactor(), iconSize.y * bmp.GetScaleFactor());
-        bmp2 = wxBitmap(img, -1, bmp.GetScaleFactor());
-        icon.CopyFromBitmap(bmp2);
-        list.Replace(i, icon);
+        list.Add(icon);
 #endif
     } else {
         wxIcon icon;
@@ -393,30 +394,31 @@ void AddIcon(wxImageList &list, const std::string &id) {
 
 void LayoutPanel::InitImageList()
 {
+    double scaleFactor = GetContentScaleFactor();
     wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
     if ( iconSize == wxDefaultSize )
         iconSize = wxSize(16, 16);
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
 
-    AddIcon(*m_imageList, "wxART_NORMAL_FILE");
-    AddIcon(*m_imageList, "xlART_GROUP_CLOSED");
-    AddIcon(*m_imageList, "xlART_GROUP_OPEN");
-    AddIcon(*m_imageList, "xlART_ARCH_ICON");
-    AddIcon(*m_imageList, "xlART_CANE_ICON");
-    AddIcon(*m_imageList, "xlART_CIRCLE_ICON");
-    AddIcon(*m_imageList, "xlART_CUSTOM_ICON");
-    AddIcon(*m_imageList, "xlART_DMX_ICON");
-    AddIcon(*m_imageList, "xlART_ICICLE_ICON");
-    AddIcon(*m_imageList, "xlART_LINE_ICON");
-    AddIcon(*m_imageList, "xlART_MATRIX_ICON");
-    AddIcon(*m_imageList, "xlART_POLY_ICON");
-    AddIcon(*m_imageList, "xlART_SPINNER_ICON");
-    AddIcon(*m_imageList, "xlART_STAR_ICON");
-    AddIcon(*m_imageList, "xlART_SUBMODEL_ICON");
-    AddIcon(*m_imageList, "xlART_TREE_ICON");
-    AddIcon(*m_imageList, "xlART_WINDOW_ICON");
-    AddIcon(*m_imageList, "xlART_WREATH_ICON");
+    AddIcon(*m_imageList, "wxART_NORMAL_FILE", scaleFactor);
+    AddIcon(*m_imageList, "xlART_GROUP_CLOSED", scaleFactor);
+    AddIcon(*m_imageList, "xlART_GROUP_OPEN", scaleFactor);
+    AddIcon(*m_imageList, "xlART_ARCH_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_CANE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_CIRCLE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_LINE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_MATRIX_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_SPINNER_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_STAR_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_SUBMODEL_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_TREE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_WINDOW_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_WREATH_ICON", scaleFactor);
 }
 wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
 {

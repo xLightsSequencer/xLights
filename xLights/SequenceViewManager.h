@@ -55,7 +55,6 @@ public:
 	void Load(wxXmlNode* node, int selectedView);
 	void Save(wxXmlDocument* doc);
 	wxXmlNode* Save() const;
-	void SetSelectedView(int view);
 	int GetSelectedViewIndex() const { return _selectedView; }
 	SequenceView* GetSelectedView() const { return GetView(_selectedView); }
 	SequenceView* AddView(const std::string& name);
@@ -68,6 +67,13 @@ public:
 	void RenameModel(const std::string& oldname, const std::string& newname);
 	void DeleteModel(const std::string& model);
 	void Reset();
+
+protected:
+    friend class SequenceElements;
+    // This is in protected section with SequenceElements as a friend class.
+    // Don't call this directly to set the view call SetCurrentView in
+    // SequenceElements and let it call this method.
+    void SetSelectedView(int view);
 };
 
 #endif

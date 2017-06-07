@@ -47,7 +47,7 @@ void xLightsFrame::CreateSequencer()
     sPreview1 = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
-    sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, false);
+    sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, LayoutGroups, false, 0 , true);
     m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
                    Left().Layer(1).BestSize(250,250));
 

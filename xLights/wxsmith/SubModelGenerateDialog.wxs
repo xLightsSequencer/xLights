@@ -31,11 +31,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
-					<content>
-						<item>Horizontal Subbuffer</item>
-						<item>Vertical Subbuffer</item>
-						<item>Nodes</item>
-					</content>
 					<selection>0</selection>
 					<handler function="OnChoice1Select" entry="EVT_CHOICE" />
 				</object>
@@ -55,6 +50,7 @@
 				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Count" member="yes">
 					<value>5</value>
 					<min>2</min>
+					<handler function="OnSpinCtrl_CountChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

@@ -3239,6 +3239,10 @@
 					"-D_LIBCPP_DISABLE_AVAILABILITY",
 					"-ferror-limit=0",
 				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
+				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3302,6 +3306,10 @@
 					"-D_LIBCPP_DISABLE_AVAILABILITY",
 					"-D__WXOSX_COCOA__",
 					"-ferror-limit=0",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;

@@ -283,6 +283,7 @@ std::string SequenceElements::GetViewName(int which_view) const
 void SequenceElements::SetViewsManager(SequenceViewManager* viewsManager)
 {
     _viewsManager = viewsManager;
+    _viewsManager->SetSelectedView(mCurrentView);
 }
 
 void SequenceElements::SetModelsNode(wxXmlNode* node)
@@ -348,7 +349,7 @@ Element* SequenceElements::GetElement(const std::string &name)
                     return sme;
                 }
             }
-        }        
+        }
     }
     return NULL;
 }
@@ -411,7 +412,7 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
     }
-    
+
     PopulateRowInformation();
 }
 
@@ -854,6 +855,7 @@ void SequenceElements::RemoveView(int view_index)
 void SequenceElements::SetCurrentView(int view)
 {
     mCurrentView = view;
+    _viewsManager->SetSelectedView(view);
 }
 
 void SequenceElements::AddMissingModelsToSequence(const std::string &models, bool visible)
@@ -1552,8 +1554,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         int num_phrases = total_num_phrases;
         for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
         {
-            std::string line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
-            if( line == "" )
+            if( dlgLyrics->TextCtrlLyrics->GetLineText(i).length() == 0)
             {
                 num_phrases--;
             }
@@ -1564,6 +1565,11 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         for( int i = 0; i < total_num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
+            if(line == "")
+            {
+                line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToAscii();
+                line.Replace("_","'",true);
+            }
             if( line != "" )
             {
                 xframe->dictionary.InsertSpacesAfterPunctuation(line);
