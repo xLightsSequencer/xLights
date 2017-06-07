@@ -1554,8 +1554,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         int num_phrases = total_num_phrases;
         for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
         {
-            std::string line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
-            if( line == "" )
+            if( dlgLyrics->TextCtrlLyrics->GetLineText(i).length() == 0)
             {
                 num_phrases--;
             }
@@ -1566,6 +1565,11 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         for( int i = 0; i < total_num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToStdString();
+            if(line == "")
+            {
+                line = dlgLyrics->TextCtrlLyrics->GetLineText(i).ToAscii();
+                line.Replace("_","'",true);
+            }
             if( line != "" )
             {
                 xframe->dictionary.InsertSpacesAfterPunctuation(line);
