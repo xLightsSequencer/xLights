@@ -32,8 +32,9 @@ const long BarsPanel::ID_TEXTCTRL_Bars_Cycles = wxNewId();
 const long BarsPanel::ID_CHOICE_Bars_Direction = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHOICE_Bars_Direction = wxNewId();
 const long BarsPanel::ID_STATICTEXT1 = wxNewId();
-const long BarsPanel::ID_SLIDER_Bars_Center = wxNewId();
-const long BarsPanel::IDD_TEXTCTRL_Bars_Center = wxNewId();
+const long BarsPanel::IDD_SLIDER_Bars_Center = wxNewId();
+const long BarsPanel::ID_VALUECURVE_Bars_Center = wxNewId();
+const long BarsPanel::ID_TEXTCTRL_Bars_Center = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_Highlight = wxNewId();
 const long BarsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight = wxNewId();
 const long BarsPanel::ID_CHECKBOX_Bars_3D = wxNewId();
@@ -112,17 +113,21 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	Choice_Bars_Direction->Append(_("Alternate Down"));
 	Choice_Bars_Direction->Append(_("Alternate Left"));
 	Choice_Bars_Direction->Append(_("Alternate Right"));
+	Choice_Bars_Direction->Append(_("Custom Horz"));
+	Choice_Bars_Direction->Append(_("Custom Vert"));
 	FlexGridSizer35->Add(Choice_Bars_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Direction = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Bars_Direction, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Bars_Direction"));
 	BitmapButton_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer35->Add(BitmapButton_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Center Point"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer35->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_Bars_Center = new wxSlider(this, ID_SLIDER_Bars_Center, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_Center"));
+	Slider_Bars_Center = new wxSlider(this, IDD_SLIDER_Bars_Center, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Center"));
 	FlexGridSizer1->Add(Slider_Bars_Center, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Bars_Center = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_Center, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_Center"));
+	BitmapButton_Bars_Center = new ValueCurveButton(this, ID_VALUECURVE_Bars_Center, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Center"));
+	FlexGridSizer1->Add(BitmapButton_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Bars_Center = new wxTextCtrl(this, ID_TEXTCTRL_Bars_Center, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Bars_Center"));
 	FlexGridSizer1->Add(TextCtrl_Bars_Center, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer35->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -162,8 +167,9 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	Connect(ID_TEXTCTRL_Bars_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSliderFloat);
 	Connect(ID_CHOICE_Bars_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BarsPanel::OnChoice_Bars_DirectionSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Bars_Center,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_Bars_Center,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSlider);
+	Connect(IDD_SLIDER_Bars_Center,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_VALUECURVE_Bars_Center,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnVCButtonClick);
+	Connect(ID_TEXTCTRL_Bars_Center,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&BarsPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BarsPanel::OnLockButtonClick);
@@ -176,6 +182,7 @@ BarsPanel::BarsPanel(wxWindow* parent)
     BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
     BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
     BitmapButton_Bars_Cycles->GetValue()->SetDivisor(10);
+    BitmapButton_Bars_Center->GetValue()->SetLimits(-100, 100);
 
     ValidateWindow();
 }
@@ -197,14 +204,16 @@ void BarsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 void BarsPanel::ValidateWindow()
 {
     wxString type = Choice_Bars_Direction->GetStringSelection();
-    if (type == "expand" || type == "compress" || type == "H-expand" || type == "H-compress")
+    if (type == "expand" || type == "compress" || type == "H-expand" || type == "H-compress" || type == "Custom Horz" || type == "Custom Vert")
     {
         Slider_Bars_Center->Enable();
         TextCtrl_Bars_Center->Enable();
+        BitmapButton_Bars_Center->Enable();
     }
     else
     {
         Slider_Bars_Center->Disable();
         TextCtrl_Bars_Center->Disable();
+        BitmapButton_Bars_Center->Disable();
     }
 }

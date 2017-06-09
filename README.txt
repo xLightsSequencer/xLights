@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Correct 3D DMX model rotating opposite of other view types.
    -- bug (gil)     Fix crash when deleting last view in the list.  Fixes #869.
    -- enh (gil)     Add ability to right-click House Preview and switch to custom previews you've created.
+   -- enh (gil)     Bars Effect: add new directions and VC to center point to allow precise motions.
    -- enh (keith)   Get Pixlite 4 controller upload working
    -- enh (keith)   Get J1Sys P2 controller upload working
    -- enh (keith)   Show models already used in mapping dialog

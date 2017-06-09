@@ -26,6 +26,7 @@ class BarsPanel: public wxPanel
 		//(*Declarations(BarsPanel)
 		ValueCurveButton* BitmapButton_Bars_BarCount;
 		wxSlider* Slider_Bars_Cycles;
+		ValueCurveButton* BitmapButton_Bars_Center;
 		wxCheckBox* CheckBox_Bars_Highlight;
 		wxSlider* Slider_Bars_Center;
 		wxStaticText* StaticText1;
@@ -50,8 +51,9 @@ class BarsPanel: public wxPanel
 		static const long ID_CHOICE_Bars_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Bars_Direction;
 		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_Bars_Center;
-		static const long IDD_TEXTCTRL_Bars_Center;
+		static const long IDD_SLIDER_Bars_Center;
+		static const long ID_VALUECURVE_Bars_Center;
+		static const long ID_TEXTCTRL_Bars_Center;
 		static const long ID_CHECKBOX_Bars_Highlight;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight;
 		static const long ID_CHECKBOX_Bars_3D;
