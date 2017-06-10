@@ -921,6 +921,8 @@ void ViewsModelsPanel::ValidateWindow()
 
 void ViewsModelsPanel::UpdateModelsForSelectedView()
 {
+    if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
+
     int currentView = _sequenceElements->GetCurrentView();
     if (currentView != MASTER_VIEW)
     {

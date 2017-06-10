@@ -1813,7 +1813,6 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
     }
 }
 
-
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
     LoadPerspectivesMenu(PerspectivesNode);
@@ -1828,13 +1827,10 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-
-
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 {
     ResetAllSequencerWindows();
 }
-
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 {
