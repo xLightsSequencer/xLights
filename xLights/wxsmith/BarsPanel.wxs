@@ -139,6 +139,8 @@
 						<item>Alternate Down</item>
 						<item>Alternate Left</item>
 						<item>Alternate Right</item>
+						<item>Custom Horz</item>
+						<item>Custom Vert</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Bars_DirectionSelect" entry="EVT_CHOICE" />
@@ -169,19 +171,29 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Bars_Center" variable="Slider_Bars_Center" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Bars_Center" variable="Slider_Bars_Center" member="yes">
 							<min>-100</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Bars_Center" variable="TextCtrl_Bars_Center" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Bars_Center" subclass="ValueCurveButton" variable="BitmapButton_Bars_Center" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Bars_Center" variable="TextCtrl_Bars_Center" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />

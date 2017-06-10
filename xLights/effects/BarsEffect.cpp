@@ -50,6 +50,10 @@ static inline int GetDirection(const std::string & DirectionString) {
         return 10;
     } else if ("Alternate Right" == DirectionString) {
         return 11;
+    } else if ("Custom Horz" == DirectionString) {
+        return 12;
+    } else if ("Custom Vert" == DirectionString) {
+        return 13;
     }
     return 0;
 }
@@ -102,8 +106,8 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     float offset = buffer.GetEffectTimeIntervalPosition();
     int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX);
     double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, 10);
-
-    int Center = SettingsMap.GetInt("SLIDER_Bars_Center", 0);
+    double position = buffer.GetEffectTimeIntervalPosition(cycles);
+    double Center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position, BARCENTER_MIN, BARCENTER_MAX);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
     bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);
@@ -113,7 +117,6 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
-    double position = buffer.GetEffectTimeIntervalPosition(cycles);
 
     if (BarCount<1) BarCount=1;
 
@@ -192,6 +195,51 @@ void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                         buffer.SetPixel(x, buffer.BufferHt-y-1, color);
                     }
                     break;
+            }
+        }
+    }
+    else if (Direction == 12 || Direction == 13)
+    {
+        int width = buffer.BufferWi;
+        int height = buffer.BufferHt;
+        if( Direction == 13 ) {
+            std::swap(width, height);
+        }
+        int BarWi = width/BarCount+1;
+        if(BarWi<1) BarWi=1;
+        int NewCenter = (width * (100.0 + Center) / 200.0 - width/2);
+        int BlockWi=colorcnt * BarWi;
+        if(BlockWi<1) BlockWi=1;
+
+        for (x=-2*width; x<2*width; x++)
+        {
+            n=width+x;
+            ColorIdx=(n % BlockWi) / BarWi;
+            int color2 = (ColorIdx+1)%colorcnt;
+            double pct = (double)(n % BarWi) / (double)BarWi;
+            if (buffer.allowAlpha) {
+                buffer.palette.GetColor(ColorIdx, color);
+                if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
+                if (Highlight && n % BarWi == 0) color = xlWHITE;
+                if (Show3D) color.alpha = 255.0 * double(BarWi - n%BarWi - 1) / BarWi;
+
+            } else {
+                buffer.palette.GetHSV(ColorIdx, hsv);
+                if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
+                if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
+                if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
+                color = hsv;
+            }
+
+            int position_x = width-x-1 + NewCenter;
+            for (y=0; y<height; y++)
+            {
+                GetSpatialColor(color, ColorIdx, 1.0 - (float)(n % BarWi) / (float)BarWi, (float)y / (float)height, buffer, Gradient, Highlight, Show3D, BarWi, n, pct, color2);
+                if( Direction == 12 ) {
+                    buffer.SetPixel(position_x, y, color);
+                } else {
+                    buffer.SetPixel(y, position_x, color);
+                }
             }
         }
     }

@@ -9,6 +9,9 @@
 #define BARCYCLES_MIN 0
 #define BARCYCLES_MAX 500
 
+#define BARCENTER_MIN -100
+#define BARCENTER_MAX 100
+
 class BarsEffect : public RenderableEffect
 {
     public:
