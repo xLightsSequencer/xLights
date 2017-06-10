@@ -869,7 +869,7 @@ wxString Model::SerialiseState()
         for (auto it = stateInfo.begin(); it != stateInfo.end(); ++it) {
             res += "    <stateInfo Name=\"" + it->first + "\" ";
             for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
-                if (it2->first != "")
+                if (wxString(it2->first).Trim(false).Trim(true) != "")
                 {
                     res += it2->first + "=\"" + it2->second + "\" ";
                 }
