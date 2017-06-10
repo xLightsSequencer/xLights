@@ -2500,13 +2500,16 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
     return name;
 }
 bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull, wxRect &rect, bool reverse) {
+
+    if (element == nullptr) return false;
+
     std::vector< std::vector<bool> > data(num_columns, std::vector<bool>(num_rows));
     int maxCol = -1;
     int maxRow = -1;
     int minCol = 9999999;
     int minRow = 9999999;
     isFull = true;
-    for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for(wxXmlNode* e=element->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
             int y = wxAtoi(e->GetAttribute("pixelIndex"));
@@ -2944,7 +2947,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 }
             }
         } else if ("scenes" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("scene" == element->GetName()) {
                     wxString startms = element->GetAttribute("startCentisecond") + "0";
                     wxString endms = element->GetAttribute("endCentisecond") + "0";
@@ -2985,12 +2988,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
 
                     if (isPartOfModel && isFull) {
                         //Every pixel in the model is specified, we can use a color wash or on instead of images
-
-
                         std::string palette = "C_BUTTON_Palette1=" + (std::string)startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2="
                             + (std::string)endc
                             + ",C_CHECKBOX_Palette2=1,";
-
 
                         std::string settings = blend_string;
                         if (startc == endc) {
@@ -3616,7 +3616,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                 EffectLayer* layer;
                 int layer_number = dlg.selectedLayers[m];
                 while( model->GetEffectLayerCount() < layer_number+1 ) {
-                    layer = model->AddEffectLayer();
+                    model->AddEffectLayer();
                 }
 
                 layer = model->GetEffectLayer(layer_number);

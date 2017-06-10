@@ -2844,18 +2844,20 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 }
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
+
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
+    
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;
+    
     std::vector<Model *> modelsToAdd(models);
+    
     wxTreeListItem root = TreeListViewModels->GetRootItem();
-
     std::vector<wxTreeListItem> toRemove;
-    for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
-         item.IsOk();
-         item = TreeListViewModels->GetNextItem(item) )
+
+    for (wxTreeListItem item = TreeListViewModels->GetFirstItem(); item.IsOk(); item = TreeListViewModels->GetNextItem(item))
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr) {
@@ -2866,15 +2868,18 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     TreeListViewModels->DeleteItem(child);
                     child = TreeListViewModels->GetFirstChild(item);
                 }
-                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
                     Model *m = xlights->AllModels[*it];
-                    if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
-                        || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                        AddModelToTree(m, &item, true);
-                    }
-                    if (m->DisplayAs == "SubModel"
-                        && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
-                        modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
+                    if (m != nullptr)
+                    {
+                        if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
+                            || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                            AddModelToTree(m, &item, true);
+                        }
+                        if (m->DisplayAs == "SubModel"
+                            && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
+                            modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
+                        }
                     }
                 }
                 if (expanded) {
@@ -2895,12 +2900,13 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
             }
         }
     }
-    for (auto a = toRemove.begin(); a != toRemove.end(); a++) {
+
+    for (auto a = toRemove.begin(); a != toRemove.end(); ++a) {
         TreeListViewModels->DeleteItem(*a);
     }
-    for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); a++) {
+
+    for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
         TreeListViewModels->GetRootItem();
         AddModelToTree(*a, &root);
     }
-
 }
