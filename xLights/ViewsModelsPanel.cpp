@@ -851,6 +851,7 @@ void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, Seq
     _models = modelsNode;
     _sequenceViewManager = sequenceViewManager;
     _modelGroups = modelGroupsNode;
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::ValidateWindow()
@@ -919,6 +920,15 @@ void ViewsModelsPanel::ValidateWindow()
     {
         Button_MoveUp->Enable(false);
         Button_MoveDown->Enable(false);
+    }
+
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+    {
+        Button_AddView->Enable(false);
+    }
+    else
+    {
+        Button_AddView->Enable(true);
     }
 }
 
