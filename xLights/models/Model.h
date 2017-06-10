@@ -321,7 +321,7 @@ public:
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %d", x + 1).ToStdString();
+            return wxString::Format("Strand %i", (long)x + 1).ToStdString();
         }
         return "";
     }
@@ -330,14 +330,14 @@ public:
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %d", x + 1).ToStdString();
+            return wxString::Format("Node %i", (long)x + 1).ToStdString();
         }
         return "";
     }
 
     static std::string StartChanAttrName(int idx)
     {
-        return wxString::Format(wxT("String%d"),idx+1).ToStdString();
+        return wxString::Format(wxT("String %i"),idx+1).ToStdString();
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)

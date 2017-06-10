@@ -343,10 +343,7 @@ void DmxModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
         p->Enable(false);
     }
 
-    p = grid->GetPropertyByName("ModelStates");
-    if (p != nullptr) {
-        p->Enable(false);
-    }
+    // Don't remove ModelStates ... these can be used for DMX devices that use a value range to set a colour or behaviour
 }
 
 int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
