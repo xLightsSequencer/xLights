@@ -574,7 +574,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	}
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
-	if (_state == -1)
+	if (_ok && _state == -1)
 	{
 		_state = 1;
         logger_base.info("Audio file loaded.");
@@ -1393,13 +1393,12 @@ int AudioManager::OpenMediaFile()
 
 	// Initialize FFmpeg codecs
 	av_register_all();
-	//avformat_network_init();
 
 	AVFormatContext* formatContext = nullptr;
 	int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
-		std::cout << "Error opening the file" << std::endl;
+		logger_base.error("Error opening the file %s => %d.", (const char *) _audio_file.c_str(), res);
         _ok = false;
 		return 1;
 	}
@@ -1407,7 +1406,7 @@ int AudioManager::OpenMediaFile()
 	if (avformat_find_stream_info(formatContext, nullptr) < 0)
 	{
 		avformat_close_input(&formatContext);
-		std::cout << "Error finding the stream info" << std::endl;
+        logger_base.error("Error finding the stream info %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1418,7 +1417,7 @@ int AudioManager::OpenMediaFile()
 	if (streamIndex < 0)
 	{
 		avformat_close_input(&formatContext);
-		std::cout << "Could not find any audio stream in the file" << std::endl;
+        logger_base.error("Could not find any audio stream in the file %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1430,7 +1429,7 @@ int AudioManager::OpenMediaFile()
 	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
-		std::cout << "Couldn't open the context with the decoder" << std::endl;
+        logger_base.error("Couldn't open the context with the decoder %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1758,8 +1757,7 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 // Access a single piece of track data
 float AudioManager::GetLeftData(int offset)
 {
-    wxASSERT(_data[0] != nullptr);
-	if (offset > _trackSize)
+	if (_data[0] == nullptr || offset > _trackSize)
 	{
 		return 0;
 	}
@@ -1769,8 +1767,7 @@ float AudioManager::GetLeftData(int offset)
 // Access a single piece of track data
 float AudioManager::GetRightData(int offset)
 {
-    wxASSERT(_data[1] != nullptr);
-    if (offset > _trackSize)
+    if (_data[1] == nullptr || offset > _trackSize)
 	{
 		return 0;
 	}

@@ -505,7 +505,7 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 {
 	MinMaxs.clear();
 
-	if (media != NULL)
+	if (media != nullptr)
 	{
 		float minimum=1;
 		float maximum=-1;
