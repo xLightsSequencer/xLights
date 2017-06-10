@@ -187,6 +187,7 @@ wxXmlNode* SequenceView::Save() const
 
 SequenceViewManager::SequenceViewManager(ModelManager* modelManager)
 {
+    _selectedView = 0;
 	_modelManager = modelManager;
 }
 

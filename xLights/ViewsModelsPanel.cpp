@@ -249,6 +249,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     _sequenceElements = nullptr;
     _mainViewsChoice = nullptr;
     _seqData = nullptr;
+    _modelGroups = nullptr;
+    _models = nullptr;
+    _sequenceViewManager = nullptr;
 
     ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
     ListCtrlModels->AddImage((char**)timing_16);
