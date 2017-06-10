@@ -37,6 +37,14 @@ void SubBufferPanel::SendChangeEvent() {
     GetEventHandler()->ProcessEvent(ev);
 }
 
+bool SubBufferPanel::HasVC()
+{
+    return x1vc.find("Active=TRUE") != std::string::npos ||
+        x2vc.find("Active=TRUE") != std::string::npos ||
+        y1vc.find("Active=TRUE") != std::string::npos ||
+        y2vc.find("Active=TRUE") != std::string::npos;
+}
+
 void SubBufferPanel::SetDefaults() {
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
@@ -360,7 +368,7 @@ void SubBufferPanel::mouseDblClick( wxMouseEvent& event) {
 }
 
 void SubBufferPanel::mouseLeftDown( wxMouseEvent& event) {
-    if (!IsEnabled()) {
+    if (!IsEnabled() || HasVC()) {
         return;
     }
     if (draggingHandle == -1) {
@@ -402,7 +410,7 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
             break;
         default: {
             int i = OverMouseHandle(event);
-            if (i > -1) {
+            if (i > -1 && !HasVC()) {
                 SetCursor(wxCURSOR_SIZING);
             } else {
                 SetCursor(wxCURSOR_DEFAULT);
@@ -451,8 +459,16 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     if (!IsEnabled()) {
         return;
     }
-    dc.SetBrush(*wxYELLOW_BRUSH);
-    dc.SetPen(*wxYELLOW_PEN);
+    if (HasVC())
+    {
+        dc.SetBrush(*wxRED_BRUSH);
+        dc.SetPen(*wxRED_PEN);
+    }
+    else
+    {
+        dc.SetBrush(*wxYELLOW_BRUSH);
+        dc.SetPen(*wxYELLOW_PEN);
+    }
 
     float x1b = (x1 * bw)/100.0 + startX;
     float x2b = (x2 * bw)/100.0 + startX;
@@ -466,7 +482,15 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     dc.DrawCircle(x2b, y1b, 2);
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
+
+    if (HasVC())
+    {
+        dc.SetPen(wxPen(*wxRED, 1, wxPENSTYLE_DOT));
+    }
+    else
+    {
+        dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
+    }
     dc.DrawRectangle(x1b, y1b, x2b-x1b,y2b-y1b);
 
     dc.SetTextForeground(*wxYELLOW);
