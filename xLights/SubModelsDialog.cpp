@@ -172,7 +172,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 
 
-    subBufferPanel = new SubBufferPanel(SubBufferPanelHolder, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+    subBufferPanel = new SubBufferPanel(SubBufferPanelHolder, false, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     wxSize s(50,50);
     subBufferPanel->SetMinSize(s);
     SubBufferSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);

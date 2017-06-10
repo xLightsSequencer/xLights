@@ -17,7 +17,7 @@ class BufferSizeDialog: public wxDialog
 
 	public:
 
-		BufferSizeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferSizeDialog();
         void SetSizes(int top, int left, int bottom, int right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc);
         void OnVCChanged(wxCommandEvent& event); 

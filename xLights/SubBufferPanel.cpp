@@ -17,12 +17,13 @@ EVT_CONTEXT_MENU(SubBufferPanel::ContextMenu)
 END_EVENT_TABLE()
 
 
-SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
+SubBufferPanel::SubBufferPanel(wxPanel* parent, bool usevc, wxWindowID id,
                                const wxPoint &pos,
                                const wxSize &size,
                                long style)
 : wxWindow(parent, id, pos, size, style, "ID_CUSTOM_SubBuffer"), xlCustomControl()
 {
+    _usevc = usevc;
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
     draggingHandle = -1;
@@ -63,7 +64,11 @@ void SubBufferPanel::SetValue(const std::string &val) {
 
     wxArrayString v = wxSplit(sb, 'x');
 
-    if (v[0].Contains("Active=TRUE"))
+    if (v.size() < 1)
+    {
+        x1 = 0;
+    }
+    else if (v[0].Contains("Active=TRUE"))
     {
         v[0].Replace("yyz", "Max");
         x1vc = v[0];
@@ -74,7 +79,11 @@ void SubBufferPanel::SetValue(const std::string &val) {
         x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
     }
     
-    if (v[1].Contains("Active=TRUE"))
+    if (v.size() < 2)
+    {
+        y1 = 0;
+    }
+    else if (v[1].Contains("Active=TRUE"))
     {
         v[1].Replace("yyz", "Max");
         y1vc = v[1];
@@ -85,7 +94,11 @@ void SubBufferPanel::SetValue(const std::string &val) {
         y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
     }
 
-    if (v[2].Contains("Active=TRUE"))
+    if (v.size() < 3)
+    {
+        x2 = 100;
+    }
+    else if (v[2].Contains("Active=TRUE"))
     {
         v[2].Replace("yyz", "Max");
         x2vc = v[2];
@@ -96,7 +109,11 @@ void SubBufferPanel::SetValue(const std::string &val) {
         x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
     }
     
-    if (v[3].Contains("Active=TRUE"))
+    if (v.size() < 4)
+    {
+        y2 = 100;
+    }
+    else if (v[3].Contains("Active=TRUE"))
     {
         v[3].Replace("yyz", "Max");
         y2vc = v[3];
@@ -315,7 +332,7 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         }
         else if (nm == "Edit")
         {
-            BufferSizeDialog bsd(this);
+            BufferSizeDialog bsd(this, _usevc);
             bsd.SetSizes(y2, x1, y1, x2, y2vc, x1vc, y1vc, x2vc);
 
             if (bsd.ShowModal() == wxID_OK)

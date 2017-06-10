@@ -29,7 +29,7 @@ BEGIN_EVENT_TABLE(BufferSizeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-BufferSizeDialog::BufferSizeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(BufferSizeDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -94,10 +94,20 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferSizeDialog::OnVCChanged, nullptr, this);
 
-    ValueCurve_Top->SetLimits(-100, 200);
-    ValueCurve_Bottom->SetLimits(-100, 200);
-    ValueCurve_Left->SetLimits(-100, 200);
-    ValueCurve_Right->SetLimits(-100, 200);
+    if (usevc)
+    {
+        ValueCurve_Top->SetLimits(-100, 200);
+        ValueCurve_Bottom->SetLimits(-100, 200);
+        ValueCurve_Left->SetLimits(-100, 200);
+        ValueCurve_Right->SetLimits(-100, 200);
+    }
+    else
+    {
+        ValueCurve_Top->Enable(false);
+        ValueCurve_Bottom->Enable(false);
+        ValueCurve_Left->Enable(false);
+        ValueCurve_Right->Enable(false);
+    }
 }
 
 BufferSizeDialog::~BufferSizeDialog()
