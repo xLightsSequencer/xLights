@@ -1663,6 +1663,22 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 }
 
+void xLightsFrame::RecalcModels()
+{
+    if (_setupChanged)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        // Now notify the layout as the model start numbers may have been impacted
+        AllModels.OldRecalcStartChannels();
+        //AllModels.NewRecalcStartChannels();
+        if (layoutPanel != nullptr) {
+            layoutPanel->RefreshLayout();
+        }
+
+        _setupChanged = false;
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
@@ -1672,19 +1688,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
-        if (_setupChanged)
-        {
-            SetCursor(wxCURSOR_WAIT);
-            // Now notify the layout as the model start numbers may have been impacted
-            AllModels.OldRecalcStartChannels();
-            //AllModels.NewRecalcStartChannels();
-            if (layoutPanel != nullptr) {
-                layoutPanel->RefreshLayout();
-            }
-
-            _setupChanged = false;
-            SetCursor(wxCURSOR_ARROW);
-        }
+        RecalcModels();
     }
 }
 
@@ -2833,6 +2837,9 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
     if (fd.ShowModal() == wxID_CANCEL) return;
 
+    // make sure everything is up to date
+    RecalcModels();
+
     // check the curent sequence to ensure this analysis is in the log
     CheckSequence(false);
 
@@ -3219,6 +3226,9 @@ void xLightsFrame::ExportModels(wxString filename)
         return;
     }
 
+    // make sure everything is up to date
+    RecalcModels();
+
     long minchannel = 99999999;
     long maxchannel = -1;
 
@@ -3493,6 +3503,9 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
 void xLightsFrame::CheckSequence(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // make sure everything is up to date
+    RecalcModels();
 
     int errcount = 0;
     int warncount = 0;
@@ -4531,6 +4544,9 @@ void xLightsFrame::ExportEffects(wxString filename)
 
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
+    // make sure everything is up to date
+    RecalcModels();
+
     FPPConnectDialog dlg(this, &_outputManager);
 
     dlg.ShowModal();
@@ -4722,6 +4738,9 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (fd.ShowModal() == wxID_CANCEL) return;
+
+    // make sure everything is up to date
+    RecalcModels();
 
     wxFileName fnZip(fd.GetPath());
     logger_base.debug("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());

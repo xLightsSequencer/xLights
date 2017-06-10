@@ -850,12 +850,16 @@ void Model::ParseStateInfo(wxXmlNode *f, std::map<std::string, std::map<std::str
 
 void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &stateInfo) {
     if (!stateInfo.empty()) {
-        for (auto it = stateInfo.begin(); it != stateInfo.end(); it++) {
-            wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "stateInfo");
+        for (auto it = stateInfo.begin(); it != stateInfo.end(); ++it) {
             std::string name = it->first;
-            f->AddAttribute("Name", name);
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-                f->AddAttribute(it2->first, it2->second);
+            if (wxString(name).Trim(true).Trim(false) != "")
+            {
+                wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE, "stateInfo");
+                f->AddAttribute("Name", name);
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+                    if (wxString(it2->first).Trim(true).Trim(false) != "")
+                        f->AddAttribute(it2->first, it2->second);
+                }
             }
         }
     }
