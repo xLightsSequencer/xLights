@@ -106,7 +106,7 @@ void ModelPreview::Render(const unsigned char *data) {
         if (PreviewModels != nullptr) {
             for (int m=0; m<PreviewModels->size(); m++) {
                 int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
-                for(int n=0; n<NodeCnt; n++) {
+                for(size_t n=0; n<NodeCnt; ++n) {
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }

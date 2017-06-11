@@ -1618,18 +1618,27 @@ void xLightsFrame::ResetAllSequencerWindows()
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
     {
         for (size_t x = 0; x < info.size(); x++)
         {
-            if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
-                    && savedPaneShown[x])
+            if (info[x].IsOk())
             {
-                info[x].Show();
-                savedPaneShown[x] = true;
-                update = true;
+                if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
+                    && savedPaneShown[x])
+                {
+                    info[x].Show();
+                    savedPaneShown[x] = true;
+                    update = true;
+                }
+            }
+            else
+            {
+                savedPaneShown[x] = false;
+                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
@@ -1638,23 +1647,36 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         savedPaneShown.resize(info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
-            savedPaneShown[x] = info[x].IsShown();
-            if (info[x].IsFloating() && info[x].IsShown())
+            if (info[x].IsOk())
             {
-                info[x].Hide();
-                update = true;
+                savedPaneShown[x] = info[x].IsShown();
+                if (info[x].IsFloating() && info[x].IsShown())
+                {
+                    info[x].Hide();
+                    update = true;
+                }
+            }
+            else
+            {
+                savedPaneShown[x] = false;
+                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
+
     if (update)
     {
         m_mgr->Update();
     }
 
     // show/hide Layout Previews
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
+            if (grp->GetMenuItem() == nullptr)
+            {
+                logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+            }
             if( grp->GetMenuItem()->IsChecked() ) {
                 grp->SetPreviewActive(show);
             }
@@ -1663,6 +1685,22 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 }
 
+void xLightsFrame::RecalcModels()
+{
+    if (_setupChanged)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        // Now notify the layout as the model start numbers may have been impacted
+        AllModels.OldRecalcStartChannels();
+        //AllModels.NewRecalcStartChannels();
+        if (layoutPanel != nullptr) {
+            layoutPanel->RefreshLayout();
+        }
+
+        _setupChanged = false;
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
@@ -1672,19 +1710,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
-        if (_setupChanged)
-        {
-            SetCursor(wxCURSOR_WAIT);
-            // Now notify the layout as the model start numbers may have been impacted
-            AllModels.OldRecalcStartChannels();
-            //AllModels.NewRecalcStartChannels();
-            if (layoutPanel != nullptr) {
-                layoutPanel->RefreshLayout();
-            }
-
-            _setupChanged = false;
-            SetCursor(wxCURSOR_ARROW);
-        }
+        RecalcModels();
     }
 }
 
@@ -2833,6 +2859,9 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
     if (fd.ShowModal() == wxID_CANCEL) return;
 
+    // make sure everything is up to date
+    RecalcModels();
+
     // check the curent sequence to ensure this analysis is in the log
     CheckSequence(false);
 
@@ -3219,6 +3248,9 @@ void xLightsFrame::ExportModels(wxString filename)
         return;
     }
 
+    // make sure everything is up to date
+    RecalcModels();
+
     long minchannel = 99999999;
     long maxchannel = -1;
 
@@ -3493,6 +3525,9 @@ bool compare_modelstartchannel(const Model* first, const Model* second)
 void xLightsFrame::CheckSequence(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // make sure everything is up to date
+    RecalcModels();
 
     int errcount = 0;
     int warncount = 0;
@@ -4531,6 +4566,9 @@ void xLightsFrame::ExportEffects(wxString filename)
 
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
+    // make sure everything is up to date
+    RecalcModels();
+
     FPPConnectDialog dlg(this, &_outputManager);
 
     dlg.ShowModal();
@@ -4722,6 +4760,9 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
     if (fd.ShowModal() == wxID_CANCEL) return;
+
+    // make sure everything is up to date
+    RecalcModels();
 
     wxFileName fnZip(fd.GetPath());
     logger_base.debug("Packaging sequence into %s.", (const char*)fnZip.GetFullPath().c_str());

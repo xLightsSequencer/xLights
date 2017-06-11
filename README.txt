@@ -18,10 +18,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (gil)     Fix crash when deleting last view in the list.  Fixes #869.
    -- enh (gil)     Add ability to right-click House Preview and switch to custom previews you've created.
    -- enh (gil)     Bars Effect: add new directions and VC to center point to allow precise motions.
+   -- bug (gil)     Fix effect preset import bug that caused old effect upgrade code to run.  Fixes #863.
    -- enh (keith)   Get Pixlite 4 controller upload working
    -- enh (keith)   Get J1Sys P2 controller upload working
    -- enh (keith)   Show models already used in mapping dialog
    -- enh (keith)   Add more submodel generation options
+   -- enh (keith)   Add auto mapping for xlights/lor/vixen import ... automatically maps identical model/group names
+   -- bug (keith)   Force model start channels to be up to date if accessing functions from setup tab
+   -- enh (keith)   Add Model State to DMX model so you can use them to represent DMX channels where specific values represent specific behaviour
+   -- bug (keith)   Force new models/groups to appear immediately in sequence elements available list for master view
 2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview
    -- enh (keith)   Add E6804 controller configuration support

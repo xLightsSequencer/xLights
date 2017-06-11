@@ -778,6 +778,7 @@ void xLightsFrame::UpdateModelsList()
     }
 
     layoutPanel->UpdateModelList(true);
+    displayElementsPanel->UpdateModelsForSelectedView();
 }
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames) {

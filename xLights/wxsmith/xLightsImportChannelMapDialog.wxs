@@ -78,7 +78,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>5</cols>
+					<cols>7</cols>
 					<growablecols>2</growablecols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
@@ -100,6 +100,20 @@
 					</object>
 					<object class="spacer">
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
+							<label>Auto Map</label>
+							<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

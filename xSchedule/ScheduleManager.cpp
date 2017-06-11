@@ -3568,7 +3568,7 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     }
     else
     {
-        logger_base.error("FPP Sync as master datagram opened successfully.");
+        logger_base.info("FPP Sync as master datagram opened successfully.");
     }
 }
 
@@ -3576,7 +3576,7 @@ void ScheduleManager::CloseFPPSyncSendSocket()
 {
     if (_fppSyncMaster != nullptr) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("FPP Sync as master datagram closed.");
+        logger_base.info("FPP Sync as master datagram closed.");
         _fppSyncMaster->Close();
         delete _fppSyncMaster;
         _fppSyncMaster = nullptr;
@@ -3587,7 +3587,7 @@ void ScheduleManager::CloseFPPSyncListenSocket()
 {
     if (_fppSyncSlave != nullptr) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("FPP Sync as remote datagram closed.");
+        logger_base.info("FPP Sync as remote datagram closed.");
         _fppSyncSlave->Close();
         delete _fppSyncSlave;
         _fppSyncSlave = nullptr;
@@ -3627,7 +3627,7 @@ void ScheduleManager::OpenFPPSyncListenSocket()
         _fppSyncSlave->SetEventHandler(*this, SERVER_ID);
         _fppSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
         _fppSyncSlave->Notify(true);
-        logger_base.error("FPP Sync as remote datagram opened successfully.");
+        logger_base.info("FPP Sync as remote datagram opened successfully.");
     }
 }
 

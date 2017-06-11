@@ -316,6 +316,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxButton* Button_Ok;
 		wxFlexGridSizer* Sizer;
+		wxButton* Button_AutoMap;
 		wxCheckListBox* TimingTrackListBox;
 		wxButton* Button_Cancel;
 		wxStaticText* StaticText_TimeAdjust;
@@ -344,6 +345,7 @@ protected:
 		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -362,6 +364,7 @@ protected:
 		void OnListCtrl_AvailableItemSelect(wxListEvent& event);
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
+		void OnButton_AutoMapClick(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

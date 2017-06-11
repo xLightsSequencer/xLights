@@ -18,6 +18,7 @@
 #include "../../include/text-32.xpm"
 #include "../../include/text-48.xpm"
 #include "../../include/text-64.xpm"
+#include <log4cpp/Category.hh>
 
 
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64)
@@ -258,10 +259,12 @@ std::mutex FONT_MAP_LOCK;
 std::map<std::string, wxFontInfo> FONT_MAP;
 
 void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColor &color) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::unique_lock<std::mutex> locker(FONT_MAP_LOCK);
     if (FONT_MAP.find(FontString) == FONT_MAP.end()) {
         if (!FontString.empty())
         {
+            logger_base.debug("Loading font %s.", (const char *)FontString.c_str());
             wxFont font(FontString);
             font.SetNativeFontInfoUserDesc(FontString);
 
@@ -282,6 +285,7 @@ void SetFont(TextDrawingContext *dc, const std::string& FontString, const xlColo
             info.AntiAliased(false);
             info.Encoding(font.GetEncoding());
             FONT_MAP[FontString] = info;
+            logger_base.debug("    Added to font map.");
         } else {
             wxFontInfo info(wxSize(0, 12));
             info.AntiAliased(false);
