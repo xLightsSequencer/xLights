@@ -1845,6 +1845,8 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
+    if (!m_mgr->GetPane("DisplayElements").IsOk()) return;
+
     bool visible = m_mgr->GetPane("DisplayElements").IsShown();
     if (visible) {
         m_mgr->GetPane("DisplayElements").Hide();

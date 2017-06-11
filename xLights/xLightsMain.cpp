@@ -1618,18 +1618,27 @@ void xLightsFrame::ResetAllSequencerWindows()
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
     {
         for (size_t x = 0; x < info.size(); x++)
         {
-            if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
-                    && savedPaneShown[x])
+            if (info[x].IsOk())
             {
-                info[x].Show();
-                savedPaneShown[x] = true;
-                update = true;
+                if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
+                    && savedPaneShown[x])
+                {
+                    info[x].Show();
+                    savedPaneShown[x] = true;
+                    update = true;
+                }
+            }
+            else
+            {
+                savedPaneShown[x] = false;
+                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
@@ -1638,23 +1647,36 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         savedPaneShown.resize(info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
-            savedPaneShown[x] = info[x].IsShown();
-            if (info[x].IsFloating() && info[x].IsShown())
+            if (info[x].IsOk())
             {
-                info[x].Hide();
-                update = true;
+                savedPaneShown[x] = info[x].IsShown();
+                if (info[x].IsFloating() && info[x].IsShown())
+                {
+                    info[x].Hide();
+                    update = true;
+                }
+            }
+            else
+            {
+                savedPaneShown[x] = false;
+                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
     }
+
     if (update)
     {
         m_mgr->Update();
     }
 
     // show/hide Layout Previews
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
+            if (grp->GetMenuItem() == nullptr)
+            {
+                logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
+            }
             if( grp->GetMenuItem()->IsChecked() ) {
                 grp->SetPreviewActive(show);
             }

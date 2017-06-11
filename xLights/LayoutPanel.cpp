@@ -648,7 +648,8 @@ void LayoutPanel::RefreshLayout()
 
 void LayoutPanel::RenderLayout()
 {
-    if(!modelPreview->StartDrawing(mPointSize)) return;
+    if(modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
+
     modelPreview->Render();
     if(m_creating_bound_rect)
     {
