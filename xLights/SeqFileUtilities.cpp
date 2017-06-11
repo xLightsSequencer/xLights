@@ -1008,7 +1008,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         {
             ModelElement *el = dynamic_cast<ModelElement*>(e);
             bool hasEffects = false;
-            for (size_t l = 0; l < el->GetEffectLayerCount(); l++) {
+            for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
@@ -1016,7 +1016,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
             elementMap[el->GetName()] = el;
             int s = 0;
-            for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
+            for (size_t sm = 0; sm < el->GetSubModelCount(); ++sm) {
                 SubModelElement *sme = el->GetSubModel(sm);
 
                 StrandElement *ste = dynamic_cast<StrandElement *>(sme);
@@ -1032,7 +1032,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     dlg.channelNames.push_back(el->GetName() + "/" + smName);
                 }
                 if (ste != nullptr) {
-                    for (size_t n = 0; n < ste->GetNodeLayerCount(); n++) {
+                    for (size_t n = 0; n < ste->GetNodeLayerCount(); ++n) {
                         NodeLayer *nl = ste->GetNodeLayer(n, true);
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
@@ -1049,7 +1049,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             TimingElement *tel = dynamic_cast<TimingElement*>(e);
             if (tel->GetFixedTiming() == 0) {
                 bool hasEffects = false;
-                for (size_t n = 0; n < tel->GetEffectLayerCount(); n++) {
+                for (size_t n = 0; n < tel->GetEffectLayerCount(); ++n) {
                     hasEffects |= tel->GetEffectLayer(n)->GetEffectCount() > 0;
                 }
                 if (hasEffects) {
@@ -1068,7 +1068,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         return;
     }
 
-    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); tt++) {
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
             TimingElement *target = (TimingElement*)mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
@@ -1076,7 +1076,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             while (target == nullptr) {
                 target = (TimingElement*)mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
             }
-            for (int l = 0; l < tel->GetEffectLayerCount(); l++) {
+            for (int l = 0; l < tel->GetEffectLayerCount(); ++l) {
                 EffectLayer *src = tel->GetEffectLayer(l);
                 while (l >= target->GetEffectLayerCount()) {
                     target->AddEffectLayer();
@@ -1088,12 +1088,12 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         }
     }
 
-    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); ++i)
     {
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
-        for (size_t x=0; x<mSequenceElements.GetElementCount();x++) {
+        for (size_t x=0; x<mSequenceElements.GetElementCount();++x) {
             if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
                 model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
@@ -1149,8 +1149,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             str++;
         }
     }
+
     if (clearSrc) {
-        for (auto it = mapped.begin(); it != mapped.end(); it++) {
+        for (auto it = mapped.begin(); it != mapped.end(); ++it) {
             (*it)->RemoveAllEffects();
         }
     }

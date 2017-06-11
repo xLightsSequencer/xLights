@@ -343,7 +343,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             }
             SetProperty("name", newname, true);
 
-            for (wxXmlNode* n = root->GetChildren(); n != NULL; n = n->GetNext())
+            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
             {
                 if (n->GetName() == "faceInfo")
                 {

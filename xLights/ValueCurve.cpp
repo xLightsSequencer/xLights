@@ -75,18 +75,25 @@ void ValueCurve::RenderType()
 
         for (int i = 0; i < 2 * count; i++)
         {
+            float f1 = (float)i * per - 0.0001f;
+            float f2 = (float)i * per;
+            if (vcSortablePoint::Normalise(f1) != vcSortablePoint::Normalise(f2))
+            {
+                f1 = (float)i * per;
+                f2 = (float)i * per + 0.0001f;
+            }
             if (low)
             {
                 if (i != 0)
                 {
-                    _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter2 / 100.0, false));
+                    _values.push_back(vcSortablePoint(f1, (float)_parameter2 / 100.0, false));
                 }
-                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint(f2, (float)_parameter1 / 100.0, false));
             }
             else
             {
-                _values.push_back(vcSortablePoint((float)i * per - 0.01f, (float)_parameter1 / 100.0, false));
-                _values.push_back(vcSortablePoint((float)i * per, (float)_parameter2 / 100.0, false));
+                _values.push_back(vcSortablePoint(f1, (float)_parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint(f2, (float)_parameter2 / 100.0, false));
             }
             low = !low;
         }

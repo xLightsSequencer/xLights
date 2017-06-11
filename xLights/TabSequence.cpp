@@ -1010,11 +1010,11 @@ void xLightsFrame::RenderAll()
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw] {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("   Effects done.");
+        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base2.info("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
-        logger_base.info("   iseq above effects done. Render all complete.");
+        logger_base2.info("   iseq above effects done. Render all complete.");
         ProgressBar->SetValue(100);
         float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
         wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
