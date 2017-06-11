@@ -5,13 +5,15 @@
 #include <string>
 #include <list>
 
+#define VC_X_POINTS 40.0
+
 class vcSortablePoint
 {
 public:
 
     static float Normalise(float v)
     {
-        return std::round(v * 40.0) / 40.0;
+        return std::round(v * VC_X_POINTS) / VC_X_POINTS;
     }
     float x;
     float y;
