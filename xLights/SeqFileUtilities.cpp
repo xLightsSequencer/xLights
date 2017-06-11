@@ -982,10 +982,14 @@ void xLightsFrame::ImportXLights(const wxFileName &filename) {
 }
 
 ModelElement * AddModel(Model *m, SequenceElements &se) {
-    se.AddMissingModelsToSequence(m->GetName(), false);
-    ModelElement * model = dynamic_cast<ModelElement*>(se.GetElement(m->GetName()));
-    model->Init(*m);
-    return model;
+    if (m != nullptr)
+    {
+        se.AddMissingModelsToSequence(m->GetName(), false);
+        ModelElement * model = dynamic_cast<ModelElement*>(se.GetElement(m->GetName()));
+        model->Init(*m);
+        return model;
+    }
+    return nullptr;
 }
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
                                  bool allowAllModels, bool clearSrc) {
@@ -1100,7 +1104,10 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+            if (model != nullptr)
+            {
+                MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+            }
         }
 
         int str = 0;
@@ -1112,9 +1119,12 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                SubModelElement *ste =  model->GetSubModel(str);
-                if( ste != nullptr ) {
-                    MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                if (model != nullptr)
+                {
+                    SubModelElement *ste = model->GetSubModel(str);
+                    if (ste != nullptr) {
+                        MapXLightsEffects(ste, s->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
+                    }
                 }
             }
             for (size_t n = 0; n < s->GetChildCount(); n++) {
@@ -1123,12 +1133,15 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     if (model == nullptr) {
                         model = AddModel(GetModel(modelName), mSequenceElements);
                     }
-                    SubModelElement *ste =  model->GetSubModel(str);
-                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
-                    if (stre != nullptr) {
-                        NodeLayer *nl = stre->GetNodeLayer(n, true);
-                        if (nl != nullptr) {
-                            MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped);
+                    if (model != nullptr)
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                MapXLightsStrandEffects(nl, ns->_mapping.ToStdString(), layerMap, se, mapped);
+                            }
                         }
                     }
                 }

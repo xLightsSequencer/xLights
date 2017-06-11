@@ -274,7 +274,7 @@ bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view)
 
 std::string SequenceElements::GetViewName(int which_view) const
 {
-    if (_viewsManager->GetView(which_view) != nullptr)
+    if (_viewsManager != nullptr && _viewsManager->GetView(which_view) != nullptr)
 	    return _viewsManager->GetView(which_view)->GetName();
 
     return "";
@@ -873,12 +873,15 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 if (model1->GetDisplayAs() == "SubModel") {
                     model1 = (dynamic_cast<SubModel*>(model1))->GetParent();
                 }
-                if(!ElementExists(model1->GetName()))
+                if (model1 != nullptr)
                 {
-                    Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false);
-                    if (elem != nullptr)
+                    if (!ElementExists(model1->GetName()))
                     {
-                        elem->AddEffectLayer();
+                        Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false);
+                        if (elem != nullptr)
+                        {
+                            elem->AddEffectLayer();
+                        }
                     }
                 }
             }

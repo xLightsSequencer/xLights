@@ -823,6 +823,7 @@ void ViewsModelsPanel::Clear()
     ListCtrlModels->ClearAll();
     ListCtrlNonModels->ClearAll();
     ListCtrlViews->ClearAll();
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::Initialize()
