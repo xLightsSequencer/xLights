@@ -1846,6 +1846,11 @@ void DmxModel::ExportXlightsModel()
     {
         f.Write(submodel);
     }
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
     f.Write("</dmxmodel>");
     f.Close();
 }
@@ -1981,6 +1986,10 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
                 if (n->GetName() == "subModel")
                 {
                     AddSubmodel(n);
+                }
+                else if (n->GetName() == "stateInfo")
+                {
+                    AddState(n);
                 }
             }
 
