@@ -1177,8 +1177,11 @@ static int FindFont(double size, double factor) {
         tsize++;
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.warn("DrawGLUtilities had trouble creating font size %d scale %f ... this could end badly.", size, factor);
+    if (!FONTS[tsize].Valid())
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("DrawGLUtilities had trouble creating font size %d scale %f ... this could end badly.", size, factor);
+    }
 
     return tsize;
 }

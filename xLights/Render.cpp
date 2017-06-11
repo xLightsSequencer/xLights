@@ -1260,10 +1260,12 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     BuildRenderTree();
     if (renderTree.data.empty()) {
         //nothing to do....
+        callback();
         return;
     }
     const int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
+        callback();
         return;
     }
     std::list<Model *> models;

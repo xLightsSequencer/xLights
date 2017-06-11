@@ -144,22 +144,33 @@ Job *JobPoolWorker::GetJob()
 
 void* JobPoolWorker::Entry()
 {
+    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 #ifdef LINUX
     XInitThreads();
 #endif
     while ( !stopped ) {
         // Did we get a request to terminate?
         if (TestDestroy())
+        {
+            logger_base.debug("JobPoolWorker::Entry requested to terminate.");
             break;
+        }
 
         Job *job = GetJob();
-        if (job) {
+        if (job != nullptr) {
+            logger_base.debug("JobPoolWorker::Entry processing job.");
             // Call user's implementation for processing request
             ProcessJob(job);
             if (job->DeleteWhenComplete()) {
+                logger_base.debug("JobPoolWorker::Entry Job done ... deleting job.");
                 delete job;
             }
-            job = nullptr;
+            else
+            {
+                logger_base.debug("JobPoolWorker::Entry Job done.");
+            }
             std::unique_lock<std::mutex> mutLock(*lock);
             inFlight--;
         } else {
@@ -169,6 +180,7 @@ void* JobPoolWorker::Entry()
             }
         }
     }
+    logger_base.debug("JobPoolWorker::Entry exiting.");
     std::unique_lock<std::mutex> mutLock(*lock);
     numThreads--;
     return nullptr;
