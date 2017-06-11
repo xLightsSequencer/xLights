@@ -3887,19 +3887,32 @@ void xLightsFrame::CheckSequence(bool display)
             std::string mgp = it->second->GetLayoutGroup();
 
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
-            auto models = mg->ModelNames();
-
-            for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+            if (mg == nullptr)
             {
-                Model* m = AllModels.GetModel(*it2);
-                if (m->GetDisplayAs() != "ModelGroup")
+                // this should never happen
+                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it->second->GetName().c_str());
+            }
+            else
+            {
+                auto models = mg->ModelNames();
+
+                for (auto it2 = models.begin(); it2 != models.end(); ++it2)
                 {
-                    // If model is in all previews dont report it as a problem
-                    if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
+                    Model* m = AllModels.GetModel(*it2);
+                    if (m == nullptr)
                     {
-                        wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
-                        LogAndWrite(f, msg.ToStdString());
-                        warncount++;
+                        // this should never happen
+                        logger_base.error("Model Group %s contains non existent model %s.", (const char *)mg->GetName().c_str(), (const char *)(*it2).c_str());
+                    }
+                    else if (m->GetDisplayAs() != "ModelGroup")
+                    {
+                        // If model is in all previews dont report it as a problem
+                        if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
+                        {
+                            wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
                     }
                 }
             }
