@@ -249,6 +249,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     _sequenceElements = nullptr;
     _mainViewsChoice = nullptr;
     _seqData = nullptr;
+    _modelGroups = nullptr;
+    _models = nullptr;
+    _sequenceViewManager = nullptr;
 
     ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
     ListCtrlModels->AddImage((char**)timing_16);
@@ -820,6 +823,7 @@ void ViewsModelsPanel::Clear()
     ListCtrlModels->ClearAll();
     ListCtrlNonModels->ClearAll();
     ListCtrlViews->ClearAll();
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::Initialize()
@@ -848,6 +852,7 @@ void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, Seq
     _models = modelsNode;
     _sequenceViewManager = sequenceViewManager;
     _modelGroups = modelGroupsNode;
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::ValidateWindow()
@@ -917,10 +922,21 @@ void ViewsModelsPanel::ValidateWindow()
         Button_MoveUp->Enable(false);
         Button_MoveDown->Enable(false);
     }
+
+    if (_seqData == nullptr || _seqData->NumFrames() == 0)
+    {
+        Button_AddView->Enable(false);
+    }
+    else
+    {
+        Button_AddView->Enable(true);
+    }
 }
 
 void ViewsModelsPanel::UpdateModelsForSelectedView()
 {
+    if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
+
     int currentView = _sequenceElements->GetCurrentView();
     if (currentView != MASTER_VIEW)
     {

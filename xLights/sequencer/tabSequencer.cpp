@@ -1222,6 +1222,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
     if (CurrentSeqXmlFile == nullptr) {
         return;
     }
+
     UpdateRenderStatus();
     if (Notebook1->GetSelection() != NEWSEQUENCER) {
         return;
@@ -1289,10 +1290,6 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             {
                 colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
             }
-            //else
-            //{
-            //    logger_base.crit("OnEffectSettingsTimerTrigger ef is nullptr ... this is going to crash: was looking for '%s'.", (const char *)selectedEffectName.c_str());
-            //}
 
             return;
         }
@@ -1304,7 +1301,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     //check if there are models that depend on timing tracks or similar that need to be rendered
     std::vector<Element *> elsToRender;
     if (mSequenceElements.GetElementsToRender(elsToRender)) {
-        for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); it++) {
+        for (std::vector<Element *>::iterator it = elsToRender.begin(); it != elsToRender.end(); ++it) {
             int ss, es;
             (*it)->GetDirtyRange(ss, es);
             RenderEffectForModel((*it)->GetModelName(), ss, es);
@@ -1813,7 +1810,6 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
     }
 }
 
-
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
     LoadPerspectivesMenu(PerspectivesNode);
@@ -1828,13 +1824,10 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-
-
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 {
     ResetAllSequencerWindows();
 }
-
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 {
@@ -1849,6 +1842,8 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
+    if (!m_mgr->GetPane("DisplayElements").IsOk()) return;
+
     bool visible = m_mgr->GetPane("DisplayElements").IsShown();
     if (visible) {
         m_mgr->GetPane("DisplayElements").Hide();

@@ -123,7 +123,7 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
         wxSocketOutputStream *out = dynamic_cast<wxSocketOutputStream*>(ftp.GetOutputStream((folder + "/" + basefilenew).c_str()));
         wxSocketBase sock;
         MySocketOutputStream sout(sock, (MySocketOutputStream*)out);
-        if (out && length > 0)
+        if (out != nullptr && length > 0)
         {
             uint8_t buffer[8192]; // 8KB at a time
             int lastDone = 0;
@@ -171,6 +171,7 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
             in.Close();
             out->Close();
             delete out;
+            out = nullptr;
             if (ftp.GetFileSize((folder + "/" + basefilenew).c_str()) != length)
             {
                 logger_base.warn("   FTP Upload of file %s failed. Source size (%d) != Destination Size (%d)", (const char *)file.c_str(), length, ftp.GetFileSize((folder + "/" + basefile).c_str()));

@@ -473,8 +473,11 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                     for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                         wxString nn = model_info->GetNodeName(n, true);
                         if (nn == valstr) {
-                            for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
-                                buffer.SetPixel(a->bufX, a->bufY, color);
+                            if (n < buffer.Nodes.size())
+                            {
+                                for (auto a = buffer.Nodes[n]->Coords.begin(); a != buffer.Nodes[n]->Coords.end(); ++a) {
+                                    buffer.SetPixel(a->bufX, a->bufY, color);
+                                }
                             }
                         }
                     }

@@ -375,7 +375,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     BufferWi = BufferHi = 0;
 
     if (type == HORIZ_PER_MODEL) {
-        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
@@ -383,9 +383,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
-                    for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
-                        it->bufX = BufferWi;
-                        it->bufY = y;
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufX = BufferWi;
+                        it2->bufY = y;
                         y++;
                     }
                     start++;
@@ -398,7 +398,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHi);
     } else if (type == VERT_PER_MODEL) {
-        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
@@ -406,9 +406,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
-                    for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
-                        it->bufY = BufferHi;
-                        it->bufX = y;
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufY = BufferHi;
+                        it2->bufX = y;
                         y++;
                     }
                     start++;
@@ -428,7 +428,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         if (horiz) {
             maxSL = BufferHi;
         }
-        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
             int startBM = Nodes.size();
@@ -437,11 +437,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 bw = bh = 0;
                 grp->InitRenderBufferNodes(type, "None", Nodes, bw, bh);
                 for (int x = startBM; x < Nodes.size(); x++) {
-                    for (auto it = Nodes[x]->Coords.begin(); it != Nodes[x]->Coords.end(); it++) {
+                    for (auto it2 = Nodes[x]->Coords.begin(); it2 != Nodes[x]->Coords.end(); ++it2) {
                         if (horiz) {
-                            it->bufX += curS;
+                            it2->bufX += curS;
                         } else {
-                            it->bufY += curS;
+                            it2->bufY += curS;
                         }
                     }
                 }
@@ -455,11 +455,11 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 bw = bh = 0;
                 m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "None", Nodes, bw, bh);
                 for (int x = startBM; x < Nodes.size(); x++) {
-                    for (auto it = Nodes[x]->Coords.begin(); it != Nodes[x]->Coords.end(); it++) {
+                    for (auto it2 = Nodes[x]->Coords.begin(); it2 != Nodes[x]->Coords.end(); ++it2) {
                         if (horiz) {
-                            SetCoords(*it, it->bufX + curS, it->bufY, -1, BufferHi, bh);
+                            SetCoords(*it2, it2->bufX + curS, it2->bufY, -1, BufferHi, bh);
                         } else {
-                            SetCoords(*it, it->bufX, it->bufY + curS, BufferWi, -1, bw);
+                            SetCoords(*it2, it2->bufX, it2->bufY + curS, BufferWi, -1, bw);
                         }
                     }
                 }
@@ -483,16 +483,16 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     } else if (type == SINGLE_LINE) {
         BufferHi = 1;
         BufferWi = 0;
-        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
                 m->InitRenderBufferNodes("Single Line", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
-                    for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
-                        it->bufX = BufferWi;
-                        it->bufY = 0;
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufX = BufferWi;
+                        it2->bufY = 0;
                     }
                     start++;
                     BufferWi++;
@@ -503,7 +503,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     } else if (type == OVERLAY_CENTER || type == OVERLAY_SCALED) {
         bool scale = type == OVERLAY_SCALED;
         GetBufferSize(type, "None", BufferWi, BufferHi);
-        for (auto it = modelNames.begin(); it != modelNames.end(); it++) {
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
@@ -514,13 +514,13 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     int offx = (BufferWi - bw)/2;
                     int offy = (BufferHi - bh)/2;
                     while (start < Nodes.size()) {
-                        for (auto it = Nodes[start]->Coords.begin(); it != Nodes[start]->Coords.end(); it++) {
+                        for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
                             if (scale) {
-                                it->bufX = it->bufX * (BufferWi/bw);
-                                it->bufY = it->bufY * (BufferHi/bh);
+                                it2->bufX = it2->bufX * (BufferWi/bw);
+                                it2->bufY = it2->bufY * (BufferHi/bh);
                             } else {
-                                it->bufX += offx;
-                                it->bufY += offy;
+                                it2->bufX += offx;
+                                it2->bufY += offy;
                             }
                         }
                         start++;

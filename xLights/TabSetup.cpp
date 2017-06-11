@@ -473,6 +473,7 @@ bool xLightsFrame::PromptForShowDirectory()
     {
         newdir=DirDialog1->GetPath();
         if (newdir == CurrentDir) return true;
+        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
         return SetDir(newdir);
     }
     return false;

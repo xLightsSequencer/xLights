@@ -342,7 +342,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
     }
     else
     {
-        // effect1,effect2,blend,settings ...    
+        // effect1,effect2,blend,settings ...
         wxArrayString efdata = wxSplit(settings, ',');
         if (efdata.size() < 2) return "0";
         if (efdata[0] != "None") res++;
@@ -561,6 +561,7 @@ void EffectTreeDialog::AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID)
         newNode->AddAttribute("name", name);
         newNode->AddAttribute("settings", settings);
         newNode->AddAttribute("version", version);
+        newNode->AddAttribute("xLightsVersion", xlVer);
 
         node->AddChild(newNode);
         name += " [" + ParseLayers(name, newNode->GetAttribute("settings")) + "]";
@@ -721,7 +722,7 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, StripLayers(name), wxEmptyString, "Preset files (*.xpreset)|*.xpreset", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
     wxFile f(filename);
-    
+
     if (!f.Create(filename, true) || !f.IsOpened())
     {
         wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("ERROR"));

@@ -1167,6 +1167,7 @@ private:
     void ExportEffects(wxString filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
+    void RecalcModels();
 
     void LoadSequencer(xLightsXmlFile& xml_file);
     void DoLoadPerspective(wxXmlNode *p);

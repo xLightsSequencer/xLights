@@ -161,55 +161,79 @@ void UndoManager::UndoLastStep()
             done = true;
             break;
         case UNDO_EFFECT_DELETED:
-            {
+        {
             Element* element = mParentSequence->GetElement(next_action->deleted_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->deleted_effect_info[0]->layer_index);
-            el->AddEffect(0,
-                          next_action->deleted_effect_info[0]->name,
-                          next_action->deleted_effect_info[0]->settings,
-                          next_action->deleted_effect_info[0]->palette,
-                          next_action->deleted_effect_info[0]->startTimeMS,
-                          next_action->deleted_effect_info[0]->endTimeMS,
-                          next_action->deleted_effect_info[0]->Selected,
-                          next_action->deleted_effect_info[0]->Protected);
+            if (element != nullptr)
+            {
+                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->deleted_effect_info[0]->layer_index);
+                if (el != nullptr)
+                {
+                    el->AddEffect(0,
+                        next_action->deleted_effect_info[0]->name,
+                        next_action->deleted_effect_info[0]->settings,
+                        next_action->deleted_effect_info[0]->palette,
+                        next_action->deleted_effect_info[0]->startTimeMS,
+                        next_action->deleted_effect_info[0]->endTimeMS,
+                        next_action->deleted_effect_info[0]->Selected,
+                        next_action->deleted_effect_info[0]->Protected);
+                }
             }
+        }
             break;
         case UNDO_EFFECT_ADDED:
             {
             Element* element = mParentSequence->GetElement(next_action->added_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->added_effect_info[0]->layer_index);
-            el->DeleteEffect(next_action->added_effect_info[0]->id);
+            if (element != nullptr)
+            {
+                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->added_effect_info[0]->layer_index);
+                if (el != nullptr)
+                {
+                    el->DeleteEffect(next_action->added_effect_info[0]->id);
+                }
+            }
             }
             break;
         case UNDO_EFFECT_MOVED:
             {
             Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
-            if (el == NULL)
+            if (element != nullptr)
             {
-                logger_base.warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
-            }
-            else
-            {
-                Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
-                eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
-                eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
+                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
+                if (el == nullptr)
+                {
+                    logger_base.warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
+                }
+                else
+                {
+                    Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
+                    if (eff != nullptr)
+                    {
+                        eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
+                        eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
+                    }
+                }
             }
             }
             break;
         case UNDO_EFFECT_MODIFIED:
         {
             Element* element = mParentSequence->GetElement(next_action->modified_effect_info[0]->element_name);
-            EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
-            if (el == NULL)
+            if (element != nullptr)
             {
-                logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
-            }
-            else
-            {
-                Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
-                eff->SetSettings(next_action->modified_effect_info[0]->settings, false);
-                eff->SetPalette(next_action->modified_effect_info[0]->palette);
+                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
+                if (el == nullptr)
+                {
+                    logger_base.warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found %d.", next_action->moved_effect_info[0]->layer_index);
+                }
+                else
+                {
+                    Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
+                    if (eff != nullptr)
+                    {
+                        eff->SetSettings(next_action->modified_effect_info[0]->settings, false);
+                        eff->SetPalette(next_action->modified_effect_info[0]->palette);
+                    }
+                }
             }
          }
             break;
