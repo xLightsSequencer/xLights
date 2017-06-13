@@ -108,6 +108,16 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
             return nullptr;
         }
     }
+
+    // check if there is already an effect there
+    for (auto it = mEffects.begin(); it != mEffects.end(); ++it)
+    {
+        if ((*it)->OverlapsWith(startTimeMS, endTimeMS))
+        {
+            return nullptr;
+        }
+    }
+
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     mEffects.push_back(e);
     SortEffects();

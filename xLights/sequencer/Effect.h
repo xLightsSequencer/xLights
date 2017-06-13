@@ -41,6 +41,7 @@ class Effect
         wxString GetDescription() const;
         int GetStartTimeMS() const;
         void SetStartTimeMS(int startTimeMS);
+        bool OverlapsWith(int startTimeMS, int EndTimeMS);
 
         int GetEndTimeMS() const;
         void SetEndTimeMS(int endTimeMS);

@@ -892,10 +892,11 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
         target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
-                          ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, 0);
+                          ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
     }
     mapped.push_back(src);
 }
+
 void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
                              std::map<std::string, EffectLayer *> &layerMap,
                              SequenceElements &seqEl,
@@ -2347,7 +2348,6 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 }
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    int a = 0;
                 }
                 else
                 {
