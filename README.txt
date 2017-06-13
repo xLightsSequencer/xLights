@@ -25,8 +25,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add more submodel generation options
    -- enh (keith)   Add auto mapping for xlights/lor/vixen import ... automatically maps identical model/group names
    -- bug (keith)   Force model start channels to be up to date if accessing functions from setup tab
-   -- enh (keith)   Add Model State to DMX model so you can use them to represent DMX channels where specific values represent specific behaviour
+   -- enh (keith)   Add Model State to DMX model so you can use them to represent DMX channels where specific values
+                    represent specific behaviour
    -- bug (keith)   Force new models/groups to appear immediately in sequence elements available list for master view
+   -- bug (keith)   Prevent xlights import overwriting existing effects
+   -- bug (keith)   Fix if no effects present render never ends
 2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview
    -- enh (keith)   Add E6804 controller configuration support
