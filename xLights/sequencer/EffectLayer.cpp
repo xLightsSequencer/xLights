@@ -110,12 +110,9 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     }
 
     // check if there is already an effect there
-    for (auto it = mEffects.begin(); it != mEffects.end(); ++it)
+    if (HasEffectsInTimeRange(startTimeMS, endTimeMS))
     {
-        if ((*it)->OverlapsWith(startTimeMS, endTimeMS))
-        {
-            return nullptr;
-        }
+        return nullptr;
     }
 
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
@@ -355,14 +352,7 @@ bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_
 bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetStartTimeMS() >= startTimeMS &&  mEffects[i]->GetStartTimeMS() < endTimeMS)
-        {
-            return true;
-        }
-        else if(mEffects[i]->GetEndTimeMS() <= endTimeMS &&  mEffects[i]->GetEndTimeMS() > startTimeMS)
-        {
-            return true;
-        }
+        if (mEffects[i]->OverlapsWith(startTimeMS, endTimeMS)) return true;
     }
     return false;
 }
