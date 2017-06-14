@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Prevent overlaps of Spiral and Fan effects imported from SuperStar.
 2017.16  Jun 13, 2017
    -- bug (dkulp)   Fix some resize issues in import dialog
    -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)

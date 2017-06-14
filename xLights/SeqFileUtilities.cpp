@@ -2885,7 +2885,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if( revolutions == 0 ) revolutions = 3;  // algorithm needs non-zero value until we figure out better way to draw effect
                     int startRadius = wxAtoi(element->GetAttribute("startRadius"));
                     int endRadius = wxAtoi(element->GetAttribute("endRadius"));
-                    layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                     if( type == "Spiral" )
                     {
                         int tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
@@ -2908,6 +2907,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + blend_string;
 
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Shockwave" )
@@ -2923,6 +2923,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
                                             + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + blend_string;
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Fan" )
@@ -2956,6 +2957,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
                                             + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
                                             + blend_string;
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
                     }
                 }
