@@ -891,8 +891,11 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped) {
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
-        target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
-                          ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+        if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
+        {
+            target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
+                ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+        }
     }
     mapped.push_back(src);
 }

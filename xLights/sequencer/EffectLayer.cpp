@@ -109,11 +109,9 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
         }
     }
 
-    // check if there is already an effect there
-    if (HasEffectsInTimeRange(startTimeMS, endTimeMS))
-    {
-        return nullptr;
-    }
+    // KW - I am putting this here because in the past we have forgotten to prevent this and it has caused overlapping effects
+    //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
+    wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
 
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     mEffects.push_back(e);
