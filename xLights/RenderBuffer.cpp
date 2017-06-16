@@ -563,8 +563,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
-    BufferHt=newBufferHt;
-    BufferWi=newBufferWi;
+    BufferHt = newBufferHt;
+    BufferWi = newBufferWi;
     int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
