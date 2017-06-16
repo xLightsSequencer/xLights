@@ -1039,8 +1039,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     } else if (mDragging) {
         ReleaseMouse();
         mDragging = false;
-
-        if((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || mSequenceElements->GetSelectedTimingRow() >= 0) {
+        if((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0) ) {
             checkForEmptyCell = true;
         }
     } else if( !event.ControlDown() ) {
@@ -2892,15 +2891,18 @@ void EffectsGrid::EstablishSelectionRectangle()
 
         if (tel != nullptr)
         {
-            int timingIndex1 = 0;
-            int timingIndex2 = 0;
-            if (tel->HitTestEffectByTime(startTime, timingIndex1) &&
-                tel->HitTestEffectByTime(endTime, timingIndex2))
+            if( tel->GetEffectCount() > 0 )
             {
-                mCellRangeSelected = true;
-                mRangeStartCol = timingIndex1;
-                mRangeEndCol = timingIndex2;
-                mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();  // set for paste
+                int timingIndex1 = 0;
+                int timingIndex2 = 0;
+                if (tel->HitTestEffectByTime(startTime, timingIndex1) &&
+                    tel->HitTestEffectByTime(endTime, timingIndex2))
+                {
+                    mCellRangeSelected = true;
+                    mRangeStartCol = timingIndex1;
+                    mRangeEndCol = timingIndex2;
+                    mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();  // set for paste
+                }
             }
         }
     }
@@ -2926,22 +2928,19 @@ void EffectsGrid::UpdateSelectionRectangle()
        mRangeEndRow = mSequenceElements->GetRowInformationSize() - 1;
     }
 
-    if( mSequenceElements->GetSelectedTimingRow() >= 0 )
+    if( mSequenceElements->GetNumberOfActiveTimingEffects() > 0 )
     {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-
-        if (tel == nullptr)
+        if( tel != nullptr )
         {
-            logger_base.crit("EffectsGrid::UpdateSelectionRectangle tel is nullptr ... this is going to crash.");
+          int time = mTimeline->GetAbsoluteTimeMSfromPosition(mDragEndX);
+          int timingIndex = 0;
+          if(tel->HitTestEffectByTime(time,timingIndex))
+          {
+              mRangeEndCol = timingIndex;
+          }
+          UpdateSelectedEffects();
         }
-
-        int time = mTimeline->GetAbsoluteTimeMSfromPosition(mDragEndX);
-        int timingIndex = 0;
-        if(tel->HitTestEffectByTime(time,timingIndex))
-        {
-            mRangeEndCol = timingIndex;
-        }
-        UpdateSelectedEffects();
     }
     else
     {
@@ -3526,13 +3525,14 @@ void EffectsGrid::Draw()
         DrawEffects();
         DrawPlayMarker();
 
-        if((mDragging || mCellRangeSelected) && !mPartialCellSelected)
+        bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
+        if( (mDragging || mCellRangeSelected) && !mPartialCellSelected )
         {
-            if (mSequenceElements->GetSelectedTimingRow() >= 0 && mRangeStartCol >= 0) {
+            if( has_timing_effects && mRangeStartCol >= 0 ) {
                 DrawSelectedCells();
             }
         }
-        if(mDragging && (mSequenceElements->GetSelectedTimingRow() == -1))
+        if( mDragging && !has_timing_effects )
         {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
             DrawGLUtils::DrawRectangle(xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES),true,mDragStartX,mDragStartY+offset,mDragEndX,mDragEndY);
