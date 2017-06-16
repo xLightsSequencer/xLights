@@ -108,6 +108,11 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
             return nullptr;
         }
     }
+
+    // KW - I am putting this here because in the past we have forgotten to prevent this and it has caused overlapping effects
+    //      with this here debug runs a bit slower but any overlap will ASSERT but it wont impact release build
+    wxASSERT(!HasEffectsInTimeRange(startTimeMS, endTimeMS));
+
     Effect *e = new Effect(this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected);
     mEffects.push_back(e);
     SortEffects();
@@ -345,14 +350,7 @@ bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_
 bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetStartTimeMS() >= startTimeMS &&  mEffects[i]->GetStartTimeMS() < endTimeMS)
-        {
-            return true;
-        }
-        else if(mEffects[i]->GetEndTimeMS() <= endTimeMS &&  mEffects[i]->GetEndTimeMS() > startTimeMS)
-        {
-            return true;
-        }
+        if (mEffects[i]->OverlapsWith(startTimeMS, endTimeMS)) return true;
     }
     return false;
 }

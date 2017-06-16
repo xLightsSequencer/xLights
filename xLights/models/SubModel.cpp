@@ -114,21 +114,44 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         x2 /= 100.0;
         y1 /= 100.0;
         y2 /= 100.0;
+        x1 = std::ceil(x1);
+        y1 = std::ceil(y1);
+
+        float minx = 10000;
+        float maxx = -1;
+        float miny = 10000;
+        float maxy = -1;
 
         int nn = p->GetNodeCount();
-        for (int n = 0; n < nn; n++) {
-            if (p->IsNodeInBufferRange(n, x1, y1, x2, y2)) {
-                NodeBaseClass *node = p->Nodes[n]->clone();
+        for (int m = 0; m < nn; m++) {
+            if (p->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
+                NodeBaseClass* node = p->Nodes[m]->clone();
+                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+
+                    if (c->bufX < minx) minx = c->bufX;
+                    if (c->bufY < miny) miny = c->bufY;
+                    if (c->bufX > maxx) maxx = c->bufX;
+                    if (c->bufY > maxy) maxy = c->bufY;
+                }
+                delete node;
+            }
+        }
+
+        for (int m = 0; m < nn; m++) {
+            if (p->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
+                NodeBaseClass *node = p->Nodes[m]->clone();
                 startChannel = std::min(startChannel, node->ActChan);
                 Nodes.push_back(NodeBaseClassPtr(node));
-                for (auto c = node->Coords.begin(); c != node->Coords.end(); c++) {
-                    c->bufX -= x1;
-                    c->bufY -= y1;
+                for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                    c->bufX -= minx;
+                    c->bufY -= miny;
                 }
             }
         }
-        y2 = y2 - y1 + 1;
-        x2 = x2 - x1 + 1;
+
+        x2 = int(std::ceil(maxx - minx))+1;
+        y2 = int(std::ceil(maxy - miny))+1;
+
         SetBufferSize(y2, x2);
     }
     //ModelStartChannel is 1 based

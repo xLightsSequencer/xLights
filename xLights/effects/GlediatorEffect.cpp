@@ -207,7 +207,7 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             _glediatorReader = nullptr;
         }
 
-        else if (wxFileExists(glediatorFilename))
+        if (wxFileExists(glediatorFilename))
         {
             // have to open the file
             _glediatorReader = new GlediatorReader(glediatorFilename, wxSize(buffer.BufferWi, buffer.BufferHt));
