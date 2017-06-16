@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix individual start channels not displaying correct numbers.
    -- enh (gil)     Use freeform selection if selected timing track has no timing marks.
    -- bug (gil)     Prevent overlaps of Spiral and Fan effects imported from SuperStar.
 2017.16  Jun 13, 2017
