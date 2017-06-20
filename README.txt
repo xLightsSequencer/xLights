@@ -11,9 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.17  Jun 19, 2017
    -- bug (gil)     Fix individual start channels not displaying correct numbers.
    -- enh (gil)     Use freeform selection if selected timing track has no timing marks.
    -- bug (gil)     Prevent overlaps of Spiral and Fan effects imported from SuperStar.
+   -- bug (keith)   Fix issue highlighted in this thread http://nutcracker123.com/forum/index.php?topic=4407.0
+   -- bug (keith)   Fix back to back glediator effects not rendering correctly.
 2017.16  Jun 13, 2017
    -- bug (dkulp)   Fix some resize issues in import dialog
    -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)
