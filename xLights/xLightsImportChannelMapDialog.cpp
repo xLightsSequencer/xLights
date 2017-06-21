@@ -1481,18 +1481,28 @@ void xLightsImportChannelMapDialog::MarkUsed()
 
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
+    if (dataModel == nullptr) return;
+
     for (int i = 0; i < dataModel->GetChildCount(); ++i)
     {
         auto model = dataModel->GetNthChild(i);
-        if (model->_mapping == "")
+        if (model != nullptr)
         {
-            for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
+            if (model->_mapping == "")
             {
-                if (wxString(model->_model).Trim(true).Trim(false).Lower() == ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower())
+                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
                 {
-                    model->_mapping = ListCtrl_Available->GetItemText(j);
+                    if (wxString(model->_model).Trim(true).Trim(false).Lower() == ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower())
+                    {
+                        model->_mapping = ListCtrl_Available->GetItemText(j);
+                    }
                 }
             }
+        }
+        else
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("xLightsImportTreeModel::OnButton_AutoMapClick: Weird ... model %d was nullptr", i);
         }
     }
     TreeListCtrl_Mapping->Refresh();
