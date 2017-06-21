@@ -448,7 +448,7 @@ int CountChar(wxString& line, char c)
 bool xLightsImportChannelMapDialog::InitImport() {
     if (channelNames.size() == 0)
     {
-        wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
+        wxMessageBox("No models to import from. Source sequence had no data.");
         return false;
     }
 
@@ -530,6 +530,12 @@ bool xLightsImportChannelMapDialog::InitImport() {
                 AddModel(m, ms);
             }
         }
+    }
+
+    if (dataModel->GetChildCount() == 0)
+    {
+        wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
+        return false;
     }
 
     return true;
@@ -1220,6 +1226,10 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& event)
 {
+    wxLogNull logNo; //kludge: Prevent wx logging
+
+    if (dataModel->GetChildCount() == 0) return;
+
     _dragItem = wxDataViewItem(nullptr);
     if (ListCtrl_Available->GetSelectedItemCount() == 0) return;
 
@@ -1236,6 +1246,8 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
 
 void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
 {
+    wxLogNull logNo; //kludge: Prevent wx logging
+
     if (event.GetItem().IsOk())
     {
         _dragItem = event.GetItem();
@@ -1259,6 +1271,8 @@ void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
 
 wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    wxLogNull logNo; //kludge: Prevent wx logging
+
     if (_list != nullptr) return wxDragMove;
     if (((xLightsImportTreeModel*)_tree->GetModel())->GetChildCount() == 0) return wxDragMove;
 
@@ -1327,6 +1341,8 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
 
 bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
+    wxLogNull logNo; //kludge: Prevent wx logging
+
     if (_tree != nullptr)
     {
         wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
@@ -1354,6 +1370,8 @@ bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 
 void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
 {
+    wxLogNull logNo; //kludge: Prevent wx logging
+
     wxArrayString parms = wxSplit(event.GetString(), ',');
     int x = event.GetExtraLong() >> 16;
     int y = event.GetExtraLong() & 0xFFFF;
