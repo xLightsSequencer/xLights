@@ -47,6 +47,8 @@ class RowHeading : public wxWindow
         void BreakdownTimingPhrases(TimingElement* element);
         void BreakdownTimingWords(TimingElement* element);
         const xlColor GetHeaderColor(Row_Information_Struct* info);
+        bool ExpandElementIfEffects(Element* e);
+        bool ModelInView(const std::string& model, int view);
 
         wxBitmap papagayo_icon;
         wxBitmap model_group_icon;
@@ -66,6 +68,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_EXPORT_RENDERED_MODEL;
         static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
         static const long ID_ROW_MNU_TOGGLE_STRANDS;
+        static const long ID_ROW_MNU_SHOW_EFFECTS;
         static const long ID_ROW_MNU_TOGGLE_NODES;
         static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
         static const long ID_ROW_MNU_PROMOTE_EFFECTS;

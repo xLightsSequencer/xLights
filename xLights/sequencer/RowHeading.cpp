@@ -5,6 +5,7 @@
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
 #include <wx/numdlg.h>
+#include "Models/ModelGroup.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -25,6 +26,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SHOW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
@@ -180,6 +182,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         } else {
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
         }
+        mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
         if (ri->nodeIndex > -1) {
             StrandElement *se = dynamic_cast<StrandElement*>(element);
             if (se && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
@@ -490,7 +493,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id==ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);
-    } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
+    }
+    else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
         if (me == nullptr) {
             StrandElement *se = dynamic_cast<StrandElement *>(element);
@@ -499,6 +503,23 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         me->ShowStrands(!me->ShowStrands());
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         eventRowHeaderChanged.SetString(element->GetModelName());
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_SHOW_EFFECTS) {
+        int view = mSequenceElements->GetCurrentView();
+        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
+        {
+            Element* e = mSequenceElements->GetElement(i, view);
+            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                if (ExpandElementIfEffects(e))
+                {
+                    ModelElement* me = dynamic_cast<ModelElement*>(e);
+                    if (me != nullptr)
+                        me->ShowStrands(true);
+                }
+            }
+        }
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
         StrandElement *se = dynamic_cast<StrandElement *>(element);
@@ -525,6 +546,85 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
+}
+
+bool RowHeading::ExpandElementIfEffects(Element* e)
+{
+    if (e == nullptr) return false;
+
+    bool hasEffects = false;
+
+    if (e->GetType() == ELEMENT_TYPE_MODEL)
+    {
+        ModelElement *me = dynamic_cast<ModelElement *>(e);
+        Model *m = mSequenceElements->GetXLightsFrame()->AllModels[me->GetModelName()];
+
+        if (m->GetDisplayAs() == "ModelGroup")
+        {
+            int view = mSequenceElements->GetCurrentView();
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+            auto models = mg->ModelNames();
+            for (auto it = models.begin(); it != models.end(); ++it)
+            {
+                ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
+
+                if (!ModelInView(*it, view))
+                {
+                    hasEffects = mm->HasEffects();
+                    hasEffects |= ExpandElementIfEffects(mSequenceElements->GetElement(*it));
+
+                    if (hasEffects) me->ShowStrands(true);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < me->GetStrandCount(); ++i)
+            {
+                hasEffects |= ExpandElementIfEffects(me->GetStrand(i));
+            }
+            for (int i = 0; i < me->GetSubModelCount(); ++i)
+            {
+                hasEffects |= ExpandElementIfEffects(me->GetSubModel(i));
+            }
+
+            if (hasEffects) me->ShowStrands(true);
+        }
+    }
+    else if (e->GetType() == ELEMENT_TYPE_STRAND)
+    {
+        StrandElement* se = dynamic_cast<StrandElement*>(e);
+        hasEffects = se->HasEffects();
+        for (int k = 0; k < se->GetNodeLayerCount(); ++k)
+        {
+            NodeLayer* nl = se->GetNodeLayer(k, false);
+            if (nl->HasEffectsInTimeRange(0, 9999999))
+            {
+                se->ShowNodes(true);
+                return true;
+            }
+        }
+    }
+    else
+    {
+        // Submodel
+        // I dont need to do anything more as these dont expand
+    }
+
+    return hasEffects;
+}
+
+bool RowHeading::ModelInView(const std::string& model, int view)
+{
+    for (int j = 0; j < mSequenceElements->GetElementCount(view); ++j)
+    {
+        if (model == mSequenceElements->GetElement(j, view)->GetName())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void RowHeading::BreakdownTimingPhrases(TimingElement* element)

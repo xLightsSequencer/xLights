@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add a show all effects row header right click menu option which opens up all groups/models/strands
+                    to show all effects ... but only those that are necessary to see them all
+   -- bug (keith)   Fix some crashes when mapping due to empty lists
+   -- bug (keith)   Fix color panel value curves not setting correctly as you move from effect to effect
 2017.17  Jun 19, 2017
    -- bug (gil)     Fix individual start channels not displaying correct numbers.
    -- enh (gil)     Use freeform selection if selected timing track has no timing marks.
