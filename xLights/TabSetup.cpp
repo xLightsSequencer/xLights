@@ -1282,6 +1282,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     }
 
     mnuUploadController->Append(ID_NETWORK_UCINPUT, "E1.31 Input Defintion", mnuUCInput, "");
+    mnuUCInput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenu* mnuUCOutput = new wxMenu();
 
@@ -1497,8 +1498,10 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     }
 
     mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
+    mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
+    mnuUploadController->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenu* mnuBulkEdit = new wxMenu();
     wxMenuItem* beip = mnuBulkEdit->Append(ID_NETWORK_BEIPADDR, "IP Address");
