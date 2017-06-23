@@ -8,6 +8,7 @@
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/splitter.h>
 #include <wx/panel.h>
 #include <wx/button.h>
 //*)
@@ -120,6 +121,7 @@ class ViewsModelsPanel: public wxPanel
 		wxButton* Button_AddSelected;
 		wxStaticText* StaticText2;
 		wxPanel* Panel_Sizer;
+		wxPanel* Panel1;
 		wxStaticText* StaticText1;
 		wxCheckedListCtrl* ListCtrlModels;
 		wxStaticText* StaticText3;
@@ -131,8 +133,10 @@ class ViewsModelsPanel: public wxPanel
 		wxScrolledWindow* ScrolledWindowViewsModels;
 		wxButton* ButtonClone;
 		wxButton* ButtonRename;
+		wxPanel* Panel2;
 		wxButton* Button_MoveDown;
 		wxButton* Button_RemoveSelected;
+		wxSplitterWindow* SplitterWindow1;
 		//*)
 
 	protected:
@@ -146,6 +150,7 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
+		static const long ID_PANEL2;
 		static const long ID_STATICTEXT1;
 		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_BUTTON1;
@@ -154,6 +159,8 @@ class ViewsModelsPanel: public wxPanel
 		static const long ID_BUTTON8;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL_MODELS;
+		static const long ID_PANEL3;
+		static const long ID_SPLITTERWINDOW1;
 		static const long ID_SCROLLEDWINDOW1;
 		static const long ID_PANEL1;
 		//*)
