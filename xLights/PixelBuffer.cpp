@@ -557,11 +557,6 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     int cnt = 0;
     c = xlBLACK;
 
-    int effStartPer, effEndPer;
-    layers[0]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-    float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
-    offset = std::min(offset, 1.0f);
-
     for (int layer = numLayers - 1; layer >= 0; layer--)
     {
         if (validLayers[layer])
@@ -580,6 +575,11 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
             }
             else
             {
+                int effStartPer, effEndPer;
+                thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
+                float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
+                offset = std::min(offset, 1.0f);
+
                 int x = thelayer->buffer.Nodes[node]->Coords[0].bufX;
                 int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
