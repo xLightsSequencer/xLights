@@ -2,12 +2,12 @@
 #define VIEWSDIALOG_H
 
 //(*Headers(ViewsDialog)
-#include <wx/dialog.h>
 #include <wx/sizer.h>
-#include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
+#include <wx/button.h>
+#include <wx/dialog.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -24,20 +24,20 @@ class ViewsDialog: public wxDialog
 		virtual ~ViewsDialog();
 
 		//(*Declarations(ViewsDialog)
+		wxStaticText* StaticText2;
 		wxButton* btCloseViews;
 		wxButton* btRemoveModelFromView;
-		wxListBox* lstViews;
-		wxListBox* lstModelsInView;
-		wxListBox* lstAddModelToViews;
-		wxTextCtrl* Text_ViewName;
-		wxButton* btAddModelToView;
-		wxButton* btRemoveView;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
-		wxStaticText* StaticText4;
-		wxButton* btAddView;
-		wxStaticText* StaticText2;
+		wxListBox* lstAddModelToViews;
+		wxListBox* lstViews;
 		wxButton* btnUpdateView;
+		wxButton* btAddView;
+		wxListBox* lstModelsInView;
+		wxTextCtrl* Text_ViewName;
+		wxButton* btRemoveView;
+		wxButton* btAddModelToView;
+		wxStaticText* StaticText4;
 		//*)
 
 	protected:

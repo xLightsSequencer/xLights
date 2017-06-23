@@ -4,139 +4,165 @@
 		<title>Map Channels</title>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
-		<object class="wxFlexGridSizer" variable="Sizer" member="yes">
+		<object class="wxFlexGridSizer" variable="OldSizer" member="yes">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
-					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="wxID_ANY" variable="StaticText_TimeAdjust" member="yes">
-							<label>Time Adjust (ms)</label>
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
+					<orientation>vertical</orientation>
+					<minsize>10,10</minsize>
+					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>3</growablerows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="Sizer_TimeAdjust" member="yes">
+									<cols>2</cols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticText_TimeAdjust" member="yes">
+											<label>Time Adjust (ms)</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="TimeAdjustSpinCtrl" member="yes">
+											<value>0</value>
+											<min>-10000</min>
+											<max>600000</max>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_MapCCRStrand" member="yes">
+									<label>Map CCR/Strand</label>
+									<handler function="OnCheckBox_MapCCRStrandClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticBoxSizer" variable="TimingTrackPanel" member="yes">
+									<label>Timing Tracks</label>
+									<object class="sizeritem">
+										<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
+											<style>wxVSCROLL</style>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxEXPAND</flag>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="SizerMap" member="yes">
+									<cols>1</cols>
+									<rows>1</rows>
+									<growablecols>0</growablecols>
+									<growablerows>0</growablerows>
+								</object>
+								<flag>wxEXPAND</flag>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+									<cols>7</cols>
+									<growablecols>2</growablecols>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
+											<label>Ok</label>
+											<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON4" variable="Button_Cancel" member="yes">
+											<label>Cancel</label>
+											<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
+											<label>Auto Map</label>
+											<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
+											<label>Load Mapping</label>
+											<handler function="LoadMapping" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
+											<label>Save Mapping</label>
+											<handler function="SaveMapping" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="TimeAdjustSpinCtrl" member="yes">
-							<value>0</value>
-							<min>-10000</min>
-							<max>600000</max>
+					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+						<object class="wxFlexGridSizer" variable="Sizer2" member="yes">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
+									<size>100,-1d</size>
+									<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
+									<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+									<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+									<handler function="OnListCtrl_AvailableColumnClick" entry="EVT_LIST_COL_CLICK" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<minsize>100,-1d</minsize>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_MapCCRStrand" member="yes">
-					<label>Map CCR/Strand</label>
-					<handler function="OnCheckBox_MapCCRStrandClick" entry="EVT_CHECKBOX" />
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="TimingTrackPanel" member="yes">
-					<label>Timing Tracks</label>
-					<object class="sizeritem">
-						<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="TimingTrackListBox" member="yes">
-							<style>wxVSCROLL</style>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxEXPAND</flag>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="SizerMap" member="yes">
-					<cols>2</cols>
-					<growablecols>0</growablecols>
-					<growablerows>0</growablerows>
-					<object class="sizeritem">
-						<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl_Available" member="yes">
-							<size>100,-1d</size>
-							<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
-							<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
-							<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-							<handler function="OnListCtrl_AvailableColumnClick" entry="EVT_LIST_COL_CLICK" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<minsize>100,-1d</minsize>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxEXPAND</flag>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>7</cols>
-					<growablecols>2</growablecols>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON3" variable="Button_Ok" member="yes">
-							<label>Ok</label>
-							<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON4" variable="Button_Cancel" member="yes">
-							<label>Cancel</label>
-							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON5" variable="Button_AutoMap" member="yes">
-							<label>Auto Map</label>
-							<handler function="OnButton_AutoMapClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="no">
-							<label>Load Mapping</label>
-							<handler function="LoadMapping" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON2" variable="Button02" member="no">
-							<label>Save Mapping</label>
-							<handler function="SaveMapping" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>
