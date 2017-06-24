@@ -121,6 +121,7 @@ class SequenceElements : public ChangeListener
 
         int GetNumberOfTimingRows();
         int GetNumberOfTimingElements();
+        int GetNumberOfActiveTimingEffects();
         bool ElementExists(const std::string &elementName, int view = MASTER_VIEW);
         void RenameTimingTrack(std::string oldname, std::string newname);
         bool TimingIsPartOfView(TimingElement* timing, int view);
@@ -161,7 +162,7 @@ class SequenceElements : public ChangeListener
 
         void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
-    
+
         bool SupportsModelBlending() const { return supportsModelBlending;}
         void SetSupportsModelBlending(bool b) { supportsModelBlending = b;}
 

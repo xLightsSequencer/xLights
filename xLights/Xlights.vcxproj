@@ -444,7 +444,6 @@
     <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
-    <ClCompile Include="ViewsDialog.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
@@ -744,7 +743,6 @@
     <ClInclude Include="vamp-hostsdk\Window.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
     <ClInclude Include="VideoReader.h" />
-    <ClInclude Include="ViewsDialog.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />

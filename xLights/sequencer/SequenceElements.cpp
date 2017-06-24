@@ -1304,6 +1304,16 @@ int SequenceElements::GetNumberOfTimingElements() {
     return count;
 }
 
+int SequenceElements::GetNumberOfActiveTimingEffects()
+{
+    int num_timing_effects = 0;
+    EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
+    if( tel != nullptr )
+    {
+        num_timing_effects = tel->GetEffectCount();
+    }
+    return num_timing_effects;
+}
 
 void SequenceElements::DeactivateAllTimingElements()
 {
@@ -1571,10 +1581,10 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
             // Handle common unicode characters before falling back to ascii
-            line.Replace(wxT("’"),"'",true);
-            line.Replace(wxT("‘"),"'",true);
-            line.Replace(wxT("”"),'"',true);
-            line.Replace(wxT("“"),'"',true);
+            line.Replace(wxT("\u2019"),"'",true);
+            line.Replace(wxT("\u0218"),"'",true);
+            line.Replace(wxT("\u201c"),'"',true);
+            line.Replace(wxT("\u201d"),'"',true);
             line = line.ToStdString();
             if(line == "")
             {

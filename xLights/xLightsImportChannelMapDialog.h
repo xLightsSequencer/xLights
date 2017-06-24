@@ -12,7 +12,9 @@
 #include <wx/stattext.h>
 #include <wx/checklst.h>
 #include <wx/checkbox.h>
+#include <wx/splitter.h>
 #include <wx/spinctrl.h>
+#include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -61,6 +63,7 @@ public:
         _node = node;
         _mapping = mapping;
         _color = color;
+        _group = false;
 
         m_container = false;
     }
@@ -76,13 +79,14 @@ public:
         _node = "";
         _mapping = mapping;
         _color = color;
+        _group = false;
 
         m_container = true;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const wxColor& color = *wxWHITE, const bool isGroup = false) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -91,8 +95,9 @@ public:
         _node = "";
         _mapping = mapping;
         _color = color;
+        _group = isGroup;
 
-        m_container = true;
+        m_container = !isGroup;
     }
 
     ~xLightsImportModelNode()
@@ -116,6 +121,8 @@ public:
             GetNthChild(i)->ClearMapping();
         }
     }
+
+    bool IsGroup() const { return _group; }
 
     bool HasMapping()
     {
@@ -173,6 +180,7 @@ public:     // public to avoid getters/setters
     wxString                _node;
     wxString                _mapping;
     wxColor                 _color;
+    bool                    _group;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -205,7 +213,8 @@ public:
         }
     }
 
-    // helper method for wxLog
+
+    virtual bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
 
     void Insert(xLightsImportModelNode* child, unsigned int n)
     {
@@ -315,15 +324,20 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxFlexGridSizer* Sizer_TimeAdjust;
 		wxSpinCtrl* TimeAdjustSpinCtrl;
 		wxButton* Button_Ok;
-		wxFlexGridSizer* Sizer;
+		wxFlexGridSizer* Sizer2;
 		wxButton* Button_AutoMap;
+		wxPanel* Panel1;
+		wxFlexGridSizer* OldSizer;
 		wxCheckListBox* TimingTrackListBox;
 		wxButton* Button_Cancel;
 		wxStaticText* StaticText_TimeAdjust;
 		wxStaticBoxSizer* TimingTrackPanel;
 		wxCheckBox* CheckBox_MapCCRStrand;
+		wxPanel* Panel2;
 		wxFlexGridSizer* SizerMap;
+		wxSplitterWindow* SplitterWindow1;
 		wxListCtrl* ListCtrl_Available;
+		wxFlexGridSizer* Sizer1;
 		//*)
 
         SequenceElements *mSequenceElements;
@@ -342,12 +356,15 @@ protected:
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKLISTBOX1;
-		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_PANEL1;
+		static const long ID_LISTCTRL1;
+		static const long ID_PANEL2;
+		static const long ID_SPLITTERWINDOW1;
 		//*)
 
 	private:

@@ -169,8 +169,8 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     _supportsradial = false;
     __brightness = 100;
     wxIntegerValidator<int> _brightness(&__brightness, wxNUM_VAL_THOUSANDS_SEPARATOR);
-    _brightness.SetMin(0);
-    _brightness.SetMax(400);
+    _brightness.SetMin(COLORPANEL_BRIGHTNESS_MIN);
+    _brightness.SetMax(COLORPANEL_BRIGHTNESS_MAX);
 
 	//(*Initialize(ColorPanel)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -385,8 +385,11 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ColorPanel::OnVCChanged, 0, this);
 
-    BitmapButton_VCBrightness->GetValue()->SetLimits(0, 400);
-    BitmapButton_SparkleFrequencyVC->GetValue()->SetLimits(0, 200);
+    BitmapButton_VCBrightness->GetValue()->SetLimits(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
+    BitmapButton_SparkleFrequencyVC->GetValue()->SetLimits(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
+    BitmapButton_Color_HueAdjust->GetValue()->SetLimits(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
+    BitmapButton_Color_SaturationAdjust->GetValue()->SetLimits(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
+    BitmapButton_Color_ValueAdjust->GetValue()->SetLimits(COLORPANEL_VALUE_MIN, COLORPANEL_VALUE_MAX);
 
     FlexGridSizer_Palette->SetCols(PALETTE_SIZE);
     for (int x = 0; x < PALETTE_SIZE; x++) {
@@ -852,12 +855,12 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
 
     if (!optionbased || CheckBox_ResetColorPanel->GetValue())
     {
-        BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(0.0f, 200.0f);
+        BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
         BitmapButton_SparkleFrequencyVC->UpdateState();
         Slider_SparkleFrequency->SetValue(0);
         CheckBox_MusicSparkles->SetValue(false);
         __brightness = 100;
-        BitmapButton_VCBrightness->GetValue()->SetDefault(0.0f, 400.0f);
+        BitmapButton_VCBrightness->GetValue()->SetDefault(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
         BitmapButton_VCBrightness->UpdateState();
         Slider_Brightness->SetValue(100);
         txtCtlBrightness->SetValue("100");
@@ -870,6 +873,12 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
         TextCtrl_Color_SaturationAdjust->SetValue("0");
         Slider_Color_ValueAdjust->SetValue(0);
         TextCtrl_Color_ValueAdjust->SetValue("0");
+        BitmapButton_Color_HueAdjust->GetValue()->SetDefault(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
+        BitmapButton_Color_HueAdjust->UpdateState();
+        BitmapButton_Color_SaturationAdjust->GetValue()->SetDefault(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);
+        BitmapButton_Color_SaturationAdjust->UpdateState();
+        BitmapButton_Color_ValueAdjust->GetValue()->SetDefault(COLORPANEL_VALUE_MIN, COLORPANEL_VALUE_MAX);
+        BitmapButton_Color_ValueAdjust->UpdateState();
 
         if (touchBar != nullptr) {
             touchBar->SetSparkles(0);

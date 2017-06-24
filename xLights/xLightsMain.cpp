@@ -2687,6 +2687,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	if (output)
 	{
         _outputManager.AllOff();
+        CheckBoxLightOutput->SetValue(false);
+        EnableOutputs();
 	}
 
 	// creating the dialog can take some time so display an hourglass
