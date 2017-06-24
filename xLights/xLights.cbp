@@ -687,8 +687,6 @@
 		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
-		<Unit filename="ViewsDialog.cpp" />
-		<Unit filename="ViewsDialog.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />

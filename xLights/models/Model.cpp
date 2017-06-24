@@ -1485,8 +1485,8 @@ void Model::SetLineCoord() {
 
 
 void Model::SetBufferSize(int NewHt, int NewWi) {
-    BufferHt=NewHt;
-    BufferWi=NewWi;
+    BufferHt = NewHt;
+    BufferWi = NewWi;
     IncrementChangeCount();
 }
 

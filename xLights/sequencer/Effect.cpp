@@ -348,6 +348,11 @@ int Effect::GetEndTimeMS() const
     return mEndTime;
 }
 
+bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
+{
+    return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
+}
+
 void Effect::SetEndTimeMS(int endTimeMS)
 {
     if (endTimeMS < mEndTime)

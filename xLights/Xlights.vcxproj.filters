@@ -546,9 +546,6 @@
     <ClCompile Include="VAMPPluginDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ViewsDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wxCheckedListCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1476,9 +1473,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VAMPPluginDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewsDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wininet.h">

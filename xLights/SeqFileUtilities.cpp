@@ -891,11 +891,15 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<EffectLayer *> &mapped) {
     for (int x = 0; x < src->GetEffectCount(); x++) {
         Effect *ef = src->GetEffect(x);
-        target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
-                          ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, 0);
+        if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
+        {
+            target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
+                ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+        }
     }
     mapped.push_back(src);
 }
+
 void MapXLightsStrandEffects(EffectLayer *target, const std::string &name,
                              std::map<std::string, EffectLayer *> &layerMap,
                              SequenceElements &seqEl,
@@ -2347,7 +2351,6 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 }
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    int a = 0;
                 }
                 else
                 {
@@ -2885,7 +2888,6 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     if( revolutions == 0 ) revolutions = 3;  // algorithm needs non-zero value until we figure out better way to draw effect
                     int startRadius = wxAtoi(element->GetAttribute("startRadius"));
                     int endRadius = wxAtoi(element->GetAttribute("endRadius"));
-                    layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                     if( type == "Spiral" )
                     {
                         int tailms = wxAtoi(element->GetAttribute("tailTimeLength")) * 10;
@@ -2908,6 +2910,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + blend_string;
 
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Shockwave" )
@@ -2923,6 +2926,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
                                             + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString()
                                             + blend_string;
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
                     }
                     else if( type == "Fan" )
@@ -2956,6 +2960,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                                             + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString()
                                             + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString()
                                             + blend_string;
+                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
                         layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
                     }
                 }

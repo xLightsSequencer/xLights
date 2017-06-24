@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add a show all effects row header right click menu option which opens up all groups/models/strands
+                    to show all effects ... but only those that are necessary to see them all
+   -- bug (keith)   Fix some crashes when mapping due to empty lists
+   -- bug (keith)   Fix color panel value curves not setting correctly as you move from effect to effect
+2017.17  Jun 19, 2017
+   -- bug (gil)     Fix individual start channels not displaying correct numbers.
+   -- enh (gil)     Use freeform selection if selected timing track has no timing marks.
+   -- bug (gil)     Prevent overlaps of Spiral and Fan effects imported from SuperStar.
+   -- bug (keith)   Fix issue highlighted in this thread http://nutcracker123.com/forum/index.php?topic=4407.0
+   -- bug (keith)   Fix back to back glediator effects not rendering correctly.
+2017.16  Jun 13, 2017
    -- bug (dkulp)   Fix some resize issues in import dialog
    -- bug (dkulp)   Fix drag/drop in import dialog (requires rebuild of wxWidgets)
    -- bug (dkulp)   Fix sorting in available models on import dialog
@@ -25,8 +36,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add more submodel generation options
    -- enh (keith)   Add auto mapping for xlights/lor/vixen import ... automatically maps identical model/group names
    -- bug (keith)   Force model start channels to be up to date if accessing functions from setup tab
-   -- enh (keith)   Add Model State to DMX model so you can use them to represent DMX channels where specific values represent specific behaviour
+   -- enh (keith)   Add Model State to DMX model so you can use them to represent DMX channels where specific values
+                    represent specific behaviour
    -- bug (keith)   Force new models/groups to appear immediately in sequence elements available list for master view
+   -- bug (keith)   Prevent xlights import overwriting existing effects
+   -- bug (keith)   Fix if no effects present render never ends
 2017.15  May 31, 2017
    -- bug (dkulp)   Fix crash if submodel is part of a preview
    -- enh (keith)   Add E6804 controller configuration support

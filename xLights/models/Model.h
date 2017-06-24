@@ -309,7 +309,7 @@ public:
     float GetVcenterOffset();
     int GetWidth(ModelPreview* preview);
     int GetHeight(ModelPreview* preview);
-    
+
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
 
@@ -337,7 +337,7 @@ public:
 
     static std::string StartChanAttrName(int idx)
     {
-        return wxString::Format(wxT("String %i"),idx+1).ToStdString();
+        return wxString::Format(wxT("String%i"),idx+1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
     static bool HasOneString(const std::string& DispAs)
