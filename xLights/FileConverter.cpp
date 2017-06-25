@@ -1109,14 +1109,20 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
 }
 
 // return true on success
-#ifndef FPP
-static bool LoadVixenProfile(ConvertParameters& params, const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString& VixChannelNames)
+bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& ProfileName,
+                                     wxArrayInt& VixChannels, wxArrayString& VixChannelNames,
+                                     std::vector<xlColor> &VixChannelColors)
 {
     wxString tag,tempstr;
     long OutputChannel;
     wxFileName fn;
     fn.AssignDir(params.xLightsFrm->CurrentDir);
     fn.SetFullName(ProfileName + ".pro");
+    if (!fn.FileExists()) {
+        fn.AssignDir(wxFileName::FileName(params.inp_filename).GetPath());
+        fn.SetFullName(ProfileName + ".pro");
+    }
+    
     if (!fn.FileExists())
     {
         params.ConversionError(wxString("Unable to find Vixen profile: ")+fn.GetFullPath()+wxString("\n\nMake sure a copy is in your xLights directory"));
@@ -1154,6 +1160,13 @@ static bool LoadVixenProfile(ConvertParameters& params, const wxString& ProfileN
                                 VixChannelNames.push_back(p->GetContent());
                             }
                         }
+                        if (p->HasAttribute("color")) {
+                            int chanColor = wxAtoi(p->GetAttribute("color")) & 0xFFFFFF;
+                            xlColor c(chanColor, false);
+                            VixChannelColors.push_back(c);
+                        } else {
+                            VixChannelColors.push_back(xlWHITE);
+                        }
                     }
                 }
             }
@@ -1166,7 +1179,6 @@ static bool LoadVixenProfile(ConvertParameters& params, const wxString& ProfileN
     }
     return false;
 }
-#endif
 
 void FileConverter::ReadVixFile(ConvertParameters& params)
 {
@@ -1280,7 +1292,8 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                     else if (context[1] == wxString("Profile"))
                     {
 #ifndef FPP
-                        LoadVixenProfile(params, NodeValue,VixChannels,VixChannelNames);
+                        std::vector<xlColor> colors;
+                        LoadVixenProfile(params, NodeValue,VixChannels,VixChannelNames, colors);
 #endif
                     }
                     else if (context[1] == wxString("Channels") && context[2] == wxString("Channel"))

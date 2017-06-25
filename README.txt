@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Vixen import is not reading channel names/colors from profile files.
    -- enh (keith)   Add a show all effects row header right click menu option which opens up all groups/models/strands
                     to show all effects ... but only those that are necessary to see them all
    -- bug (keith)   Fix some crashes when mapping due to empty lists
