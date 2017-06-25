@@ -5,7 +5,7 @@
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
 #include <wx/numdlg.h>
-#include "Models/ModelGroup.h"
+#include "models/ModelGroup.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
