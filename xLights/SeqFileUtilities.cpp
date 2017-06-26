@@ -1389,9 +1389,9 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
     if (EndsWith(name, "Red") || EndsWith(name, "-R")) {
         c = xlRED;
         if (EndsWith(name, "-R")) {
-            base = name.substr(0, name.size() - 3);
+            base = name.substr(0, name.size() - 2);
         } else {
-            base = name.substr(0, name.size() - 4);
+            base = name.substr(0, name.size() - 3);
         }
         if ((Contains(channelNames, base + "Blue")
              && Contains(channelNames, base + "Green"))
@@ -1403,9 +1403,9 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
     } else if (EndsWith(name, "Blue") || EndsWith(name, "-B")) {
         c = xlBLUE;
         if (EndsWith(name, "-B")) {
-            base = name.substr(0, name.size() - 3);
+            base = name.substr(0, name.size() - 2);
         } else {
-            base = name.substr(0, name.size() - 5);
+            base = name.substr(0, name.size() - 4);
         }
         if ((Contains(channelNames, base + "Red")
              && Contains(channelNames, base + "Green"))
@@ -1416,9 +1416,9 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
     } else if (EndsWith(name, "Green") || EndsWith(name, "-G")) {
         c = xlGREEN;
         if (EndsWith(name, "-G")) {
-            base = name.substr(0, name.size() - 3);
+            base = name.substr(0, name.size() - 2);
         } else {
-            base = name.substr(0, name.size() - 6);
+            base = name.substr(0, name.size() - 5);
         }
         if ((Contains(channelNames, base + "Blue")
              && Contains(channelNames, base + "Red"))
