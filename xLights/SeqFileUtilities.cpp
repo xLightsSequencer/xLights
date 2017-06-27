@@ -1441,7 +1441,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     std::string NodeName,NodeValue,msg;
     std::vector<unsigned char> VixSeqData;
     long cnt = 0;
-    wxArrayString context;
+    std::vector<std::string> context;
     //long MaxIntensity = 255;
 
     int time = 0;
@@ -1485,8 +1485,19 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     NodeName = stagEvent->getName();
                     context.push_back(NodeName);
                     cnt++;
-                    if (cnt > 1 && context[1] == wxString("Channels") && NodeName == wxString("Channel")) {
-                        chanColor = wxAtoi(stagEvent -> getAttrValue("color")) & 0xFFFFFF;
+                    if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
+                        chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
+                        NodeName = stagEvent->getAttrValue("name");
+                        if (NodeName != "") {
+                            dlg.channelNames.push_back(NodeName);
+                            unsortedChannels.push_back(NodeName);
+                            
+                            xlColor c(chanColor, false);
+                            CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
+                            
+                            context.pop_back();
+                            context.push_back("IgnoreChannelElement");
+                        }
                     }
                 }
                 break;
@@ -1495,13 +1506,13 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                     if (cnt >= 2) {
                         NodeValue = stagEvent->getText();
-                        if (context[1] == wxString("MaximumLevel")) {
+                        if (context[1] == "MaximumLevel") {
                             //MaxIntensity = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("EventPeriodInMilliseconds")) {
+                        } else if (context[1] == "EventPeriodInMilliseconds") {
                             frameTime = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("Time")) {
+                        } else if (context[1] == "Time") {
                             time = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("Profile")) {
+                        } else if (context[1] == "Profile") {
                             wxArrayInt VixChannels;
                             wxArrayString VixChannelNames;
                             SequenceData seqData;
@@ -1524,7 +1535,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                                 CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
                             }
                             
-                        } else if (context[1] == wxString("EventValues")) {
+                        } else if (context[1] == "EventValues") {
                             //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
                             if (carryOver.size() > 0) {
                                 NodeValue.insert(0, carryOver);
@@ -1536,7 +1547,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                             } else {
                                 carryOver.clear();
                             }
-                        } else if (context[1] == wxString("Channels") && context[2] == wxString("Channel")) {
+                        } else if (context[1] == "Channels" && context[2] == "Channel") {
                             dlg.channelNames.push_back(NodeValue);
                             unsortedChannels.push_back(NodeValue);
 
@@ -1548,7 +1559,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                 }
                 case SP_XmlPullEvent::eEndTag:
                     if (cnt > 0) {
-                        context.RemoveAt(cnt-1);
+                        context.pop_back();
                     }
                     cnt = context.size();
                     break;
