@@ -359,6 +359,10 @@ void ModelDimmingCurveDialog::Init(std::map<std::string, std::map<std::string,st
         } else {
             DimmingTypeChoice->SetSelection(0);
             SingleGammaText->ChangeValue(dimmingInfo["all"]["gamma"]);
+            if (wxAtof(SingleGammaText->GetValue()) > 50.0)
+            {
+                SingleGammaText->ChangeValue("50.0");
+            }
             SingleBrightnessBox->SetValue(dimmingInfo["all"]["brightness"]);
         }
     } else {
