@@ -11,9 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.18  Jun 29, 2017
+   -- bug (dkulp)   Vixen import was not reading channel names/colors from profile files.
    -- enh (keith)   Add a show all effects row header right click menu option which opens up all groups/models/strands
                     to show all effects ... but only those that are necessary to see them all
    -- bug (keith)   Fix some crashes when mapping due to empty lists
+   -- bug (keith)   Fix hue vc not working on layers other than zero
+   -- enh (keith)   Add splitter to mapping dialog
+   -- enh (keith)   Add splitter to sequence elements dialog.
+   -- bug (keith)   Fix test tab throws error if output to lights was already on
+   -- enh (keith)   Connect up menu items for controller upload on OSX
+   -- enh (dkulp)   Update vixen import to try and find the profile file and use the channel names from there
    -- bug (keith)   Fix color panel value curves not setting correctly as you move from effect to effect
 2017.17  Jun 19, 2017
    -- bug (gil)     Fix individual start channels not displaying correct numbers.

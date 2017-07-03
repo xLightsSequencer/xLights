@@ -1,16 +1,21 @@
 #ifndef FILECONVERTER_H
 #define FILECONVERTER_H
 
+#include <vector>
+
 #ifndef FPP
 #include <wx/string.h>
 #endif
 #include "DataLayer.h"
 #include "SequenceData.h"
+#include "Color.h"
 
 class xLightsFrame; // forward declare to prevent including the world
 class ConvertDialog;
 class ConvertLogDialog;
 class OutputManager;
+class wxArrayInt;
+class wxArrayString;
 
 class ConvertParameters
 {
@@ -74,6 +79,11 @@ class FileConverter
         static void ReadConductorFile(ConvertParameters& params);
         static void ReadFalconFile(ConvertParameters& params);
         static void WriteFalconPiFile(ConvertParameters& params);
+
+    
+        static bool LoadVixenProfile(ConvertParameters& params, const wxString& ProfileName,
+                                     wxArrayInt& VixChannels, wxArrayString& VixChannelNames,
+                                     std::vector<xlColor> &VixChannelColors);
 
     protected:
     private:

@@ -1383,13 +1383,65 @@ void MapVixChannelInformation(xLightsFrame *xlights, EffectLayer *layer,
 #endif
 
 
+static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &channelNames, xlColor &c, std::map<std::string, xlColor> &channelColors) {
+    bool addRGB = false;
+    std::string base;
+    if (EndsWith(name, "Red") || EndsWith(name, "-R")) {
+        c = xlRED;
+        if (EndsWith(name, "-R")) {
+            base = name.substr(0, name.size() - 2);
+        } else {
+            base = name.substr(0, name.size() - 3);
+        }
+        if ((Contains(channelNames, base + "Blue")
+             && Contains(channelNames, base + "Green"))
+            || (Contains(channelNames, base + "-B")
+                && Contains(channelNames, base + "-G")))
+        {
+            addRGB = true;
+        }
+    } else if (EndsWith(name, "Blue") || EndsWith(name, "-B")) {
+        c = xlBLUE;
+        if (EndsWith(name, "-B")) {
+            base = name.substr(0, name.size() - 2);
+        } else {
+            base = name.substr(0, name.size() - 4);
+        }
+        if ((Contains(channelNames, base + "Red")
+             && Contains(channelNames, base + "Green"))
+            || (Contains(channelNames, base + "-R")
+                && Contains(channelNames, base + "-G"))) {
+                addRGB = true;
+            }
+    } else if (EndsWith(name, "Green") || EndsWith(name, "-G")) {
+        c = xlGREEN;
+        if (EndsWith(name, "-G")) {
+            base = name.substr(0, name.size() - 2);
+        } else {
+            base = name.substr(0, name.size() - 5);
+        }
+        if ((Contains(channelNames, base + "Blue")
+             && Contains(channelNames, base + "Red"))
+            || (Contains(channelNames, base + "-B")
+                && Contains(channelNames, base + "-R"))) {
+                addRGB = true;
+            }
+    }
+    channelColors[name] = c;
+    if (addRGB) {
+        channelColors[base] = xlBLACK;
+        channelNames.push_back(base);
+    }
+}
+
+
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
 
     std::string NodeName,NodeValue,msg;
     std::vector<unsigned char> VixSeqData;
     long cnt = 0;
-    wxArrayString context;
+    std::vector<std::string> context;
     //long MaxIntensity = 255;
 
     int time = 0;
@@ -1433,8 +1485,19 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     NodeName = stagEvent->getName();
                     context.push_back(NodeName);
                     cnt++;
-                    if (cnt > 1 && context[1] == wxString("Channels") && NodeName == wxString("Channel")) {
-                        chanColor = wxAtoi(stagEvent -> getAttrValue("color")) & 0xFFFFFF;
+                    if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
+                        chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
+                        NodeName = stagEvent->getAttrValue("name");
+                        if (NodeName != "") {
+                            dlg.channelNames.push_back(NodeName);
+                            unsortedChannels.push_back(NodeName);
+                            
+                            xlColor c(chanColor, false);
+                            CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
+                            
+                            context.pop_back();
+                            context.push_back("IgnoreChannelElement");
+                        }
                     }
                 }
                 break;
@@ -1443,13 +1506,36 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                     if (cnt >= 2) {
                         NodeValue = stagEvent->getText();
-                        if (context[1] == wxString("MaximumLevel")) {
+                        if (context[1] == "MaximumLevel") {
                             //MaxIntensity = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("EventPeriodInMilliseconds")) {
+                        } else if (context[1] == "EventPeriodInMilliseconds") {
                             frameTime = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("Time")) {
+                        } else if (context[1] == "Time") {
                             time = wxAtoi(NodeValue);
-                        } else if (context[1] == wxString("EventValues")) {
+                        } else if (context[1] == "Profile") {
+                            wxArrayInt VixChannels;
+                            wxArrayString VixChannelNames;
+                            SequenceData seqData;
+                            ConvertParameters params(filename.GetFullPath(),
+                                              seqData,
+                                              nullptr,
+                                              ConvertParameters::ReadMode::READ_MODE_NORMAL,
+                                              this,
+                                              nullptr,
+                                              nullptr);
+
+                            std::vector<xlColor> colors;
+                            FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
+                            for (int x = 0; x < VixChannelNames.size(); x++) {
+                                std::string name = VixChannelNames[x].ToStdString();
+                                xlColor c = colors[x];
+                                dlg.channelNames.push_back(name);
+                                unsortedChannels.push_back(name);
+
+                                CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
+                            }
+                            
+                        } else if (context[1] == "EventValues") {
                             //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
                             if (carryOver.size() > 0) {
                                 NodeValue.insert(0, carryOver);
@@ -1461,66 +1547,19 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                             } else {
                                 carryOver.clear();
                             }
-                        } else if (context[1] == wxString("Channels") && context[2] == wxString("Channel")) {
+                        } else if (context[1] == "Channels" && context[2] == "Channel") {
                             dlg.channelNames.push_back(NodeValue);
                             unsortedChannels.push_back(NodeValue);
 
                             xlColor c(chanColor, false);
-                            bool addRGB = false;
-                            std::string base;
-                            if (EndsWith(NodeValue, "Red") || EndsWith(NodeValue, "-R")) {
-                                c = xlRED;
-                                if (EndsWith(NodeValue, "-R")) {
-                                    base = NodeValue.substr(0, NodeValue.size() - 3);
-                                } else {
-                                    base = NodeValue.substr(0, NodeValue.size() - 4);
-                                }
-                                if ((Contains(dlg.channelNames, base + "Blue")
-                                     && Contains(dlg.channelNames, base + "Green"))
-                                    || (Contains(dlg.channelNames, base + "-B")
-                                        && Contains(dlg.channelNames, base + "-G")))
-                                {
-                                    addRGB = true;
-                                }
-                            } else if (EndsWith(NodeValue, "Blue") || EndsWith(NodeValue, "-B")) {
-                                c = xlBLUE;
-                                if (EndsWith(NodeValue, "-B")) {
-                                    base = NodeValue.substr(0, NodeValue.size() - 3);
-                                } else {
-                                    base = NodeValue.substr(0, NodeValue.size() - 5);
-                                }
-                                if ((Contains(dlg.channelNames, base + "Red")
-                                     && Contains(dlg.channelNames, base + "Green"))
-                                    || (Contains(dlg.channelNames, base + "-R")
-                                        && Contains(dlg.channelNames, base + "-G"))) {
-                                    addRGB = true;
-                                }
-                            } else if (EndsWith(NodeValue, "Green") || EndsWith(NodeValue, "-G")) {
-                                c = xlGREEN;
-                                if (EndsWith(NodeValue, "-G")) {
-                                    base = NodeValue.substr(0, NodeValue.size() - 3);
-                                } else {
-                                    base = NodeValue.substr(0, NodeValue.size() - 6);
-                                }
-                                if ((Contains(dlg.channelNames, base + "Blue")
-                                     && Contains(dlg.channelNames, base + "Red"))
-                                    || (Contains(dlg.channelNames, base + "-B")
-                                        && Contains(dlg.channelNames, base + "-R"))) {
-                                    addRGB = true;
-                                }
-                            }
-                            dlg.channelColors[NodeValue] = c;
-                            if (addRGB) {
-                                dlg.channelColors[base] = xlBLACK;
-                                dlg.channelNames.push_back(base);
-                            }
+                            CheckForVixenRGB(NodeValue, dlg.channelNames, c, dlg.channelColors);
                         }
                     }
                     break;
                 }
                 case SP_XmlPullEvent::eEndTag:
                     if (cnt > 0) {
-                        context.RemoveAt(cnt-1);
+                        context.pop_back();
                     }
                     cnt = context.size();
                     break;
