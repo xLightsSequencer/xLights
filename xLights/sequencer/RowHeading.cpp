@@ -5,7 +5,7 @@
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
 #include <wx/numdlg.h>
-#include "Models/ModelGroup.h"
+#include "models/ModelGroup.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
@@ -568,7 +568,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
             {
                 ModelElement* mm = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(*it));
 
-                if (!ModelInView(*it, view))
+                if (mm != nullptr && !ModelInView(*it, view))
                 {
                     hasEffects = mm->HasEffects();
                     hasEffects |= ExpandElementIfEffects(mSequenceElements->GetElement(*it));
@@ -598,7 +598,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
         for (int k = 0; k < se->GetNodeLayerCount(); ++k)
         {
             NodeLayer* nl = se->GetNodeLayer(k, false);
-            if (nl->HasEffectsInTimeRange(0, 9999999))
+            if (nl != nullptr && nl->HasEffectsInTimeRange(0, 9999999))
             {
                 se->ShowNodes(true);
                 return true;
