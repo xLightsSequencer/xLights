@@ -92,7 +92,7 @@ ATendril::~ATendril()
 	{
 		TendrilNode* p = _nodes.front();
 		_nodes.pop_front();
-		if (p != NULL)
+		if (p != nullptr)
 		{
 			delete p;
 		}
@@ -137,7 +137,7 @@ ATendril::ATendril(float friction, int size, float dampening, float tension, flo
 	for (size_t i = 0; i < _size; i++)
 	{
 		TendrilNode* node = new TendrilNode(start.x, start.y);
-		if (node != NULL)
+		if (node != nullptr)
 		{
 			_nodes.push_back(node);
 		}
@@ -148,16 +148,16 @@ void ATendril::Update(wxPoint* target)
 {
 	float spring = _spring;
 	TendrilNode* node = _nodes.front();
-	if (node != NULL)
+	if (node != nullptr)
 	{
 		node->vx += (target->x - node->x) * spring;
 		node->vy += (target->y - node->y) * spring;
 
-		TendrilNode* prev = NULL;
+		TendrilNode* prev = nullptr;
 		for (std::list<TendrilNode*>::const_iterator ci = _nodes.begin(); ci != _nodes.end(); ++ci)
 		{
 			node = *ci;
-			if (prev != NULL)
+			if (prev != nullptr)
 			{
 				node->vx += (prev->x - node->x) * spring;
 				node->vy += (prev->y - node->y) * spring;
@@ -228,13 +228,13 @@ void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
 wxPoint* ATendril::LastLocation()
 {
     TendrilNode *last = _nodes.back();
-    if (last != NULL)
+    if (last != nullptr)
     {
         return last->Point();
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -244,7 +244,7 @@ Tendril::~Tendril()
 	{
 		ATendril* p = _tendrils.front();
 		_tendrils.pop_front();
-		if (p != NULL)
+		if (p != nullptr)
 		{
 			delete p;
 		}
@@ -276,7 +276,7 @@ Tendril::Tendril(float friction, int trails, int size, float dampening, float te
 	{
 		float aspring = sb + si * ((float)i / (float)t);
 		ATendril* t = new ATendril(friction, size, dampening, tension, aspring, start, maxx, maxy);
-		if (t != NULL)
+		if (t != nullptr)
 		{
 			_tendrils.push_back(t);
 		}
@@ -300,11 +300,11 @@ void Tendril::UpdateRandomMove(int tunemovement)
 	int maxmovey = _height * 2 * tunemovement / 20;
 
 	ATendril* t = _tendrils.front();
-	if (t != NULL)
+	if (t != nullptr)
 	{
 		wxPoint* current = t->LastLocation();
 
-		if (current != NULL)
+		if (current != nullptr)
 		{
 			int realminmovex = minmovex;
 			if (minmovex < 0)
@@ -460,12 +460,12 @@ void TendrilEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
 
 class TendrilRenderCache : public EffectRenderCache {
 public:
-    TendrilRenderCache() { _tendril = NULL; };
+    TendrilRenderCache() { _tendril = nullptr; };
     virtual ~TendrilRenderCache() {
-		if (_tendril != NULL)
+		if (_tendril != nullptr)
 		{
 			delete _tendril;
-			_tendril = NULL;
+			_tendril = nullptr;
 		}
 	};
 
@@ -573,7 +573,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
     int truexoffset = xoffset * buffer.BufferWi / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 100;
 
-    if (_tendril == NULL || buffer.needToInit)
+    if (_tendril == nullptr || buffer.needToInit)
     {
         buffer.needToInit = false;
         wxPoint startmiddle(buffer.BufferWi / 2 + truexoffset / 2, buffer.BufferHt / 2 + trueyoffset / 2);
@@ -583,17 +583,17 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 		wxPoint starttopleft(0 + truexoffset, buffer.BufferHt + trueyoffset);
 		wxPoint startmiddleleft(0 + truexoffset, buffer.BufferHt / 2 + trueyoffset / 2);
 
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 delete _tendril;
-                _tendril = NULL;
+                _tendril = nullptr;
             }
 
             switch(nMovement)
             {
             case 1:
                 // random
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
             case 2:
                 // corners
@@ -605,7 +605,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 {
                     _mv4 = 1;
                 }
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
             case 3:
                 // circles
@@ -616,7 +616,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 {
                     _mv3 = 1;
                 }
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
             case 4:
                 // horizontal zig zag
@@ -627,14 +627,14 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                     _mv2 = 1;
                 }
                 _mv3 = 1; // direction
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
             case 5:
                 // vertical zig zag
                 _mv1 = 0 + truexoffset; // current x
                 _mv2 = (double)tunemovement * 1.5;
                 _mv3 = 1; // direction
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
 			case 6:
 				// line movement based on music
@@ -644,7 +644,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 				{
 					_mv3 = 1;
 				}
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startbottomleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
 			case 7:
 				// circle movement based on music
@@ -655,7 +655,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
 				{
 					_mv3 = 1;
 				}
-				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.BufferWi, buffer.BufferHt);
+				_tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddle, buffer.ModelBufferWi, buffer.ModelBufferHt);
 				break;
             case 9:
                 // horizontal zig zag return
@@ -666,19 +666,30 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                     _mv2 = 1;
                 }
                 _mv3 = 1; // direction
-                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.BufferWi, buffer.BufferHt);
+                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddlebottom, buffer.ModelBufferWi, buffer.ModelBufferHt);
                 break;
             case 8:
                 // vertical zig zag return
                 _mv1 = 0; // current x
                 _mv2 = (double)tunemovement * 1.5;
                 _mv3 = 1; // direction
-                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.BufferWi, buffer.BufferHt);
+                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, startmiddleleft, buffer.ModelBufferWi, buffer.ModelBufferHt);
                 break;
             case 10:
-                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100), buffer.BufferWi, buffer.BufferHt);
+                _tendril = new Tendril(friction, trails, length, dampening, tension, -1, -1, wxPoint(manualx * buffer.BufferWi / 100, manualy * buffer.BufferHt / 100), buffer.ModelBufferWi, buffer.ModelBufferHt);
                 break;
             }
+    }
+
+    // these are sensitive to the current buffer size
+    switch (nMovement)
+    {
+    case 3:
+        // circles
+        _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // radius
+    case 7:
+        // circle movement based on music
+        _mv2 = std::min(buffer.BufferWi, buffer.BufferHt) / 2; // max radius
     }
 
     const double PI  = 3.141592653589793238463;
@@ -689,7 +700,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         {
         case 1:
             // random
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->UpdateRandomMove(tunemovement);
             }
@@ -728,7 +739,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 }
                 break;
             }
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(_mv1, _mv2);
             }
@@ -744,7 +755,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             }
             int x = sin((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 + (double)buffer.BufferWi / 2.0 + truexoffset / 2;
             int y = cos((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 + (double)buffer.BufferHt / 2.0 + trueyoffset / 2;
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(x, y);
             }
@@ -768,7 +779,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 x = buffer.BufferWi + truexoffset + truexoffset - x;
             }
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(x, _mv1);
             }
@@ -788,7 +799,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 y = buffer.BufferHt + trueyoffset + trueyoffset - y;
             }
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(_mv1, y);
             }
@@ -798,10 +809,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         {
             // line movement based on music
             float f = 0.1f;
-            if (buffer.GetMedia() != NULL)
+            if (buffer.GetMedia() != nullptr)
             {
                 std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-                if (p != NULL)
+                if (p != nullptr)
                 {
                     f = *p->begin();
                 }
@@ -813,7 +824,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 _mv3 = _mv3 * -1;
             }
 
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(_mv1, trueyoffset + buffer.BufferHt * f);
             }
@@ -828,10 +839,10 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
                 _mv3 = 1;
             }
             float f = 0.1f;
-            if (buffer.GetMedia() != NULL)
+            if (buffer.GetMedia() != nullptr)
             {
                 std::list<float>* p = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-                if (p != NULL)
+                if (p != nullptr)
                 {
                     f = *p->begin();
                 }
@@ -844,7 +855,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             }
             int x = sin((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 * f * 2 + (double)buffer.BufferWi / 2.0 + truexoffset / 2;
             int y = cos((double)_mv1 / 360.0 * PI * 2.0) * (double)_mv2 * f * 2 + (double)buffer.BufferHt / 2.0 + trueyoffset / 2;
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(x, y);
             }
@@ -868,7 +879,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv3 = _mv3 * -1;
             }
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(x, _mv1 + trueyoffset);
             }
@@ -888,7 +899,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
             {
                 _mv3 = _mv3 * -1;
             }
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(_mv1 + truexoffset, y);
             }
@@ -897,7 +908,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         case 10:
         {
             // manual
-            if (_tendril != NULL)
+            if (_tendril != nullptr)
             {
                 _tendril->Update(manualx * buffer.BufferWi / 100 + truexoffset, manualy * buffer.BufferHt /100 + trueyoffset);
             }
@@ -906,7 +917,7 @@ void TendrilEffect::Render(RenderBuffer &buffer, const std::string& movement,
         }
     }
 
-	if (_tendril != NULL)
+	if (_tendril != nullptr)
 	{
 		_tendril->Draw(buffer.GetPathDrawingContext(), colour, thickness);
 	}

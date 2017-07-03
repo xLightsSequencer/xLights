@@ -97,7 +97,9 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->rotationsValueCurve = "";
         layers[x]->pivotpointxValueCurve = "";
         layers[x]->pivotpointyValueCurve = "";
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform);
+        layers[x]->ModelBufferHt = layers[x]->BufferHt;
+        layers[x]->ModelBufferWi = layers[x]->BufferWi;
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform);
     }
 }
 
@@ -106,7 +108,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);
         m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->ModelBufferHt, buf->ModelBufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -1185,6 +1187,100 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
     theValueCurve.Deserialise(valueCurve);
 }
 
+// Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
+void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi)
+{
+    if (wxString(subBuffer).Contains("Active=TRUE"))
+    {
+        // value curve present ... we have work to do
+        wxString sb = subBuffer;
+        sb.Replace("Max", "yyz");
+
+        wxArrayString v = wxSplit(sb, 'x');
+
+        bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
+        bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
+        bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
+        bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
+
+        // the larger the number the more fine grained the buffer assessment will be ... makes crashes less likely
+        #define VCITERATIONS (10.0 * VC_X_POINTS)
+
+        float maxX = 0;
+        if (fx1vc)
+        {
+            v[0].Replace("yyz", "Max");
+            ValueCurve vc(v[0].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxX)
+                {
+                    maxX = val;
+                }
+            }
+        }
+        if (fx2vc)
+        {
+            v[2].Replace("yyz", "Max");
+            ValueCurve vc(v[2].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxX)
+                {
+                    maxX = val;
+                }
+            }
+        }
+
+        float maxY = 0;
+        if (fy1vc)
+        {
+            v[1].Replace("yyz", "Max");
+            ValueCurve vc(v[1].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxY)
+                {
+                    maxY = val;
+                }
+            }
+        }
+        if (fy2vc)
+        {
+            v[3].Replace("yyz", "Max");
+            ValueCurve vc(v[3].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxY)
+                {
+                    maxY = val;
+                }
+            }
+        }
+
+        maxX *= (float)BufferWi;
+        maxY *= (float)BufferHt;
+        maxX /= 100.0;
+        maxY /= 100.0;
+
+        maxWi = std::max((int)std::ceil(maxX), BufferWi);
+        maxHt = std::max((int)std::ceil(maxY), BufferHt);
+    }
+    else
+    {
+        maxHt = BufferHt;
+        maxWi = BufferWi;
+    }
+}
+
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress) {
     if (subBuffer == STR_EMPTY) {
         return;
@@ -1357,8 +1453,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         }
         
         // save away the full model buffer size ... some effects need to know this
-        inf->ModelBufferHt = inf->BufferHt;
-        inf->ModelBufferWi = inf->BufferWi;
+        ComputeMaxBuffer(subBuffer, inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi);
+        //inf->ModelBufferHt = inf->BufferHt;
+        //inf->ModelBufferWi = inf->BufferWi;
 
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
@@ -1386,7 +1483,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->rotationsValueCurve = rotationsValueCurve;
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
+
+        // we create the buffer oversized to prevent issues
+        inf->buffer.InitBuffer(inf->ModelBufferHt, inf->ModelBufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
 
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
@@ -1397,7 +1496,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 int bw, bh;
                 (*it)->Nodes.clear();
                 gp->Models()[cnt]->InitRenderBufferNodes(ntype, transform, (*it)->Nodes, bw, bh);
-                (*it)->InitBuffer(bh, bw, transform);
+                (*it)->InitBuffer(bh, bw, bh, bw, transform);
                 (*it)->SetAllowAlphaChannel(inf->buffer.allowAlpha);
             }
         } else {
