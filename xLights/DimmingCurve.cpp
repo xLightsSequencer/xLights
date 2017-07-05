@@ -104,6 +104,7 @@ public:
     BasicDimmingCurve(int ch = -1) : BaseDimmingCurve(ch)  {
     }
     BasicDimmingCurve(int brightness, float gamma, int ch = -1) : BaseDimmingCurve(ch) {
+        if (gamma > 50.0) gamma = 50.0;
         init(brightness, gamma);
     }
     virtual ~BasicDimmingCurve() {}

@@ -149,10 +149,15 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             }
         }
 
-        x2 = int(std::ceil(maxx - minx))+1;
-        y2 = int(std::ceil(maxy - miny))+1;
 
-        SetBufferSize(y2, x2);
+        if (maxx < minx || maxy < miny || Nodes.size() == 0) {
+            // invalid buffer, set it to just a 1x1 as 0x0 can cause some render issues
+            SetBufferSize(1, 1);
+        } else {
+            x2 = int(std::ceil(maxx - minx))+1;
+            y2 = int(std::ceil(maxy - miny))+1;
+            SetBufferSize(y2, x2);
+        }
     }
     //ModelStartChannel is 1 based
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
