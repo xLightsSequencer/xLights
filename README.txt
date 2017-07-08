@@ -11,9 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- bug (dkulp)   Guard against submodels that result in 0 nodes that could create gigantic buffers.
-                    Fixes #879
+2017.19  Jul 08, 2017
+   -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
+                    create gigantic buffers. Fixes #879
    -- bug (dkulp)   Fix crash with exporting of model group.  Fixes # 878
+   -- bug (keith)   Put in place protections against extreme gamma values.
+   -- bug (keith)   Fix show all effects crash because dynamic cast failed
 2017.18  Jun 29, 2017
    -- bug (dkulp)   Vixen import was not reading channel names/colors from profile files.
    -- enh (keith)   Add a show all effects row header right click menu option which opens up all groups/models/strands
