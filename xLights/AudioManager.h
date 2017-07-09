@@ -38,6 +38,24 @@ public:
     virtual bool DeleteWhenComplete() override { return true; }
 };
 
+class AudioLoadJob : Job
+{
+private:
+    AudioManager* _audio;
+    std::string _status;
+    AVFormatContext* _formatContext;
+    AVCodecContext* _codecContext;
+    AVStream* _audioStream;
+    AVFrame* _frame;
+
+public:
+    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    virtual ~AudioLoadJob() {};
+    virtual void Process() override;
+    virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
+};
+
 class xLightsVamp
 {
 	Vamp::HostExt::PluginLoader *_loader;
@@ -153,7 +171,10 @@ class AudioManager
 	JobPool _jobPool;
 	Job* _job;
     std::shared_timed_mutex _mutex;
-	std::vector<std::vector<std::list<float>>> _frameData;
+    Job* _jobAudioLoad;
+    std::shared_timed_mutex _mutexAudioLoad;
+    long _loadedData;
+    std::vector<std::vector<std::list<float>>> _frameData;
 	std::string _audio_file;
 	xLightsVamp _vamp;
 	long _rate;
@@ -193,6 +214,8 @@ class AudioManager
 	int decodesamplerateindex(int samplerateindex, int version);
 	int decodesideinfosize(int version, int mono);
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
+    void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    void SetLoadedData(long pos);
 
 public:
     bool IsOk() const { return _ok; }
@@ -202,7 +225,9 @@ public:
 	void Play();
     void Play(int posms, int lenms);
     void Stop();
-	static void SetPlaybackRate(float rate);
+    long GetLoadedData();
+    bool IsDataLoaded(long pos = -1);
+    static void SetPlaybackRate(float rate);
 	MEDIAPLAYINGSTATE GetPlayingState();
 	int Tell();
 	xLightsVamp* GetVamp() { return &_vamp; };
@@ -233,6 +258,7 @@ public:
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() { return _polyphonicTranscriptionDone; };
+    void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
 };
 
 #endif

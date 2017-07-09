@@ -542,6 +542,34 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
     return 0;
 }
 
+long AudioManager::GetLoadedData()
+{
+    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+
+    return _loadedData;
+}
+
+void AudioManager::SetLoadedData(long pos)
+{
+    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+
+    _loadedData = pos;
+}
+
+bool AudioManager::IsDataLoaded(long pos)
+{
+    std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
+
+    if (pos < 0)
+    {
+        return _loadedData == _trackSize;
+    }
+    else
+    {
+        return _loadedData >= std::min(pos, (long)_trackSize);
+    }
+}
+
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -549,6 +577,8 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	// save parameters and initialise defaults
     _ok = true;
 	_job = nullptr;
+    _jobAudioLoad = nullptr;
+    _loadedData = 0;
 	_audio_file = audio_file;
 	_state = -1; // state uninitialised. 0 is error. 1 is loaded ok
 	_resultMessage = "";
@@ -647,14 +677,23 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 
 void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback fn)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     // dont redo it
     if (_polyphonicTranscriptionDone)
     {
         return;
     }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Polyphonic transcription started on file " + _audio_file);
+    wxStopWatch sw;
+
+    logger_base.info("DoPolyphonicTranscription: Polyphonic transcription started on file " + _audio_file);
+
+    while (!IsDataLoaded())
+    {
+        logger_base.debug("DoPolyphonicTranscription: Waiting for audio data to load.");
+        wxMilliSleep(100);
+    }
 
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
     logger_pianodata.debug("Processing polyphonic transcription on file " + _audio_file);
@@ -668,7 +707,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
     if (pt == nullptr)
     {
-        logger_base.warn("Unable to load Polyphonic Transcription VAMP plugin.");
+        logger_base.warn("DoPolyphonicTranscription: Unable to load Polyphonic Transcription VAMP plugin.");
     }
     else
     {
@@ -715,7 +754,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
             if (first && features.size() > 0)
             {
-                logger_base.warn("Polyphonic transcription data process oddly retrieved data.");
+                logger_base.warn("DoPolyphonicTranscription: Polyphonic transcription data process oddly retrieved data.");
                 first = false;
             }
             if (len > pref_step)
@@ -786,14 +825,14 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
         }
         catch (...)
         {
-            logger_base.warn("Polyphonic Transcription threw an error getting the remaining features.");
+            logger_base.warn("DoPolyphonicTranscription: Polyphonic Transcription threw an error getting the remaining features.");
         }
 
         //done with VAMP Polyphonic Transcriber
         delete pt;
     }
     _polyphonicTranscriptionDone = true;
-    logger_base.info("Polyphonic transcription completed.");
+    logger_base.info("DoPolyphonicTranscription: Polyphonic transcription completed in %ld.", sw.Time());
 }
 
 // Frame Data Extraction Functions
@@ -801,19 +840,28 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 void AudioManager::DoPrepareFrameData()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Start processing audio frame data.");
+    logger_base.info("DoPrepareFrameData: Start processing audio frame data.");
 
 	// lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
 
     if (_data[0] == nullptr) return;
 
+    wxStopWatch sw;
+
 	// if we have already done it ... bail
 	if (_frameDataPrepared)
 	{
-		logger_base.info("Aborting processing audio frame data ... it has already been done.");
+		logger_base.info("DoPrepareFrameData: Aborting processing audio frame data ... it has already been done.");
 		return;
 	}
+
+    // wait for the data to load
+    while (!IsDataLoaded())
+    {
+        logger_base.info("DoPrepareFrameData: waiting for audio data to load.");
+        wxMilliSleep(1000);
+    }
 
 	// samples per frame
 	int samplesperframe = _rate * _intervalMS / 1000;
@@ -983,7 +1031,7 @@ void AudioManager::DoPrepareFrameData()
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
 
-	logger_base.info("Audio frame data processing complete.");
+	logger_base.info("DoPrepareFrameData: Audio frame data processing complete in %ld.", sw.Time());
 }
 
 // Called to trigger frame data creation
@@ -1004,6 +1052,22 @@ void AudioManager::PrepareFrameData(bool separateThread)
 	}
 }
 
+void AudioManager::LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
+{
+    if (separateThread)
+    {
+        // if we have not prepared the frame data and no job has been created
+        if (_jobAudioLoad == nullptr)
+        {
+            _jobAudioLoad = (Job*)new AudioLoadJob(this, formatContext, codecContext, audioStream, frame);
+            _jobPool.PushJob(_jobAudioLoad);
+        }
+    }
+    else
+    {
+        DoLoadAudioData(formatContext, codecContext, audioStream, frame);
+    }
+}
 
 void ProgressFunction(wxProgressDialog* pd, int p)
 {
@@ -1316,13 +1380,21 @@ void AudioManager::SetStepBlock(int step, int block)
 // Clean up our data buffers
 AudioManager::~AudioManager()
 {
-	if (_pcmdata != nullptr)
-	{
-		__sdl.Stop();
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    while (!IsDataLoaded())
+    {
+        logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
+        wxMilliSleep(100);
+    }
+
+    if (_pcmdata != nullptr)
+    {
+        __sdl.Stop();
         __sdl.RemoveAudio(_sdlid);
-		free(_pcmdata);
-		_pcmdata = nullptr;
-	}
+        free(_pcmdata);
+        _pcmdata = nullptr;
+    }
 
     // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
     // this is only tripped if we try to open a new song too soon after opening another one
@@ -1452,6 +1524,7 @@ int AudioManager::OpenMediaFile()
 		free(_data[0]);
 		_data[0] = nullptr;
 	}
+    _loadedData = 0;
 
     size_t size = sizeof(float)*(_trackSize + _extra);
 	_data[0] = (float*)calloc(size, 1);
@@ -1484,11 +1557,6 @@ int AudioManager::OpenMediaFile()
 
 	LoadTrackData(formatContext, codecContext, audioStream);
 
-	ExtractMP3Tags(formatContext);
-
-	avcodec_close(codecContext);
-	avformat_close_input(&formatContext);
-
     // only initialise if we successfully got data
     if (_pcmdata != nullptr)
     {
@@ -1503,36 +1571,53 @@ int AudioManager::OpenMediaFile()
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Preparing to load song data.");
 
     // setup our conversion format ... we need to conver the input to a standard format before we can process anything
-	uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
-	AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
-	int out_sample_rate = _rate;
-	int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
+    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
+    int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
 
-	#define CONVERSION_BUFFER_SIZE 192000
-	uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
-
-	AVFrame* frame = av_frame_alloc();
-	int read = 0;
-	if (!frame)
-	{
-		_resultMessage = "Error allocating the frame";
-		_state = 0;
+    AVFrame* frame = av_frame_alloc();
+    if (!frame)
+    {
+        _resultMessage = "Error allocating the frame";
+        _state = 0;
         _ok = false;
         return;
-	}
+    }
 
-	_pcmdatasize = _trackSize * out_channels * 2;
-	_pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
-	if (_pcmdata == nullptr)
-	{
+    _pcmdatasize = _trackSize * out_channels * 2;
+    _pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
+    if (_pcmdata == nullptr)
+    {
         _ok = false;
         return;
-	}
+    }
 
-	AVPacket readingPacket;
+    ExtractMP3Tags(formatContext);
+
+    LoadAudioData(true, formatContext, codecContext, audioStream, frame);
+}
+
+void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("DoLoadAudioData: Doing load of song data.");
+
+    wxStopWatch sw;
+
+    int read = 0;
+
+    // setup our conversion format ... we need to conver the input to a standard format before we can process anything
+    uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
+    int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
+    AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
+    int out_sample_rate = _rate;
+    AVPacket readingPacket;
 	av_init_packet(&readingPacket);
+
+#define CONVERSION_BUFFER_SIZE 192000
+    uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
 	struct SwrContext *au_convert_ctx = swr_alloc();
@@ -1578,7 +1663,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					if (read + frame->nb_samples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
-						logger_base.warn("This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
+						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
 					}
 
 					// copy the PCM data into the PCM buffer for playing
@@ -1596,6 +1681,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 						}
 					}
 					read += frame->nb_samples;
+                    SetLoadedData(read);
 				}
 				else
 				{
@@ -1647,14 +1733,22 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 					}
 				}
 				read += frame->nb_samples;
-			}
+                SetLoadedData(read);
+            }
 		}
 	}
+
+    wxASSERT(_trackSize == _loadedData);
 
 	// Clean up!
 	swr_free(&au_convert_ctx);
 	av_free(out_buffer);
 	av_free(frame);
+
+    avcodec_close(codecContext);
+    avformat_close_input(&formatContext);
+
+    logger_base.debug("DoLoadAudioData: Song data loaded in %ld.", sw.Time());
 }
 
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
@@ -1757,6 +1851,13 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 // Access a single piece of track data
 float AudioManager::GetLeftData(int offset)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))
+    {
+        logger_base.debug("GetLeftData waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
 	if (_data[0] == nullptr || offset > _trackSize)
 	{
 		return 0;
@@ -1767,6 +1868,13 @@ float AudioManager::GetLeftData(int offset)
 // Access a single piece of track data
 float AudioManager::GetRightData(int offset)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))
+    {
+        logger_base.debug("GetRightData waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
     if (_data[1] == nullptr || offset > _trackSize)
 	{
 		return 0;
@@ -1777,6 +1885,13 @@ float AudioManager::GetRightData(int offset)
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetLeftDataPtr(int offset)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))
+    {
+        logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
     wxASSERT(_data[0] != nullptr);
 	if (offset > _trackSize)
 	{
@@ -1788,6 +1903,13 @@ float* AudioManager::GetLeftDataPtr(int offset)
 // Access track data but get a pointer so you can then read a block directly
 float* AudioManager::GetRightDataPtr(int offset)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(offset))
+    {
+        logger_base.debug("GetRightDataPtr waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
     wxASSERT(_data[1] != nullptr);
 	if (offset > _trackSize)
 	{
@@ -1810,6 +1932,26 @@ void AudioScanJob::Process()
 	_status = "Processing.";
 	_audio->DoPrepareFrameData();
 	_status = "Done.";
+}
+
+// AudioLoadJob Functions
+// This job runs the frame data extraction on a background thread
+AudioLoadJob::AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
+{
+    _formatContext = formatContext;
+    _codecContext = codecContext;
+    _audioStream = audioStream;
+    _frame = frame;
+    _audio = audio;
+    _status = "Idle.";
+}
+
+// Run the job
+void AudioLoadJob::Process()
+{
+    _status = "Processing.";
+    _audio->DoLoadAudioData(_formatContext, _codecContext, _audioStream, _frame);
+    _status = "Done.";
 }
 
 // xLightsVamp Functions
