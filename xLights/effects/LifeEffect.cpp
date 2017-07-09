@@ -85,7 +85,7 @@ void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     int BufferHt = buffer.BufferHt;
     int BufferWi = buffer.BufferWi;
     
-    if(BufferHt<1) BufferHt=1;
+    if(BufferHt<1) BufferHt = 1;
     Count=BufferWi * BufferHt * Count / 200 + 1;
     if (buffer.needToInit || Count != cache->LastLifeCount || Type != cache->LastLifeType)
     {

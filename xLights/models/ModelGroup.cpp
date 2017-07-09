@@ -64,7 +64,8 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBa
     }
 }
 
-bool ModelGroup::Reset() {
+bool ModelGroup::Reset(bool zeroBased) {
+    this->zeroBased = zeroBased;
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
     DisplayAs = "ModelGroup";
@@ -109,12 +110,17 @@ bool ModelGroup::Reset() {
     float maxx = -1;
     float miny = 99999;
     float maxy = -1;
+    
+    int minChan = 9999999;
     for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
         for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
             minx = std::min(minx, coord->screenX);
             miny = std::min(miny, coord->screenY);
             maxx = std::max(maxx, coord->screenX);
             maxy = std::max(maxy, coord->screenY);
+        }
+        if ((*it)->ActChan < minChan) {
+            minChan = (*it)->ActChan;
         }
     }
     if (miny < 0) {
@@ -194,6 +200,9 @@ bool ModelGroup::Reset() {
             nminy = std::min(nminy, (float)coord->screenY);
             BufferHt = std::max(BufferHt, (int)coord->bufY);
             BufferWi = std::max(BufferWi, (int)coord->bufX);
+        }
+        if (zeroBased) {
+            (*it)->ActChan = (*it)->ActChan - minChan;
         }
     }
 

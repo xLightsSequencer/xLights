@@ -10,7 +10,7 @@ wxDECLARE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 class SubBufferPanel : public wxWindow, public xlCustomControl
 {
     public:
-        SubBufferPanel(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+        SubBufferPanel(wxPanel* parent, bool usevc, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0);
         virtual ~SubBufferPanel();
 
@@ -33,11 +33,13 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         void SendChangeEvent();
         int OverMouseHandle(wxMouseEvent& event);
         void Convert(float &x, float &y, wxMouseEvent& event);
-    
+        bool HasVC();
+
         float x1, y1, x2, y2;
-    
-        int draggingHandle;
-    
+        std::string x1vc, y1vc, x2vc, y2vc;
+        bool _usevc;
+
+        int draggingHandle;    
 };
 
 #endif // SUBBUFFERPANEL_H

@@ -5,24 +5,34 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/spinctrl.h>
+#include <wx/bmpbuttn.h>
 #include <wx/dialog.h>
 //*)
 
+#include "ValueCurveButton.h"
+
 class BufferSizeDialog: public wxDialog
 {
+    void ValidateWindow();
+
 	public:
 
-		BufferSizeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		BufferSizeDialog(wxWindow* parent, bool usevc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BufferSizeDialog();
-        void SetSizes(int top, int left, int bottom, int right);
+        void SetSizes(int top, int left, int bottom, int right, const std::string& topvc, const std::string& leftvc, const std::string& bottomvc, const std::string& rightvc);
+        void OnVCChanged(wxCommandEvent& event); 
 
 		//(*Declarations(BufferSizeDialog)
 		wxStaticText* StaticText2;
 		wxSpinCtrl* SpinCtrl_Top;
+		ValueCurveButton* ValueCurve_Bottom;
+		ValueCurveButton* ValueCurve_Top;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		ValueCurveButton* ValueCurve_Left;
 		wxSpinCtrl* SpinCtrl_Right;
 		wxSpinCtrl* SpinCtrl_Bottom;
+		ValueCurveButton* ValueCurve_Right;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_Left;
 		//*)
@@ -32,12 +42,16 @@ class BufferSizeDialog: public wxDialog
 		//(*Identifiers(BufferSizeDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL1;
+		static const long ID_VALUECURVE_BufferTop;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL2;
+		static const long ID_VALUECURVE_BufferLeft;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL3;
+		static const long ID_VALUECURVE_BufferBottom;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL4;
+		static const long ID_VALUECURVE_BufferRight;
 		//*)
 
 	private:
@@ -47,6 +61,7 @@ class BufferSizeDialog: public wxDialog
 		void OnSpinCtrl_LeftChange(wxSpinEvent& event);
 		void OnSpinCtrl_BottomChange(wxSpinEvent& event);
 		void OnSpinCtrl_RightChange(wxSpinEvent& event);
+		void OnValueCurve_Click(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

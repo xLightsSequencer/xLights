@@ -115,6 +115,8 @@ private:
         std::string rotoZoom;
         int BufferHt;
         int BufferWi;
+        int ModelBufferHt;
+        int ModelBufferWi;
         ValueCurve BlurValueCurve;
         ValueCurve SparklesValueCurve;
         ValueCurve BrightnessValueCurve;
@@ -149,6 +151,8 @@ private:
         int fadeOutSteps;
         std::string inTransitionType;
         std::string outTransitionType;
+        std::string type;
+        std::string transform;
         int inTransitionAdjust;
         int outTransitionAdjust;
         bool inTransitionReverse;
@@ -203,6 +207,9 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
+
+    bool IsVariableSubBuffer(int layer) const;
+    void PrepareVariableSubBuffer(int EffectPeriod, int layer);
 
     PixelBufferClass(xLightsFrame *f);
     virtual ~PixelBufferClass();

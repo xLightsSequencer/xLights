@@ -1,21 +1,17 @@
 #include "FacesEffect.h"
 #include "FacesPanel.h"
 #include "../models/Model.h"
-#include "../models/CustomModel.h"
 #include "../sequencer/SequenceElements.h"
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../SequenceCheck.h"
-
-#include "../xLightsMain.h" //xLightsFrame
-#include <list>
-
+#include "../xLightsMain.h" 
 #include "PicturesEffect.h"
 
-#include "../../include/corofaces.xpm"
+#include <list>
 
+#include "../../include/corofaces.xpm"
 
 #include <wx/tokenzr.h>
 
@@ -275,7 +271,6 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
 #endif
 }
 
-
 //TODO: add params for eyes, outline
 void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int BufferWi)
 {
@@ -326,28 +321,22 @@ void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int Buff
      ............55.|.55............
      */
 
-    int Wt, Ht, x1,x2,x3,x4,y1,y2,y3,y4,y5,y6,y7;
     int xc,yc;
     double radius,offset=0.0;
-    Ht = BufferHt-1;
-    Wt = BufferWi-1;
-    x1=(int)(offset + Wt*0.25);
-    x2=(int)(offset + Wt*0.75);
-    x3=(int)(offset + Wt*0.30);
-    x4=(int)(offset + Wt*0.70);
+    int Ht = BufferHt-1;
+    int Wt = BufferWi-1;
+    int x1=(int)(offset + Wt*0.25);
+    int x2=(int)(offset + Wt*0.75);
+    int x3=(int)(offset + Wt*0.30);
+    int x4=(int)(offset + Wt*0.70);
 
-    y1=(int)(offset + Ht*0.48);
-    y2=(int)(offset + Ht*0.40);
-    y3=(int)(offset + Ht*0.25);
-    y4=(int)(offset + Ht*0.20);
-    y5=(int)(offset + Ht*0.30);
-    y6=(int)(offset + Ht*0.20);
-    y7=(int)(offset + Ht*0.30);
+    int y1=(int)(offset + Ht*0.48);
+    int y2=(int)(offset + Ht*0.40);
+    int y3=(int)(offset + Ht*0.25);
+    int y4=(int)(offset + Ht*0.20);
+    int y5=(int)(offset + Ht*0.30);
 
     // eyes
-
-
-
     switch (Phoneme)
     {
         case 0:         // AI
@@ -409,9 +398,6 @@ void FacesEffect::drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int
         buffer.SetPixel(x2,y,hsv); // rightside
     }
 }
-
-
-
 
 void FacesEffect::drawline3(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y6,int y7)
 {
@@ -582,13 +568,13 @@ static bool parse_model(const wxString& want_model)
         //    wxString buf;
         //group name is not available, so use first occurrence of model in *any* group:
         //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
-        for (wxXmlNode* group = Presets->GetChildren(); group != NULL; group = group->GetNext())
+        for (wxXmlNode* group = Presets->GetChildren(); group != nullptr; group = group->GetNext())
         {
             wxString grpname = group->GetAttribute(wxT("name"));
             //        if (group->GetName() != "coro") continue;
             //        if (grpname.IsEmpty()) continue;
             //        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%i"), i + 1), true);
-            for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
+            for (wxXmlNode* voice = group->GetChildren(); voice != nullptr; voice = voice->GetNext())
             {
                 wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
                 if (voice_name != want_model) continue;

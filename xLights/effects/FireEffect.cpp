@@ -173,7 +173,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     if (withMusic)
     {
         HeightPct = 10;
-        if (buffer.GetMedia() != NULL)
+        if (buffer.GetMedia() != nullptr)
         {
             float f = 0.0;
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
@@ -195,14 +195,21 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     }
     if (HeightPct<1) HeightPct=1;
     
-    
+    int maxMHt = buffer.ModelBufferHt;
+    int maxMWi = buffer.ModelBufferWi;
+    if (loc == 2 || loc == 3) {
+        maxMHt = buffer.ModelBufferWi;
+        maxMWi = buffer.ModelBufferHt;
+    }
+
     int maxHt = buffer.BufferHt;
     int maxWi = buffer.BufferWi;
     if (loc == 2 || loc == 3) {
         maxHt = buffer.BufferWi;
         maxWi = buffer.BufferHt;
     }
-    
+
+    if (maxMHt<1) maxMHt = 1;
     if (maxHt<1) maxHt=1;
 
     FireRenderCache *cache = GetCache(buffer, id);
@@ -210,7 +217,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     float mod_state = 4.0;
     if (buffer.needToInit) {
         buffer.needToInit = false;
-        cache->FireBuffer.resize(maxHt * maxWi);
+        cache->FireBuffer.resize(maxMHt * maxMWi);
         for (size_t i=0; i < cache->FireBuffer.size(); i++) {
             cache->FireBuffer[i]=0;
         }
@@ -218,9 +225,9 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         mod_state = 4 / (buffer.curPeriod%4+1);
     }
     // build fire
-    for (x=0; x<maxWi; x++) {
+    for (x=0; x<maxMWi; x++) {
         r=x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
-        SetFireBuffer(x,0,r, cache->FireBuffer, maxWi, maxHt);
+        SetFireBuffer(x,0,r, cache->FireBuffer, maxMWi, maxMHt);
     }
     int step=255*100/maxHt/HeightPct;
     int sum;
@@ -228,10 +235,10 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     {
         for (x=0; x<maxWi; x++)
         {
-            v1=GetFireBuffer(x-1,y-1, cache->FireBuffer, maxWi, maxHt);
-            v2=GetFireBuffer(x+1,y-1, cache->FireBuffer, maxWi, maxHt);
-            v3=GetFireBuffer(x,y-1, cache->FireBuffer, maxWi, maxHt);
-            v4=GetFireBuffer(x,y-1, cache->FireBuffer, maxWi, maxHt);
+            v1=GetFireBuffer(x-1,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            v2=GetFireBuffer(x+1,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            v3=GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            v4=GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
             n=0;
             sum=0;
             if(v1>=0)
@@ -261,7 +268,7 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 if (new_index < 0) new_index=0;
                 if (new_index >= FirePalette.size()) new_index = FirePalette.size()-1;
             }
-            SetFireBuffer(x,y,new_index, cache->FireBuffer, maxWi, maxHt);
+            SetFireBuffer(x,y,new_index, cache->FireBuffer, maxMWi, maxMHt);
         }
     }
     
@@ -281,21 +288,21 @@ void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 yp = t;
             }
             if (HueShift>0) {
-                hsv = FirePalette[GetFireBuffer(x,y, cache->FireBuffer, maxWi, maxHt)];
+                hsv = FirePalette[GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
                 if (buffer.allowAlpha) {
                     xlColor c(hsv);
-                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxWi, maxHt)).Alpha();
+                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)).Alpha();
                     buffer.SetPixel(xp, yp, c);
                 } else {
                     buffer.SetPixel(xp, yp, hsv);
                 }
             } else {
                 if (buffer.allowAlpha) {
-                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxWi, maxHt)));
+                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)));
                 } else {
-                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x,y, cache->FireBuffer, maxWi, maxHt)));
+                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)));
                 }
             }
         }

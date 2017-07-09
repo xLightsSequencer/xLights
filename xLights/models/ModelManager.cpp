@@ -426,7 +426,7 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
 Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
     if (node->GetName() == "modelGroup") {
         ModelGroup *grp = new ModelGroup(node, *this, previewWidth, previewHeight);
-        grp->Reset();
+        grp->Reset(zeroBased);
         return grp;
     }
     std::string type = node->GetAttribute("DisplayAs").ToStdString();

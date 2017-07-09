@@ -97,7 +97,9 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->rotationsValueCurve = "";
         layers[x]->pivotpointxValueCurve = "";
         layers[x]->pivotpointyValueCurve = "";
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform);
+        layers[x]->ModelBufferHt = layers[x]->BufferHt;
+        layers[x]->ModelBufferWi = layers[x]->BufferWi;
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform);
     }
 }
 
@@ -106,7 +108,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);
         m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->ModelBufferHt, buf->ModelBufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -1185,15 +1187,182 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
     theValueCurve.Deserialise(valueCurve);
 }
 
-void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+// Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
+void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi)
+{
+    if (wxString(subBuffer).Contains("Active=TRUE"))
+    {
+        // value curve present ... we have work to do
+        wxString sb = subBuffer;
+        sb.Replace("Max", "yyz");
+
+        wxArrayString v = wxSplit(sb, 'x');
+
+        bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
+        bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
+        bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
+        bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
+
+        // the larger the number the more fine grained the buffer assessment will be ... makes crashes less likely
+        #define VCITERATIONS (10.0 * VC_X_POINTS)
+
+        float maxX = 0;
+        if (fx1vc)
+        {
+            v[0].Replace("yyz", "Max");
+            ValueCurve vc(v[0].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxX)
+                {
+                    maxX = val;
+                }
+            }
+        }
+        if (fx2vc)
+        {
+            v[2].Replace("yyz", "Max");
+            ValueCurve vc(v[2].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxX)
+                {
+                    maxX = val;
+                }
+            }
+        }
+
+        float maxY = 0;
+        if (fy1vc)
+        {
+            v[1].Replace("yyz", "Max");
+            ValueCurve vc(v[1].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxY)
+                {
+                    maxY = val;
+                }
+            }
+        }
+        if (fy2vc)
+        {
+            v[3].Replace("yyz", "Max");
+            ValueCurve vc(v[3].ToStdString());
+            vc.SetLimits(-100, 200);
+            for (int i = 0; i < VCITERATIONS; ++i)
+            {
+                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
+                if (val > maxY)
+                {
+                    maxY = val;
+                }
+            }
+        }
+
+        maxX *= (float)BufferWi;
+        maxY *= (float)BufferHt;
+        maxX /= 100.0;
+        maxY /= 100.0;
+
+        maxWi = std::max((int)std::ceil(maxX), BufferWi);
+        maxHt = std::max((int)std::ceil(maxY), BufferHt);
+    }
+    else
+    {
+        maxHt = BufferHt;
+        maxWi = BufferWi;
+    }
+}
+
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress) {
     if (subBuffer == STR_EMPTY) {
         return;
     }
-    wxArrayString v = wxSplit(subBuffer, 'x');
-    float x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
-    float y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
-    float x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
-    float y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+
+    wxString sb = subBuffer;
+    sb.Replace("Max", "yyz");
+
+    wxArrayString v = wxSplit(sb, 'x');
+
+    bool fx1vc = v.size() > 0 && v[0].Contains("Active=TRUE");
+    bool fy1vc = v.size() > 1 && v[1].Contains("Active=TRUE");
+    bool fx2vc = v.size() > 2 && v[2].Contains("Active=TRUE");
+    bool fy2vc = v.size() > 3 && v[3].Contains("Active=TRUE");
+
+    float x1;
+    if (fx1vc)
+    {
+        v[0].Replace("yyz", "Max");
+        ValueCurve vc(v[0].ToStdString());
+        vc.SetLimits(-100, 200);
+        x1 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 0)
+    {
+        x1 = wxAtof(v[0]);
+    }
+    else
+    {
+        x1 = 0.0;
+    }
+
+    float y1;
+    if (fy1vc)
+    {
+        v[1].Replace("yyz", "Max");
+        ValueCurve vc(v[1].ToStdString());
+        vc.SetLimits(-100, 200);
+        y1 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 1)
+    {
+        y1 = wxAtof(v[1]);
+    }
+    else
+    {
+        y1 = 0.0;
+    }
+
+    float x2;
+    if (fx2vc)
+    {
+        v[2].Replace("yyz", "Max");
+        ValueCurve vc(v[2].ToStdString());
+        vc.SetLimits(-100, 200);
+        x2 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 2)
+    {
+        x2 = wxAtof(v[2]);
+    }
+    else
+    {
+        x2 = 100.0;
+    }
+
+    float y2;
+    if (fy2vc)
+    {
+        v[3].Replace("yyz", "Max");
+        ValueCurve vc(v[3].ToStdString());
+        vc.SetLimits(-100, 200);
+        y2 = vc.GetOutputValueAt(progress);
+    }
+    else if (v.size() > 3)
+    {
+        y2 = wxAtof(v[3]);
+    }
+    else
+    {
+        y2 = 100.0;
+    }
 
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
@@ -1255,6 +1424,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0)/100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
 
+    inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
@@ -1281,7 +1452,12 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        // save away the full model buffer size ... some effects need to know this
+        ComputeMaxBuffer(subBuffer, inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi);
+        //inf->ModelBufferHt = inf->BufferHt;
+        //inf->ModelBufferWi = inf->BufferWi;
+
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
         ComputeValueCurve(saturationAdjustValueCurve, inf->SaturationAdjustValueCurve);
@@ -1307,7 +1483,9 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->rotationsValueCurve = rotationsValueCurve;
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
-        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->bufferTransform);
+
+        // we create the buffer oversized to prevent issues
+        inf->buffer.InitBuffer(inf->ModelBufferHt, inf->ModelBufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
 
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
@@ -1318,7 +1496,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 int bw, bh;
                 (*it)->Nodes.clear();
                 gp->Models()[cnt]->InitRenderBufferNodes(ntype, transform, (*it)->Nodes, bw, bh);
-                (*it)->InitBuffer(bh, bw, transform);
+                (*it)->InitBuffer(bh, bw, bh, bw, transform);
                 (*it)->SetAllowAlphaChannel(inf->buffer.allowAlpha);
             }
         } else {
@@ -1441,6 +1619,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
+    wxASSERT(!std::isinf(offset)); // this function will hang if it is
+
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
@@ -1523,6 +1703,31 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
             }
         }
     }
+}
+
+bool PixelBufferClass::IsVariableSubBuffer(int layer) const
+{
+    const std::string &subBuffer = layers[layer]->subBuffer;
+    return subBuffer.find("Active=TRUE") != std::string::npos;
+}
+    
+void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
+{
+    if (!IsVariableSubBuffer(layer)) return;
+
+    const std::string &subBuffer = layers[layer]->subBuffer;
+
+    int effStartPer, effEndPer;
+    layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+    offset = std::min(offset, 1.0f);
+    const std::string &type = layers[layer]->type;
+    const std::string &transform = layers[layer]->transform;
+    layers[layer]->buffer.Nodes.clear();
+    model->InitRenderBufferNodes(type, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
+    layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
+    layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)

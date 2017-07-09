@@ -10,7 +10,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
@@ -28,6 +28,16 @@
 							<handler function="OnSpinCtrl_TopChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferTop" subclass="ValueCurveButton" variable="ValueCurve_Top" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -51,6 +61,16 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferLeft" subclass="ValueCurveButton" variable="ValueCurve_Left" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
 							<label>Bottom</label>
 						</object>
@@ -70,6 +90,16 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferBottom" subclass="ValueCurveButton" variable="ValueCurve_Bottom" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 							<label>Right</label>
 						</object>
@@ -85,6 +115,16 @@
 							<handler function="OnSpinCtrl_RightChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferRight" subclass="ValueCurveButton" variable="ValueCurve_Right" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

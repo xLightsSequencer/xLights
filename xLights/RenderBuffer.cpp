@@ -555,7 +555,7 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform)
 {
     if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
@@ -563,9 +563,12 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
-    BufferHt=newBufferHt;
-    BufferWi=newBufferWi;
-    int NumPixels=BufferHt * BufferWi;
+    BufferHt = newBufferHt;
+    BufferWi = newBufferWi;
+    ModelBufferHt = newModelBufferHt;
+    ModelBufferWi = newModelBufferWi;
+    //int NumPixels = BufferHt * BufferWi;
+    int NumPixels = ModelBufferHt * ModelBufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");
@@ -1153,6 +1156,8 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
+    ModelBufferHt = buffer.ModelBufferHt;
+    ModelBufferWi = buffer.ModelBufferWi;
 
     pixels = buffer.pixels;
     _textDrawingContext = nullptr;
