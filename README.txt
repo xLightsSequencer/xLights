@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (keith)   Add value curves to sub-buffers
    -- enh (keith)   Move audio file loading to its own thread to improve audio load time in scheduler. Eliminates the need to load and convert the entire file before the audio starts to play.
+   -- bug (keith)   Fix crash when importing a LOR timing track a second time.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879
