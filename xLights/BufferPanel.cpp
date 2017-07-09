@@ -384,7 +384,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     BitmapButton_VCPivotPointX->GetValue()->SetLimits(0, 100);
     BitmapButton_VCPivotPointY->GetValue()->SetLimits(0, 100);
 
-    subBufferPanel = new SubBufferPanel(ScrolledWindow1, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+    subBufferPanel = new SubBufferPanel(ScrolledWindow1, true, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     wxSize s(10,100);
     subBufferPanel->SetMinSize(s);
     SubBufferPanelSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);

@@ -175,11 +175,11 @@ void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
 
         if (perNode)
         {
-            for (size_t x = 0; x < buffer.BufferWi; ++x)
+            for (size_t x = 0; x < buffer.ModelBufferWi; ++x)
             {
-                for (size_t y = 0; y < buffer.BufferHt; ++y)
+                for (size_t y = 0; y < buffer.ModelBufferHt; ++y)
                 {
-                    size_t index = y * buffer.BufferWi + x;
+                    size_t index = y * buffer.ModelBufferWi + x;
                     InitialiseState(index, states);
                 }
             }
@@ -196,7 +196,7 @@ void CandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         {
             for (size_t x = 0; x < buffer.BufferWi; x++)
             {
-                size_t index = y * buffer.BufferWi + x;
+                size_t index = y * buffer.ModelBufferWi + x;
                 CandleState* state = states[index];
 
                 Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);

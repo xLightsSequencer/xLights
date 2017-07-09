@@ -390,7 +390,7 @@ public:
     RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform);
+    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform);
     AudioManager* GetMedia();
 
     void Clear();
@@ -460,6 +460,7 @@ public:
                             const xlColor &cx2y1, const xlColor &cx2y2);
 
     int BufferHt,BufferWi;  // size of the buffer
+    int ModelBufferHt, ModelBufferWi;  // size of the buffer
 
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;

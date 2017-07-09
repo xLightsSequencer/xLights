@@ -450,6 +450,12 @@ public:
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
+            
+            if (buffer->IsVariableSubBuffer(layer))
+            {
+                buffer->PrepareVariableSubBuffer(frame, layer);
+            }
+
             bool persist = buffer->IsPersistent(layer);
             if (!persist || info.currentEffects[layer] == nullptr || info.currentEffects[layer]->GetEffectIndex() == -1) {
                 buffer->Clear(layer);

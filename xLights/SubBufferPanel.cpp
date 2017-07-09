@@ -17,12 +17,13 @@ EVT_CONTEXT_MENU(SubBufferPanel::ContextMenu)
 END_EVENT_TABLE()
 
 
-SubBufferPanel::SubBufferPanel(wxPanel* parent, wxWindowID id,
+SubBufferPanel::SubBufferPanel(wxPanel* parent, bool usevc, wxWindowID id,
                                const wxPoint &pos,
                                const wxSize &size,
                                long style)
 : wxWindow(parent, id, pos, size, style, "ID_CUSTOM_SubBuffer"), xlCustomControl()
 {
+    _usevc = usevc;
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
     draggingHandle = -1;
@@ -37,39 +38,130 @@ void SubBufferPanel::SendChangeEvent() {
     GetEventHandler()->ProcessEvent(ev);
 }
 
+bool SubBufferPanel::HasVC()
+{
+    return x1vc.find("Active=TRUE") != std::string::npos ||
+        x2vc.find("Active=TRUE") != std::string::npos ||
+        y1vc.find("Active=TRUE") != std::string::npos ||
+        y2vc.find("Active=TRUE") != std::string::npos;
+}
+
 void SubBufferPanel::SetDefaults() {
     x1 = y1 = 0.0;
     x2 = y2 = 100.0;
+    x1vc = "";
+    x2vc = "";
+    y1vc = "";
+    y2vc = "";
     SendChangeEvent();
     Refresh();
 }
 
 void SubBufferPanel::SetValue(const std::string &val) {
-    wxArrayString v = wxSplit(val, 'x');
 
-    x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
-    y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
-    x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
-    y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+    wxString sb = val;
+    sb.Replace("Max", "yyz");
 
+    wxArrayString v = wxSplit(sb, 'x');
+
+    if (v.size() < 1)
+    {
+        x1 = 0;
+    }
+    else if (v[0].Contains("Active=TRUE"))
+    {
+        v[0].Replace("yyz", "Max");
+        x1vc = v[0];
+        x1 = 0;
+    }
+    else
+    {
+        x1 = v.size() > 0 ? wxAtof(v[0]) : 0.0;
+    }
+    
+    if (v.size() < 2)
+    {
+        y1 = 0;
+    }
+    else if (v[1].Contains("Active=TRUE"))
+    {
+        v[1].Replace("yyz", "Max");
+        y1vc = v[1];
+        y1 = 0;
+    }
+    else
+    {
+        y1 = v.size() > 1 ? wxAtof(v[1]) : 0.0;
+    }
+
+    if (v.size() < 3)
+    {
+        x2 = 100;
+    }
+    else if (v[2].Contains("Active=TRUE"))
+    {
+        v[2].Replace("yyz", "Max");
+        x2vc = v[2];
+        x2 = 100.0;
+    }
+    else
+    {
+        x2 = v.size() > 2 ? wxAtof(v[2]) : 100.0;
+    }
+    
+    if (v.size() < 4)
+    {
+        y2 = 100;
+    }
+    else if (v[3].Contains("Active=TRUE"))
+    {
+        v[3].Replace("yyz", "Max");
+        y2vc = v[3];
+        y2 = 100.0;
+    }
+    else
+    {
+        y2 = v.size() > 3 ? wxAtof(v[3]) : 100.0;
+    }
+    
     if (x1 > x2) std::swap(x1, x2);
     if (y1 > y2) std::swap(y1, y2);
 
     Refresh();
 }
+
 std::string SubBufferPanel::GetValue() {
+
+    bool fx1vc = wxString(x1vc).Contains("Active=TRUE");
+    bool fx2vc = wxString(x2vc).Contains("Active=TRUE");
+    bool fy1vc = wxString(y1vc).Contains("Active=TRUE");
+    bool fy2vc = wxString(y2vc).Contains("Active=TRUE");
+
     if (std::abs(x1) > 0.001
         || std::abs(y1) > 0.001
         || std::abs(100.0 - x2) > 0.001
-        || std::abs(100.0 - y2) > 0.001) {
-        return wxString::Format("%.2fx%.2fx%.2fx%.2f", x1, y1, x2, y2).ToStdString();
+        || std::abs(100.0 - y2) > 0.001
+        || fx1vc
+        || fx2vc
+        || fy1vc
+        || fy2vc
+        ) {
+
+        std::string x1s = wxString::Format("%.2f", x1).ToStdString();
+        std::string x2s = wxString::Format("%.2f", x2).ToStdString();
+        std::string y1s = wxString::Format("%.2f", y1).ToStdString();
+        std::string y2s = wxString::Format("%.2f", y2).ToStdString();
+
+        return wxString::Format("%sx%sx%sx%s", fx1vc ? x1vc : x1s, fy1vc ? y1vc : y1s, fx2vc ? x2vc : x2s, fy2vc ? y2vc : y2s).ToStdString();
     }
     return "";
 }
+
 inline bool IsWithin(int mx, int my, int x, int y) {
     return mx >= (x - 2) && mx <= (x + 2)
     && my >= (y - 2) && my <= (y + 2);
 }
+
 void SubBufferPanel::Convert(float &x, float &y, wxMouseEvent& event) {
     wxSize size = GetSize();
     float startX = size.GetWidth()/10.0;
@@ -120,76 +212,128 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         if (nm == "Full Buffer") {
             x1 = y1 = 0.0;
             x2 = y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Top Half") {
             x1 = 0.0;
             y1 = 50.0;
             x2 = y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Bottom Half") {
             x1 = y1 = 0.0;
             y2 = 50.0;
             x2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Left Half") {
             x1 = y1 = 0.0;
             y2 = 100.0;
             x2 = 50.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Right Half") {
             x1 = 50.0;
             y1 = 0.0;
             x2 = y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Left Third") {
             x1 = y1 = 0.0;
             y2 = 100.0;
             x2 = 33.33f;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Middle Third") {
             x1 = 33.33f;
             y1 = 0.0;
             y2 = 100.0;
             x2 = 66.66f;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Right Third") {
             x1 = 66.66f;
             y1 = 0.0;
             x2 = y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Top Left") {
             x1 = 0.0;
             y1 = 50.0;
             x2 = 50.0;
             y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Bottom Left") {
             x1 = 0.0;
             y1 = 0.0;
             y2 = 50.0;
             x2 = 50.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Top Right") {
             x1 = 50.0;
             y1 = 50.0;
             x2 = 100.0;
             y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Bottom Right") {
             x1 = 50.0;
             y1 = 0.0;
             y2 = 50.0;
             x2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Oversize") {
             x1 = -100.0;
             y1 = -100.0;
             x2 = y2 = 200.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
         }
         else if (nm == "Edit")
         {
-            BufferSizeDialog bsd(this);
-            bsd.SetSizes(y2, x1, y1, x2);
+            BufferSizeDialog bsd(this, _usevc);
+            bsd.SetSizes(y2, x1, y1, x2, y2vc, x1vc, y1vc, x2vc);
 
             if (bsd.ShowModal() == wxID_OK)
             {
@@ -197,6 +341,10 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
                 x2 = bsd.SpinCtrl_Right->GetValue();
                 y2 = bsd.SpinCtrl_Top->GetValue();
                 y1 = bsd.SpinCtrl_Bottom->GetValue();
+                x1vc = bsd.ValueCurve_Left->GetValue()->Serialise();
+                x2vc = bsd.ValueCurve_Right->GetValue()->Serialise();
+                y2vc = bsd.ValueCurve_Top->GetValue()->Serialise();
+                y1vc = bsd.ValueCurve_Bottom->GetValue()->Serialise();
             }
             else
             {
@@ -237,7 +385,7 @@ void SubBufferPanel::mouseDblClick( wxMouseEvent& event) {
 }
 
 void SubBufferPanel::mouseLeftDown( wxMouseEvent& event) {
-    if (!IsEnabled()) {
+    if (!IsEnabled() || HasVC()) {
         return;
     }
     if (draggingHandle == -1) {
@@ -263,6 +411,7 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
     if (!IsEnabled()) {
         return;
     }
+
     switch (draggingHandle) {
         case 0:
             Convert(x1, y1, event);
@@ -278,7 +427,7 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
             break;
         default: {
             int i = OverMouseHandle(event);
-            if (i > -1) {
+            if (i > -1 && !HasVC()) {
                 SetCursor(wxCURSOR_SIZING);
             } else {
                 SetCursor(wxCURSOR_DEFAULT);
@@ -286,6 +435,13 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
         }
     }
     if (draggingHandle >= 0) {
+
+        // any dragging removes the value curves
+        x1vc = "";
+        x2vc = "";
+        y1vc = "";
+        y2vc = "";
+
         if (x2 < x1) std::swap(x1, x2);
         if (y2 < y1) std::swap(y1, y2);
         SendChangeEvent();
@@ -320,8 +476,16 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     if (!IsEnabled()) {
         return;
     }
-    dc.SetBrush(*wxYELLOW_BRUSH);
-    dc.SetPen(*wxYELLOW_PEN);
+    if (HasVC())
+    {
+        dc.SetBrush(*wxRED_BRUSH);
+        dc.SetPen(*wxRED_PEN);
+    }
+    else
+    {
+        dc.SetBrush(*wxYELLOW_BRUSH);
+        dc.SetPen(*wxYELLOW_PEN);
+    }
 
     float x1b = (x1 * bw)/100.0 + startX;
     float x2b = (x2 * bw)/100.0 + startX;
@@ -335,7 +499,15 @@ void SubBufferPanel::Paint( wxPaintEvent& event ) {
     dc.DrawCircle(x2b, y1b, 2);
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
+
+    if (HasVC())
+    {
+        dc.SetPen(wxPen(*wxRED, 1, wxPENSTYLE_DOT));
+    }
+    else
+    {
+        dc.SetPen(wxPen(*wxYELLOW, 1, wxPENSTYLE_DOT));
+    }
     dc.DrawRectangle(x1b, y1b, x2b-x1b,y2b-y1b);
 
     dc.SetTextForeground(*wxYELLOW);

@@ -78,7 +78,7 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     
     i=0;
     
-    for (y=0; y<buffer.BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    for (y=0; y<buffer.BufferHt; y++) // For my 20x120 megatree, BufferHt =120
     {
         for (x=0; x<buffer.BufferWi; x++) // BufferWi=20 in the above example
         {
