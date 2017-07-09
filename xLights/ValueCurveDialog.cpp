@@ -743,12 +743,14 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
                 last = p;
             }
         }
+
         pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
         for (auto it = pts.begin(); it != pts.end(); it++)
         {
             pdc.DrawRectangle((it->x * w) - 2, h - (it->y * h) - 2, 5, 5);
         }
-        if (HasCapture())
+
+        if (_grabbedPoint != -1)
         {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
             pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint) * h) - 2, 5, 5);
@@ -941,14 +943,18 @@ void ValueCurveDialog::ValidateWindow()
 void ValueCurveDialog::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
-    if ((int)uc == (int)WXK_DELETE)
+    if (_vc->GetType() == "Custom" && (int)uc == (int)WXK_DELETE && _vcp->HasSelected())
     {
         _vcp->SaveUndoSelected();
         _vcp->Delete();
     }
-    else if ((uc == 'Z' || uc == 'z') && event.ControlDown())
+    else if (_vc->GetType() == "Custom" && (uc == 'Z' || uc == 'z') && event.ControlDown() && _vcp->IsDirty())
     {
         _vcp->Undo();
+    }
+    else
+    {
+        event.Skip();
     }
     Refresh();
 }

@@ -30,7 +30,8 @@ public:
     void SaveUndo(float x, float y);
     void SaveUndoSelected();
     void ClearUndo() { _undo.clear(); }
-    bool IsDirty() { return _undo.size() > 0; }
+    bool IsDirty() const { return _undo.size() > 0; }
+    bool HasSelected() const { return _grabbedPoint != -1; }
 
 protected:
     DECLARE_EVENT_TABLE()
