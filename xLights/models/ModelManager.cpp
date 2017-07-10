@@ -73,7 +73,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     model->name = newName;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         bool changed = false;
-        for (auto it2 = models.begin(); it2 != models.end(); it2++) {
+        for (auto it2 = models.begin(); it2 != models.end(); ++it2) {
             changed |= it2->second->ModelRenamed(oldName, newName);
         }
         models.erase(models.find(oldName));

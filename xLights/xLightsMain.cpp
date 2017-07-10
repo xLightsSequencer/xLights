@@ -1685,9 +1685,9 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 }
 
-void xLightsFrame::RecalcModels()
+void xLightsFrame::RecalcModels(bool force)
 {
-    if (_setupChanged)
+    if (force || _setupChanged)
     {
         SetCursor(wxCURSOR_WAIT);
         // Now notify the layout as the model start numbers may have been impacted

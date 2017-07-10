@@ -581,7 +581,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
         return false;
     }
     Element* elem_to_rename = mSequenceElements.GetElement(OldName);
-    if( elem_to_rename != NULL )
+    if( elem_to_rename != nullptr )
     {
         elem_to_rename->SetName(NewName);
     }
