@@ -3256,7 +3256,7 @@ void xLightsFrame::ExportModels(wxString filename)
     long minchannel = 99999999;
     long maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
 
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
@@ -3276,7 +3276,7 @@ void xLightsFrame::ExportModels(wxString filename)
                     models += ", " + *it;
                 }
             }
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,%d,,%d,%d,%s,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%s,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
@@ -3294,16 +3294,40 @@ void xLightsFrame::ExportModels(wxString filename)
             long channeloffset;
             int output;
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%d,%s,%d,%d,%s,%s,%s,\"%s\",%d,%s,%s,%d,%s\n",
+
+            std::string current = "";
+            
+            wxString stype = wxString(model->GetStringType());
+
+            long lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
+            if (!stype.Contains("Node"))
+            {
+                if (model->GetNodeCount() == 1)
+                {
+                    lightcount = model->GetCoordCount(0);
+                }
+                else
+                {
+                    lightcount = model->NodesPerString() * model->GetLightsPerNode();
+                }
+            }
+
+            if (stype.Contains("Node") || stype.Contains("Channel RGB"))
+            {
+                current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
+            }
+
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%i,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
                 model->GetStringType(),
-                model->GetNodeCount() / model->NodesPerString(),
-                model->GetNodeCount(),
-                model->GetNodeCount() * model->GetLightsPerNode(),
+                (long)(model->GetNodeCount() / model->NodesPerString()),
+                (long)model->GetNodeCount(),
+                lightcount,
+                current,
                 model->GetChanCountPerNode(),
-                model->GetActChanCount(),
+                (long)model->GetActChanCount(),
                 stch,
                 ch,
                 ch + model->GetChanCount() - 1,
@@ -3352,19 +3376,19 @@ void xLightsFrame::ExportModels(wxString filename)
 
             if (wxString(model->GetStringType()).StartsWith("Single Color"))
             {
-                bulbs += uniquechannels * model->GetNodeCount() * model->GetLightsPerNode();
+                bulbs += uniquechannels * model->GetCoordCount(0);
             }
             else if (wxString(model->GetStringType()).StartsWith("3 Channel"))
             {
-                bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetLightsPerNode();
+                bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetCoordCount(0);
             }
             else if (wxString(model->GetStringType()).StartsWith("4 Channel"))
             {
-                bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetLightsPerNode();
+                bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetCoordCount(0);
             }
             else if (wxString(model->GetStringType()).StartsWith("Strobes"))
             {
-                bulbs += uniquechannels * model->GetNodeCount() * model->GetLightsPerNode();
+                bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
             }
             else
             {

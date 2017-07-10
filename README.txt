@@ -16,6 +16,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix crash when importing a LOR timing track a second time.
    -- bug (keith)   Fix check sequence erroneously flagging invalid start channel where universes are grouped as a single output.
    -- bug (keith)   Fix value curve dialog wont accept keyboard input in text boxes and sliders
+   -- bug (keith)   Fix export models bulb counting
+   -- enh (keith)   Add simple current estimation to model export ... assumes 0.06A per node which would be normal for a typical white pixel at full power.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879
