@@ -27,6 +27,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SHOW_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COLLAPSEALL = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
@@ -183,6 +184,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
         }
         mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
+        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALL, "Collapse All");
         if (ri->nodeIndex > -1) {
             StrandElement *se = dynamic_cast<StrandElement*>(element);
             if (se && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
@@ -517,6 +519,20 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     if (me != nullptr)
                         me->ShowStrands(true);
                 }
+            }
+        }
+    }
+    else if (id == ID_ROW_MNU_COLLAPSEALL) {
+        int view = mSequenceElements->GetCurrentView();
+
+        for (int i = 0;  i < mSequenceElements->GetElementCount(view); ++i)
+        {
+            Element* e = mSequenceElements->GetElement(i, view);
+            if (e->GetType() != ELEMENT_TYPE_TIMING)
+            {
+                ModelElement* me = dynamic_cast<ModelElement*>(e);
+                if (me != nullptr)
+                    me->ShowStrands(false);
             }
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
