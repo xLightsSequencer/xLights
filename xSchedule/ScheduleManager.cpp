@@ -163,7 +163,7 @@ ScheduleManager::~ScheduleManager()
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
 	{
-		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxID_YES)
+		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
 		{
 			Save();
 		}

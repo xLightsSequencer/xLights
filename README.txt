@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix export models bulb counting
    -- enh (keith)   Add simple current estimation to model export ... assumes 0.06A per node which would be normal for a typical white pixel at full power.
    -- enh (keith)   Add a collapse all function to the row heading right click menu
+   -- bug (keith)   Fix schedule not playing past midnight
+   -- bug (keith)   Fix schedules not showing next time after they are edited
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879
