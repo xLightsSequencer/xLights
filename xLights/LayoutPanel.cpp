@@ -560,12 +560,12 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             }
             if (selectedModel->name != safename) {
                 RenameModelInTree(selectedModel, safename);
+                xlights->RenameModel(selectedModel->name, safename);
                 if (selectedModel->name == lastModelName) {
                     lastModelName = safename;
                 }
-                if (xlights->RenameModel(selectedModel->GetFullName(), safename)) {
-                    CallAfter(&LayoutPanel::UpdateModelList, true);
-                }
+                xlights->RecalcModels(true);
+                CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
         } else {
@@ -832,7 +832,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         dummy_models.clear();
         if( grp->GetName() == currentLayoutGroup ) {
@@ -867,7 +867,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         // add all the models
-        for (auto it = models.begin(); it != models.end(); it++) {
+        for (auto it = models.begin(); it != models.end(); ++it) {
             Model *model = *it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
                 width = std::max(width, AddModelToTree(model, &root));

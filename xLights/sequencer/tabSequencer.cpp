@@ -1952,13 +1952,22 @@ void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
 {
+    std::string n = name;
+    int nn = 1;
+
+    // make sure the name is unique ... adding a sequence number if it isnt
+    while(mSequenceElements.GetElement(n) != nullptr)
+    {
+        n = wxString::Format("%s-%d", name.c_str(), nn++).ToStdString();
+    }
+
     // Deactivate active timing mark so new one is selected;
     mSequenceElements.DeactivateAllTimingElements();
     int timingCount = mSequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(mSequenceElements.AddElement(timingCount,name,type,true,false,true,false));
+    TimingElement* e = dynamic_cast<TimingElement*>(mSequenceElements.AddElement(timingCount,n,type,true,false,true,false));
     e->AddEffectLayer();
-    mSequenceElements.AddTimingToAllViews(name);
+    mSequenceElements.AddTimingToAllViews(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     return e;

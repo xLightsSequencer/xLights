@@ -1560,7 +1560,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     static  log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxTextFile f;
     wxString line;
     int time;
 
@@ -1569,12 +1568,14 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxFileName next_file(filenames[i]);
         next_file.SetPath(dir);
 
+        wxFile f;
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
             logger_base.warn("ProcessLorTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
             wxMessageBox("Failed to open file: " + next_file.GetFullPath());
             return;
         }
+        f.Close();
 
         std::string filename = next_file.GetName().ToStdString();
 

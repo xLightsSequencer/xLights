@@ -189,6 +189,19 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
         {
             return (*it);
         }
+
+        if ((*it)->IsOutputCollection())
+        {
+            auto outputs = (*it)->GetOutputs();
+
+            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            {
+                if (universe == (*it2)->GetUniverse() && (ip == "" || ip == (*it2)->GetIP()))
+                {
+                    return (*it2);
+                }
+            }
+        }
     }
 
     return nullptr;

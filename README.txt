@@ -13,6 +13,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (keith)   Add value curves to sub-buffers
    -- enh (keith)   Move audio file loading to its own thread to improve audio load time in scheduler. Eliminates the need to load and convert the entire file before the audio starts to play.
+   -- bug (keith)   Fix crash when importing a LOR timing track a second time.
+   -- bug (keith)   Fix check sequence erroneously flagging invalid start channel where universes are grouped as a single output.
+   -- bug (keith)   Fix value curve dialog wont accept keyboard input in text boxes and sliders
+   -- bug (keith)   Fix export models bulb counting
+   -- enh (keith)   Add simple current estimation to model export ... assumes 0.06A per node which would be normal for a typical white pixel at full power.
+   -- enh (keith)   Add a collapse all function to the row heading right click menu
+   -- bug (keith)   Fix schedule not playing past midnight
+   -- bug (keith)   Fix schedules not showing next time after they are edited
+   -- bug (keith)   Fix #876 renaming a model involved in start channel chaining breaks the chain
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879

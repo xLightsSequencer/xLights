@@ -68,7 +68,7 @@ Schedule::Schedule()
 {
     _active = false;
     _enabled = true;
-    _id = __scheduleid;
+    _id = __scheduleid++;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
     _loop = false;
@@ -235,7 +235,11 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         end.SetHour(_endTime.GetHour());
         end.SetMinute(_endTime.GetMinute());
 
-        if (_endTime < _startTime)
+        if (_endTime < _startTime && now.FormatISOTime() < end.FormatISOTime())
+        {
+            start.Add(wxTimeSpan(-24));
+        }
+        else if (_endTime < _startTime)
         {
             end.Add(wxTimeSpan(24));
         }

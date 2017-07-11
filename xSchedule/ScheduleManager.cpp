@@ -163,7 +163,7 @@ ScheduleManager::~ScheduleManager()
     logger_base.info("Stopped outputting to lights.");
     if (IsDirty())
 	{
-		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxID_YES)
+		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
 		{
 			Save();
 		}
@@ -2017,21 +2017,25 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
             std::string nextsong;
             std::string nextsongid;
             bool didloop;
-            auto next = p->GetNextStep(didloop);
-            if (next == nullptr)
-            {
-                nextsong = "";
-                nextsongid = "";
-            }
-            else if (p->IsRandom())
+
+            if (p->IsRandom())
             {
                 nextsong = "God knows";
                 nextsongid = "";
             }
             else
             {
-                nextsong = next->GetNameNoTime();
-                nextsongid = wxString::Format(wxT("%i"), next->GetId());
+                auto next = p->GetNextStep(didloop);
+                if (next == nullptr)
+                {
+                    nextsong = "";
+                    nextsongid = "";
+                }
+                else
+                {
+                    nextsong = next->GetNameNoTime();
+                    nextsongid = wxString::Format(wxT("%i"), next->GetId());
+                }
             }
 
             RunningSchedule* rs = GetRunningSchedule();

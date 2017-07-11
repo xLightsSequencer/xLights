@@ -1005,7 +1005,7 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
         }
     }
 
-    return schedule->GetName() + " [" + schedule->GetNextTriggerTime() + "]";
+    return schedule->GetName() + " [" + schedule->GetNextTriggerTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
 }
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
@@ -2065,7 +2065,7 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
         Schedule* schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
         if (schedule->Configure(this) != nullptr)
         {
-            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, schedule->GetName());
+            TreeCtrl_PlayListsSchedules->SetItemText(treeitem, GetScheduleName(schedule, __schedule->GetRunningSchedules()));
             auto rs = __schedule->GetRunningSchedule(schedule);
             if (rs != nullptr) rs->Reset();
         }
