@@ -163,7 +163,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
-    <ClCompile Include="E6804.cpp" />
+    <ClCompile Include="SanDevices.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
@@ -466,7 +466,7 @@
   <ItemGroup>
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
-    <ClInclude Include="E6804.h" />
+    <ClInclude Include="SanDevices.h" />
     <ClInclude Include="J1Sys.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />

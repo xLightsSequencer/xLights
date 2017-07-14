@@ -528,8 +528,6 @@
 		<Unit filename="DrawGLUtils.h" />
 		<Unit filename="DrawGLUtils21.cpp" />
 		<Unit filename="DrawGLUtils31.cpp" />
-		<Unit filename="E6804.cpp" />
-		<Unit filename="E6804.h" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -633,6 +631,8 @@
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
+		<Unit filename="SanDevices.cpp" />
+		<Unit filename="SanDevices.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />

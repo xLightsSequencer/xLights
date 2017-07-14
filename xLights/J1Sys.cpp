@@ -183,7 +183,7 @@ void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {
-        // this universe is sent to the E6804
+        // this universe is sent to the SanDevices
 
         // find all the models in this range
         for (auto it = allmodels->begin(); it != allmodels->end(); ++it)

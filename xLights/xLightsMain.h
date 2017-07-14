@@ -848,8 +848,8 @@ private:
     void UploadFPPBridgeOutput();
     void UploadFalconInput();
     void UploadFalconOutput();
-    void UploadE6804Input();
-    void UploadE6804Output();
+    void UploadSanDevicesInput();
+    void UploadSanDevicesOutput();
     void UploadJ1SYSOutput();
     void UploadPixlite16Output();
 
@@ -1217,8 +1217,8 @@ private:
     static const long ID_NETWORK_UCOFPPB;
     static const long ID_NETWORK_UCIFALCON;
     static const long ID_NETWORK_UCOFALCON;
-    static const long ID_NETWORK_UCIE6804;
-    static const long ID_NETWORK_UCOE6804;
+    static const long ID_NETWORK_UCISanDevices;
+    static const long ID_NETWORK_UCOSanDevices;
     static const long ID_NETWORK_UCOJ1SYS;
     static const long ID_NETWORK_UCOPixlite16;
 

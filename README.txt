@@ -22,6 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix schedule not playing past midnight
    -- bug (keith)   Fix schedules not showing next time after they are edited
    -- bug (keith)   Fix #876 renaming a model involved in start channel chaining breaks the chain
+   -- enh (keith)   Expand E6804 upload to also support the E682.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879

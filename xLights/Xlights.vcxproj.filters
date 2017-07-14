@@ -948,10 +948,10 @@
     <ClCompile Include="ColorManagerDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="E6804.cpp">
+    <ClCompile Include="J1Sys.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="J1Sys.cpp">
+    <ClCompile Include="SanDevices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1844,10 +1844,10 @@
     <ClInclude Include="MSWStackWalk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="E6804.h">
+    <ClInclude Include="J1Sys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="J1Sys.h">
+    <ClInclude Include="SanDevices.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
