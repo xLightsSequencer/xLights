@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix #876 renaming a model involved in start channel chaining breaks the chain
    -- enh (keith)   Expand E6804 upload to also support the E682.
    -- enh (keith)   Add decaying sine value curve
+   -- enh (keith)   Include some standard value curves in the distribution
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879

@@ -1198,4 +1198,5 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
     TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    ValidateWindow();
 }
