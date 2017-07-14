@@ -325,6 +325,39 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
+    else if (_type == "Decaying Sine")
+    {
+        // p1 - offset in cycle
+        // p2 - maxy
+        // p3 - cycles
+        // one cycle = 2* PI
+        static const double pi2 = 6.283185307;
+        float maxx = pi2 * std::max((float)_parameter3 / 10.0f, 0.1f);
+        for (double i = 0.0; i <= 1.01; i += 0.025)
+        {
+            if (i > 1.0) i = 1.0;
+            float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
+            float exponent = exp(-0.1 * i * maxx);
+            float y = ((float)_parameter4 - 50.0) / 50.0 + (exponent * cos(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
+            bool wrapped = false;
+            if (_wrap)
+            {
+                while (y > 1.0f)
+                {
+                    wrapped = true;
+                    y -= 1.0f;
+                }
+                while (y < 0.0f)
+                {
+                    wrapped = true;
+                    y += 1.0f;
+                }
+            }
+            bool lastwrapped = false;
+            if (_values.size() > 0) _values.back().IsWrapped();
+            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+        }
+    }
     else if (_type == "Abs Sine")
     {
         // p1 - offset in cycle

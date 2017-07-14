@@ -131,6 +131,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Choice1->Append(_("Exponential Down"));
     Choice1->Append(_("Sine"));
     Choice1->Append(_("Abs Sine"));
+    Choice1->Append(_("Decaying Sine"));
     Choice1->Append(_("Square"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
@@ -388,6 +389,13 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter(2, 50);
     }
     else if (type == "Sine")
+    {
+        SetParameter(1, 75);
+        SetParameter(2, 100);
+        SetParameter(3, 10);
+        SetParameter(4, 50);
+    }
+    else if (type == "Decaying Sine")
     {
         SetParameter(1, 75);
         SetParameter(2, 100);
@@ -907,6 +915,13 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter4(0);
     }
     else if (type == "Sine")
+    {
+        StaticText_P1->SetLabel("Start");
+        StaticText_P2->SetLabel("Amplitude");
+        StaticText_P3->SetLabel("Cycles");
+        StaticText_P4->SetLabel("Vertical Offset");
+    }
+    else if (type == "Decaying Sine")
     {
         StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
