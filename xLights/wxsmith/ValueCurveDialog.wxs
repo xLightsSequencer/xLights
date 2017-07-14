@@ -81,6 +81,7 @@
 								<item>Exponential Down</item>
 								<item>Sine</item>
 								<item>Abs Sine</item>
+								<item>Decaying Sine</item>
 								<item>Square</item>
 								<item>Custom</item>
 							</content>

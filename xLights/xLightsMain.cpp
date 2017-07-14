@@ -35,7 +35,7 @@
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
 #include "SequenceCheck.h"
-#include "FPPConnectDialog.h"
+#include "controllers/FPPConnectDialog.h"
 #include "IPEntryDialog.h"
 #include "ColorManagerDialog.h"
 

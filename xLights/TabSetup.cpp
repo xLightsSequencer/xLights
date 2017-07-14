@@ -18,11 +18,11 @@
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
-#include "FPP.h"
-#include "Falcon.h"
-#include "Pixlite16.h"
-#include "E6804.h"
-#include "J1Sys.h"
+#include "controllers/FPP.h"
+#include "controllers/Falcon.h"
+#include "controllers/Pixlite16.h"
+#include "controllers/SanDevices.h"
+#include "controllers/J1Sys.h"
 
 // dialogs
 #include "outputs/Output.h"
@@ -57,8 +57,8 @@ const long xLightsFrame::ID_NETWORK_UCIFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIFALCON = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCIE6804 = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCOE6804 = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCISanDevices = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOSanDevices = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 
@@ -1225,16 +1225,16 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCIE6804 = mnuUCInput->Append(ID_NETWORK_UCIE6804, "E6804");
+    wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISanDevices, "SanDevices");
     if (!AllSelectedSupportIP())
     {
-        beUCIE6804->Enable(false);
+        beUCISanDevices->Enable(false);
     }
     else
     {
         if (selcnt == 1)
         {
-            beUCIE6804->Enable(true);
+            beUCISanDevices->Enable(true);
         }
         else
         {
@@ -1277,7 +1277,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
-            beUCIE6804->Enable(valid);
+            beUCISanDevices->Enable(valid);
         }
     }
 
@@ -1385,16 +1385,16 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOE6804 = mnuUCOutput->Append(ID_NETWORK_UCOE6804, "E6804");
+    wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSanDevices, "SanDevices");
     if (!AllSelectedSupportIP())
     {
-        beUCOE6804->Enable(false);
+        beUCOSanDevices->Enable(false);
     }
     else
     {
         if (selcnt == 1)
         {
-            beUCOE6804->Enable(true);
+            beUCOSanDevices->Enable(true);
         }
         else
         {
@@ -1437,7 +1437,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
-            beUCOE6804->Enable(valid);
+            beUCOSanDevices->Enable(valid);
         }
     }
 
@@ -1587,13 +1587,13 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     {
         UploadFalconOutput();
     }
-    else if (id == ID_NETWORK_UCIE6804)
+    else if (id == ID_NETWORK_UCISanDevices)
     {
-        UploadE6804Input();
+        UploadSanDevicesInput();
     }
-    else if (id == ID_NETWORK_UCOE6804)
+    else if (id == ID_NETWORK_UCOSanDevices)
     {
-        UploadE6804Output();
+        UploadSanDevicesOutput();
     }
     else if (id == ID_NETWORK_UCOJ1SYS)
     {
@@ -1867,9 +1867,9 @@ void xLightsFrame::UploadPixlite16Output()
     }
 }
 
-void xLightsFrame::UploadE6804Input()
+void xLightsFrame::UploadSanDevicesInput()
 {
-    if (wxMessageBox("This will upload the input controller configuration for an E6804 controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    if (wxMessageBox("This will upload the input controller configuration for an SanDevices controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
@@ -1877,7 +1877,7 @@ void xLightsFrame::UploadE6804Input()
 
         if (ip == "")
         {
-            wxTextEntryDialog dlg(this, "E6804 IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
                 SetCursor(wxCURSOR_ARROW);
@@ -1886,18 +1886,18 @@ void xLightsFrame::UploadE6804Input()
             ip = dlg.GetValue();
         }
 
-        E6804 e6804(ip.ToStdString());
-        if (e6804.IsConnected())
+        SanDevices sanDevices(ip.ToStdString());
+        if (sanDevices.IsConnected())
         {
-            e6804.SetInputUniverses(&_outputManager, selected);
+            sanDevices.SetInputUniverses(&_outputManager, selected);
         }
         SetCursor(wxCURSOR_ARROW);
     }
 }
 
-void xLightsFrame::UploadE6804Output()
+void xLightsFrame::UploadSanDevicesOutput()
 {
-    if (wxMessageBox("This will upload the output controller configuration for an E6804 controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    if (wxMessageBox("This will upload the output controller configuration for an SanDevices controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
@@ -1905,7 +1905,7 @@ void xLightsFrame::UploadE6804Output()
 
         if (ip == "")
         {
-            wxTextEntryDialog dlg(this, "E6804 IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK)
             {
                 SetCursor(wxCURSOR_ARROW);
@@ -1914,10 +1914,10 @@ void xLightsFrame::UploadE6804Output()
             ip = dlg.GetValue();
         }
 
-        E6804 e6804(ip.ToStdString());
-        if (e6804.IsConnected())
+        SanDevices sanDevices(ip.ToStdString());
+        if (sanDevices.IsConnected())
         {
-            e6804.SetOutputs(&AllModels, &_outputManager, selected, this);
+            sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this);
         }
         SetCursor(wxCURSOR_ARROW);
     }

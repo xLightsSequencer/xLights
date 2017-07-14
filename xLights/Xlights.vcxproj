@@ -162,8 +162,14 @@
   <ItemGroup>
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
+    <ClCompile Include="controllers\Falcon.cpp" />
+    <ClCompile Include="controllers\FPP.cpp" />
+    <ClCompile Include="controllers\FPPConnectDialog.cpp" />
+    <ClCompile Include="controllers\J1Sys.cpp" />
+    <ClCompile Include="controllers\Pixlite16.cpp" />
+    <ClCompile Include="controllers\SanDevices.cpp" />
+    <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
-    <ClCompile Include="E6804.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
     <ClCompile Include="effects\GIFImage.cpp" />
@@ -172,7 +178,6 @@
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
-    <ClCompile Include="J1Sys.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -298,11 +303,8 @@
     <ClCompile Include="effects\WavePanel.cpp" />
     <ClCompile Include="EffectTreeDialog.cpp" />
     <ClCompile Include="ExportModelSelect.cpp" />
-    <ClCompile Include="Falcon.cpp" />
     <ClCompile Include="FileConverter.cpp" />
     <ClCompile Include="FlickerFreeBitmapButton.cpp" />
-    <ClCompile Include="FPP.cpp" />
-    <ClCompile Include="FPPConnectDialog.cpp" />
     <ClCompile Include="GenerateCustomModelDialog.cpp" />
     <ClCompile Include="heartbeat.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -377,7 +379,6 @@
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
-    <ClCompile Include="Pixlite16.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -407,7 +408,6 @@
     <ClCompile Include="outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
-    <ClCompile Include="SimpleFTP.cpp" />
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
@@ -466,8 +466,13 @@
   <ItemGroup>
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
-    <ClInclude Include="E6804.h" />
-    <ClInclude Include="J1Sys.h" />
+    <ClInclude Include="controllers\Falcon.h" />
+    <ClInclude Include="controllers\FPP.h" />
+    <ClInclude Include="controllers\FPPConnectDialog.h" />
+    <ClInclude Include="controllers\J1Sys.h" />
+    <ClInclude Include="controllers\Pixlite16.h" />
+    <ClInclude Include="controllers\SanDevices.h" />
+    <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
@@ -596,11 +601,8 @@
     <ClInclude Include="effects\WavePanel.h" />
     <ClInclude Include="EffectTreeDialog.h" />
     <ClInclude Include="ExportModelSelect.h" />
-    <ClInclude Include="Falcon.h" />
     <ClInclude Include="FileConverter.h" />
     <ClInclude Include="FlickerFreeBitmapButton.h" />
-    <ClInclude Include="FPP.h" />
-    <ClInclude Include="FPPConnectDialog.h" />
     <ClInclude Include="GenerateCustomModelDialog.h" />
     <ClInclude Include="heartbeat.h" />
     <ClInclude Include="Image.h" />
@@ -671,7 +673,6 @@
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
-    <ClInclude Include="Pixlite16.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
@@ -702,7 +703,6 @@
     <ClInclude Include="outputs\SerialPortWithRate.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
-    <ClInclude Include="SimpleFTP.h" />
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />

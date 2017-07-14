@@ -1,4 +1,4 @@
-#include "E6804.h"
+#include "SanDevices.h"
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
@@ -205,7 +205,7 @@ bool SimpleHTTP::MyBuildRequest(const wxString& path, const wxString& method, wx
     return ret_value;
 }
 
-E6804::E6804(const std::string& ip)
+SanDevices::SanDevices(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
@@ -218,42 +218,58 @@ E6804::E6804(const std::string& ip)
         std::string page = GetURL("/");
         if (page != "")
         {
+            static wxRegEx modelregex("(Controller Model )([^ ]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (modelregex.Matches(wxString(page)))
+            {
+                _model = modelregex.GetMatch(wxString(page), 2).ToStdString();
+                logger_base.error("Connected to SanDevices controller model %s.", (const char *)_model.c_str());
+            }
             static wxRegEx versionregex("(Firmware Version:\\<\\/th\\>\\<\\/td\\>\\<td\\>\\<\\/td\\>\\<td\\>)([0-9]+\\.[0-9]+)\\<\\/td\\>", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(page)))
             {
                 _version = versionregex.GetMatch(wxString(page), 2).ToStdString();
-                logger_base.error("Connected to E6804 controller version %s.", (const char *)_version.c_str());
+                logger_base.error("                                 version %s.", (const char *)_version.c_str());
             }
         }
         else
         {
             _http.Close();
             _connected = false;
-            logger_base.error("Error connecting to E6804 controller on %s.", (const char *)_ip.c_str());
+            logger_base.error("Error connecting to SanDevices controller on %s.", (const char *)_ip.c_str());
         }
     }
     else
     {
-        logger_base.error("Error connecting to E6804 controller on %s.", (const char *)_ip.c_str());
+        logger_base.error("Error connecting to SanDevices controller on %s.", (const char *)_ip.c_str());
     }
 }
 
-int E6804::GetMaxStringOutputs() const
+int SanDevices::GetOutputsPerPort() const
+{
+    if (_model == "E682")
+    {
+        return 4;
+    }
+
+    return 1;
+}
+
+int SanDevices::GetMaxStringOutputs() const
 {
     return 4;
 }
 
-int E6804::GetMaxSerialOutputs() const
+int SanDevices::GetMaxSerialOutputs() const
 {
     return 4;
 }
 
-E6804::~E6804()
+SanDevices::~SanDevices()
 {
     _http.Close();
 }
 
-std::string E6804::GetURL(const std::string& url, bool logresult)
+std::string SanDevices::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
@@ -261,7 +277,7 @@ std::string E6804::GetURL(const std::string& url, bool logresult)
     _http.SetMethod("GET");
     wxString startResult;
     wxInputStream *httpStream = _http.GetInputStream(wxString(url), startResult);
-    logger_base.debug("Making request to E6804 %s '%s' -> %d", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetResponse());
+    logger_base.debug("Making request to SanDevices %s '%s' -> %d", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetResponse());
 
     if (_http.GetError() == wxPROTO_NOERR)
     {
@@ -270,12 +286,12 @@ std::string E6804::GetURL(const std::string& url, bool logresult)
 
         if (logresult)
         {
-            logger_base.debug("Response from E6804 '%s'.", (const char *)res.c_str());
+            logger_base.debug("Response from SanDevices '%s'.", (const char *)res.c_str());
         }
     }
     else
     {
-        logger_base.error("Unable to connect to E6804 %s '%s'.", (const char *)_ip.c_str(), (const char *)url.c_str());
+        logger_base.error("Unable to connect to SanDevices %s '%s'.", (const char *)_ip.c_str(), (const char *)url.c_str());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }
@@ -283,7 +299,7 @@ std::string E6804::GetURL(const std::string& url, bool logresult)
     return (startResult + res).ToStdString();
 }
 
-char E6804::EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected)
+char SanDevices::EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected)
 {
     char res = 'A';
 
@@ -300,7 +316,7 @@ char E6804::EncodeUniverse(int universe, OutputManager* outputManager, std::list
     return res;
 }
 
-void E6804::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+void SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     std::string page = GetURL("/");
 
@@ -360,7 +376,7 @@ void E6804::SetInputUniverses(OutputManager* outputManager, std::list<int>& sele
     GetURL(request.ToStdString());
 }
 
-std::string E6804::ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start)
+std::string SanDevices::ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start)
 {
     wxString p = wxString(page).Mid(start);
 
@@ -405,7 +421,7 @@ std::string E6804::ExtractFromPage(const std::string page, const std::string par
     return "";
 }
 
-bool e6804compare_startchannel(const Model* first, const Model* second)
+bool SanDevicescompare_startchannel(const Model* first, const Model* second)
 {
     int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
     int secondmodelstart = second->GetNumberFromChannelString(second->ModelStartChannel);
@@ -413,12 +429,12 @@ bool e6804compare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("E6804 Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     // build a list of models on this controller
     std::list<Model*> models;
     std::list<std::string> protocolsused;
@@ -430,7 +446,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {
-        // this universe is sent to the E6804
+        // this universe is sent to the SanDevices
 
         // find all the models in this range
         for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
@@ -451,7 +467,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
                         {
                             warnedmodels.push_back(it->second);
-                            logger_base.warn("E6804 Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
+                            logger_base.warn("SanDevices Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
                             wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed: '" + it->second->GetControllerConnection() + "'. Model ignored.", "Model Ignored");
                         }
                     }
@@ -462,7 +478,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         // check we dont already have this model in our list
                         if (std::find(models.begin(), models.end(), it->second) == models.end())
                         {
-                            logger_base.debug("E6804 Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
+                            logger_base.debug("SanDevices Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
                             models.push_back(it->second);
                             if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
                             {
@@ -481,14 +497,14 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
 
     // sort the models by start channel
-    models.sort(e6804compare_startchannel);
+    models.sort(SanDevicescompare_startchannel);
 
     // get the current config before I start
     std::string page = GetURL("/");
     if (page == "")
     {
-        logger_base.error("E6804 Outputs Upload: E6804 would not return current configuration.");
-        wxMessageBox("Error occured trying to upload to E6804.", "Error", wxOK, parent);
+        logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
+        wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
         return;
     }
 
@@ -533,6 +549,8 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
                 int numstrings = first->GetNumStrings();
+                int outputsPerPort = GetOutputsPerPort();
+                int outputsUsed = 1;
                 bool multistringelement = (first->GetDisplayAs() == "Matrix" || 
                     first->GetDisplayAs() == "Tree" ||
                     first->GetDisplayAs() == "Circle" ||
@@ -540,6 +558,25 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     first->GetDisplayAs() == "Wreath" ||
                     first->GetDisplayAs() == "Icicles");
                 int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
+
+                if (numstrings > 1 && outputsPerPort > 1)
+                {
+                    if (numstrings <= outputsPerPort)
+                    {
+                        outputsUsed = numstrings;
+                        channelsperstring = numstrings * channelsperstring;
+                        numstrings = 1;
+                        portend = portstart + channelsperstring - 1;
+                    }
+                    else
+                    {
+                        int ons = numstrings;
+                        numstrings = std::ceil(numstrings / outputsPerPort);
+                        outputsUsed = ons / numstrings;
+                        channelsperstring = outputsUsed * channelsperstring;
+                    }
+                }
+
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
@@ -549,7 +586,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         {
                             if (portdone[i+j])
                             {
-                                logger_base.warn("E6804 Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
+                                logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
                                 wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
                             }
                             else
@@ -558,7 +595,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-                                UploadStringPort(page, i+j, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent);
+                                UploadStringPort(page, i+j, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent);
                             }
                         }
                     }
@@ -566,7 +603,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     {
                         if (portdone[i])
                         {
-                            logger_base.warn("E6804 Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
+                            logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
                         }
                         else
@@ -574,13 +611,14 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                             portdone[i] = true;
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            UploadStringPort(page, i, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent);
+                            wxASSERT(channelsperstring == portend - portstart + 1);
+                            UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent);
                         }
                     }                    
                 }
                 else
                 {
-                    logger_base.warn("E6804 Outputs Upload: Controller %s protocol %s not supported by this controller.",
+                    logger_base.warn("SanDevices Outputs Upload: Controller %s protocol %s not supported by this controller.",
                         (const char *)_ip.c_str(), (const char *)protocol->c_str());
                     wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
                 }
@@ -602,7 +640,7 @@ void E6804::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
     }
 }
 
-char E6804::DecodeStringPortProtocol(std::string protocol)
+char SanDevices::DecodeStringPortProtocol(std::string protocol)
 {
     if (protocol == "ws2811") return 'D';
     if (protocol == "tm18xx") return 'D';
@@ -615,19 +653,30 @@ char E6804::DecodeStringPortProtocol(std::string protocol)
     return -1;
 }
 
-void E6804::UploadStringPort(const std::string& page, int output, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
+void SanDevices::UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxStringOutputs())
     {
-        logger_base.warn("E6804 Outputs Upload: E6804 only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
-        wxMessageBox("E6804 only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
+        logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
+        wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
         return;
     }
 
     wxString p(page);
     int start = p.find("Output Configuration");
-    start = p.find("<td>" + wxString::Format("%i", output) + "</td>", start);
+
+    std::string tofind = "";
+
+    if (_model == "E682")
+    {
+        tofind = "<td>" + wxString::Format("%i-1 to %i-4", output, output) + "</td>";
+    }
+    else
+    {
+        tofind = "<td>" + wxString::Format("%i", output) + "</td>";
+    }
+    start = p.find(tofind, start);
 
     // extract the group size
     std::string gs = ExtractFromPage(page, "D", "input", start);
@@ -646,8 +695,9 @@ void E6804::UploadStringPort(const std::string& page, int output, char protocol,
 
     std::string a = ExtractFromPage(page, "A", "checkbox", start);
 
-    wxString request = wxString::Format("/%d?A=1&B=%c&C=%d&D=%s&E=%s&F=%c&G=%d&H=%s&L=%s&M=%s",
+    wxString request = wxString::Format("/%d?A=%d&B=%c&C=%d&D=%s&E=%s&F=%c&G=%d&H=%s&L=%s&M=%s",
             output + 3,
+            outputsUsed,
             protocol,
             pixels,
             gs,
@@ -660,7 +710,7 @@ void E6804::UploadStringPort(const std::string& page, int output, char protocol,
     GetURL(request.ToStdString());
 }
 
-void E6804::ResetStringOutputs()
+void SanDevices::ResetStringOutputs()
 {
     GetURL("/4?A=0");
     GetURL("/5?A=0");

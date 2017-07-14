@@ -83,6 +83,9 @@ Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ; Color Curves
 Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameversion recursesubdirs
 
+; Value Curves
+Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
+
 ; controllers
 ; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 

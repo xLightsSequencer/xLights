@@ -131,6 +131,7 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_CUT" variable="BitmapButtonCustomCut" member="yes">
 									<bitmap stock_id="wxART_CUT" />
+									<tooltip>Cut</tooltip>
 									<handler function="OnBitmapButtonCustomCutClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -141,6 +142,7 @@
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_COPY" variable="BitmapButtonCustomCopy" member="yes">
 									<bitmap stock_id="wxART_COPY" />
 									<default>1</default>
+									<tooltip>Copy</tooltip>
 									<handler function="OnBitmapButtonCustomCopyClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -151,6 +153,7 @@
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_PASTE" variable="BitmapButtonCustomPaste" member="yes">
 									<bitmap stock_id="wxART_PASTE" />
 									<default>1</default>
+									<tooltip>Paste</tooltip>
 									<handler function="OnBitmapButtonCustomPasteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
