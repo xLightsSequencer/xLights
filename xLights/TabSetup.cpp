@@ -18,11 +18,11 @@
 
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
-#include "FPP.h"
-#include "Falcon.h"
-#include "Pixlite16.h"
-#include "SanDevices.h"
-#include "J1Sys.h"
+#include "controllers/FPP.h"
+#include "controllers/Falcon.h"
+#include "controllers/Pixlite16.h"
+#include "controllers/SanDevices.h"
+#include "controllers/J1Sys.h"
 
 // dialogs
 #include "outputs/Output.h"

@@ -795,19 +795,7 @@
     <ClCompile Include="models\SubModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FPPConnectDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="osx_utils\TouchBars.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleFTP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FPP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Falcon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ControllerConnectionDialog.cpp">
@@ -933,9 +921,6 @@
     <ClCompile Include="SequenceViewManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pixlite16.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SubModelGenerateDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -948,10 +933,25 @@
     <ClCompile Include="ColorManagerDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="J1Sys.cpp">
+    <ClCompile Include="controllers\Falcon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SanDevices.cpp">
+    <ClCompile Include="controllers\FPP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\FPPConnectDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\J1Sys.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\Pixlite16.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\SanDevices.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controllers\SimpleFTP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1688,16 +1688,7 @@
     <ClInclude Include="SequenceCheck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FPPConnectDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="osx_utils\TouchBars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FPP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Falcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ControllerConnectionDialog.h">
@@ -1823,12 +1814,6 @@
     <ClInclude Include="SequenceViewManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pixlite16.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleFTP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SubModelGenerateDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1844,10 +1829,25 @@
     <ClInclude Include="MSWStackWalk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="J1Sys.h">
+    <ClInclude Include="controllers\Falcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SanDevices.h">
+    <ClInclude Include="controllers\FPP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\FPPConnectDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\J1Sys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\Pixlite16.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\SanDevices.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controllers\SimpleFTP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
