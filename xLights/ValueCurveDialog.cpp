@@ -1039,7 +1039,10 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
-    f.Write(wxString::Format("data=\"%s\" ", (const char *)_vc->Serialise().c_str()));
+    ValueCurve vc(_vc->Serialise());
+    vc.SetId("ID_VALUECURVE_XVC");
+    vc.SetLimits(0, 100);
+    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
     f.Write("</valuecurve>");
