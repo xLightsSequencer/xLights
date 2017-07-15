@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <valuecurve 
-data="Active=TRUE|Id=ID_VALUECURVE_Bars_BarCount|Type=Ramp Up/Down|Min=1.00|Max=5.00|P2=100|" SourceVersion="2017.19"  >
+data="Active=TRUE|Id=ID_VALUECURVE_XVC|Type=Ramp Up/Down|Min=0.00|Max=100.00|P2=100|" SourceVersion="2017.19"  >
 </valuecurve>

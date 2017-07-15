@@ -85,7 +85,6 @@ class ValueCurve
     void SetSerialisedValue(std::string k, std::string s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
-    void FixChangedScale(float oldmin, float oldmax);
     void ConvertToRealValues();
     float Normalise(int parm, float value);
     float Denormalise(int parm, float value);
@@ -98,10 +97,11 @@ public:
     wxBitmap GetImage(int x, int y);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
     std::string Serialise();
-    static void GetRangeParm(int parm, const std::string& type, int& low, int &high);
+    static void GetRangeParm(int parm, const std::string& type, float& low, float& high);
     bool IsOk() { return _id != ""; }
-    void Deserialise(const std::string& s);
+    void Deserialise(const std::string& s, bool holdminmax = false);
     void SetType(std::string type);
+    void FixChangedScale(float oldmin, float oldmax);
     float GetMax() { wxASSERT(_max != MAXVOIDF); return _max; }
     float GetMin() { wxASSERT(_min != MINVOIDF); return _min; }
     int GetDivisor() { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
@@ -135,10 +135,10 @@ public:
     bool NearCustomPoint(float x, float y);
     std::string GetId() const { return _id; }
     void SetId(const std::string& id) { _id = id; }
-    static void GetRangeParm1(const std::string& type, int& low, int &high);
-    static void GetRangeParm2(const std::string& type, int& low, int &high);
-    static void GetRangeParm3(const std::string& type, int& low, int &high);
-    static void GetRangeParm4(const std::string& type, int& low, int &high);
+    static void GetRangeParm1(const std::string& type, float& low, float &high);
+    static void GetRangeParm2(const std::string& type, float& low, float &high);
+    static void GetRangeParm3(const std::string& type, float& low, float &high);
+    static void GetRangeParm4(const std::string& type, float& low, float &high);
 };
 
 #endif

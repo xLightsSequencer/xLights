@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <valuecurve 
-data="Active=TRUE|Id=ID_VALUECURVE_Bars_BarCount|Type=Exponential Up|Min=1.00|Max=5.00|P1=34|P2=50|" SourceVersion="2017.19"  >
+data="Active=TRUE|Id=ID_VALUECURVE_XVC|Type=Exponential Up|Min=0.00|Max=100.00|P1=34|P2=50|" SourceVersion="2017.19"  >
 </valuecurve>

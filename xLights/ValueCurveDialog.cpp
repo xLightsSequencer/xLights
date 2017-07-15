@@ -36,7 +36,9 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
     Connect(wxEVT_MOTION, (wxObjectEventFunction)&ValueCurvePanel::mouseMoved, 0, this);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&ValueCurvePanel::Paint, 0, this);
     Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&ValueCurvePanel::mouseCaptureLost, 0, this);
+    // ReSharper disable CppVirtualFunctionCallInsideCtor
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // ReSharper restore CppVirtualFunctionCallInsideCtor
     _grabbedPoint = -1;
 }
 
@@ -216,13 +218,15 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());
     FlexGridSizer4->Add(_vcp, 1, wxALL | wxEXPAND, 2);
+    // ReSharper disable once CppVirtualFunctionCallInsideCtor
     Layout();
+    // ReSharper disable once CppVirtualFunctionCallInsideCtor
     Fit();
 
     _backup = *_vc;
 
-    wxString sMin = "";
-    wxString sMax = "";
+    wxString sMin; // = "";
+    wxString sMax; // = "";
 
     switch(_vc->GetDivisor())
     {
@@ -280,28 +284,22 @@ void ValueCurveDialog::SetParameter(int p, int v)
     switch (p)
     {
     case 1:
-    {
         _vc->SetParameter1(v);
         Slider_Parameter1->SetValue(v);
-    }
         break;
     case 2:
-    {
         _vc->SetParameter2(v);
         Slider_Parameter2->SetValue(v);
-    }
         break;
     case 3:
-    {
         _vc->SetParameter3(v);
         Slider_Parameter3->SetValue(v);
-    }
         break;
     case 4:
-    {
         _vc->SetParameter4(v);
         Slider_Parameter4->SetValue(v);
-    }
+        break;
+    default:
         break;
     }
     SetTextCtrlsFromSliders();
@@ -637,7 +635,7 @@ void ValueCurveDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)
 void ValueCurveDialog::SetTextCtrlFromSlider(int parm, wxTextCtrl* txt, int value)
 {
     std::string type = Choice1->GetStringSelection().ToStdString();
-    int low, high;
+    float low, high;
     ValueCurve::GetRangeParm(parm, type, low, high);
 
     float v = value;
@@ -679,9 +677,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
     float i = wxAtof(TextCtrl_Parameter1->GetValue());
-    int low, high;
+    float low, high;
     ValueCurve::GetRangeParm1(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low = MINVOID)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter1(i);
     _vcp->Refresh();
@@ -698,9 +696,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
     float i = wxAtof(TextCtrl_Parameter2->GetValue());
-    int low, high;
+    float low, high;
     ValueCurve::GetRangeParm2(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low = MINVOID)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter2(i);
     _vcp->Refresh();
@@ -718,9 +716,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
     float i = wxAtof(TextCtrl_Parameter3->GetValue());
-    int low, high;
+    float low, high;
     ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low = MINVOID)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter3(i);
     _vcp->Refresh();
@@ -738,9 +736,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
 {
     UpdateLinkedSlider(event);
     float i = wxAtof(TextCtrl_Parameter4->GetValue());
-    int low, high;
+    float low, high;
     ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low = MINVOID)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter4(i);
     _vcp->Refresh();
@@ -808,8 +806,8 @@ void ValueCurveDialog::ValidateWindow()
 {
     wxString type = Choice1->GetStringSelection();
 
-    int min = 0;
-    int max = 100;
+    float min = 0;
+    float max = 100;
     ValueCurve::GetRangeParm1(type.ToStdString(), min, max);
     if (min == MINVOID) min = _vc->GetMin();
     if (max == MAXVOID) max = _vc->GetMax();
@@ -1100,7 +1098,11 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
-    f.Write(wxString::Format("data=\"%s\" ", (const char *)_vc->Serialise().c_str()));
+    ValueCurve vc(_vc->Serialise());
+    vc.SetId("ID_VALUECURVE_XVC");
+    vc.SetLimits(0, 100);
+    vc.FixChangedScale(_vc->GetMin(), _vc->GetMax());
+    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
     f.Write("</valuecurve>");
@@ -1218,8 +1220,21 @@ void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
             // Add any valuecurve version conversion logic here
             // Source version will be the program version that created the custom model
 
-            vc->SetLimits(_vc->GetMin(), _vc->GetMax());
-            vc->Deserialise(data.ToStdString());
+            vc->Deserialise(data.ToStdString(), true);
+
+            if (vc->GetId() == "ID_VALUECURVE_XVC")
+            {
+                // this should already have the 0-100 scale
+            }
+            else
+            {
+                // need to fudge it
+                float min = vc->GetMin();
+                float max = vc->GetMax();
+                vc->SetLimits(0, 100);
+                vc->FixChangedScale(min, max);
+            }
+
             vc->SetActive(true);
         }
         else
@@ -1246,7 +1261,11 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     wxString filename = ((wxBitmapButton*)event.GetEventObject())->GetLabel();
 
     std::string id = _vc->GetId(); // save if because it will be overwritten
+    float min = _vc->GetMin();
+    float max = _vc->GetMax();
     LoadXVC(_vc, filename);
+    _vc->SetLimits(min, max);
+    _vc->FixChangedScale(0, 100);
     _vcp->Refresh();
     _vcp->ClearUndo();
     _vc->SetId(id);

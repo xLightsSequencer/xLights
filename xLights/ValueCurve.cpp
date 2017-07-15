@@ -5,20 +5,17 @@
 
 float ValueCurve::SafeParameter(size_t p, float v)
 {
-    int low;
-    int high;
+    float low;
+    float high;
     ValueCurve::GetRangeParm(p, _type, low, high);
 
-    float lowf = low;
-    float highf = high;
-
-    if (low == MINVOID) lowf = _min;
-    if (high == MAXVOID) highf = _max;
+    if (low == MINVOID) low = _min;
+    if (high == MAXVOID) high = _max;
     
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
 
-    return std::min(highf, std::max(lowf, v));
+    return std::min(high, std::max(low, v));
 }
 
 float ValueCurve::Safe01(float v)
@@ -26,7 +23,7 @@ float ValueCurve::Safe01(float v)
     return std::min(1.0f, std::max(0.0f, v));
 }
 
-void ValueCurve::GetRangeParm(int parm, const std::string& type, int& low, int &high)
+void ValueCurve::GetRangeParm(int parm, const std::string& type, float& low, float &high)
 {
     switch (parm)
     {
@@ -49,36 +46,31 @@ void ValueCurve::GetRangeParm(int parm, const std::string& type, int& low, int &
 
 float ValueCurve::Denormalise(int parm, float value)
 {
-    int low;
-    float lowf;
-    int high;
-    float highf;
+    float low;
+    float high;
     ValueCurve::GetRangeParm(parm, _type, low, high);
-
-    lowf = low;
-    highf = high;
 
     if (low == MINVOID)
     {
         wxASSERT(_min != MINVOIDF);
-        lowf = _min;
+        low = _min;
     }
     if (high == MAXVOID)
     {
         wxASSERT(_max != MAXVOIDF);
-        highf = _max;
+        high = _max;
     }
 
     float res = value;
 
     if (low != 0 || high != 100)
     {
-        float range = highf - lowf;
-        res = value * range / 100.0 + lowf;
+        float range = high - low;
+        res = value * range / 100.0 + low;
     }
 
-    if (res < lowf) res = lowf;
-    if (res > highf) res = highf;
+    if (res < low) res = low;
+    if (res > high) res = high;
 
     return res;
 }
@@ -91,7 +83,7 @@ void ValueCurve::ConvertToRealValues()
     _parameter4 = Denormalise(4, _parameter4);
 }
 
-void ValueCurve::GetRangeParm1(const std::string& type, int& low, int &high)
+void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
 {
     low = 0;
     high = 100;
@@ -155,7 +147,7 @@ void ValueCurve::GetRangeParm1(const std::string& type, int& low, int &high)
     }
 }
 
-void ValueCurve::GetRangeParm2(const std::string& type, int& low, int &high)
+void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
 {
     low = 0;
     high = 100;
@@ -233,7 +225,7 @@ void ValueCurve::GetRangeParm2(const std::string& type, int& low, int &high)
     }
 }
 
-void ValueCurve::GetRangeParm3(const std::string& type, int& low, int &high)
+void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
 {
     low = 0;
     high = 100;
@@ -287,7 +279,7 @@ void ValueCurve::GetRangeParm3(const std::string& type, int& low, int &high)
     }
 }
 
-void ValueCurve::GetRangeParm4(const std::string& type, int& low, int &high)
+void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
 {
     low = 0;
     high = 100;
@@ -345,29 +337,26 @@ void ValueCurve::GetRangeParm4(const std::string& type, int& low, int &high)
 
 float ValueCurve::Normalise(int parm, float value)
 {
-    int low;
-    int high;
+    float low;
+    float high;
     ValueCurve::GetRangeParm(parm, _type, low, high);
-
-    float lowf = low;
-    float highf = high;
 
     if (low == MINVOID)
     {
         wxASSERT(_min != MINVOIDF);
-        lowf = _min;
+        low = _min;
     }
     if (high == MAXVOID)
     {
         wxASSERT(_max != MAXVOIDF);
-        highf = _max;
+        high = _max;
     }
 
     float res = value;
     if (low != 0 || high != 100)
     {
-        float range = highf - lowf;
-        res = (value - lowf) * 100 / range;
+        float range = high - low;
+        res = (value - low) * 100 / range;
     }
 
     if (res < 0) res = 0;
@@ -827,7 +816,7 @@ ValueCurve::ValueCurve(const std::string& s)
     Deserialise(s);
 }
 
-void ValueCurve::Deserialise(const std::string& s)
+void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
 {
     if (s == "")
     {
@@ -865,19 +854,24 @@ void ValueCurve::Deserialise(const std::string& s)
             }
         }
 
-        if (_active && !_realValues)
+        // if we are asked to hold min max then we are just going to use the ones we deserialised and assume parms are all ok
+        // this is generally only done when loading an xvc file ... particularly an old one
+        if (!holdminmax)
         {
-            ConvertToRealValues();
-            _realValues = true;
-        }
+            if (_active && !_realValues)
+            {
+                ConvertToRealValues();
+                _realValues = true;
+            }
 
-        if (_active && ((oldmin != MINVOIDF && oldmin != _min) || (oldmax != MAXVOIDF && oldmax != _max)))
-        {
-            FixChangedScale(oldmin, oldmax);
-        }
+            if (_active && ((oldmin != MINVOIDF && oldmin != _min) || (oldmax != MAXVOIDF && oldmax != _max)))
+            {
+                FixChangedScale(oldmin, oldmax);
+            }
 
-        if (oldmin != MINVOIDF) _min = oldmin;
-        if (oldmax != MAXVOIDF) _max = oldmax;
+            if (oldmin != MINVOIDF) _min = oldmin;
+            if (oldmax != MAXVOIDF) _max = oldmax;
+        }
 
         RenderType();
     }
