@@ -281,7 +281,6 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         {
                             warnedmodels.push_back(it->second);
                             logger_base.warn("Falcon Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed: '" + it->second->GetControllerConnection() + "'. Model ignored.", "Model Ignored");
                         }
                     }
                     else
@@ -308,6 +307,17 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
+    if (warnedmodels.size() > 0)
+    {
+        std::string m = "";
+
+        for (auto it = warnedmodels.begin(); it != warnedmodels.end(); ++it)
+        {
+            m = m + (*it)->GetName() + "\n";
+        }
+
+        wxMessageBox("Models\n\n" + m + "\non controller " + _ip + " do not have their Contoller Connection details completed. Models ignored.", "Models Ignored");
+    }
 
     // sort the models by start channel
     models.sort(compare_startchannel);
@@ -319,6 +329,19 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
         wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
         return;
+    }
+
+    if (maxport > 32)
+    {
+        // not sure what goes here yet ... need a V3 to test
+    }
+    else if (maxport > 16)
+    {
+        PutURL("/StringPorts.htm", "m=1");
+    }
+    else
+    {
+        PutURL("/StringPorts.htm", "m=0");
     }
 
     // for each protocol
@@ -425,7 +448,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 }
                 else if (DecodeSerialOutputProtocol(*protocol) >= 0)
                 {
-                    UploadSerialOutput(i, DecodeSerialOutputProtocol(*protocol), portstart, parent);
+                    UploadSerialOutput(i, outputManager, DecodeSerialOutputProtocol(*protocol), portstart, parent);
                 }
                 else
                 {
@@ -467,6 +490,7 @@ void Falcon::UploadStringPort(const std::string& request, bool final)
     {
         r = r + "&r=0";
     }
+
     PutURL("/StringPorts.htm", r);
 }
 
@@ -542,7 +566,8 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol)
     if (protocol == "renard") return 2;
     return -1;
 }
-void Falcon::UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent)
+
+void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output >= GetMaxSerialOutputs())
@@ -552,6 +577,20 @@ void Falcon::UploadSerialOutput(int output, int protocol, int portstart, wxWindo
         return;
     }
 
-    wxString request = wxString::Format("t%d=%d&s%d=%d", output, protocol, output, portstart);
-    PutURL("/SerialOutputs.htm", request.ToStdString());
+    long sc;
+    auto o = outputManager->GetOutput(portstart, sc);
+
+    if (o != nullptr)
+    {
+        wxString request = wxString::Format("btnSave=Save&t%d=%d&u%d=%d&s%d=%d", 
+            output-1, protocol, 
+            output-1, o->GetUniverse(), 
+            output-1, sc);
+        PutURL("/SerialOutputs.htm", request.ToStdString());
+    }
+    else
+    {
+        logger_base.warn("Error uploading serial output to falcon. %d does not map to a universe.", portstart);
+        wxMessageBox("Error uploading serial output to falcon. "+ wxString::Format("%i", portstart) +" does not map to a universe.");
+    }
 }

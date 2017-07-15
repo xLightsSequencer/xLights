@@ -25,6 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Expand E6804 upload to also support the E682.
    -- enh (keith)   Add decaying sine value curve
    -- enh (keith)   Include some standard value curves in the distribution
+   -- bug (keith)   fix serial configuration upload to the falcon controllers. Also address expansion boards better.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
                     create gigantic buffers. Fixes #879
