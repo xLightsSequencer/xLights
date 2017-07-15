@@ -238,19 +238,19 @@ void BufferSizeDialog::ValidateWindow()
 
     if (ValueCurve_Top->GetValue()->GetType() == "Flat")
     {
-        ValueCurve_Top->GetValue()->SetUnscaledParameter1(SpinCtrl_Top->GetValue());
+        ValueCurve_Top->GetValue()->SetParameter1(SpinCtrl_Top->GetValue());
     }
     if (ValueCurve_Bottom->GetValue()->GetType() == "Flat")
     {
-        ValueCurve_Bottom->GetValue()->SetUnscaledParameter1(SpinCtrl_Bottom->GetValue());
+        ValueCurve_Bottom->GetValue()->SetParameter1(SpinCtrl_Bottom->GetValue());
     }
     if (ValueCurve_Left->GetValue()->GetType() == "Flat")
     {
-        ValueCurve_Left->GetValue()->SetUnscaledParameter1(SpinCtrl_Left->GetValue());
+        ValueCurve_Left->GetValue()->SetParameter1(SpinCtrl_Left->GetValue());
     }
     if (ValueCurve_Right->GetValue()->GetType() == "Flat")
     {
-        ValueCurve_Right->GetValue()->SetUnscaledParameter1(SpinCtrl_Right->GetValue());
+        ValueCurve_Right->GetValue()->SetParameter1(SpinCtrl_Right->GetValue());
     }
 }
 

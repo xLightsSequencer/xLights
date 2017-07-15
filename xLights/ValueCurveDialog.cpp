@@ -1218,6 +1218,7 @@ void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
             // Add any valuecurve version conversion logic here
             // Source version will be the program version that created the custom model
 
+            vc->SetLimits(_vc->GetMin(), _vc->GetMax());
             vc->Deserialise(data.ToStdString());
             vc->SetActive(true);
         }
