@@ -1485,7 +1485,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
 
         // we create the buffer oversized to prevent issues
-        inf->buffer.InitBuffer(inf->ModelBufferHt, inf->ModelBufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
 
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
