@@ -1282,6 +1282,11 @@
 					<label>Facebook</label>
 					<handler function="OnMenuItem_Help_FacebookSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_DONATE" variable="MenuItem_Donate" member="yes">
+					<label>Donate</label>
+					<help>Donate to the xLights project.</help>
+					<handler function="OnMenuItem_DonateSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="wxID_ABOUT" variable="MenuItem2" member="no">
 					<label>About</label>
 					<help>Show info about this application</help>

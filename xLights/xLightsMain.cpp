@@ -249,6 +249,7 @@ const long xLightsFrame::ID_MENU_HELP_DOWNLOAD = wxNewId();
 const long xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
+const long xLightsFrame::ID_MNU_DONATE = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
@@ -846,6 +847,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp->Append(MenuItem_Help_Isue_Tracker);
     MenuItem_Help_Facebook = new wxMenuItem(MenuHelp, ID_MENU_HELP_FACEBOOK, _("Facebook"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Help_Facebook);
+    MenuItem_Donate = new wxMenuItem(MenuHelp, ID_MNU_DONATE, _("Donate"), _("Donate to the xLights project."), wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Donate);
     MenuItem2 = new wxMenuItem(MenuHelp, wxID_ABOUT, _("About"), _("Show info about this application"), wxITEM_NORMAL);
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
@@ -999,6 +1002,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MNU_HELP_RELEASE_NOTES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected);
     Connect(ID_MENU_HELP_ISSUE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected);
     Connect(ID_MENU_HELP_FACEBOOK,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_FacebookSelected);
+    Connect(ID_MNU_DONATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DonateSelected);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
@@ -3296,7 +3300,7 @@ void xLightsFrame::ExportModels(wxString filename)
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
 
             std::string current = "";
-            
+
             wxString stype = wxString(model->GetStringType());
 
             long lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
@@ -4603,16 +4607,6 @@ void xLightsFrame::ExportEffects(wxString filename)
     f.Close();
 }
 
-void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
-{
-    // make sure everything is up to date
-    RecalcModels();
-
-    FPPConnectDialog dlg(this, &_outputManager);
-
-    dlg.ShowModal();
-}
-
 void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
 {
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
@@ -4780,6 +4774,18 @@ std::string StripPresets(const std::string& sourcefile)
     out.Close();
 
     return newfile;
+}
+
+#pragma region Tools Menu
+
+void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
+{
+    // make sure everything is up to date
+    RecalcModels();
+
+    FPPConnectDialog dlg(this, &_outputManager);
+
+    dlg.ShowModal();
 }
 
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
@@ -4973,11 +4979,6 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     prog.Update(100);
 }
 
-void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
-{
-    _backupSubfolders = MenuItem_BackupSubfolders->IsChecked();
-}
-
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 {
 #ifdef LINUX
@@ -4987,8 +4988,36 @@ void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 #endif
 }
 
+#pragma endregion Tools Menu
+
 void xLightsFrame::ValidateWindow()
 {
+}
+
+void xLightsFrame::TimerOutput(int period)
+{
+    if (CheckBoxLightOutput->IsChecked())
+    {
+        _outputManager.SetManyChannels(0, &SeqData[period][0], SeqData.NumChannels());
+    }
+}
+
+void xLightsFrame::PlayerError(const wxString& msg)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString m = msg;
+    m.Replace("\n", " ", true);
+    m.Replace("%", "%%", true);
+
+    logger_base.warn(m);
+    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+}
+
+#pragma region Settings Menu
+
+void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
+{
+    _backupSubfolders = MenuItem_BackupSubfolders->IsChecked();
 }
 
 void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
@@ -5018,32 +5047,6 @@ void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::TimerOutput(int period)
-{
-    if (CheckBoxLightOutput->IsChecked())
-    {
-        _outputManager.SetManyChannels(0, &SeqData[period][0], SeqData.NumChannels());
-    }
-}
-
-void xLightsFrame::PlayerError(const wxString& msg)
-{
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString m = msg;
-    m.Replace("\n", " ", true);
-    m.Replace("%", "%%", true);
-
-    logger_base.warn(m);
-    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
-}
-
-
-void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
-{
-    ::wxLaunchDefaultBrowser("http://videos.xlights.org");
-}
-
-
 void xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event)
 {
     _excludePresetsFromPackagedSequences = MenuItem_ExcludePresetsFromPackagedSequences->IsChecked();
@@ -5061,3 +5064,73 @@ void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
     dlg.SetMainSequencer(mainSequencer);
     dlg.ShowModal();
 }
+
+#pragma endregion Settings Menu
+#pragma region Help Menu
+
+void xLightsFrame::OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("http://videos.xlights.org");
+}
+
+void xLightsFrame::DoDonate()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    std::string html = "<html><body><form action = \"https://www.paypal.com/cgi-bin/webscr\" method=\"post\" id=\"paypal\">";
+    html += "<input name=\"cmd\" type=\"hidden\" value=\"_s-xclick\"><input name=\"encrypted\" type=\"hidden\" ";
+    html += "value=\"-----BEGIN PKCS7-----MIIHLwYJKoZIhvcNAQcEoIIHIDCCBxwCAQExggEwMIIBLAIBADCBlDCBjjELMAkGA1UEBhM";
+    html += "CVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2Z";
+    html += "V9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJKoZIhvcNAQEBBQAEgYB6eVIAMC2zoeDtrWp8JDY0kg9aWdLUVR7OLuzygBndSQtvcAxs9GBKSBv";
+    html += "EhIBPRyVITPHMHSWJ0sFKphFP8hv4PUHGrJ/jRVJU7Jg4fj3nmzEBykEfV2Ygx6RO7bHOjsVC7wtosSZOkLg1stWv4/9j1k5GdMSUYb5mdnApLHYegDELMAkGBSsOAwIaB";
+    html += "QAwgawGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIF1t+W/JzgKyAgYi1sMjxlEOuJigFRwFXYhQVKQ5Q9iUdxeRK/jpT6dVobbQRw1OtQLKl+LGcJvonJLiFTzAh/O95b2/";
+    html += "1OTdNM161soQlUAt/8vbDGkQFVjLlO/C68a1a2pSXEUWYX1CVbb5UT/6wzuJFSZbfl86gCVT1Vv+pyj2+SjFVau/rdMpO9MKyNukXHTDFoIIDhzCCA4MwggLsoAMCAQICA";
+    html += "QAwDQYJKoZIhvcNAQEFBQAwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgN";
+    html += "VBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tMB4XDTA0MDIxMzEwMTMxNVoXDTM1MDIxMzEwMTMxNVowg";
+    html += "Y4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETA";
+    html += "PBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBR07d/ETMS1ycjtkpkvjXZe9k+6Cie";
+    html += "LuLsPumsJ7QC1odNz3sJiCbs2wC0nLE0uLGaEtXynIgRqIddYCHx88pb5HTXv4SZeuv0Rqq4+axW9PLAAATU8w04qqjaSXgbGLP3NmohqM6bV9kZZwZLR/klDaQGo1u9uD";
+    html += "b9lr4Yn+rBQIDAQABo4HuMIHrMB0GA1UdDgQWBBSWn3y7xm8XvVk/UtcKG+wQ1mSUazCBuwYDVR0jBIGzMIGwgBSWn3y7xm8XvVk/UtcKG+wQ1mSUa6GBlKSBkTCBjjELM";
+    html += "AkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1U";
+    html += "EAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb22CAQAwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOBgQCBXzpWmoBa5e9fo6ujionW1hUhP";
+    html += "kOBakTr3YCDjbYfvJEiv/2P+IobhOGJr85+XHhN0v4gUkEDI8r2/rNk1m0GA8HKddvTjyGw/XqXa+LSTlDYkqI8OwR8GEYj4efEtcRpRYBxV8KxAW93YDWzFGvruKnnLbD";
+    html += "AF6VR5w/cCMn5hzGCAZowggGWAgEBMIGUMIGOMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJb";
+    html += "mMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoGCSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbQIBADAJBgUrDgMCGgUAoF0wGAYJKoZIhvc";
+    html += "NAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTUwMzIyMDcwMTM5WjAjBgkqhkiG9w0BCQQxFgQUS+bqsAykJyPDOSftCR69oXQRd6YwDQYJKoZIhvcNAQEBB";
+    html += "QAEgYCfmPNOECi2mAVRxYEDVYWJ/QxrX5dvMmrcHC1/0Eb2X89pdO+2pDwuI1uzZ6h1In4UiBJPwVNzxCHUOniej7CQ+xHfo87M/Pb0+9LD9GZYSQbnRP5qs4/FImWV6k2";
+    html += "9HKecWmJdow3/AP97eoVFQ4iD1aq7vVl4vdzB6yrC1bNj4Q==-----END PKCS7-----\"><input alt = \"PayPal - The safer, easier way to pay online!\" ";
+    html += "name=\"submit\" src=\"https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif\" type=\"image\"><img style=\"display: none ! important;\" ";
+    html += "hidden=\"\" src=\"https://www.paypalobjects.com/en_US/i/scr/pixel.gif\" alt=\"\" width=\"1\" height=\"1\">";
+    html += "</form><script>document.getElementById(\"paypal\").submit();</script></body></html>";
+
+    wxString filename = wxFileName::CreateTempFileName("Donate") + ".html";
+
+    wxFile f;
+    if (f.Create(filename, true))
+    {
+        f.Write(html);
+        f.Close();
+        ::wxLaunchDefaultBrowser("file://" + filename);
+
+        // this is a bit dodgy ... basically I wait a second and then delete the temporary file.
+        // To keep the app responsive I yield frequently
+        for (int i = 0; i < 100; ++i)
+        {
+            wxYield();
+            wxMilliSleep(10);
+        }
+
+        wxRemoveFile(filename);
+    }
+    else
+    {
+        logger_base.error("Unable to create temp file %s.", (const char *)filename.c_str());
+    }
+}
+
+void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
+{
+    DoDonate();
+}
+
+#pragma endregion Help Menu

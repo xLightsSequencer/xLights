@@ -475,6 +475,7 @@ private:
     void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     void OnMenuItemColorManagerSelected(wxCommandEvent& event);
+    void OnMenuItem_DonateSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -645,6 +646,7 @@ private:
     static const long ID_MNU_HELP_RELEASE_NOTES;
     static const long ID_MENU_HELP_ISSUE;
     static const long ID_MENU_HELP_FACEBOOK;
+    static const long ID_MNU_DONATE;
     static const long ID_TIMER1;
     static const long ID_TIMER2;
     static const long ID_TIMER_EFFECT_SETTINGS;
@@ -691,6 +693,7 @@ private:
     wxButton* Button_Change_Media_Dir;
     wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxMenuItem* MenuItemCheckSequence;
@@ -1152,6 +1155,7 @@ private:
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
     void ShowHideSync();
     void ValidateWindow();
+    void DoDonate();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
