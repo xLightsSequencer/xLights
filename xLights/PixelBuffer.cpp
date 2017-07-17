@@ -1621,6 +1621,8 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     wxASSERT(!std::isinf(offset)); // this function will hang if it is
 
+    if (std::isinf(offset)) offset = 1.0;
+
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
