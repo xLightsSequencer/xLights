@@ -1571,6 +1571,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     {
         SetupArtNet(nullptr, item+1);
     }
+    else if (id == ID_NETWORK_ADDDDP)
+    {
+        SetupDDP(nullptr, item + 1);
+    }
     else if (id == ID_NETWORK_UCIFPPB)
     {
         UploadFPPBridgeInput();

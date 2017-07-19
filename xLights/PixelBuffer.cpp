@@ -1485,7 +1485,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
 
         // we create the buffer oversized to prevent issues
-        inf->buffer.InitBuffer(inf->ModelBufferHt, inf->ModelBufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
 
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
@@ -1620,6 +1620,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
     wxASSERT(!std::isinf(offset)); // this function will hang if it is
+
+    if (std::isinf(offset)) offset = 1.0;
 
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())

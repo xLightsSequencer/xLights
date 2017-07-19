@@ -21,7 +21,7 @@ class Falcon
     void UploadStringPort(const std::string& request, bool final);
     std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent);
     int DecodeSerialOutputProtocol(std::string protocol);
-    void UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent);
+    void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
