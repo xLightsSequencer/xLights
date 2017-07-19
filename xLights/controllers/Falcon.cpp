@@ -517,6 +517,13 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
 
+    wxString desc(description);
+    int replaced = desc.Replace("  ", " ");
+    while (replaced != 0)
+    {
+        replaced = desc.Replace("  ", " ");
+    }
+
     // first I need to check if they have virtual strings ... as my code cant handle that as we dont have all the information we need
     wxStringInputStream strm(wxString(strings.c_str()));
     wxXmlDocument stringsdoc(strm);
@@ -568,7 +575,7 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
                                         row, universe,
                                         row, portstartchannel,
                                          row, pixels, 
-                                         row, wxString(description.c_str()));
+                                         row, desc);
     return request.ToStdString();
 }
 

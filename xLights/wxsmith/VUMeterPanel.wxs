@@ -75,8 +75,10 @@
 								<item>Color On</item>
 								<item>Intensity Wave</item>
 								<item>Pulse</item>
+								<item>Level Bar</item>
 								<item>Level Pulse</item>
 								<item>Level Shape</item>
+								<item>Timing Event Bar</item>
 								<item>Timing Event Spike</item>
 								<item>Timing Event Sweep</item>
 								<item>Timing Event Color</item>
@@ -85,6 +87,7 @@
 								<item>Timing Event Pulse</item>
 								<item>Note On</item>
 								<item>Note Level Pulse</item>
+								<item>Note Level Bar</item>
 							</content>
 							<selection>2</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
