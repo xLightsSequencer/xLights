@@ -1850,6 +1850,9 @@
     <ClInclude Include="controllers\SimpleFTP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="xLightsVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc">

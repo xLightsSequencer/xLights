@@ -24,6 +24,7 @@
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/panel.h>
+#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
 #include <wx/button.h>
@@ -155,6 +156,8 @@ enum play_modes
     play_single,
     play_list
 };
+
+enum ACTOOL { FILL, CASCADE, TOOLNIL};
 
 enum SeqPlayerStates
 {
@@ -476,6 +479,23 @@ private:
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     void OnMenuItemColorManagerSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
+    void OnAC_OnClick(wxCommandEvent& event);
+    void OnAC_OffClick(wxCommandEvent& event);
+    void OnAC_DisableClick(wxCommandEvent& event);
+    void OnMenuItem_ACLIghtsSelected(wxCommandEvent& event);
+    void OnACToolbarDropdown(wxAuiToolBarEvent& event);
+    void OnAC_ShimmerClick(wxCommandEvent& event);
+    void OnAC_TwinkleClick(wxCommandEvent& event);
+    void OnAC_BackgroundClick(wxCommandEvent& event);
+    void OnAC_ForegroundClick(wxCommandEvent& event);
+    void OnAC_CascadeClick(wxCommandEvent& event);
+    void OnAC_FillClick(wxCommandEvent& event);
+    void OnAC_RampUpDownClick(wxCommandEvent& event);
+    void OnAC_RampDownClick(wxCommandEvent& event);
+    void OnAC_RampUpClick(wxCommandEvent& event);
+    void OnAC_IntensityClick(wxCommandEvent& event);
+    void OnChoiceParm1Select(wxCommandEvent& event);
+    void OnChoiceParm2Select(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -514,6 +534,22 @@ private:
     static const long ID_PASTE_BY_TIME;
     static const long ID_PASTE_BY_CELL;
     static const long ID_AUITOOLBAR_EDIT;
+    static const long ID_AUITOOLBARITEM_ACDISABLED;
+    static const long ID_AUITOOLBARITEM_ACOFF;
+    static const long ID_AUITOOLBARITEM_ACON;
+    static const long ID_AUITOOLBARITEM_ACSHIMMER;
+    static const long ID_AUITOOLBARITEM_ACTWINKLE;
+    static const long ID_AUITOOLBARITEM_ACINTENSITY;
+    static const long ID_AUITOOLBARITEM_ACRAMPUP;
+    static const long ID_AUITOOLBARITEM_ACRAMPDOWN;
+    static const long ID_AUITOOLBARITEM_ACRAMPUPDOWN;
+    static const long ID_CHOICE_PARM1;
+    static const long ID_CHOICE_PARM2;
+    static const long ID_AUITOOLBARITEM_ACFILL;
+    static const long ID_AUITOOLBARITEM_ACCASCADE;
+    static const long ID_AUITOOLBARITEM_ACFOREGROUND;
+    static const long ID_AUITOOLBARITEM_ACBACKGROUND;
+    static const long ID_AUITOOLBAR_AC;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -570,6 +606,8 @@ private:
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
     static const long ID_MNU_XSCHEDULE;
+    static const long ID_MENUITEM5;
+    static const long MNU_ID_ACLIGHTS;
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_SAVE_AS_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
@@ -638,7 +676,6 @@ private:
     static const long ID_MENUITEM20;
     static const long ID_E131_Sync;
     static const long ID_MNU_FORCEIP;
-    static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -696,6 +733,7 @@ private:
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
+    wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItemCheckSequence;
     wxButton* ButtonNetworkDeleteAll;
     wxTimer EffectSettingsTimer;
@@ -715,6 +753,7 @@ private:
     wxMenu* Menu1;
     wxFlexGridSizer* GaugeSizer;
     wxPanel* PanelSequencer;
+    wxChoice* ChoiceParm2;
     wxMenuItem* MenuItem42;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItem7;
@@ -764,6 +803,7 @@ private:
     wxButton* ButtonSaveSetup;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenu* MenuItemPerspectives;
+    wxChoice* ChoiceParm1;
     wxMenu* GridSpacingMenu;
     wxMenuItem* MenuItem_PackageSequence;
     wxStaticText* FileNameText;
@@ -788,11 +828,26 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
+    xlAuiToolBar* ACToolbar;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
     AUIToolbarButtonWrapper *ButtonPasteByTime;
     AUIToolbarButtonWrapper *ButtonPasteByCell;
+
+    AUIToolbarButtonWrapper *Button_ACDisabled;
+    AUIToolbarButtonWrapper *Button_ACOn;
+    AUIToolbarButtonWrapper *Button_ACOff;
+    AUIToolbarButtonWrapper *Button_ACShimmer;
+    AUIToolbarButtonWrapper *Button_ACTwinkle;
+    AUIToolbarButtonWrapper *Button_ACIntensity;
+    AUIToolbarButtonWrapper *Button_ACRampUp;
+    AUIToolbarButtonWrapper *Button_ACRampDown;
+    AUIToolbarButtonWrapper *Button_ACRampUpDown;
+    AUIToolbarButtonWrapper *Button_ACFill;
+    AUIToolbarButtonWrapper *Button_ACCascade;
+    AUIToolbarButtonWrapper *Button_ACForeground;
+    AUIToolbarButtonWrapper *Button_ACBackground;
 
     wxBitmap pauseIcon;
     wxBitmap playIcon;
@@ -818,7 +873,9 @@ private:
     bool _backupSubfolders;
     bool _excludePresetsFromPackagedSequences;
     bool _excludeAudioFromPackagedSequences;
+    bool _showACLights;
 
+    void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
@@ -1093,8 +1150,21 @@ public:
     ModelPreview* GetLayoutPreview() const {return modelPreview;}
     void SetStoredLayoutGroup(const std::string &group);
     const std::string& GetStoredLayoutGroup() const {return mStoredLayoutGroup;}
+    bool IsACActive();
+    void GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode);
+    int GetACIntensity();
+    void GetACRampValues(int& a, int& b);
+    void UpdateACToolbar(bool forceState = true); // if force state is false then it will force disable the AC toolbar
 
 private:
+
+    int _acParm1Intensity;
+    int _acParm1RampUp;
+    int _acParm2RampUp;
+    int _acParm1RampDown;
+    int _acParm2RampDown;
+    int _acParm1RampUpDown;
+    int _acParm2RampUpDown;
 
     wxXmlNode* mCurrentPerpective;
     std::vector<bool> savedPaneShown;

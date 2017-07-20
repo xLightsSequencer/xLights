@@ -5,7 +5,6 @@
 #define _glpane_
 #endif
 
-
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include "../xlGLCanvas.h"
@@ -21,6 +20,9 @@
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
+enum ACTYPE { ON, OFF, SHIMMER, TWINKLE };
+enum ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN };
+enum ACMODE { FOREGROUND, BACKGROUND, MODENIL };
 
 enum class HitLocation {
     NONE,
@@ -164,6 +166,13 @@ private:
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
     bool OneCellSelected();
+    void ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
+    void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
+    int GetEndBrightness(Effect* eff);
+    int GetStartBrightness(Effect* eff);
+    void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
+    void CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
+
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;

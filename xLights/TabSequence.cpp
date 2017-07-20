@@ -1069,6 +1069,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);
+    UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);
 

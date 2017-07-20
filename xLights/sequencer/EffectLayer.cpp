@@ -77,8 +77,26 @@ void EffectLayer::RemoveEffect(int index)
         mEffects.erase(mEffects.begin()+index);
         IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
         delete e;
+        SortEffects();
     }
 }
+
+void EffectLayer::DeleteEffect(int id)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetID() == id)
+        {
+            IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            mEffects.erase(mEffects.begin() + i);
+            SortEffects();
+            return;
+        }
+    }
+    wxASSERT(false);
+}
+
 void EffectLayer::RemoveAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
@@ -88,7 +106,6 @@ void EffectLayer::RemoveAllEffects()
     }
     mEffects.clear();
 }
-
 
 Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &settings, const std::string &palette,
                                int startTimeMS, int endTimeMS, int Selected, bool Protected)
@@ -119,7 +136,6 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     IncrementChangeCount(startTimeMS, endTimeMS);
     return e;
 }
-
 
 void EffectLayer::SortEffects()
 {
@@ -631,19 +647,6 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
     std::unique_lock<std::recursive_mutex> locker(lock);
     IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
     mEffects.erase(mEffects.begin()+idx);
-}
-void EffectLayer::DeleteEffect(int id)
-{
-    std::unique_lock<std::recursive_mutex> locker(lock);
-    for(int i=0; i<mEffects.size();i++)
-    {
-        if(mEffects[i]->GetID() == id)
-        {
-            IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
-            mEffects.erase(mEffects.begin()+i);
-            break;
-        }
-    }
 }
 
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)

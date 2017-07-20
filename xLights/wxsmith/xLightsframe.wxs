@@ -268,6 +268,212 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_AC" subclass="xlAuiToolBar" variable="ACToolbar" member="yes">
+					<pos>1,30</pos>
+					<handler function="OnACToolbarDropdown" entry="EVT_AUITOOLBAR_TOOL_DROPDOWN" />
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACDISABLED" variable="AC_Disable" member="yes">
+							<bitmap stock_id="xlAC_DISABLED" stock_client="wxART_TOOLBAR" />
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_DisableClick" entry="EVT_TOOL" />
+						</object>
+						<label>Disable</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarSeparator" />
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACOFF" variable="AC_Off" member="yes">
+							<bitmap stock_id="xlAC_OFF" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Off</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_OffClick" entry="EVT_TOOL" />
+						</object>
+						<label>Off</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACON" variable="AC_On" member="yes">
+							<bitmap stock_id="xlAC_ON" stock_client="wxART_TOOLBAR" />
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_OnClick" entry="EVT_TOOL" />
+						</object>
+						<label>On</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSHIMMER" variable="AC_Shimmer" member="yes">
+							<bitmap stock_id="xlAC_SHIMMER" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Shimmer</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_ShimmerClick" entry="EVT_TOOL" />
+						</object>
+						<label>Shimmer</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACTWINKLE" variable="AC_Twinkle" member="yes">
+							<bitmap stock_id="xlAC_TWINKLE" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Twinkle</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_TwinkleClick" entry="EVT_TOOL" />
+						</object>
+						<label>Twinkle</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarSeparator" />
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACINTENSITY" variable="AC_Intensity" member="yes">
+							<bitmap stock_id="xlAC_INTENSITY" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Intensity</shorthelp>
+							<itemkind>Check</itemkind>
+							<dropdown>1</dropdown>
+							<handler function="OnAC_IntensityClick" entry="EVT_TOOL" />
+						</object>
+						<label>Intensity</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUP" variable="AC_RampUp" member="yes">
+							<bitmap stock_id="xlAC_RAMPUP" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Ramp Up</shorthelp>
+							<itemkind>Check</itemkind>
+							<dropdown>1</dropdown>
+							<handler function="OnAC_RampUpClick" entry="EVT_TOOL" />
+						</object>
+						<label>Ramp Up</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPDOWN" variable="AC_RampDown" member="yes">
+							<bitmap stock_id="xlAC_RAMPDOWN" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Ramp Down</shorthelp>
+							<itemkind>Check</itemkind>
+							<dropdown>1</dropdown>
+							<handler function="OnAC_RampDownClick" entry="EVT_TOOL" />
+						</object>
+						<label>Ramp Down</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUPDOWN" variable="AC_RampUpDown" member="yes">
+							<bitmap stock_id="xlAC_RAMPUPDOWN" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Ramp Up/Down</shorthelp>
+							<itemkind>Check</itemkind>
+							<dropdown>1</dropdown>
+							<handler function="OnAC_RampUpDownClick" entry="EVT_TOOL" />
+						</object>
+						<label>Ramp Up/Down</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxChoice" name="ID_CHOICE_PARM1" variable="ChoiceParm1" member="yes">
+							<content>
+								<item>0</item>
+								<item>10</item>
+								<item>20</item>
+								<item>25</item>
+								<item>30</item>
+								<item>33</item>
+								<item>40</item>
+								<item>50</item>
+								<item>60</item>
+								<item>66</item>
+								<item>70</item>
+								<item>75</item>
+								<item>80</item>
+								<item>90</item>
+								<item>100</item>
+							</content>
+							<selection>0</selection>
+							<pos>276,12</pos>
+							<handler function="OnChoiceParm1Select" entry="EVT_CHOICE" />
+						</object>
+						<label>Parm1</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxChoice" name="ID_CHOICE_PARM2" variable="ChoiceParm2" member="yes">
+							<content>
+								<item>0</item>
+								<item>10</item>
+								<item>20</item>
+								<item>25</item>
+								<item>30</item>
+								<item>33</item>
+								<item>40</item>
+								<item>50</item>
+								<item>60</item>
+								<item>66</item>
+								<item>70</item>
+								<item>75</item>
+								<item>80</item>
+								<item>90</item>
+								<item>100</item>
+							</content>
+							<selection>14</selection>
+							<pos>476,11</pos>
+							<handler function="OnChoiceParm2Select" entry="EVT_CHOICE" />
+						</object>
+						<label>Parm2</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarSeparator" />
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFILL" variable="AC_Fill" member="yes">
+							<bitmap stock_id="xlAC_FILL" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Fill</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_FillClick" entry="EVT_TOOL" />
+						</object>
+						<label>Fill</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACCASCADE" variable="AC_Cascade" member="yes">
+							<bitmap stock_id="xlAC_CASCADE" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Cascade</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_CascadeClick" entry="EVT_TOOL" />
+						</object>
+						<label>Cascade</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarSeparator" />
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFOREGROUND" variable="AC_Foreground" member="yes">
+							<bitmap stock_id="xlAC_FOREGROUND" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Foreground</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_ForegroundClick" entry="EVT_TOOL" />
+						</object>
+						<label>Foreground</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACBACKGROUND" variable="AC_Background" member="yes">
+							<bitmap stock_id="xlAC_BACKGROUND" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Background</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_BackgroundClick" entry="EVT_TOOL" />
+						</object>
+						<label>Background</label>
+					</object>
+				</object>
+				<name>ACToolbar</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>AC Toolbar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<layer>6</layer>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" subclass="xlAuiToolBar" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="wxID_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
@@ -913,6 +1119,16 @@
 					<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
+					<label>Reset Toolbars</label>
+					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="MNU_ID_ACLIGHTS" variable="MenuItem_ACLIghts" member="yes">
+					<label>AC Lights Toolbar</label>
+					<handler function="OnMenuItem_ACLIghtsSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
+				<object class="separator" />
 				<object class="wxMenu" name="ID_MENUITEM7" variable="MenuItemPerspectives" member="yes">
 					<label>Perspectives</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_SAVE_PERSPECTIVE" variable="MenuItemViewSavePerspective" member="yes">
@@ -1245,10 +1461,6 @@
 					<label>&amp;Force Local IP</label>
 					<handler function="OnMenuItem_ForceLocalIPSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
-				</object>
-				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
-					<label>Reset Toolbars</label>
-					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
