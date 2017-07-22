@@ -56,7 +56,7 @@
 #include <wx/string.h>
 //*)
 
-#define TOOLBAR_SAVE_VERSION "0002:"
+#define TOOLBAR_SAVE_VERSION "0003:"
 
 #include "osxMacUtils.h"
 #include <wx/zipstrm.h>
@@ -117,6 +117,22 @@ const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_EDIT = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACDISABLED = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACOFF = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACON = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACSHIMMER = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACTWINKLE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACINTENSITY = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUP = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPDOWN = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACRAMPUPDOWN = wxNewId();
+const long xLightsFrame::ID_CHOICE_PARM1 = wxNewId();
+const long xLightsFrame::ID_CHOICE_PARM2 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACFILL = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACCASCADE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACFOREGROUND = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_ACBACKGROUND = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_AC = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
@@ -173,6 +189,8 @@ const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
+const long xLightsFrame::ID_MENUITEM5 = wxNewId();
+const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
@@ -244,7 +262,6 @@ const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
 const long xLightsFrame::ID_MENUITEM20 = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
-const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
 const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
@@ -482,6 +499,60 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PASTE_BY_CELL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
     EditToolBar->Realize();
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
+    ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
+    ChoiceParm1->SetSelection( ChoiceParm1->Append(_("0")) );
+    ChoiceParm1->Append(_("10"));
+    ChoiceParm1->Append(_("20"));
+    ChoiceParm1->Append(_("25"));
+    ChoiceParm1->Append(_("30"));
+    ChoiceParm1->Append(_("33"));
+    ChoiceParm1->Append(_("40"));
+    ChoiceParm1->Append(_("50"));
+    ChoiceParm1->Append(_("60"));
+    ChoiceParm1->Append(_("66"));
+    ChoiceParm1->Append(_("70"));
+    ChoiceParm1->Append(_("75"));
+    ChoiceParm1->Append(_("80"));
+    ChoiceParm1->Append(_("90"));
+    ChoiceParm1->Append(_("100"));
+    ChoiceParm2 = new wxChoice(ACToolbar, ID_CHOICE_PARM2, wxPoint(476,11), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM2"));
+    ChoiceParm2->Append(_("0"));
+    ChoiceParm2->Append(_("10"));
+    ChoiceParm2->Append(_("20"));
+    ChoiceParm2->Append(_("25"));
+    ChoiceParm2->Append(_("30"));
+    ChoiceParm2->Append(_("33"));
+    ChoiceParm2->Append(_("40"));
+    ChoiceParm2->Append(_("50"));
+    ChoiceParm2->Append(_("60"));
+    ChoiceParm2->Append(_("66"));
+    ChoiceParm2->Append(_("70"));
+    ChoiceParm2->Append(_("75"));
+    ChoiceParm2->Append(_("80"));
+    ChoiceParm2->Append(_("90"));
+    ChoiceParm2->SetSelection( ChoiceParm2->Append(_("100")) );
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACDISABLED, _("Disable"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_DISABLED")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
+    ACToolbar->AddSeparator();
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACOFF, _("Off"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_OFF")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Off"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACON, _("On"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ON")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, wxEmptyString, wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SHIMMER")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Shimmer"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle"), wxEmptyString, NULL);
+    ACToolbar->AddSeparator();
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Intensity"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPDOWN, _("Ramp Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Down"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUPDOWN, _("Ramp Up/Down"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUPDOWN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up/Down"), wxEmptyString, NULL);
+    ACToolbar->AddControl(ChoiceParm1, _("Parm1"));
+    ACToolbar->AddControl(ChoiceParm2, _("Parm2"));
+    ACToolbar->AddSeparator();
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFILL, _("Fill"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_FILL")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Fill"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACCASCADE, _("Cascade"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_CASCADE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Cascade"), wxEmptyString, NULL);
+    ACToolbar->AddSeparator();
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACFOREGROUND, _("Foreground"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_FOREGROUND")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Foreground"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACBACKGROUND, _("Background"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_BACKGROUND")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Background"), wxEmptyString, NULL);
+    ACToolbar->Realize();
+    MainAuiManager->AddPane(ACToolbar, wxAuiPaneInfo().Name(_T("ACToolbar")).ToolbarPane().Caption(_("AC Toolbar")).CloseButton(false).Layer(6).Top().Gripper());
     ViewToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ViewToolBar->AddTool(wxID_ZOOM_IN, _("Zoom In"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_IN")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
     ViewToolBar->AddTool(wxID_ZOOM_OUT, _("Zoom Out"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_ZOOM_OUT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
@@ -682,6 +753,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ViewZoomOut = new wxMenuItem(MenuView, wxID_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
     MenuView->Append(MenuItem_ViewZoomOut);
     MenuView->AppendSeparator();
+    MenuItem13 = new wxMenuItem(MenuView, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
+    MenuView->Append(MenuItem13);
+    MenuItem_ACLIghts = new wxMenuItem(MenuView, MNU_ID_ACLIGHTS, _("AC Lights Toolbar"), wxEmptyString, wxITEM_CHECK);
+    MenuView->Append(MenuItem_ACLIghts);
+    MenuView->AppendSeparator();
     MenuItemPerspectives = new wxMenu();
     MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
     MenuItemPerspectives->Append(MenuItemViewSavePerspective);
@@ -839,8 +915,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(MenuItem_e131sync);
     MenuItem_ForceLocalIP = new wxMenuItem(MenuSettings, ID_MNU_FORCEIP, _("&Force Local IP"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_ForceLocalIP);
-    MenuItem13 = new wxMenuItem(MenuSettings, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
-    MenuSettings->Append(MenuItem13);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
@@ -890,6 +964,22 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_AUITOOLBARITEM8,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemShowHideEffects);
     Connect(ID_PASTE_BY_TIME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByTimeClick);
     Connect(ID_PASTE_BY_CELL,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByCellClick);
+    Connect(ID_AUITOOLBARITEM_ACDISABLED,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_DisableClick);
+    Connect(ID_AUITOOLBARITEM_ACOFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_OffClick);
+    Connect(ID_AUITOOLBARITEM_ACON,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_OnClick);
+    Connect(ID_AUITOOLBARITEM_ACSHIMMER,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_ShimmerClick);
+    Connect(ID_AUITOOLBARITEM_ACTWINKLE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_TwinkleClick);
+    Connect(ID_AUITOOLBARITEM_ACINTENSITY,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_IntensityClick);
+    Connect(ID_AUITOOLBARITEM_ACRAMPUP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_RampUpClick);
+    Connect(ID_AUITOOLBARITEM_ACRAMPDOWN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_RampDownClick);
+    Connect(ID_AUITOOLBARITEM_ACRAMPUPDOWN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_RampUpDownClick);
+    Connect(ID_CHOICE_PARM1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoiceParm1Select);
+    Connect(ID_CHOICE_PARM2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoiceParm2Select);
+    Connect(ID_AUITOOLBARITEM_ACFILL,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_FillClick);
+    Connect(ID_AUITOOLBARITEM_ACCASCADE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_CascadeClick);
+    Connect(ID_AUITOOLBARITEM_ACFOREGROUND,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_ForegroundClick);
+    Connect(ID_AUITOOLBARITEM_ACBACKGROUND,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_BackgroundClick);
+    Connect(ID_AUITOOLBAR_AC,wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN,(wxObjectEventFunction)&xLightsFrame::OnACToolbarDropdown);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
@@ -946,6 +1036,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
+    Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
+    Connect(MNU_ID_ACLIGHTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ACLIghtsSelected);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
@@ -1006,7 +1098,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
-    Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
     Connect(ID_MNU_VIDEOS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VideoTutorialsSelected);
@@ -1054,6 +1145,37 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
     ButtonPasteByCell = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_CELL);
+
+    Button_ACDisabled = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACDISABLED);
+    Button_ACDisabled->SetValue(false);
+    Button_ACOn = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACON);
+    Button_ACOn->SetValue(true);
+    Button_ACOff = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACOFF);
+    Button_ACOff->SetValue(false);
+    Button_ACTwinkle = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACTWINKLE);
+    Button_ACTwinkle->SetValue(false);
+    Button_ACShimmer = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACSHIMMER);
+    Button_ACShimmer->SetValue(false);
+
+    Button_ACIntensity = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACINTENSITY);
+    Button_ACIntensity->SetValue(true);
+    Button_ACRampUp = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUP);
+    Button_ACRampUp->SetValue(false);
+    Button_ACRampDown = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACRAMPDOWN);
+    Button_ACRampDown->SetValue(false);
+    Button_ACRampUpDown = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUPDOWN);
+    Button_ACRampUpDown->SetValue(false);
+
+    Button_ACFill = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACFILL);
+    Button_ACFill->SetValue(false);
+    Button_ACCascade = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACCASCADE);
+    Button_ACCascade->SetValue(false);
+
+    Button_ACForeground = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACFOREGROUND);
+    Button_ACForeground->SetValue(false);
+    Button_ACBackground = new AUIToolbarButtonWrapper(ACToolbar, ID_AUITOOLBARITEM_ACBACKGROUND);
+    Button_ACBackground->SetValue(false);
+
     ButtonPasteByTime->SetValue(true);
     ButtonPasteByCell->SetValue(false);
     mResetToolbars = false;
@@ -1064,6 +1186,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
+
+    _acParm1Intensity = 100;
+    _acParm1RampUp = 0;
+    _acParm2RampUp = 100;
+    _acParm1RampDown = 0;
+    _acParm2RampDown = 100;
+    _acParm1RampUpDown = 0;
+    _acParm2RampUpDown = 100;
+    ChoiceParm1->SetStringSelection("100");
+    ChoiceParm2->SetStringSelection("100");
 
     StatusBarSizer->AddGrowableCol(0,2);
     StatusBarSizer->AddGrowableCol(2,1);
@@ -1255,6 +1387,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ExcludeAudioPackagedSequence->Check(_excludeAudioFromPackagedSequences);
     logger_base.debug("Exclude Audio From Packaged Sequences: %s.", _excludeAudioFromPackagedSequences ? "true" : "false");
 
+    config->Read("xLightsShowACLights", &_showACLights, false);
+    MenuItem_ACLIghts->Check(_showACLights);
+    logger_base.debug("Show AC Lights toolbar: %s.", _showACLights ? "true" : "false");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1438,6 +1574,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
         MenuItem_ForceLocalIP->Check(false);
     }
 
+    UpdateACToolbar();
+    ShowACLights();
+
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);
@@ -1496,6 +1635,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
+    config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -5078,6 +5218,29 @@ void xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEven
     _excludeAudioFromPackagedSequences = MenuItem_ExcludeAudioPackagedSequence->IsChecked();
 }
 
+void xLightsFrame::ShowACLights()
+{
+    wxAuiPaneInfo& tb = MainAuiManager->GetPane(_T("ACToolbar"));
+    if (tb.IsOk())
+    {
+        if (_showACLights)
+        {
+            tb.Show();
+        }
+        else
+        {
+            tb.Hide();
+        }
+        MainAuiManager->Update();
+    }
+}
+
+void xLightsFrame::OnMenuItem_ACLIghtsSelected(wxCommandEvent& event)
+{
+    _showACLights = MenuItem_ACLIghts->IsChecked();
+    ShowACLights();
+}
+
 void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
 {
     ColorManagerDialog dlg(this, color_mgr);
@@ -5170,3 +5333,341 @@ void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 }
 
 #pragma endregion Help Menu
+
+#pragma region AC Sequencing
+
+void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
+{
+    Button_ACOn->SetValue(true);
+    Button_ACOff->SetValue(false);
+    Button_ACTwinkle->SetValue(false);
+    Button_ACShimmer->SetValue(false);
+}
+
+void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
+{
+    Button_ACOn->SetValue(false);
+    Button_ACOff->SetValue(true);
+    Button_ACTwinkle->SetValue(false);
+    Button_ACShimmer->SetValue(false);
+}
+
+void xLightsFrame::UpdateACToolbar(bool forceState)
+{
+    if (Button_ACDisabled->IsChecked() && SeqData.NumFrames() != 0 && _showACLights && forceState)
+    {
+        wxAuiToolBarItem* button = ACToolbar->FindTool(ID_AUITOOLBARITEM_ACON);
+        int state = button->GetState();
+        if (state & wxAUI_BUTTON_STATE_DISABLED)
+        {
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACON, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACTWINKLE, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACSHIMMER, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACINTENSITY, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUP, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPDOWN, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUPDOWN, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACCASCADE, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACFILL, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACFOREGROUND, true);
+            EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACBACKGROUND, true);
+        }
+        ChoiceParm1->Enable(true);
+        if (Button_ACIntensity->IsChecked())
+        {
+            ChoiceParm2->Enable(false);
+        }
+        else
+        {
+            ChoiceParm2->Enable(true);
+        }
+    }
+    else
+    {
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACON, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACTWINKLE, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACSHIMMER, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACINTENSITY, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUP, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPDOWN, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACRAMPUPDOWN, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACCASCADE, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACFILL, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACFOREGROUND, false);
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACBACKGROUND, false);
+        ChoiceParm1->Enable(false);
+        ChoiceParm2->Enable(false);
+    }
+    //MainAuiManager->Update();
+}
+
+void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
+{
+    UpdateACToolbar();
+    if (Button_ACDisabled->IsChecked() && SeqData.NumFrames() != 0 && _showACLights)
+    {
+        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ENABLED"))));
+        Button_ACOn->SetValue(true);
+        Button_ACIntensity->SetValue(true);
+    }
+    else
+    {
+        ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_DISABLED"))));
+    }
+    UpdateACToolbar();
+    //MainAuiManager->Update();
+}
+
+#pragma endregion AC Sequencing
+
+void xLightsFrame::OnACToolbarDropdown(wxAuiToolBarEvent& event)
+{
+}
+
+void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
+{
+    Button_ACOn->SetValue(false);
+    Button_ACOff->SetValue(false);
+    Button_ACTwinkle->SetValue(false);
+    Button_ACShimmer->SetValue(true);
+}
+
+void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
+{
+    Button_ACOn->SetValue(false);
+    Button_ACOff->SetValue(false);
+    Button_ACTwinkle->SetValue(true);
+    Button_ACShimmer->SetValue(false);
+}
+
+bool xLightsFrame::IsACActive()
+{
+    return SeqData.NumFrames() != 0 && _showACLights && Button_ACDisabled->IsChecked();
+}
+
+void xLightsFrame::OnAC_BackgroundClick(wxCommandEvent& event)
+{
+    Button_ACForeground->SetValue(false);
+}
+
+void xLightsFrame::OnAC_ForegroundClick(wxCommandEvent& event)
+{
+    Button_ACBackground->SetValue(false);
+}
+
+void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
+{
+    Button_ACIntensity->SetValue(false);
+    Button_ACRampUp->SetValue(false);
+    Button_ACRampDown->SetValue(false);
+    Button_ACRampUpDown->SetValue(false);
+    Button_ACFill->SetValue(false);
+    if (!Button_ACCascade->IsChecked())
+    {
+        Button_ACOff->SetValue(true);
+    }
+}
+
+void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
+{
+    Button_ACCascade->SetValue(false);
+    if (Button_ACFill->IsChecked())
+    {
+        if (!Button_ACOn->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
+        {
+            Button_ACOn->SetValue(true);
+        }
+    }
+}
+
+void xLightsFrame::OnAC_RampUpDownClick(wxCommandEvent& event)
+{
+    Button_ACIntensity->SetValue(false);
+    Button_ACRampUp->SetValue(false);
+    Button_ACRampDown->SetValue(false);
+    Button_ACRampUpDown->SetValue(true);
+    Button_ACFill->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    if (Button_ACOff->IsChecked())
+    {
+        Button_ACOff->SetValue(false);
+        Button_ACOn->SetValue(true);
+    }
+    ChoiceParm2->Enable(true);
+    ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUpDown));
+    ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUpDown));
+}
+
+void xLightsFrame::OnAC_RampDownClick(wxCommandEvent& event)
+{
+    Button_ACIntensity->SetValue(false);
+    Button_ACRampUp->SetValue(false);
+    Button_ACRampDown->SetValue(true);
+    Button_ACRampUpDown->SetValue(false);
+    Button_ACFill->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    if (Button_ACOff->IsChecked())
+    {
+        Button_ACOff->SetValue(false);
+        Button_ACOn->SetValue(true);
+    }
+    ChoiceParm2->Enable(true);
+    ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampDown));
+    ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampDown));
+}
+
+void xLightsFrame::OnAC_RampUpClick(wxCommandEvent& event)
+{
+    Button_ACIntensity->SetValue(false);
+    Button_ACRampUp->SetValue(true);
+    Button_ACRampDown->SetValue(false);
+    Button_ACRampUpDown->SetValue(false);
+    Button_ACFill->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    if (Button_ACOff->IsChecked())
+    {
+        Button_ACOff->SetValue(false);
+        Button_ACOn->SetValue(true);
+    }
+    ChoiceParm2->Enable(true);
+    ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUp));
+    ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUp));
+}
+
+void xLightsFrame::OnAC_IntensityClick(wxCommandEvent& event)
+{
+    Button_ACIntensity->SetValue(true);
+    Button_ACRampUp->SetValue(false);
+    Button_ACRampDown->SetValue(false);
+    Button_ACRampUpDown->SetValue(false);
+    Button_ACFill->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    if (Button_ACOff->IsChecked())
+    {
+        Button_ACOff->SetValue(false);
+        Button_ACOn->SetValue(true);
+    }
+    ChoiceParm2->Enable(false);
+    ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1Intensity));
+}
+
+void xLightsFrame::GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode)
+{
+    if (Button_ACOn->IsChecked())
+    {
+        type = ACTYPE::ON;
+    }
+    else if (Button_ACOff->IsChecked())
+    {
+        type = ACTYPE::OFF;
+    }
+    else if (Button_ACTwinkle->IsChecked())
+    {
+        type = ACTYPE::TWINKLE;
+    }
+    else if (Button_ACShimmer->IsChecked())
+    {
+        type = ACTYPE::SHIMMER;
+    }
+
+    if (Button_ACIntensity->IsChecked())
+    {
+        style = ACSTYLE::INTENSITY;
+    }
+    else if (Button_ACRampUp->IsChecked())
+    {
+        style = ACSTYLE::RAMPUP;
+    }
+    else if (Button_ACRampDown->IsChecked())
+    {
+        style = ACSTYLE::RAMPDOWN;
+    }
+    else if (Button_ACRampUpDown->IsChecked())
+    {
+        style = ACSTYLE::RAMPUPDOWN;
+    }
+
+    tool = ACTOOL::TOOLNIL;
+    if (Button_ACFill->IsChecked())
+    {
+        tool = ACTOOL::FILL;
+    }
+    else if (Button_ACCascade->IsChecked())
+    {
+        tool = ACTOOL::CASCADE;
+    }
+
+    mode = ACMODE::MODENIL;
+    if (Button_ACForeground->IsChecked())
+    {
+        mode = ACMODE::FOREGROUND;
+    }
+    else if (Button_ACBackground->IsChecked())
+    {
+        mode = ACMODE::BACKGROUND;
+    }
+}
+
+int xLightsFrame::GetACIntensity()
+{
+    return _acParm1Intensity;
+}
+
+void xLightsFrame::GetACRampValues(int& a, int& b)
+{
+    a = 0;
+    b = 100;
+    if (Button_ACRampUp->IsChecked())
+    {
+        a = std::min(_acParm1RampUp, _acParm2RampUp);
+        b = std::max(_acParm1RampUp, _acParm2RampUp);
+    }
+    else if (Button_ACRampDown->IsChecked())
+    {
+        a = std::max(_acParm1RampDown, _acParm2RampDown);
+        b = std::min(_acParm1RampDown, _acParm2RampDown);
+    }
+    else if (Button_ACRampUpDown->IsChecked())
+    {
+        a = std::min(_acParm1RampUpDown, _acParm2RampUpDown);
+        b = std::max(_acParm1RampUpDown, _acParm2RampUpDown);
+    }
+}
+
+void xLightsFrame::OnChoiceParm1Select(wxCommandEvent& event)
+{
+    if (Button_ACIntensity->IsChecked())
+    {
+        _acParm1Intensity = wxAtoi(ChoiceParm1->GetStringSelection());
+    }
+    else if (Button_ACRampUp->IsChecked())
+    {
+        _acParm1RampUp = wxAtoi(ChoiceParm1->GetStringSelection());
+    }
+    else if (Button_ACRampDown->IsChecked())
+    {
+        _acParm1RampDown = wxAtoi(ChoiceParm1->GetStringSelection());
+    }
+    else if (Button_ACRampUpDown->IsChecked())
+    {
+        _acParm1RampUpDown = wxAtoi(ChoiceParm1->GetStringSelection());
+    }
+}
+
+void xLightsFrame::OnChoiceParm2Select(wxCommandEvent& event)
+{
+    if (Button_ACRampUp->IsChecked())
+    {
+        _acParm2RampUp = wxAtoi(ChoiceParm2->GetStringSelection());
+    }
+    else if (Button_ACRampDown->IsChecked())
+    {
+        _acParm2RampDown = wxAtoi(ChoiceParm2->GetStringSelection());
+    }
+    else if (Button_ACRampUpDown->IsChecked())
+    {
+        _acParm2RampUpDown = wxAtoi(ChoiceParm2->GetStringSelection());
+    }
+}
