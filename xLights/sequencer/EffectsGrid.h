@@ -71,6 +71,7 @@ public:
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void ForceRefresh();
+    void SetTimingClickPlayMode(bool mode) {mTimingPlayOnDClick = mode;}
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
     void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
     void MoveSelectedEffectUp(bool shift);
@@ -167,6 +168,7 @@ private:
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
+    bool mTimingPlayOnDClick;
     bool mGridNodeValues = true;
     bool mCanPaste;
 

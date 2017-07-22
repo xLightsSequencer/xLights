@@ -26,8 +26,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add decaying sine value curve
    -- enh (keith)   Include some standard value curves in the distribution
    -- bug (keith)   fix serial configuration upload to the falcon controllers. Also address expansion boards better.
+   -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration.  Useful for creating/adjusting lyric timings.
 2017.19  Jul 08, 2017s
-   -- bug (dkulp)   Guard against submodels that result in 0 nodes that could 
+   -- bug (dkulp)   Guard against submodels that result in 0 nodes that could
                     create gigantic buffers. Fixes #879
    -- bug (dkulp)   Fix crash with exporting of model group.  Fixes # 878
    -- bug (keith)   Put in place protections against extreme gamma values.

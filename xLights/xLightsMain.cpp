@@ -228,6 +228,9 @@ const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_TOGGLE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST = wxNewId();
+const long xLightsFrame::ID_MENU_TIMING_EDIT_MODE = wxNewId();
+const long xLightsFrame::ID_MENU_TIMING_PLAY_MODE = wxNewId();
+const long xLightsFrame::ID_MENUITEM_Timing_DClick_Mode = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_AUTO = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
@@ -803,6 +806,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem7->Append(MenuItemEffectAssistToggleMode);
     MenuItemEffectAssistToggleMode->Check(true);
     MenuSettings->Append(ID_MENUITEM_EFFECT_ASSIST, _("Effect Assist Window"), MenuItem7, wxEmptyString);
+    MenuItem15 = new wxMenu();
+    MenuItemTimingEditMode = new wxMenuItem(MenuItem15, ID_MENU_TIMING_EDIT_MODE, _("Edit Text"), wxEmptyString, wxITEM_CHECK);
+    MenuItem15->Append(MenuItemTimingEditMode);
+    MenuItemTimingEditMode->Check(true);
+    MenuItemTimingPlayMode = new wxMenuItem(MenuItem15, ID_MENU_TIMING_PLAY_MODE, _("Play Timing"), wxEmptyString, wxITEM_CHECK);
+    MenuItem15->Append(MenuItemTimingPlayMode);
+    MenuSettings->Append(ID_MENUITEM_Timing_DClick_Mode, _("Timing DClick Mode"), MenuItem15, wxEmptyString);
     OpenGLMenu = new wxMenu();
     MenuItem40 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_AUTO, _("Auto Detect"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem40);
@@ -983,6 +993,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOffSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_TOGGLE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistToggleModeSelected);
+    Connect(ID_MENU_TIMING_EDIT_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemTimingPlayOnDClick);
+    Connect(ID_MENU_TIMING_PLAY_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemTimingPlayOnDClick);
     Connect(ID_MENU_OPENGL_AUTO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
@@ -1359,6 +1371,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     }
     logger_base.debug("Grid icon backgrounds: %s.", mGridIconBackgrounds ? "true" : "false");
 
+    config->Read("xLightsTimingPlayOnDClick", &mTimingPlayOnDClick, true);
+    {
+        int idb = mTimingPlayOnDClick ? ID_MENU_TIMING_PLAY_MODE : ID_MENU_TIMING_EDIT_MODE;
+        wxCommandEvent eventb(wxEVT_NULL, idb);
+        OnMenuItemTimingPlayOnDClick(eventb);
+    }
+    logger_base.debug("Timing Play on DClick: %s.", mTimingPlayOnDClick ? "true" : "false");
+
     config->Read("xLightsGridNodeValues", &mGridNodeValues, true);
     {
         int idg = mGridNodeValues ? ID_MENUITEM_GRID_NODE_VALUES_ON : ID_MENUITEM_GRID_NODE_VALUES_OFF;
@@ -1470,6 +1490,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsIconSize", mIconSize);
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
+    config->Write("xLightsTimingPlayOnDClick", mTimingPlayOnDClick);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
@@ -5063,6 +5084,21 @@ void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
     dlg.Fit();
     dlg.SetMainSequencer(mainSequencer);
     dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemTimingPlayOnDClick(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MENU_TIMING_PLAY_MODE)
+    {
+        mTimingPlayOnDClick = true;
+    }
+    else if (event.GetId() == ID_MENU_TIMING_EDIT_MODE)
+    {
+        mTimingPlayOnDClick = false;
+    }
+    MenuItemTimingPlayMode->Check(mTimingPlayOnDClick);
+    MenuItemTimingEditMode->Check(!mTimingPlayOnDClick);
+    mainSequencer->PanelEffectGrid->SetTimingClickPlayMode(mTimingPlayOnDClick);
 }
 
 #pragma endregion Settings Menu

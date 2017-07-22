@@ -127,7 +127,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
 
-    if (!event.ShiftDown()) {
+    if (!event.ShiftDown() && !mTimingPlayOnDClick) {
         UpdateTimePosition(selectedTimeMS);
     }
 
@@ -139,22 +139,47 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
     if (selectedEffect != nullptr)
     {
-        if (!event.ShiftDown()) {
-            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
-                wxString label = selectedEffect->GetEffectName();
+        if( mTimingPlayOnDClick )
+        {
+            if (event.ShiftDown()) {
+                if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+                    wxString label = selectedEffect->GetEffectName();
 
-                wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
-                if (dlg.ShowModal()) {
-                    selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+                    wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+                    if (dlg.ShowModal()) {
+                        selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+                    }
+                    Refresh();
                 }
+            }
+            else
+            {
+                // we have double clicked on an effect - highlight that part of the waveform
+                ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
                 Refresh();
+                wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+                wxPostEvent(mParent, playEvent);
             }
         }
         else
         {
-            // we have double clicked on an effect - highlight that part of the waveform
-            ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
-            Refresh();
+            if (!event.ShiftDown()) {
+                if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+                    wxString label = selectedEffect->GetEffectName();
+
+                    wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
+                    if (dlg.ShowModal()) {
+                        selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+                    }
+                    Refresh();
+                }
+            }
+            else
+            {
+                // we have double clicked on an effect - highlight that part of the waveform
+                ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
+                Refresh();
+            }
         }
     }
 }

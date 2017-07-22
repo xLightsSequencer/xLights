@@ -476,6 +476,7 @@ private:
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     void OnMenuItemColorManagerSelected(wxCommandEvent& event);
     void OnMenuItem_DonateSelected(wxCommandEvent& event);
+    void OnMenuItemTimingPlayOnDClick(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -625,6 +626,9 @@ private:
     static const long ID_MENUITEM_EFFECT_ASSIST_ALWAYS_OFF;
     static const long ID_MENUITEM_EFFECT_ASSIST_TOGGLE;
     static const long ID_MENUITEM_EFFECT_ASSIST;
+    static const long ID_MENU_TIMING_EDIT_MODE;
+    static const long ID_MENU_TIMING_PLAY_MODE;
+    static const long ID_MENUITEM_Timing_DClick_Mode;
     static const long ID_MENU_OPENGL_AUTO;
     static const long ID_MENU_OPENGL_3;
     static const long ID_MENU_OPENGL_2;
@@ -687,6 +691,7 @@ private:
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItem_BackupSubfolders;
+    wxMenu* MenuItem15;
     wxMenuItem* MenuItemGridNodeValuesOn;
     wxMenu* Menu3;
     wxMenu* MenuItemRenderMode;
@@ -699,6 +704,7 @@ private:
     wxMenuItem* MenuItemCheckSequence;
     wxButton* ButtonNetworkDeleteAll;
     wxTimer EffectSettingsTimer;
+    wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxPanel* AUIStatusBar;
@@ -748,6 +754,7 @@ private:
     wxMenu* MenuFile;
     wxDirDialog* DirDialog1;
     wxAuiNotebook* Notebook1;
+    wxMenuItem* MenuItemTimingPlayMode;
     wxMenuItem* MenuItem35;
     wxMenu* OpenGLMenu;
     wxStaticText* StatusText;
@@ -1029,6 +1036,7 @@ private:
     int mIconSize;
     int mGridSpacing;
     bool mGridIconBackgrounds;
+    bool mTimingPlayOnDClick;
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;

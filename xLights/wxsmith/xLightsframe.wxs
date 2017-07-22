@@ -1184,6 +1184,20 @@
 						<checkable>1</checkable>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM_Timing_DClick_Mode" variable="MenuItem15" member="yes">
+					<label>Timing DClick Mode</label>
+					<object class="wxMenuItem" name="ID_MENU_TIMING_EDIT_MODE" variable="MenuItemTimingEditMode" member="yes">
+						<label>Edit Text</label>
+						<checked>1</checked>
+						<handler function="OnMenuItemTimingPlayOnDClick" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MENU_TIMING_PLAY_MODE" variable="MenuItemTimingPlayMode" member="yes">
+						<label>Play Timing</label>
+						<handler function="OnMenuItemTimingPlayOnDClick" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM19" variable="OpenGLMenu" member="yes">
 					<label>OpenGL</label>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
