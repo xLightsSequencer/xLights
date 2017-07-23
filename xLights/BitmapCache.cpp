@@ -88,6 +88,7 @@
 #include "../include/ACcascade.xpm"
 #include "../include/ACforeground.xpm"
 #include "../include/ACbackground.xpm"
+#include "../include/ACselect.xpm"
 
 #include "../include/group-open-24.xpm"
 #include "../include/group-open-64.xpm"
@@ -344,6 +345,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm);
     }  else if ("xlAC_OFF" == id) {
         return effectBitmaps.get(24, false, id, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm);
+    } else if ("xlAC_SELECT" == id) {
+        return effectBitmaps.get(24, false, id, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm);
     } else if ("xlAC_DISABLED" == id) {
         return effectBitmaps.get(24, false, id, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm);
     } else if ("xlAC_ENABLED" == id) {

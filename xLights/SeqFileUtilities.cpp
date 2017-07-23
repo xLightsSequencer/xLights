@@ -76,12 +76,12 @@ void xLightsFrame::NewSequence()
     if( ret_code == wxID_CANCEL )
     {
         delete CurrentSeqXmlFile;
-        CurrentSeqXmlFile = NULL;
+        CurrentSeqXmlFile = nullptr;
         return;
     }
 	else
 	{
-        if (CurrentSeqXmlFile->GetMedia() != NULL)
+        if (CurrentSeqXmlFile->GetMedia() != nullptr)
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{

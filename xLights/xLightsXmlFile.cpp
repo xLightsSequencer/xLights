@@ -22,9 +22,9 @@ const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	: wxFileName(filename),
 	version_string(wxEmptyString),
-	seq_duration(0.0),
+	seq_duration(30.0),
 	media_file(wxEmptyString),
-	seq_type("Media"),
+	seq_type("Animation"), // default to animation
 	seq_timing("50 ms"),
 	image_dir(wxEmptyString),
 	is_open(false),

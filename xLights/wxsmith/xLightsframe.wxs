@@ -284,6 +284,15 @@
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSELECT" variable="AC_Select" member="yes">
+							<bitmap stock_id="xlAC_SELECT" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Select</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnAC_SelectClick" entry="EVT_TOOL" />
+						</object>
+						<label>Select</label>
+					</object>
+					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACOFF" variable="AC_Off" member="yes">
 							<bitmap stock_id="xlAC_OFF" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Off</shorthelp>

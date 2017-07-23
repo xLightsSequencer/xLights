@@ -1784,6 +1784,7 @@ void xLightsFrame::ResetAllSequencerWindows()
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
@@ -1847,7 +1848,6 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             }
         }
     }
-
 }
 
 void xLightsFrame::RecalcModels(bool force)
@@ -5342,6 +5342,11 @@ void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
     Button_ACShimmer->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    {
+        Button_ACIntensity->SetValue(true);
+    }
 }
 
 void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
@@ -5350,6 +5355,8 @@ void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
     Button_ACOff->SetValue(true);
     Button_ACTwinkle->SetValue(false);
     Button_ACShimmer->SetValue(false);
+    Button_ACCascade->SetValue(false);
+    Button_ACFill->SetValue(false);
 }
 
 void xLightsFrame::UpdateACToolbar(bool forceState)
@@ -5418,6 +5425,7 @@ void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
     }
     UpdateACToolbar();
     //MainAuiManager->Update();
+    EnableSequenceControls(true);
 }
 
 #pragma endregion AC Sequencing
@@ -5432,6 +5440,10 @@ void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
     Button_ACShimmer->SetValue(true);
+    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    {
+        Button_ACIntensity->SetValue(true);
+    }
 }
 
 void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
@@ -5440,6 +5452,10 @@ void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(true);
     Button_ACShimmer->SetValue(false);
+    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    {
+        Button_ACIntensity->SetValue(true);
+    }
 }
 
 bool xLightsFrame::IsACActive()
@@ -5459,26 +5475,60 @@ void xLightsFrame::OnAC_ForegroundClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
 {
-    Button_ACIntensity->SetValue(false);
-    Button_ACRampUp->SetValue(false);
-    Button_ACRampDown->SetValue(false);
-    Button_ACRampUpDown->SetValue(false);
-    Button_ACFill->SetValue(false);
     if (!Button_ACCascade->IsChecked())
     {
-        Button_ACOff->SetValue(true);
+        Button_ACOn->SetValue(true);
+        Button_ACIntensity->SetValue(true);
+    }
+    else
+    {
+        Button_ACIntensity->SetValue(false);
+        Button_ACRampUp->SetValue(false);
+        Button_ACRampDown->SetValue(false);
+        Button_ACRampUpDown->SetValue(false);
+        Button_ACFill->SetValue(false);
+    }
+
+    if (Button_ACFill->IsChecked())
+    {
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, false);
+    }
+    else
+    {
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, true);
     }
 }
 
 void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
 {
-    Button_ACCascade->SetValue(false);
     if (Button_ACFill->IsChecked())
     {
-        if (!Button_ACOn->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, false);
+    }
+    else
+    {
+        EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, true);
+    }
+
+    Button_ACCascade->SetValue(false);
+
+    if (!Button_ACOn->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
+    {
+        if (Button_ACFill->IsChecked())
         {
             Button_ACOn->SetValue(true);
         }
+        else
+        {
+            if (!Button_ACOff->IsChecked())
+            {
+                Button_ACOn->SetValue(true);
+            }
+        }
+    }
+    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    {
+        Button_ACIntensity->SetValue(true);
     }
 }
 

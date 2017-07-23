@@ -587,7 +587,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             Refresh();
         }
 
-        SetToolTip(wxString::Format(wxT("%.1f"), _vc->GetOutputValue(y)));
+        SetToolTip(wxString::Format(wxT("%.2f,%.1f"), x, _vc->GetOutputValue(y)));
     }
     else
     {
@@ -601,7 +601,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
         {
             y = 1.0f;
         }
-        SetToolTip(wxString::Format(wxT("%.1f"), _vc->GetOutputValue(y)));
+        SetToolTip(wxString::Format(wxT("%.2f,%.1f"), x, _vc->GetOutputValue(y)));
     }
 }
 #pragma endregion Mouse Control
