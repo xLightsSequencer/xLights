@@ -1565,26 +1565,39 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int 
     }
     else if (type == ACTYPE::TWINKLE)
     {
-        if (startBrightness == endBrightness && midBrightness == -1)
+        if (midBrightness == -1 || midBrightness == startBrightness && midBrightness == endBrightness)
         {
-            if (startBrightness != 100)
+            if (startBrightness == endBrightness)
             {
-                settings = wxString::Format("C_SLIDER_Brightness=%i", startBrightness).ToStdString();
+                // Intensity
+                if (startBrightness != 100)
+                {
+                    settings = wxString::Format("C_SLIDER_Brightness=%i", startBrightness).ToStdString();
+                }
             }
+            else
+	    {
+		// Ramp
+		settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=100.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4).ToStdString();
+            }
+            Effect* eff = el->AddEffect(0, "Twinkle", settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
         }
         else
         {
-            if (midBrightness == -1)
-            {
-                settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=100.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4).ToStdString();
-            }
-            else
-            {
-                settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp Up/Down|Min=0.00|Max=100.00|P1=%i|P2=%i|P3=%i", startBrightness / 4, midBrightness / 4, endBrightness / 4).ToStdString();
-            }
+            // ramp up/down
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+
+            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=100.00|P1=%i|P2=%i|", startBrightness / 4, midBrightness / 4).ToStdString();
+
+            Effect* eff = el->AddEffect(0, "Twinkle", settings, palette, startMS, mid, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+
+            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=100.00|P1=%i|P2=%i|", midBrightness / 4, endBrightness / 4).ToStdString();
+
+            eff = el->AddEffect(0, "Twinkle", settings, palette, mid, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
         }
-        Effect* eff = el->AddEffect(0, "Twinkle", settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
     }
 }
 
