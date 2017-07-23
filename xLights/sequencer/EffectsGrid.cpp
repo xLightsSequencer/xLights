@@ -1449,7 +1449,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         }
         else
         {
-            ACDraw(type, style, mode, intensity, a, b, startMS, endMS, std::min(mRangeStartRow, mRangeEndRow), std::max(mRangeStartRow, mRangeEndRow));
+            ACDraw(type, style, mode, intensity, a, b, std::min(startMS, endMS), std::max(startMS, endMS), std::min(mRangeStartRow, mRangeEndRow), std::max(mRangeStartRow, mRangeEndRow));
         }
 
         mRangeStartRow = -1;
