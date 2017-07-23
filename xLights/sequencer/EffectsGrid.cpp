@@ -679,13 +679,18 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        if(!out_of_bounds)
-        {
-            Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
-            if( element != nullptr )
+        if( !xlights->IsACActive() ) {
+            if(!out_of_bounds)
             {
-                RunMouseOverHitTests(rowIndex,event.GetX(),event.GetY());
+                Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
+                if( element != nullptr )
+                {
+                    RunMouseOverHitTests(rowIndex,event.GetX(),event.GetY());
+                }
             }
+        } else {
+            SetCursor(wxCURSOR_DEFAULT);
+            mResizingMode = EFFECT_RESIZE_NO;
         }
     }
 
