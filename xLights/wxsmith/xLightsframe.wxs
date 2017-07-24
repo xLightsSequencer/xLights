@@ -286,7 +286,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSELECT" variable="AC_Select" member="yes">
 							<bitmap stock_id="xlAC_SELECT" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Select</shorthelp>
+							<shorthelp>Select - SHIFT L</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_SelectClick" entry="EVT_TOOL" />
 						</object>
@@ -295,7 +295,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACOFF" variable="AC_Off" member="yes">
 							<bitmap stock_id="xlAC_OFF" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Off</shorthelp>
+							<shorthelp>Off - DELETE</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_OffClick" entry="EVT_TOOL" />
 						</object>
@@ -304,6 +304,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACON" variable="AC_On" member="yes">
 							<bitmap stock_id="xlAC_ON" stock_client="wxART_TOOLBAR" />
+							<shorthelp>On - O</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_OnClick" entry="EVT_TOOL" />
 						</object>
@@ -312,7 +313,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACSHIMMER" variable="AC_Shimmer" member="yes">
 							<bitmap stock_id="xlAC_SHIMMER" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Shimmer</shorthelp>
+							<shorthelp>Shimmer - S</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_ShimmerClick" entry="EVT_TOOL" />
 						</object>
@@ -321,7 +322,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACTWINKLE" variable="AC_Twinkle" member="yes">
 							<bitmap stock_id="xlAC_TWINKLE" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Twinkle</shorthelp>
+							<shorthelp>Twinkle - T</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_TwinkleClick" entry="EVT_TOOL" />
 						</object>
@@ -334,7 +335,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACINTENSITY" variable="AC_Intensity" member="yes">
 							<bitmap stock_id="xlAC_INTENSITY" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Intensity</shorthelp>
+							<shorthelp>Intensity - I</shorthelp>
 							<itemkind>Check</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_IntensityClick" entry="EVT_TOOL" />
@@ -344,7 +345,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUP" variable="AC_RampUp" member="yes">
 							<bitmap stock_id="xlAC_RAMPUP" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Ramp Up</shorthelp>
+							<shorthelp>Ramp Up - U</shorthelp>
 							<itemkind>Check</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampUpClick" entry="EVT_TOOL" />
@@ -354,7 +355,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPDOWN" variable="AC_RampDown" member="yes">
 							<bitmap stock_id="xlAC_RAMPDOWN" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Ramp Down</shorthelp>
+							<shorthelp>Ramp Down - D</shorthelp>
 							<itemkind>Check</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampDownClick" entry="EVT_TOOL" />
@@ -364,7 +365,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACRAMPUPDOWN" variable="AC_RampUpDown" member="yes">
 							<bitmap stock_id="xlAC_RAMPUPDOWN" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Ramp Up/Down</shorthelp>
+							<shorthelp>Ramp Up/Down - A</shorthelp>
 							<itemkind>Check</itemkind>
 							<dropdown>1</dropdown>
 							<handler function="OnAC_RampUpDownClick" entry="EVT_TOOL" />
@@ -428,7 +429,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFILL" variable="AC_Fill" member="yes">
 							<bitmap stock_id="xlAC_FILL" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Fill</shorthelp>
+							<shorthelp>Fill - F</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_FillClick" entry="EVT_TOOL" />
 						</object>
@@ -437,7 +438,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACCASCADE" variable="AC_Cascade" member="yes">
 							<bitmap stock_id="xlAC_CASCADE" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Cascade</shorthelp>
+							<shorthelp>Cascade - H</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_CascadeClick" entry="EVT_TOOL" />
 						</object>
@@ -450,7 +451,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACFOREGROUND" variable="AC_Foreground" member="yes">
 							<bitmap stock_id="xlAC_FOREGROUND" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Foreground</shorthelp>
+							<shorthelp>Foreground - G</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_ForegroundClick" entry="EVT_TOOL" />
 						</object>
@@ -459,7 +460,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACBACKGROUND" variable="AC_Background" member="yes">
 							<bitmap stock_id="xlAC_BACKGROUND" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Background</shorthelp>
+							<shorthelp>Background - B</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_BackgroundClick" entry="EVT_TOOL" />
 						</object>

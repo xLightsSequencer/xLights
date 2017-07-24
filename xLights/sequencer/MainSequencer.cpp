@@ -358,6 +358,16 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
+
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        if (PanelEffectGrid->HandleACKey(uc, event.ShiftDown()))
+        {
+            event.StopPropagation();
+            return;
+        }
+    }
+
     //printf("OnCharHook %d   %c\n", uc, uc);
     switch(uc)
     {
@@ -465,8 +475,16 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
 
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        if (PanelEffectGrid->HandleACKey(uc))
+        {
+            return;
+        }
+    }
+
     KeyBinding *binding = keyBindings.Find(uc);
-    if (binding != NULL) {
+    if (binding != nullptr) {
         event.StopPropagation();
         if (mSequenceElements == nullptr) {
             return;

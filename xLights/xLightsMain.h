@@ -157,8 +157,6 @@ enum play_modes
     play_list
 };
 
-enum ACTOOL { FILL, CASCADE, TOOLNIL};
-
 enum SeqPlayerStates
 {
     NO_SEQ,
@@ -497,6 +495,7 @@ private:
     void OnAC_IntensityClick(wxCommandEvent& event);
     void OnChoiceParm1Select(wxCommandEvent& event);
     void OnChoiceParm2Select(wxCommandEvent& event);
+    void OnAC_SelectClick(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -536,6 +535,7 @@ private:
     static const long ID_PASTE_BY_CELL;
     static const long ID_AUITOOLBAR_EDIT;
     static const long ID_AUITOOLBARITEM_ACDISABLED;
+    static const long ID_AUITOOLBARITEM_ACSELECT;
     static const long ID_AUITOOLBARITEM_ACOFF;
     static const long ID_AUITOOLBARITEM_ACON;
     static const long ID_AUITOOLBARITEM_ACSHIMMER;
@@ -843,6 +843,7 @@ private:
     AUIToolbarButtonWrapper *ButtonPasteByCell;
 
     AUIToolbarButtonWrapper *Button_ACDisabled;
+    AUIToolbarButtonWrapper *Button_ACSelect;
     AUIToolbarButtonWrapper *Button_ACOn;
     AUIToolbarButtonWrapper *Button_ACOff;
     AUIToolbarButtonWrapper *Button_ACShimmer;
@@ -1163,6 +1164,10 @@ public:
     int GetACIntensity();
     void GetACRampValues(int& a, int& b);
     void UpdateACToolbar(bool forceState = true); // if force state is false then it will force disable the AC toolbar
+    void SetACSettings(ACTOOL tool);
+    void SetACSettings(ACSTYLE style);
+    void SetACSettings(ACMODE mode);
+    void SetACSettings(ACTYPE type);
 
 private:
 

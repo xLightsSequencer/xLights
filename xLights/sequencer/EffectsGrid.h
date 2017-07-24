@@ -21,9 +21,10 @@
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
-enum ACTYPE { ON, OFF, SHIMMER, TWINKLE };
-enum ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN };
-enum ACMODE { FOREGROUND, BACKGROUND, MODENIL };
+typedef enum ACTYPE { SELECT, ON, OFF, SHIMMER, TWINKLE, NILTYPEOVERRIDE } ACTYPE;
+typedef enum ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN, NILSTYLEOVERRIDE } ACSTYLE;
+typedef enum ACMODE { FOREGROUND, BACKGROUND, MODENIL, NILMODEOVERRIDE} ACMODE;
+typedef enum ACTOOL { FILL, CASCADE, TOOLNIL, NILTOOLOVERRIDE } ACTOOL;
 
 enum class HitLocation {
     NONE,
@@ -88,6 +89,8 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
+
+    bool HandleACKey(wxChar key, bool shift = false);
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
@@ -172,10 +175,13 @@ private:
     void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
     void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
     void CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
+    void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select);
+    void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
     void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);
     void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
+    bool DoACDraw(ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
@@ -234,6 +240,8 @@ private:
     int mRangeEndCol;
     int mRangeStartRow;
     int mRangeEndRow;
+    int mRangeCursorRow;
+    int mRangeCursorCol;
 
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
