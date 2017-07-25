@@ -1958,7 +1958,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         DoACDraw();
         return true;
     }
-    else if (key == WXK_DELETE)
+    else if (key == (wxChar)WXK_DELETE)
     {
         xlights->SetACSettings(ACTYPE::OFF);
         DoACDraw();
@@ -2016,7 +2016,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         xlights->SetACSettings(ACMODE::BACKGROUND);
         return true;
     }
-    else if (key == WXK_UP)
+    else if (key == (wxChar)WXK_UP)
     {
         if (mSequenceElements->GetSelectedTimingRow() == -1) {
             mCellRangeSelected = false;
@@ -2071,7 +2071,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 
         return true;
     }
-    else if (key == WXK_DOWN)
+    else if (key == (wxChar)WXK_DOWN)
     {
         if (mSequenceElements->GetSelectedTimingRow() == -1) {
             mCellRangeSelected = false;
@@ -2132,7 +2132,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 
         return true;
     }
-    else if (key == WXK_LEFT)
+    else if (key == (wxChar)WXK_LEFT)
     {
         if (mSequenceElements->GetSelectedTimingRow() == -1) {
             mCellRangeSelected = false;
@@ -2198,7 +2198,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 
         return true;
     }
-    else if (key == WXK_RIGHT)
+    else if (key == (wxChar)WXK_RIGHT)
     {
         if (mSequenceElements->GetSelectedTimingRow() == -1) {
             mCellRangeSelected = false;
@@ -3180,6 +3180,7 @@ void EffectsGrid::DeleteSelectedEffects()
     if (mSequenceElements == nullptr) {
         return;
     }
+
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
@@ -3721,6 +3722,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 	int start_column = wxAtoi(banner_data[5]);
 	int selected_start_column = 0;
 	int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
+    int selectedrows = mRangeEndRow - mRangeStartRow + 1;
+    int rowstopaste = 0;
+    int timestopaste = 1;
 
     if( number_of_timings > 0 && number_of_effects > 0 )
     {
@@ -3807,80 +3811,96 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             // clear the region if AC mode
             if( xlights->IsACActive() ) {
                 int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
-                int drop_end_row = mDropRow + wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + mSequenceElements->GetFirstVisibleModelRow();
-                ACDraw( ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
-            }
-
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for (size_t i = 1; i < all_efdata.size() - 1; i++)
-            {
-                wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                if (efdata.size() < 7) {
-                    break;
-                }
-                bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
-                new_start_time = wxAtoi(efdata[3]);
-                new_end_time = wxAtoi(efdata[4]);
-                if( paste_by_cell && !is_timing_effect && !row_paste)
+                rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
+                int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
+                if (rowstopaste == 1)
                 {
-                    int eff_start_column = wxAtoi(efdata[7]);
-                    int eff_end_column = wxAtoi(efdata[8]);
-                    int eff_start_pct = wxAtoi(efdata[9]);
-                    int eff_end_pct = wxAtoi(efdata[10]);
-                    int column_offset = selected_start_column - start_column;
-                    eff_start_column += column_offset;
-                    eff_end_column += column_offset;
-                    Effect* te_start = tel->GetEffect(eff_start_column);
-                    Effect* te_end = tel->GetEffect(eff_end_column);
-                    if( te_start == nullptr || te_end == nullptr )
-                    {
-                        break;
-                    }
-                    new_start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
-                    new_end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
+                    timestopaste = selectedrows;
+                    mDropRow = mRangeStartRow;
+                    drop_row_offset -= timestopaste - 1;
+                    ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mRangeStartRow, mRangeEndRow);
                 }
                 else
                 {
-                    new_start_time += drop_time_offset;
-                    new_end_time += drop_time_offset;
+                    ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
                 }
-                int eff_row = wxAtoi(efdata[5]);
-                drop_row = eff_row + drop_row_offset;
-                if( !is_timing_effect )
-                {
-                   drop_row += mSequenceElements->GetFirstVisibleModelRow();
-                }
-                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                if (row_info == nullptr) break;
-                Element* elem = row_info->element;
-                if (elem == nullptr) break;
-                EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                if (el == nullptr) break;
-                if (el->GetRangeIsClearMS(new_start_time, new_end_time))
-                {
-                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                    if (effectIndex >= 0 || is_timing_effect) {
-                        Effect* ef = el->AddEffect(0,
-                            efdata[0].ToStdString(),
-                            efdata[1].ToStdString(),
-                            efdata[2].ToStdString(),
-                            new_start_time,
-                            new_end_time,
-                            EFFECT_NOT_SELECTED,
-                            false);
+            }
 
-                        if (ef != nullptr)
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+
+            for (int rpts = 0; rpts < timestopaste; ++rpts)
+            {
+                for (size_t i = 1; i < all_efdata.size() - 1; i++)
+                {
+                    wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                    if (efdata.size() < 7) {
+                        break;
+                    }
+                    bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
+                    new_start_time = wxAtoi(efdata[3]);
+                    new_end_time = wxAtoi(efdata[4]);
+                    if (paste_by_cell && !is_timing_effect && !row_paste)
+                    {
+                        int eff_start_column = wxAtoi(efdata[7]);
+                        int eff_end_column = wxAtoi(efdata[8]);
+                        int eff_start_pct = wxAtoi(efdata[9]);
+                        int eff_end_pct = wxAtoi(efdata[10]);
+                        int column_offset = selected_start_column - start_column;
+                        eff_start_column += column_offset;
+                        eff_end_column += column_offset;
+                        Effect* te_start = tel->GetEffect(eff_start_column);
+                        Effect* te_end = tel->GetEffect(eff_end_column);
+                        if (te_start == nullptr || te_end == nullptr)
                         {
-                            logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
-                                (const char *)efdata[0].c_str(),
-                                (const char *)efdata[1].Left(128).c_str(),
-                                (const char *)efdata[2].c_str(),
+                            break;
+                        }
+                        new_start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
+                        new_end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
+                    }
+                    else
+                    {
+                        new_start_time += drop_time_offset;
+                        new_end_time += drop_time_offset;
+                    }
+                    int eff_row = wxAtoi(efdata[5]);
+                    drop_row = eff_row + drop_row_offset + rpts;
+                    if (!is_timing_effect)
+                    {
+                        drop_row += mSequenceElements->GetFirstVisibleModelRow();
+                    }
+                    Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
+                    if (row_info == nullptr) break;
+                    Element* elem = row_info->element;
+                    if (elem == nullptr) break;
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
+                    if (el == nullptr) break;
+                    if (el->GetRangeIsClearMS(new_start_time, new_end_time))
+                    {
+                        int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                        if (effectIndex >= 0 || is_timing_effect) {
+                            Effect* ef = el->AddEffect(0,
+                                efdata[0].ToStdString(),
+                                efdata[1].ToStdString(),
+                                efdata[2].ToStdString(),
                                 new_start_time,
-                                new_end_time, ef);
-                            if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                new_end_time,
+                                EFFECT_NOT_SELECTED,
+                                false);
+
+                            if (ef != nullptr)
+                            {
+                                logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
+                                    (const char *)efdata[0].c_str(),
+                                    (const char *)efdata[1].Left(128).c_str(),
+                                    (const char *)efdata[2].c_str(),
+                                    new_start_time,
+                                    new_end_time, ef);
+                                if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                }
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                         }
                     }
                 }

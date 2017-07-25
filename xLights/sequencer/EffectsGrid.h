@@ -93,6 +93,7 @@ public:
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
     std::string TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS);
+    bool DoACDraw(ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
@@ -187,7 +188,6 @@ private:
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);
     void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
-    bool DoACDraw(ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;

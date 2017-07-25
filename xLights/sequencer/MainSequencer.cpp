@@ -859,7 +859,14 @@ void MainSequencer::Copy() {
 
 void MainSequencer::Cut() {
     if (CopySelectedEffects()) {
-        PanelEffectGrid->DeleteSelectedEffects();
+        if (PanelEffectGrid->IsACActive())
+        {
+            PanelEffectGrid->DoACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACTOOL::TOOLNIL, ACMODE::MODENIL);
+        }
+        else
+        {
+            PanelEffectGrid->DeleteSelectedEffects();
+        }
     }
 }
 
