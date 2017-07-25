@@ -596,6 +596,16 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 void MainSequencer::DoRedo(wxCommandEvent& event) {
 }
 
+void MainSequencer::GetPresetData(wxString& copy_data)
+{
+    if (PanelEffectGrid->IsACActive()) {
+        GetACEffectsData(copy_data);
+    }
+    else
+    {
+        GetSelectedEffectsData(copy_data);
+    }
+}
 
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -753,7 +763,7 @@ void MainSequencer::GetACEffectsData(wxString& copy_data) {
         }
         else
         {
-            row_number = mSequenceElements->GetRowInformation(i)->Index-mSequenceElements->GetFirstVisibleModelRow();
+            row_number = mSequenceElements->GetRowInformation(i)->Index;// -mSequenceElements->GetFirstVisibleModelRow();
         }
         if( row_number >= start_row && row_number <= end_row )
         {
@@ -778,7 +788,9 @@ void MainSequencer::GetACEffectsData(wxString& copy_data) {
                         wxString end_time = wxString::Format("%d",adj_end_time);
                         wxString row = wxString::Format("%d",row_number);
                         wxString column_start = wxString::Format("%d",column_start_time);
-                        effect_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() +
+                        std::string settings = PanelEffectGrid->TruncateEffectSettings(ef->GetSettings(), ef->GetEffectName(), ef->GetStartTimeMS(), ef->GetEndTimeMS(), adj_start_time, adj_end_time);
+
+                        effect_data += ef->GetEffectName() + "\t" + settings + "\t" + ef->GetPaletteAsString() +
                                        "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start;
                         number_of_effects++;
                         Effect* te_start = tel->GetEffectByTime(adj_start_time + 1); // if we don't add 1ms, it picks up the end of the previous timing instead of the start of this one

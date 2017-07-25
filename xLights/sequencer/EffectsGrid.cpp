@@ -185,7 +185,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
-        if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+        if( (mSelectedEffect == nullptr && !MultipleEffectsSelected()) &&
+            !(IsACActive() && mCellRangeSelected)) {
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
@@ -1449,7 +1450,7 @@ int EffectsGrid::GetEffectBrightnessAt(std::string effName, SettingsMap settings
     return 100;
 }
 
-void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS)
+std::string EffectsGrid::TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS)
 {
     int originalLength = originalEndMS - originalStartMS;
     double startPos = ((double)startMS - (double)originalStartMS) / (double)originalLength;
@@ -1467,8 +1468,6 @@ void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settin
             settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", newStartBrightness);
             settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", newEndBrightness);
         }
-        Effect* eff = el->AddEffect(0, name, settings.AsString(), palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
-        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
     }
     else if (name == "Twinkle")
     {
@@ -1481,8 +1480,23 @@ void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settin
 
             settings["C_VALUECURVE_Brightness"] = vc.Serialise();
         }
+    }
 
-        Effect* eff = el->AddEffect(0, name, settings.AsString(), palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
+    return settings.AsString();
+}
+
+void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS)
+{
+    std::string ss = TruncateEffectSettings(settings, name, originalStartMS, originalEndMS, startMS, endMS);
+
+    if (name == "On")
+    {
+        Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
+    else if (name == "Twinkle")
+    {
+        Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
     }
     else
@@ -2029,14 +2043,14 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             {
                 if (mRangeCursorRow > mRangeStartRow)
                 {
-                    mRangeEndRow--;
                     mRangeCursorRow--;
+                    mRangeEndRow = mRangeCursorRow;
                 }
                 else
                 {
                     if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows() + mSequenceElements->GetFirstVisibleModelRow()) {
-                        mRangeStartRow--;
                         mRangeCursorRow--;
+                        mRangeStartRow = mRangeCursorRow;
                     }
                 }
             }
@@ -2047,10 +2061,13 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 }
                 mRangeStartRow = mRangeCursorRow;
                 mRangeEndRow = mRangeCursorRow;
-                mRangeEndCol = mRangeStartCol;
+                mRangeStartCol = mRangeCursorCol;
+                mRangeEndCol = mRangeCursorCol;
             }
             Refresh(false);
         }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
 
         return true;
     }
@@ -2086,15 +2103,15 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             {
                 if (mRangeCursorRow < mRangeEndRow)
                 {
-                    mRangeStartRow++;
                     mRangeCursorRow++;
+                    mRangeStartRow = mRangeCursorRow;
                 }
                 else
                 {
                     if (mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize() + first_row - 1)
                     {
-                        mRangeEndRow++;
                         mRangeCursorRow++;
+                        mRangeEndRow = mRangeCursorRow;
                     }
                 }
             }
@@ -2105,10 +2122,13 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 }
                 mRangeStartRow = mRangeCursorRow;
                 mRangeEndRow = mRangeCursorRow;
-                mRangeEndCol = mRangeStartCol;
+                mRangeEndCol = mRangeCursorCol;
+                mRangeStartCol = mRangeCursorCol;
             }
             Refresh(false);
         }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
 
         return true;
     }
@@ -2148,14 +2168,14 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                     if (mRangeCursorCol > mRangeStartCol)
                     {
                         mRangeCursorCol--;
-                        mRangeEndCol--;
+                        mRangeEndCol = mRangeCursorCol;
                     }
                     else
                     {
                         if (mRangeCursorCol > 0)
                         {
                             mRangeCursorCol--;
-                            mRangeStartCol--;
+                            mRangeStartCol = mRangeCursorCol;
                         }
                     }
                 }
@@ -2164,14 +2184,17 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                     if (mRangeCursorCol > 0)
                     {
                         mRangeCursorCol--;
-                        mRangeStartCol--;
                     }
+                    mRangeStartCol = mRangeCursorCol;
                     mRangeEndCol = mRangeStartCol;
-                    mRangeEndRow = mRangeStartRow;
+                    mRangeStartRow = mRangeCursorRow;
+                    mRangeEndRow = mRangeCursorRow;
                 }
                 Refresh(false);
             }
         }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
 
         return true;
     }
@@ -2208,13 +2231,13 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
             {
                 if (mRangeCursorCol < mRangeEndCol)
                 {
-                    mRangeStartCol++;
                     mRangeCursorCol++;
+                    mRangeStartCol = mRangeCursorCol;
                 }
                 else
                 {
-                    mRangeEndCol++;
                     mRangeCursorCol++;
+                    mRangeEndCol = mRangeCursorCol;
                 }
 
                 if (!shift)
@@ -2229,11 +2252,14 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                 {
                     mRangeEndCol = mRangeCursorCol;
                     mRangeStartCol = mRangeCursorCol;
-                    mRangeEndRow = mRangeStartRow;
+                    mRangeEndRow = mRangeCursorRow;
+                    mRangeStartRow = mRangeCursorRow;
                 }
             }
             Refresh(false);
         }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
 
         return true;
     }
@@ -3631,6 +3657,17 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
     Refresh();
 }
 
+int EffectsGrid::GetMSFromColumn(int col)
+{
+    if (col < 0) return 0;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel != nullptr)
+    {
+        return tel->GetEffect(col)->GetStartTimeMS();
+    }
+    return 0;
+}
+
 void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, bool row_paste) {
     if (mSequenceElements == nullptr) {
         return;
@@ -3770,8 +3807,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             // clear the region if AC mode
             if( xlights->IsACActive() ) {
                 int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
-                int drop_end_row = mDropRow + wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]);
-                ACDraw( ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow, drop_end_row);
+                int drop_end_row = mDropRow + wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + mSequenceElements->GetFirstVisibleModelRow();
+                ACDraw( ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
             }
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();

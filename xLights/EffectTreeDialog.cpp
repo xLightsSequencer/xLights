@@ -287,6 +287,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
     //logger_base.debug("Name: %s", (const char *)name.c_str());
     //logger_base.debug("Settings: %s", (const char *)settings.c_str());
     int res = 0;
+    bool ac = false;
 
     if (settings.Contains("\t"))
     {
@@ -296,6 +297,7 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         wxArrayString all_efdata = wxSplit(settings, '\n');
 
         bool cf1 = false;
+        bool cfac = false;
         for (int i = 0; i < all_efdata.size(); i++)
         {
             //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());
@@ -307,6 +309,13 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
                 if (efdata[0] == "CopyFormat1")
                 {
                     cf1 = true;
+                }
+                else if (efdata[0] == "CopyFormatAC")
+                {
+                    ac = true;
+                    start = wxAtoi(efdata[7]);
+                    end = wxAtoi(efdata[8]);
+                    break;
                 }
                 else
                 {
@@ -351,7 +360,14 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 
     //logger_base.debug("    **** %d", res);
 
-    return wxString::Format("%d", res);
+    if (ac)
+    {
+        return wxString::Format("%d - AC", res);
+    }
+    else
+    {
+        return wxString::Format("%d", res);
+    }
 }
 
 wxString StripLayers(wxString s)

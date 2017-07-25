@@ -92,6 +92,7 @@ public:
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
+    std::string TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS);
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
@@ -102,6 +103,7 @@ public:
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
+    int GetMSFromColumn(int col);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;

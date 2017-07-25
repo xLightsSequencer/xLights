@@ -32,6 +32,7 @@ class MainSequencer: public wxPanel
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         void GetACEffectsData(wxString& copy_data);
+        void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();
         bool PasteByCellActive() { return mPasteByCell; }
         void SetPasteByCell(bool state) { mPasteByCell = state; }
