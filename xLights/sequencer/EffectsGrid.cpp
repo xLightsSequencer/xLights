@@ -84,6 +84,8 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mRangeEndRow = -1;
     mRangeStartCol = -1;
     mRangeEndCol = -1;
+    mRangeCursorRow = -1;
+    mRangeCursorCol = -1;
     mResizeEffectIndex = -1;
     mTimeline = nullptr;
     magSinceLast = 0.0f;
@@ -127,7 +129,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
 
-    if (!event.ShiftDown()) {
+    if (!event.ShiftDown() && !mTimingPlayOnDClick) {
         UpdateTimePosition(selectedTimeMS);
     }
 
@@ -139,7 +141,8 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
     if (selectedEffect != nullptr)
     {
-        if (!event.ShiftDown()) {
+        if ((mTimingPlayOnDClick && event.ShiftDown()) ||
+             !mTimingPlayOnDClick && !event.ShiftDown()) {
             if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
                 wxString label = selectedEffect->GetEffectName();
 
@@ -149,12 +152,15 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 }
                 Refresh();
             }
-        }
-        else
-        {
+        } else {
             // we have double clicked on an effect - highlight that part of the waveform
             ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
             Refresh();
+            // and play it play mode is active
+            if( mTimingPlayOnDClick ) {
+                wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+                wxPostEvent(mParent, playEvent);
+            }
         }
     }
 }
@@ -179,7 +185,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
-        if( mSelectedEffect == nullptr && !MultipleEffectsSelected() ) {
+        if( (mSelectedEffect == nullptr && !MultipleEffectsSelected()) &&
+            !(IsACActive() && mCellRangeSelected)) {
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
@@ -675,13 +682,18 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        if(!out_of_bounds)
-        {
-            Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
-            if( element != nullptr )
+        if( !xlights->IsACActive() ) {
+            if(!out_of_bounds)
             {
-                RunMouseOverHitTests(rowIndex,event.GetX(),event.GetY());
+                Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
+                if( element != nullptr )
+                {
+                    RunMouseOverHitTests(rowIndex,event.GetX(),event.GetY());
+                }
             }
+        } else {
+            SetCursor(wxCURSOR_DEFAULT);
+            mResizingMode = EFFECT_RESIZE_NO;
         }
     }
 
@@ -792,6 +804,8 @@ void EffectsGrid::ClearSelection()
     mDragStartY = -1;
     mCanPaste = false;
     mSelectedEffect = nullptr;
+    mRangeCursorRow = mRangeStartRow;
+    mRangeCursorCol = mRangeStartCol;
     mRangeStartRow = -1;
     mRangeEndRow = -1;
     mRangeStartCol = -1;
@@ -953,18 +967,1445 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     UpdateZoomPosition(selectedTimeMS);
 }
 
+void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow)
+{
+    bool first = false; // true; - if i change this back to true then first drawn effects will be selected
+
+    if (type != ACTYPE::OFF && mode == ACMODE::MODENIL)
+    {
+        ACDraw(ACTYPE::OFF, style, mode, intensity, a, b, startMS, endMS, startRow, endRow);
+    }
+
+    for (int r = startRow; r <= endRow; ++r)
+    {
+        EffectLayer* els = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+        Element *e = els->GetParentElement();
+        EffectLayer* el = e->GetEffectLayer(0);
+
+        if (e->GetType() != ELEMENT_TYPE_TIMING && el == els)
+        {
+            switch (type)
+            {
+            case ACTYPE::OFF:
+                // I can ignore mode ...
+                // ... if it is already off then it wont do anything.
+                // ... if it is on then this will already delete it
+                for (auto i = 0; i < el->GetEffectCount(); ++i)
+                {
+                    Effect* eff = el->GetEffect(i);
+
+                    if (eff->GetStartTimeMS() >= endMS || eff->GetEndTimeMS() <= startMS)
+                    {
+                        // can ignore these
+                    }
+                    else if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > endMS)
+                    {
+                        SettingsMap settings = eff->GetSettings();
+
+                        int start = eff->GetStartTimeMS();
+                        int end = eff->GetEndTimeMS();
+                        TruncateEffect(el, eff, start, startMS);
+                        DuplicateAndTruncateEffect(el, settings, eff->GetPaletteAsString(), eff->GetEffectName(), start, end, endMS, end);
+                    }
+                    else if (eff->GetStartTimeMS() < startMS)
+                    {
+                        // need to truncate it
+                        TruncateEffect(el, eff, eff->GetStartTimeMS(), startMS);
+                    }
+                    else if (eff->GetEndTimeMS() > endMS)
+                    {
+                        TruncateEffect(el, eff, endMS, eff->GetEndTimeMS());
+                    }
+                    else
+                    {
+                        mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                        el->RemoveEffect(i);
+                        --i;
+                    }
+                }
+                sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
+
+                break;
+            case ACTYPE::ON:
+            case ACTYPE::SHIMMER:
+            case ACTYPE::TWINKLE:
+            {
+                if (mode == ACMODE::FOREGROUND)
+                {
+                    for (auto i = 0; i < el->GetEffectCount(); ++i)
+                    {
+                        Effect* eff = el->GetEffect(i);
+
+                        if (eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > startMS)
+                        {
+                            int start = std::max(eff->GetStartTimeMS(), startMS);
+                            int end = std::min(eff->GetEndTimeMS(), endMS);
+
+                            // remove the effect we are about to replace
+                            mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                            el->RemoveEffect(i);
+
+                            if (style == ACSTYLE::RAMPUPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, end, a, b, a, first);
+                            }
+                            else if (style == ACSTYLE::INTENSITY)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, end, intensity, -1, intensity, first);
+                            }
+                            else if (style == ACSTYLE::RAMPUP)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, end, a, -1, b, first);
+                            }
+                            else if (style == ACSTYLE::RAMPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, end, a, -1, b, first);
+                            }
+                        }
+                    }
+                }
+                else if (mode == ACMODE::BACKGROUND)
+                {
+                    int start = -1;
+                    int end = -1;
+                    for (auto i = 0; i < el->GetEffectCount(); ++i)
+                    {
+                        Effect* eff = el->GetEffect(i);
+
+                        if (eff->GetStartTimeMS() < end)
+                        {
+                            // this is an effect we just added
+                        }
+                        else if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() < endMS)
+                        {
+                            start = 1; // anything but -1
+                            end = eff->GetEndTimeMS();
+                        }
+                        else if (eff->GetStartTimeMS() > startMS && eff->GetStartTimeMS() <= endMS && start == -1)
+                        {
+                            start = startMS;
+                            end = eff->GetEndTimeMS();
+                            if (style == ACSTYLE::RAMPUPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, b, a, first);
+                            }
+                            else if (style == ACSTYLE::INTENSITY)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), intensity, -1, intensity, first);
+                            }
+                            else if (style == ACSTYLE::RAMPUP)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, -1, b, first);
+                            }
+                            else if (style == ACSTYLE::RAMPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, -1, b, first);
+                            }
+                        }
+                        else if (eff->GetStartTimeMS() > startMS && eff->GetStartTimeMS() <= endMS)
+                        {
+                            start = end;
+                            if (eff->GetStartTimeMS() == end)
+                            {
+                                // no gap
+                            }
+                            else
+                            {
+                                if (style == ACSTYLE::RAMPUPDOWN)
+                                {
+                                    CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, b, a, first);
+                                }
+                                else if (style == ACSTYLE::INTENSITY)
+                                {
+                                    CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), intensity, -1, intensity, first);
+                                }
+                                else if (style == ACSTYLE::RAMPUP)
+                                {
+                                    CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, -1, b, first);
+                                }
+                                else if (style == ACSTYLE::RAMPDOWN)
+                                {
+                                    CreatePartialACEffect(el, type, startMS, endMS, start, eff->GetStartTimeMS(), a, -1, b, first);
+                                }
+                            }
+                            end = eff->GetEndTimeMS();
+                        }
+                        else if (eff->GetStartTimeMS() >= endMS && end != -1)
+                        {
+                            start = end;
+                            if (style == ACSTYLE::RAMPUPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, b, a, first);
+                            }
+                            else if (style == ACSTYLE::INTENSITY)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, endMS, intensity, -1, intensity, first);
+                            }
+                            else if (style == ACSTYLE::RAMPUP)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, -1, b, first);
+                            }
+                            else if (style == ACSTYLE::RAMPDOWN)
+                            {
+                                CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, -1, b, first);
+                            }
+                            end = -1;
+                        }
+                    }
+
+                    if (end == -1 && start == -1)
+                    {
+                        if (style == ACSTYLE::RAMPUPDOWN)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, startMS, endMS, a, b, a, first);
+                        }
+                        else if (style == ACSTYLE::INTENSITY)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, startMS, endMS, intensity, -1, intensity, first);
+                        }
+                        else if (style == ACSTYLE::RAMPUP)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, startMS, endMS, a, -1, b, first);
+                        }
+                        else if (style == ACSTYLE::RAMPDOWN)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, startMS, endMS, a, -1, b, first);
+                        }
+                    }
+                    else if (end != -1)
+                    {
+                        start = end;
+                        if (style == ACSTYLE::RAMPUPDOWN)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, b, a, first);
+                        }
+                        else if (style == ACSTYLE::INTENSITY)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, start, endMS, intensity, -1, intensity, first);
+                        }
+                        else if (style == ACSTYLE::RAMPUP)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, -1, b, first);
+                        }
+                        else if (style == ACSTYLE::RAMPDOWN)
+                        {
+                            CreatePartialACEffect(el, type, startMS, endMS, start, endMS, a, -1, b, first);
+                        }
+                    }
+                }
+                else
+                {
+                    if (style == ACSTYLE::RAMPUPDOWN)
+                    {
+                        CreateACEffect(el, type, startMS, endMS, a, b, a, first);
+                    }
+                    else if (style == ACSTYLE::INTENSITY)
+                    {
+                        CreateACEffect(el, type, startMS, endMS, intensity, -1, intensity, first);
+                    }
+                    else if (style == ACSTYLE::RAMPUP)
+                    {
+                        CreateACEffect(el, type, startMS, endMS, a, -1, b, first);
+                    }
+                    else if (style == ACSTYLE::RAMPDOWN)
+                    {
+                        CreateACEffect(el, type, startMS, endMS, a, -1, b, first);
+                    }
+                }
+                sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
+            }
+            break;
+            }
+
+            first = false;
+        }
+    }
+}
+
+void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow)
+{
+    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(startRow - mSequenceElements->GetFirstVisibleModelRow());
+    Element *e = el->GetParentElement();
+
+    int inc = 1;
+    if (startRow > endRow) inc = -1;
+
+    if (e->GetType() == ELEMENT_TYPE_TIMING) return;
+
+    // exclude timing from end rows
+    EffectLayer* eler = mSequenceElements->GetVisibleEffectLayer(endRow - mSequenceElements->GetFirstVisibleModelRow());
+    Element *eer = eler->GetParentElement();
+    while (eer->GetType() == ELEMENT_TYPE_TIMING)
+    {
+        endRow -= inc;
+
+        if (startRow == endRow) return;
+
+        eler = mSequenceElements->GetVisibleEffectLayer(endRow - mSequenceElements->GetFirstVisibleModelRow());
+        eer = eler->GetParentElement();
+    }
+
+    int extraLayers = 0;
+    std::list<EffectLayer*> uniqueLayers;
+    for (int i = std::min(startRow, endRow); i <= std::max(startRow, endRow); i++)
+    {
+        if (i != startRow)
+        {
+            EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+            Element *eTarget = elTargets->GetParentElement();
+            EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+
+            if (std::find(uniqueLayers.begin(), uniqueLayers.end(), elTarget) == uniqueLayers.end() && elTargets != el)
+            {
+                uniqueLayers.push_back(elTarget);
+                if (elTarget != elTargets)
+                {
+                    extraLayers++;
+                }
+            }
+            else
+            {
+                extraLayers++;
+            }
+        }
+    }
+
+    int actualStart = -1;
+    int actualEnd = -1;
+
+    for (auto i = 0; i < el->GetEffectCount(); ++i)
+    {
+        Effect* eff = el->GetEffect(i);
+
+        if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() > startMS)
+        {
+            actualStart = startMS;
+        }
+        else if (eff->GetStartTimeMS() >= startMS && eff->GetStartTimeMS() < endMS && actualStart == -1)
+        {
+            actualStart = eff->GetStartTimeMS();
+        }
+
+        if (eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() >= endMS)
+        {
+            actualEnd = endMS;
+        }
+        else if (eff->GetEndTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS && actualEnd < eff->GetEndTimeMS())
+        {
+            actualEnd = eff->GetEndTimeMS();
+        }
+    }
+
+    if (actualStart == -1 && actualEnd == -1 || startRow == endRow) return;
+
+    int spaceToCascade = 0;
+    int dirFactor = 1;
+    if (startCol > endCol)
+    {
+        // cascade to left
+        spaceToCascade = actualStart - startMS;
+        dirFactor = -1;
+    }
+    else
+    {
+        // cascade right ... the default
+        spaceToCascade = endMS - actualEnd;
+    }
+
+    int perRowOffsetMS = 0;
+    if (startRow != endRow)
+    {
+        perRowOffsetMS = spaceToCascade / (abs(startRow - endRow) - extraLayers);
+    }
+
+    std::list<EffectLayer*> layerUsed;
+    int seenExtraLayers = 0;
+    if (spaceToCascade == 0)
+    {
+        // just do a copy
+        for (int i = std::min(startRow, endRow); i <= std::max(startRow, endRow); i++)
+        {
+            if (i != startRow)
+            {
+                EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+                Element *eTarget = elTargets->GetParentElement();
+                EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+
+                if (elTarget != elTargets)
+                {
+                    seenExtraLayers++;
+                }
+                else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+                {
+                    if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
+                    {
+                        layerUsed.push_back(elTarget);
+                        // erase everything in the target first
+                        ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, i, i);
+
+                        if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+                        {
+                            for (auto j = 0; j < el->GetEffectCount(); ++j)
+                            {
+                                Effect* eff = el->GetEffect(j);
+
+                                if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                                {
+                                    // copy end
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, std::min(endMS, eff->GetEndTimeMS()));
+                                }
+                                else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() > endMS)
+                                {
+                                    // copy start
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS);
+                                }
+                                else if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() >= endMS)
+                                {
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, endMS);
+                                }
+                                else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
+                                {
+                                    // copy whole
+                                    Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int r = startRow + inc; r != endRow + inc; r += inc)
+        {
+            int cascades = dirFactor * abs(r - startRow - seenExtraLayers);
+            int cascadeMS = TimeLine::RoundToMultipleOfPeriod(cascades * perRowOffsetMS, mSequenceElements->GetFrequency());
+
+            EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+            Element *eTarget = elTargets->GetParentElement();
+            EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+
+            if (elTarget != elTargets)
+            {
+                seenExtraLayers++;
+            }
+            else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+            {
+                if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
+                {
+                    layerUsed.push_back(elTarget);
+
+                    // erase everything in the target first
+                    ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, r, r);
+
+                    for (auto j = 0; j < el->GetEffectCount(); ++j)
+                    {
+                        Effect* eff = el->GetEffect(j);
+
+                        if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                        {
+                            // copy end
+                            DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, eff->GetEndTimeMS(), cascadeMS);
+                        }
+                        else if (eff->GetStartTimeMS() >= startMS && eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > endMS)
+                        {
+                            // copy start
+                            DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS, cascadeMS);
+                        }
+                        else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
+                        {
+                            // copy whole
+                            Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS() + cascadeMS, eff->GetEndTimeMS() + cascadeMS, EFFECT_NOT_SELECTED, false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+int EffectsGrid::GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos)
+{
+    if (effName == "On")
+    {
+        return (settings.GetInt("E_TEXTCTRL_Eff_On_End", 100) - settings.GetInt("E_TEXTCTRL_Eff_On_Start", 100)) * pos + settings.GetInt("E_TEXTCTRL_Eff_On_Start", 100);
+    }
+    else if (effName == "Twinkle")
+    {
+        if (wxString(settings.Get("C_VALUECURVE_Brightness", "")).Contains("Active=TRUE"))
+        {
+            ValueCurve vc(settings.Get("C_VALUECURVE_Brightness", ""));
+            vc.SetLimits(0, 400);
+            return vc.GetOutputValueAt(pos);
+        }
+        else
+        {
+            return settings.GetInt("C_SLIDER_Brightness", 100);
+        }
+    }
+
+    return 100;
+}
+
+std::string EffectsGrid::TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS)
+{
+    int originalLength = originalEndMS - originalStartMS;
+    double startPos = ((double)startMS - (double)originalStartMS) / (double)originalLength;
+    double endPos = ((double)endMS - (double)originalStartMS) / (double)originalLength;
+
+    if (name == "On")
+    {
+        int startBrightness = GetEffectBrightnessAt(name, settings, 0.0);
+        int endBrightness = GetEffectBrightnessAt(name, settings, 1.0);
+
+        if (startBrightness != endBrightness)
+        {
+            int newStartBrightness = (endBrightness - startBrightness) * startPos + startBrightness;
+            int newEndBrightness = (endBrightness - startBrightness) * endPos + startBrightness;
+            settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", newStartBrightness);
+            settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", newEndBrightness);
+        }
+    }
+    else if (name == "Twinkle")
+    {
+        if (wxString(settings.Get("C_VALUECURVE_Brightness", "")).Contains("Active=TRUE"))
+        {
+            ValueCurve vc(settings.Get("C_VALUECURVE_Brightness", ""));
+            vc.SetLimits(0, 400);
+
+            TruncateBrightnessValueCurve(vc, startPos, endPos, startMS, endMS, originalLength);
+
+            settings["C_VALUECURVE_Brightness"] = vc.Serialise();
+        }
+    }
+
+    return settings.AsString();
+}
+
+void EffectsGrid::DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS)
+{
+    std::string ss = TruncateEffectSettings(settings, name, originalStartMS, originalEndMS, startMS, endMS);
+
+    if (name == "On")
+    {
+        Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
+    else if (name == "Twinkle")
+    {
+        Effect* eff = el->AddEffect(0, name, ss, palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
+    else
+    {
+        Effect* eff = el->AddEffect(0, name, settings.AsString(), palette, startMS + offsetMS, endMS + offsetMS, EFFECT_NOT_SELECTED, false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
+}
+
+void EffectsGrid::TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength)
+{
+    if (vc.GetType() == "Ramp")
+    {
+        if (startPos != 0)
+        {
+            int newStartBrightness = vc.GetOutputValueAt(startPos);
+            vc.SetParameter1(newStartBrightness / 4);
+        }
+        if (endPos != 1.0)
+        {
+            int newEndBrightness = vc.GetOutputValueAt(endPos);
+            vc.SetParameter2(newEndBrightness / 4);
+        }
+    }
+}
+
+void EffectsGrid::TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS)
+{
+    int originalLength = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+    double startPos = ((double)startMS - (double)eff->GetStartTimeMS()) / (double)originalLength;
+    double endPos = ((double)endMS - (double)eff->GetStartTimeMS()) / (double)originalLength;
+    std::string name = eff->GetEffectName();
+
+    if (eff->GetStartTimeMS() == startMS && endMS < eff->GetEndTimeMS())
+    {
+        // chop off the end
+        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetSettingsAsString(), eff->GetPaletteAsString());
+        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetStartTimeMS(), eff->GetEndTimeMS());
+        eff->SetEndTimeMS(endMS);
+
+        // now fix the brightness ... the hard part
+        if (name == "On")
+        {
+            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
+            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+
+            if (startBrightness != endBrightness)
+            {
+                int newEndBrightness = (endBrightness - startBrightness) * endPos + startBrightness;
+                eff->GetSettings()["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", newEndBrightness);
+                eff->IncrementChangeCount();
+                RaiseSelectedEffectChanged(eff, false, true);
+            }
+        }
+        else if (name == "Twinkle")
+        {
+            if (wxString(eff->GetSettings().Get("C_VALUECURVE_Brightness", "")).Contains("Active=TRUE"))
+            {
+                ValueCurve vc(eff->GetSettings().Get("C_VALUECURVE_Brightness", ""));
+                vc.SetLimits(0, 400);
+
+                TruncateBrightnessValueCurve(vc, startPos, endPos, startMS, endMS, originalLength);
+
+                eff->GetSettings()["C_VALUECURVE_Brightness"] = vc.Serialise();
+                eff->IncrementChangeCount();
+                RaiseSelectedEffectChanged(eff, false, true);
+            }
+        }
+    }
+    else if (eff->GetEndTimeMS() == endMS && startMS > eff->GetStartTimeMS())
+    {
+        // chop off the start
+        mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetSettingsAsString(), eff->GetPaletteAsString());
+        mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetStartTimeMS(), eff->GetEndTimeMS());
+        eff->SetStartTimeMS(startMS);
+
+        // now fix the brightness ... the hard part
+        if (name == "On")
+        {
+            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
+            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+
+            if (startBrightness != endBrightness)
+            {
+                int newStartBrightness = (endBrightness - startBrightness) * startPos + startBrightness;
+                eff->GetSettings()["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", newStartBrightness);
+                eff->IncrementChangeCount();
+                RaiseSelectedEffectChanged(eff, false, true);
+            }
+        }
+        else if (name == "Twinkle")
+        {
+            if (wxString(eff->GetSettings().Get("C_VALUECURVE_Brightness", "")).Contains("Active=TRUE"))
+            {
+                ValueCurve vc(eff->GetSettings().Get("C_VALUECURVE_Brightness", ""));
+                vc.SetLimits(0, 400);
+
+                TruncateBrightnessValueCurve(vc, startPos, endPos, startMS, endMS, originalLength);
+
+                eff->GetSettings()["C_VALUECURVE_Brightness"] = vc.Serialise();
+                eff->IncrementChangeCount();
+                RaiseSelectedEffectChanged(eff, false, true);
+            }
+        }
+    }
+    else if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > endMS)
+    {
+        // chop start and end
+        // I dont think I need this
+        wxASSERT(false);
+    }
+    else if (eff->GetStartTimeMS() == startMS && eff->GetEndTimeMS() == endMS)
+    {
+        // dont need to do anything
+    }
+    else
+    {
+        // this case cant be handled
+        wxASSERT(false);
+    }
+}
+
+void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select)
+{
+    // because an element may appear multiple times when drawing this stops an error being reported
+    // it assumes we always correctly pre-clear the area we are drawing in
+    // if we dont this will prevent the effect from being created.
+    if (!el->HasEffectsInTimeRange(startMS, endMS))
+    {
+        std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
+        Effect* eff = el->AddEffect(0, name, settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
+}
+
+void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select)
+{
+    std::string settings = "";
+
+    if (type == ACTYPE::ON)
+    {
+        if (midBrightness == -1)
+        {
+            if (startBrightness != 100 || endBrightness != 100)
+            {
+                settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", endBrightness, startBrightness).ToStdString();
+            }
+            CreateACEffect(el, "On", settings, startMS, endMS, select);
+        }
+        else
+        {
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+            if (startBrightness != 100 || midBrightness != 100)
+            {
+                settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", midBrightness, startBrightness).ToStdString();
+            }
+            CreateACEffect(el, "On", settings, startMS, mid, select);
+
+            if (endBrightness != 100 || midBrightness != 100)
+            {
+                settings = wxString::Format("E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", endBrightness, midBrightness).ToStdString();
+            }
+            CreateACEffect(el, "On", settings, mid, endMS, select);
+        }
+    }
+    else if (type == ACTYPE::SHIMMER)
+    {
+        if (midBrightness == -1)
+        {
+            if (startBrightness != 100 || endBrightness != 100)
+            {
+                settings = wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", endBrightness, startBrightness).ToStdString();
+            }
+            else
+            {
+                settings = "E_CHECKBOX_On_Shimmer=1";
+            }
+            CreateACEffect(el, "On", settings, startMS, endMS, select);
+        }
+        else
+        {
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+            if (startBrightness != 100 || midBrightness != 100)
+            {
+                settings = wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", midBrightness, startBrightness).ToStdString();
+            }
+            else
+            {
+                settings = "E_CHECKBOX_On_Shimmer=1";
+            }
+            CreateACEffect(el, "On", settings, startMS, mid, select);
+
+            if (endBrightness != 100 || midBrightness != 100)
+            {
+                settings = wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%i,E_TEXTCTRL_Eff_On_Start=%i", endBrightness, midBrightness).ToStdString();
+            }
+            else
+            {
+                settings = "E_CHECKBOX_On_Shimmer=1";
+            }
+            CreateACEffect(el, "On", settings, mid, endMS, select);
+        }
+    }
+    else if (type == ACTYPE::TWINKLE)
+    {
+        if (midBrightness == -1 || midBrightness == startBrightness && midBrightness == endBrightness)
+        {
+            if (startBrightness == endBrightness)
+            {
+                // Intensity
+                if (startBrightness != 100)
+                {
+                    settings = wxString::Format("C_SLIDER_Brightness=%i", startBrightness).ToStdString();
+                }
+            }
+            else
+            {
+                // Ramp
+                settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4).ToStdString();
+            }
+            CreateACEffect(el, "Twinkle", settings, startMS, endMS, select);
+        }
+        else
+        {
+            // ramp up/down
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+
+            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, midBrightness / 4).ToStdString();
+
+            CreateACEffect(el, "Twinkle", settings, startMS, mid, select);
+
+            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", midBrightness / 4, endBrightness / 4).ToStdString();
+
+            CreateACEffect(el, "Twinkle", settings, mid, endMS, select);
+        }
+    }
+}
+
+void EffectsGrid::CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select)
+{
+    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
+
+    if (type == ACTYPE::ON)
+    {
+        if (midBrightness == -1)
+        {
+            SettingsMap settings;
+            if (startBrightness != 100 || endBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", endBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", startBrightness);
+            }
+            DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, partialStart, partialEnd);
+        }
+        else
+        {
+            SettingsMap settings;
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+            if (startBrightness != 100 || midBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", midBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", startBrightness);
+            }
+            if (partialStart < mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, partialStart, std::min(mid, partialEnd));
+            }
+
+            settings.clear();
+            if (endBrightness != 100 || midBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", endBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", midBrightness);
+            }
+            if (partialEnd > mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, std::max(mid, partialStart), partialEnd);
+            }
+        }
+    }
+    else if (type == ACTYPE::SHIMMER)
+    {
+        if (midBrightness == -1)
+        {
+            SettingsMap settings;
+            settings["E_CHECKBOX_On_Shimmer"] = "1";
+            if (startBrightness != 100 || endBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", endBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", startBrightness);
+            }
+            DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, partialStart, partialEnd);
+        }
+        else
+        {
+            SettingsMap settings;
+            settings["E_CHECKBOX_On_Shimmer"] = "1";
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+            if (startBrightness != 100 || midBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", midBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", startBrightness);
+            }
+            if (partialStart < mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, partialStart, std::min(mid, partialEnd));
+            }
+
+            settings.clear();
+            settings["E_CHECKBOX_On_Shimmer"] = "1";
+            if (endBrightness != 100 || midBrightness != 100)
+            {
+                settings["E_TEXTCTRL_Eff_On_End"] = wxString::Format("%i", endBrightness);
+                settings["E_TEXTCTRL_Eff_On_Start"] = wxString::Format("%i", midBrightness);
+            }
+            if (partialEnd > mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "On", startMS, endMS, std::max(mid, partialStart), partialEnd);
+            }
+        }
+    }
+    else if (type == ACTYPE::TWINKLE)
+    {
+        if (midBrightness == -1 || midBrightness == startBrightness && midBrightness == endBrightness)
+        {
+            SettingsMap settings;
+            if (startBrightness == endBrightness)
+            {
+                // Intensity
+                if (startBrightness != 100)
+                {
+                    settings["C_SLIDER_Brightness"] = wxString::Format("%i", startBrightness);
+                }
+            }
+            else
+            {
+                // Ramp
+                settings["C_VALUECURVE_Brightness"] = wxString::Format("Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4);
+            }
+            DuplicateAndTruncateEffect(el, settings, palette, "Twinkle", startMS, endMS, partialStart, partialEnd);
+        }
+        else
+        {
+            SettingsMap settings;
+            // ramp up/down
+            int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
+
+            settings["C_VALUECURVE_Brightness"] = wxString::Format("Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, midBrightness / 4);
+
+            if (partialStart < mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "Twinkle", startMS, endMS, partialStart, std::min(mid, partialEnd));
+            }
+
+            settings.clear();
+            settings["C_VALUECURVE_Brightness"] =wxString::Format("Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", midBrightness / 4, endBrightness / 4);
+
+            if (partialEnd > mid)
+            {
+                DuplicateAndTruncateEffect(el, settings, palette, "Twinkle", startMS, endMS, std::max(mid, partialStart), partialEnd);
+            }
+        }
+    }
+}
+
+void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow)
+{
+    for (int r = std::min(startRow, endRow); r <= std::max(startRow, endRow); r++)
+    {
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+        Element *e = el->GetParentElement();
+
+        int startBrightness = 0;
+        int startTime = startMS;
+        bool done = false;
+
+        for (auto j = 0; j < el->GetEffectCount(); ++j)
+        {
+            Effect* eff = el->GetEffect(j);
+
+            if (eff->GetEndTimeMS() >= startMS && eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() < endMS)
+            {
+                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+                if (eff->GetEndTimeMS() > startTime)
+                {
+                    startTime = eff->GetEndTimeMS();
+                }
+            }
+            else if (eff->GetStartTimeMS() > startMS && eff->GetStartTimeMS() <= endMS)
+            {
+                int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
+
+                if (startTime < eff->GetStartTimeMS() && (startBrightness != 0 || endBrightness != 0))
+                {
+                    CreateACEffect(el, type, startTime, eff->GetStartTimeMS(), startBrightness, -1, endBrightness, false);
+                }
+
+                startTime = eff->GetEndTimeMS();
+
+                if (startTime >= endMS)
+                {
+                    done = true;
+                    break;
+                }
+
+                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+            }
+            else if (eff->GetStartTimeMS() > endMS)
+            {
+                int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
+
+                if (startTime < endMS && startBrightness != 0)
+                {
+                    CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
+                }
+
+                done = true;
+                break;
+            }
+            else if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() >= endMS)
+            {
+                done = true;
+                break;
+            }
+        }
+
+        if (!done)
+        {
+            // ramp to end
+            int endBrightness = 0;
+
+            if (startBrightness != 0)
+            {
+                CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
+            }
+        }
+        sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
+    }
+}
+
+bool EffectsGrid::IsACActive()
+{
+    return xlights->IsACActive();
+}
+
+bool EffectsGrid::HandleACKey(wxChar key, bool shift)
+{
+    if (mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1 || mRangeEndCol == -1)
+    {
+        // nothing selected
+        return false;
+    }
+
+    if (key == 'h')
+    {
+        xlights->SetACSettings(ACTOOL::CASCADE);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'f')
+    {
+        xlights->SetACSettings(ACTOOL::FILL);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'n')
+    {
+        xlights->SetACSettings(ACTYPE::ON);
+        DoACDraw();
+        return true;
+    }
+    else if (key == (wxChar)WXK_DELETE)
+    {
+        xlights->SetACSettings(ACTYPE::OFF);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 't')
+    {
+        xlights->SetACSettings(ACTYPE::TWINKLE);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'L')
+    {
+        xlights->SetACSettings(ACTYPE::SELECT);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 's')
+    {
+        xlights->SetACSettings(ACTYPE::SHIMMER);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'i')
+    {
+        xlights->SetACSettings(ACSTYLE::INTENSITY);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'u')
+    {
+        xlights->SetACSettings(ACSTYLE::RAMPUP);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'd')
+    {
+        xlights->SetACSettings(ACSTYLE::RAMPDOWN);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'a')
+    {
+        xlights->SetACSettings(ACSTYLE::RAMPUPDOWN);
+        DoACDraw();
+        return true;
+    }
+    else if (key == 'g')
+    {
+        xlights->SetACSettings(ACMODE::FOREGROUND);
+        return true;
+    }
+    else if (key == 'b')
+    {
+        xlights->SetACSettings(ACMODE::BACKGROUND);
+        return true;
+    }
+    else if (key == (wxChar)WXK_UP)
+    {
+        if (mSequenceElements->GetSelectedTimingRow() == -1) {
+            mCellRangeSelected = false;
+        }
+        else
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff = tel->GetEffect(0);
+            if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeCursorRow == -1 || mRangeCursorCol == -1)))
+            {
+                mRangeStartCol = 0;
+                mRangeEndCol = 0;
+                mRangeStartRow = mSequenceElements->GetFirstVisibleModelRow();
+                mRangeEndRow = mRangeStartRow;
+                mRangeCursorCol = mRangeStartCol;
+                mRangeCursorRow = mRangeStartRow;
+                mCellRangeSelected = true;
+            }
+        }
+
+        if (mCellRangeSelected)
+        {
+            if (shift)
+            {
+                if (mRangeCursorRow > mRangeStartRow)
+                {
+                    mRangeCursorRow--;
+                    mRangeEndRow = mRangeCursorRow;
+                }
+                else
+                {
+                    if (mRangeStartRow > mSequenceElements->GetNumberOfTimingRows() + mSequenceElements->GetFirstVisibleModelRow()) {
+                        mRangeCursorRow--;
+                        mRangeStartRow = mRangeCursorRow;
+                    }
+                }
+            }
+            else
+            {
+                if (mRangeCursorRow > mSequenceElements->GetNumberOfTimingRows() + mSequenceElements->GetFirstVisibleModelRow()) {
+                    mRangeCursorRow--;
+                }
+                mRangeStartRow = mRangeCursorRow;
+                mRangeEndRow = mRangeCursorRow;
+                mRangeStartCol = mRangeCursorCol;
+                mRangeEndCol = mRangeCursorCol;
+            }
+            Refresh(false);
+        }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
+
+        return true;
+    }
+    else if (key == (wxChar)WXK_DOWN)
+    {
+        if (mSequenceElements->GetSelectedTimingRow() == -1) {
+            mCellRangeSelected = false;
+        }
+        else
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff = tel->GetEffect(0);
+            if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
+            {
+                mRangeStartCol = 0;
+                mRangeEndCol = 0;
+                mRangeStartRow = mSequenceElements->GetFirstVisibleModelRow();
+                mRangeEndRow = mRangeStartRow;
+                mCellRangeSelected = true;
+            }
+
+            if (mRangeCursorCol == -1)
+            {
+                mRangeCursorCol = mRangeStartCol;
+                mRangeCursorRow = mRangeStartRow;
+            }
+        }
+
+        int first_row = mSequenceElements->GetFirstVisibleModelRow();
+        if (mCellRangeSelected)
+        {
+            if (shift)
+            {
+                if (mRangeCursorRow < mRangeEndRow)
+                {
+                    mRangeCursorRow++;
+                    mRangeStartRow = mRangeCursorRow;
+                }
+                else
+                {
+                    if (mRangeEndRow < mSequenceElements->GetVisibleRowInformationSize() + first_row - 1)
+                    {
+                        mRangeCursorRow++;
+                        mRangeEndRow = mRangeCursorRow;
+                    }
+                }
+            }
+            else
+            {
+                if (mRangeCursorRow < mSequenceElements->GetVisibleRowInformationSize() + first_row - 1) {
+                    mRangeCursorRow++;
+                }
+                mRangeStartRow = mRangeCursorRow;
+                mRangeEndRow = mRangeCursorRow;
+                mRangeEndCol = mRangeCursorCol;
+                mRangeStartCol = mRangeCursorCol;
+            }
+            Refresh(false);
+        }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
+
+        return true;
+    }
+    else if (key == (wxChar)WXK_LEFT)
+    {
+        if (mSequenceElements->GetSelectedTimingRow() == -1) {
+            mCellRangeSelected = false;
+        }
+        else
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff = tel->GetEffect(0);
+            if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
+            {
+                mRangeStartCol = 0;
+                mRangeEndCol = 0;
+                mRangeStartRow = mSequenceElements->GetFirstVisibleModelRow();
+                mRangeEndRow = mRangeStartRow;
+                mCellRangeSelected = true;
+            }
+
+            if (mRangeCursorCol == -1)
+            {
+                mRangeCursorCol = mRangeStartCol;
+                mRangeCursorRow = mRangeStartRow;
+            }
+        }
+
+        if (mCellRangeSelected)
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff = tel->GetEffect(mRangeEndCol - 1);
+            if (eff != nullptr)
+            {
+                if (shift)
+                {
+                    if (mRangeCursorCol > mRangeStartCol)
+                    {
+                        mRangeCursorCol--;
+                        mRangeEndCol = mRangeCursorCol;
+                    }
+                    else
+                    {
+                        if (mRangeCursorCol > 0)
+                        {
+                            mRangeCursorCol--;
+                            mRangeStartCol = mRangeCursorCol;
+                        }
+                    }
+                }
+                else
+                {
+                    if (mRangeCursorCol > 0)
+                    {
+                        mRangeCursorCol--;
+                    }
+                    mRangeStartCol = mRangeCursorCol;
+                    mRangeEndCol = mRangeStartCol;
+                    mRangeStartRow = mRangeCursorRow;
+                    mRangeEndRow = mRangeCursorRow;
+                }
+                Refresh(false);
+            }
+        }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
+
+        return true;
+    }
+    else if (key == (wxChar)WXK_RIGHT)
+    {
+        if (mSequenceElements->GetSelectedTimingRow() == -1) {
+            mCellRangeSelected = false;
+        }
+        else
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff = tel->GetEffect(0);
+            if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
+            {
+                mRangeStartCol = 0;
+                mRangeEndCol = 0;
+                mRangeStartRow = mSequenceElements->GetFirstVisibleModelRow();
+                mRangeEndRow = mRangeStartRow;
+                mCellRangeSelected = true;
+            }
+            if (mRangeCursorCol == -1)
+            {
+                mRangeCursorCol = mRangeStartCol;
+                mRangeCursorRow = mRangeStartRow;
+            }
+        }
+
+        if (mCellRangeSelected)
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            Effect* eff1 = tel->GetEffect(mRangeStartCol + 1);
+            Effect* eff2 = tel->GetEffect(mRangeEndCol + 1);
+            if (eff1 != nullptr && eff2 != nullptr)
+            {
+                if (mRangeCursorCol < mRangeEndCol)
+                {
+                    mRangeCursorCol++;
+                    mRangeStartCol = mRangeCursorCol;
+                }
+                else
+                {
+                    mRangeCursorCol++;
+                    mRangeEndCol = mRangeCursorCol;
+                }
+
+                if (!shift)
+                {
+                    mRangeStartCol = mRangeEndCol;
+                    mRangeEndRow = mRangeStartRow;
+                }
+            }
+            else
+            {
+                if (!shift)
+                {
+                    mRangeEndCol = mRangeCursorCol;
+                    mRangeStartCol = mRangeCursorCol;
+                    mRangeEndRow = mRangeCursorRow;
+                    mRangeStartRow = mRangeCursorRow;
+                }
+            }
+            Refresh(false);
+        }
+        mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
+        mDropRow = mRangeCursorRow;
+
+        return true;
+    }
+    return false;
+}
+
+bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL toolOverride, ACMODE modeOverride)
+{
+    if (mSequenceElements == nullptr) {
+        return false;
+    }
+
+    // dont do AC if there is no timing selected
+    if (mSequenceElements->GetSelectedTimingRow() == -1) {
+        return false;
+    }
+
+    if (mRangeStartRow < 0 || mRangeEndRow < 0 || mRangeStartCol < 0 || mRangeEndCol < 0)
+    {
+        return false;
+    }
+
+    ACTYPE type;
+    ACSTYLE style;
+    ACTOOL tool;
+    ACMODE mode;
+    xlights->GetACSettings(type, style, tool, mode);
+
+    if (typeOverride != ACTYPE::NILTYPEOVERRIDE)
+    {
+        type = typeOverride;
+    }
+    if (styleOverride != ACSTYLE::NILSTYLEOVERRIDE)
+    {
+        style = styleOverride;
+    }
+    if (toolOverride != ACTOOL::NILTOOLOVERRIDE)
+    {
+        tool = toolOverride;
+    }
+    if (modeOverride != ACMODE::NILMODEOVERRIDE)
+    {
+        mode = modeOverride;
+    }
+
+    if (type == ACTYPE::SELECT)
+    {
+        return false;
+    }
+
+    int intensity = xlights->GetACIntensity();
+    int a, b;
+    xlights->GetACRampValues(a, b);
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    int startMS = 0;
+    int endMS = 0;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    Effect* eff1 = tel->GetEffect(mRangeStartCol);
+    Effect* eff2 = tel->GetEffect(mRangeEndCol);
+    if (eff1 != nullptr)
+    {
+        if (mRangeStartCol <= mRangeEndCol)
+        {
+            startMS = eff1->GetStartTimeMS();
+        }
+        else
+        {
+            startMS = eff1->GetEndTimeMS();
+        }
+    }
+    if (eff2 != nullptr)
+    {
+        if (mRangeStartCol <= mRangeEndCol)
+        {
+            endMS = eff2->GetEndTimeMS();
+        }
+        else
+        {
+            endMS = eff2->GetStartTimeMS();
+        }
+    }
+
+    if (tool == ACTOOL::FILL)
+    {
+        ACFill(type, std::min(startMS, endMS), std::max(startMS, endMS), mRangeStartRow, mRangeEndRow);
+    }
+    else if (tool == ACTOOL::CASCADE)
+    {
+        ACCascade(std::min(startMS, endMS), std::max(startMS, endMS), mRangeStartCol, mRangeEndCol, mRangeStartRow, mRangeEndRow);
+    }
+    else
+    {
+        ACDraw(type, style, mode, intensity, a, b, std::min(startMS, endMS), std::max(startMS, endMS), std::min(mRangeStartRow, mRangeEndRow), std::max(mRangeStartRow, mRangeEndRow));
+    }
+
+    Refresh(false);
+    sendRenderDirtyEvent();
+
+    return true;
+}
+
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
     if (mSequenceElements == nullptr) {
         return;
     }
+
+    if (mDragging && xlights->IsACActive())
+    {
+        ReleaseMouse();
+        mDragging = false;
+
+        if (!DoACDraw())
+        {
+            return;
+        }
+
+        mRangeCursorCol = mRangeStartCol;
+        mRangeCursorRow = mRangeStartRow;
+        mRangeStartRow = -1;
+        mRangeStartCol = -1;
+        mRangeEndRow = -1;
+        mRangeEndCol = -1;
+        mCellRangeSelected = false;
+
+        return;
+    }
+
     bool checkForEmptyCell = false;
     if(mResizing)
     {
         ReleaseMouse();
         if(mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
         {
-
             if (MultipleEffectsSelected()) {
                 std::string lastModel;
                 int startMS = 99999999;
@@ -1297,7 +2738,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 }
             }
             mCellRangeSelected = false;
-            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+            mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow =-1;
             RaiseSelectedEffectChanged(mSelectedEffect, false, false);
             Refresh(false);
             sendRenderDirtyEvent();
@@ -1749,6 +3190,7 @@ void EffectsGrid::DeleteSelectedEffects()
     if (mSequenceElements == nullptr) {
         return;
     }
+
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
@@ -2226,6 +3668,17 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
     Refresh();
 }
 
+int EffectsGrid::GetMSFromColumn(int col)
+{
+    if (col < 0) return 0;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel != nullptr)
+    {
+        return tel->GetEffect(col)->GetStartTimeMS();
+    }
+    return 0;
+}
+
 void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, bool row_paste) {
     if (mSequenceElements == nullptr) {
         return;
@@ -2238,9 +3691,21 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         return;
     }
     wxArrayString banner_data = wxSplit(all_efdata[0], '\t');
-    if( banner_data[0] != "CopyFormat1" )
+    if( banner_data[0] != "CopyFormat1" && banner_data[0] != "CopyFormatAC" )
     {
         OldPaste(data, pasteDataVersion);
+        return;
+    }
+
+    if( banner_data[0] == "CopyFormatAC" && !xlights->IsACActive() )
+    {
+        wxMessageBox("Cannot paste AC data in non-AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
+        return;
+    }
+
+    if( banner_data[0] != "CopyFormatAC" && xlights->IsACActive() )
+    {
+        wxMessageBox("Only AC data may be pasted in AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
         return;
     }
 
@@ -2267,6 +3732,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 	int start_column = wxAtoi(banner_data[5]);
 	int selected_start_column = 0;
 	int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
+    int selectedrows = mRangeEndRow - mRangeStartRow + 1;
+    int rowstopaste = 0;
+    int timestopaste = 1;
 
     if( number_of_timings > 0 && number_of_effects > 0 )
     {
@@ -2281,8 +3749,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
-    if (mPartialCellSelected || OneCellSelected()) {
-        if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
+    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive()) {
+        if( ((number_of_timings + number_of_effects) > 1) || row_paste || xlights->IsACActive() )  // multi-effect paste or row_paste
         {
             std::set<std::string> modelsToRender;
 
@@ -2292,6 +3760,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             int drop_time_offset, new_start_time, new_end_time, column_start_time;
             column_start_time = wxAtoi(eff1data[6]);
+            if( xlights->IsACActive() ) {
+                column_start_time = wxAtoi(banner_data[9]);
+            }
             drop_time_offset = wxAtoi(eff1data[3]);
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if( row_paste ) {
@@ -2307,6 +3778,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             int drop_row = mDropRow;
             int start_row = wxAtoi(eff1data[5]);
+            if( xlights->IsACActive() ) {
+                start_row = wxAtoi(banner_data[7]);
+            }
             int drop_row_offset = drop_row - start_row;
             if( number_of_timings > 0 && number_of_effects > 0 )  // only allow timing and model effects to be pasted on same rows
             {
@@ -2344,76 +3818,99 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 }
             }
 
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
-            for (size_t i = 1; i < all_efdata.size() - 1; i++)
-            {
-                wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                if (efdata.size() < 7) {
-                    break;
-                }
-                bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
-                new_start_time = wxAtoi(efdata[3]);
-                new_end_time = wxAtoi(efdata[4]);
-                if( paste_by_cell && !is_timing_effect && !row_paste)
+            // clear the region if AC mode
+            if( xlights->IsACActive() ) {
+                int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
+                rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
+                int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
+                if (rowstopaste == 1)
                 {
-                    int eff_start_column = wxAtoi(efdata[7]);
-                    int eff_end_column = wxAtoi(efdata[8]);
-                    int eff_start_pct = wxAtoi(efdata[9]);
-                    int eff_end_pct = wxAtoi(efdata[10]);
-                    int column_offset = selected_start_column - start_column;
-                    eff_start_column += column_offset;
-                    eff_end_column += column_offset;
-                    Effect* te_start = tel->GetEffect(eff_start_column);
-                    Effect* te_end = tel->GetEffect(eff_end_column);
-                    if( te_start == nullptr || te_end == nullptr )
-                    {
-                        break;
-                    }
-                    new_start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
-                    new_end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
+                    timestopaste = selectedrows;
+                    mDropRow = mRangeStartRow;
+                    drop_row_offset -= timestopaste - 1;
+                    ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mRangeStartRow, mRangeEndRow);
                 }
                 else
                 {
-                    new_start_time += drop_time_offset;
-                    new_end_time += drop_time_offset;
+                    ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
                 }
-                int eff_row = wxAtoi(efdata[5]);
-                drop_row = eff_row + drop_row_offset;
-                if( !is_timing_effect )
-                {
-                   drop_row += mSequenceElements->GetFirstVisibleModelRow();
-                }
-                Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                if (row_info == nullptr) break;
-                Element* elem = row_info->element;
-                if (elem == nullptr) break;
-                EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                if (el == nullptr) break;
-                if (el->GetRangeIsClearMS(new_start_time, new_end_time))
-                {
-                    int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                    if (effectIndex >= 0 || is_timing_effect) {
-                        Effect* ef = el->AddEffect(0,
-                            efdata[0].ToStdString(),
-                            efdata[1].ToStdString(),
-                            efdata[2].ToStdString(),
-                            new_start_time,
-                            new_end_time,
-                            EFFECT_NOT_SELECTED,
-                            false);
+            }
 
-                        if (ef != nullptr)
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+
+            for (int rpts = 0; rpts < timestopaste; ++rpts)
+            {
+                for (size_t i = 1; i < all_efdata.size() - 1; i++)
+                {
+                    wxArrayString efdata = wxSplit(all_efdata[i], '\t');
+                    if (efdata.size() < 7) {
+                        break;
+                    }
+                    bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
+                    new_start_time = wxAtoi(efdata[3]);
+                    new_end_time = wxAtoi(efdata[4]);
+                    if (paste_by_cell && !is_timing_effect && !row_paste)
+                    {
+                        int eff_start_column = wxAtoi(efdata[7]);
+                        int eff_end_column = wxAtoi(efdata[8]);
+                        int eff_start_pct = wxAtoi(efdata[9]);
+                        int eff_end_pct = wxAtoi(efdata[10]);
+                        int column_offset = selected_start_column - start_column;
+                        eff_start_column += column_offset;
+                        eff_end_column += column_offset;
+                        Effect* te_start = tel->GetEffect(eff_start_column);
+                        Effect* te_end = tel->GetEffect(eff_end_column);
+                        if (te_start == nullptr || te_end == nullptr)
                         {
-                            logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
-                                (const char *)efdata[0].c_str(),
-                                (const char *)efdata[1].Left(128).c_str(),
-                                (const char *)efdata[2].c_str(),
+                            break;
+                        }
+                        new_start_time = te_start->GetStartTimeMS() + (((te_start->GetEndTimeMS() - te_start->GetStartTimeMS()) * eff_start_pct) / 100);
+                        new_end_time = te_end->GetStartTimeMS() + (((te_end->GetEndTimeMS() - te_end->GetStartTimeMS()) * eff_end_pct) / 100);
+                    }
+                    else
+                    {
+                        new_start_time += drop_time_offset;
+                        new_end_time += drop_time_offset;
+                    }
+                    int eff_row = wxAtoi(efdata[5]);
+                    drop_row = eff_row + drop_row_offset + rpts;
+                    if (!is_timing_effect)
+                    {
+                        drop_row += mSequenceElements->GetFirstVisibleModelRow();
+                    }
+                    Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
+                    if (row_info == nullptr) break;
+                    Element* elem = row_info->element;
+                    if (elem == nullptr) break;
+                    EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
+                    if (el == nullptr) break;
+                    if (el->GetRangeIsClearMS(new_start_time, new_end_time))
+                    {
+                        int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
+                        if (effectIndex >= 0 || is_timing_effect) {
+                            Effect* ef = el->AddEffect(0,
+                                efdata[0].ToStdString(),
+                                efdata[1].ToStdString(),
+                                efdata[2].ToStdString(),
                                 new_start_time,
-                                new_end_time, ef);
-                            if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                new_end_time,
+                                EFFECT_NOT_SELECTED,
+                                false);
+
+                            if (ef != nullptr)
+                            {
+                                logger_base.info("(1) Created effect %s  %s  %s  %d %d -->  %X",
+                                    (const char *)efdata[0].c_str(),
+                                    (const char *)efdata[1].Left(128).c_str(),
+                                    (const char *)efdata[2].c_str(),
+                                    new_start_time,
+                                    new_end_time, ef);
+                                if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
+                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                }
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                         }
                     }
                 }
@@ -2874,6 +4371,7 @@ void EffectsGrid::EstablishSelectionRectangle()
         std::swap(row1, row2);
     }
     mRangeStartRow = row1;
+    mRangeCursorRow = row2;
     mRangeEndRow = row2;
 
     int start_x = mDragStartX;
@@ -2900,6 +4398,7 @@ void EffectsGrid::EstablishSelectionRectangle()
                 {
                     mCellRangeSelected = true;
                     mRangeStartCol = timingIndex1;
+                    mRangeCursorCol = timingIndex2;
                     mRangeEndCol = timingIndex2;
                     mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();  // set for paste
                 }
@@ -3140,7 +4639,17 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         return 1;
     }
     RenderableEffect *ef = xlights->GetEffectManager()[e->GetEffectIndex()];
-    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds);
+
+    xlColor colorMask = xlColor::NilColor();
+    Model* m = xlights->GetModel(ri->element->GetModelName());
+    if (m != nullptr)
+    {
+        if (wxString(m->GetStringType()).StartsWith("Single Color"))
+        {
+            colorMask = m->GetNodeMaskColor(0);
+        }
+    }
+    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask));
 }
 
 float ComputeFontSize(int &toffset, const float factor) {
@@ -3781,6 +5290,8 @@ void EffectsGrid::CopyModelEffects(int row_number)
     if( effect != nullptr)
     {
         mDropStartTimeMS = effect->GetStartTimeMS();
+        mRangeCursorRow = mRangeStartRow;
+        mRangeCursorCol = mRangeStartCol;
         mRangeStartCol = -1;
         mRangeEndCol = -1;
         mRangeStartRow = -1;

@@ -457,12 +457,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 
 SeqSettingsDialog::~SeqSettingsDialog()
 {
-    if (_plog != NULL)
+    if (_plog != nullptr)
     {
         _plog->Show(false);
         _plog->Close();
         delete _plog;
-        _plog = NULL;
+        _plog = nullptr;
     }
 	//(*Destroy(SeqSettingsDialog)
 	//*)

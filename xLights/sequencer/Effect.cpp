@@ -115,6 +115,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected)
 {
+    mColorMask = xlColor::NilColor();
     mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
 

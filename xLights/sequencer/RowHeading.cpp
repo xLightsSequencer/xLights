@@ -258,7 +258,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW)
     {
-        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 20, this);
+        int numtoinsert = wxGetNumberFromUser("Enter number of layers to insert", "Layers", "Insert multiple layers", 2, 1, 100, this);
 
         if (numtoinsert > 0)
         {

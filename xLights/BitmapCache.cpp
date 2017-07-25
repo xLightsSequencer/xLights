@@ -74,6 +74,22 @@
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
 
+#include "../include/ACon.xpm"
+#include "../include/ACoff.xpm"
+#include "../include/ACenabled.xpm"
+#include "../include/ACdisabled.xpm"
+#include "../include/ACtwinkle.xpm"
+#include "../include/ACshimmer.xpm"
+#include "../include/ACintensity.xpm"
+#include "../include/ACrampup.xpm"
+#include "../include/ACrampdown.xpm"
+#include "../include/ACrampupdown.xpm"
+#include "../include/ACfill.xpm"
+#include "../include/ACcascade.xpm"
+#include "../include/ACforeground.xpm"
+#include "../include/ACbackground.xpm"
+#include "../include/ACselect.xpm"
+
 #include "../include/group-open-24.xpm"
 #include "../include/group-open-64.xpm"
 #include "../include/group-closed-24.xpm"
@@ -325,6 +341,36 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_SEQUENCE_ELEMENTS" == id) {
         return effectBitmaps.get(24, false, id, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm);
+    } else if ("xlAC_ON" == id) {
+        return effectBitmaps.get(24, false, id, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm);
+    }  else if ("xlAC_OFF" == id) {
+        return effectBitmaps.get(24, false, id, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm);
+    } else if ("xlAC_SELECT" == id) {
+        return effectBitmaps.get(24, false, id, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm);
+    } else if ("xlAC_DISABLED" == id) {
+        return effectBitmaps.get(24, false, id, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm);
+    } else if ("xlAC_ENABLED" == id) {
+        return effectBitmaps.get(24, false, id, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm);
+    } else if ("xlAC_SHIMMER" == id) {
+        return effectBitmaps.get(24, false, id, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm);
+    } else if ("xlAC_TWINKLE" == id) {
+        return effectBitmaps.get(24, false, id, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm);
+    } else if ("xlAC_INTENSITY" == id) {
+        return effectBitmaps.get(24, false, id, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm);
+    } else if ("xlAC_RAMPUP" == id) {
+        return effectBitmaps.get(24, false, id, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm);
+    } else if ("xlAC_RAMPDOWN" == id) {
+        return effectBitmaps.get(24, false, id, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm);
+    } else if ("xlAC_RAMPUPDOWN" == id) {
+        return effectBitmaps.get(24, false, id, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm);
+    } else if ("xlAC_FILL" == id) {
+        return effectBitmaps.get(24, false, id, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm);
+    } else if ("xlAC_CASCADE" == id) {
+        return effectBitmaps.get(24, false, id, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm);
+    } else if ("xlAC_FOREGROUND" == id) {
+        return effectBitmaps.get(24, false, id, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm);
+    } else if ("xlAC_BACKGROUND" == id) {
+        return effectBitmaps.get(24, false, id, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm);
     } else if ("xlART_PASTE_BY_TIME" == id) {
         return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {

@@ -52,13 +52,17 @@ Falcon::Falcon(const std::string& ip)
 
 int Falcon::GetMaxStringOutputs() const
 {
-    if (_model == "F4V2")
+    if (_model == "F4V2" || _model == "F4V3")
     {
-        return 8;
+        return 12;
     }
     else if (_model == "F16V2")
     {
         return 32;
+    }
+    else if (_model == "F16V3")
+    {
+        return 48;
     }
     return 100;
 }
@@ -331,17 +335,31 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         return;
     }
 
-    if (maxport > 32)
+    if (_model == "F16V2" || _model == "F16V3")
     {
-        // not sure what goes here yet ... need a V3 to test
-    }
-    else if (maxport > 16)
-    {
-        PutURL("/StringPorts.htm", "m=1");
+        if (maxport > 32)
+        {
+            PutURL("/StringPorts.htm", "m=2");
+        }
+        else if (maxport > 16)
+        {
+            PutURL("/StringPorts.htm", "m=1");
+        }
+        else
+        {
+            PutURL("/StringPorts.htm", "m=0");
+        }
     }
     else
     {
-        PutURL("/StringPorts.htm", "m=0");
+        if (maxport > 4)
+        {
+            PutURL("/StringPorts.htm", "m=1");
+        }
+        else
+        {
+            PutURL("/StringPorts.htm", "m=0");
+        }
     }
 
     // for each protocol
@@ -499,6 +517,13 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
 
+    wxString desc(description);
+    int replaced = desc.Replace("  ", " ");
+    while (replaced != 0)
+    {
+        replaced = desc.Replace("  ", " ");
+    }
+
     // first I need to check if they have virtual strings ... as my code cant handle that as we dont have all the information we need
     wxStringInputStream strm(wxString(strings.c_str()));
     wxXmlDocument stringsdoc(strm);
@@ -550,7 +575,7 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
                                         row, universe,
                                         row, portstartchannel,
                                          row, pixels, 
-                                         row, wxString(description.c_str()));
+                                         row, desc);
     return request.ToStdString();
 }
 

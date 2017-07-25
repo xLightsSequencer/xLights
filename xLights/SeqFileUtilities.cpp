@@ -76,12 +76,12 @@ void xLightsFrame::NewSequence()
     if( ret_code == wxID_CANCEL )
     {
         delete CurrentSeqXmlFile;
-        CurrentSeqXmlFile = NULL;
+        CurrentSeqXmlFile = nullptr;
         return;
     }
 	else
 	{
-        if (CurrentSeqXmlFile->GetMedia() != NULL)
+        if (CurrentSeqXmlFile->GetMedia() != nullptr)
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
@@ -2572,7 +2572,7 @@ bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFu
             if( reverse ) {
                 std::swap( x, y );
             }
-            if (x < num_columns) {
+            if (x < num_columns && y < num_rows) {
                 data[x][y] = true;
                 if (x > maxCol) maxCol = x;
                 if (x < minCol) minCol = x;

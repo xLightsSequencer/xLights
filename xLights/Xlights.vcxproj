@@ -760,6 +760,7 @@
     <ClInclude Include="xLightsImportChannelMapDialog.h" />
     <ClInclude Include="xLightsMain.h" />
     <ClInclude Include="xLightsTimer.h" />
+    <ClInclude Include="xLightsVersion.h" />
     <ClInclude Include="xLightsXmlFile.h" />
     <ClInclude Include="xlSlider.h" />
   </ItemGroup>

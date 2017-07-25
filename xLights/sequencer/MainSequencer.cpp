@@ -237,7 +237,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 MainSequencer::~MainSequencer()
 {
     if (effectGridTouchbar) delete effectGridTouchbar;
-    
+
 	//(*Destroy(MainSequencer)
 	//*)
 }
@@ -358,6 +358,16 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
+
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        if (PanelEffectGrid->HandleACKey(uc, event.ShiftDown()))
+        {
+            event.StopPropagation();
+            return;
+        }
+    }
+
     //printf("OnCharHook %d   %c\n", uc, uc);
     switch(uc)
     {
@@ -465,8 +475,16 @@ void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
 
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr && mSequenceElements->GetXLightsFrame()->IsACActive())
+    {
+        if (PanelEffectGrid->HandleACKey(uc))
+        {
+            return;
+        }
+    }
+
     KeyBinding *binding = keyBindings.Find(uc);
-    if (binding != NULL) {
+    if (binding != nullptr) {
         event.StopPropagation();
         if (mSequenceElements == nullptr) {
             return;
@@ -578,6 +596,16 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 void MainSequencer::DoRedo(wxCommandEvent& event) {
 }
 
+void MainSequencer::GetPresetData(wxString& copy_data)
+{
+    if (PanelEffectGrid->IsACActive()) {
+        GetACEffectsData(copy_data);
+    }
+    else
+    {
+        GetSelectedEffectsData(copy_data);
+    }
+}
 
 void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -697,9 +725,122 @@ void MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
     UnTagAllEffects();
 }
 
+void MainSequencer::GetACEffectsData(wxString& copy_data) {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int start_column = PanelEffectGrid->GetStartColumn();
+    int end_column = PanelEffectGrid->GetEndColumn();
+    int start_row = PanelEffectGrid->GetStartRow();
+    int end_row = PanelEffectGrid->GetEndRow();
+    int column_start_time = -1000;
+    int column_end_time = -1000;
+    int number_of_timings = 0;
+    int number_of_effects = 0;
+    int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
+    int first_timing_row = -1;
+    int last_timing_row = 0;
+    wxString effect_data;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if( tel != nullptr && start_column != -1) {
+        Effect* eff1 = tel->GetEffect(start_column);
+        Effect* eff2 = tel->GetEffect(end_column);
+        if( eff1 != nullptr && eff2 != nullptr ) {
+            column_start_time = eff1->GetStartTimeMS();
+            column_end_time = eff2->GetEndTimeMS();
+        } else {
+            return;
+        }
+    } else {
+        return;  // there should always be a range selection in AC copy mode
+    }
+
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    {
+        int row_number;
+        if( i < number_of_timing_rows )
+        {
+            row_number = mSequenceElements->GetRowInformation(i)->Index;
+        }
+        else
+        {
+            row_number = mSequenceElements->GetRowInformation(i)->Index;// -mSequenceElements->GetFirstVisibleModelRow();
+        }
+        if( row_number >= start_row && row_number <= end_row )
+        {
+            EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+            for (int x = 0; x < el->GetEffectCount(); x++) {
+                Effect *ef = el->GetEffect(x);
+                if( ef == nullptr ) break;
+                if(!ef->GetTagged()) {
+                    ef->SetTagged(true);
+                    if( ef->GetStartTimeMS() < column_end_time && ef->GetEndTimeMS() > column_start_time ) {
+                        int start_offset = 0;
+                        int end_offset = 0;
+                        if( ef->GetStartTimeMS() < column_start_time ) {
+                            start_offset = column_start_time - ef->GetStartTimeMS();
+                        }
+                        if( ef->GetEndTimeMS() > column_end_time ) {
+                            end_offset = ef->GetEndTimeMS() - column_end_time;
+                        }
+                        int adj_start_time = ef->GetStartTimeMS() + start_offset;
+                        int adj_end_time = ef->GetEndTimeMS() - end_offset;
+                        wxString start_time = wxString::Format("%d",adj_start_time);
+                        wxString end_time = wxString::Format("%d",adj_end_time);
+                        wxString row = wxString::Format("%d",row_number);
+                        wxString column_start = wxString::Format("%d",column_start_time);
+                        std::string settings = PanelEffectGrid->TruncateEffectSettings(ef->GetSettings(), ef->GetEffectName(), ef->GetStartTimeMS(), ef->GetEndTimeMS(), adj_start_time, adj_end_time);
+
+                        effect_data += ef->GetEffectName() + "\t" + settings + "\t" + ef->GetPaletteAsString() +
+                                       "\t" + start_time + "\t" + end_time + "\t" + row + "\t" + column_start;
+                        number_of_effects++;
+                        Effect* te_start = tel->GetEffectByTime(adj_start_time + 1); // if we don't add 1ms, it picks up the end of the previous timing instead of the start of this one
+                        Effect* te_end = tel->GetEffectByTime(adj_end_time);
+                        if( te_start != nullptr && te_end != nullptr )
+                        {
+                            if (tel == nullptr)
+                            {
+                                logger_base.crit("MainSequencer::GetSelectedEffectsData tel is nullptr ... this is going to crash.");
+                            }
+
+                            int start_pct = ((adj_start_time - te_start->GetStartTimeMS()) * 100) / (te_start->GetEndTimeMS() - te_start->GetStartTimeMS());
+                            int end_pct = ((adj_end_time - te_end->GetStartTimeMS()) * 100) / (te_end->GetEndTimeMS() - te_end->GetStartTimeMS());
+                            int start_index;
+                            int end_index;
+                            tel->HitTestEffectByTime(te_start->GetStartTimeMS()+1,start_index);
+                            tel->HitTestEffectByTime(te_end->GetStartTimeMS()+1,end_index);
+                            wxString start_pct_str = wxString::Format("%d",start_pct);
+                            wxString end_pct_str = wxString::Format("%d",end_pct);
+                            wxString start_index_str = wxString::Format("%d",start_index);
+                            wxString end_index_str = wxString::Format("%d",end_index);
+                            effect_data += "\t" + start_index_str + "\t" + end_index_str + "\t" + start_pct_str + "\t" + end_pct_str + "\n";
+                        }
+                    }
+                }
+            }
+        }
+    }
+    wxString num_timings = wxString::Format("%d",number_of_timings);
+    wxString num_effects = wxString::Format("%d",number_of_effects);
+    wxString num_timing_rows = wxString::Format("%d",number_of_timing_rows);
+    wxString last_row = wxString::Format("%d",last_timing_row);
+    wxString starting_column = wxString::Format("%d",start_column);
+    wxString ending_column = wxString::Format("%d",end_column);
+    wxString starting_row = wxString::Format("%d",start_row);
+    wxString ending_row = wxString::Format("%d",end_row);
+    wxString starting_time = wxString::Format("%d",column_start_time);
+    wxString ending_time = wxString::Format("%d",column_end_time);
+    copy_data = "CopyFormatAC\t" + num_timings + "\t" + num_effects + "\t" + num_timing_rows + "\t" + last_row + "\t" + starting_column + "\t" + ending_column + "\t" + starting_row + "\t" + ending_row + "\t" + starting_time + "\t" + ending_time;
+    copy_data += "\tPASTE_BY_CELL\n" + effect_data;
+    UnTagAllEffects();
+}
+
 bool MainSequencer::CopySelectedEffects() {
     wxString copy_data;
-    GetSelectedEffectsData(copy_data);
+    if( PanelEffectGrid->IsACActive() ) {
+        GetACEffectsData(copy_data);
+    } else {
+        GetSelectedEffectsData(copy_data);
+    }
     if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
             wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
@@ -718,7 +859,14 @@ void MainSequencer::Copy() {
 
 void MainSequencer::Cut() {
     if (CopySelectedEffects()) {
-        PanelEffectGrid->DeleteSelectedEffects();
+        if (PanelEffectGrid->IsACActive())
+        {
+            PanelEffectGrid->DoACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACTOOL::TOOLNIL, ACMODE::MODENIL);
+        }
+        else
+        {
+            PanelEffectGrid->DeleteSelectedEffects();
+        }
     }
 }
 

@@ -5,7 +5,6 @@
 #define _glpane_
 #endif
 
-
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include "../xlGLCanvas.h"
@@ -16,11 +15,16 @@
 #include "Effect.h"
 #include "Element.h"
 #include "../EffectTreeDialog.h"
+#include "../ValueCurve.h"
 
 #include <map>
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
+typedef enum ACTYPE { SELECT, ON, OFF, SHIMMER, TWINKLE, NILTYPEOVERRIDE } ACTYPE;
+typedef enum ACSTYLE { INTENSITY, RAMPUP, RAMPDOWN, RAMPUPDOWN, NILSTYLEOVERRIDE } ACSTYLE;
+typedef enum ACMODE { FOREGROUND, BACKGROUND, MODENIL, NILMODEOVERRIDE} ACMODE;
+typedef enum ACTOOL { FILL, CASCADE, TOOLNIL, NILTOOLOVERRIDE } ACTOOL;
 
 enum class HitLocation {
     NONE,
@@ -71,6 +75,7 @@ public:
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void ForceRefresh();
+    void SetTimingClickPlayMode(bool mode) {mTimingPlayOnDClick = mode;}
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
     void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
     void MoveSelectedEffectUp(bool shift);
@@ -85,12 +90,21 @@ public:
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
 
+    bool HandleACKey(wxChar key, bool shift = false);
+    bool IsACActive();
+    std::string TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS);
+    bool DoACDraw(ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
+
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
     void OldPaste(const wxString &data, const wxString &pasteDataVer);
     void Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
     void SetCanPaste() { mCanPaste = true; }
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
+    int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
+    int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
+    int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
+    int GetMSFromColumn(int col);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -128,7 +142,7 @@ private:
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
     void DrawLines();
-    void DrawModelOrViewEffects(int row);
+    //void DrawModelOrViewEffects(int row);
     void DrawSelectedCells();
 
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
@@ -164,9 +178,21 @@ private:
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
     bool OneCellSelected();
+    void ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
+    void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
+    void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
+    void CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
+    void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select);
+    void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
+    void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
+    int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);
+    void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
+    void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
+
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
+    bool mTimingPlayOnDClick;
     bool mGridNodeValues = true;
     bool mCanPaste;
 
@@ -220,6 +246,8 @@ private:
     int mRangeEndCol;
     int mRangeStartRow;
     int mRangeEndRow;
+    int mRangeCursorRow;
+    int mRangeCursorCol;
 
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;

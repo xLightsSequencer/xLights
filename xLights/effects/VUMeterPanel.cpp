@@ -105,8 +105,10 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Color On"));
 	Choice_VUMeter_Type->Append(_("Intensity Wave"));
 	Choice_VUMeter_Type->Append(_("Pulse"));
+	Choice_VUMeter_Type->Append(_("Level Bar"));
 	Choice_VUMeter_Type->Append(_("Level Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
+	Choice_VUMeter_Type->Append(_("Timing Event Bar"));
 	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
 	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
 	Choice_VUMeter_Type->Append(_("Timing Event Color"));
@@ -115,6 +117,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
 	Choice_VUMeter_Type->Append(_("Note On"));
 	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
+	Choice_VUMeter_Type->Append(_("Note Level Bar"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -269,6 +272,7 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump 100" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
     {
@@ -281,6 +285,8 @@ void VUMeterPanel::ValidateWindow()
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Level Bar" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
         Slider_VUMeter_Sensitivity->Enable();
@@ -338,6 +344,7 @@ void VUMeterPanel::ValidateWindow()
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note On" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
         Slider_VUMeter_EndNote->Enable();

@@ -21,7 +21,7 @@ ValueCurveButton::ValueCurveButton(wxWindow *parent,
 
 ValueCurveButton::~ValueCurveButton()
 {
-    if (_vc != NULL)
+    if (_vc != nullptr)
     {
         delete _vc;
     }

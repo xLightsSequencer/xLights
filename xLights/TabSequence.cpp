@@ -1058,17 +1058,19 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
 	SetAudioControls();
     enableAllToolbarControls(WindowMgmtToolbar, enable && SeqData.NumFrames() > 0);
-    enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllToolbarControls(EditToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(ACToolbar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 
-    enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0);
-    enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0);
-    enableAllChildControls(bufferPanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(bufferPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
-    enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0);
-    enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);
 
@@ -1093,8 +1095,6 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         QuitMenuItem->Enable(true);
     }
 }
-
-
 
 //modifed for partially random -DJ
 //void djdebug(const char* fmt, ...); //_DJ

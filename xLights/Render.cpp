@@ -1467,17 +1467,47 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     int eidx = -1;
+    xlColor colorMask = xlColor::NilColor();
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
+
+        // color masks use the underlying model color to ensure backgrounds show what it will really look like    
+        // need to do it every render as effects can move around
+        const Model* m = buffer.GetModel();
+
+        if (m == nullptr)
+        {
+            // this could be a strand or node
+            m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName()); 
+        }
+
+        if (m != nullptr)
+        {
+            if (wxString(m->GetStringType()).StartsWith("Single Color"))
+            {
+                colorMask = buffer.GetNodeMaskColor(0);
+
+                // If black ... then dont mask
+                if (colorMask == xlBLACK)
+                {
+                    colorMask = xlColor::NilColor();
+                }
+            }
+        }
+        effectObj->SetColorMask(colorMask);
     }
+
     if (eidx >= 0) {
         RenderableEffect *reff = effectManager.GetEffect(eidx);
+
         for (int bufn = 0; bufn < buffer.BufferCountForLayer(layer); ++bufn) {
             RenderBuffer &b = buffer.BufferForLayer(layer, bufn);
+
             if (reff == nullptr) {
                 retval= false;
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
+
                 reff->Render(effectObj, SettingsMap, b);
                 // Log slow render frames ... this takes time but at this point it is already slow
                 if (sw.Time() > 150)

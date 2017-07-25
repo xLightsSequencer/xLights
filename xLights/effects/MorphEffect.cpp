@@ -152,20 +152,24 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     start_t = e->GetPalette()[tcols];
     end_t = e->GetPalette()[tcole];
 }
-int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlVertexColorAccumulator &backgrounds) {
+int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_MorphDuration", 20);
     xlColor start_h;
     xlColor end_h;
     xlColor start_t;
     xlColor end_t;
     GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
+    start_h.ApplyMask(colorMask);
+    end_h.ApplyMask(colorMask);
+    start_t.ApplyMask(colorMask);
+    end_t.ApplyMask(colorMask);
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
     backgrounds.AddHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
     if(e->GetPaletteSize() <= 4) {
         backgrounds.AddHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
     }
     else {
-        backgrounds.AddHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, 2);
+        backgrounds.AddHBlendedRectangle(e->GetPalette(), x_mid, y1+4, x2, y2-4, colorMask, 2);
     }
     return 0;
 
