@@ -43,7 +43,7 @@ bool ShimmerEffect::needToAdjustSettings(const std::string &version)
     return IsVersionOlder("2017.7", version);
 }
 
-void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect)
+void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     if (IsVersionOlder("2017.7", version))
     {
@@ -59,7 +59,7 @@ void ShimmerEffect::adjustSettings(const std::string &version, Effect *effect)
     // also give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version))
     {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 }
 

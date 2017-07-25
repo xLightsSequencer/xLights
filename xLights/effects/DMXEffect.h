@@ -16,7 +16,7 @@ class DMXEffect : public RenderableEffect
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return true; };
-        virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
     private:
         bool SetDMXSinglColorPixel(int chan, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer);
         bool SetDMXRGBNode(int node, int num_channels, const SettingsMap &SettingsMap, double eff_pos, xlColor& color, RenderBuffer &buffer, const std::string& string_type);

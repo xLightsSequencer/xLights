@@ -15,7 +15,7 @@ class ColorWashEffect : public RenderableEffect
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) override;
         virtual std::string GetEffectString() override;
         virtual bool needToAdjustSettings(const std::string &version) override;
-        virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 
     protected:
         virtual void RemoveDefaults(const std::string &version, Effect *effect) override;

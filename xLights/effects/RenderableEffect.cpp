@@ -274,12 +274,12 @@ std::string RenderableEffect::GetEffectString() {
 
 
 
-void RenderableEffect::adjustSettings(const std::string &version, Effect *effect) {
+void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     if (IsVersionOlder("4.2.20", version)) {
         // almost all of the settings from older 4.x series need adjustment for speed things
         AdjustSettingsToBeFitToTime(effect->GetEffectIndex(), effect->GetSettings(), effect->GetStartTimeMS(), effect->GetEndTimeMS(), effect->GetPalette());
     }
-    if (IsVersionOlder("2016.36", version)) {
+    if (IsVersionOlder("2016.36", version) && removeDefaults) {
         RemoveDefaults(version, effect);
     }
     if (IsVersionOlder("2016.50", version))

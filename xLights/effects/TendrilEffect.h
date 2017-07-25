@@ -74,7 +74,7 @@ class TendrilEffect : public RenderableEffect
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 		virtual bool needToAdjustSettings(const std::string &version) override;
-		virtual void adjustSettings(const std::string &version, Effect *effect) override;
+		virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         int EncodeMovement(std::string movement);
         void Render(RenderBuffer &buffer,
             const std::string& movement, int tunemovement, int movementSpeed, int thickness,

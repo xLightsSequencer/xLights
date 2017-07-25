@@ -23,7 +23,6 @@
 		3D585F411E7E8EAD00A3F84F /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F3F1E7E8EAD00A3F84F /* DDPOutput.cpp */; };
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
-		6703513C1DB1108500CCABD7 /* FPPConnectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */; };
 		6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
 		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
@@ -319,7 +318,13 @@
 		67BCD1561E6DB03E00F99935 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67BCD1571E6DB06800F99935 /* GIFImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1501E6DAF4900F99935 /* GIFImage.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
-		67C0DCCB1EEA291900FDE93B /* J1Sys.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0DCC91EEA291900FDE93B /* J1Sys.cpp */; };
+		67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF51F278956002F118D /* SimpleFTP.cpp */; };
+		67BF80031F278956002F118D /* SanDevices.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF71F278956002F118D /* SanDevices.cpp */; };
+		67BF80041F278956002F118D /* Pixlite16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF91F278956002F118D /* Pixlite16.cpp */; };
+		67BF80051F278956002F118D /* J1Sys.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FFB1F278956002F118D /* J1Sys.cpp */; };
+		67BF80061F278956002F118D /* Falcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FFD1F278956002F118D /* Falcon.cpp */; };
+		67BF80071F278956002F118D /* FPPConnectDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FFF1F278956002F118D /* FPPConnectDialog.cpp */; };
+		67BF80081F278956002F118D /* FPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF80011F278956002F118D /* FPP.cpp */; };
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
 		67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115601E9071E900B06690 /* CandleEffect.cpp */; };
 		67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115621E9071E900B06690 /* CandlePanel.cpp */; };
@@ -375,13 +380,9 @@
 		67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD91CA1A63C004B3237 /* Options.cpp */; };
 		67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DB97371B05744100FC5ADC /* SuperStarImportDialog.cpp */; };
 		67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */; };
-		67E0BB991E08460400C07EF7 /* Falcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB921E08460400C07EF7 /* Falcon.cpp */; };
-		67E0BB9A1E08460400C07EF7 /* FPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB941E08460400C07EF7 /* FPP.cpp */; };
-		67E0BB9B1E08460400C07EF7 /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
-		67E5B5E31EAEDC5800735BF0 /* Pixlite16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B5DF1EAEDC5800735BF0 /* Pixlite16.cpp */; };
 		67E5B5E41EAEDC5800735BF0 /* SubModelGenerateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */; };
 		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
@@ -518,7 +519,6 @@
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
-		67FA3BAB1EDDAE8D00B84576 /* E6804.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA3BA91EDDAE8D00B84576 /* E6804.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
@@ -591,8 +591,6 @@
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
-		6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPConnectDialog.cpp; sourceTree = "<group>"; };
-		6703513B1DB1108500CCABD7 /* FPPConnectDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FPPConnectDialog.h; sourceTree = "<group>"; };
 		6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceViewManager.cpp; sourceTree = "<group>"; };
 		6706BB091E9CFD8E00B44278 /* SequenceViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceViewManager.h; sourceTree = "<group>"; };
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
@@ -1145,8 +1143,20 @@
 		67BCD1541E6DAF9100F99935 /* xLightsVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsVersion.h; sourceTree = "<group>"; };
 		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
-		67C0DCC91EEA291900FDE93B /* J1Sys.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = J1Sys.cpp; sourceTree = "<group>"; };
-		67C0DCCA1EEA291900FDE93B /* J1Sys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = J1Sys.h; sourceTree = "<group>"; };
+		67BF7FF41F278956002F118D /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleFTP.h; path = controllers/SimpleFTP.h; sourceTree = "<group>"; };
+		67BF7FF51F278956002F118D /* SimpleFTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleFTP.cpp; path = controllers/SimpleFTP.cpp; sourceTree = "<group>"; };
+		67BF7FF61F278956002F118D /* SanDevices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SanDevices.h; path = controllers/SanDevices.h; sourceTree = "<group>"; };
+		67BF7FF71F278956002F118D /* SanDevices.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SanDevices.cpp; path = controllers/SanDevices.cpp; sourceTree = "<group>"; };
+		67BF7FF81F278956002F118D /* Pixlite16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pixlite16.h; path = controllers/Pixlite16.h; sourceTree = "<group>"; };
+		67BF7FF91F278956002F118D /* Pixlite16.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pixlite16.cpp; path = controllers/Pixlite16.cpp; sourceTree = "<group>"; };
+		67BF7FFA1F278956002F118D /* J1Sys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = J1Sys.h; path = controllers/J1Sys.h; sourceTree = "<group>"; };
+		67BF7FFB1F278956002F118D /* J1Sys.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = J1Sys.cpp; path = controllers/J1Sys.cpp; sourceTree = "<group>"; };
+		67BF7FFC1F278956002F118D /* Falcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Falcon.h; path = controllers/Falcon.h; sourceTree = "<group>"; };
+		67BF7FFD1F278956002F118D /* Falcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Falcon.cpp; path = controllers/Falcon.cpp; sourceTree = "<group>"; };
+		67BF7FFE1F278956002F118D /* FPPConnectDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPPConnectDialog.h; path = controllers/FPPConnectDialog.h; sourceTree = "<group>"; };
+		67BF7FFF1F278956002F118D /* FPPConnectDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPPConnectDialog.cpp; path = controllers/FPPConnectDialog.cpp; sourceTree = "<group>"; };
+		67BF80001F278956002F118D /* FPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPP.h; path = controllers/FPP.h; sourceTree = "<group>"; };
+		67BF80011F278956002F118D /* FPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPP.cpp; path = controllers/FPP.cpp; sourceTree = "<group>"; };
 		67C0EEE11C755ABE002FE25E /* MatrixModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MatrixModel.h; path = models/MatrixModel.h; sourceTree = "<group>"; };
 		67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MatrixModel.cpp; path = models/MatrixModel.cpp; sourceTree = "<group>"; };
 		67C115601E9071E900B06690 /* CandleEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CandleEffect.cpp; path = effects/CandleEffect.cpp; sourceTree = "<group>"; };
@@ -1249,19 +1259,11 @@
 		67DB97381B05744100FC5ADC /* SuperStarImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperStarImportDialog.h; sourceTree = "<group>"; };
 		67E0BB901E08460400C07EF7 /* ControllerConnectionDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ControllerConnectionDialog.cpp; sourceTree = "<group>"; };
 		67E0BB911E08460400C07EF7 /* ControllerConnectionDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerConnectionDialog.h; sourceTree = "<group>"; };
-		67E0BB921E08460400C07EF7 /* Falcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Falcon.cpp; sourceTree = "<group>"; };
-		67E0BB931E08460400C07EF7 /* Falcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Falcon.h; sourceTree = "<group>"; };
-		67E0BB941E08460400C07EF7 /* FPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPP.cpp; sourceTree = "<group>"; };
-		67E0BB951E08460400C07EF7 /* FPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FPP.h; sourceTree = "<group>"; };
-		67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SimpleFTP.cpp; sourceTree = "<group>"; };
-		67E0BB971E08460400C07EF7 /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleFTP.h; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
 		67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectivesPanel.cpp; sourceTree = "<group>"; };
 		67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VAMPPluginDialog.cpp; sourceTree = "<group>"; };
 		67E42C1E1B5C32AD00CEBEC2 /* VAMPPluginDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VAMPPluginDialog.h; sourceTree = "<group>"; };
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
-		67E5B5DF1EAEDC5800735BF0 /* Pixlite16.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pixlite16.cpp; sourceTree = "<group>"; };
-		67E5B5E01EAEDC5800735BF0 /* Pixlite16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Pixlite16.h; sourceTree = "<group>"; };
 		67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelGenerateDialog.cpp; sourceTree = "<group>"; };
 		67E5B5E21EAEDC5800735BF0 /* SubModelGenerateDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelGenerateDialog.h; sourceTree = "<group>"; };
 		67E7086D17B51AB400A22034 /* xLights.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xLights.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1406,8 +1408,6 @@
 		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
 		67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGLCanvas.cpp; sourceTree = "<group>"; };
 		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
-		67FA3BA91EDDAE8D00B84576 /* E6804.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = E6804.cpp; sourceTree = "<group>"; };
-		67FA3BAA1EDDAE8D00B84576 /* E6804.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = E6804.h; sourceTree = "<group>"; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
@@ -1896,6 +1896,27 @@
 			name = Outputs;
 			sourceTree = "<group>";
 		};
+		67BF7FF31F278946002F118D /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				67BF7FF41F278956002F118D /* SimpleFTP.h */,
+				67BF7FF51F278956002F118D /* SimpleFTP.cpp */,
+				67BF7FF61F278956002F118D /* SanDevices.h */,
+				67BF7FF71F278956002F118D /* SanDevices.cpp */,
+				67BF7FF81F278956002F118D /* Pixlite16.h */,
+				67BF7FF91F278956002F118D /* Pixlite16.cpp */,
+				67BF7FFA1F278956002F118D /* J1Sys.h */,
+				67BF7FFB1F278956002F118D /* J1Sys.cpp */,
+				67BF7FFC1F278956002F118D /* Falcon.h */,
+				67BF7FFD1F278956002F118D /* Falcon.cpp */,
+				67BF7FFE1F278956002F118D /* FPPConnectDialog.h */,
+				67BF7FFF1F278956002F118D /* FPPConnectDialog.cpp */,
+				67BF80001F278956002F118D /* FPP.h */,
+				67BF80011F278956002F118D /* FPP.cpp */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
 		67DAFDCD1CA1A62B004B3237 /* MIDI */ = {
 			isa = PBXGroup;
 			children = (
@@ -2027,18 +2048,13 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67C0DCC91EEA291900FDE93B /* J1Sys.cpp */,
-				67C0DCCA1EEA291900FDE93B /* J1Sys.h */,
-				67FA3BA91EDDAE8D00B84576 /* E6804.cpp */,
-				67FA3BAA1EDDAE8D00B84576 /* E6804.h */,
+				67BF7FF31F278946002F118D /* Controllers */,
 				67B71D201EC09FDB00690109 /* ColorManager.cpp */,
 				67B71D211EC09FDB00690109 /* ColorManager.h */,
 				67B71D221EC09FDB00690109 /* ColorManagerDialog.cpp */,
 				67B71D231EC09FDB00690109 /* ColorManagerDialog.h */,
 				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
 				67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */,
-				67E5B5DF1EAEDC5800735BF0 /* Pixlite16.cpp */,
-				67E5B5E01EAEDC5800735BF0 /* Pixlite16.h */,
 				67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */,
 				67E5B5E21EAEDC5800735BF0 /* SubModelGenerateDialog.h */,
 				6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */,
@@ -2094,14 +2110,8 @@
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
-				67E0BB921E08460400C07EF7 /* Falcon.cpp */,
-				67E0BB931E08460400C07EF7 /* Falcon.h */,
 				676DCBF81A98E53800FBA86B /* FileConverter.cpp */,
 				675DE2571B53381800A9BB44 /* FlickerFreeBitmapButton.cpp */,
-				67E0BB941E08460400C07EF7 /* FPP.cpp */,
-				67E0BB951E08460400C07EF7 /* FPP.h */,
-				6703513A1DB1108500CCABD7 /* FPPConnectDialog.cpp */,
-				6703513B1DB1108500CCABD7 /* FPPConnectDialog.h */,
 				679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */,
 				679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */,
 				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
@@ -2158,8 +2168,6 @@
 				6784F9251A5653670018EC0C /* SequenceElements.cpp */,
 				671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */,
 				671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */,
-				67E0BB961E08460400C07EF7 /* SimpleFTP.cpp */,
-				67E0BB971E08460400C07EF7 /* SimpleFTP.h */,
 				67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */,
 				67BA42A51C93B78500D17518 /* StartChannelDialog.h */,
 				6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */,
@@ -2664,13 +2672,16 @@
 				674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */,
 				67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */,
 				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
+				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
+				67BF80081F278956002F118D /* FPP.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
 				67B2CFDC1C3A186A003C17CA /* TreeEffect.cpp in Sources */,
 				67B2CF7E1C39D98A003C17CA /* PianoPanel.cpp in Sources */,
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,
+				67BF80051F278956002F118D /* J1Sys.cpp in Sources */,
 				67EE95B21C848A3600C62C95 /* VideoPanel.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				676D0F7F1C72BEBD009C66FC /* kiss_fftndr.c in Sources */,
@@ -2688,13 +2699,13 @@
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */,
 				67B2CF991C39E5B0003C17CA /* ButterflyPanel.cpp in Sources */,
-				6703513C1DB1108500CCABD7 /* FPPConnectDialog.cpp in Sources */,
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
 				67B2CF831C39D98A003C17CA /* ShimmerPanel.cpp in Sources */,
 				67B2CFDE1C3A186A003C17CA /* WaveEffect.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */,
 				67B2B2261E1947BE0024F0BB /* Controller.cpp in Sources */,
+				67BF80031F278956002F118D /* SanDevices.cpp in Sources */,
 				67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */,
 				67B2CFDB1C3A186A003C17CA /* TextEffect.cpp in Sources */,
 				67B2B2321E1947BE0024F0BB /* PixelNetOutput.cpp in Sources */,
@@ -2730,7 +2741,6 @@
 				67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */,
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
-				67FA3BAB1EDDAE8D00B84576 /* E6804.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
@@ -2738,6 +2748,7 @@
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
+				67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */,
 				67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */,
 				67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
@@ -2745,7 +2756,6 @@
 				67B2CF7D1C39D98A003C17CA /* MorphPanel.cpp in Sources */,
 				670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */,
 				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
-				67E0BB9B1E08460400C07EF7 /* SimpleFTP.cpp in Sources */,
 				67B2B2271E1947BE0024F0BB /* DMXOutput.cpp in Sources */,
 				67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */,
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
@@ -2756,8 +2766,8 @@
 				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
 				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
-				67E5B5E31EAEDC5800735BF0 /* Pixlite16.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
+				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
@@ -2768,8 +2778,6 @@
 				67B2B22C1E1947BE0024F0BB /* NullOutput.cpp in Sources */,
 				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
-				67C0DCCB1EEA291900FDE93B /* J1Sys.cpp in Sources */,
-				67E0BB991E08460400C07EF7 /* Falcon.cpp in Sources */,
 				67B2CF8D1C39D98A003C17CA /* TwinklePanel.cpp in Sources */,
 				675AB42D1B5ACEDA00853A28 /* PluginLoader.cpp in Sources */,
 				671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */,
@@ -2818,6 +2826,7 @@
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
 				67BCD1521E6DAF4900F99935 /* GIFImage.cpp in Sources */,
 				671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */,
+				67BF80071F278956002F118D /* FPPConnectDialog.cpp in Sources */,
 				67B2B22E1E1947BE0024F0BB /* OpenDMXOutput.cpp in Sources */,
 				67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */,
 				6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */,
@@ -2834,7 +2843,6 @@
 				67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
-				67E0BB9A1E08460400C07EF7 /* FPP.cpp in Sources */,
 				67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */,
 				67B2B22A1E1947BE0024F0BB /* IPOutput.cpp in Sources */,
 				6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */,

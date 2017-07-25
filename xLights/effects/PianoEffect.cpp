@@ -85,12 +85,12 @@ void PianoEffect::SetPanelTimingTracks()
     wxPostEvent(fp, event);
 }
 
-void PianoEffect::adjustSettings(const std::string &version, Effect *effect)
+void PianoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version))
     {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     if (IsVersionOlder("2016.45", version))

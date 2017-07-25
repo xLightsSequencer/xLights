@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Old keybindings files can result in U/D/O problems when defaults are removed.
    -- enh (keith)   Add value curves to sub-buffers
    -- enh (keith)   Move audio file loading to its own thread to improve audio load time in scheduler. Eliminates the need to load and convert the entire file before the audio starts to play.
    -- bug (keith)   Fix crash when importing a LOR timing track a second time.

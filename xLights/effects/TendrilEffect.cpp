@@ -25,7 +25,7 @@ bool TendrilEffect::needToAdjustSettings(const std::string &version)
 	return IsVersionOlder("2016.8", version);
 }
 
-void TendrilEffect::adjustSettings(const std::string &version, Effect *effect)
+void TendrilEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
 	SettingsMap &settings = effect->GetSettings();
 	int movement = settings.GetInt("E_SLIDER_Tendril_Movement", -1);
@@ -68,7 +68,7 @@ void TendrilEffect::adjustSettings(const std::string &version, Effect *effect)
 	// also give the base class a chance to adjust any settings
 	if (RenderableEffect::needToAdjustSettings(version))
 	{
-		RenderableEffect::adjustSettings(version, effect);
+		RenderableEffect::adjustSettings(version, effect, removeDefaults);
 	}
 }
 

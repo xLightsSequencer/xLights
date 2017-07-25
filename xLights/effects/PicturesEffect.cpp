@@ -75,12 +75,12 @@ bool PicturesEffect::needToAdjustSettings(const std::string &version)
     return true;
 }
 
-void PicturesEffect::adjustSettings(const std::string &version, Effect *effect)
+void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version))
     {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     SettingsMap &settings = effect->GetSettings();

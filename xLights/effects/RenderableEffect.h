@@ -64,7 +64,7 @@ class RenderableEffect
                                          DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask);
 
         virtual bool needToAdjustSettings(const std::string &version);
-        virtual void adjustSettings(const std::string &version, Effect *effect);
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true);
 
         virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame);
         virtual bool HasAssistPanel() { return false; }

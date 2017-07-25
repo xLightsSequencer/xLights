@@ -142,7 +142,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     if (selectedEffect != nullptr)
     {
         if ((mTimingPlayOnDClick && event.ShiftDown()) ||
-             !mTimingPlayOnDClick && !event.ShiftDown()) {
+             (!mTimingPlayOnDClick && !event.ShiftDown())) {
             if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
                 wxString label = selectedEffect->GetEffectName();
 
@@ -1296,7 +1296,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
         }
     }
 
-    if (actualStart == -1 && actualEnd == -1 || startRow == endRow) return;
+    if ((actualStart == -1 && actualEnd == -1) || startRow == endRow) return;
 
     int spaceToCascade = 0;
     int dirFactor = 1;
@@ -1702,7 +1702,7 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int 
     }
     else if (type == ACTYPE::TWINKLE)
     {
-        if (midBrightness == -1 || midBrightness == startBrightness && midBrightness == endBrightness)
+        if ((midBrightness == -1 || midBrightness == startBrightness) && midBrightness == endBrightness)
         {
             if (startBrightness == endBrightness)
             {
@@ -1820,7 +1820,7 @@ void EffectsGrid::CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startM
     }
     else if (type == ACTYPE::TWINKLE)
     {
-        if (midBrightness == -1 || midBrightness == startBrightness && midBrightness == endBrightness)
+        if (midBrightness == -1 || (midBrightness == startBrightness && midBrightness == endBrightness))
         {
             SettingsMap settings;
             if (startBrightness == endBrightness)
@@ -3477,7 +3477,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                             if (ef != nullptr)
                             {
                                 if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 if (!ef->GetPaletteMap().empty()) {
@@ -3537,7 +3537,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                         if (ef != nullptr)
                         {
                             if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                             }
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
@@ -3614,7 +3614,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                                                                   EFFECT_SELECTED,
                                                                   false);
                                         if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                            xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                            xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                         }
                                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
                                         RaiseSelectedEffectChanged(ef, true);
@@ -3645,7 +3645,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                                 if (ef != nullptr)
                                 {
                                     if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                        xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                        xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                     }
                                     mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                     if (!ef->GetPaletteMap().empty()) {
@@ -3907,7 +3907,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                                     new_start_time,
                                     new_end_time, ef);
                                 if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
@@ -3981,7 +3981,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                                 mDropStartTimeMS,
                                 end_time, ef);
                             if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                             }
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
@@ -4068,7 +4068,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                                     mDropStartTimeMS,
                                     end_time, ef);
                                 if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
-                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef);
+                                    xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 RaiseSelectedEffectChanged(ef, true);
