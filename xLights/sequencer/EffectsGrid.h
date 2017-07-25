@@ -91,6 +91,7 @@ public:
     void PasteModelEffects(int row_number);
 
     bool HandleACKey(wxChar key, bool shift = false);
+    bool IsACActive();
 
     void AlignSelectedEffects(EFF_ALIGN_MODE align_mode);
 
@@ -98,6 +99,9 @@ public:
     void Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
     void SetCanPaste() { mCanPaste = true; }
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
+    int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
+    int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
+    int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;

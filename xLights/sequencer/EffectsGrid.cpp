@@ -1913,6 +1913,11 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
     }
 }
 
+bool EffectsGrid::IsACActive()
+{
+    return xlights->IsACActive();
+}
+
 bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 {
     if (mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1 || mRangeEndCol == -1)
@@ -2154,7 +2159,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
                         }
                     }
                 }
-                else 
+                else
                 {
                     if (mRangeCursorCol > 0)
                     {
@@ -3638,9 +3643,21 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         return;
     }
     wxArrayString banner_data = wxSplit(all_efdata[0], '\t');
-    if( banner_data[0] != "CopyFormat1" )
+    if( banner_data[0] != "CopyFormat1" && banner_data[0] != "CopyFormatAC" )
     {
         OldPaste(data, pasteDataVersion);
+        return;
+    }
+
+    if( banner_data[0] == "CopyFormatAC" && !xlights->IsACActive() )
+    {
+        wxMessageBox("Cannot paste AC data in non-AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
+        return;
+    }
+
+    if( banner_data[0] != "CopyFormatAC" && xlights->IsACActive() )
+    {
+        wxMessageBox("Only AC data may be pasted in AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
         return;
     }
 
@@ -3681,8 +3698,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
-    if (mPartialCellSelected || OneCellSelected()) {
-        if( ((number_of_timings + number_of_effects) > 1) || row_paste )  // multi-effect paste or row_paste
+    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive()) {
+        if( ((number_of_timings + number_of_effects) > 1) || row_paste || xlights->IsACActive() )  // multi-effect paste or row_paste
         {
             std::set<std::string> modelsToRender;
 
@@ -3692,6 +3709,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             int drop_time_offset, new_start_time, new_end_time, column_start_time;
             column_start_time = wxAtoi(eff1data[6]);
+            if( xlights->IsACActive() ) {
+                column_start_time = wxAtoi(banner_data[9]);
+            }
             drop_time_offset = wxAtoi(eff1data[3]);
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if( row_paste ) {
@@ -3707,6 +3727,9 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             int drop_row = mDropRow;
             int start_row = wxAtoi(eff1data[5]);
+            if( xlights->IsACActive() ) {
+                start_row = wxAtoi(banner_data[7]);
+            }
             int drop_row_offset = drop_row - start_row;
             if( number_of_timings > 0 && number_of_effects > 0 )  // only allow timing and model effects to be pasted on same rows
             {
@@ -3742,6 +3765,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                     wxMessageBox("Unable to find a selected timing start location for Paste By Cell.", "Paste Warning!", wxICON_WARNING | wxOK );
                     return;
                 }
+            }
+
+            // clear the region if AC mode
+            if( xlights->IsACActive() ) {
+                int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
+                int drop_end_row = mDropRow + wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]);
+                ACDraw( ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow, drop_end_row);
             }
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
