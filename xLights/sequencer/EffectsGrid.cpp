@@ -1245,6 +1245,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
     }
 
     int extraLayers = 0;
+    std::list<EffectLayer*> uniqueLayers;
     for (int i = std::min(startRow, endRow); i <= std::max(startRow, endRow); i++)
     {
         if (i != startRow)
@@ -1253,7 +1254,15 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             Element *eTarget = elTargets->GetParentElement();
             EffectLayer* elTarget = eTarget->GetEffectLayer(0);
 
-            if (elTarget != elTargets)
+            if (std::find(uniqueLayers.begin(), uniqueLayers.end(), elTarget) == uniqueLayers.end() && elTargets != el)
+            {
+                uniqueLayers.push_back(elTarget);
+                if (elTarget != elTargets)
+                {
+                    extraLayers++;
+                }
+            }
+            else
             {
                 extraLayers++;
             }
@@ -1305,9 +1314,10 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
     int perRowOffsetMS = 0;
     if (startRow != endRow)
     {
-        perRowOffsetMS = spaceToCascade / abs(startRow - endRow - extraLayers) +  1;
+        perRowOffsetMS = spaceToCascade / (abs(startRow - endRow) - extraLayers);
     }
 
+    std::list<EffectLayer*> layerUsed;
     int seenExtraLayers = 0;
     if (spaceToCascade == 0)
     {
@@ -1324,36 +1334,40 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                 {
                     seenExtraLayers++;
                 }
-                else if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+                else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
                 {
-                    // erase everything in the target first
-                    ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, i, i);
-
-                    if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+                    if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                     {
-                        for (auto j = 0; j < el->GetEffectCount(); ++j)
-                        {
-                            Effect* eff = el->GetEffect(j);
+                        layerUsed.push_back(elTarget);
+                        // erase everything in the target first
+                        ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, i, i);
 
-                            if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                        if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+                        {
+                            for (auto j = 0; j < el->GetEffectCount(); ++j)
                             {
-                                // copy end
-                                DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, std::min(endMS, eff->GetEndTimeMS()));
-                            }
-                            else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() > endMS)
-                            {
-                                // copy start
-                                DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS);
-                            }
-                            else if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() >= endMS)
-                            {
-                                DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, endMS);
-                            }
-                            else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
-                            {
-                                // copy whole
-                                Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                                Effect* eff = el->GetEffect(j);
+
+                                if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                                {
+                                    // copy end
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, std::min(endMS, eff->GetEndTimeMS()));
+                                }
+                                else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() > endMS)
+                                {
+                                    // copy start
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS);
+                                }
+                                else if (eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() >= endMS)
+                                {
+                                    DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, endMS);
+                                }
+                                else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
+                                {
+                                    // copy whole
+                                    Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                                    mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                                }
                             }
                         }
                     }
@@ -1368,9 +1382,6 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             int cascades = dirFactor * abs(r - startRow - seenExtraLayers);
             int cascadeMS = TimeLine::RoundToMultipleOfPeriod(cascades * perRowOffsetMS, mSequenceElements->GetFrequency());
 
-            // erase everything in the target first
-            ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, r, r);
-
             EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
             Element *eTarget = elTargets->GetParentElement();
             EffectLayer* elTarget = eTarget->GetEffectLayer(0);
@@ -1379,27 +1390,35 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             {
                 seenExtraLayers++;
             }
-            else if (eTarget->GetType() != ELEMENT_TYPE_TIMING)
+            else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
             {
-                for (auto j = 0; j < el->GetEffectCount(); ++j)
+                if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                 {
-                    Effect* eff = el->GetEffect(j);
+                    layerUsed.push_back(elTarget);
 
-                    if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                    // erase everything in the target first
+                    ACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACMODE::MODENIL, 0, 0, 0, startMS, endMS, r, r);
+
+                    for (auto j = 0; j < el->GetEffectCount(); ++j)
                     {
-                        // copy end
-                        DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, eff->GetEndTimeMS(), cascadeMS);
-                    }
-                    else if (eff->GetStartTimeMS() >= startMS && eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > endMS)
-                    {
-                        // copy start
-                        DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS, cascadeMS);
-                    }
-                    else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
-                    {
-                        // copy whole
-                        Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS() + cascadeMS, eff->GetEndTimeMS() + cascadeMS, EFFECT_NOT_SELECTED, false);
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                        Effect* eff = el->GetEffect(j);
+
+                        if (eff->GetStartTimeMS() < startMS && eff->GetEndTimeMS() > startMS)
+                        {
+                            // copy end
+                            DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, eff->GetEndTimeMS(), cascadeMS);
+                        }
+                        else if (eff->GetStartTimeMS() >= startMS && eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > endMS)
+                        {
+                            // copy start
+                            DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS, cascadeMS);
+                        }
+                        else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() <= endMS)
+                        {
+                            // copy whole
+                            Effect* effNew = elTarget->AddEffect(0, eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS() + cascadeMS, eff->GetEndTimeMS() + cascadeMS, EFFECT_NOT_SELECTED, false);
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(elTarget->GetParentElement()->GetModelName(), elTarget->GetIndex(), effNew->GetID());
+                        }
                     }
                 }
             }
@@ -1588,9 +1607,15 @@ void EffectsGrid::TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int 
 
 void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select)
 {
-    std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
-    Effect* eff = el->AddEffect(0, name, settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
-    mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    // because an element may appear multiple times when drawing this stops an error being reported
+    // it assumes we always correctly pre-clear the area we are drawing in
+    // if we dont this will prevent the effect from being created.
+    if (!el->HasEffectsInTimeRange(startMS, endMS))
+    {
+        std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
+        Effect* eff = el->AddEffect(0, name, settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+    }
 }
 
 void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select)
@@ -2212,6 +2237,20 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 
 bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL toolOverride, ACMODE modeOverride)
 {
+    if (mSequenceElements == nullptr) {
+        return false;
+    }
+
+    // dont do AC if there is no timing selected
+    if (mSequenceElements->GetSelectedTimingRow() == -1) {
+        return false;
+    }
+
+    if (mRangeStartRow < 0 || mRangeEndRow < 0 || mRangeStartCol < 0 || mRangeEndCol < 0)
+    {
+        return false;
+    }
+
     ACTYPE type;
     ACSTYLE style;
     ACTOOL tool;
