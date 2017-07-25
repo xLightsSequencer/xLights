@@ -105,10 +105,12 @@ void PixelBufferClass::reset(int nlayers, int timing)
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
     for (auto it = model.Models().begin(); it != model.Models().end(); it++) {
+
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);
+
         m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
-        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->ModelBufferHt, buf->ModelBufferWi, "None");
+        buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
 }
@@ -1491,7 +1493,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
             int cnt = 0;
-            for (auto it = inf->modelBuffers.begin(); it != inf->modelBuffers.end(); it++, cnt++) {
+            for (auto it = inf->modelBuffers.begin(); it != inf->modelBuffers.end(); ++it, ++cnt) {
                 std::string ntype = type.substr(10, type.length() - 10);
                 int bw, bh;
                 (*it)->Nodes.clear();
