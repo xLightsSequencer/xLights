@@ -1877,7 +1877,7 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
         {
             Effect* eff = el->GetEffect(j);
 
-            if (eff->GetEndTimeMS() <= startMS || eff->GetEndTimeMS() > startMS && eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() < endMS)
+            if (eff->GetEndTimeMS() >= startMS && eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() < endMS)
             {
                 startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
                 if (eff->GetEndTimeMS() > startTime)
@@ -1889,19 +1889,26 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
             {
                 int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
 
-                if (startTime < eff->GetStartTimeMS())
+                if (startTime < eff->GetStartTimeMS() && (startBrightness != 0 || endBrightness != 0))
                 {
                     CreateACEffect(el, type, startTime, eff->GetStartTimeMS(), startBrightness, -1, endBrightness, false);
                 }
 
                 startTime = eff->GetEndTimeMS();
+
+                if (startTime >= endMS)
+                {
+                    done = true;
+                    break;
+                }
+
                 startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
             }
             else if (eff->GetStartTimeMS() > endMS)
             {
                 int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
 
-                if (startTime < endMS)
+                if (startTime < endMS && startBrightness != 0)
                 {
                     CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
                 }
@@ -1921,7 +1928,10 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
             // ramp to end
             int endBrightness = 0;
 
-            CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
+            if (startBrightness != 0)
+            {
+                CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
+            }
         }
         sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
     }
