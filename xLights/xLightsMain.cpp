@@ -5488,8 +5488,14 @@ void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
 {
     if (!Button_ACCascade->IsChecked())
     {
-        Button_ACSelect->SetValue(true);
-        Button_ACIntensity->SetValue(true);
+        if (!Button_ACOn->IsChecked() && !Button_ACOff->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
+        {
+            Button_ACSelect->SetValue(true);
+        }
+        if (!Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+        {
+            Button_ACIntensity->SetValue(true);
+        }
     }
     else
     {
