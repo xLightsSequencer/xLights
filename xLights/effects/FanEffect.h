@@ -12,7 +12,7 @@ class FanEffect : public RenderableEffect
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetDefaultParameters(Model *cls) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                         DrawGLUtils::xlVertexColorAccumulator &backgrounds) override;
+                                         DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask) override;
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
 
     protected:

@@ -156,7 +156,11 @@ public:
     virtual void GetColor(xlColor& color) const {
         color.Set(c[0],c[1],c[2]);
     }
-    
+
+    virtual void GetMaskColor(xlColor& color) const {
+        color.Set(255, 255, 255);
+    }
+
     static const std::string RED;
     static const std::string GREEN;
     static const std::string BLUE;
@@ -186,6 +190,9 @@ public:
     virtual void GetColor(xlColor& color) const override {
         color.Set(c[0],0,0);
     }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color.Set(255, 0, 0);
+    }
     virtual const std::string &GetNodeType() const override {
         return RED;
     }
@@ -207,6 +214,9 @@ public:
     virtual void GetColor(xlColor& color) const override {
         color.Set(0,c[1],0);
     }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color.Set(0, 255, 0);
+    }
     virtual const std::string &GetNodeType() const override {
         return GREEN;
     }
@@ -227,6 +237,9 @@ public:
     }
     virtual void GetColor(xlColor& color) const override {
         color.Set(0,0,c[2]);
+    }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color.Set(0, 0, 255);
     }
     virtual const std::string &GetNodeType() const override {
         return BLUE;
@@ -255,6 +268,10 @@ public:
         hsv2.value /= 255.0;
         color = hsv2;
     }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color = xlColor(hsv);
+    }
+
     virtual const std::string &GetNodeType() const override {
         return type;
     }
@@ -292,6 +309,9 @@ public:
     virtual void GetColor(xlColor& color) const override {
         uint8_t cmin =  std::min(c[0], std::min(c[1],c[2]));
         color.Set(cmin,cmin,cmin);
+    }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color.Set(255, 255, 255);
     }
     virtual void SetFromChannels(const unsigned char *buf) override {
         c[0] = c[1] = c[2] = buf[0];
@@ -340,6 +360,9 @@ public:
     }
     virtual const std::string &GetNodeType() const override {
         return RGBW;
+    }
+    virtual void GetMaskColor(xlColor& color) const override {
+        color.Set(255, 255, 255);
     }
     virtual NodeBaseClass *clone() const override {
         return new NodeClassRGBW(*this);

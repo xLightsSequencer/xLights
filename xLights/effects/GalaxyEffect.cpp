@@ -28,10 +28,11 @@ wxPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                       DrawGLUtils::xlVertexColorAccumulator &backgrounds) {
+                                       DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_Galaxy_Duration", 20);
     int num_colors = e->GetPaletteSize();
     xlColor head_color = e->GetPalette()[0];
+    head_color.ApplyMask(colorMask);
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
     if( x_mid > x1 )
     {
@@ -43,11 +44,19 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         int cx1 = x_mid + (i*color_length);
         if( i == (num_colors-1) ) // fix any roundoff error for last color
         {
-            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i], cx1, y1+4, x2, y2-4);
+            xlColor c1 = e->GetPalette()[i];
+            c1.ApplyMask(colorMask);
+            xlColor c2 = e->GetPalette()[i];
+            c2.ApplyMask(colorMask);
+            backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, x2, y2-4);
         }
         else
         {
-            backgrounds.AddHBlendedRectangle(e->GetPalette()[i], e->GetPalette()[i+1], cx1, y1+4, cx1+color_length, y2-4);
+            xlColor c1 = e->GetPalette()[i];
+            c1.ApplyMask(colorMask);
+            xlColor c2 = e->GetPalette()[i + 1];
+            c2.ApplyMask(colorMask);
+            backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, cx1+color_length, y2-4);
         }
     }
     return 0;

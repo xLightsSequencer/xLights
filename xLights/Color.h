@@ -96,6 +96,15 @@ public:
     uint8_t Green() const { return green; };
     uint8_t Alpha() const { return alpha; };
 
+    void ApplyMask(xlColor* mask) {
+        if (mask != nullptr)
+        {
+            red = red & mask->red;
+            green = green & mask->green;
+            blue = blue & mask->blue;
+        }
+    }
+
     void Set(uint8_t r, uint8_t g, uint8_t b) {
         red = r;
         green = g;
@@ -108,6 +117,12 @@ public:
         blue = b;
         alpha = a;
     }
+
+    bool IsNilColor()
+    {
+        return (red == 0 && green == 0 && blue == 0 && alpha == 0);
+    }
+
     bool operator==(const xlColor &rgb) const {
         return (red == rgb.red)
             && (blue == rgb.blue)
@@ -144,7 +159,10 @@ public:
     void fromHSL(const HSLValue &v);
     void toHSL(HSLValue &v) const;
 
-
+    static xlColor NilColor()
+    {
+        return xlColor(0, 0, 0, 0);
+    }
 
     uint32_t GetRGB(bool BBGGRR = true) const
     {

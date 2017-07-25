@@ -1316,6 +1316,11 @@ xlColor Model::GetNodeColor(size_t nodenum) const {
     Nodes[nodenum]->GetColor(color);
     return color;
 }
+xlColor Model::GetNodeMaskColor(size_t nodenum) const {
+    xlColor color;
+    Nodes[nodenum]->GetMaskColor(color);
+    return color;
+}
 void Model::SetNodeColor(size_t nodenum, const xlColor &c) {
     Nodes[nodenum]->SetColor(c);
 }

@@ -4572,7 +4572,17 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
         return 1;
     }
     RenderableEffect *ef = xlights->GetEffectManager()[e->GetEffectIndex()];
-    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds);
+
+    xlColor colorMask = xlColor::NilColor();
+    Model* m = xlights->GetModel(ri->element->GetModelName());
+    if (m != nullptr)
+    {
+        if (wxString(m->GetStringType()).StartsWith("Single Color"))
+        {
+            colorMask = m->GetNodeMaskColor(0);
+        }
+    }
+    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask));
 }
 
 float ComputeFontSize(int &toffset, const float factor) {

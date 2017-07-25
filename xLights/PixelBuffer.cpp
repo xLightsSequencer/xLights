@@ -190,6 +190,12 @@ xlColor PixelBufferClass::GetNodeColor(size_t nodenum) const
     layers[0]->buffer.Nodes[nodenum]->GetColor(color);
     return color;
 }
+xlColor PixelBufferClass::GetNodeMaskColor(size_t nodenum) const
+{
+    xlColor color;
+    layers[0]->buffer.Nodes[nodenum]->GetMaskColor(color);
+    return color;
+}
 int PixelBufferClass::NodeStartChannel(size_t nodenum) const
 {
     return layers[0]->buffer.Nodes.size() && nodenum < layers[0]->buffer.Nodes.size() ? layers[0]->buffer.Nodes[nodenum]->ActChan: 0;

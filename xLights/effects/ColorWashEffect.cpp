@@ -34,7 +34,7 @@ ColorWashEffect::~ColorWashEffect()
 
 
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                          DrawGLUtils::xlVertexColorAccumulator &bg) {
+                                          DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) {
     if (e->HasBackgroundDisplayList()) {
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
@@ -42,9 +42,9 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     if (e->GetSettings().GetBool("E_CHECKBOX_ColorWash_CircularPalette")) {
         xlColorVector map(e->GetPalette());
         map.push_back(map[0]);
-        bg.AddHBlendedRectangle(map, x1, y1, x2, y2);
+        bg.AddHBlendedRectangle(map, x1, y1, x2, y2, colorMask);
     } else {
-        bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+        bg.AddHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2, colorMask);
     }
     return 2;
 }
@@ -264,5 +264,4 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         int midY = (startY + endY) / 2;
         buffer.CopyPixelsToDisplayListX(effect, midY, midX, midX);
     }
-
 }

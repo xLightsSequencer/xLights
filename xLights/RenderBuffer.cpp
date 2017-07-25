@@ -1089,12 +1089,23 @@ void RenderBuffer::SetDisplayListVRect(Effect *eff, int idx, float x1, float y1,
 void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, float x2, float y2,
                                     const xlColor &cx1y1, const xlColor &cx1y2,
                                     const xlColor &cx2y1, const xlColor &cx2y2) {
-    eff->GetBackgroundDisplayList()[idx].color = cx1y1;
-    eff->GetBackgroundDisplayList()[idx+1].color = cx1y2;
-    eff->GetBackgroundDisplayList()[idx+2].color = cx2y2;
-    eff->GetBackgroundDisplayList()[idx+3].color = cx2y2;
-    eff->GetBackgroundDisplayList()[idx+4].color = cx2y1;
-    eff->GetBackgroundDisplayList()[idx+5].color = cx1y1;
+
+    xlColor* colorMask = eff->GetColorMask();
+    xlColor maskcx1y1 = cx1y1;
+    xlColor maskcx1y2 = cx1y2;
+    xlColor maskcx2y1 = cx2y1;
+    xlColor maskcx2y2 = cx2y2;
+    maskcx1y1.ApplyMask(colorMask);
+    maskcx1y2.ApplyMask(colorMask);
+    maskcx2y1.ApplyMask(colorMask);
+    maskcx2y2.ApplyMask(colorMask);
+
+    eff->GetBackgroundDisplayList()[idx].color = maskcx1y1;
+    eff->GetBackgroundDisplayList()[idx+1].color = maskcx1y2;
+    eff->GetBackgroundDisplayList()[idx+2].color = maskcx2y2;
+    eff->GetBackgroundDisplayList()[idx+3].color = maskcx2y2;
+    eff->GetBackgroundDisplayList()[idx+4].color = maskcx2y1;
+    eff->GetBackgroundDisplayList()[idx+5].color = maskcx1y1;
 
     eff->GetBackgroundDisplayList()[idx].x = x1;
     eff->GetBackgroundDisplayList()[idx+1].x = x1;
@@ -1113,7 +1124,6 @@ void RenderBuffer::SetDisplayListRect(Effect *eff, int idx, float x1, float y1, 
 void RenderBuffer::CopyPixelsToDisplayListX(Effect *eff, int row, int sx, int ex, int inc) {
     std::lock_guard<std::recursive_mutex> lock(eff->GetBackgroundDisplayList().lock);
     int count = curEffEndPer - curEffStartPer + 1;
-
 
     int total = curEffEndPer - curEffStartPer + 1;
     float x = float(curPeriod - curEffStartPer) / float(total);

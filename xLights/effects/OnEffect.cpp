@@ -94,7 +94,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     }
 }
 int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                   DrawGLUtils::xlVertexColorAccumulator &bg) {
+                                   DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) {
     if (e->HasBackgroundDisplayList()) {
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
@@ -102,6 +102,10 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
     xlColor start;
     xlColor end;
     GetOnEffectColors(e, start, end);
+
+    start.ApplyMask(colorMask);
+    end.ApplyMask(colorMask);
+
     bg.AddVertex(x1, y1, start);
     bg.AddVertex(x1, y2, start);
     bg.AddVertex(x2, y2, end);

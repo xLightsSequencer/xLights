@@ -636,22 +636,25 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
 }
 
 
-void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, int offset) {
+void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
     xlColor start;
     xlColor end;
     int cnt = colors.size();
     if (cnt == 0) {
         return;
     }
-    start = colors[0+offset];
+    start = colors[0 + offset];
+    start.ApplyMask(colorMask);
     if (cnt == 1) {
         AddHBlendedRectangle(start, start, x1, y1, x2, y2);
         return;
     }
     int xl = x1;
     start = colors[0+offset];
+    start.ApplyMask(colorMask);
     for (int x = 1+offset; x < cnt; x++) {
         end =  colors[x];
+        end.ApplyMask(colorMask);
         int xr = x1 + (x2 - x1) * x / (cnt  - 1);
         if (x == (cnt - 1)) {
             xr = x2;

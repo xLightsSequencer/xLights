@@ -87,6 +87,20 @@ class Effect
         const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const {
             return background;
         }
+        xlColor* GetColorMask() { 
+            if (mColorMask.IsNilColor())
+            {
+                return nullptr;
+            }
+            else
+            {
+                return &mColorMask;
+            }
+        }
+        void SetColorMask(xlColor colorMask)
+        {
+            mColorMask = colorMask;
+        }
         bool HasBackgroundDisplayList() const {
             std::lock_guard<std::recursive_mutex> (background.lock);
             return !background.empty();
@@ -102,6 +116,7 @@ class Effect
         short mEffectIndex;
         bool mProtected;
         EffectLayer* mParentLayer;
+        xlColor mColorMask;
 
         mutable std::mutex settingsLock;
         SettingsMap mSettings;
