@@ -26,6 +26,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Expand E6804 upload to also support the E682.
    -- enh (keith)   Add decaying sine value curve
    -- enh (keith & Gil) Add AC Sequencing mode
+   -- enh (keith)   Add a reverse nodes button to submodel dialog
+   -- bug (keith)   Fix pixture effect position text boxes dont allow -100 entry
    -- enh (keith)   Include some standard value curves in the distribution
    -- bug (keith)   fix serial configuration upload to the falcon controllers. Also address expansion boards better.
    -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration.  Useful for creating/adjusting lyric timings.
