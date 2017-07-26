@@ -1011,6 +1011,7 @@ public:
 
     void RenderRange(RenderCommandEvent &cmd);
     void RenderDone();
+    bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }

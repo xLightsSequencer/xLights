@@ -10,6 +10,7 @@
 #include "../../include/twinkle-32.xpm"
 #include "../../include/twinkle-48.xpm"
 #include "../../include/twinkle-64.xpm"
+#include "ValueCurve.h"
 
 
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
@@ -53,6 +54,47 @@ void TwinkleEffect::SetDefaultParameters(Model *cls)
     SetSliderValue(tp->Slider_Twinkle_Steps, 30);
     SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
     SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
+}
+
+int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
+    DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp)
+{
+    if (ramp)
+    {
+        int endi;
+        int starti;
+        std::string vcs = e->GetPaletteMap().Get("C_VALUECURVE_Brightness", "");
+        if (vcs == "")
+        {
+            starti = e->GetSettings().GetInt("C_SLIDER_Brightness", 100);
+            endi = starti;
+        }
+        else
+        {
+            ValueCurve vc(vcs);
+            starti = vc.GetOutputValueAt(0.0);
+            endi = vc.GetOutputValueAt(1.0);
+        }
+
+        xlColor color = e->GetPalette()[0];
+        color.ApplyMask(colorMask);
+
+        int height = y2 - y1;
+
+        // I need to add something here to draw twinkle slightly differently            
+        // TODO This code is a placeholder until i come up with something better
+
+        bg.AddVertex(x1, y2 - starti * height / 100, color);
+        bg.AddVertex(x1, y2 - 0, color);
+        bg.AddVertex(x2, y2 - 0, color);
+        bg.AddVertex(x2, y2 - endi * height / 100, color);
+        bg.AddVertex(x2, y2 - 0, color);
+        bg.AddVertex(x1, y2 - starti * height / 100, color);
+
+        return 2;
+    }
+
+    return 1;
 }
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

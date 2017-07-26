@@ -5269,6 +5269,12 @@ void xLightsFrame::OnMenuItemTimingPlayOnDClick(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetTimingClickPlayMode(mTimingPlayOnDClick);
 }
 
+bool xLightsFrame::IsDrawRamps()
+{
+    //return true;
+    return false;
+}
+
 #pragma endregion Settings Menu
 #pragma region Help Menu
 

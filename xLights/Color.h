@@ -164,6 +164,8 @@ public:
         return xlColor(0, 0, 0, 0);
     }
 
+    int Brightness() const;
+
     uint32_t GetRGB(bool BBGGRR = true) const
     {
         if (BBGGRR) {

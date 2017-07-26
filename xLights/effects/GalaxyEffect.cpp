@@ -28,7 +28,7 @@ wxPanel *GalaxyEffect::CreatePanel(wxWindow *parent) {
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                       DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask) {
+                                       DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_Galaxy_Duration", 20);
     int num_colors = e->GetPaletteSize();
     xlColor head_color = e->GetPalette()[0];

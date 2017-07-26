@@ -4649,7 +4649,7 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
             colorMask = m->GetNodeMaskColor(0);
         }
     }
-    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask));
+    return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
 }
 
 float ComputeFontSize(int &toffset, const float factor) {

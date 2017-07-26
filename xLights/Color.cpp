@@ -277,3 +277,7 @@ HSLValue& HSLValue::operator=(const xlColor& c) {
     return *this;
 }
 
+int xlColor::Brightness() const
+{
+    return std::max((int)red, std::max((int)blue, (int)green)) * (int)alpha / 255;
+}

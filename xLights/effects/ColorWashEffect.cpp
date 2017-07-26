@@ -34,7 +34,7 @@ ColorWashEffect::~ColorWashEffect()
 
 
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                          DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) {
+                                          DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
