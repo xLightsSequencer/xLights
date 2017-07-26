@@ -3822,16 +3822,29 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             if( xlights->IsACActive() ) {
                 int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
                 rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
-                int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
                 if (rowstopaste == 1)
                 {
                     timestopaste = selectedrows;
-                    mDropRow = mRangeStartRow;
-                    drop_row_offset -= timestopaste - 1;
+                    mDropRow = std::min(mRangeStartRow, mRangeEndRow);
+                    int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
+                    if (mRangeCursorRow == mRangeEndRow)
+                    {
+                        drop_row_offset -= timestopaste - 1;
+                    }
                     ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mRangeStartRow, mRangeEndRow);
                 }
                 else
                 {
+                    // force paste to top left of selection
+                    mDropRow = std::min(mRangeStartRow, mRangeEndRow);
+                    int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
+                    
+                    // This gets it to the right row ... but doesnt fix the right column so leaving it out until i can fix that
+                    // It isnt great the way it is ... but it is better than being inconsistent
+                    //if (mRangeCursorRow == mRangeEndRow)
+                    //{
+                    //    drop_row_offset -= selectedrows - 1;
+                    //}
                     ACDraw(ACTYPE::OFF, ACSTYLE::NILSTYLEOVERRIDE, ACMODE::MODENIL, 0, 0, 0, mDropStartTimeMS, drop_end_time, mDropRow + mSequenceElements->GetFirstVisibleModelRow(), drop_end_row);
                 }
             }
