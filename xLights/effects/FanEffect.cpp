@@ -28,7 +28,7 @@ wxPanel *FanEffect::CreatePanel(wxWindow *parent) {
 
 
 int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                    DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
+                                    DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_Fan_Duration", 50);
     int num_colors = e->GetPalette().size();
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;

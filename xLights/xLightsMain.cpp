@@ -5271,8 +5271,8 @@ void xLightsFrame::OnMenuItemTimingPlayOnDClick(wxCommandEvent& event)
 
 bool xLightsFrame::IsDrawRamps()
 {
-    //return true;
-    return false;
+    return true;
+    //return false;
 }
 
 #pragma endregion Settings Menu

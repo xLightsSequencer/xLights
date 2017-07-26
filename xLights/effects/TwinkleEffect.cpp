@@ -57,7 +57,7 @@ void TwinkleEffect::SetDefaultParameters(Model *cls)
 }
 
 int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-    DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp)
+    DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp)
 {
     if (ramp)
     {

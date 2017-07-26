@@ -61,7 +61,7 @@ class RenderableEffect
         //return 1 to have the grid place a normal icon
         //return 2 to have the grid place a smaller icon
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                         DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps);
+                                         DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps);
 
         virtual bool needToAdjustSettings(const std::string &version);
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true);

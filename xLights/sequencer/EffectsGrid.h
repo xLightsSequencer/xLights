@@ -147,7 +147,7 @@ private:
 
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
                              int x1, int y1, int x2, int y2,
-                             DrawGLUtils::xlVertexColorAccumulator &backgrounds);
+                             DrawGLUtils::xlAccumulator &backgrounds);
 
     void DrawTimingEffects(int row);
     void DrawEffects();
@@ -213,7 +213,7 @@ private:
     DrawGLUtils::xlVertexTextAccumulator texts;
     DrawGLUtils::xlVertexAccumulator selectedLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLines;
-    DrawGLUtils::xlVertexColorAccumulator backgrounds;
+    DrawGLUtils::xlAccumulator backgrounds;
     DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
     DrawGLUtils::xlVertexColorAccumulator selectedBoxes;
     std::map<GLuint, DrawGLUtils::xlVertexTextureAccumulator> textures;

@@ -4644,7 +4644,7 @@ void EffectsGrid::DrawPlayMarker()
 
 int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Effect *e,
                                       int x1, int y1, int x2, int y2,
-                                      DrawGLUtils::xlVertexColorAccumulator &backgrounds) {
+                                      DrawGLUtils::xlAccumulator &backgrounds) {
     if (e->GetPaletteSize() == 0) {
         //if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         //the background and instead make sure the icon is displayed to the user knows they
@@ -4883,7 +4883,8 @@ void EffectsGrid::DrawEffects()
             }
         }
     }
-    DrawGLUtils::Draw(backgrounds, GL_TRIANGLES);
+    backgrounds.Finish(GL_TRIANGLES);
+    DrawGLUtils::Draw(backgrounds);
     for (auto it = textures.begin(); it != textures.end(); it++) {
         it->second.id = it->first;
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);

@@ -152,7 +152,7 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     start_t = e->GetPalette()[tcols];
     end_t = e->GetPalette()[tcole];
 }
-int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
+int MorphEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
     int head_duration = e->GetSettings().GetInt("E_SLIDER_MorphDuration", 20);
     xlColor start_h;
     xlColor end_h;

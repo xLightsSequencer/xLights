@@ -92,7 +92,7 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
 }
 
 int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                   DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask, bool ramp) 
+                                   DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp) 
 {
     if (ramp)
     {
