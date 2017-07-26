@@ -5416,6 +5416,7 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
         ChoiceParm1->Enable(false);
         ChoiceParm2->Enable(false);
     }
+    mainSequencer->PanelEffectGrid->Refresh();
     //MainAuiManager->Update();
 }
 

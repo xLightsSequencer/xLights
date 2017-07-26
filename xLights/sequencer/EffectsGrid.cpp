@@ -682,7 +682,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        if( !xlights->IsACActive() ) {
+        if( !xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows() ) {
             if(!out_of_bounds)
             {
                 Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
@@ -4771,6 +4771,10 @@ void EffectsGrid::DrawEffects()
                 }
                 if (mGridNodeValues && ri->nodeIndex != -1) {
                     drawIcon = 2;
+                }
+
+                if( drawIcon == 2 && xlights->IsACActive() ) {
+                    drawIcon = 0;
                 }
 
                 if (mode != SCREEN_L_R_OFF)
