@@ -32,6 +32,7 @@ const long SubModelsDialog::ID_BUTTON3 = wxNewId();
 const long SubModelsDialog::ID_BUTTON4 = wxNewId();
 const long SubModelsDialog::ID_BUTTON5 = wxNewId();
 const long SubModelsDialog::ID_CHECKBOX1 = wxNewId();
+const long SubModelsDialog::ID_BUTTON6 = wxNewId();
 const long SubModelsDialog::ID_GRID1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON2 = wxNewId();
@@ -60,6 +61,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
@@ -96,9 +98,14 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer8 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer8->AddGrowableCol(0);
 	FlexGridSizer8->AddGrowableRow(1);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer6->AddGrowableCol(1);
 	LayoutCheckbox = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Vertical Buffer Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	LayoutCheckbox->SetValue(false);
-	FlexGridSizer8->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ReverseNodes = new wxButton(Panel1, ID_BUTTON6, _("Reverse Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	FlexGridSizer6->Add(Button_ReverseNodes, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
@@ -156,6 +163,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_GenerateClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
+	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
@@ -667,5 +675,44 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
                 Select(name);
             }
         }
+    }
+}
+
+void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
+{
+    SubModelInfo &sm = GetSubModelInfo(NameChoice->GetStringSelection());
+
+    if (sm.isRanges)
+    {
+        std::vector<wxString> newStrands;
+        for (auto it = sm.strands.begin(); it != sm.strands.end(); ++it)
+        {
+            wxString newStrand = "";
+            auto nodes = wxSplit(*it, ',');
+            for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
+            {
+                if (newStrand != "") newStrand += ",";
+                if (nit->Contains('-'))
+                {
+                    auto range = wxSplit(*nit, '-');
+                    if (range.size() == 2)
+                    {
+                        newStrand += range[1] + "-" + range[0];
+                    }
+                    else
+                    {
+                        // not valid so just copy
+                        newStrand += *nit;
+                    }
+                }
+                else
+                {
+                    newStrand += *nit;
+                }
+            }
+            newStrands.push_back(newStrand);
+        }
+        sm.strands = newStrands;
+        Select(NameChoice->GetStringSelection());
     }
 }

@@ -88,11 +88,29 @@
 														<growablecols>0</growablecols>
 														<growablerows>1</growablerows>
 														<object class="sizeritem">
-															<object class="wxCheckBox" name="ID_CHECKBOX1" variable="LayoutCheckbox" member="yes">
-																<label>Vertical Buffer Layout</label>
-																<handler function="OnLayoutCheckboxClick" entry="EVT_CHECKBOX" />
+															<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+																<cols>2</cols>
+																<growablecols>1</growablecols>
+																<object class="sizeritem">
+																	<object class="wxCheckBox" name="ID_CHECKBOX1" variable="LayoutCheckbox" member="yes">
+																		<label>Vertical Buffer Layout</label>
+																		<handler function="OnLayoutCheckboxClick" entry="EVT_CHECKBOX" />
+																	</object>
+																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxButton" name="ID_BUTTON6" variable="Button_ReverseNodes" member="yes">
+																		<label>Reverse Nodes</label>
+																		<handler function="OnButton_ReverseNodesClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
+																	<option>1</option>
+																</object>
 															</object>
-															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>

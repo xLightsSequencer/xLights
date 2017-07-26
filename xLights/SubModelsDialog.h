@@ -47,6 +47,7 @@ class SubModelsDialog: public wxDialog
 		wxButton* AddButton;
 		wxNotebook* TypeNotebook;
 		wxButton* DeleteButton;
+		wxButton* Button_ReverseNodes;
 		wxChoice* NameChoice;
 		wxButton* DeleteRowButton;
 		//*)
@@ -60,6 +61,7 @@ class SubModelsDialog: public wxDialog
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_CHECKBOX1;
+		static const long ID_BUTTON6;
 		static const long ID_GRID1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -85,6 +87,7 @@ class SubModelsDialog: public wxDialog
 		void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
 		void OnNodesGridLabelLeftClick(wxGridEvent& event);
 		void OnButton_GenerateClick(wxCommandEvent& event);
+		void OnButton_ReverseNodesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
