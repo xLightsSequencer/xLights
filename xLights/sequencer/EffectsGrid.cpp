@@ -2365,7 +2365,23 @@ bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL to
     }
     else if (tool == ACTOOL::CASCADE)
     {
-        ACCascade(std::min(startMS, endMS), std::max(startMS, endMS), mRangeStartCol, mRangeEndCol, mRangeStartRow, mRangeEndRow);
+        int startr = mRangeStartRow;
+        int endr = mRangeEndRow;
+        if (startr == mRangeCursorRow)
+        {
+            startr = mRangeEndRow;
+            endr = mRangeStartRow;
+        }
+
+        int startc = mRangeStartCol;
+        int endc = mRangeEndCol;
+        if (startc == mRangeCursorCol)
+        {
+            startc = mRangeEndCol;
+            endc = mRangeStartCol;
+        }
+
+        ACCascade(std::min(startMS, endMS), std::max(startMS, endMS), startc, endc, startr, endr);
     }
     else
     {
