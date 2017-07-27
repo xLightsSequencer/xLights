@@ -5803,7 +5803,7 @@ void xLightsFrame::SetACSettings(ACTOOL tool)
 
     if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
     {
-        SetACSettings(ACTYPE::ON);
+        Button_ACOn->SetValue(true);
     }
 }
 
