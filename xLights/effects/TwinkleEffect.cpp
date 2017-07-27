@@ -80,18 +80,37 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
         color.ApplyMask(colorMask);
 
         int height = y2 - y1;
+        float starty = y2 - starti * height / 100.0f;
+        float endy = y2 - endi * height / 100.0f;
 
-        // I need to add something here to draw twinkle slightly differently            
-        // TODO This code is a placeholder until i come up with something better
+        //const int gap = 2;
 
-        bg.AddVertex(x1, y2 - starti * height / 100, color);
-        bg.AddVertex(x1, y2 - 0, color);
-        bg.AddVertex(x2, y2 - 0, color);
-        bg.AddVertex(x2, y2 - endi * height / 100, color);
-        bg.AddVertex(x2, y2 - 0, color);
-        bg.AddVertex(x1, y2 - starti * height / 100, color);
+        //bg.AddVertex(x1, starty, color);
+        //bg.AddVertex(x1, y2, color);
+        //bg.AddVertex(x2, y2, color);
+        //bg.AddVertex(x2, endy, color);
+        //bg.AddVertex(x2, y2, color);
+        //bg.AddVertex(x1, starty, color);
 
-        return 2;
+        //bg.AddVertex(x1 + gap, starty + gap, xlBLACK);
+        //bg.AddVertex(x1 + gap, y2 - gap, xlBLACK);
+        //bg.AddVertex(x2 - gap, y2 - gap, xlBLACK);
+        //bg.AddVertex(x2 - gap, endy + gap, xlBLACK);
+        //bg.AddVertex(x2 - gap, y2 - gap, xlBLACK);
+        //bg.AddVertex(x1 + gap, starty + gap, xlBLACK);
+
+        bg.Finish(GL_TRIANGLES);
+        bg.AddVertex(x1, starty, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x1, starty, color);
+        bg.Finish(GL_LINES);
+
+        return 1;
     }
 
     return 1;

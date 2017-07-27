@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... mainly for use in AC mode
+   -- bug (keith)   Fix a bunch of bugs with AC mode
 2017.19  Jul 26, 2017
    -- bug (dkulp)   Old keybindings files can result in U/D/O problems when defaults are removed.
    -- enh (keith)   Add value curves to sub-buffers

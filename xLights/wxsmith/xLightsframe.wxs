@@ -1138,6 +1138,12 @@
 					<handler function="OnMenuItem_ACLIghtsSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SHOWRAMPS" variable="MenuItem_ShowACRamps" member="yes">
+					<label>Show AC Ramps</label>
+					<help>Show on effects and twinkle effects as ramps.</help>
+					<handler function="OnMenuItem_ShowACRampsSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="separator" />
 				<object class="wxMenu" name="ID_MENUITEM7" variable="MenuItemPerspectives" member="yes">
 					<label>Perspectives</label>

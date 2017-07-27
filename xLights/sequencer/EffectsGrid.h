@@ -182,7 +182,7 @@ private:
     void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
     void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
     void CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select);
-    void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select);
+    void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal = "");
     void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
     void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
     int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);

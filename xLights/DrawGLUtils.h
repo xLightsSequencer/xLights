@@ -320,9 +320,6 @@ namespace DrawGLUtils
         virtual void DrawTexture(GLuint texture,
                                  float x, float y, float x2, float y2,
                                  float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0) = 0;
-        virtual void DrawTextureTriangle(GLuint texture,
-            float x, float y, float y2, float x3, float y3,
-            float tx, float ty, float ty2, float tx3, float ty3) = 0;
 
         GLuint GetTextureId(int i);
         void SetTextureId(int i, GLuint id) {textures[i] = id;}

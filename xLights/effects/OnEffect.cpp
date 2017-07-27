@@ -103,28 +103,33 @@ int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int 
         color.ApplyMask(colorMask);
         int height = y2 - y1;
 
+        float starty = y2 - starti * height / 100.0f;
+        float endy = y2 - endi * height / 100.0f;
+        float m = float(endy - starty) / float(x2 - x1);
+
+        bg.AddVertex(x1, starty, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x1, starty, color);
+
         if (shimmer)
         {
-            // I need to add something here to draw shimmer slightly differently            
+            const int gap = 3;
+            for (int x = x1 + (gap*3); x < x2; x += (gap*3)) {
+                float newY = m * (x - x1) + starty;
+                float newY2 = m * (x + (gap) - x1) + starty;
+                bg.AddVertex(x, y2, xlBLACK);
+                bg.AddVertex(x, newY, xlBLACK);
+                bg.AddVertex(x + (gap), newY2, xlBLACK);
 
-            // TODO This code is a placeholder until i can find something better
+                bg.AddVertex(x, y2, xlBLACK);
+                bg.AddVertex(x + (gap), y2, xlBLACK);
+                bg.AddVertex(x + (gap), newY2, xlBLACK);
+            }
+        }
 
-            bg.AddVertex(x1, y2 - starti * height / 100, color);
-            bg.AddVertex(x1, y2 - 0, color);
-            bg.AddVertex(x2, y2 - 0, color);
-            bg.AddVertex(x2, y2 - endi * height / 100, color);
-            bg.AddVertex(x2, y2 - 0, color);
-            bg.AddVertex(x1, y2 - starti * height / 100, color);
-        }
-        else
-        {
-            bg.AddVertex(x1, y2 - starti * height / 100, color);
-            bg.AddVertex(x1, y2 - 0, color);
-            bg.AddVertex(x2, y2 - 0, color);
-            bg.AddVertex(x2, y2 - endi * height / 100, color);
-            bg.AddVertex(x2, y2 - 0, color);
-            bg.AddVertex(x1, y2 - starti * height / 100, color);
-        }
         return 2;
     }
     else

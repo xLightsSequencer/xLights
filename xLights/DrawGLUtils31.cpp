@@ -665,20 +665,6 @@ public:
         Draw(va, GL_TRIANGLES, 0);
     }
 
-    void DrawTextureTriangle(GLuint texture,
-        float x, float y, float y2, float x3, float y3,
-        float tx, float ty, float ty2, float tx3, float ty3) override {
-        DrawGLUtils::xlVertexTextureAccumulator va(texture);
-        va.PreAlloc(12);
-        va.AddVertex(x, y2, tx, ty2);
-        va.AddVertex(x, y, tx, ty);
-        va.AddVertex(x3, y, tx3, ty);
-        va.AddVertex(x3, y3, tx3, ty3);
-        va.AddVertex(x3, y, tx3, ty);
-        va.AddVertex(x, y2, tx, ty2);
-        Draw(va, GL_TRIANGLES, 0);
-    }
-
     void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         if (matrix) {
             delete matrix;

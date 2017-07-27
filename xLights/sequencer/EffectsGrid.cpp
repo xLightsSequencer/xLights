@@ -1354,7 +1354,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
                                     // copy end
                                     DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), startMS, std::min(endMS, eff->GetEndTimeMS()));
                                 }
-                                else if (eff->GetStartTimeMS() >= startMS && eff->GetEndTimeMS() > endMS)
+                                else if (eff->GetStartTimeMS() >= startMS && eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > endMS)
                                 {
                                     // copy start
                                     DuplicateAndTruncateEffect(elTarget, eff->GetSettings(), eff->GetPaletteAsString(), eff->GetEffectName(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), eff->GetStartTimeMS(), endMS);
@@ -1619,7 +1619,7 @@ void EffectsGrid::TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int 
     }
 }
 
-void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select)
+void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal)
 {
     // because an element may appear multiple times when drawing this stops an error being reported
     // it assumes we always correctly pre-clear the area we are drawing in
@@ -1627,6 +1627,10 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string 
     if (!el->HasEffectsInTimeRange(startMS, endMS))
     {
         std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
+        if (pal != "")
+        {
+            palette += "," + pal;
+        }
         Effect* eff = el->AddEffect(0, name, settings, palette, startMS, endMS, (select ? EFFECT_SELECTED : EFFECT_NOT_SELECTED), false);
         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
     }
@@ -1635,6 +1639,7 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, std::string name, std::string 
 void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int startBrightness, int midBrightness, int endBrightness, bool select)
 {
     std::string settings = "";
+    std::string pal = "";
 
     if (type == ACTYPE::ON)
     {
@@ -1702,7 +1707,7 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int 
     }
     else if (type == ACTYPE::TWINKLE)
     {
-        if ((midBrightness == -1 || midBrightness == startBrightness) && midBrightness == endBrightness)
+        if (midBrightness == -1 || (midBrightness == startBrightness && midBrightness == endBrightness))
         {
             if (startBrightness == endBrightness)
             {
@@ -1715,22 +1720,22 @@ void EffectsGrid::CreateACEffect(EffectLayer* el, ACTYPE type, int startMS, int 
             else
             {
                 // Ramp
-                settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4).ToStdString();
+                pal = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, endBrightness / 4).ToStdString();
             }
-            CreateACEffect(el, "Twinkle", settings, startMS, endMS, select);
+            CreateACEffect(el, "Twinkle", settings, startMS, endMS, select, pal);
         }
         else
         {
             // ramp up/down
             int mid = TimeLine::RoundToMultipleOfPeriod((startMS + endMS) / 2, mSequenceElements->GetFrequency());
 
-            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, midBrightness / 4).ToStdString();
+            pal = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", startBrightness / 4, midBrightness / 4).ToStdString();
 
-            CreateACEffect(el, "Twinkle", settings, startMS, mid, select);
+            CreateACEffect(el, "Twinkle", settings, startMS, mid, select, pal);
 
-            settings = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", midBrightness / 4, endBrightness / 4).ToStdString();
+            pal = wxString::Format("C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=%i|P2=%i|", midBrightness / 4, endBrightness / 4).ToStdString();
 
-            CreateACEffect(el, "Twinkle", settings, mid, endMS, select);
+            CreateACEffect(el, "Twinkle", settings, mid, endMS, select, pal);
         }
     }
 }
@@ -2315,7 +2320,7 @@ bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL to
         mode = modeOverride;
     }
 
-    if (type == ACTYPE::SELECT)
+    if (type == ACTYPE::SELECT && tool != ACTOOL::CASCADE)
     {
         return false;
     }
@@ -2367,7 +2372,7 @@ bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL to
         ACDraw(type, style, mode, intensity, a, b, std::min(startMS, endMS), std::max(startMS, endMS), std::min(mRangeStartRow, mRangeEndRow), std::max(mRangeStartRow, mRangeEndRow));
     }
 
-    Refresh(false);
+    Refresh();
     sendRenderDirtyEvent();
 
     return true;

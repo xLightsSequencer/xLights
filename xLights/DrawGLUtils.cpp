@@ -286,20 +286,6 @@ public:
         Draw(va, GL_TRIANGLES, 0);
     }
 
-    void DrawTextureTriangle(GLuint texture,
-        float x, float y, float y2, float x3, float y3,
-        float tx, float ty, float ty2, float tx3, float ty3) override {
-        DrawGLUtils::xlVertexTextureAccumulator va(texture);
-        va.PreAlloc(6);
-        va.AddVertex(x - 0.4, y2, tx, ty2);
-        va.AddVertex(x - 0.4, y, tx, ty);
-        va.AddVertex(x3 - 0.4, y, tx3, ty);
-        va.AddVertex(x3 - 0.4, y3, tx3, ty3);
-        va.AddVertex(x3 - 0.4, y, tx3, ty);
-        va.AddVertex(x - 0.4, y2, tx, ty2);
-        Draw(va, GL_TRIANGLES, 0);
-    }
-
 protected:
     DrawGLUtils::xlVertexColorAccumulator data;
     unsigned int curCount;

@@ -192,6 +192,7 @@ const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
+const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
@@ -759,6 +760,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuView->Append(MenuItem13);
     MenuItem_ACLIghts = new wxMenuItem(MenuView, MNU_ID_ACLIGHTS, _("AC Lights Toolbar"), wxEmptyString, wxITEM_CHECK);
     MenuView->Append(MenuItem_ACLIghts);
+    MenuItem_ShowACRamps = new wxMenuItem(MenuView, ID_MNU_SHOWRAMPS, _("Show AC Ramps"), _("Show on effects and twinkle effects as ramps."), wxITEM_CHECK);
+    MenuView->Append(MenuItem_ShowACRamps);
     MenuView->AppendSeparator();
     MenuItemPerspectives = new wxMenu();
     MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
@@ -1041,6 +1044,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(MNU_ID_ACLIGHTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ACLIghtsSelected);
+    Connect(ID_MNU_SHOWRAMPS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowACRampsSelected);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
@@ -1396,6 +1400,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ACLIghts->Check(_showACLights);
     logger_base.debug("Show AC Lights toolbar: %s.", _showACLights ? "true" : "false");
 
+    config->Read("xLightsShowACRamps", &_showACRamps, false);
+    MenuItem_ShowACRamps->Check(_showACRamps);
+    logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1641,6 +1649,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
+    config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -5246,6 +5255,12 @@ void xLightsFrame::OnMenuItem_ACLIghtsSelected(wxCommandEvent& event)
     ShowACLights();
 }
 
+void xLightsFrame::OnMenuItem_ShowACRampsSelected(wxCommandEvent& event)
+{
+    _showACRamps = MenuItem_ShowACRamps->IsChecked();
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
 void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
 {
     ColorManagerDialog dlg(this, color_mgr);
@@ -5271,8 +5286,7 @@ void xLightsFrame::OnMenuItemTimingPlayOnDClick(wxCommandEvent& event)
 
 bool xLightsFrame::IsDrawRamps()
 {
-    //return true;
-    return false;
+    return _showACRamps;
 }
 
 #pragma endregion Settings Menu
@@ -5423,7 +5437,6 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
         ChoiceParm2->Enable(false);
     }
     mainSequencer->PanelEffectGrid->Refresh();
-    //MainAuiManager->Update();
 }
 
 void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
@@ -5869,3 +5882,4 @@ void xLightsFrame::SetACSettings(ACTYPE type)
         SetACSettings(ACSTYLE::INTENSITY);
     }
 }
+

@@ -496,6 +496,7 @@ private:
     void OnChoiceParm1Select(wxCommandEvent& event);
     void OnChoiceParm2Select(wxCommandEvent& event);
     void OnAC_SelectClick(wxCommandEvent& event);
+    void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -609,6 +610,7 @@ private:
     static const long ID_MNU_XSCHEDULE;
     static const long ID_MENUITEM5;
     static const long MNU_ID_ACLIGHTS;
+    static const long ID_MNU_SHOWRAMPS;
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_SAVE_AS_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
@@ -808,6 +810,7 @@ private:
     wxPanel* PanelSetup;
     wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
+    wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenu* MenuItemPerspectives;
     wxChoice* ChoiceParm1;
@@ -882,6 +885,7 @@ private:
     bool _excludePresetsFromPackagedSequences;
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
+    bool _showACRamps;
 
     void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
