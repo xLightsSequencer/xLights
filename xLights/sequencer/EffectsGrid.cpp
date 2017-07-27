@@ -3838,7 +3838,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                     // force paste to top left of selection
                     mDropRow = std::min(mRangeStartRow, mRangeEndRow);
                     int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
-                    
+
                     // This gets it to the right row ... but doesnt fix the right column so leaving it out until i can fix that
                     // It isnt great the way it is ... but it is better than being inconsistent
                     //if (mRangeCursorRow == mRangeEndRow)
@@ -5095,11 +5095,17 @@ void EffectsGrid::DrawSelectedCells()
             int end_x = mTimeline->GetPositionFromTimeMS(tel->GetEffect(end_col)->GetEndTimeMS())-1;
             int start_y = adjusted_start_row*DEFAULT_ROW_HEADING_HEIGHT;
             int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
-            xlColor highlight_color;
-            highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
-            LOG_GL_ERRORV(glEnable(GL_BLEND));
-            DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
-            LOG_GL_ERRORV(glDisable(GL_BLEND));
+
+             if( !xlights->IsACActive() ) {
+                xlColor highlight_color;
+                highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+                LOG_GL_ERRORV(glEnable(GL_BLEND));
+                DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
+                LOG_GL_ERRORV(glDisable(GL_BLEND));
+            } else {
+                DrawGLUtils::DrawRectangle(xlWHITE,false,start_x,start_y,end_x,end_y+DEFAULT_ROW_HEADING_HEIGHT);
+                DrawGLUtils::DrawRectangle(xlWHITE,false,start_x+1,start_y+1,end_x-1,end_y-1+DEFAULT_ROW_HEADING_HEIGHT);
+            }
         }
     }
 }
