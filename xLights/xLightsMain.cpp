@@ -5805,10 +5805,16 @@ void xLightsFrame::SetACSettings(ACTOOL tool)
     {
         Button_ACOn->SetValue(true);
     }
+    ACToolbar->Refresh();
 }
 
 void xLightsFrame::SetACSettings(ACSTYLE style)
 {
+    if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
+    {
+        Button_ACOn->SetValue(true);
+    }
+
     wxCommandEvent event;
     switch (style)
     {
@@ -5829,12 +5835,9 @@ void xLightsFrame::SetACSettings(ACSTYLE style)
         OnAC_RampUpDownClick(event);
         break;
     }
-
-    if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
-    {
-        SetACSettings(ACTYPE::ON);
-    }
+    ACToolbar->Refresh();
 }
+
 void xLightsFrame::SetACSettings(ACMODE mode)
 {
     wxCommandEvent event;
@@ -5849,7 +5852,9 @@ void xLightsFrame::SetACSettings(ACMODE mode)
         OnAC_BackgroundClick(event);
         break;
     }
+    ACToolbar->Refresh();
 }
+
 void xLightsFrame::SetACSettings(ACTYPE type)
 {
     wxCommandEvent event;
@@ -5877,9 +5882,13 @@ void xLightsFrame::SetACSettings(ACTYPE type)
         break;
     }
 
-    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    if (Button_ACOn->IsChecked() || Button_ACShimmer->IsChecked() || Button_ACTwinkle->IsChecked())
     {
-        SetACSettings(ACSTYLE::INTENSITY);
+        if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+        {
+            Button_ACIntensity->SetValue(true);
+        }
     }
+    ACToolbar->Refresh();
 }
 

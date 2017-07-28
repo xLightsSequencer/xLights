@@ -479,6 +479,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
     {
         if (PanelEffectGrid->HandleACKey(uc))
         {
+            event.StopPropagation();
             return;
         }
     }
