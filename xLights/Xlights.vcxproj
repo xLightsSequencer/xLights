@@ -178,6 +178,7 @@
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -473,6 +474,7 @@
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
+    <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />

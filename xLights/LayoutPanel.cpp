@@ -314,9 +314,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashPosition(msp);
     }
 
-    ToolSizer->SetCols(15);
+    ToolSizer->SetCols(16);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
+    AddModelButton("Channel Block", channelblock_xpm);
     AddModelButton("Circle", circles);
     AddModelButton("Custom", custom);
     AddModelButton("DMX", dmx_xpm);
@@ -407,6 +408,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_ARCH_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CANE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CIRCLE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_CHANNELBLOCK_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
@@ -740,6 +742,9 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_CandyCane;
         } else if( type == "Circle" ) {
             return Icon_Circle;
+        }
+        else if (type == "Channel Block") {
+            return Icon_ChannelBlock;
         } else if( type == "Custom" ) {
             return Icon_Custom;
         } else if( type == "DMX" ) {

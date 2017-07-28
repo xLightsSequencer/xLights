@@ -44,6 +44,7 @@ public:
     std::vector<CoordStruct> Coords;
     std::string *name = nullptr;
     const Model *model = nullptr;
+    xlColor _maskColor = xlWHITE;
 
     NodeBaseClass()
     {
@@ -158,7 +159,11 @@ public:
     }
 
     virtual void GetMaskColor(xlColor& color) const {
-        color.Set(255, 255, 255);
+        color = _maskColor;
+    }
+
+    void SetMaskColor(const xlColor& c) {
+        _maskColor = c;
     }
 
     static const std::string RED;
@@ -186,12 +191,10 @@ public:
         offsets[0] = 0;
         offsets[1] = offsets[2] = 255;
         SetName(n);
+        _maskColor = xlRED;
     }
     virtual void GetColor(xlColor& color) const override {
         color.Set(c[0],0,0);
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color.Set(255, 0, 0);
     }
     virtual const std::string &GetNodeType() const override {
         return RED;
@@ -210,12 +213,10 @@ public:
         offsets[1] = 0;
         offsets[0] = offsets[2] = 255;
         SetName(n);
+        _maskColor = xlGREEN;
     }
     virtual void GetColor(xlColor& color) const override {
         color.Set(0,c[1],0);
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color.Set(0, 255, 0);
     }
     virtual const std::string &GetNodeType() const override {
         return GREEN;
@@ -234,12 +235,10 @@ public:
         offsets[2] = 0;
         offsets[0] = offsets[1] = 255;
         SetName(n);
+        _maskColor = xlBLUE;
     }
     virtual void GetColor(xlColor& color) const override {
         color.Set(0,0,c[2]);
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color.Set(0, 0, 255);
     }
     virtual const std::string &GetNodeType() const override {
         return BLUE;
@@ -259,17 +258,21 @@ public:
         SetName(n);
         hsv = c.asHSV();
         type = c;
+        _maskColor = c;
     }
     NodeClassCustom(const NodeClassCustom &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
     
+    void SetCustomColor(xlColor& c)
+    {
+        hsv = c.asHSV();
+        type = c;
+    }
+
     virtual void GetColor(xlColor& color) const override {
         HSVValue hsv2 = hsv;
         hsv2.value=c[0];
         hsv2.value /= 255.0;
         color = hsv2;
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color = xlColor(hsv);
     }
 
     virtual const std::string &GetNodeType() const override {
@@ -309,9 +312,6 @@ public:
     virtual void GetColor(xlColor& color) const override {
         uint8_t cmin =  std::min(c[0], std::min(c[1],c[2]));
         color.Set(cmin,cmin,cmin);
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color.Set(255, 255, 255);
     }
     virtual void SetFromChannels(const unsigned char *buf) override {
         c[0] = c[1] = c[2] = buf[0];
@@ -360,9 +360,6 @@ public:
     }
     virtual const std::string &GetNodeType() const override {
         return RGBW;
-    }
-    virtual void GetMaskColor(xlColor& color) const override {
-        color.Set(255, 255, 255);
     }
     virtual NodeBaseClass *clone() const override {
         return new NodeClassRGBW(*this);
