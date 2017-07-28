@@ -969,6 +969,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 
 void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool first = false; // true; - if i change this back to true then first drawn effects will be selected
 
     if (type != ACTYPE::OFF && mode == ACMODE::MODENIL)
@@ -979,8 +980,11 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
     for (int r = startRow; r <= endRow; ++r)
     {
         EffectLayer* els = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+        if (els == nullptr) logger_base.crit("AAA GetVisibleEffectLayer %d about to crash", r - mSequenceElements->GetFirstVisibleModelRow());
         Element *e = els->GetParentElement();
+        if (e == nullptr) logger_base.crit("BBB GetParentElement about to crash");
         EffectLayer* el = e->GetEffectLayer(0);
+        if (el == nullptr) logger_base.crit("XXX GetEffectLayer about to crash");
 
         if (e->GetType() != ELEMENT_TYPE_TIMING && el == els)
         {
@@ -993,6 +997,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                 for (auto i = 0; i < el->GetEffectCount(); ++i)
                 {
                     Effect* eff = el->GetEffect(i);
+                    if (eff == nullptr) logger_base.crit("CCC GetEffect about to crash %d", i);
 
                     if (eff->GetStartTimeMS() >= endMS || eff->GetEndTimeMS() <= startMS)
                     {
@@ -1035,6 +1040,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                     for (auto i = 0; i < el->GetEffectCount(); ++i)
                     {
                         Effect* eff = el->GetEffect(i);
+                        if (eff == nullptr) logger_base.crit("DDD GetEffect about to crash %d", i);
 
                         if (eff->GetStartTimeMS() < endMS && eff->GetEndTimeMS() > startMS)
                         {
@@ -1071,6 +1077,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                     for (auto i = 0; i < el->GetEffectCount(); ++i)
                     {
                         Effect* eff = el->GetEffect(i);
+                        if (eff == nullptr) logger_base.crit("EEE GetEffect about to crash %d", i);
 
                         if (eff->GetStartTimeMS() < end)
                         {
