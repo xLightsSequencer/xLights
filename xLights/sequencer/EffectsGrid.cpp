@@ -4685,9 +4685,24 @@ int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Ef
     Model* m = xlights->GetModel(ri->element->GetModelName());
     if (m != nullptr)
     {
-        if (wxString(m->GetStringType()).StartsWith("Single Color"))
+        if (m->GetDisplayAs() == "Channel Block")
         {
-            colorMask = m->GetNodeMaskColor(0);
+            StrandElement* se = dynamic_cast<StrandElement*>(ri->element);
+            if (se != nullptr)
+            {
+                colorMask = m->GetNodeMaskColor(se->GetStrand());
+            }
+            else
+            {
+                colorMask = xlWHITE;
+            }
+        }
+        else
+        {
+            if (wxString(m->GetStringType()).StartsWith("Single Color"))
+            {
+                colorMask = m->GetNodeMaskColor(0);
+            }
         }
     }
     return ef == nullptr ? 1 : ef->DrawEffectBackground(e, x1, y1, x2, y2, backgrounds, (colorMask.IsNilColor() ? nullptr : &colorMask), xlights->IsDrawRamps());
@@ -4737,11 +4752,14 @@ void EffectsGrid::DrawEffects()
                 std::vector<double> xs;
                 PixelBufferClass ncls(xlights);
                 StrandElement *se = dynamic_cast<StrandElement*>(ri->element);
-                ncls.InitNodeBuffer(*xlights->GetModel(ri->element->GetModelName()), se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
+                Model* m = xlights->GetModel(ri->element->GetModelName());
+                ncls.InitNodeBuffer(*m, se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
                 xlColor lastColor;
                 for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
                     xlColor c = ncls.GetNodeColor(0);
+                    xlColor maskColor =  m->GetNodeMaskColor(se->GetStrand());
+                    c.ApplyMask(&maskColor);
                     if (f == 0) {
                         colors.push_back(c);
                         lastColor = c;

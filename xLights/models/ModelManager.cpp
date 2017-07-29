@@ -9,6 +9,7 @@
 #include "StarModel.h"
 #include "ArchesModel.h"
 #include "CandyCaneModel.h"
+#include "ChannelBlockModel.h"
 #include "CircleModel.h"
 #include "TreeModel.h"
 #include "CustomModel.h"
@@ -347,6 +348,12 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->DeleteAttribute("parm2");
         node->AddAttribute("parm2", "18");
         model = new CandyCaneModel(node, *this, false);
+    } else if (type == "Channel Block") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "16");
+        node->DeleteAttribute("StringType");
+        node->AddAttribute("StringType", "Single Color White");
+        model = new ChannelBlockModel(node, *this, false);
     } else if (type == "Circle") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "50");
@@ -437,6 +444,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
         model = new ArchesModel(node, *this, zeroBased);
 	} else if (type == "Candy Canes") {
 		model = new CandyCaneModel(node, *this, zeroBased);
+	} else if (type == "Channel Block") {
+		model = new ChannelBlockModel(node, *this, zeroBased);
 	} else if (type == "Circle") {
         model = new CircleModel(node, *this, zeroBased);
 	} else if (type == "DMX") {
