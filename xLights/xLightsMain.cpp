@@ -5730,8 +5730,8 @@ void xLightsFrame::GetACRampValues(int& a, int& b)
     }
     else if (Button_ACRampUpDown->IsChecked())
     {
-        a = std::min(_acParm1RampUpDown, _acParm2RampUpDown);
-        b = std::max(_acParm1RampUpDown, _acParm2RampUpDown);
+        a = _acParm1RampUpDown;
+        b = _acParm2RampUpDown;
     }
 }
 
