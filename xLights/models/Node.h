@@ -54,7 +54,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass &c): sparkle(c.sparkle), ActChan(c.ActChan), StringNum(c.StringNum),
-        Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model)
+        Coords(c.Coords), name(nullptr), chanCnt(c.chanCnt), model(c.model), _maskColor(c._maskColor)
     {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
