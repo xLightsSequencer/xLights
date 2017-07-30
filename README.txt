@@ -11,8 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- enh (keith)   Add the block of channels model
+ 
 2017.21  Jul 28, 2017
+   -- enh (keith)   Add the block of channels model
    -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... 
                     mainly for use in AC mode
    -- bug (keith)   Fix a bunch of bugs with AC mode
