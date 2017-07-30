@@ -10,6 +10,7 @@
 #include "../../include/twinkle-32.xpm"
 #include "../../include/twinkle-48.xpm"
 #include "../../include/twinkle-64.xpm"
+#include "ValueCurve.h"
 
 
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
@@ -53,6 +54,106 @@ void TwinkleEffect::SetDefaultParameters(Model *cls)
     SetSliderValue(tp->Slider_Twinkle_Steps, 30);
     SetCheckBoxValue(tp->CheckBox_Twinkle_Strobe, false);
     SetCheckBoxValue(tp->CheckBox_Twinkle_ReRandom, false);
+}
+
+int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
+    DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp)
+{
+    if (ramp)
+    {
+        float endi;
+        float starti;
+        std::string vcs = e->GetPaletteMap().Get("C_VALUECURVE_Brightness", "");
+        if (vcs == "")
+        {
+            starti = e->GetSettings().GetInt("C_SLIDER_Brightness", 100);
+            endi = starti;
+        }
+        else
+        {
+            ValueCurve vc(vcs);
+            starti = vc.GetOutputValueAt(0.0);
+            endi = vc.GetOutputValueAt(1.0);
+        }
+
+        xlColor color = e->GetPalette()[0];
+        color.ApplyMask(colorMask);
+
+        int height = y2 - y1;
+        float starty = (float)y2 - starti * (float)height / 100.0f;
+        float endy = (float)y2 - endi * (float)height / 100.0f;
+        float m = float(endy - starty) / float(x2 - x1);
+
+        const int gap = 10;
+
+        bg.Finish(GL_TRIANGLES);
+        bg.AddVertex(x1, starty, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x1, starty, color);
+
+        int lastx = x1;
+        for (int x = x1 + gap; x < x2; x += gap) {
+            float newY = m * (x - x1 - gap) + starty;
+            float newY2 = m * (x - x1) + starty;
+            bg.AddVertex(x-gap, newY, color);
+            bg.AddVertex(x, y2, color);
+            bg.AddVertex(x, newY2, color);
+            bg.AddVertex(x-gap, y2, color);
+            lastx = x;
+
+            // draw a second outline
+            float ylow1 = y2 + 1;
+            float ylow2 = y2 + 1;
+            if (ylow1 > newY) ylow1 = newY;
+            if (ylow2 > newY2) ylow2 = newY2;
+            bg.AddVertex(x - gap, ylow1, color);
+            bg.AddVertex(x, ylow2, color);
+
+            float yhigh1 = newY - 1;
+            float yhigh2 = newY2 - 1;
+            if (yhigh1 < y2) yhigh1 = y2;
+            if (yhigh2 < y2) yhigh2 = y2;
+            bg.AddVertex(x - gap, yhigh1, color);
+            bg.AddVertex(x, yhigh2, color);
+        }
+
+        // fill in the end
+        if (lastx != x2)
+        {
+            float newY = m * (lastx - x1) + starty;
+            float newY2 = m * (x2-x1) + starty;
+            bg.AddVertex(lastx, newY, color);
+            bg.AddVertex(x2, y2, color);
+            bg.AddVertex(x2, newY2, color);
+            bg.AddVertex(lastx, y2, color);
+
+            // draw a second outline
+            float ylow1 = y2 + 1;
+            float ylow2 = y2 + 1;
+            if (ylow1 > newY) ylow1 = newY;
+            if (ylow2 > newY2) ylow2 = newY2;
+            bg.AddVertex(lastx, ylow1, color);
+            bg.AddVertex(x2, ylow2, color);
+
+            float yhigh1 = newY - 1;
+            float yhigh2 = newY2 - 1;
+            if (yhigh1 < y2) yhigh1 = y2;
+            if (yhigh2 < y2) yhigh2 = y2;
+            bg.AddVertex(lastx, yhigh1, color);
+            bg.AddVertex(x2, yhigh2, color);
+        }
+
+        bg.Finish(GL_LINES);
+
+        return 2;
+    }
+
+    return 1;
 }
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

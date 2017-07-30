@@ -65,7 +65,7 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
 bool TextEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version);
 }
-void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
+void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     SettingsMap &settings = effect->GetSettings();
     // this is to prevent recursive adjustments since we are adding
     // layers and may be called by for loops based on number of layers
@@ -75,7 +75,7 @@ void TextEffect::adjustSettings(const std::string &version, Effect *effect) {
     }
 
     if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
     if( IsVersionOlder("2016.46", version) ) {

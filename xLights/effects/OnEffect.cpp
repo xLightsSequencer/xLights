@@ -37,12 +37,10 @@ void OnEffect::SetDefaultParameters(Model *cls) {
     p->TextCtrlStart->SetValue("100");
     p->TextCtrlEnd->SetValue("100");
     p->TextCtrlCycles->SetValue("1.0");
-    
-    
     p->BitmapButton_On_Transparency->SetActive(false);
-    
     SetSliderValue(p->Slider_On_Transparency, 0);
 }
+
 std::string OnEffect::GetEffectString() {
     OnPanel *p = (OnPanel*)panel;
     std::stringstream ret;
@@ -76,7 +74,6 @@ std::string OnEffect::GetEffectString() {
     return ret.str();
 }
 
-
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
     int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
@@ -93,27 +90,70 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
         end = hsv;
     }
 }
+
 int OnEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                   DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) {
-    if (e->HasBackgroundDisplayList()) {
-        DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
-        return e->GetBackgroundDisplayList().iconSize;
+                                   DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramp) 
+{
+    if (ramp)
+    {
+        bool shimmer = e->GetSettings().GetInt("E_CHECKBOX_On_Shimmer", 0) > 0;
+        int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
+        int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
+        xlColor color = e->GetPalette()[0];
+        color.ApplyMask(colorMask);
+        int height = y2 - y1;
+
+        float starty = y2 - starti * height / 100.0f;
+        float endy = y2 - endi * height / 100.0f;
+        float m = float(endy - starty) / float(x2 - x1);
+
+        bg.AddVertex(x1, starty, color);
+        bg.AddVertex(x1, y2, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x2, endy, color);
+        bg.AddVertex(x2, y2, color);
+        bg.AddVertex(x1, starty, color);
+
+        if (shimmer)
+        {
+            const int gap = 3;
+            for (int x = x1 + (gap*3); x < x2; x += (gap*3)) {
+                float newY = m * (x - x1) + starty;
+                float newY2 = m * (x + (gap) - x1) + starty;
+                bg.AddVertex(x, y2, xlBLACK);
+                bg.AddVertex(x, newY, xlBLACK);
+                bg.AddVertex(x + (gap), newY2, xlBLACK);
+
+                bg.AddVertex(x, y2, xlBLACK);
+                bg.AddVertex(x + (gap), y2, xlBLACK);
+                bg.AddVertex(x + (gap), newY2, xlBLACK);
+            }
+        }
+
+        return 2;
     }
-    xlColor start;
-    xlColor end;
-    GetOnEffectColors(e, start, end);
+    else
+    {
+        if (e->HasBackgroundDisplayList()) {
+            DrawGLUtils::DrawDisplayList(x1, y1, x2 - x1, y2 - y1, e->GetBackgroundDisplayList(), bg);
+            return e->GetBackgroundDisplayList().iconSize;
+        }
+        xlColor start;
+        xlColor end;
+        GetOnEffectColors(e, start, end);
 
-    start.ApplyMask(colorMask);
-    end.ApplyMask(colorMask);
+        start.ApplyMask(colorMask);
+        end.ApplyMask(colorMask);
 
-    bg.AddVertex(x1, y1, start);
-    bg.AddVertex(x1, y2, start);
-    bg.AddVertex(x2, y2, end);
+        bg.AddVertex(x1, y1, start);
+        bg.AddVertex(x1, y2, start);
+        bg.AddVertex(x2, y2, end);
 
-    bg.AddVertex(x2, y2, end);
-    bg.AddVertex(x2, y1, end);
-    bg.AddVertex(x1, y1, start);
-    return 2;
+        bg.AddVertex(x2, y2, end);
+        bg.AddVertex(x2, y1, end);
+        bg.AddVertex(x1, y1, start);
+        return 2;
+    }
 }
 
 void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
@@ -135,11 +175,12 @@ void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
 
 
 void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);
     bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, 0) > 0;
     float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0);
-    int x,y;
+    
     int cidx = 0;
     if (shimmer) {
         int tot = buffer.curPeriod - buffer.curEffStartPer;
@@ -152,7 +193,6 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     }
 
     bool spatialcolour = buffer.palette.IsSpatial(cidx);
-
     double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
 
     xlColor color;
@@ -215,9 +255,9 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     //////////////////////////////////////////////////////////////
 
     //Every Node set to selected color
-    for (x=0; x<buffer.BufferWi; x++)
+    for (int x=0; x<buffer.BufferWi; ++x)
     {
-        for (y=0; y<buffer.BufferHt; y++)
+        for (int y=0; y<buffer.BufferHt; ++y)
         {
             if (spatialcolour)
             {

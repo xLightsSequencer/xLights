@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add the block of channels model
+2017.21  Jul 28, 2017
+   -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... 
+                    mainly for use in AC mode
+   -- bug (keith)   Fix a bunch of bugs with AC mode
+   -- bug (keith)   Fix #882
+   -- bug (keith)   Fix problem with oversize buffers crashing xLights
+2017.20  Jul 26, 2017
+   -- bug (dkulp)   Old keybindings files can result in U/D/O problems when defaults are removed.
    -- enh (keith)   Add value curves to sub-buffers
    -- enh (keith)   Move audio file loading to its own thread to improve audio load time in scheduler. Eliminates the need to load and convert the entire file before the audio starts to play.
    -- bug (keith)   Fix crash when importing a LOR timing track a second time.
@@ -25,9 +34,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Expand E6804 upload to also support the E682.
    -- enh (keith)   Add decaying sine value curve
    -- enh (keith & Gil) Add AC Sequencing mode
+   -- enh (keith)   Add a reverse nodes button to submodel dialog
+   -- bug (keith)   Fix picture effect position text boxes dont allow -100 entry
    -- enh (keith)   Include some standard value curves in the distribution
    -- bug (keith)   fix serial configuration upload to the falcon controllers. Also address expansion boards better.
-   -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration.  Useful for creating/adjusting lyric timings.
+   -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration. 
+                    Useful for creating/adjusting lyric timings.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could
                     create gigantic buffers. Fixes #879

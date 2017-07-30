@@ -1459,14 +1459,24 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
     
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
     }
+
+    if (buffer.GetModel()->GetNodeCount() == 0)
+    {
+        // this happens with custom models with no nodes defined
+        logger_base.warn("Model %s has no nodes so skipping rendering.", (const char *)buffer.GetModel()->GetName().c_str());
+        return false;
+    }
+
     bool retval=true;
 
     buffer.SetLayer(layer, period, resetEffectState);
     resetEffectState = false;
     int eidx = -1;
+
     xlColor colorMask = xlColor::NilColor();
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
@@ -1512,7 +1522,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 // Log slow render frames ... this takes time but at this point it is already slow
                 if (sw.Time() > 150)
                 {
-                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
                 }
             } else {

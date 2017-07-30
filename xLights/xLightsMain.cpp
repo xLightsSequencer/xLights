@@ -192,6 +192,7 @@ const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
+const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
@@ -759,6 +760,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuView->Append(MenuItem13);
     MenuItem_ACLIghts = new wxMenuItem(MenuView, MNU_ID_ACLIGHTS, _("AC Lights Toolbar"), wxEmptyString, wxITEM_CHECK);
     MenuView->Append(MenuItem_ACLIghts);
+    MenuItem_ShowACRamps = new wxMenuItem(MenuView, ID_MNU_SHOWRAMPS, _("Show AC Ramps"), _("Show on effects and twinkle effects as ramps."), wxITEM_CHECK);
+    MenuView->Append(MenuItem_ShowACRamps);
     MenuView->AppendSeparator();
     MenuItemPerspectives = new wxMenu();
     MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
@@ -1041,6 +1044,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(MNU_ID_ACLIGHTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ACLIghtsSelected);
+    Connect(ID_MNU_SHOWRAMPS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowACRampsSelected);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
@@ -1396,6 +1400,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ACLIghts->Check(_showACLights);
     logger_base.debug("Show AC Lights toolbar: %s.", _showACLights ? "true" : "false");
 
+    config->Read("xLightsShowACRamps", &_showACRamps, false);
+    MenuItem_ShowACRamps->Check(_showACRamps);
+    logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1641,6 +1649,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
+    config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -2044,6 +2053,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString folderName;
     time_t cur;
     time(&cur);
@@ -2051,9 +2061,11 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     wxDateTime curTime(cur);
 
     //  first make sure there is a Backup sub directory
+
     wxString newDirBackup = CurrentDir + wxFileName::GetPathSeparator() + "Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
+        logger_base.error("Unable to create backup directory '%s'", (const char *)newDirBackup.c_str());
         wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
         return;
     }
@@ -2064,6 +2076,29 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     if (startup)
     {
         newDir += "_OnStart";
+    }
+
+    int tries = 0;
+    while (wxDirExists(newDir) && tries < 11)
+    {
+        logger_base.warn("Backup directory '%s' already existed ... trying again", (const char *)newDir.c_str());
+
+        newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
+            "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+            curTime.FormatISODate(), curTime.Format("%H%M%S")) + "_" + char(65 + tries);
+        if (startup)
+        {
+            newDir += "_OnStart";
+        }
+
+        tries++;
+    }
+
+    if (tries == 11)
+    {
+        logger_base.error("Unable to find a unique name for backup directory");
+        wxMessageBox("Unable to find a unique name for backup directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        return;
     }
 
     if (prompt)
@@ -2077,8 +2112,13 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
+        logger_base.error("Unable to create backup directory '%s'", (const char *)newDir.c_str());
+        wxMessageBox("Unable to create directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
         return;
+    }
+    else
+    {
+        logger_base.info("Backup directory '%s' created", (const char *)newDir.c_str());
     }
 
     BackupDirectory(CurrentDir, newDir, newDir, forceallfiles);
@@ -2970,7 +3010,7 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
 
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
 
     wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
     const char *ct = "Content-Type: application/octet-stream\n";
@@ -5246,6 +5286,12 @@ void xLightsFrame::OnMenuItem_ACLIghtsSelected(wxCommandEvent& event)
     ShowACLights();
 }
 
+void xLightsFrame::OnMenuItem_ShowACRampsSelected(wxCommandEvent& event)
+{
+    _showACRamps = MenuItem_ShowACRamps->IsChecked();
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
 void xLightsFrame::OnMenuItemColorManagerSelected(wxCommandEvent& event)
 {
     ColorManagerDialog dlg(this, color_mgr);
@@ -5267,6 +5313,11 @@ void xLightsFrame::OnMenuItemTimingPlayOnDClick(wxCommandEvent& event)
     MenuItemTimingPlayMode->Check(mTimingPlayOnDClick);
     MenuItemTimingEditMode->Check(!mTimingPlayOnDClick);
     mainSequencer->PanelEffectGrid->SetTimingClickPlayMode(mTimingPlayOnDClick);
+}
+
+bool xLightsFrame::IsDrawRamps()
+{
+    return _showACRamps;
 }
 
 #pragma endregion Settings Menu
@@ -5416,7 +5467,7 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
         ChoiceParm1->Enable(false);
         ChoiceParm2->Enable(false);
     }
-    //MainAuiManager->Update();
+    mainSequencer->PanelEffectGrid->Refresh();
 }
 
 void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
@@ -5710,8 +5761,8 @@ void xLightsFrame::GetACRampValues(int& a, int& b)
     }
     else if (Button_ACRampUpDown->IsChecked())
     {
-        a = std::min(_acParm1RampUpDown, _acParm2RampUpDown);
-        b = std::max(_acParm1RampUpDown, _acParm2RampUpDown);
+        a = _acParm1RampUpDown;
+        b = _acParm2RampUpDown;
     }
 }
 
@@ -5783,12 +5834,18 @@ void xLightsFrame::SetACSettings(ACTOOL tool)
 
     if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
     {
-        SetACSettings(ACTYPE::ON);
+        Button_ACOn->SetValue(true);
     }
+    ACToolbar->Refresh();
 }
 
 void xLightsFrame::SetACSettings(ACSTYLE style)
 {
+    if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
+    {
+        Button_ACOn->SetValue(true);
+    }
+
     wxCommandEvent event;
     switch (style)
     {
@@ -5809,12 +5866,9 @@ void xLightsFrame::SetACSettings(ACSTYLE style)
         OnAC_RampUpDownClick(event);
         break;
     }
-
-    if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
-    {
-        SetACSettings(ACTYPE::ON);
-    }
+    ACToolbar->Refresh();
 }
+
 void xLightsFrame::SetACSettings(ACMODE mode)
 {
     wxCommandEvent event;
@@ -5829,7 +5883,9 @@ void xLightsFrame::SetACSettings(ACMODE mode)
         OnAC_BackgroundClick(event);
         break;
     }
+    ACToolbar->Refresh();
 }
+
 void xLightsFrame::SetACSettings(ACTYPE type)
 {
     wxCommandEvent event;
@@ -5857,8 +5913,13 @@ void xLightsFrame::SetACSettings(ACTYPE type)
         break;
     }
 
-    if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+    if (Button_ACOn->IsChecked() || Button_ACShimmer->IsChecked() || Button_ACTwinkle->IsChecked())
     {
-        SetACSettings(ACSTYLE::INTENSITY);
+        if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
+        {
+            Button_ACIntensity->SetValue(true);
+        }
     }
+    ACToolbar->Refresh();
 }
+

@@ -55,11 +55,11 @@ bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
     // give the base class a chance to adjust any settings
     return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);
 }
-void PinwheelEffect::adjustSettings(const std::string &version, Effect *effect) {
+void PinwheelEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     // give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version))
     {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
     SettingsMap &settings = effect->GetSettings();
     if (settings.Contains("E_TEXTCTRL_Pinwheel_Speed")) {

@@ -320,7 +320,7 @@ namespace DrawGLUtils
         virtual void DrawTexture(GLuint texture,
                                  float x, float y, float x2, float y2,
                                  float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0) = 0;
-        
+
         GLuint GetTextureId(int i);
         void SetTextureId(int i, GLuint id) {textures[i] = id;}
         bool HasTextureId(int i);

@@ -54,8 +54,10 @@ void SingleLineModel::Reset(int lights, const Model &pbc, int strand, int node, 
         stringStartChan[0] = pbc.NodeStartChannel(pbc.MapToNodeIndex(strand, node));
     }
     InitModel();
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         (*it)->model = &pbc;
+        xlColor c = (*it)->model->GetNodeMaskColor(strand);
+        (*it)->SetMaskColor(c);
     }
     if (flip) {
         int l = 0;

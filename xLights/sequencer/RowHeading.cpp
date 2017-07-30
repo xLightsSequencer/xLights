@@ -816,8 +816,23 @@ void RowHeading::Draw()
                 {
                     if (m->GetNodeCount() > 0)
                     {
-                        m->SetNodeColor(0, xlWHITE);
-                        xlColor color = m->GetNodeColor(0);
+                        xlColor color;
+                        if (m->GetDisplayAs() == "Channel Block")
+                        {
+                            StrandElement* se = dynamic_cast<StrandElement*>(rowInfo->element);
+                            if (se != nullptr)
+                            {
+                                color = m->GetNodeMaskColor(se->GetStrand());
+                            }
+                            else
+                            {
+                                color = xlWHITE;
+                            }
+                        }
+                        else
+                        {
+                            color = m->GetNodeMaskColor(0);
+                        }
                         dc.SetPen(*wxBLACK_PEN);
                         dc.SetBrush(wxBrush(color.asWxColor()));
                         dc.DrawRectangle(getWidth() - 21, startY + 5, 12, 12);

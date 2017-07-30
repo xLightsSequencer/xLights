@@ -32,7 +32,7 @@ protected:
         void RenderOn(RenderBuffer &buffer, int x, int bars, int startNote, int endNote, std::list<MusicEvent*>& events, int colourTreatment, bool fade);
         int DecodeScaleNotes(const std::string& scalenotes);
         virtual bool needToAdjustSettings(const std::string& version) override;
-        virtual void adjustSettings(const std::string &version, Effect *effect) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 };
 
 #endif // MUSICEFFECT_H

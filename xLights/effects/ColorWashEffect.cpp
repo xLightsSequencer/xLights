@@ -34,7 +34,7 @@ ColorWashEffect::~ColorWashEffect()
 
 
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                          DrawGLUtils::xlVertexColorAccumulator &bg, xlColor* colorMask) {
+                                          DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {
         DrawGLUtils::DrawDisplayList(x1, y1, x2-x1, y2-y1, e->GetBackgroundDisplayList(), bg);
         return e->GetBackgroundDisplayList().iconSize;
@@ -103,9 +103,9 @@ wxPanel *ColorWashEffect::CreatePanel(wxWindow *parent) {
 bool ColorWashEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2016.34", version) || RenderableEffect::needToAdjustSettings(version);
 }
-void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect) {
+void ColorWashEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect);
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
     if (!effect->GetSettings().GetBool("E_CHECKBOX_ColorWash_EntireModel", true) ) {
         float x1 = effect->GetSettings().GetInt("E_SLIDER_ColorWash_X1", 0);

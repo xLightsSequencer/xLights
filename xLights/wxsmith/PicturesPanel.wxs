@@ -272,7 +272,7 @@
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="no">
 														<value>0</value>
-														<maxlength>3</maxlength>
+														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
 														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
@@ -301,7 +301,7 @@
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="no">
 														<value>0</value>
-														<maxlength>3</maxlength>
+														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
 														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
@@ -369,7 +369,7 @@
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndXC" variable="TextCtrl1" member="no">
 														<value>0</value>
-														<maxlength>3</maxlength>
+														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
 														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
@@ -398,7 +398,7 @@
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndYC" variable="TextCtrl2" member="no">
 														<value>0</value>
-														<maxlength>3</maxlength>
+														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
 														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />

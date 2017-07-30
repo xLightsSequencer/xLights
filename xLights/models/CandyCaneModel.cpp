@@ -63,6 +63,7 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     if ("CandyCaneCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
         SetFromXml(ModelXml, zeroBased);
         return 3 | 0x0008;
     } else if ("CandyCaneNodes" == event.GetPropertyName()) {

@@ -1,5 +1,5 @@
-#ifndef CNADYCANEMODEL_H
-#define CNADYCANEMODEL_H
+#ifndef CANDYCANEMODEL_H
+#define CANDYCANEMODEL_H
 
 #include "Model.h"
 

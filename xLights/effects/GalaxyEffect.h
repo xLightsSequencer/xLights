@@ -41,7 +41,7 @@ class GalaxyEffect : public RenderableEffect
     
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
-                                         DrawGLUtils::xlVertexColorAccumulator &backgrounds, xlColor* colorMask) override;
+                                         DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual void SetDefaultParameters(Model *cls) override;
 
     protected:
