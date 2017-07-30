@@ -2053,6 +2053,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString folderName;
     time_t cur;
     time(&cur);
@@ -2060,9 +2061,11 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     wxDateTime curTime(cur);
 
     //  first make sure there is a Backup sub directory
+
     wxString newDirBackup = CurrentDir + wxFileName::GetPathSeparator() + "Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
+        logger_base.error("Unable to create backup directory '%s'", (const char *)newDirBackup.c_str());
         wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
         return;
     }
@@ -2073,6 +2076,29 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     if (startup)
     {
         newDir += "_OnStart";
+    }
+
+    int tries = 0;
+    while (wxDirExists(newDir) && tries < 11)
+    {
+        logger_base.warn("Backup directory '%s' already existed ... trying again", (const char *)newDir.c_str());
+
+        newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
+            "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+            curTime.FormatISODate(), curTime.Format("%H%M%S")) + "_" + char(65 + tries);
+        if (startup)
+        {
+            newDir += "_OnStart";
+        }
+
+        tries++;
+    }
+
+    if (tries == 11)
+    {
+        logger_base.error("Unable to find a unique name for backup directory");
+        wxMessageBox("Unable to find a unique name for backup directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        return;
     }
 
     if (prompt)
@@ -2086,8 +2112,13 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
+        logger_base.error("Unable to create backup directory '%s'", (const char *)newDir.c_str());
+        wxMessageBox("Unable to create directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
         return;
+    }
+    else
+    {
+        logger_base.info("Backup directory '%s' created", (const char *)newDir.c_str());
     }
 
     BackupDirectory(CurrentDir, newDir, newDir, forceallfiles);
