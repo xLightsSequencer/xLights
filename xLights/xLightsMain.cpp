@@ -5835,6 +5835,8 @@ void xLightsFrame::SetACSettings(ACTOOL tool)
     if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
     {
         Button_ACOn->SetValue(true);
+        Button_ACSelect->SetValue(false);
+        Button_ACOff->SetValue(false);
     }
     ACToolbar->Refresh();
 }
@@ -5844,6 +5846,8 @@ void xLightsFrame::SetACSettings(ACSTYLE style)
     if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
     {
         Button_ACOn->SetValue(true);
+        Button_ACSelect->SetValue(false);
+        Button_ACOff->SetValue(false);
     }
 
     wxCommandEvent event;
