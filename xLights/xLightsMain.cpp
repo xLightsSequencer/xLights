@@ -2151,10 +2151,10 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     {
         wxDir dir(newDir);
         newDir += wxFileName::GetPathSeparator() + tgtd[i];
-        logger_base.debug("Create folder %s.", (const char*)newDir.c_str());
+        logger_base.debug("    Create folder %s.", (const char*)newDir.c_str());
         if (!dir.Make(newDir))
         {
-            logger_base.error("    Folder Create failed.");
+            logger_base.error("        Folder Create failed.");
         }
     }
 }

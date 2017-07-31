@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
- 
+   -- bug (keith)   Fix cascade again ... it will work someday
+   -- bug (keith)   Fix failed backup in some subfolders
 2017.21  Jul 28, 2017
    -- enh (keith)   Add the block of channels model
    -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... 
