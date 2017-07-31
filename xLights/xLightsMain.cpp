@@ -2133,6 +2133,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (wxDir::Exists(targetDirName)) return;
 
     wxFileName tgt(targetDirName);
@@ -2140,20 +2141,22 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
 
     if (!tgt.GetFullPath().StartsWith(lst.GetFullPath())) return;
 
-    wxArrayString tgtd = tgt.GetDirs();
-    wxArrayString lstd = lst.GetDirs();
+    //wxArrayString tgtd = tgt.GetDirs();
+    //wxArrayString lstd = lst.GetDirs();
+    wxArrayString tgtd = wxSplit(targetDirName, wxFileName::GetPathSeparator());
+    wxArrayString lstd = wxSplit(lastCreatedDirectory, wxFileName::GetPathSeparator());
     wxString newDir = lastCreatedDirectory;
 
-    for (size_t i = lstd.Count()+1; i < tgtd.Count(); i++)
+    for (size_t i = lstd.Count(); i < tgtd.Count(); i++)
     {
         wxDir dir(newDir);
-        newDir += "/" + tgtd[i];
-        dir.Make(newDir);
+        newDir += wxFileName::GetPathSeparator() + tgtd[i];
+        logger_base.debug("Create folder %s.", (const char*)newDir.c_str());
+        if (!dir.Make(newDir))
+        {
+            logger_base.error("    Folder Create failed.");
+        }
     }
-
-    wxDir dir(newDir);
-    newDir += "/" + tgt.GetName();
-    dir.Make(newDir);
 }
 
 bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
@@ -2168,8 +2171,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     bool cont = srcDir.GetFirst(&fname, wildcard, wxDIR_FILES);
     while (cont)
     {
-        logger_base.debug("Backing up file %s.", (const char *)(srcDir.GetNameWithSep() + fname).c_str());
-
+        logger_base.debug("Backing up file %s.", (const char *)(srcDirName + fname).c_str());
         res = true;
 
         CreateMissingDirectories(targetDirName, lastCreatedDirectory);
@@ -2179,14 +2181,18 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         wxULongLong fsize = srcFile.GetSize();
         if (!forceallfiles && fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
         {
+            logger_base.warn("    Skipping file as it is too large.");
             cont = srcDir.GetNext(&fname);
             continue;
         }
+
+        logger_base.debug("    to %s.", (const char *)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
         SetStatusText("Copying File \"" + srcFile.GetFullPath());
         bool success = wxCopyFile(srcDirName + fname,
             targetDirName + wxFileName::GetPathSeparator() + fname);
         if (!success)
         {
+            logger_base.error("    Copy Failed.");
             wxMessageBox("Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"",
                 "Error", wxICON_ERROR | wxOK);
         }
@@ -2222,7 +2228,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
             if (dir != "Backup")
             {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
-                BackupDirectory(subdir.GetNameWithSep(), targetDirName + "/" + dir, lastCreatedDirectory, forceallfiles);
+                BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles);
             }
             cont = srcDir.GetNext(&dir);
         }
