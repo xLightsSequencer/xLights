@@ -158,7 +158,7 @@ public:
         color.Set(c[0],c[1],c[2]);
     }
 
-    virtual void GetMaskColor(xlColor& color) const {
+    void GetMaskColor(xlColor& color) const {
         color = _maskColor;
     }
 

@@ -4758,11 +4758,11 @@ void EffectsGrid::DrawEffects()
                 StrandElement *se = dynamic_cast<StrandElement*>(ri->element);
                 Model* m = xlights->GetModel(ri->element->GetModelName());
                 ncls.InitNodeBuffer(*m, se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
+                xlColor maskColor = m->GetNodeMaskColor(se->GetStrand());
                 xlColor lastColor;
                 for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
                     xlColor c = ncls.GetNodeColor(0);
-                    xlColor maskColor =  m->GetNodeMaskColor(se->GetStrand());
                     c.ApplyMask(&maskColor);
                     if (f == 0) {
                         colors.push_back(c);

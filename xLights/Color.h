@@ -96,7 +96,7 @@ public:
     uint8_t Green() const { return green; };
     uint8_t Alpha() const { return alpha; };
 
-    void ApplyMask(xlColor* mask) {
+    inline void ApplyMask(xlColor* mask) {
         if (mask != nullptr)
         {
             red = red & mask->red;
