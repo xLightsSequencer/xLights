@@ -20,6 +20,7 @@ const long RowHeading::ID_ROW_MNU_INSERT_LAYER_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_INSERT_LAYERS_BELOW = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYERS = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_UNUSEDLAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
@@ -159,7 +160,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
             {
                 mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
 
-				mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
+                mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
+                mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
             }
             mnuLayer.AppendSeparator();
         }
@@ -354,6 +356,35 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
 		}
 	}
+    else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS)
+    {
+        bool deleted = false;
+        for (int i = 0; i < element->GetEffectLayerCount(); ++i)
+        {
+            if (element->GetEffectLayer(i)->GetEffectCount() > 0)
+            {
+                // dont delete this layer
+            }
+            else
+            {
+                if (element->GetEffectLayerCount() == 1)
+                {
+                    //last layer ... dont delete it
+                }
+                else
+                {
+                    element->RemoveEffectLayer(i);
+                    --i;
+                    deleted = true;
+                }
+            }
+        }
+        if (deleted)
+        {
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
         std::string name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name").ToStdString();
