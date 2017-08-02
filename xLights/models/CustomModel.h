@@ -29,10 +29,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCustomLightness(long lightness);
 
         virtual bool SupportsXlightsModel() override {return true;}
+        virtual bool SupportsExportAsCustom() const override { return false; }
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         virtual void ExportXlightsModel() override;
 
-        virtual std::string ChannelLayoutHtml() override;
+        virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
         virtual std::string GetNodeName(size_t x, bool def = false) const override;
 
     protected:

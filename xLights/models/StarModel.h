@@ -11,7 +11,8 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual ~StarModel();
     
         virtual bool SupportsXlightsModel() override { return true; }
-        virtual void ExportXlightsModel() override;
+        virtual bool SupportsExportAsCustom() const override { return true; }
+        virtual void ExportXlightsModel() override; 
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
 
         virtual int GetStrandLength(int strand) const override;

@@ -28,6 +28,7 @@
 
 #include "SubModel.h"
 #include "../UtilFunctions.h"
+#include "xLightsVersion.h"
 
 
 static const std::string DEFAULT("Default");
@@ -38,6 +39,11 @@ static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
+#define retmsg(msg)  \
+{ \
+wxMessageBox(msg, _("Export Error")); \
+return; \
+}
 
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE};
 
@@ -806,7 +812,7 @@ void Model::AddSubmodel(wxXmlNode* n)
     }
 }
 
-wxString Model::SerialiseFace()
+wxString Model::SerialiseFace() const
 {
     wxString res = "";
 
@@ -865,7 +871,7 @@ void Model::WriteStateInfo(wxXmlNode *rootXml, const std::map<std::string, std::
     }
 }
 
-wxString Model::SerialiseState()
+wxString Model::SerialiseState() const
 {
     wxString res = "";
 
@@ -2076,7 +2082,119 @@ bool Model::ParseStateElement(const std::string& multi_str, std::vector<wxPoint>
     return !first_xy.empty(); //true;
 }
 
-std::string Model::ChannelLayoutHtml() {
+void Model::ExportAsCustomXModel() const {
+
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+
+    wxString cm = "";
+
+    float minsx = 99999;
+    float minsy = 99999;
+    float maxsx = -1;
+    float maxsy = -1;
+
+    size_t nodeCount = GetNodeCount();
+    for (size_t i = 0; i < nodeCount; i++) {
+        float Sbufx = Nodes[i]->Coords[0].screenX;
+        float Sbufy = Nodes[i]->Coords[0].screenY;
+        if (Sbufx < minsx) minsx = Sbufx;
+        if (Sbufx > maxsx) maxsx = Sbufx;
+        if (Sbufy < minsy) minsy = Sbufy;
+        if (Sbufy > maxsy) maxsy = Sbufy;
+    }
+
+    int minx = std::floor(minsx);
+    int miny = std::floor(minsy);
+    int maxx = std::ceil(maxsx);
+    int maxy = std::ceil(maxsy);
+    int sizex = maxx - minx + 1;
+    int sizey = maxy - miny + 1;
+
+    int* nodeLayout = (int*)malloc(sizey * sizex * sizeof(int));
+    memset(nodeLayout, 0x00, sizey * sizex * sizeof(int));
+
+    for (int i = 0; i < nodeCount; i++)
+    {
+        int x = Nodes[i]->Coords[0].screenX - minx;
+        int y = sizey - (Nodes[i]->Coords[0].screenY - miny) - 1;
+        nodeLayout[y*sizex + x] = i+1;
+    }
+
+    for (int i = 0; i < sizey * sizex; i++)
+    {
+        if (i != 0)
+        {
+            if (i % sizex == 0)
+            {
+                cm += ";";
+            }
+            else
+            {
+                cm += ",";
+            }
+        }
+        if (nodeLayout[i] != 0)
+        {
+            cm += wxString::Format("%i", nodeLayout[i]);
+        }
+    }
+
+    free(nodeLayout);
+
+    wxString p1 = wxString::Format("%i", sizex);
+    wxString p2 = wxString::Format("%i", sizey);
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    wxString face = SerialiseFace();
+    if (face != "")
+    {
+        f.Write(face);
+    }
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
+    f.Write("</custommodel>");
+    f.Close();
+}
+
+std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
     size_t i,idx;
     int n,x,y,s;
@@ -2099,13 +2217,27 @@ std::string Model::ChannelLayoutHtml() {
             direction="Bottom Left";
     }
 
+    long sc;
+    Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
+
     std::string html = "<html><body><table border=0>";
     html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
     html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
     html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
     html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
-    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
+    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",(int)NodeCount);
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    if (o != nullptr)
+        html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
+    if (wxString(controller_connection).Contains(":"))
+    {
+        wxArrayString cc = wxSplit(controller_connection, ':');
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
+        if (GetNumStrings() ==  1)
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+        else
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%s-%d</td></tr>", cc[1], wxAtoi(cc[1])+ GetNumPhysicalStrings() -1);
+    }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     int Ibufx,Ibufy;
@@ -2867,7 +2999,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
     return model;
 }
 
-wxString Model::SerialiseSubmodel()
+wxString Model::SerialiseSubmodel() const
 {
     wxString res = "";
 

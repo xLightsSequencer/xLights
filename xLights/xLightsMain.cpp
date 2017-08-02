@@ -3543,7 +3543,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->description,
                 model->GetDisplayAs(),
                 model->GetStringType(),
-                (long)(model->GetNodeCount() / model->NodesPerString()),
+                (long)model->GetNumPhysicalStrings(),
                 (long)model->GetNodeCount(),
                 lightcount,
                 current,

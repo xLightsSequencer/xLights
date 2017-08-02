@@ -8,6 +8,7 @@
 #include "../CustomModelDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
+#include "outputs/Output.h"
 
 #define retmsg(msg)  \
 { \
@@ -253,20 +254,31 @@ std::string CustomModel::GetNodeName(size_t x, bool def) const {
     return "";
 }
 
-std::string CustomModel::ChannelLayoutHtml() {
+std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
     wxString bgcolor;
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
     std::string direction="n/a";
 
+    long sc;
+    Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
+
     std::string html = "<html><body><table border=0>";
     html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
     html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
     html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
     html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
-    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
+    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",(int)NodeCount);
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    if (o != nullptr)
+        html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
+    if (controller_connection != "" && wxString(controller_connection).Contains(":"))
+    {
+        wxArrayString cc = wxSplit(controller_connection, ':');
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
+        html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+    }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     std::string data = GetCustomData();
