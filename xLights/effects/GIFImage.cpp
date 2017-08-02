@@ -83,6 +83,13 @@ void GIFImage::ReadFrameTimes()
 		_frameTimes.push_back(frametime);
 		_totalTime += frametime;
 	}
+    if (_totalTime == 0) {
+        _frameTimes.clear();
+        _totalTime = 100 * _gifDecoder.GetFrameCount();
+        for (int x = 0; x < _gifDecoder.GetFrameCount(); x++) {
+            _frameTimes.push_back(100);
+        }
+    }
 }
 
 GIFImage::GIFImage(const std::string& filename, wxSize desiredSize)
@@ -94,6 +101,7 @@ void GIFImage::DoCreate(const std::string& filename, wxSize desiredSize)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _filename = filename;
     _desiredSize = desiredSize;
     _lastFrame = -1;
     _lastDispose = wxAnimationDisposal::wxANIM_UNSPECIFIED;
