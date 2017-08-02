@@ -2229,22 +2229,12 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else if (selectedModel != nullptr) {
-        wxString copy_data;
-        wxXmlDocument doc;
-        wxXmlNode *parent = selectedModel->GetModelXml()->GetParent();
-        wxXmlNode *next = selectedModel->GetModelXml()->GetNext();
-        parent->RemoveChild(selectedModel->GetModelXml());
-        doc.SetRoot(selectedModel->GetModelXml());
+        CopyPasteModel copyData;
 
-        wxStringOutputStream stream;
-        doc.Save(stream);
-        copy_data = stream.GetString();
-        doc.DetachRoot();
+        copyData.SetModel(selectedModel);
 
-        parent->InsertChild(selectedModel->GetModelXml(), next);
-
-        if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
-            if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+        if (copyData.IsOk() && wxTheClipboard->Open()) {
+            if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
                 wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
             }
             wxTheClipboard->Close();
@@ -2265,47 +2255,50 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
     } else {
         if (wxTheClipboard->Open()) {
             CreateUndoPoint("All", selectedModel == nullptr ? "" : selectedModel->name);
+
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
-            wxStringInputStream in(data.GetText());
-            wxXmlDocument doc(in);
 
-            wxXmlNode *nd = doc.GetRoot();
-            if (nd != nullptr) // Issue #589 ... this would appear to be the only reason why it would occur ... so guarding against it
+            CopyPasteModel copyData(data.GetText().ToStdString());
+
+            wxTheClipboard->Close();
+
+            if (copyData.IsOk())
             {
-                doc.DetachRoot();
+                wxXmlNode* nd = copyData.GetModelXml();
 
-                if (xlights->AllModels[lastModelName] != nullptr
-                    && nd->GetAttribute("Advanced", "0") != "1") {
-                    std::string startChannel = ">" + lastModelName + ":1";
-                    nd->DeleteAttribute("StartChannel");
-                    nd->AddAttribute("StartChannel", startChannel);
+                if (nd != nullptr)
+                {
+                    if (xlights->AllModels[lastModelName] != nullptr
+                        && nd->GetAttribute("Advanced", "0") != "1") {
+                        std::string startChannel = ">" + lastModelName + ":1";
+                        nd->DeleteAttribute("StartChannel");
+                        nd->AddAttribute("StartChannel", startChannel);
+                    }
+
+                    Model *newModel = xlights->AllModels.CreateModel(nd);
+                    int cnt = 1;
+                    std::string name = newModel->name;
+                    while (xlights->AllModels[name] != nullptr) {
+                        name = newModel->name + "-" + std::to_string(cnt++);
+                    }
+                    newModel->name = name;
+                    newModel->GetModelXml()->DeleteAttribute("name");
+                    newModel->GetModelXml()->AddAttribute("name", name);
+                    newModel->AddOffset(0.02, 0.02);
+                    newModel->UpdateXmlWithScale();
+                    xlights->AllModels.AddModel(newModel);
+                    lastModelName = name;
+
+                    xlights->UpdateModelsList();
+                    xlights->MarkEffectsFileDirty(true);
+                    SelectModel(name);
                 }
-
-                Model *newModel = xlights->AllModels.CreateModel(nd);
-                int cnt = 1;
-                std::string name = newModel->name;
-                while (xlights->AllModels[name] != nullptr) {
-                    name = newModel->name + "-" + std::to_string(cnt++);
-                }
-                newModel->name = name;
-                newModel->GetModelXml()->DeleteAttribute("name");
-                newModel->GetModelXml()->AddAttribute("name", name);
-                newModel->AddOffset(0.02, 0.02);
-                newModel->UpdateXmlWithScale();
-                xlights->AllModels.AddModel(newModel);
-                lastModelName = name;
-
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
-                wxTheClipboard->Close();
-                SelectModel(name);
             }
             else
             {
                 static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. %s.", (const char *)data.GetText().c_str());
-                wxTheClipboard->Close();
             }
         }
     }
@@ -2914,5 +2907,85 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
         TreeListViewModels->GetRootItem();
         AddModelToTree(*a, &root);
+    }
+}
+
+CopyPasteModel::~CopyPasteModel()
+{
+    if (_xmlNode != nullptr)
+    {
+        delete _xmlNode;
+    }
+}
+
+CopyPasteModel::CopyPasteModel()
+{
+    _ok = false;
+    _xmlNode = nullptr;
+}
+
+CopyPasteModel::CopyPasteModel(const std::string& in)
+{
+    _ok = false;
+    _xmlNode = nullptr;
+
+    // check it looks like xml ... to stop parser errors
+    wxString xml = in;
+    if (!xml.StartsWith("<?xml") || !xml.Contains("<model "))
+    {
+        // not valid
+        return;
+    }
+
+    wxStringInputStream strm(xml);
+    wxXmlDocument doc(strm);
+
+    wxXmlNode* xmlNode = doc.GetRoot();
+
+    if (xmlNode == nullptr)
+    {
+        // not valid
+        return;
+    }
+
+    _xmlNode = new wxXmlNode(*xmlNode);
+
+    _ok = true;
+}
+
+void CopyPasteModel::SetModel(Model* model)
+{
+    if (_xmlNode != nullptr)
+    {
+        delete _xmlNode;
+        _xmlNode = nullptr;
+    }
+
+    if (model == nullptr)
+    {
+        _ok = false;
+    }
+    else
+    {
+        _xmlNode = new wxXmlNode(*model->GetModelXml());
+        _ok = true;
+    }
+}
+
+std::string CopyPasteModel::Serialise() const
+{
+    if (_xmlNode == nullptr)
+    {
+        return "";
+    }
+    else
+    {
+        wxXmlDocument doc;
+        doc.SetRoot(_xmlNode);
+        wxStringOutputStream stream;
+        doc.Save(stream);
+        std::string copyData = stream.GetString().ToStdString();
+        doc.DetachRoot();
+        return copyData;
     }
 }
