@@ -63,16 +63,7 @@ void ValueCurveButton::UpdateState()
 }
 
 void ValueCurveButton::RenderNewBitmap() {
-    int sz = 24;
-    if (GetContentScaleFactor() > 1.9) {
-        sz *= GetContentScaleFactor();
-    }
-    wxBitmap bmp = _vc->GetImage(sz, sz);
-    if (GetContentScaleFactor() > 1.9) {
-        SetBitmap(wxBitmap(bmp.ConvertToImage(), -1, GetContentScaleFactor()));
-    } else {
-        SetBitmap(bmp);
-    }
+    SetBitmap(_vc->GetImage(24, 24, GetContentScaleFactor()));
 }
 
 void ValueCurveButton::SetValue(const wxString& value)

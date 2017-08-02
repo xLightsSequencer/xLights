@@ -84,7 +84,7 @@ public:
     ValueCurve() { ValueCurve(""); };
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
-    wxBitmap GetImage(int x, int y);
+    wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     void SetDefault(float min = -9.1234f, float max = -9.1234f);
     std::string Serialise();
     bool IsOk() { return _id != ""; }

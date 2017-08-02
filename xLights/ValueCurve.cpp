@@ -799,24 +799,30 @@ bool ValueCurve::NearCustomPoint(float x, float y)
     return false;
 }
 
-wxBitmap ValueCurve::GetImage(int width, int height)
+wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
 {
+    float width = w * scaleFactor;
+    float height = h * scaleFactor;
+    
     wxBitmap bmp(width, height);
 
     wxMemoryDC dc(bmp);
     dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-    dc.DrawRectangle(0, 0, width - 1, height - 1);
+    dc.DrawRectangle(0, 0, width, height);
     dc.SetPen(*wxBLACK_PEN);
     float lastY = height - 1 - (GetValueAt(0)) * height;
 
     for (int x = 1; x < width; x++) {
         float x1 = x;
-        x1 /= width;
-        float y = (GetValueAt(x1)) * width;
-        y = height - 1 - y;
-        dc.DrawLine(x - 1, lastY, x, y);
+        x1 /= (float)width;
+        float y = (GetValueAt(x1)) * (float)width;
+        y = (float)height - 1.0f - y;
+        dc.DrawLine(x - 1, lastY, x, std::round(y));
         lastY = y;
     }
-
+    if (scaleFactor > 1.0f) {
+        wxImage img = bmp.ConvertToImage();
+        return wxBitmap(img, 8, scaleFactor);
+    }
     return bmp;
 }

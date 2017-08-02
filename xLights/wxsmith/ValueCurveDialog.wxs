@@ -4,7 +4,7 @@
 		<title>Value Curve</title>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX</style>
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -236,7 +236,7 @@
 							<cols>5</cols>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -262,12 +262,12 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -293,7 +293,7 @@
 					</object>
 				</object>
 				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 		</object>
