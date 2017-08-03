@@ -173,7 +173,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     background = nullptr;
-
+    _firstTreeLoad = true;
     _lastXlightsModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
@@ -845,18 +845,19 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         dummy_models.clear();
-        if( grp->GetName() == currentLayoutGroup ) {
-            UpdateModelsForPreview( currentLayoutGroup, grp, models, true );
-        } else {
-            UpdateModelsForPreview( grp->GetName(), grp, dummy_models, false );
+        if (grp->GetName() == currentLayoutGroup) {
+            UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
+        }
+        else {
+            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
         }
     }
 
     // update the Layout tab preview for default options
-    if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-        UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
+    if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
+        UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
-    if( full_refresh ) {
+    if (full_refresh) {
         int width = 0;
 
         TreeListViewModels->Freeze();
@@ -884,19 +885,24 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             }
         }
 
-        width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
+        // Only set the column sizes the very first time we load it
+        if (_firstTreeLoad)
+        {
+            _firstTreeLoad = false;
+            width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
+            TreeListViewModels->SetColumnWidth(2, width);
+            TreeListViewModels->SetColumnWidth(1, width);
+        }
 
-        TreeListViewModels->SetColumnWidth(2, width);
-        TreeListViewModels->SetColumnWidth(1, width);
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
         TreeListViewModels->Thaw();
 
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
-        #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
+#ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
 
-        i = TreeListViewModels->GetSize().GetWidth()-(width*2);
-        #endif
+        i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
+#endif
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }

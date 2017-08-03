@@ -195,6 +195,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type);
 
+        bool _firstTreeLoad;
         bool m_dragging;
         bool m_creating_bound_rect;
         int m_bound_start_x;
