@@ -560,13 +560,15 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     prop->SetValue(safename);
                 }
             }
+            std::string oldname = selectedModel->name;
             if (selectedModel->name != safename) {
                 RenameModelInTree(selectedModel, safename);
                 xlights->RenameModel(selectedModel->name, safename);
-                if (selectedModel->name == lastModelName) {
+                if (oldname == lastModelName) {
                     lastModelName = safename;
                 }
                 xlights->RecalcModels(true);
+                SelectModel(safename);
                 CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
@@ -644,7 +646,10 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
 
 void LayoutPanel::RefreshLayout()
 {
+    std::string selectedModelName = "";
+    if (selectedModel != nullptr) selectedModelName = selectedModel->name;
     xlights->UpdateModelsList();
+    if (selectedModelName != "") SelectModel(selectedModelName);
     ShowPropGrid(true);
 }
 
