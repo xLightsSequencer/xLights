@@ -61,6 +61,7 @@
 #include "osxMacUtils.h"
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <cctype>
 
 //helper functions
 enum wxbuildinfoformat

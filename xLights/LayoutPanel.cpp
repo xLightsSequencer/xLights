@@ -2249,6 +2249,7 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
         DeleteSelectedModel();
     }
 }
+
 void LayoutPanel::DoPaste(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
@@ -2278,10 +2279,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                     Model *newModel = xlights->AllModels.CreateModel(nd);
                     int cnt = 1;
-                    std::string name = newModel->name;
-                    while (xlights->AllModels[name] != nullptr) {
-                        name = newModel->name + "-" + std::to_string(cnt++);
-                    }
+                    std::string name = xlights->AllModels.GenerateModelName(newModel->name);
                     newModel->name = name;
                     newModel->GetModelXml()->DeleteAttribute("name");
                     newModel->GetModelXml()->AddAttribute("name", name);

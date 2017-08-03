@@ -696,12 +696,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             SetProperty("Dir", dir);
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
-            wxString newname = name;
-            int cnt = 1;
-            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
-            {
-                newname = name + "-" + wxString::Format("%d", cnt++);
-            }
+            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 
             for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())

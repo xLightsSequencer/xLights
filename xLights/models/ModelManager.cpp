@@ -25,6 +25,8 @@
 #include "IciclesModel.h"
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
+#include <wx/regex.h>
+#include <cctype>
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
 {
@@ -312,7 +314,64 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
     return changed;
 }
 
-Model *ModelManager::CreateDefaultModel(const std::string &type, const std::string &startChannel) const {
+// generate the next similar model name to the candidateName we are given
+std::string ModelManager::GenerateModelName(const std::string& candidateName) const
+{
+    // if it is already unique return it
+    if (GetModel(candidateName) == nullptr) return candidateName;
+
+    std::string base = candidateName;
+    char sep = '-';
+
+    static wxRegEx dashRegex("-[0-9]+$", wxRE_ADVANCED);
+    static wxRegEx underscoreRegex("_[0-9]+$", wxRE_ADVANCED);
+    static wxRegEx spaceRegex(" [0-9]+$", wxRE_ADVANCED);
+    static wxRegEx nilRegex("[A-Za-z][0-9]+$", wxRE_ADVANCED);
+    if (dashRegex.Matches(candidateName))
+    {
+        base = wxString(candidateName).BeforeLast('-');
+    }
+    else if (underscoreRegex.Matches(candidateName))
+    {
+        base = wxString(candidateName).BeforeLast('_');
+        sep = '_';
+    }
+    else if (spaceRegex.Matches(candidateName))
+    {
+        base = wxString(candidateName).BeforeLast(' ');
+        sep = ' ';
+    }
+    else if (nilRegex.Matches(candidateName))
+    {
+        while (base != "" && std::isdigit(base[base.size() - 1]))
+        {
+            base = base.substr(0, base.size() - 1);
+        }
+        sep = 'x';
+    }
+
+    // We start at 2 assuming if we are adding multiple then the user will typically rename the first one number one.
+    int seq = 2;
+
+    for (;;)
+    {
+        std::string tryName = base;
+
+        if (sep == 'x')
+        {
+            tryName += std::to_string(seq++);
+        }
+        else
+        {
+            tryName += sep + std::to_string(seq++);
+        }
+
+        if (GetModel(tryName) == nullptr) return tryName;
+    }
+}
+
+
+Model* ModelManager::CreateDefaultModel(const std::string &type, const std::string &startChannel) const {
     Model *model;
     wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     node->AddAttribute("DisplayAs", type);
@@ -329,11 +388,7 @@ Model *ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     node->AddAttribute("LayoutGroup", "Unassigned");
 
     int cnt = 0;
-    std::string name = type;
-    while (GetModel(name) != nullptr) {
-        cnt++;
-        name = type + "-" + std::to_string(cnt);
-    }
+    std::string name = GenerateModelName(type);
     node->AddAttribute("name", name);
 
     if (type == "Star") {
