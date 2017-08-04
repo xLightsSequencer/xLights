@@ -548,15 +548,9 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             {
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
-                int numstrings = first->GetNumStrings();
+                int numstrings = first->GetNumPhysicalStrings();
                 int outputsPerPort = GetOutputsPerPort();
                 int outputsUsed = 1;
-                bool multistringelement = (first->GetDisplayAs() == "Matrix" || 
-                    first->GetDisplayAs() == "Tree" ||
-                    first->GetDisplayAs() == "Circle" ||
-                    first->GetDisplayAs() == "Star" ||
-                    first->GetDisplayAs() == "Wreath" ||
-                    first->GetDisplayAs() == "Icicles");
                 int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
 
                 if (numstrings > 1 && outputsPerPort > 1)
@@ -580,7 +574,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
-                    if (first == last && numstrings > 1 && multistringelement)
+                    if (first == last && numstrings > 1)
                     {
                         for (int j = 0; j < numstrings; j++)
                         {

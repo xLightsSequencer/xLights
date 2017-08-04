@@ -18,6 +18,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
+        virtual int GetNumPhysicalStrings() const override { return 1; }
 
     protected:
         virtual void InitModel() override;

@@ -22,6 +22,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual int GetNumStrands() const override;
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+        virtual int GetNumPhysicalStrings() const override { return 1; }
 
         virtual void InsertHandle(int after_handle) override;
         virtual void DeleteHandle(int handle) override;

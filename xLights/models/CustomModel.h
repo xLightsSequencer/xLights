@@ -19,6 +19,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         long GetCustomHeight() const { return parm2;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
+        virtual int GetNumPhysicalStrings() const override { return 1; }
 
         std::string GetCustomData() const;
         void SetCustomData(const std::string &data);
