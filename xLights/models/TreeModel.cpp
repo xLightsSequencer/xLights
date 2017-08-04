@@ -102,13 +102,20 @@ void TreeModel::SetTreeCoord(long degrees) {
                 lights += (int)std::round(lengths[x]*BufferHt);
             }
             int curSeg = 0;
-            float lightsInSeg = std::round(lengths[0]*BufferHt);
+            float lightsInSeg = std::round(lengths[0] * BufferHt);
             int curLightInSeg = 0;
             for (int x = 1; x < BufferHt; x++) {
                 if (curLightInSeg >= lightsInSeg) {
                     curSeg++;
                     curLightInSeg = 0;
-                    lightsInSeg = std::round(lengths[curSeg]*BufferHt);
+                    if (curSeg == 9)
+                    {
+                        lightsInSeg = BufferHt - x;
+                    }
+                    else
+                    {
+                        lightsInSeg = std::round(lengths[curSeg] * BufferHt);
+                    }
                 }
                 float ang = spiralRotations * 2.0 * M_PI / 10.0;
                 ang /= (float)lightsInSeg;
