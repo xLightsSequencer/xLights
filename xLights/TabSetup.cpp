@@ -1519,14 +1519,25 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuBulkEdit->Append(ID_NETWORK_BEDESCRIPTION, "Description")->Enable(selcnt > 0);
     mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, NULL, this);
 
-    mnu.Append(ID_NETWORK_ADD, "Insert After", mnuAdd, "");
-    mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
+    wxMenuItem* ma =  mnu.Append(ID_NETWORK_ADD, "Insert After", mnuAdd, "");
+    wxMenuItem* be = mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
     mnu.AppendSeparator();
 
-    mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(selcnt > 0);
-    mnu.Append(ID_NETWORK_ACTIVATE, "Activate")->Enable(selcnt > 0);
-    mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate")->Enable(selcnt > 0);
+    if (!ButtonAddE131->IsEnabled())
+    {
+        ma->Enable(false);
+        be->Enable(false);
+    }
+
+    wxMenuItem* mid = mnu.Append(ID_NETWORK_DELETE, "Delete");
+    wxMenuItem* mia = mnu.Append(ID_NETWORK_ACTIVATE, "Activate");
+    wxMenuItem* mide = mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
+
+    mid->Enable(selcnt > 0);
+    mia->Enable(selcnt > 0);
+    mide->Enable(selcnt > 0);
+
     oc->Enable(selcnt == 1);
     if (!AllSelectedSupportIP())
     {
@@ -1542,6 +1553,13 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                 oc->Enable(false);
             }
         }
+    }
+
+    if (!ButtonAddE131->IsEnabled())
+    {
+        mia->Enable(false);
+        mid->Enable(false);
+        mide->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
