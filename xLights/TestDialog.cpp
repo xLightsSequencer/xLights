@@ -127,7 +127,7 @@ TreeController::TreeController(Output* output)
 	_inactive = !output->IsEnabled();
 	_description = output->GetDescription();
     _ipaddress = output->GetIP();
-    _universe = wxString::Format(wxT("%i"), output->GetUniverse()); 
+    _universe = wxString::Format(wxT("%i"), output->GetUniverse());
     _comport = output->GetCommPort();
     _baudrate = wxString::Format(wxT("%i"), output->GetBaudRate());
 	_type = CONTROLLERTYPE::CT_CONTROLLER;
@@ -585,6 +585,7 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
 	Connect(ID_RADIOBUTTON_RGBCycle_RGBW,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_RGBWSelect);
 	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TestDialog::OnSlider_SpeedCmdSliderUpdated);
 	Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&TestDialog::OnTimer1Trigger);
+	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&TestDialog::OnClose);
 	//*)
 
 	SetSize(wxSystemSettings::GetMetric(wxSYS_SCREEN_X) * 3 / 4, wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) * 3 / 4);
@@ -651,11 +652,6 @@ TestDialog::~TestDialog()
 	// need to delete the TreeController.
 	Panel1->RemoveChild(TreeListCtrl_Channels);
 	//delete TreeListCtrl_Channels;
-
-    _outputManager->AllOff();
-    _outputManager->StopOutput();
-
-    EnableSleepModes();
 
 	//(*Destroy(TestDialog)
 	//*)
@@ -867,7 +863,7 @@ bool TestDialog::CascadeSelected(wxTreeListItem& item, wxCheckBoxState state)
 void TestDialog::AddController(Output* output)
 {
     TreeController* controller = new TreeController(output);
-    
+
     wxTreeListItem c = TreeListCtrl_Channels->AppendItem(_controllers, controller->Name(), -1, -1, (wxClientData*)controller);
     controller->SetTreeListItem(c);
     if (controller->Clickable())
@@ -2226,4 +2222,16 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
 	}
+}
+
+void TestDialog::OnClose(wxCloseEvent& event)
+{
+    if (CheckBox_OutputToLights->IsChecked())
+    {
+        Timer1.Stop();
+        _outputManager->AllOff();
+        _outputManager->StopOutput();
+        EnableSleepModes();
+    }
+    EndDialog(0);
 }

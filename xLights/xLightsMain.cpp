@@ -2921,7 +2921,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	// resume output if it was set
 	if (output)
 	{
-		EnableOutputs();
+        CheckBoxLightOutput->SetValue(true);
+        EnableOutputs();
 	}
 
 	Timer1.Start();
@@ -2977,6 +2978,8 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     if (output)
     {
         _outputManager.AllOff();
+        CheckBoxLightOutput->SetValue(false);
+        EnableOutputs();
     }
 
     // creating the dialog can take some time so display an hourglass
@@ -2991,6 +2994,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // resume output if it was set
     if (output)
     {
+        CheckBoxLightOutput->SetValue(true);
         EnableOutputs();
     }
 

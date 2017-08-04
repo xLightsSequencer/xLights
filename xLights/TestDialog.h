@@ -304,6 +304,7 @@ class TestDialog: public wxDialog
 		void OnTimer1Trigger(wxTimerEvent& event);
 		void OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event);
 		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
