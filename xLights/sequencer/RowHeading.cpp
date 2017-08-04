@@ -655,7 +655,8 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
     else
     {
         // Submodel
-        // I dont need to do anything more as these dont expand
+        SubModelElement* sme = dynamic_cast<SubModelElement*>(e);
+        hasEffects = sme->HasEffects();
     }
 
     return hasEffects;
