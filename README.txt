@@ -11,8 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dan)     Prevent a GIF with 0 frame time hanging xlights
+   -- enh (keith)   Test tab auto turn on
+   -- bug (keith)   Fix on exit test tab doesnt turn back on output to lights correctly
+   -- enh (keith)   Test tab remembers test settings between sessions
+   -- bug (keith)   Fix change name of model causes loss of model selection
+   -- enh (keith)   Improve model naming when copying or adding new models
    -- bug (keith)   Fix cascade again ... it will work someday
    -- bug (keith)   Fix failed backup in some subfolders
+   -- enh (keith)   Add remove unused layers to row heading right click menu
+   -- bug (keith)   Prevent errors pasting models with illegal data
+   -- bug (keith)   Fix backup not working for directories with . in the name
+   -- bug (keith)   Fix AC cascade ... again
 2017.21  Jul 28, 2017
    -- enh (keith)   Add the block of channels model
    -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... 

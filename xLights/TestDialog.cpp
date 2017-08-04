@@ -5,6 +5,7 @@
 #include <wx/textdlg.h>
 #include <wx/settings.h>
 #include <wx/dataview.h>
+#include <wx/confbase.h>
 
 //(*InternalHeaders(TestDialog)
 #include <wx/intl.h>
@@ -114,24 +115,24 @@ TreeController::TreeController(CONTROLLERTYPE type, std::string comport, int uni
 }
 
 // this is for a regular node
-TreeController::TreeController(Output* output)
+TreeController::TreeController(Output* output): _nodeNumber(0)
 {
     _output = output;
     _colour = ' ';
-	_doesNotExist = false;
-	_nodes = -1;
-	_startxlightschannel = output->GetStartChannel();
-	_endchannel = output->GetChannels();
-	_startchannel = 1;
-	_endxlightschannel = output->GetEndChannel();
-	_inactive = !output->IsEnabled();
-	_description = output->GetDescription();
+    _doesNotExist = false;
+    _nodes = -1;
+    _startxlightschannel = output->GetStartChannel();
+    _endchannel = output->GetChannels();
+    _startchannel = 1;
+    _endxlightschannel = output->GetEndChannel();
+    _inactive = !output->IsEnabled();
+    _description = output->GetDescription();
     _ipaddress = output->GetIP();
     _universe = wxString::Format(wxT("%i"), output->GetUniverse());
     _comport = output->GetCommPort();
     _baudrate = wxString::Format(wxT("%i"), output->GetBaudRate());
-	_type = CONTROLLERTYPE::CT_CONTROLLER;
-	_name = output->GetLongDescription();
+    _type = CONTROLLERTYPE::CT_CONTROLLER;
+    _name = output->GetLongDescription();
 }
 
 // Checks if the nominated channel is within the range of this element
@@ -553,37 +554,6 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
 	Connect(ID_BUTTON_Load,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TestDialog::OnButton_SaveClick);
 	Connect(ID_CHECKBOX_OutputToLights,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TestDialog::OnCheckBox_OutputToLightsClick);
-	Connect(ID_RADIOBUTTON_Standard_Off,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_OffSelect);
-	Connect(ID_RADIOBUTTON_Standard_Chase,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_ChaseSelect);
-	Connect(ID_RADIOBUTTON_Standard_Chase13,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Chase13Select);
-	Connect(ID_RADIOBUTTON_Standard_Chase14,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Chase14Select);
-	Connect(ID_RADIOBUTTON_Standard_Chase15,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Chase15Select);
-	Connect(ID_RADIOBUTTON_Standard_Alternate,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_AlternateSelect);
-	Connect(ID_RADIOBUTTON_Standard_Twinke5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Twinkle5Select);
-	Connect(ID_RADIOBUTTON_Standard_Twinkle10,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Twinkle10Select);
-	Connect(ID_RADIOBUTTON_Standard_Twinkle25,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Twinkle25Select);
-	Connect(ID_RADIOBUTTON_Standard_Twinkle50,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_Twinkle50Select);
-	Connect(ID_RADIOBUTTON_Standard_Shimmer,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_ShimmerSelect);
-	Connect(ID_RADIOBUTTON_Standard_Background,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_Standard_BackgroundSelect);
-	Connect(ID_RADIOBUTTON_RGB_Off,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_OffSelect);
-	Connect(ID_RADIOBUTTON_RGB_Chase,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_ChaseSelect);
-	Connect(ID_RADIOBUTTON_RGB_Chase13,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Chase13Select);
-	Connect(ID_RADIOBUTTON_RGB_Chase14,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Chase14Select);
-	Connect(ID_RADIOBUTTON_RGB_Chase15,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Chase15Select);
-	Connect(ID_RADIOBUTTON_RGB_Alternate,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_AlternateSelect);
-	Connect(ID_RADIOBUTTON_RGB_Twinkle5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Twinkle5Select);
-	Connect(ID_RADIOBUTTON_RGB_Twinkle10,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Twinkle10Select);
-	Connect(ID_RADIOBUTTON_RGB_Twinkle25,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Twinkle25Select);
-	Connect(ID_RADIOBUTTON_RGB_Twinkle50,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_Twinkle50Select);
-	Connect(ID_RADIOBUTTON_RGB_Shimmer,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_ShimmerSelect);
-	Connect(ID_RADIOBUTTON_RGB_Background,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGB_BackgroundSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_Off,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_OffSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_ABC,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_ABCSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_ABCAll,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_ABCAllSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_ABCAllNone,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_ABCAllNoneSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_MixedColors,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_MixedColorsSelect);
-	Connect(ID_RADIOBUTTON_RGBCycle_RGBW,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&TestDialog::OnRadioButton_RGBCycle_RGBWSelect);
-	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TestDialog::OnSlider_SpeedCmdSliderUpdated);
 	Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&TestDialog::OnTimer1Trigger);
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&TestDialog::OnClose);
 	//*)
@@ -632,13 +602,18 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
 		tc->DoesNotExist();
 	}
 
+    wxConfigBase* config = wxConfigBase::Get();
+    DeserialiseSettings(config->Read("xLightsTestSettings").ToStdString());
+
 	_starttime = wxDateTime::UNow();
 	DisableSleepModes();
 
-    if (CheckBox_OutputToLights->IsChecked())
+    CheckBox_OutputToLights->SetValue(true);
+    if (!_outputManager->StartOutput())
     {
-        Timer1.Start(50, wxTIMER_CONTINUOUS);
+        wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
     }
+    Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
 
 // Destructor
@@ -1369,7 +1344,7 @@ bool TestDialog::CheckChannel(long chid, wxCheckBoxState state)
 	for (int i = 0; i < chs.size(); i++)
 	{
 		// skip if inactive or a NULL controller
-		if (chs[i] != NULL && chs[i]->Clickable())
+		if (chs[i] != nullptr && chs[i]->Clickable())
 		{
 			TreeListCtrl_Channels->CheckItem((chs[i]->GetTreeListItem()), state);
 		}
@@ -1387,7 +1362,7 @@ void TestDialog::Clear(wxTreeListItem& item)
 	TreeListCtrl_Channels->CheckItem(item, wxCHK_UNCHECKED);
 
 	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(item);
-	while (i != NULL)
+	while (i != nullptr)
 	{
 		Clear(i);
 		i = TreeListCtrl_Channels->GetNextSibling(i);
@@ -1466,12 +1441,12 @@ void TestDialog::CascadeModelDoesNotExist()
 
 	// Now go through all the model groups ... if all models are not clickable then make the model group not clickable
 	wxTreeListItem i = TreeListCtrl_Channels->GetFirstChild(_modelGroups);
-	while (i != NULL)
+	while (i != nullptr)
 	{
 		bool noneclickable = true;
 
 		wxTreeListItem j = TreeListCtrl_Channels->GetFirstChild(i);
-		while (j != NULL)
+		while (j != nullptr)
 		{
 			TreeController* tc = (TreeController *)TreeListCtrl_Channels->GetItemData(j);
 			if (tc->Clickable())
@@ -1545,181 +1520,6 @@ void TestDialog::OnButton_SaveClick(wxCommandEvent& event)
     logger_base.debug("Saving test preset: %s", (const char*)name.c_str());
     _outputManager->Save();
     logger_base.debug("   Save done.");
-}
-
-void TestDialog::OnSlider_SpeedCmdSliderUpdated(wxScrollEvent& event)
-{
-}
-
-void TestDialog::OnRadioButton_RGB_OffSelect(wxCommandEvent& event)
-{
-	_testFunc = OFF;
-}
-
-void TestDialog::OnRadioButton_RGB_ChaseSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = std::numeric_limits<int>::max();
-}
-
-void TestDialog::OnRadioButton_RGB_Chase13Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 3;
-}
-
-void TestDialog::OnRadioButton_RGB_Chase14Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 4;
-}
-
-void TestDialog::OnRadioButton_RGB_Chase15Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 5;
-}
-
-void TestDialog::OnRadioButton_RGB_AlternateSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 2;
-}
-
-void TestDialog::OnRadioButton_RGB_Twinkle5Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 20;
-}
-
-void TestDialog::OnRadioButton_RGB_Twinkle10Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 10;
-}
-
-void TestDialog::OnRadioButton_RGB_Twinkle25Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 4;
-}
-
-void TestDialog::OnRadioButton_RGB_Twinkle50Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 2;
-}
-
-void TestDialog::OnRadioButton_RGB_ShimmerSelect(wxCommandEvent& event)
-{
-	_testFunc = SHIMMER;
-}
-
-void TestDialog::OnRadioButton_RGB_BackgroundSelect(wxCommandEvent& event)
-{
-	_testFunc = DIM;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_OffSelect(wxCommandEvent& event)
-{
-	_testFunc = OFF;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_ABCSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 3;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_ABCAllSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 4;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_ABCAllNoneSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 5;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_MixedColorsSelect(wxCommandEvent& event)
-{
-	_testFunc = DIM;
-}
-
-void TestDialog::OnRadioButton_Standard_OffSelect(wxCommandEvent& event)
-{
-	_testFunc = OFF;
-}
-
-void TestDialog::OnRadioButton_Standard_ChaseSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = std::numeric_limits<int>::max();
-}
-
-void TestDialog::OnRadioButton_Standard_Chase13Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 3;
-}
-
-void TestDialog::OnRadioButton_Standard_Chase14Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 4;
-}
-
-void TestDialog::OnRadioButton_Standard_Chase15Select(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 5;
-}
-
-void TestDialog::OnRadioButton_Standard_AlternateSelect(wxCommandEvent& event)
-{
-	_testFunc = CHASE;
-	_chaseGrouping = 2;
-}
-
-void TestDialog::OnRadioButton_Standard_Twinkle5Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 20;
-}
-
-void TestDialog::OnRadioButton_Standard_Twinkle10Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 10;
-}
-
-void TestDialog::OnRadioButton_Standard_Twinkle25Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 4;
-}
-
-void TestDialog::OnRadioButton_Standard_Twinkle50Select(wxCommandEvent& event)
-{
-	_testFunc = TWINKLE;
-	_twinkleRatio = 2;
-}
-
-void TestDialog::OnRadioButton_Standard_ShimmerSelect(wxCommandEvent& event)
-{
-	_testFunc = SHIMMER;
-}
-
-void TestDialog::OnRadioButton_Standard_BackgroundSelect(wxCommandEvent& event)
-{
-	_testFunc = DIM;
-}
-
-void TestDialog::OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event)
-{
-    _testFunc = RGBW;
 }
 
 void TestDialog::GetCheckedItems(wxArrayInt& chArray)
@@ -1797,8 +1597,162 @@ void TestDialog::TestButtonsOff()
 	RadioButton_RGBCycle_ABCAllNone->SetValue(false);
 	RadioButton_RGBCycle_MixedColors->SetValue(false);
 	RadioButton_RGBCycle_RGBW->SetValue(false);
+}
 
-	_testFunc = OFF;
+TestDialog::TestFunctions TestDialog::GetTestFunction(int notebookSelection)
+{
+    switch (notebookSelection)
+    {
+    case 0:
+        if (RadioButton_Standard_Off->GetValue())
+        {
+            return OFF;
+        }
+        else if (RadioButton_Standard_Chase->GetValue())
+        {
+            _chaseGrouping = std::numeric_limits<int>::max();
+            return CHASE;
+        }
+        else if (RadioButton_Standard_Chase13->GetValue())
+        {
+            _chaseGrouping = 3;
+            return CHASE;
+        }
+        else if (RadioButton_Standard_Chase14->GetValue())
+        {
+            _chaseGrouping = 4;
+            return CHASE;
+        }
+        else if (RadioButton_Standard_Chase15->GetValue())
+        {
+            _chaseGrouping = 5;
+            return CHASE;
+        }
+        else if (RadioButton_Standard_Alternate->GetValue())
+        {
+            _chaseGrouping = 2;
+            return CHASE;
+        }
+        else if (RadioButton_Standard_Twinkle5->GetValue())
+        {
+            _twinkleRatio = 20;
+            return TWINKLE;
+        }
+        else if (RadioButton_Standard_Twinkle10->GetValue())
+        {
+            _twinkleRatio = 10;
+            return TWINKLE;
+        }
+        else if (RadioButton_Standard_Twinkle25->GetValue())
+        {
+            _twinkleRatio = 4;
+            return TWINKLE;
+        }
+        else if (RadioButton_Standard_Twinkle50->GetValue())
+        {
+            _twinkleRatio = 2;
+            return TWINKLE;
+        }
+        else if (RadioButton_Standard_Shimmer->GetValue())
+        {
+            return SHIMMER;
+        }
+        else if (RadioButton_Standard_Background->GetValue())
+        {
+            return DIM;
+        }
+        break;
+    case 1:
+        if (RadioButton_RGB_Off->GetValue())
+        {
+            return OFF;
+        }
+        else if (RadioButton_RGB_Chase->GetValue())
+        {
+            _chaseGrouping = std::numeric_limits<int>::max();
+            return CHASE;
+        }
+        else if (RadioButton_RGB_Chase13->GetValue())
+        {
+            _chaseGrouping = 3;
+            return CHASE;
+        }
+        else if (RadioButton_RGB_Chase14->GetValue())
+        {
+            _chaseGrouping = 4;
+            return CHASE;
+        }
+        else if (RadioButton_RGB_Chase15->GetValue())
+        {
+            _chaseGrouping = 5;
+            return CHASE;
+        }
+        else if (RadioButton_RGB_Alternate->GetValue())
+        {
+            _chaseGrouping = 2;
+            return CHASE;
+        }
+        else if (RadioButton_RGB_Twinkle5->GetValue())
+        {
+            _twinkleRatio = 20;
+            return TWINKLE;
+        }
+        else if (RadioButton_RGB_Twinkle10->GetValue())
+        {
+            _twinkleRatio = 10;
+            return TWINKLE;
+        }
+        else if (RadioButton_RGB_Twinkle25->GetValue())
+        {
+            _twinkleRatio = 4;
+            return TWINKLE;
+        }
+        else if (RadioButton_RGB_Twinkle50->GetValue())
+        {
+            _twinkleRatio = 2;
+            return TWINKLE;
+        }
+        else if (RadioButton_RGB_Shimmer->GetValue())
+        {
+            return SHIMMER;
+        }
+        else if (RadioButton_RGB_Background->GetValue())
+        {
+            return DIM;
+        }
+        break;
+    case 2:
+        if (RadioButton_RGBCycle_Off->GetValue())
+        {
+            return OFF;
+        }
+        else if (RadioButton_RGBCycle_ABC->GetValue())
+        {
+            _chaseGrouping = 3;
+            return CHASE;
+        }
+        else if (RadioButton_RGBCycle_ABCAll->GetValue())
+        {
+            _chaseGrouping = 4;
+            return CHASE;
+        }
+        else if (RadioButton_RGBCycle_ABCAllNone->GetValue())
+        {
+            _chaseGrouping = 5;
+            return CHASE;
+        }
+        else if (RadioButton_RGBCycle_MixedColors->GetValue())
+        {
+            return DIM;
+        }
+        else if (RadioButton_RGBCycle_RGBW->GetValue())
+        {
+            return RGBW;
+        }
+        break;
+    }
+
+    return OFF;
 }
 
 void TestDialog::OnTimer(long curtime)
@@ -1823,11 +1777,14 @@ void TestDialog::OnTimer(long curtime)
 		LastNotebookSelection = NotebookSelection;
 		_checkChannelList = true;
 		TestSeqIdx = 0;
-		TestButtonsOff();
+		//TestButtonsOff();
 	}
-	if (_testFunc != LastFunc)
+
+    TestFunctions testFunc = GetTestFunction(NotebookSelection);
+
+	if (testFunc != LastFunc)
 	{
-		LastFunc = _testFunc;
+		LastFunc = testFunc;
 		rgbCycle = 0;
 		_checkChannelList = true;
 		NextSequenceStart = -1;
@@ -1864,7 +1821,7 @@ void TestDialog::OnTimer(long curtime)
 			LastBgColor[i] = -1;
 			LastFgColor[i] = -1;
 		}
-		if (_testFunc == OFF)
+		if (testFunc == OFF)
 		{
 			StatusBar1->SetLabelText(_("Testing off"));
 		}
@@ -1875,7 +1832,7 @@ void TestDialog::OnTimer(long curtime)
 		_checkChannelList = false;
 	}
 
-	if (_testFunc != OFF && chArray.Count() > 0) switch (NotebookSelection)
+	if (testFunc != OFF && chArray.Count() > 0) switch (NotebookSelection)
 	{
 	case 0:
 		// standard tests
@@ -1887,7 +1844,7 @@ void TestDialog::OnTimer(long curtime)
 		LastFgIntensity = FgIntensity;
 		interval = 1600 - v * 15;
 
-		switch (_testFunc)
+		switch (testFunc)
 		{
 		case DIM:
 			if (ColorChange)
@@ -1993,7 +1950,7 @@ void TestDialog::OnTimer(long curtime)
 			LastBgColor[i] = BgColor[i];
 			LastFgColor[i] = FgColor[i];
 		}
-		switch (_testFunc)
+		switch (testFunc)
 		{
 		case DIM:
 			if (ColorChange)
@@ -2087,7 +2044,7 @@ void TestDialog::OnTimer(long curtime)
 	case 2:
 		// RGB Cycle
 		v = Slider_Speed->GetValue();  // 0-100
-		if (_testFunc == DIM)
+		if (testFunc == DIM)
 		{
 			// color mixing
 			if (v != LastSequenceSpeed)
@@ -2104,7 +2061,7 @@ void TestDialog::OnTimer(long curtime)
                 _outputManager->SetOneChannel(chArray[i]-1, BgColor[i % 3]);
 			}
 		}
-		else if (_testFunc == RGBW)
+		else if (testFunc == RGBW)
 		{
 			if (v != LastSequenceSpeed)
 			{
@@ -2224,6 +2181,267 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	}
 }
 
+std::string TestDialog::SerialiseSettings()
+{
+    int standardFunction = 0;
+    if (RadioButton_Standard_Chase->GetValue())
+    {
+        standardFunction = 1;
+    }
+    else if (RadioButton_Standard_Chase13->GetValue())
+    {
+        standardFunction = 2;
+    }
+    else if (RadioButton_Standard_Chase14->GetValue())
+    {
+        standardFunction = 3;
+    }
+    else if (RadioButton_Standard_Chase15->GetValue())
+    {
+        standardFunction = 4;
+    }
+    else if (RadioButton_Standard_Alternate->GetValue())
+    {
+        standardFunction = 5;
+    }
+    else if (RadioButton_Standard_Twinkle5->GetValue())
+    {
+        standardFunction = 6;
+    }
+    else if (RadioButton_Standard_Twinkle10->GetValue())
+    {
+        standardFunction = 7;
+    }
+    else if (RadioButton_Standard_Twinkle25->GetValue())
+    {
+        standardFunction = 8;
+    }
+    else if (RadioButton_Standard_Twinkle50->GetValue())
+    {
+        standardFunction = 9;
+    }
+    else if (RadioButton_Standard_Shimmer->GetValue())
+    {
+        standardFunction = 10;
+    }
+    else if (RadioButton_Standard_Background->GetValue())
+    {
+        standardFunction = 11;
+    }
+    
+    int rgbFunction = 0;
+    if (RadioButton_RGB_Chase->GetValue())
+    {
+        rgbFunction = 1;
+    }
+    else if (RadioButton_RGB_Chase13->GetValue())
+    {
+        rgbFunction = 2;
+    }
+    else if (RadioButton_RGB_Chase14->GetValue())
+    {
+        rgbFunction = 3;
+    }
+    else if (RadioButton_RGB_Chase15->GetValue())
+    {
+        rgbFunction = 4;
+    }
+    else if (RadioButton_RGB_Alternate->GetValue())
+    {
+        rgbFunction = 5;
+    }
+    else if (RadioButton_RGB_Twinkle5->GetValue())
+    {
+        rgbFunction = 6;
+    }
+    else if (RadioButton_RGB_Twinkle10->GetValue())
+    {
+        rgbFunction = 7;
+    }
+    else if (RadioButton_RGB_Twinkle25->GetValue())
+    {
+        rgbFunction = 8;
+    }
+    else if (RadioButton_RGB_Twinkle50->GetValue())
+    {
+        rgbFunction = 9;
+    }
+    else if (RadioButton_RGB_Shimmer->GetValue())
+    {
+        rgbFunction = 10;
+    }
+    else if (RadioButton_RGB_Background->GetValue())
+    {
+        rgbFunction = 11;
+    }
+
+    int rgbCycleFunction = 0;
+    if (RadioButton_RGBCycle_ABC->GetValue())
+    {
+        rgbCycleFunction = 1;
+    }
+    else if (RadioButton_RGBCycle_ABCAll->GetValue())
+    {
+        rgbCycleFunction = 2;
+    }
+    else if (RadioButton_RGBCycle_ABCAllNone->GetValue())
+    {
+        rgbCycleFunction = 3;
+    }
+    else if (RadioButton_RGBCycle_MixedColors->GetValue())
+    {
+        rgbCycleFunction = 4;
+    }
+    else if (RadioButton_RGBCycle_RGBW->GetValue())
+    {
+        rgbCycleFunction = 5;
+    }
+
+    int speed = Slider_Speed->GetValue();
+
+    int standardBackground = Slider_Standard_Background->GetValue();
+    int standardHighlight = Slider_Standard_Highlight->GetValue();
+
+    int rgbBackgroundR = Slider_RGB_BG_R->GetValue();
+    int rgbBackgroundG = Slider_RGB_BG_G->GetValue();
+    int rgbBackgroundB = Slider_RGB_BG_B->GetValue();
+    int rgbHighlightR = Slider_RGB_H_R->GetValue();
+    int rgbHighlightG = Slider_RGB_H_G->GetValue();
+    int rgbHighlightB = Slider_RGB_H_B->GetValue();
+
+    return wxString::Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+        speed,
+        standardFunction, standardBackground, standardHighlight,
+        rgbFunction, rgbBackgroundR, rgbBackgroundG, rgbBackgroundB, rgbHighlightR, rgbHighlightG, rgbHighlightB,
+        rgbCycleFunction).ToStdString();
+}
+
+void TestDialog::DeserialiseSettings(const std::string& settings)
+{
+    if (settings == "") return;
+
+    wxArrayString values = wxSplit(settings, '|');
+
+    TestButtonsOff();
+    RadioButton_Standard_Off->SetValue(false);
+    RadioButton_RGB_Off->SetValue(false);
+    RadioButton_RGBCycle_Off->SetValue(false);
+
+    if (values.size() == 12)
+    {
+        Slider_Speed->SetValue(wxAtoi(values[0]));
+        switch (wxAtoi(values[1]))
+        {
+        case 1:
+            RadioButton_Standard_Chase->SetValue(true);
+            break;
+        case 2:
+            RadioButton_Standard_Chase13->SetValue(true);
+            break;
+        case 3:
+            RadioButton_Standard_Chase14->SetValue(true);
+            break;
+        case 4:
+            RadioButton_Standard_Chase15->SetValue(true);
+            break;
+        case 5:
+            RadioButton_Standard_Alternate->SetValue(true);
+            break;
+        case 6:
+            RadioButton_Standard_Twinkle5->SetValue(true);
+            break;
+        case 7:
+            RadioButton_Standard_Twinkle10->SetValue(true);
+            break;
+        case 8:
+            RadioButton_Standard_Twinkle25->SetValue(true);
+            break;
+        case 9:
+            RadioButton_Standard_Twinkle50->SetValue(true);
+            break;
+        case 10:
+            RadioButton_Standard_Shimmer->SetValue(true);
+            break;
+        case 11:
+            RadioButton_Standard_Background->SetValue(true);
+            break;
+        default:
+            RadioButton_Standard_Off->SetValue(true);
+            break;
+        }
+        Slider_Standard_Background->SetValue(wxAtoi(values[2]));
+        Slider_Standard_Highlight->SetValue(wxAtoi(values[3]));
+
+        switch (wxAtoi(values[4]))
+        {
+        case 1:
+            RadioButton_RGB_Chase->SetValue(true);
+            break;
+        case 2:
+            RadioButton_RGB_Chase13->SetValue(true);
+            break;
+        case 3:
+            RadioButton_RGB_Chase14->SetValue(true);
+            break;
+        case 4:
+            RadioButton_RGB_Chase15->SetValue(true);
+            break;
+        case 5:
+            RadioButton_RGB_Alternate->SetValue(true);
+            break;
+        case 6:
+            RadioButton_RGB_Twinkle5->SetValue(true);
+            break;
+        case 7:
+            RadioButton_RGB_Twinkle10->SetValue(true);
+            break;
+        case 8:
+            RadioButton_RGB_Twinkle25->SetValue(true);
+            break;
+        case 9:
+            RadioButton_RGB_Twinkle50->SetValue(true);
+            break;
+        case 10:
+            RadioButton_RGB_Shimmer->SetValue(true);
+            break;
+        case 11:
+            RadioButton_RGB_Background->SetValue(true);
+            break;
+        default:
+            RadioButton_RGB_Off->SetValue(true);
+            break;
+        }
+        Slider_RGB_BG_R->SetValue(wxAtoi(values[5]));
+        Slider_RGB_BG_G->SetValue(wxAtoi(values[6]));
+        Slider_RGB_BG_B->SetValue(wxAtoi(values[7]));
+        Slider_RGB_H_R->SetValue(wxAtoi(values[8]));
+        Slider_RGB_H_G->SetValue(wxAtoi(values[9]));
+        Slider_RGB_H_B->SetValue(wxAtoi(values[10]));
+
+        switch(wxAtoi(values[11]))
+        {
+        case 1:
+            RadioButton_RGBCycle_ABC->SetValue(true);
+            break;
+        case 2:
+            RadioButton_RGBCycle_ABCAll->SetValue(true);
+            break;
+        case 3:
+            RadioButton_RGBCycle_ABCAllNone->SetValue(true);
+            break;
+        case 4:
+            RadioButton_RGBCycle_MixedColors->SetValue(true);
+            break;
+        case 5:
+            RadioButton_RGBCycle_RGBW->SetValue(true);
+            break;
+        default:
+            RadioButton_RGBCycle_Off->SetValue(true);
+            break;
+        }
+    }
+}
+
 void TestDialog::OnClose(wxCloseEvent& event)
 {
     if (CheckBox_OutputToLights->IsChecked())
@@ -2233,5 +2451,9 @@ void TestDialog::OnClose(wxCloseEvent& event)
         _outputManager->StopOutput();
         EnableSleepModes();
     }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsTestSettings", wxString(SerialiseSettings()));
+
     EndDialog(0);
 }
