@@ -21,6 +21,7 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual int GetLightsPerNode() const override { return parm3; } // default to one unless a model supports this
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual bool SupportsExportAsCustom() const override { return true; }
 
     protected:
         static std::vector<std::string> LINE_BUFFER_STYLES;

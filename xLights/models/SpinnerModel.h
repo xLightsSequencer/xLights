@@ -9,7 +9,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
         SpinnerModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~SpinnerModel();
-        virtual int GetNumStrands() const override;
+        virtual int GetNumStrands() const override; 
 
         virtual bool StrandsZigZagOnString() const override { return true;};
 
@@ -19,6 +19,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
             std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual void GetBufferSize(const std::string &type, const std::string &transform,
             int &BufferWi, int &BufferHi) const override;
+        virtual bool SupportsExportAsCustom() const override { return true; }
 
     protected:
         SpinnerModel(const ModelManager &manager);

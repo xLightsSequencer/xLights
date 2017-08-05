@@ -19,6 +19,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
+        virtual bool SupportsExportAsCustom() const override { return false; }
 
     protected:
         virtual void InitModel() override;

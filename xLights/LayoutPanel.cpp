@@ -63,6 +63,7 @@ const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
@@ -1686,9 +1687,13 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                 mnu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
             }
         }
-        mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
         if (model != nullptr)
         {
+            mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+            if (model->SupportsExportAsCustom())
+            {
+                mnu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
+            }
             if (model->SupportsXlightsModel())
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
@@ -1751,10 +1756,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         Model* md=selectedModel;
         if( md == nullptr ) return;
-        wxString html=md->ChannelLayoutHtml();
+        wxString html=md->ChannelLayoutHtml(xlights->GetOutputManager());
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
+    {
+        Model* md = selectedModel;
+        if (md == nullptr) return;
+        md->ExportAsCustomXModel();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
