@@ -14,10 +14,12 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
                                    int &BufferWi, int &BufferHi) const override;
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
-    
+        virtual int GetNumPhysicalStrings() const override { return 1; }
+
     
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+        virtual bool SupportsExportAsCustom() const override { return true; }
 
     protected:
         virtual void InitModel() override;

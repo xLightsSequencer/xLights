@@ -63,6 +63,7 @@ const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
@@ -173,7 +174,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     background = nullptr;
-
+    _firstTreeLoad = true;
     _lastXlightsModel = "";
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
@@ -560,13 +561,15 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     prop->SetValue(safename);
                 }
             }
+            std::string oldname = selectedModel->name;
             if (selectedModel->name != safename) {
                 RenameModelInTree(selectedModel, safename);
                 xlights->RenameModel(selectedModel->name, safename);
-                if (selectedModel->name == lastModelName) {
+                if (oldname == lastModelName) {
                     lastModelName = safename;
                 }
                 xlights->RecalcModels(true);
+                SelectModel(safename);
                 CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
@@ -644,7 +647,10 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
 
 void LayoutPanel::RefreshLayout()
 {
+    std::string selectedModelName = "";
+    if (selectedModel != nullptr) selectedModelName = selectedModel->name;
     xlights->UpdateModelsList();
+    if (selectedModelName != "") SelectModel(selectedModelName);
     ShowPropGrid(true);
 }
 
@@ -840,18 +846,19 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         dummy_models.clear();
-        if( grp->GetName() == currentLayoutGroup ) {
-            UpdateModelsForPreview( currentLayoutGroup, grp, models, true );
-        } else {
-            UpdateModelsForPreview( grp->GetName(), grp, dummy_models, false );
+        if (grp->GetName() == currentLayoutGroup) {
+            UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
+        }
+        else {
+            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
         }
     }
 
     // update the Layout tab preview for default options
-    if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-        UpdateModelsForPreview( currentLayoutGroup, nullptr, models, true );
+    if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
+        UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
-    if( full_refresh ) {
+    if (full_refresh) {
         int width = 0;
 
         TreeListViewModels->Freeze();
@@ -879,19 +886,24 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             }
         }
 
-        width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
+        // Only set the column sizes the very first time we load it
+        if (_firstTreeLoad)
+        {
+            _firstTreeLoad = false;
+            width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
+            TreeListViewModels->SetColumnWidth(2, width);
+            TreeListViewModels->SetColumnWidth(1, width);
+        }
 
-        TreeListViewModels->SetColumnWidth(2, width);
-        TreeListViewModels->SetColumnWidth(1, width);
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
         TreeListViewModels->Thaw();
 
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
-        #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
+#ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
 
-        i = TreeListViewModels->GetSize().GetWidth()-(width*2);
-        #endif
+        i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
+#endif
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
@@ -1675,9 +1687,13 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                 mnu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
             }
         }
-        mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT,"Node Layout");
         if (model != nullptr)
         {
+            mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+            if (model->SupportsExportAsCustom())
+            {
+                mnu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
+            }
             if (model->SupportsXlightsModel())
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
@@ -1740,10 +1756,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         Model* md=selectedModel;
         if( md == nullptr ) return;
-        wxString html=md->ChannelLayoutHtml();
+        wxString html=md->ChannelLayoutHtml(xlights->GetOutputManager());
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
+    {
+        Model* md = selectedModel;
+        if (md == nullptr) return;
+        md->ExportAsCustomXModel();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
@@ -2229,22 +2251,12 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else if (selectedModel != nullptr) {
-        wxString copy_data;
-        wxXmlDocument doc;
-        wxXmlNode *parent = selectedModel->GetModelXml()->GetParent();
-        wxXmlNode *next = selectedModel->GetModelXml()->GetNext();
-        parent->RemoveChild(selectedModel->GetModelXml());
-        doc.SetRoot(selectedModel->GetModelXml());
+        CopyPasteModel copyData;
 
-        wxStringOutputStream stream;
-        doc.Save(stream);
-        copy_data = stream.GetString();
-        doc.DetachRoot();
+        copyData.SetModel(selectedModel);
 
-        parent->InsertChild(selectedModel->GetModelXml(), next);
-
-        if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
-            if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+        if (copyData.IsOk() && wxTheClipboard->Open()) {
+            if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
                 wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
             }
             wxTheClipboard->Close();
@@ -2259,53 +2271,54 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
         DeleteSelectedModel();
     }
 }
+
 void LayoutPanel::DoPaste(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
             CreateUndoPoint("All", selectedModel == nullptr ? "" : selectedModel->name);
+
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
-            wxStringInputStream in(data.GetText());
-            wxXmlDocument doc(in);
 
-            wxXmlNode *nd = doc.GetRoot();
-            if (nd != nullptr) // Issue #589 ... this would appear to be the only reason why it would occur ... so guarding against it
+            CopyPasteModel copyData(data.GetText().ToStdString());
+
+            wxTheClipboard->Close();
+
+            if (copyData.IsOk())
             {
-                doc.DetachRoot();
+                wxXmlNode* nd = copyData.GetModelXml();
 
-                if (xlights->AllModels[lastModelName] != nullptr
-                    && nd->GetAttribute("Advanced", "0") != "1") {
-                    std::string startChannel = ">" + lastModelName + ":1";
-                    nd->DeleteAttribute("StartChannel");
-                    nd->AddAttribute("StartChannel", startChannel);
+                if (nd != nullptr)
+                {
+                    if (xlights->AllModels[lastModelName] != nullptr
+                        && nd->GetAttribute("Advanced", "0") != "1") {
+                        std::string startChannel = ">" + lastModelName + ":1";
+                        nd->DeleteAttribute("StartChannel");
+                        nd->AddAttribute("StartChannel", startChannel);
+                    }
+
+                    Model *newModel = xlights->AllModels.CreateModel(nd);
+                    int cnt = 1;
+                    std::string name = xlights->AllModels.GenerateModelName(newModel->name);
+                    newModel->name = name;
+                    newModel->GetModelXml()->DeleteAttribute("name");
+                    newModel->GetModelXml()->AddAttribute("name", name);
+                    newModel->AddOffset(0.02, 0.02);
+                    newModel->UpdateXmlWithScale();
+                    xlights->AllModels.AddModel(newModel);
+                    lastModelName = name;
+
+                    xlights->UpdateModelsList();
+                    xlights->MarkEffectsFileDirty(true);
+                    SelectModel(name);
                 }
-
-                Model *newModel = xlights->AllModels.CreateModel(nd);
-                int cnt = 1;
-                std::string name = newModel->name;
-                while (xlights->AllModels[name] != nullptr) {
-                    name = newModel->name + "-" + std::to_string(cnt++);
-                }
-                newModel->name = name;
-                newModel->GetModelXml()->DeleteAttribute("name");
-                newModel->GetModelXml()->AddAttribute("name", name);
-                newModel->AddOffset(0.02, 0.02);
-                newModel->UpdateXmlWithScale();
-                xlights->AllModels.AddModel(newModel);
-                lastModelName = name;
-
-                xlights->UpdateModelsList();
-                xlights->MarkEffectsFileDirty(true);
-                wxTheClipboard->Close();
-                SelectModel(name);
             }
             else
             {
                 static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("LayoutPanel: Error trying to parse XML for paste. Paste request ignored. %s.", (const char *)data.GetText().c_str());
-                wxTheClipboard->Close();
             }
         }
     }
@@ -2914,5 +2927,85 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
         TreeListViewModels->GetRootItem();
         AddModelToTree(*a, &root);
+    }
+}
+
+CopyPasteModel::~CopyPasteModel()
+{
+    if (_xmlNode != nullptr)
+    {
+        delete _xmlNode;
+    }
+}
+
+CopyPasteModel::CopyPasteModel()
+{
+    _ok = false;
+    _xmlNode = nullptr;
+}
+
+CopyPasteModel::CopyPasteModel(const std::string& in)
+{
+    _ok = false;
+    _xmlNode = nullptr;
+
+    // check it looks like xml ... to stop parser errors
+    wxString xml = in;
+    if (!xml.StartsWith("<?xml") || !xml.Contains("<model "))
+    {
+        // not valid
+        return;
+    }
+
+    wxStringInputStream strm(xml);
+    wxXmlDocument doc(strm);
+
+    wxXmlNode* xmlNode = doc.GetRoot();
+
+    if (xmlNode == nullptr)
+    {
+        // not valid
+        return;
+    }
+
+    _xmlNode = new wxXmlNode(*xmlNode);
+
+    _ok = true;
+}
+
+void CopyPasteModel::SetModel(Model* model)
+{
+    if (_xmlNode != nullptr)
+    {
+        delete _xmlNode;
+        _xmlNode = nullptr;
+    }
+
+    if (model == nullptr)
+    {
+        _ok = false;
+    }
+    else
+    {
+        _xmlNode = new wxXmlNode(*model->GetModelXml());
+        _ok = true;
+    }
+}
+
+std::string CopyPasteModel::Serialise() const
+{
+    if (_xmlNode == nullptr)
+    {
+        return "";
+    }
+    else
+    {
+        wxXmlDocument doc;
+        doc.SetRoot(_xmlNode);
+        wxStringOutputStream stream;
+        doc.Save(stream);
+        std::string copyData = stream.GetString().ToStdString();
+        doc.DetachRoot();
+        return copyData;
     }
 }

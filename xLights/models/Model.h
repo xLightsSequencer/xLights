@@ -65,6 +65,7 @@ public:
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
     int GetNumStrings() const { return parm1; }
+    virtual int GetNumPhysicalStrings() const { return parm1; }
 
     std::string name;
     std::string description;
@@ -74,8 +75,8 @@ public:
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
     static void WriteFaceInfo(wxXmlNode *fiNode, const std::map<std::string, std::map<std::string, std::string> > &faceInfo);
-    wxString SerialiseFace();
-    wxString SerialiseState();
+    wxString SerialiseFace() const;
+    wxString SerialiseState()const ;
     std::map<std::string, std::map<std::string, std::string> > faceInfo;
 
     static void ParseStateInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &stateInfo);
@@ -85,7 +86,7 @@ public:
     void AddState(wxXmlNode* n);
     void AddSubmodel(wxXmlNode* n);
 
-    wxString SerialiseSubmodel();
+    wxString SerialiseSubmodel() const;
 
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
     virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
@@ -280,14 +281,13 @@ public:
     void SetNodeColor(size_t nodenum, const xlColor &c);
     wxChar GetChannelColorLetter(wxByte chidx);
     
-    virtual std::string ChannelLayoutHtml();
-    //    int FindChannelAt(int x, int y);
-    //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
+    virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
+    void ExportAsCustomXModel() const;
     bool IsCustom(void);
+    virtual bool SupportsExportAsCustom() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);
-    //    int FindChannelAtXY(int x, int y, const wxString& model);
     std::string GetNodeXY(const std::string& nodenumstr);
     std::string GetNodeXY(int nodeinx);
 

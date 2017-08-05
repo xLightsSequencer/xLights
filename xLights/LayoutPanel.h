@@ -14,6 +14,7 @@ class wxChoice;
 
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
+#include <wx/xml/xml.h>
 
 #include <vector>
 #include <list>
@@ -31,8 +32,31 @@ class NewModelBitmapButton;
 class wxImageFileProperty;
 class wxScrolledWindow;
 class LayoutGroup;
+class wxStringInputStream;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
+
+class CopyPasteModel
+{
+    bool _ok;
+    wxXmlNode* _xmlNode;
+
+public:
+    CopyPasteModel(const std::string& in);
+    CopyPasteModel();
+    virtual ~CopyPasteModel();
+    bool IsOk() const { return _ok; }
+    wxXmlNode* GetModelXml() const
+    {
+        if (_xmlNode == nullptr) 
+            return _xmlNode; 
+        else 
+            // we return a new copy assuming the recipient will delete it
+            return new wxXmlNode(*_xmlNode);
+    }
+    void SetModel(Model* model);
+    std::string Serialise() const;
+};
 
 class LayoutPanel: public wxPanel
 {
@@ -77,6 +101,7 @@ class LayoutPanel: public wxPanel
 		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
+        static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
         static const long ID_PREVIEW_ALIGN_TOP;
@@ -171,6 +196,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type);
 
+        bool _firstTreeLoad;
         bool m_dragging;
         bool m_creating_bound_rect;
         int m_bound_start_x;

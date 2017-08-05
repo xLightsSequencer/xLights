@@ -13,7 +13,7 @@ WindowFrameModel::~WindowFrameModel()
 {
     //dtor
 }
-
+ 
 void WindowFrameModel::InitModel() {
     InitFrame();
     //CopyBufCoord2ScreenCoord();

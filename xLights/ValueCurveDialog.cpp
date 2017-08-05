@@ -95,7 +95,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+    Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -176,20 +176,20 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer7->AddGrowableCol(0);
     FlexGridSizer7->AddGrowableRow(0);
     PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
-    FlexGridSizer7->Add(PresetSizer, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer7->Add(PresetSizer, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer8->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer8->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer7->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer7->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -257,6 +257,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Choice1->SetFocus();
 
     PopulatePresets();
+
+    Layout();
+    Fit();
 
     ValidateWindow();
 }
@@ -1141,7 +1144,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             ValueCurve vc("");
             LoadXVC(&vc, fn.GetFullPath());
             long id = wxNewId();
-            wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30), wxDefaultPosition,
+            wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30, GetContentScaleFactor()), wxDefaultPosition,
                 wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
             PresetSizer->Add(bmb);

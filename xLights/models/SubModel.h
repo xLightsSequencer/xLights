@@ -16,7 +16,7 @@ public:
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
     virtual void AddProperties(wxPropertyGridInterface *grid) override;
-
+    virtual bool SupportsExportAsCustom() const override { return false; }
     
     Model* GetParent() const { return parent; }
 private:

@@ -23,8 +23,10 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         virtual bool SupportsXlightsModel() override { return true; }
+        virtual bool SupportsExportAsCustom() const override { return false; }
         virtual void ExportXlightsModel() override;
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        virtual int GetNumPhysicalStrings() const override { return 1; }
 
         int GetEyeBrightnessChannel() {return eye_brightness_channel;}
         int GetRedChannel() {return red_channel;}

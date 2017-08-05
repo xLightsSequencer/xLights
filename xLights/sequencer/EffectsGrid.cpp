@@ -1965,67 +1965,67 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
     if (key == 'h')
     {
         xlights->SetACSettings(ACTOOL::CASCADE);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'f')
     {
         xlights->SetACSettings(ACTOOL::FILL);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'n')
     {
         xlights->SetACSettings(ACTYPE::ON);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == (wxChar)WXK_DELETE)
     {
         xlights->SetACSettings(ACTYPE::OFF);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 't')
     {
         xlights->SetACSettings(ACTYPE::TWINKLE);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'L')
     {
         xlights->SetACSettings(ACTYPE::SELECT);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 's')
     {
         xlights->SetACSettings(ACTYPE::SHIMMER);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'i')
     {
         xlights->SetACSettings(ACSTYLE::INTENSITY);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'u')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUP);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'd')
     {
         xlights->SetACSettings(ACSTYLE::RAMPDOWN);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'a')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUPDOWN);
-        DoACDraw();
+        DoACDraw(true);
         return true;
     }
     else if (key == 'g')
@@ -2288,7 +2288,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
     return false;
 }
 
-bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL toolOverride, ACMODE modeOverride)
+bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL toolOverride, ACMODE modeOverride)
 {
     if (mSequenceElements == nullptr) {
         return false;
@@ -2374,18 +2374,22 @@ bool EffectsGrid::DoACDraw(ACTYPE typeOverride, ACSTYLE styleOverride, ACTOOL to
     {
         int startr = mRangeStartRow;
         int endr = mRangeEndRow;
-        if (startr == mRangeCursorRow)
-        {
-            startr = mRangeEndRow;
-            endr = mRangeStartRow;
-        }
 
         int startc = mRangeStartCol;
         int endc = mRangeEndCol;
-        if (startc == mRangeCursorCol)
+
+        if (keyboard)
         {
-            startc = mRangeEndCol;
-            endc = mRangeStartCol;
+            if (startr == mRangeCursorRow)
+            {
+                startr = mRangeEndRow;
+                endr = mRangeStartRow;
+            }
+            if (startc == mRangeCursorCol)
+            {
+                startc = mRangeEndCol;
+                endc = mRangeStartCol;
+            }
         }
 
         ACCascade(std::min(startMS, endMS), std::max(startMS, endMS), startc, endc, startr, endr);
@@ -4754,11 +4758,11 @@ void EffectsGrid::DrawEffects()
                 StrandElement *se = dynamic_cast<StrandElement*>(ri->element);
                 Model* m = xlights->GetModel(ri->element->GetModelName());
                 ncls.InitNodeBuffer(*m, se->GetStrand(), ri->nodeIndex, seqData->FrameTime());
+                xlColor maskColor = m->GetNodeMaskColor(se->GetStrand());
                 xlColor lastColor;
                 for (size_t f = 0; f < seqData->NumFrames(); f++) {
                     ncls.SetNodeChannelValues(0, (*seqData)[f][ncls.NodeStartChannel(0)]);
                     xlColor c = ncls.GetNodeColor(0);
-                    xlColor maskColor =  m->GetNodeMaskColor(se->GetStrand());
                     c.ApplyMask(&maskColor);
                     if (f == 0) {
                         colors.push_back(c);

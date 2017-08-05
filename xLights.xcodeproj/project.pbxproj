@@ -77,6 +77,7 @@
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
 		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
+		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
 		67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D971C6664900095CDB5 /* WindowFrameModel.cpp */; };
 		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
@@ -149,6 +150,7 @@
 		677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677674481B38E7F70018E14B /* OptionChooser.cpp */; };
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
+		677989A11F321BC200A26FA9 /* valuecurves in Resources */ = {isa = PBXBuildFile; fileRef = 677989A01F321BC200A26FA9 /* valuecurves */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
@@ -708,6 +710,8 @@
 		673C45561C79570B00FDED47 /* BufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferPanel.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
+		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
+		673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChannelBlockModel.cpp; path = models/ChannelBlockModel.cpp; sourceTree = "<group>"; };
 		674298971C20432600B11478 /* wx */ = {isa = PBXFileReference; lastKnownFileType = folder; name = wx; path = /opt/local/lib/wx; sourceTree = "<group>"; };
 		67447D941C6664900095CDB5 /* WreathModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WreathModel.h; path = models/WreathModel.h; sourceTree = "<group>"; };
 		67447D951C6664900095CDB5 /* WreathModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WreathModel.cpp; path = models/WreathModel.cpp; sourceTree = "<group>"; };
@@ -836,6 +840,7 @@
 		677674481B38E7F70018E14B /* OptionChooser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OptionChooser.cpp; sourceTree = "<group>"; };
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
+		677989A01F321BC200A26FA9 /* valuecurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = valuecurves; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LMSImportChannelMapDialog.cpp; sourceTree = "<group>"; };
@@ -1117,8 +1122,6 @@
 		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ColorPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TimingPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopEffectsPanel.cpp; sourceTree = "<group>"; };
-		67B845011A9C0E7500564051 /* DisplayElementsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DisplayElementsPanel.h; sourceTree = "<group>"; };
-		67B845031A9C0E7500564051 /* ModelViewSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelViewSelector.h; sourceTree = "<group>"; };
 		67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxCheckedListCtrl.cpp; sourceTree = "<group>"; };
 		67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxCheckedListCtrl.h; sourceTree = "<group>"; };
 		67B94CE11B82129600B5FB0D /* osxMacUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxMacUtils.h; sourceTree = "<group>"; };
@@ -1486,6 +1489,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				673F03661F322A9B0052A793 /* ChannelBlockModel.h */,
+				673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
 				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
 				676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */,
@@ -1951,6 +1956,7 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				677989A01F321BC200A26FA9 /* valuecurves */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
 				67D2B04B1D54CCA4006D324F /* colorcurves */,
 				67AA379D1C7E3703001D2377 /* SDL2.framework */,
@@ -2241,7 +2247,6 @@
 				672F95131A7A6619005FF8BF /* ColorPanel.h */,
 				672F951C1A7A6619005FF8BF /* CurrentPreviewModels.h */,
 				675878DA1A89297200205A75 /* DataLayer.h */,
-				67B845011A9C0E7500564051 /* DisplayElementsPanel.h */,
 				67A260ED1AB71EE3006B140D /* DrawGLUtils.h */,
 				672F95101A7A6619005FF8BF /* EffectIconPanel.h */,
 				67A619C917B51C0F008E95BB /* EffectListDialog.h */,
@@ -2262,7 +2267,6 @@
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */,
 				672F95191A7A6619005FF8BF /* ModelPreview.h */,
-				67B845031A9C0E7500564051 /* ModelViewSelector.h */,
 				672F951A1A7A6619005FF8BF /* NewTimingDialog.h */,
 				672E7C601B4B6B3700409549 /* OptionChooser.h */,
 				67A619D517B51C0F008E95BB /* PaletteMgmtDialog.h */,
@@ -2603,6 +2607,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				677989A11F321BC200A26FA9 /* valuecurves in Resources */,
 				67B2B23C1E194D120024F0BB /* controllers in Resources */,
 				67D2B04C1D54CCA4006D324F /* colorcurves in Resources */,
 				670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */,
@@ -2879,6 +2884,7 @@
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
 				671130BB1E4EB29B00AF09A7 /* EzGrid.cpp in Sources */,
+				673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,

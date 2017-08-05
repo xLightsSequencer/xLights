@@ -132,7 +132,7 @@ class TestDialog: public wxDialog
 		wxFileName _networkFile;
 		ModelManager* _modelManager;
 		bool _cascading;
-		TestFunctions _testFunc;
+		//TestFunctions _testFunc;
 		int _twinkleRatio;
 		int _chaseGrouping;
 		bool _checkChannelList;
@@ -271,39 +271,9 @@ class TestDialog: public wxDialog
 		//(*Handlers(TestDialog)
 		void OnButton_LoadClick(wxCommandEvent& event);
 		void OnButton_SaveClick(wxCommandEvent& event);
-		void OnSlider_SpeedCmdSliderUpdated(wxScrollEvent& event);
-		void OnRadioButton_RGB_OffSelect(wxCommandEvent& event);
-		void OnRadioButton_RGB_ChaseSelect(wxCommandEvent& event);
-		void OnRadioButton_RGB_Chase13Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_Chase14Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_Chase15Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_AlternateSelect(wxCommandEvent& event);
-		void OnRadioButton_RGB_Twinkle5Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_Twinkle10Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_Twinkle25Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_Twinkle50Select(wxCommandEvent& event);
-		void OnRadioButton_RGB_ShimmerSelect(wxCommandEvent& event);
-		void OnRadioButton_RGB_BackgroundSelect(wxCommandEvent& event);
-		void OnRadioButton_RGBCycle_OffSelect(wxCommandEvent& event);
-		void OnRadioButton_RGBCycle_ABCSelect(wxCommandEvent& event);
-		void OnRadioButton_RGBCycle_ABCAllSelect(wxCommandEvent& event);
-		void OnRadioButton_RGBCycle_ABCAllNoneSelect(wxCommandEvent& event);
-		void OnRadioButton_RGBCycle_MixedColorsSelect(wxCommandEvent& event);
-		void OnRadioButton_Standard_OffSelect(wxCommandEvent& event);
-		void OnRadioButton_Standard_ChaseSelect(wxCommandEvent& event);
-		void OnRadioButton_Standard_Chase13Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_Chase14Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_Chase15Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_AlternateSelect(wxCommandEvent& event);
-		void OnRadioButton_Standard_Twinkle5Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_Twinkle10Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_Twinkle25Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_Twinkle50Select(wxCommandEvent& event);
-		void OnRadioButton_Standard_ShimmerSelect(wxCommandEvent& event);
-		void OnRadioButton_Standard_BackgroundSelect(wxCommandEvent& event);
 		void OnTimer1Trigger(wxTimerEvent& event);
-		void OnRadioButton_RGBCycle_RGBWSelect(wxCommandEvent& event);
 		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
 		void OnTreeListCtrl1Checkboxtoggled(wxTreeListEvent& event);
@@ -330,6 +300,9 @@ class TestDialog: public wxDialog
 		char DoEncodeColour(xlColor& c);
         void SetTreeTooltip(wxTreeListItem& item);
         void AddController(Output* output);
+        std::string SerialiseSettings();
+        void DeserialiseSettings(const std::string& settings);
+        TestFunctions GetTestFunction(int notebookSelection);
 
 		DECLARE_EVENT_TABLE()
 };

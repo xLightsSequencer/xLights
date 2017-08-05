@@ -94,8 +94,13 @@ public:
     ValueCurve() { SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; _divisor = 1; }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
+<<<<<<< HEAD
     wxBitmap GetImage(int x, int y);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
+=======
+    wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
+    void SetDefault(float min = -9.1234f, float max = -9.1234f);
+>>>>>>> origin/master
     std::string Serialise();
     static void GetRangeParm(int parm, const std::string& type, float& low, float& high);
     bool IsOk() { return _id != ""; }

@@ -102,13 +102,20 @@ void TreeModel::SetTreeCoord(long degrees) {
                 lights += (int)std::round(lengths[x]*BufferHt);
             }
             int curSeg = 0;
-            float lightsInSeg = std::round(lengths[0]*BufferHt);
+            float lightsInSeg = std::round(lengths[0] * BufferHt);
             int curLightInSeg = 0;
             for (int x = 1; x < BufferHt; x++) {
                 if (curLightInSeg >= lightsInSeg) {
                     curSeg++;
                     curLightInSeg = 0;
-                    lightsInSeg = std::round(lengths[curSeg]*BufferHt);
+                    if (curSeg == 9)
+                    {
+                        lightsInSeg = BufferHt - x;
+                    }
+                    else
+                    {
+                        lightsInSeg = std::round(lengths[curSeg] * BufferHt);
+                    }
                 }
                 float ang = spiralRotations * 2.0 * M_PI / 10.0;
                 ang /= (float)lightsInSeg;
@@ -436,15 +443,9 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("TreePerspective", tp);
             SetProperty("TreeRotation", tr);
             SetProperty("TreeSpiralRotations", tsr);
-            wxString newname = name;
-            int cnt = 1;
-            while (xlights->AllModels[std::string(newname.c_str())] != nullptr)
-            {
-                newname = name + "-" + wxString::Format("%d", cnt++);
-            }
 
+            wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);
-
             SetProperty("name", newname, true);
 
             for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())

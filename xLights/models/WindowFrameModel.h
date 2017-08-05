@@ -9,6 +9,8 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
     public:
         WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~WindowFrameModel();
+        virtual int GetNumPhysicalStrings() const override { return 1; }
+        virtual bool SupportsExportAsCustom() const override { return true; }
 
     protected:
         virtual void InitModel() override;

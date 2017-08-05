@@ -403,18 +403,12 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             {
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
-                int numstrings = first->GetNumStrings();
-                bool multistringelement = (first->GetDisplayAs() == "Matrix" || 
-                    first->GetDisplayAs() == "Tree" ||
-                    first->GetDisplayAs() == "Circle" ||
-                    first->GetDisplayAs() == "Star" ||
-                    first->GetDisplayAs() == "Wreath" ||
-                    first->GetDisplayAs() == "Icicles");
+                int numstrings = first->GetNumPhysicalStrings();
                 int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
                 // upload it
                 if (DecodeStringPortProtocol(*protocol) >= 0)
                 {
-                    if (first == last && numstrings > 1 && multistringelement)
+                    if (first == last && numstrings > 1)
                     {
                         for (int j = 0; j < numstrings; j++)
                         {

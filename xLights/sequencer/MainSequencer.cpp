@@ -862,7 +862,7 @@ void MainSequencer::Cut() {
     if (CopySelectedEffects()) {
         if (PanelEffectGrid->IsACActive())
         {
-            PanelEffectGrid->DoACDraw(ACTYPE::OFF, ACSTYLE::INTENSITY, ACTOOL::TOOLNIL, ACMODE::MODENIL);
+            PanelEffectGrid->DoACDraw(false, ACTYPE::OFF, ACSTYLE::INTENSITY, ACTOOL::TOOLNIL, ACMODE::MODENIL);
         }
         else
         {
