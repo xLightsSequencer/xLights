@@ -2136,7 +2136,7 @@ models/IciclesModel.h: models/Model.h
 
 models/MatrixModel.cpp: models/MatrixModel.h models/ModelScreenLocation.h xLightsVersion.h xLightsMain.h
 
-models/Model.cpp: models/Model.h xLightsMain.h xLightsXmlFile.h Color.h DrawGLUtils.h DimmingCurve.h StrandNodeNamesDialog.h ModelFaceDialog.h ModelStateDialog.h ModelDimmingCurveDialog.h StartChannelDialog.h SubModelsDialog.h ControllerConnectionDialog.h models/ModelScreenLocation.h models/SubModel.h UtilFunctions.h
+models/Model.cpp: models/Model.h xLightsMain.h xLightsXmlFile.h Color.h DrawGLUtils.h DimmingCurve.h StrandNodeNamesDialog.h ModelFaceDialog.h ModelStateDialog.h ModelDimmingCurveDialog.h StartChannelDialog.h SubModelsDialog.h ControllerConnectionDialog.h models/ModelScreenLocation.h models/SubModel.h UtilFunctions.h xLightsVersion.h
 
 DimmingCurve.h: Color.h
 
