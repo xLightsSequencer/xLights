@@ -124,20 +124,22 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxListBox" name="ID_LISTBOX_ADD_TO_MODEL_GROUP" variable="ListBoxAddToModelGroup" member="yes">
-									<default>-1</default>
-									<minsize>75,65d</minsize>
-									<style>wxLB_SORT|wxVSCROLL|wxHSCROLL</style>
+								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListBoxAddToModelGroup" member="yes">
+									<size>65,-1</size>
+									<minsize>65,-1</minsize>
+									<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
+									<handler function="OnListBoxAddToModelGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+									<handler function="OnListBoxAddToModelGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>3</option>
+								<minsize>65,-1</minsize>
+								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 									<cols>1</cols>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton4" member="no">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="ButtonAddModel" member="yes">
 											<bitmap stock_id="wxART_GO_FORWARD" stock_client="wxART_TOOLBAR" />
 											<handler function="OnButtonAddToModelGroupClick" entry="EVT_BUTTON" />
 										</object>
@@ -146,7 +148,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton3" member="no">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="ButtonRemoveModel" member="yes">
 											<bitmap stock_id="wxART_GO_BACK" stock_client="wxART_TOOLBAR" />
 											<handler function="OnButtonRemoveFromModelGroupClick" entry="EVT_BUTTON" />
 										</object>
@@ -161,7 +163,7 @@
 										<size>-1,7d</size>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="no">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="ButtonMoveUp" member="yes">
 											<bitmap stock_id="wxART_GO_UP" stock_client="wxART_TOOLBAR" />
 											<handler function="OnButtonUpClick" entry="EVT_BUTTON" />
 										</object>
@@ -170,7 +172,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton2" member="no">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="ButtonMoveDown" member="yes">
 											<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_TOOLBAR" />
 											<handler function="OnButtonDownClick" entry="EVT_BUTTON" />
 										</object>
@@ -192,14 +194,16 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxListBox" name="ID_LISTBOX_MODELS_IN_GROUP" variable="ListBoxModelsInGroup" member="yes">
-									<default>-1</default>
-									<minsize>75,65d</minsize>
-									<style>wxVSCROLL|wxHSCROLL</style>
+								<object class="wxListCtrl" name="ID_LISTCTRL2" variable="ListBoxModelsInGroup" member="yes">
+									<size>65,-1</size>
+									<minsize>65,-1</minsize>
+									<style>wxLC_REPORT|wxLC_NO_HEADER</style>
+									<handler function="OnListBoxModelsInGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+									<handler function="OnListBoxModelsInGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>3</option>
+								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+								<minsize>65,-1</minsize>
+								<option>1</option>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

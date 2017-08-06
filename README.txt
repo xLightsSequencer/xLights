@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add controller and connection details to node layout
    -- enh (keith)   Add ability to create a custom model from an inbuilt model
    -- bug (keith)   Fix string count on export models csv ... make it our best guess at the number of physical light strings
+   -- enh (keith)   Make model group panel drag and drop
 2017.21  Jul 28, 2017
    -- enh (keith)   Add the block of channels model
    -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ...
