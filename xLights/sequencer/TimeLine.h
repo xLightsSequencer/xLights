@@ -12,8 +12,6 @@
 #define SCROLL_RIGHT    0
 #define SCROLL_LEFT     1
 
-#define MAX_ZOOM_OUT_INDEX      12
-
 enum EFFECT_SCREEN_MODE{
     SCREEN_L_R_OFF,
     SCREEN_L_ON,
