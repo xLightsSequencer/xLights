@@ -1800,10 +1800,19 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    // this logging is extra until we find out why this function crashes
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows");
+
+    if (m_mgr == nullptr)
+    {
+        logger_base.crit("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+    }
+
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
         for (size_t x = 0; x < info.size(); x++)
         {
             if (info[x].IsOk())
@@ -1825,6 +1834,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
     else
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide");
         savedPaneShown.resize(info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
@@ -1847,12 +1857,14 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     if (update)
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
 
     // show/hide Layout Previews
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
+        LayoutGroup* grp = *it;
         if (grp != nullptr) {
             if (grp->GetMenuItem() == nullptr)
             {

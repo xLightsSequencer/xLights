@@ -980,7 +980,11 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
     for (int r = startRow; r <= endRow; ++r)
     {
         EffectLayer* els = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
-        if (els == nullptr) logger_base.crit("AAA GetVisibleEffectLayer %d about to crash", r - mSequenceElements->GetFirstVisibleModelRow());
+        if (els == nullptr)
+        {
+            logger_base.crit("AAA GetVisibleEffectLayer %d about to crash ... so continuing", r - mSequenceElements->GetFirstVisibleModelRow());
+            continue;
+        }
         Element *e = els->GetParentElement();
         if (e == nullptr) logger_base.crit("BBB GetParentElement about to crash");
         EffectLayer* el = e->GetEffectLayer(0);
@@ -1232,6 +1236,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
 void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow)
 {
     EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(startRow - mSequenceElements->GetFirstVisibleModelRow());
+    if (el == nullptr) return;
     Element *e = el->GetParentElement();
 
     int inc = 1;
@@ -1241,6 +1246,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
 
     // exclude timing from end rows
     EffectLayer* eler = mSequenceElements->GetVisibleEffectLayer(endRow - mSequenceElements->GetFirstVisibleModelRow());
+    if (eler == nullptr) return;
     Element *eer = eler->GetParentElement();
     while (eer->GetType() == ELEMENT_TYPE_TIMING)
     {
@@ -1249,6 +1255,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
         if (startRow == endRow) return;
 
         eler = mSequenceElements->GetVisibleEffectLayer(endRow - mSequenceElements->GetFirstVisibleModelRow());
+        if (eler == nullptr) return;
         eer = eler->GetParentElement();
     }
 
@@ -1259,6 +1266,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
         if (i != startRow)
         {
             EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+            if (elTargets == nullptr) return;
             Element *eTarget = elTargets->GetParentElement();
             EffectLayer* elTarget = eTarget->GetEffectLayer(0);
 
@@ -1335,6 +1343,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             if (i != startRow)
             {
                 EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+                if (elTargets == nullptr) return;
                 Element *eTarget = elTargets->GetParentElement();
                 EffectLayer* elTarget = eTarget->GetEffectLayer(0);
 
@@ -1391,6 +1400,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             int cascadeMS = TimeLine::RoundToMultipleOfPeriod(cascades * perRowOffsetMS, mSequenceElements->GetFrequency());
 
             EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+            if (elTargets == nullptr) return;
             Element *eTarget = elTargets->GetParentElement();
             EffectLayer* elTarget = eTarget->GetEffectLayer(0);
 
@@ -1879,6 +1889,7 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
     for (int r = std::min(startRow, endRow); r <= std::max(startRow, endRow); r++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+        if (el == nullptr) return;
         Element *e = el->GetParentElement();
 
         int startBrightness = 0;
@@ -2046,6 +2057,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         else
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff = tel->GetEffect(0);
             if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeCursorRow == -1 || mRangeCursorCol == -1)))
             {
@@ -2101,6 +2113,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         else
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff = tel->GetEffect(0);
             if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
             {
@@ -2162,6 +2175,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         else
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff = tel->GetEffect(0);
             if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
             {
@@ -2182,6 +2196,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         if (mCellRangeSelected)
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff = tel->GetEffect(mRangeEndCol - 1);
             if (eff != nullptr)
             {
@@ -2228,6 +2243,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         else
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff = tel->GetEffect(0);
             if (eff != nullptr && mSequenceElements->GetFirstVisibleModelRow() != -1 && ((mRangeEndRow == -1 || mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1)))
             {
@@ -2247,6 +2263,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         if (mCellRangeSelected)
         {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel == nullptr) return true;
             Effect* eff1 = tel->GetEffect(mRangeStartCol + 1);
             Effect* eff2 = tel->GetEffect(mRangeEndCol + 1);
             if (eff1 != nullptr && eff2 != nullptr)
@@ -2341,6 +2358,7 @@ bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOver
     int startMS = 0;
     int endMS = 0;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel == nullptr) return false;
     Effect* eff1 = tel->GetEffect(mRangeStartCol);
     Effect* eff2 = tel->GetEffect(mRangeEndCol);
     if (eff1 != nullptr)
