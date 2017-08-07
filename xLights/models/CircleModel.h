@@ -25,8 +25,11 @@ class CircleModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         void SetCircleCoord();
         void InitCircle();
+    
+        int maxSize();
 
         std::vector<int> circleSizes;
+        bool insideOut;
 };
 
 #endif // CIRCLEMODEL_H

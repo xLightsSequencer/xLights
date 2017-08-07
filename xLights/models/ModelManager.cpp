@@ -387,7 +387,6 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     node->AddAttribute("StartChannel", startChannel);
     node->AddAttribute("LayoutGroup", "Unassigned");
 
-    int cnt = 0;
     std::string name = GenerateModelName(type);
     node->AddAttribute("name", name);
 
@@ -412,6 +411,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     } else if (type == "Circle") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "50");
+        node->AddAttribute("InsideOut", "0");
         model = new CircleModel(node, *this, false);
     } else if (type == "DMX") {
         node->DeleteAttribute("parm1");

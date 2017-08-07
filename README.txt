@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (dkulp)   Add ability to specify starting location and direction for circle model
 2017.22  Aug 06, 2017
    -- bug (gil)     Fix timeline display for sequences greater than an hour.  Fixes #811.
    -- bug (dan)     Prevent a GIF with 0 frame time hanging xlights
