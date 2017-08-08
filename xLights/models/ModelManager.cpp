@@ -81,8 +81,19 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
         }
         models.erase(models.find(oldName));
         models[newName] = model;
+
+        // go through all the model groups looking for things that might need to be renamed
+        for (auto it = models.begin(); it != models.end(); ++it) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            if (mg != nullptr)
+            {
+                changed != mg->ModelRenamed(oldName, newName);
+            }
+        }
+
         return changed;
     }
+
     return false;
 }
 

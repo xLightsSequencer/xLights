@@ -260,6 +260,18 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
             modelNames[x] = newName;
             changed = true;
         }
+        if (modelNames[x].find('/') != std::string::npos)
+        {
+            // this is a submodel
+            std::string base = modelNames[x].substr(0, modelNames[x].find('/'));
+            if (base == oldName)
+            {
+                auto startpos = modelNames[x].find('/');
+                startpos++;
+                modelNames[x] = newName + "/" + modelNames[x].substr(startpos);
+                changed = true;
+            }
+        }
         if (x != 0) {
             newVal += ",";
         }
