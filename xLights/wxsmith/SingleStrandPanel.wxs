@@ -205,7 +205,7 @@
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Chase_Rotations" variable="TextCtrl43" member="no">
 										<value>1.0</value>
-										<maxlength>3</maxlength>
+										<maxlength>4</maxlength>
 										<size>20,-1d</size>
 										<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 									</object>
