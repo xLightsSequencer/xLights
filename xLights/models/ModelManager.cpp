@@ -87,7 +87,7 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
             if (mg != nullptr)
             {
-                changed != mg->ModelRenamed(oldName, newName);
+                changed |= mg->ModelRenamed(oldName, newName);
             }
         }
 
