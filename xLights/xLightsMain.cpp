@@ -3893,6 +3893,69 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Models spanning controllers");
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            long start = it->second->GetFirstChannel()+1;
+            long end = it->second->GetLastChannel()+1;
+
+            long sc;
+            Output* ostart = _outputManager.GetOutput(start, sc);
+            Output* oend = _outputManager.GetOutput(end, sc);
+
+            if (ostart != nullptr && oend == nullptr)
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart == nullptr || oend == nullptr)
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' is not configured for a controller.", it->first);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart->GetType() != oend->GetType())
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it->first, ostart->GetDescription(), ostart->GetType(), oend->GetDescription(), oend->GetType());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart->GetIP() == "MULTICAST" && oend->GetIP() == "MULTICAST")
+            {
+                // ignore these
+            }
+            else if (ostart->GetIP() + oend->GetIP() != "")
+            {
+                if (ostart->GetIP() != oend->GetIP())
+                {
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetIP(), oend->GetDescription());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+            else if (ostart->GetCommPort() + oend->GetCommPort() != "")
+            {
+                if (ostart->GetCommPort() != oend->GetCommPort())
+                {
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.", it->first, ostart->GetDescription(), ostart->GetCommPort(), oend->GetDescription(), oend->GetCommPort());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
     LogAndWrite(f, "Invalid start channels");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
@@ -3922,6 +3985,12 @@ void xLightsFrame::CheckSequence(bool display)
                         errcount++;
                     }
                 }
+            }
+            if (it->second->GetLastChannel() == (unsigned int)-1)
+            {
+                wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
         }
     }
