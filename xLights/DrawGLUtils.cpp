@@ -635,7 +635,6 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
     }
 }
 
-
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
     xlColor start;
     xlColor end;

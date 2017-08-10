@@ -1262,6 +1262,32 @@ void xLightsFrame::RenderDirtyModels() {
     Render(models, restricts, startframe, endframe, false, true, [] {});
 }
 
+bool xLightsFrame::AbortRender()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Aborting rendering ...");
+    int abortCount = 0;
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it) {
+        //abort whatever is rendering
+        RenderProgressInfo *rpi = (*it);
+        for (size_t row = 0; row < rpi->numRows; ++row) {
+            if (rpi->jobs[row]) {
+                rpi->jobs[row]->AbortRender();
+                abortCount++;
+            }
+        }
+    }
+
+    //must wait for the rendering to complete
+    while (!renderProgressInfo.empty()) {
+        wxMilliSleep(10);
+        wxYield();
+    }
+
+    logger_base.info("    Aborted jobs %d.", abortCount);
+    return abortCount != 0;
+}
+
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
     BuildRenderTree();
     if (renderTree.data.empty()) {

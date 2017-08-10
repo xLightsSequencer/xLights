@@ -354,11 +354,18 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         if( CurrentSeqXmlFile->WasConverted() )
         {
+            // abort any in progress render ... as it may be using any already open media
+            bool aborted = false;
+            if (CurrentSeqXmlFile->GetMedia() != nullptr)
+            {
+                aborted = AbortRender();
+            }
+
             SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
 			setting_dlg.Fit();
             int ret_code = setting_dlg.ShowModal();
 
-            if (ret_code == NEEDS_RENDER)
+            if (ret_code == NEEDS_RENDER || aborted)
             {
                 RenderAll();
             }
@@ -447,6 +454,9 @@ bool xLightsFrame::CloseSequence()
             }
         }
     }
+
+    // just in case there is still rendering going on
+    AbortRender();
 
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();

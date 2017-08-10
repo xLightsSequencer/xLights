@@ -2379,17 +2379,25 @@ wxString xLightsFrame::GetSeqXmlFileName()
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {
     if( xLightsFrame::CurrentSeqXmlFile == nullptr ) return;
+
+    // abort any in progress render ... as it may be using any already open media
+    bool aborted = false;
+    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        aborted = AbortRender();
+    }
+
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
-    if (ret_code != wxID_OK) return;  // user pressed cancel
-
-    if (ret_code == NEEDS_RENDER)
+    if (ret_code == NEEDS_RENDER || aborted)
     {
         RenderAll();
     }
+
+    if (ret_code != wxID_OK) return;  // user pressed cancel
 
 	if(CurrentSeqXmlFile->GetMedia() != nullptr)
 	{

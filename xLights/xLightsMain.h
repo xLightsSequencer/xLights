@@ -999,10 +999,11 @@ public:
     bool InitPixelBuffer(const std::string &modelName, PixelBufferClass &buffer, int layerCount, bool zeroBased = false);
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void()>&& callback);
+    bool AbortRender();
     void UpdateRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
-                             bool bgThread = false, RenderEvent *event = NULL);
+                             bool bgThread = false, RenderEvent *event = nullptr);
     void RenderMainThreadEffects();
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);

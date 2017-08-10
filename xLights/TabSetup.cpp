@@ -471,6 +471,7 @@ bool xLightsFrame::PromptForShowDirectory()
     wxString newdir;
     if (DirDialog1->ShowModal() == wxID_OK)
     {
+        AbortRender(); // make sure nothing is still rendering
         newdir=DirDialog1->GetPath();
         if (newdir == CurrentDir) return true;
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);

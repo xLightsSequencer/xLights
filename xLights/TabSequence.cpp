@@ -804,7 +804,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     ProgressBar->Show();
     GaugeSizer->Layout();
     logger_base.info("Rendering on save.");
-    RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+    RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
     RenderGridToSeqData([this, sw, fileNames] {
@@ -909,7 +909,7 @@ void xLightsFrame::SaveSequence()
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.info("   Effects done.");
             ProgressBar->SetValue(90);
-            RenderIseqData(false, NULL);  // render ISEQ layers above the Nutcracker layer
+            RenderIseqData(false, nullptr);  // render ISEQ layers above the Nutcracker layer
             logger_base.info("   iseq above effects done. Render complete.");
             ProgressBar->SetValue(100);
             ProgressBar->Hide();

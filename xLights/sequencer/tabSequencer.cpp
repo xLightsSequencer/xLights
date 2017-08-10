@@ -430,6 +430,13 @@ void xLightsFrame::CheckForValidModels()
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // abort any in progress render ... as it may be using any already open media
+    if (xml_file.GetMedia() != nullptr)
+    {
+        AbortRender();
+    }
+
     mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
     if(xml_file.GetSequenceType()=="Media")
