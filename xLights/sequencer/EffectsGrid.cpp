@@ -979,18 +979,16 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
 
     for (int r = startRow; r <= endRow; ++r)
     {
-        EffectLayer* els = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
-        if (els == nullptr)
+        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+        if (el == nullptr)
         {
             logger_base.crit("AAA GetVisibleEffectLayer %d about to crash ... so continuing", r - mSequenceElements->GetFirstVisibleModelRow());
             continue;
         }
-        Element *e = els->GetParentElement();
+        Element *e = el->GetParentElement();
         if (e == nullptr) logger_base.crit("BBB GetParentElement about to crash");
-        EffectLayer* el = e->GetEffectLayer(0);
-        if (el == nullptr) logger_base.crit("XXX GetEffectLayer about to crash");
 
-        if (e->GetType() != ELEMENT_TYPE_TIMING && el == els)
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
         {
             switch (type)
             {
@@ -1265,18 +1263,12 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
     {
         if (i != startRow)
         {
-            EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
-            if (elTargets == nullptr) return;
-            Element *eTarget = elTargets->GetParentElement();
-            EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+            EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+            Element *eTarget = elTarget->GetParentElement();
 
-            if (std::find(uniqueLayers.begin(), uniqueLayers.end(), elTarget) == uniqueLayers.end() && elTargets != el)
+            if (std::find(uniqueLayers.begin(), uniqueLayers.end(), elTarget) == uniqueLayers.end() && elTarget != el)
             {
                 uniqueLayers.push_back(elTarget);
-                if (elTarget != elTargets)
-                {
-                    extraLayers++;
-                }
             }
             else
             {
@@ -1342,16 +1334,10 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
         {
             if (i != startRow)
             {
-                EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
-                if (elTargets == nullptr) return;
-                Element *eTarget = elTargets->GetParentElement();
-                EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+                EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
+                Element *eTarget = elTarget->GetParentElement();
 
-                if (elTarget != elTargets)
-                {
-                    seenExtraLayers++;
-                }
-                else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+                if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
                 {
                     if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                     {
@@ -1399,16 +1385,10 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
             int cascades = dirFactor * abs(r - startRow - seenExtraLayers);
             int cascadeMS = TimeLine::RoundToMultipleOfPeriod(cascades * perRowOffsetMS, mSequenceElements->GetFrequency());
 
-            EffectLayer* elTargets = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
-            if (elTargets == nullptr) return;
-            Element *eTarget = elTargets->GetParentElement();
-            EffectLayer* elTarget = eTarget->GetEffectLayer(0);
+            EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
+            Element *eTarget = elTarget->GetParentElement();
 
-            if (elTarget != elTargets)
-            {
-                seenExtraLayers++;
-            }
-            else if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
+            if (eTarget->GetType() != ELEMENT_TYPE_TIMING && el != elTarget)
             {
                 if (std::find(layerUsed.begin(), layerUsed.end(), elTarget) == layerUsed.end())
                 {
