@@ -187,27 +187,27 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	FlexGridSizer110->Fit(this);
 	FlexGridSizer110->SetSizeHints(this);
 
-	Connect(ID_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_CenterX,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_CenterY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_Start_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_End_Radius,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_Start_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrl);
+	Connect(ID_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Shockwave_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
@@ -215,6 +215,9 @@ ShockwavePanel::ShockwavePanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_Shockwave_Accel,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShockwavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Shockwave_Accel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShockwavePanel::OnLockButtonClick);
 	//*)
+    
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShockwavePanel::OnVCChanged, 0, this);
+
     SetName("ID_PANEL_SHOCKWAVE");
 
     BitmapButton_Shockwave_CenterX->GetValue()->SetLimits(0, 100);

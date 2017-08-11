@@ -1567,7 +1567,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 	int falconPeriods = 0;
     int periodsRead = 0;
     int i = 0;
-    char *tmpBuf = NULL;
+    char *tmpBuf = nullptr;
 
     if(params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN )
     {

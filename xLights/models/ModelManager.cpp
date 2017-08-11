@@ -145,7 +145,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
 
 unsigned int ModelManager::GetLastChannel() const {
     unsigned int max = 0;
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         max = std::max(max, it->second->GetLastChannel());
     }
     return max;

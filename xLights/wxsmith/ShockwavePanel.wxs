@@ -23,7 +23,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" variable="Slider_Shockwave_CenterX" member="yes">
 										<value>50</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -74,7 +74,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" variable="Slider_Shockwave_CenterY" member="yes">
 										<value>50</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -126,7 +126,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="yes">
 										<value>1</value>
 										<max>250</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -178,7 +178,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="yes">
 										<value>10</value>
 										<max>250</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -230,7 +230,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" variable="Slider_Shockwave_Start_Width" member="yes">
 										<value>5</value>
 										<max>255</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -282,7 +282,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" variable="Slider_Shockwave_End_Width" member="yes">
 										<value>10</value>
 										<max>255</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
