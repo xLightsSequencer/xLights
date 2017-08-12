@@ -174,10 +174,11 @@ bool pixlite_compare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
+    bool success = true;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Pixlite Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
@@ -350,6 +351,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                         {
                             logger_base.warn("Pixlite Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                            success = false;
                         }
                         else
                         {
@@ -382,6 +384,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                     {
                         logger_base.warn("Pixlite Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
                         wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                        success = false;
                     }
                     else
                     {
@@ -413,6 +416,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 logger_base.warn("Pixlite Outputs Upload: Controller %s protocol %s not supported by this controller.",
                     (const char *)_ip.c_str(), (const char *)protocol.c_str());
                 wxMessageBox("Controller " + _ip + " protocol " + (protocol) + " not supported by this controller.", "Protocol Ignored");
+                success = false;
             }
         }
         else
@@ -457,7 +461,7 @@ void Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
     }
 
-    SendConfig(false);
+    return SendConfig(false);
 }
 
 int Pixlite16::DecodeStringPortProtocol(std::string protocol)

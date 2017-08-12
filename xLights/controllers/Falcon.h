@@ -19,19 +19,22 @@ class Falcon
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol);
     void UploadStringPort(const std::string& request, bool final);
-    std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent);
+    std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent, int mainPixels, int daughter1Pixels, int daughter2Pixels);
     int DecodeSerialOutputProtocol(std::string protocol);
     void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
+    int CountStrings(const std::string& strings);
+    int MaxPixels(const std::string& strings, int board);
+    void InitialiseStrings(const std::string& prefix, int start, int end);
 
 public:
     Falcon(const std::string& ip);
     bool IsConnected() const { return _connected; };
     virtual ~Falcon();
-    void SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };
 
 #endif

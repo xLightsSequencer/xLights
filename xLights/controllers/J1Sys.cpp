@@ -132,7 +132,7 @@ std::string J1Sys::PutURL(const std::string& url, const std::string& request, bo
     return res.ToStdString();
 }
 
-void J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     bool e131 = false;
     bool artnet = false;
@@ -153,7 +153,14 @@ void J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& sele
     }
 
     std::string request = wxString::Format("an=0&e1en=%d&anen=%d", (e131) ? 1 : 0, (artnet) ? 1 : 0).ToStdString();
-    PutURL("/protect/ipConfig.htm", request);
+    std::string res = PutURL("/protect/ipConfig.htm", request);
+    if (res != "")
+    {
+        Reboot();
+        return true;
+    }
+
+    return false;
 }
 
 bool j1syscompare_startchannel(const Model* first, const Model* second)
@@ -164,8 +171,9 @@ bool j1syscompare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
+    bool success = true;
     SetInputUniverses(outputManager, selected);
 
     ResetStringOutputs(); // this shouldnt be used normally
@@ -304,6 +312,7 @@ void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                             {
                                 logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
                                 wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                                success = false;
                             }
                             else
                             {
@@ -329,6 +338,7 @@ void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         {
                             logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                            success = false;
                         }
                         else
                         {
@@ -348,6 +358,7 @@ void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s not supported by this controller.",
                         (const char *)_ip.c_str(), (const char *)protocol->c_str());
                     wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+                    success = false;
                 }
             }
             else
@@ -359,8 +370,15 @@ void J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
     if (request != "")
     {
-        PutURL("/protect/stringConfig.htm", request);
+        std::string res = PutURL("/protect/stringConfig.htm", request);
+        if (res != "")
+        {
+            Reboot();
+            return success;
+        }
     }
+
+    return false;
 }
 
 char J1Sys::DecodeStringPortProtocol(std::string protocol)
@@ -399,3 +417,7 @@ void J1Sys::ResetStringOutputs()
     PutURL("/protect/stringConfig.htm","");
 }
 
+void J1Sys::Reboot()
+{
+    // TODO need to write this
+}

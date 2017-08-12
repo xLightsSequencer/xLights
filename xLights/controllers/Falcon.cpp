@@ -8,6 +8,7 @@
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
+#include <wx/progdlg.h>
 
 Falcon::Falcon(const std::string& ip)
 {
@@ -175,10 +176,11 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 //    std::string response = PutURL("/E131.htm", request.ToStdString());
 //}
 
-void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     wxString request;
     int output = 0;
+    bool success = true;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
@@ -204,6 +206,7 @@ void Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
 
     request = wxString::Format("z=%d&a=1", output) + request;
     std::string response = PutURL("/E131.htm", request.ToStdString());
+    return (response != "");
 }
 
 //void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
@@ -246,9 +249,12 @@ bool compare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
+
+    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
@@ -257,9 +263,12 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     std::list<std::string> protocolsused;
     std::list<Model*> warnedmodels;
     int maxport = 0;
+    bool success = true;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+
+    progress.Update(0, "Scanning models");
 
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {
@@ -326,41 +335,71 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     // sort the models by start channel
     models.sort(compare_startchannel);
 
+    progress.Update(10, "Retrieving string configuration from Falcon.");
+
     // get the current config before I start
     std::string strings = GetURL("/strings.xml");
     if (strings == "")
     {
+        progress.Update(100, "Aborting.");
         logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
         wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
-        return;
+        return false;
     }
 
+    int currentStrings = CountStrings(strings);
+    logger_base.info("Falcon has %d strings. Max port we are trying to use is %d.", currentStrings, maxport);
+
+    bool changed = false;
     if (_model == "F16V2" || _model == "F16V3")
     {
-        if (maxport > 32)
+        if (maxport > 32 && currentStrings < 48)
         {
-            PutURL("/StringPorts.htm", "m=2");
+            logger_base.info("Adjusting string port count to 48.");
+            progress.Update(25, "Adjusting string port count to 48.");
+            InitialiseStrings("m=2&S=48", currentStrings + 1, 48);
+            changed = true;
         }
-        else if (maxport > 16)
+        else if (maxport > 16 && currentStrings < 32)
         {
-            PutURL("/StringPorts.htm", "m=1");
-        }
-        else
-        {
-            PutURL("/StringPorts.htm", "m=0");
+            logger_base.info("Adjusting string port count to 32.");
+            progress.Update(25, "Adjusting string port count to 32.");
+            InitialiseStrings("m=1&S=32", currentStrings + 1, 32);
+            changed = true;
         }
     }
     else
     {
-        if (maxport > 4)
+        if (maxport > 4 && currentStrings != 12)
         {
-            PutURL("/StringPorts.htm", "m=1");
-        }
-        else
-        {
-            PutURL("/StringPorts.htm", "m=0");
+            logger_base.info("Adjusting string port count to 12.");
+            progress.Update(25, "Adjusting string port count to 12.");
+            InitialiseStrings("m=1&S=12", currentStrings + 1, 12);
+            changed = true;
         }
     }
+
+    if (changed)
+    {
+        progress.Update(35, "Retrieving string configuration from Falcon ... again.");
+        // reget the strings
+        strings = GetURL("/strings.xml");
+        if (strings == "")
+        {
+            progress.Update(100, "Aborting.");
+            logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
+            wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+            return false;
+        }
+    }
+
+    int mainPixels = MaxPixels(strings, 0);
+    int daughter1Pixels = MaxPixels(strings, 1);
+    int daughter2Pixels = MaxPixels(strings, 2);
+
+    logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
+
+    progress.Update(50, "Configuring string ports.");
 
     // for each protocol
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
@@ -416,6 +455,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             {
                                 logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
                                 wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                                success = false;
                             }
                             else
                             {
@@ -424,7 +464,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent);
+                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
                                 if (count == 40)
                                 {
                                     UploadStringPort(sendmessage, false);
@@ -440,6 +480,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         {
                             logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                            success = false;
                         }
                         else
                         {
@@ -448,7 +489,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             if (sendmessage != "") sendmessage = sendmessage + "&";
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent);
+                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
                             if (count == 40)
                             {
                                 UploadStringPort(sendmessage, false);
@@ -467,6 +508,7 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                     logger_base.warn("Falcon Outputs Upload: Controller %s protocol %s not supported by this controller.",
                         (const char *)_ip.c_str(), (const char *)protocol->c_str());
                     wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+                    success = false;
                 }
             }
             else
@@ -476,6 +518,10 @@ void Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
         UploadStringPort(sendmessage, true);
     }
+
+    progress.Update(100, "Done.");
+
+    return success;
 }
 
 int Falcon::DecodeStringPortProtocol(std::string protocol)
@@ -491,25 +537,115 @@ int Falcon::DecodeStringPortProtocol(std::string protocol)
     return -1;
 }
 
+void Falcon::InitialiseStrings(const std::string& prefix, int start, int end)
+{
+    std::string request = prefix;
+
+    for (int i = start-1; i < end; ++i)
+    {
+        if (request != "")
+        {
+            request += "&";
+        }
+        request += wxString::Format("p%d=%d&u%d=1&s%d=1&c%d=50", i, i, i, i, i);
+    }
+
+    UploadStringPort(request, true);
+}
+
 void Falcon::UploadStringPort(const std::string& request, bool final)
 {
     std::string r = request;
     if (final)
     {
-        r = r + "&r=1";
+        r = "r=1&" + r;
     }
     else
     {
-        r = r + "&r=0";
+        r = "r=0&" + r;
     }
 
     PutURL("/StringPorts.htm", r);
 }
 
-std::string Falcon::BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent)
+int Falcon::MaxPixels(const std::string& strings, int board)
+{
+    wxStringInputStream strm(wxString(strings.c_str()));
+    wxXmlDocument stringsdoc(strm);
+
+    if (stringsdoc.GetRoot() == nullptr)
+    {
+        return 0;
+    }
+
+    switch(board)
+    {
+    case 0:
+        return wxAtoi(stringsdoc.GetRoot()->GetAttribute("k0"));
+    case 1:
+        return wxAtoi(stringsdoc.GetRoot()->GetAttribute("k1"));
+    case 2:
+        return wxAtoi(stringsdoc.GetRoot()->GetAttribute("k2"));
+    }
+
+    return 0;
+}
+
+int Falcon::CountStrings(const std::string& strings)
+{
+    wxStringInputStream strm(wxString(strings.c_str()));
+    wxXmlDocument stringsdoc(strm);
+
+    if (stringsdoc.GetRoot() == nullptr)
+    {
+        return 0;
+    }
+
+    int count = wxAtoi(stringsdoc.GetRoot()->GetAttribute("c"));
+
+    if (count == 0)
+    {
+        for (auto e = stringsdoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
+        {
+            count = std::max(count, wxAtoi(e->GetAttribute("p")) + 1);
+        }
+    }
+
+    return count;
+}
+
+std::string Falcon::BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent, int mainPixels, int daughter1Pixels, int daughter2Pixels)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int row = -1;
+
+    if (output <= 16)
+    {
+        if (pixels > mainPixels)
+        {
+            wxString msg = wxString::Format("Output %d on main board has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, mainPixels);
+            logger_base.error(msg.c_str());
+            wxMessageBox(msg, "Error", wxOK, parent);
+        }
+    }
+    else if (output <= 32)
+    {
+        if (pixels > daughter1Pixels)
+        {
+            wxString msg = wxString::Format("Output %d on expansion board 1 has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, daughter1Pixels);
+            logger_base.error(msg.c_str());
+            wxMessageBox(msg, "Error", wxOK, parent);
+        }
+    }
+    else
+    {
+        if (pixels > daughter2Pixels)
+        {
+            wxString msg = wxString::Format("Output %d on expansion board 2 has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, daughter2Pixels);
+            logger_base.error(msg.c_str());
+            wxMessageBox(msg, "Error", wxOK, parent);
+        }
+    }
 
     wxString desc(description);
     int replaced = desc.Replace("  ", " ");
@@ -563,7 +699,7 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
         return "";
     }
 
-    wxString request = wxString::Format("r=0&p%d=%d&t%d=%d&u%d=%d&s%d=%d&c%d=%d&y%d=%s", 
+    wxString request = wxString::Format("p%d=%d&t%d=%d&u%d=%d&s%d=%d&c%d=%d&y%d=%s", 
                                         row, output - 1,
                                         row, protocol,
                                         row, universe,

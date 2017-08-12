@@ -316,11 +316,11 @@ char SanDevices::EncodeUniverse(int universe, OutputManager* outputManager, std:
     return res;
 }
 
-void SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
+bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     std::string page = GetURL("/");
 
-    if (page == "") return;
+    if (page == "") return false;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
@@ -373,7 +373,7 @@ void SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
         }
         request += wxString::Format("%c=%i", output++, (*it)->GetUniverse());
     }
-    GetURL(request.ToStdString());
+    return (GetURL(request.ToStdString()) != "");
 }
 
 std::string SanDevices::ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start)
@@ -429,10 +429,11 @@ bool SanDevicescompare_startchannel(const Model* first, const Model* second)
     return firstmodelstart < secondmodelstart;
 }
 
-void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
+    bool success = true;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SanDevices Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     // build a list of models on this controller
@@ -505,7 +506,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     {
         logger_base.error("SanDevices Outputs Upload: SanDevices would not return current configuration.");
         wxMessageBox("Error occured trying to upload to SanDevices.", "Error", wxOK, parent);
-        return;
+        return false;
     }
 
     // for each protocol
@@ -582,6 +583,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                             {
                                 logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
                                 wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                                success = false;
                             }
                             else
                             {
@@ -589,7 +591,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-                                UploadStringPort(page, i+j, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent);
+                                success = UploadStringPort(page, i+j, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
                             }
                         }
                     }
@@ -599,6 +601,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                         {
                             logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                            success = false;
                         }
                         else
                         {
@@ -606,7 +609,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
                             wxASSERT(channelsperstring == portend - portstart + 1);
-                            UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent);
+                            success = UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
                         }
                     }                    
                 }
@@ -615,6 +618,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                     logger_base.warn("SanDevices Outputs Upload: Controller %s protocol %s not supported by this controller.",
                         (const char *)_ip.c_str(), (const char *)protocol->c_str());
                     wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+                    success = false;
                 }
             }
             else
@@ -632,6 +636,7 @@ void SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             }
         }
     }
+    return success;
 }
 
 char SanDevices::DecodeStringPortProtocol(std::string protocol)
@@ -647,14 +652,15 @@ char SanDevices::DecodeStringPortProtocol(std::string protocol)
     return -1;
 }
 
-void SanDevices::UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
+bool SanDevices::UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
 {
+    bool success = true;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxStringOutputs())
     {
         logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
         wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
-        return;
+        return false;
     }
 
     wxString p(page);
@@ -701,7 +707,7 @@ void SanDevices::UploadStringPort(const std::string& page, int output, int outpu
             rev,
             zz,
             n);
-    GetURL(request.ToStdString());
+    return (GetURL(request.ToStdString()) != "");
 }
 
 void SanDevices::ResetStringOutputs()
