@@ -1866,6 +1866,11 @@ void EffectsGrid::CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startM
 
 void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow)
 {
+    if (type == ACTYPE::SELECT)
+    {
+        type = ACTYPE::ON;
+    }
+
     for (int r = std::min(startRow, endRow); r <= std::max(startRow, endRow); r++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
@@ -2324,7 +2329,7 @@ bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOver
         mode = modeOverride;
     }
 
-    if (type == ACTYPE::SELECT && tool != ACTOOL::CASCADE)
+    if (type == ACTYPE::SELECT && tool != ACTOOL::CASCADE && tool != ACTOOL::FILL)
     {
         return false;
     }

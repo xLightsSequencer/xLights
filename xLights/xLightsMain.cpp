@@ -5494,6 +5494,12 @@ void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(true);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
@@ -5504,10 +5510,24 @@ void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
         Button_ACIntensity->SetValue(true);
     }
     Button_ACSelect->SetValue(false);
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(true);
     Button_ACTwinkle->SetValue(false);
@@ -5515,6 +5535,14 @@ void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
     Button_ACCascade->SetValue(false);
     Button_ACFill->SetValue(false);
     Button_ACSelect->SetValue(false);
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::UpdateACToolbar(bool forceState)
@@ -5596,6 +5624,12 @@ void xLightsFrame::OnACToolbarDropdown(wxAuiToolBarEvent& event)
 
 void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
@@ -5605,10 +5639,24 @@ void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
     {
         Button_ACIntensity->SetValue(true);
     }
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(true);
@@ -5617,6 +5665,14 @@ void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
     if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
     {
         Button_ACIntensity->SetValue(true);
+    }
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
     }
 }
 
@@ -5637,6 +5693,12 @@ void xLightsFrame::OnAC_ForegroundClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     if (!Button_ACCascade->IsChecked())
     {
         if (!Button_ACOn->IsChecked() && !Button_ACOff->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
@@ -5667,10 +5729,24 @@ void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
     {
         EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, true);
     }
+
+    if (Button_ACCascade->IsChecked() && wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     if (Button_ACFill->IsChecked())
     {
         EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, false);
@@ -5703,10 +5779,24 @@ void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
     {
         Button_ACIntensity->SetValue(true);
     }
+
+    if (wasSelect && Button_ACFill->IsChecked())
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampUpDownClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(false);
@@ -5721,10 +5811,24 @@ void xLightsFrame::OnAC_RampUpDownClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUpDown));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUpDown));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampDownClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(true);
@@ -5740,10 +5844,24 @@ void xLightsFrame::OnAC_RampDownClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampDown));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampDown));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampUpClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(true);
     Button_ACRampDown->SetValue(false);
@@ -5759,10 +5877,24 @@ void xLightsFrame::OnAC_RampUpClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUp));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUp));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_IntensityClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(true);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(false);
@@ -5777,6 +5909,14 @@ void xLightsFrame::OnAC_IntensityClick(wxCommandEvent& event)
     }
     ChoiceParm2->Enable(false);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1Intensity));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode)

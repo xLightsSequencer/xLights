@@ -120,7 +120,6 @@ public:
 protected:
     virtual void InitializeGLCanvas();
 
-
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms);
