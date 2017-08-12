@@ -929,6 +929,19 @@ void SequenceElements::AddTimingToAllViews(const std::string& timing)
     }
 }
 
+void SequenceElements::AddTimingToCurrentView(const std::string& timing)
+{
+    if (mCurrentView != MASTER_VIEW) // dont add it to master
+    {
+        AddTimingToView(timing, _viewsManager->GetView(mCurrentView)->GetName());
+    }
+}
+
+int SequenceElements::GetViewCount()
+{
+    return _viewsManager->GetViewCount();
+}
+
 void SequenceElements::AddViewToTimings(std::vector<std::string>& timings, const std::string& name)
 {
     for( size_t i = 0; i < timings.size(); i++ )
@@ -1013,7 +1026,7 @@ int SequenceElements::GetSelectedTimingRow()
 
 wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
     wxXmlNode* e;
-    for(e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "model")
         {

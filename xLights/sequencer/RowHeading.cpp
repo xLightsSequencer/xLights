@@ -403,7 +403,23 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             Element* e = mSequenceElements->AddElement(timingCount,name,
                                                        "timing",true,false,true,false);
             e->AddEffectLayer();
-            mSequenceElements->AddTimingToAllViews(name);
+
+            int adjViews = (mSequenceElements->GetCurrentView() == MASTER_VIEW) ? -1 : -2;
+            if (mSequenceElements->GetViewCount() + adjViews > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW)
+            {
+                if (wxMessageBox("Do you want to add this timing track to all views?", "Add to all views.", wxYES_NO) == wxYES)
+                {
+                    mSequenceElements->AddTimingToAllViews(name);
+                }
+                else
+                {
+                    mSequenceElements->AddTimingToCurrentView(name);
+                }
+            }
+            else
+            {
+                mSequenceElements->AddTimingToCurrentView(name);
+            }
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }

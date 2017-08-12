@@ -92,7 +92,9 @@ class SequenceElements : public ChangeListener
         void AddViewToTimings(std::vector<std::string> & timings, const std::string& name);
         void AddTimingToAllViews(const std::string& timing);
         void AddTimingToView(const std::string& timing, const std::string& name);
+        void AddTimingToCurrentView(const std::string& timing);
         int GetIndexOfModelFromModelIndex(int modelIndex);
+        int GetViewCount();
         void RenameModelInViews(const std::string& old_name, const std::string& new_name);
 
         void DeleteElement(const std::string &name);
