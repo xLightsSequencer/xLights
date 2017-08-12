@@ -90,10 +90,13 @@ SDL::SDL()
     }
 
     _state = SDLSTATE::SDLOPENED;
+    logger_base.debug("SDL initialised");
 }
 
 SDL::~SDL()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
         Stop();
@@ -115,6 +118,8 @@ SDL::~SDL()
         _audioData.remove(toremove);
         delete toremove;
     }
+
+    logger_base.debug("SDL uninitialised");
 }
 
 int SDL::Tell(int id)
@@ -200,6 +205,8 @@ void SDL::Reopen()
             Play();
         }
     }
+
+    logger_base.info("SDL reinitialised.");
 }
 
 int SDL::GetVolume(int id)
@@ -328,20 +335,26 @@ int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize
         Reopen();
     }
 
+    logger_base.debug("SDL Audio Added: id: %d, rate: %d, len: %ld, lengthMS: %ld, trackSize: %ld.", id, rate, (unsigned long)len, lengthMS, tracksize);
+
     return id;
 }
 
 void SDL::RemoveAudio(int id)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto toremove = GetData(id);
     if (toremove == nullptr) return;
     _audioData.remove(toremove);
     delete toremove;
+    logger_base.debug("SDL Audio Removed: id: %d.", id);
 }
 
 void SDL::Pause(int id, bool pause)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Pause: id: %d, pause %d.", id, pause);
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto topause = GetData(id);
     if (topause != nullptr)
@@ -359,18 +372,24 @@ void SDL::SetRate(float rate)
 
 void SDL::Play()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Play.");
     SDL_PauseAudio(0);
     _state = SDLSTATE::SDLPLAYING;
 }
 
 void SDL::Pause()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Pause.");
     SDL_PauseAudio(1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
 void SDL::Unpause()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Unpause.");
     SDL_PauseAudio(0);
     _state = SDLSTATE::SDLPLAYING;
 }
@@ -389,6 +408,8 @@ void SDL::TogglePause()
 
 void SDL::Stop()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Stop.");
     SDL_PauseAudio(1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
