@@ -2111,6 +2111,12 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
     default:
         break;
     }
+
+    // clear any highlight
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        ListCtrlModels->SetItemState(i, 0, wxLIST_STATE_DROPHILITED);
+    }
 }
 
 #pragma endregion Drag and Drop
