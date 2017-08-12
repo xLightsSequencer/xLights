@@ -15,7 +15,6 @@
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include <log4cpp/Category.hh>
-#include "osxMacUtils.h"
 #include "xLightsXmlFile.h"
 #include "outputs/TestPreset.h"
 #include "outputs/Output.h"
@@ -606,7 +605,6 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
     DeserialiseSettings(config->Read("xLightsTestSettings").ToStdString());
 
 	_starttime = wxDateTime::UNow();
-	DisableSleepModes();
 
     CheckBox_OutputToLights->SetValue(true);
     if (!_outputManager->StartOutput())
@@ -2449,7 +2447,6 @@ void TestDialog::OnClose(wxCloseEvent& event)
         Timer1.Stop();
         _outputManager->AllOff();
         _outputManager->StopOutput();
-        EnableSleepModes();
     }
 
     wxConfigBase* config = wxConfigBase::Get();

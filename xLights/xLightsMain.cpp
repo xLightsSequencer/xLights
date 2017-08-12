@@ -1938,7 +1938,6 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
         CheckBoxLightOutput->SetValue(false);
         _outputManager.AllOff();
         _outputManager.StopOutput();
-        EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")), wxART_TOOLBAR));
         EnableNetworkChanges();
     }
@@ -1950,22 +1949,16 @@ bool xLightsFrame::EnableOutputs()
 
     if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting())
     {
-        DisableSleepModes();
         ok = _outputManager.StartOutput();
         if (ok)
         {
             CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
-        }
-        else
-        {
-            EnableSleepModes();
         }
     }
     else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting())
     {
         _outputManager.AllOff();
         _outputManager.StopOutput();
-        EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
     }
     EnableNetworkChanges();
