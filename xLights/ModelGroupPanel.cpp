@@ -34,15 +34,12 @@ public:
 
     virtual bool GiveFeedback(wxDragResult effect) override
     {
-        int sx;
-        int sy;
-        _window->GetScreenPosition(&sx, &sy);
-        wxPoint point = wxGetMousePosition() - wxPoint(sx, sy);
+        wxPoint point = wxGetMousePosition();
 
         if (_models)
         {
-            if (_window->ListBoxModelsInGroup->GetRect().Contains(point) ||
-                _window->ListBoxAddToModelGroup->GetRect().Contains(point))
+            if (_window->ListBoxModelsInGroup->GetScreenRect().Contains(point) ||
+                _window->ListBoxAddToModelGroup->GetScreenRect().Contains(point))
             {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
@@ -53,7 +50,7 @@ public:
         }
         else if (_nonModels)
         {
-            if (_window->ListBoxModelsInGroup->GetRect().Contains(point))
+            if (_window->ListBoxModelsInGroup->GetScreenRect().Contains(point))
             {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
