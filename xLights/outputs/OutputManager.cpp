@@ -10,7 +10,7 @@
 #include "DDPOutput.h"
 #include "TestPreset.h"
 #include <wx/msgdlg.h>
-#include "osxMacUtils.h"
+#include "../osxMacUtils.h"
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
