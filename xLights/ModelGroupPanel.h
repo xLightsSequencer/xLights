@@ -92,8 +92,6 @@ class ModelGroupPanel: public wxPanel
 		void OnButtonUpClick(wxCommandEvent& event);
 		void OnButtonDownClick(wxCommandEvent& event);
 		void OnChoiceModelLayoutTypeSelect(wxCommandEvent& event);
-		void OnPaint(wxPaintEvent& event);
-		void OnPaint1(wxPaintEvent& event);
 		void OnChoicePreviewsSelect(wxCommandEvent& event);
 		void OnSizeSpinCtrlChange(wxSpinEvent& event);
 		void OnListBoxAddToModelGroupBeginDrag(wxListEvent& event);
@@ -115,6 +113,7 @@ class ModelGroupPanel: public wxPanel
         void RemoveSelectedModels();
         void MoveSelectedModelsTo(int indexTo);
         void ClearSelections(wxListCtrl* listCtrl, long stateMask);
+        int GetFirstSelectedModel(wxListCtrl* list);
 };
 
 #endif

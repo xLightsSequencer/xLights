@@ -323,12 +323,53 @@ void ModelGroupPanel::OnChoiceModelLayoutTypeSelect(wxCommandEvent& event)
 
 void ModelGroupPanel::OnButtonAddToModelGroupClick(wxCommandEvent& event)
 {
+    int first = GetFirstSelectedModel(ListBoxAddToModelGroup);
+
     AddSelectedModels(-1);
+
+    if (first >= ListBoxAddToModelGroup->GetItemCount())
+    {
+        first = ListBoxAddToModelGroup->GetItemCount() - 1;
+    }
+
+    if (first != -1)
+    {
+        ListBoxAddToModelGroup->SetItemState(first, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+
+    ValidateWindow();
+}
+
+int ModelGroupPanel::GetFirstSelectedModel(wxListCtrl* list)
+{
+    for (size_t i = 0; i < list->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(list, i))
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 void ModelGroupPanel::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
 {
+    int first = GetFirstSelectedModel(ListBoxModelsInGroup);
+
     RemoveSelectedModels();
+
+    if (first >= ListBoxModelsInGroup->GetItemCount())
+    {
+        first = ListBoxModelsInGroup->GetItemCount() - 1;
+    }
+
+    if (first != -1)
+    {
+        ListBoxModelsInGroup->SetItemState(first, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+
+    ValidateWindow();
 }
 
 void ModelGroupPanel::OnButtonUpClick(wxCommandEvent& event)
@@ -583,6 +624,8 @@ void ModelGroupPanel::OnDrop(wxCommandEvent& event)
     default:
         break;
     }
+
+    ValidateWindow();
 }
 
 #pragma endregion Drag and Drop
