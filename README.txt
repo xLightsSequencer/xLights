@@ -12,6 +12,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
    -- enh (dkulp)   Add ability to specify starting location and direction for circle model
+   -- enh (keith)   Add ability to manual edit effect timing - right click on an effect to access it
+   -- bug (keith)   Fix model group panel no longer to able to repeatedly add/remove models using button
+   -- bug (keith)   Fix scheduler does not properly restore from an interrupted schedule
+   -- bug (keith)   When adding timing tracks only add them to master + current view
+   -- bug (keith)   Fix some drag and drop anomalies on display elements
+   -- bug (keith)   Add some SDL logging to track down OSX audio not playing bug
+   -- enh (keith)   Fine tune AC UI ... try to make it more intuitive
+   -- bug (keith)   Fix handling of expansion boards on the falcon
+   -- enh (keith)   Allow AC sequencing on nodes
+   -- enh (keith)   Some check sequence additions
+   -- bug (keith)   Fix model rename breaks submodels
 2017.22  Aug 06, 2017
    -- bug (gil)     Fix timeline display for sequences greater than an hour.  Fixes #811.
    -- bug (dan)     Prevent a GIF with 0 frame time hanging xlights

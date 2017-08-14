@@ -23,6 +23,7 @@
 #include "../effects/RenderableEffect.h"
 #include "../SequenceCheck.h"
 #include "../xLightsXmlFile.h"
+#include "EffectTimingDialog.h"
 
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1
@@ -50,6 +51,7 @@ const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
@@ -238,6 +240,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_effect_description->Enable(false);
         }
 
+        wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
+        if (mSelectedEffect == nullptr || MultipleEffectsSelected())
+        {
+            menu_effect_timing->Enable(false);
+        }
+
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
         Draw();
         PopupMenu(&mnuLayer);
@@ -311,6 +319,10 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if (id == ID_GRID_MNU_DESCRIPTION)
     {
         SetEffectsDescription();
+    }
+    else if (id == ID_GRID_MNU_TIMING)
+    {
+        SetEffectsTiming();
     }
     else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
     {
@@ -3217,6 +3229,24 @@ void EffectsGrid::SetEffectsDescription()
                 }
             }
         }
+    }
+}
+
+void EffectsGrid::SetEffectsTiming()
+{
+    if (mSequenceElements == nullptr || mSelectedEffect == nullptr || MultipleEffectsSelected()) {
+        return;
+    }
+
+    EffectTimingDialog dlg(this, mSelectedEffect, mTimeline->GetTimeFrequency());
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+        mSelectedEffect->SetStartTimeMS(dlg.GetStartTime());
+        mSelectedEffect->SetEndTimeMS(dlg.GetEndTime());
+        ForceRefresh();
     }
 }
 

@@ -957,6 +957,9 @@
     <ClCompile Include="models\ChannelBlockModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EffectTimingDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1857,6 +1860,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="models\ChannelBlockModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectTimingDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
