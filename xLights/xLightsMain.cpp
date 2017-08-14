@@ -62,6 +62,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <cctype>
+#include "outputs/IPOutput.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -3887,6 +3888,82 @@ void xLightsFrame::CheckSequence(bool display)
             else
             {
                 used.push_back((*n)->GetCommPort());
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // controllers sending to routable IP addresses
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Invalid controller IP addresses");
+
+    outputs = _outputManager.GetOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    {
+        if ((*n)->IsIpOutput())
+        {
+            if ((*n)->GetIP() != "MULTICAST")
+            {
+                if (!IPOutput::IsIPValid((*n)->GetIP()))
+                {
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+                else
+                {
+                    wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
+                    int ip1 = wxAtoi(ipElements[0]);
+                    int ip2 = wxAtoi(ipElements[1]);
+                    int ip3 = wxAtoi(ipElements[2]);
+                    int ip4 = wxAtoi(ipElements[3]);
+
+                    bool valid = true;
+                    if (ip1 == 10)
+                    {
+                        // this is valid
+                    }
+                    else if (ip1 == 192 && ip2 == 168)
+                    {
+                        // this is valid
+                    }
+                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 >= 224 && ip1 <= 239)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else
+                    {
+                        wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
             }
         }
     }
