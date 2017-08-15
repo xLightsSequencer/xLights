@@ -1,7 +1,9 @@
 #include "EffectTimingDialog.h"
 #include "sequencer/Effect.h"
+#include "sequencer/EffectLayer.h"
 
 //(*InternalHeaders(EffectTimingDialog)
+#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -13,6 +15,7 @@ const long EffectTimingDialog::ID_STATICTEXT3 = wxNewId();
 const long EffectTimingDialog::ID_SPINCTRL2 = wxNewId();
 const long EffectTimingDialog::ID_STATICTEXT4 = wxNewId();
 const long EffectTimingDialog::ID_SPINCTRL3 = wxNewId();
+const long EffectTimingDialog::ID_STATICTEXT1 = wxNewId();
 const long EffectTimingDialog::ID_BUTTON1 = wxNewId();
 const long EffectTimingDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -22,10 +25,12 @@ BEGIN_EVENT_TABLE(EffectTimingDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, int timeInterval,wxWindowID id,const wxPoint& pos,const wxSize& size)
+EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLayer* el, int timeInterval,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     wxASSERT(timeInterval > 0);
+    _effectLayer = el;
     _timeInterval = 1000 / timeInterval;
+    _effectId = eff->GetID();
 
 	//(*Initialize(EffectTimingDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -51,6 +56,11 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, int timeIn
 	SpinCtrl_EndTime = new StepSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_EndTime->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_EndTime, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Error = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	wxFont StaticText_ErrorFont(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
+	StaticText_Error->SetFont(StaticText_ErrorFont);
+	FlexGridSizer1->Add(StaticText_Error, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -84,6 +94,8 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, int timeIn
     SpinCtrl_StartTime->SetValue(eff->GetStartTimeMS());
     SpinCtrl_EndTime->SetValue(eff->GetEndTimeMS());
     SpinCtrl_Duration->SetValue(eff->GetEndTimeMS() - eff->GetStartTimeMS());
+
+    ValidateWindow();
 }
 
 EffectTimingDialog::~EffectTimingDialog()
@@ -109,11 +121,15 @@ void EffectTimingDialog::OnSpinCtrl_StartTimeChange(wxSpinEvent& event)
         SpinCtrl_EndTime->SetValue(SpinCtrl_StartTime->GetValue() + _timeInterval);
     }
     SpinCtrl_Duration->SetValue(SpinCtrl_EndTime->GetValue() - SpinCtrl_StartTime->GetValue());
+
+    ValidateWindow();
 }
 
 void EffectTimingDialog::OnSpinCtrl_DurationChange(wxSpinEvent& event)
 {
     SpinCtrl_EndTime->SetValue(SpinCtrl_StartTime->GetValue() + SpinCtrl_Duration->GetValue());
+
+    ValidateWindow();
 }
 
 void EffectTimingDialog::OnSpinCtrl_EndTimeChange(wxSpinEvent& event)
@@ -123,4 +139,43 @@ void EffectTimingDialog::OnSpinCtrl_EndTimeChange(wxSpinEvent& event)
         SpinCtrl_StartTime->SetValue(SpinCtrl_EndTime->GetValue() - _timeInterval);
     }
     SpinCtrl_Duration->SetValue(SpinCtrl_EndTime->GetValue() - SpinCtrl_StartTime->GetValue());
+
+    ValidateWindow();
+}
+
+void EffectTimingDialog::ValidateWindow()
+{
+    bool valid = true;
+    int start = SpinCtrl_StartTime->GetValue();
+    int end = SpinCtrl_EndTime->GetValue();
+
+    for (int i = 0; i < _effectLayer->GetEffectCount(); ++i)
+    {
+        if (_effectLayer->GetEffect(i)->GetID() == _effectId)
+        {
+            // this is us ignore it
+        }
+        else
+        {
+            int ss = _effectLayer->GetEffect(i)->GetStartTimeMS();
+            int es = _effectLayer->GetEffect(i)->GetEndTimeMS();
+
+            if (start < es && end > ss)
+            {
+                valid = false;
+                break;
+            }
+        }
+    }
+
+    if (valid)
+    {
+        Button_Ok->Enable(true);
+        StaticText_Error->SetLabel("");
+    }
+    else
+    {
+        Button_Ok->Enable(false);
+        StaticText_Error->SetLabel("Effect times clash!");
+    }
 }

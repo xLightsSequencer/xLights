@@ -10,6 +10,7 @@
 //*)
 
 class Effect;
+class EffectLayer;
 
 class StepSpinCtrl : public wxSpinCtrl
 {
@@ -91,7 +92,7 @@ class EffectTimingDialog: public wxDialog
 {
 	public:
 
-		EffectTimingDialog(wxWindow* parent, Effect* eff, int timingInterval,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLayer* el, int timingInterval,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EffectTimingDialog();
         int GetStartTime() const { return SpinCtrl_StartTime->GetValue(); }
         int GetEndTime() const { return SpinCtrl_EndTime->GetValue(); }
@@ -104,6 +105,7 @@ class EffectTimingDialog: public wxDialog
 		StepSpinCtrl* SpinCtrl_EndTime;
 		wxStaticText* StaticText3;
 		wxButton* Button_Cancel;
+		wxStaticText* StaticText_Error;
 		wxStaticText* StaticText4;
 		//*)
 
@@ -116,6 +118,7 @@ class EffectTimingDialog: public wxDialog
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL3;
+		static const long ID_STATICTEXT1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -133,6 +136,10 @@ class EffectTimingDialog: public wxDialog
 		DECLARE_EVENT_TABLE()
 
         int _timeInterval;
+        EffectLayer* _effectLayer;
+        int _effectId;
+
+        void ValidateWindow();
 };
 
 #endif

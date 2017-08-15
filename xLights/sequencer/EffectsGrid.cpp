@@ -3238,7 +3238,9 @@ void EffectsGrid::SetEffectsTiming()
         return;
     }
 
-    EffectTimingDialog dlg(this, mSelectedEffect, mTimeline->GetTimeFrequency());
+    EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
+
+    EffectTimingDialog dlg(this, mSelectedEffect, el, mTimeline->GetTimeFrequency());
 
     if (dlg.ShowModal() == wxID_OK)
     {
