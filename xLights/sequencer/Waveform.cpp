@@ -509,12 +509,12 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 	{
 		float minimum=1;
 		float maximum=-1;
-		int trackSize = media->GetTrackSize();
+		long trackSize = media->GetTrackSize();
 		int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
 
 		for (int i = 0; i < totalMinMaxs; i++) {
 			// Use float calculation to minimize compounded rounding of position
-			int start = (int)((float)i*SamplesPerPixel);
+			long start = (long)((float)i*SamplesPerPixel);
 			if (start >= trackSize) {
 				return;
 			}

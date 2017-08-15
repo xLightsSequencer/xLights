@@ -112,23 +112,23 @@ class AudioData
     public:
         static int __nextId;
         int _id;
-        Uint64  _audio_len;
-        Uint8  *_audio_pos;
+        long  _audio_len;
+        Uint8* _audio_pos;
         Uint8* _original_pos;
         int _volume = SDL_MIX_MAXVOLUME;
         int _rate;
-        Uint64 _original_len;
-        int _savedpos;
-        int _trackSize;
-        int _lengthMS;
+        long _original_len;
+        long _savedpos;
+        long _trackSize;
+        long _lengthMS;
         bool _paused;
         AudioData();
         ~AudioData() {}
-        int Tell();
-        void Seek(int ms);
+        long Tell();
+        void Seek(long ms);
         void SavePos();
         void RestorePos();
-        void SeekAndLimitPlayLength(int pos, int len);
+        void SeekAndLimitPlayLength(long pos, long len);
         void Pause(bool pause) { _paused = pause; }
 };
 
@@ -148,10 +148,10 @@ public:
     SDL();
     virtual ~SDL();
     std::list<AudioData*> GetAudio() const { return _audioData; }
-    int Tell(int id);
-    void Seek(int id, int ms);
+    long Tell(int id);
+    void Seek(int id, long ms);
     void SetRate(float rate);
-    int AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize, int lengthMS);
+    int AddAudio(long len, Uint8* buffer, int volume, int rate, long tracksize, long lengthMS);
     void RemoveAudio(int id);
     void Play();
     void Pause();
@@ -162,7 +162,7 @@ public:
     int GetVolume(int id);
     void SetGlobalVolume(int volume);
     int GetGlobalVolume() const;
-    void SeekAndLimitPlayLength(int id, int pos, int len);
+    void SeekAndLimitPlayLength(int id, long pos, long len);
     void Pause(int id, bool pause);
 };
 
@@ -179,19 +179,19 @@ class AudioManager
 	xLightsVamp _vamp;
 	long _rate;
 	int _channels;
-	int64_t _trackSize;
+    long _trackSize;
 	int _bits;
 	int _extra;
 	std::string _resultMessage;
 	int _state;
 	float *_data[2]; // audio data
 	Uint8* _pcmdata;
-	Uint64 _pcmdatasize;
+	long _pcmdatasize;
 	std::string _title;
 	std::string _artist;
 	std::string _album;
 	int _intervalMS;
-	int _lengthMS;
+	long _lengthMS;
 	bool _frameDataPrepared;
 	float _bigmax;
 	float _bigspread;
@@ -205,9 +205,9 @@ class AudioManager
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);
-	int CalcLengthMS();
-	void SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData);
-	void NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData);
+	long CalcLengthMS();
+	void SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData);
+	void NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData);
 	int OpenMediaFile();
 	void PrepareFrameData(bool separateThread);
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
@@ -220,16 +220,16 @@ class AudioManager
 public:
     bool IsOk() const { return _ok; }
     static size_t GetAudioFileLength(std::string filename);
-	void Seek(int pos);
+	void Seek(long pos);
 	void Pause();
 	void Play();
-    void Play(int posms, int lenms);
+    void Play(long posms, long lenms);
     void Stop();
     long GetLoadedData();
     bool IsDataLoaded(long pos = -1);
     static void SetPlaybackRate(float rate);
 	MEDIAPLAYINGSTATE GetPlayingState();
-	int Tell();
+	long Tell();
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(const std::string& audio_file, int step = 4096, int block = 32768);
 	~AudioManager();
@@ -237,27 +237,27 @@ public:
     int GetVolume();
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
-	int GetTrackSize() { return _trackSize; };
-	long GetRate() { return _rate; };
-	int GetChannels() { return _channels; };
-	int GetState() { return _state; };
-	std::string GetResultMessage() { return _resultMessage; };
-	std::string Title() { return _title; };
-	std::string Artist() { return _artist; };
-	std::string Album() { return _album; };
-	std::string FileName() { return _audio_file; };
-	int LengthMS() { return _lengthMS; };
-	float GetRightData(int offset);
-	float GetLeftData(int offset);
-	float* GetRightDataPtr(int offset);
-	float* GetLeftDataPtr(int offset);
+    long GetTrackSize() const { return _trackSize; };
+	long GetRate() const { return _rate; };
+	int GetChannels() const { return _channels; };
+	int GetState() const { return _state; };
+	std::string GetResultMessage() const { return _resultMessage; };
+	std::string Title() const { return _title; };
+	std::string Artist() const { return _artist; };
+	std::string Album() const { return _album; };
+	std::string FileName() const { return _audio_file; };
+	long LengthMS() const { return _lengthMS; };
+	float GetRightData(long offset);
+	float GetLeftData(long offset);
+	float* GetRightDataPtr(long offset);
+	float* GetLeftDataPtr(long offset);
 	void SetStepBlock(int step, int block);
 	void SetFrameInterval(int intervalMS);
-	int GetFrameInterval() { return _intervalMS; }
+	int GetFrameInterval() const { return _intervalMS; }
 	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
-	bool IsPolyphonicTranscriptionDone() { return _polyphonicTranscriptionDone; };
+	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
 };
 

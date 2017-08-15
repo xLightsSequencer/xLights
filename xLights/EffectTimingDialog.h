@@ -1,8 +1,6 @@
 #ifndef EffectTimingDialog_H
 #define EffectTimingDialog_H
 
-#include <wx/spinctrl.h>
-
 //(*Headers(EffectTimingDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -17,9 +15,12 @@ class StepSpinCtrl : public wxSpinCtrl
 {
     int _lastDir;
     int _step;
+    int _lastValue;
+    wxWindow* _parent;
 public:
+    
     void OnSpin(wxSpinEvent& event) {
-        int delta = GetValue() - m_oldValue;
+        int delta = GetValue() - _lastValue;
 
         if (delta > 0)
         {
@@ -32,11 +33,13 @@ public:
             _lastDir = -1;
         }
     }
+    
     void SetValue(wxString value)
     {
         SetValue(wxAtoi(value));
     }
-    virtual void SetValue(int value) override
+
+    virtual void SetValue(int value)
     {
         int oldValue = GetValue();
         int v = value;
@@ -65,14 +68,17 @@ public:
             event.SetEventObject(this);
             event.SetInt(v);
 
-            wxPostEvent(m_parent, event);
+            wxPostEvent(_parent, event);
 
-            m_oldValue = v;
+            _lastValue = v;
         }
     }
+
     StepSpinCtrl(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString &value = wxEmptyString, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSP_ARROW_KEYS | wxALIGN_RIGHT, int min = 0, int max = 100, int initial = 0, const wxString &name = "wxSpinCtrl") :
         wxSpinCtrl(parent, id, value, pos, size, style, min, max, initial, name)
     {
+        _parent = parent;
+        _lastValue = 0;
         _lastDir = 0;
         _step = 50;
         Bind(wxEVT_SPINCTRL, &StepSpinCtrl::OnSpin, this);
