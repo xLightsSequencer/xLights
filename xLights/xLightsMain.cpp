@@ -57,6 +57,7 @@
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
+#define MAXBACKUPFILE_MB 30
 
 #include "osxMacUtils.h"
 #include <wx/zipstrm.h>
@@ -2110,7 +2111,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (prompt)
     {
-        if (wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \"" +
+        if (wxNO == wxMessageBox("All xml files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
             newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
         {
             return;
@@ -2186,7 +2187,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         srcFile.SetFullName(fname);
 
         wxULongLong fsize = srcFile.GetSize();
-        if (!forceallfiles && fsize > 20 * 1024 * 1024) // skip any xml files > 20 mbytes, they are something other than xml files
+        if (!forceallfiles && fsize > MAXBACKUPFILE_MB * 1024 * 1024) // skip any xml files > MAXBACKUPFILE_MB mbytes, they are something other than xml files
         {
             logger_base.warn("    Skipping file as it is too large.");
             cont = srcDir.GetNext(&fname);
@@ -3447,7 +3448,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     if (prompt)
     {
-        if (wxNO == wxMessageBox("All xml files under 20MB in your xlights directory will be backed up to \"" +
+        if (wxNO == wxMessageBox("All xml files under " + wxString::Format("%i", MAXBACKUPFILE_MB) + "MB in your xlights directory will be backed up to \"" +
             newDir + "\". Proceed?", "Backup", wxICON_QUESTION | wxYES_NO))
         {
             return;
