@@ -106,33 +106,30 @@ void AssistPanel::RefreshEffect() {
 
 void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
 {
-	if( mGridCanvas != nullptr )
-    {
-        mEffect = effect_;
-        EffectLayer* layer = mEffect->GetParentEffectLayer();
-        if (layer == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No layer found for effect %s", (const char *)mEffect->GetEffectName().c_str());
-        }
-        Element* elem = layer->GetParentElement();
-        if (elem == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No element found for effect %s", (const char *)mEffect->GetEffectName().c_str());
-        }
-        std::string model_name = elem->GetModelName();
-        mModel = xlights_parent->GetModel(model_name);
-        if (mModel != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
-            Model *scls = mModel->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
-            if (scls != nullptr) {
-                mModel = scls;
-            }
-        }
-        if (mModel == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("No model found for effect %s for model %s", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
-        }
-        RefreshEffect();
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // removed the check on the canvas as not setting the effect may be leaving the data invalid
+    mEffect = effect_;
+    EffectLayer* layer = mEffect->GetParentEffectLayer();
+    if (layer == nullptr) {
+        logger_base.error("No layer found for effect %s", (const char *)mEffect->GetEffectName().c_str());
     }
+    Element* elem = layer->GetParentElement();
+    if (elem == nullptr) {
+        logger_base.error("No element found for effect %s", (const char *)mEffect->GetEffectName().c_str());
+    }
+    std::string model_name = elem->GetModelName();
+    mModel = xlights_parent->GetModel(model_name);
+    if (mModel != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
+        Model *scls = mModel->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
+        if (scls != nullptr) {
+            mModel = scls;
+        }
+    }
+    if (mModel == nullptr) {
+        logger_base.error("No model found for effect %s for model %s", (const char *)mEffect->GetEffectName().c_str(), (const char *)model_name.c_str());
+    }
+    RefreshEffect();
 }
 
 void AssistPanel::SetHandlers(wxWindow *window)
@@ -174,7 +171,7 @@ void AssistPanel::OnChar(wxKeyEvent& event)
 
 void AssistPanel::OnCharHook(wxKeyEvent& event)
 {
-    if( mEffect != NULL )
+    if (mEffect != nullptr)
     {
         if( mEffect->GetEffectIndex() == EffectManager::eff_PICTURES )
         {

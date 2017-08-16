@@ -288,10 +288,10 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
         pdata[1] = media->GetRightDataPtr(0);
         
         wxProgressDialog progress("Processing Audio", "");
-		int totalLen = media->GetTrackSize();
-		int len = media->GetTrackSize();
+        long totalLen = media->GetTrackSize();
+        long len = media->GetTrackSize();
 		int percent = 0;
-        int start = 0;
+        long start = 0;
         while (len) {
             //int request = block;
             //if (request > len) request = len;
@@ -303,14 +303,14 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
             Vamp::Plugin::FeatureSet features = p->process(pdata, timestamp);
             processFeatures(features[output], starts, ends, labels);
 
-            if (len > (int)step) {
+            if (len > (long)step) {
                 len -= step;
             } else {
                 len = 0;
             }
             start += step;
             
-            int newp = (start * 100) / totalLen;
+            int newp = (int)((start * 100) / totalLen);
             if (newp != percent) {
                 percent = newp;
                 progress.Update(percent);

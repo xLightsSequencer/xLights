@@ -29,8 +29,8 @@ public:
     J1Sys(const std::string& ip);
     bool IsConnected() const { return _connected; };
     virtual ~J1Sys();
-    void SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };
 
 #endif

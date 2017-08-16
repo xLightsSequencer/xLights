@@ -291,24 +291,26 @@ protected:
     unsigned int curCount;
 };
 
-
-
 DrawGLUtils::xlGLCacheInfo *Create11Cache() {
     return new OpenGL11Cache();
 }
+
 void DrawGLUtils::SetCurrentCache(xlGLCacheInfo *c) {
     currentCache = c;
     currentCache->SetCurrent();
 }
+
 void DrawGLUtils::DestroyCache(xlGLCacheInfo *cache) {
     if (currentCache == cache) {
         currentCache = nullptr;
     }
     delete cache;
 }
+
 bool DrawGLUtils::IsCoreProfile() {
     return currentCache->IsCoreProfile();
 }
+
 void DrawGLUtils::SetLineWidth(float i) {
     if (IsCoreProfile()) {
         //Core Profile only allows 1.0 widthlines
@@ -316,7 +318,6 @@ void DrawGLUtils::SetLineWidth(float i) {
     }
     LOG_GL_ERRORV(glLineWidth(i));
 }
-
 
 void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
     int x, y, x2, y2;
@@ -333,40 +334,47 @@ void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();
 }
+
 void DrawGLUtils::PopMatrix() {
     currentCache->PopMatrix();
 }
+
 void DrawGLUtils::Translate(float x, float y, float z) {
     currentCache->Translate(x, y, z);
 }
+
 void DrawGLUtils::Rotate(float angle, float x, float y, float z) {
     currentCache->Rotate(angle, x, y, z);
 }
+
 void DrawGLUtils::Scale(float w, float h, float z) {
     currentCache->Scale(w, h, z);
 }
+
 void DrawGLUtils::Draw(xlAccumulator &va) {
     currentCache->Draw(va);
 }
+
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {
     currentCache->Draw(va, color, type, enableCapability);
 }
+
 void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapability) {
     currentCache->Draw(va, type, enableCapability);
 }
+
 void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability) {
     currentCache->Draw(va, type, enableCapability);
 }
 
-
-
-
 void DrawGLUtils::PreAlloc(int verts) {
     currentCache->ensureSize(verts);
 }
+
 int DrawGLUtils::VertexCount() {
     return currentCache->vertexCount();
 }
+
 void DrawGLUtils::AddVertex(double x, double y, const xlColor &c, int transparency) {
     xlColor color(c);
     if (transparency) {
@@ -397,6 +405,7 @@ void DrawGLUtils::AddRectAsTriangles(double x1, double y1,
     currentCache->addVertex(x2, y1, color);
     currentCache->addVertex(x1, y1, color);
 }
+
 void DrawGLUtils::AddRect(double x1, double y1,
                           double x2, double y2,
                           const xlColor &c, int transparency) {
@@ -565,12 +574,14 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
     start = count;
 }
+
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
     memcpy(&colors[count*4], va.colors, va.count*4);
     count += va.count;
 }
+
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
@@ -583,6 +594,7 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
     }
     count += va.count;
 }
+
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
     PreAlloc(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
@@ -607,6 +619,7 @@ void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, fl
     tvertices[i] = ty;
     count++;
 }
+
 void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
     start = count;
@@ -634,7 +647,6 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
         AddVertex(x2, y + 4 < yf ? y + 4 : yf, color);
     }
 }
-
 
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
     xlColor start;
@@ -677,6 +689,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
     AddTrianglesCircle(x, y, radius, color, color);
 }
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -708,7 +721,6 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
     }
 }
 
-
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,
                                   const DrawGLUtils::xlDisplayList & dl,
@@ -723,7 +735,6 @@ void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
         bg.AddVertex(xOffset + item.x * width, yOffset + item.y * height, item.color);
     }
 }
-
 
 static void addMipMap(const wxImage &l_Image, int &level) {
     if (l_Image.IsOk() == true)
@@ -960,7 +971,6 @@ public:
             ctx->SetFont(ctx->CreateFont(size, faceName, wxFONTFLAG_NOT_ANTIALIASED, *wxWHITE));
         }
         
-        
         int count = 0;
         int line = 0;
         widths.clear();
@@ -1055,6 +1065,7 @@ public:
         
         InitializeImage(cimg);
     }
+
     void Populate(float x, float yBase, const std::string &text, float factor, DrawGLUtils::xlVertexTextureAccumulator &va) {
         va.PreAlloc(6 * text.size());
         va.id = currentCache->GetTextureId(fontIdx);
@@ -1137,6 +1148,7 @@ public:
         }
 
     }
+
     void Draw(float x, float yBase, const std::string &text, float factor) {
         LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         DrawGLUtils::xlVertexTextureAccumulator va(currentCache->GetTextureId(fontIdx));
@@ -1162,6 +1174,7 @@ public:
 
     int textureWidth, textureHeight;
 };
+
 static std::map<unsigned int, FontTexture> FONTS;
 
 static int FindFont(double size, double factor) {

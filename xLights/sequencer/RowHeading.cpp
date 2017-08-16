@@ -236,18 +236,21 @@ void RowHeading::rightClick( wxMouseEvent& event)
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+
+    if (ri == nullptr) return;
+
     Element* element = ri->element;
     int layer_index = ri->layerIndex;
     int id = event.GetId();
-    if(id == ID_ROW_MNU_INSERT_LAYER_ABOVE)
+    if (id == ID_ROW_MNU_INSERT_LAYER_ABOVE)
     {
         element->InsertEffectLayer(layer_index);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if(id == ID_ROW_MNU_INSERT_LAYER_BELOW)
+    else if (id == ID_ROW_MNU_INSERT_LAYER_BELOW)
     {
-        if( layer_index < element->GetEffectLayerCount()-1)
+        if ( layer_index < element->GetEffectLayerCount() - 1)
         {
             element->InsertEffectLayer(layer_index+1);
         }
@@ -282,7 +285,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     }
-    else if(id == ID_ROW_MNU_DELETE_LAYER)
+    else if (id == ID_ROW_MNU_DELETE_LAYER)
     {
         int layerIndex = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex;
 
@@ -400,7 +403,23 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             Element* e = mSequenceElements->AddElement(timingCount,name,
                                                        "timing",true,false,true,false);
             e->AddEffectLayer();
-            mSequenceElements->AddTimingToAllViews(name);
+
+            int adjViews = (mSequenceElements->GetCurrentView() == MASTER_VIEW) ? -1 : -2;
+            if (mSequenceElements->GetViewCount() + adjViews > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW)
+            {
+                if (wxMessageBox("Do you want to add this timing track to all views?", "Add to all views.", wxYES_NO) == wxYES)
+                {
+                    mSequenceElements->AddTimingToAllViews(name);
+                }
+                else
+                {
+                    mSequenceElements->AddTimingToCurrentView(name);
+                }
+            }
+            else
+            {
+                mSequenceElements->AddTimingToCurrentView(name);
+            }
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }

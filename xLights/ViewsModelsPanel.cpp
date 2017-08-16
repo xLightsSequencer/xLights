@@ -37,15 +37,12 @@ public:
 
     virtual bool GiveFeedback(wxDragResult effect) override
     {
-        int sx;
-        int sy;
-        _window->GetScreenPosition(&sx, &sy);
-        wxPoint point = wxGetMousePosition() - wxPoint(sx, sy);
+        wxPoint point = wxGetMousePosition();
 
         if (_models)
         {
-            if (_window->ListCtrlModels->GetRect().Contains(point) ||
-                _window->ListCtrlNonModels->GetRect().Contains(point))
+            if (_window->ListCtrlModels->GetScreenRect().Contains(point) ||
+                _window->ListCtrlNonModels->GetScreenRect().Contains(point))
             {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
@@ -56,7 +53,7 @@ public:
         }
         else if (_nonModels)
         {
-            if (_window->ListCtrlModels->GetRect().Contains(point))
+            if (_window->ListCtrlModels->GetScreenRect().Contains(point))
             {
                 _window->SetCursor(wxCursor(wxCURSOR_HAND));
             }
@@ -2113,6 +2110,12 @@ void ViewsModelsPanel::OnDrop(wxCommandEvent& event)
         break;
     default:
         break;
+    }
+
+    // clear any highlight
+    for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        ListCtrlModels->SetItemState(i, 0, wxLIST_STATE_DROPHILITED);
     }
 }
 

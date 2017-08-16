@@ -24,7 +24,7 @@ public:
     Pixlite16(const std::string& ip);
     bool IsConnected() const { return _connected; };
     ~Pixlite16();
-    void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };
 
 #endif

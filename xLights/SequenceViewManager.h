@@ -67,6 +67,7 @@ public:
 	void RenameModel(const std::string& oldname, const std::string& newname);
 	void DeleteModel(const std::string& model);
 	void Reset();
+    int GetViewCount() const { return _views.size(); }
 
 protected:
     friend class SequenceElements;

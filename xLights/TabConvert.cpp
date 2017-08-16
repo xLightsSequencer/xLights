@@ -1199,7 +1199,24 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     size_t size = SeqData.NumFrames();
     size *= stepSize;
 
-    f.Write(&SeqData[0][0], size);
+    const unsigned char *data = &SeqData[0][0];
+    size_t toWrite = size;
+    if (toWrite > 1024*1024*1024) {
+        toWrite = 1024*1024*1024;
+    }
+    size_t written = 0;
+    while (written < size) {
+        if ((size - written) < toWrite) {
+            toWrite = size - written;
+        }
+        size_t w = f.Write(&data[written], toWrite);
+        if (w > 0) {
+            written += w;
+        } else {
+            break;
+        }
+    }
+    
     f.Close();
     free(buf);
 }

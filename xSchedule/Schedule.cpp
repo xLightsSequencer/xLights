@@ -225,6 +225,13 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     start.SetYear(now.GetYear());
     end.SetYear(now.GetYear() + end.GetYear() - start.GetYear());
 
+    // handle the 24 hours a day case
+    if (_startTime == _endTime)
+    {
+        _active = now >= start && now <= end;
+        return _active;
+    }
+
     if (now >= start && now <= end)
     {
         // dates are ok ... now check the times
@@ -381,16 +388,29 @@ std::string Schedule::GetNextEndTime()
 {
     if (!_active) return "N/A";
 
-    wxDateTime end = wxDateTime::Now();
-
-    if (_endTime < _startTime)
+    // when end and start are the same we play 24 hours a day
+    if (_startTime == _endTime)
     {
-        end += wxTimeSpan(24);
+        wxDateTime end = _endDate;
+        end.SetHour(_endTime.GetHour());
+        end.SetMinute(_endTime.GetMinute());
+        end.SetSecond(0);
+
+        return end.Format("%Y-%m-%d %H:%M").ToStdString();
     }
+    else
+    {
+        wxDateTime end = wxDateTime::Now();
 
-    end.SetHour(_endTime.GetHour());
-    end.SetMinute(_endTime.GetMinute());
-    end.SetSecond(0);
+        if (_endTime < _startTime)
+        {
+            end += wxTimeSpan(24);
+        }
 
-    return end.Format("%Y-%m-%d %H:%M").ToStdString();
+        end.SetHour(_endTime.GetHour());
+        end.SetMinute(_endTime.GetMinute());
+        end.SetSecond(0);
+
+        return end.Format("%Y-%m-%d %H:%M").ToStdString();
+    }
 }

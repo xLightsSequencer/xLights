@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (dkulp)   Fix problem writing to fseq files that are larger than 2GB
+2017.23  Aug 15, 2017
+   -- enh (dkulp)   Add ability to specify starting location and direction for circle model
+   -- enh (keith)   Add ability to manual edit effect timing - right click on an effect to access it
+   -- bug (keith)   Fix model group panel no longer to able to repeatedly add/remove models using button
+   -- bug (keith)   Fix scheduler does not properly restore from an interrupted schedule
+   -- bug (keith)   When adding timing tracks only add them to master + current view
+   -- bug (keith)   Fix some drag and drop anomalies on display elements
+   -- bug (keith)   Add some SDL logging to track down OSX audio not playing bug
+   -- enh (keith)   Fine tune AC UI ... try to make it more intuitive
+   -- bug (keith)   Fix handling of expansion boards on the falcon
+   -- enh (keith)   Allow AC sequencing on nodes
+   -- enh (keith)   Some check sequence additions
+   -- bug (keith)   Fix model rename breaks submodels
+2017.22  Aug 06, 2017
+   -- bug (gil)     Fix timeline display for sequences greater than an hour.  Fixes #811.
    -- bug (dan)     Prevent a GIF with 0 frame time hanging xlights
    -- enh (keith)   Test tab auto turn on
    -- bug (keith)   Fix on exit test tab doesnt turn back on output to lights correctly
@@ -26,9 +42,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- enh (keith)   Add controller and connection details to node layout
    -- enh (keith)   Add ability to create a custom model from an inbuilt model
    -- bug (keith)   Fix string count on export models csv ... make it our best guess at the number of physical light strings
+   -- enh (keith)   Make model group panel drag and drop
 2017.21  Jul 28, 2017
    -- enh (keith)   Add the block of channels model
-   -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ... 
+   -- enh (keith)   Add option to display fades as ramps on the On effect and Twinkle effect ...
                     mainly for use in AC mode
    -- bug (keith)   Fix a bunch of bugs with AC mode
    -- bug (keith)   Fix #882
@@ -53,7 +70,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
    -- bug (keith)   Fix picture effect position text boxes dont allow -100 entry
    -- enh (keith)   Include some standard value curves in the distribution
    -- bug (keith)   fix serial configuration upload to the falcon controllers. Also address expansion boards better.
-   -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration. 
+   -- enh (gil)     Add new option via menu setting so that double-click on a timing effect plays the audio for that duration.
                     Useful for creating/adjusting lyric timings.
 2017.19  Jul 08, 2017s
    -- bug (dkulp)   Guard against submodels that result in 0 nodes that could

@@ -10,6 +10,7 @@
 #include "DDPOutput.h"
 #include "TestPreset.h"
 #include <wx/msgdlg.h>
+#include "../osxMacUtils.h"
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
@@ -692,6 +693,11 @@ bool OutputManager::StartOutput()
     }
     _outputCriticalSection.Leave();
 
+    if (_outputting)
+    {
+        DisableSleepModes();
+    }
+
     return _outputting; // even partially started is ok
 }
 
@@ -707,6 +713,8 @@ void OutputManager::StopOutput()
 
     _outputting = false;
     _outputCriticalSection.Leave();
+
+    EnableSleepModes();
 }
 #pragma endregion Start and Stop
 

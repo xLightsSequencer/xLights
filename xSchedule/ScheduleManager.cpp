@@ -692,6 +692,7 @@ int ScheduleManager::CheckSchedule()
     {
         if (_queuedSongs->GetSteps().size() == 0)
         {
+            RunningSchedule* toUnsuspend = nullptr;
             bool first = true;
             for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
             {
@@ -702,8 +703,7 @@ int ScheduleManager::CheckSchedule()
                         first = false;
                         if ((*it)->GetPlayList()->IsSuspended())
                         {
-                            logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
-                            framems = (*it)->GetPlayList()->Suspend(false);
+                            toUnsuspend = *it;
                         }
                     }
                 }
@@ -714,6 +714,12 @@ int ScheduleManager::CheckSchedule()
                         logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                         (*it)->GetPlayList()->Suspend(true);
                     }
+                }
+
+                if (toUnsuspend != nullptr)
+                {
+                    logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char *)toUnsuspend->GetSchedule()->GetName().c_str());
+                    framems = toUnsuspend->GetPlayList()->Suspend(false);
                 }
             }
         }

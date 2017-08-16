@@ -471,6 +471,7 @@ bool xLightsFrame::PromptForShowDirectory()
     wxString newdir;
     if (DirDialog1->ShowModal() == wxID_OK)
     {
+        AbortRender(); // make sure nothing is still rendering
         newdir=DirDialog1->GetPath();
         if (newdir == CurrentDir) return true;
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
@@ -1720,6 +1721,7 @@ std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip)
 
 void xLightsFrame::UploadFPPBridgeInput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the input controller configuration for a FPP in Bridge mode running pixels using a PiHat or an RGBCape or similar. It should not be used to upload to your show player. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1794,7 +1796,14 @@ void xLightsFrame::UploadFPPBridgeInput()
 
         if (fpp.IsConnected())
         {
-            fpp.SetInputUniversesBridge(selected, this);
+            if (fpp.SetInputUniversesBridge(selected, this))
+            {
+                SetStatusText("FPP Input Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("FPP Input Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1802,11 +1811,13 @@ void xLightsFrame::UploadFPPBridgeInput()
 
 void xLightsFrame::UploadFPPBridgeOutput()
 {
+    SetStatusText("");
     wxMessageBox("Not implemented");
 }
 
 void xLightsFrame::UploadFalconInput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the input controller configuration for a Falcon controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1827,7 +1838,14 @@ void xLightsFrame::UploadFalconInput()
         Falcon falcon(ip.ToStdString());
         if (falcon.IsConnected())
         {
-            falcon.SetInputUniverses(&_outputManager, selected);
+            if (falcon.SetInputUniverses(&_outputManager, selected))
+            {
+                SetStatusText("Falcon Input Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("Falcon Input Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1835,6 +1853,7 @@ void xLightsFrame::UploadFalconInput()
 
 void xLightsFrame::UploadFalconOutput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a Falcon controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1855,7 +1874,14 @@ void xLightsFrame::UploadFalconOutput()
         Falcon falcon(ip.ToStdString());
         if (falcon.IsConnected())
         {
-            falcon.SetOutputs(&AllModels, &_outputManager, selected, this);
+            if (falcon.SetOutputs(&AllModels, &_outputManager, selected, this))
+            {
+                SetStatusText("Falcon Output Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("Falcon Output Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1863,6 +1889,7 @@ void xLightsFrame::UploadFalconOutput()
 
 void xLightsFrame::UploadPixlite16Output()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a Pixlite controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1883,7 +1910,14 @@ void xLightsFrame::UploadPixlite16Output()
         Pixlite16 pixlite(ip.ToStdString());
         if (pixlite.IsConnected())
         {
-            pixlite.SetOutputs(&AllModels, &_outputManager, selected, this);
+            if (pixlite.SetOutputs(&AllModels, &_outputManager, selected, this))
+            {
+                SetStatusText("Pixlite Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("Pixlite Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1891,6 +1925,7 @@ void xLightsFrame::UploadPixlite16Output()
 
 void xLightsFrame::UploadSanDevicesInput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the input controller configuration for an SanDevices controller. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1911,7 +1946,14 @@ void xLightsFrame::UploadSanDevicesInput()
         SanDevices sanDevices(ip.ToStdString());
         if (sanDevices.IsConnected())
         {
-            sanDevices.SetInputUniverses(&_outputManager, selected);
+            if (sanDevices.SetInputUniverses(&_outputManager, selected))
+            {
+                SetStatusText("SanDevices Input Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("SanDevices Input Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1919,6 +1961,7 @@ void xLightsFrame::UploadSanDevicesInput()
 
 void xLightsFrame::UploadSanDevicesOutput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for an SanDevices controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1939,7 +1982,14 @@ void xLightsFrame::UploadSanDevicesOutput()
         SanDevices sanDevices(ip.ToStdString());
         if (sanDevices.IsConnected())
         {
-            sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this);
+            if (sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this))
+            {
+                SetStatusText("SanDevices Output Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("SanDevices Output Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1947,6 +1997,7 @@ void xLightsFrame::UploadSanDevicesOutput()
 
 void xLightsFrame::UploadJ1SYSOutput()
 {
+    SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a J1SYS controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -1967,7 +2018,14 @@ void xLightsFrame::UploadJ1SYSOutput()
         J1Sys j1sys(ip.ToStdString());
         if (j1sys.IsConnected())
         {
-            j1sys.SetOutputs(&AllModels, &_outputManager, selected, this);
+            if (j1sys.SetOutputs(&AllModels, &_outputManager, selected, this))
+            {
+                SetStatusText("J1SYS Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("J1SYS Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }

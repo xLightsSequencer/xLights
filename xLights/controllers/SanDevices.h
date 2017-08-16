@@ -30,7 +30,7 @@ class SanDevices
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     char DecodeStringPortProtocol(std::string protocol);
-    void UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
+    bool UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
     void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
@@ -42,8 +42,8 @@ public:
     SanDevices(const std::string& ip);
     bool IsConnected() const { return _connected; };
     virtual ~SanDevices();
-    void SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
-    void SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
+    bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 };
 
 #endif

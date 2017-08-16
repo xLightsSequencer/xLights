@@ -562,9 +562,10 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
             }
             std::string oldname = selectedModel->name;
-            if (selectedModel->name != safename) {
+            if (oldname != safename) {
                 RenameModelInTree(selectedModel, safename);
-                xlights->RenameModel(selectedModel->name, safename);
+                selectedModel = nullptr;
+                xlights->RenameModel(oldname, safename);
                 if (oldname == lastModelName) {
                     lastModelName = safename;
                 }
@@ -600,6 +601,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     }
     updatingProperty = false;
 }
+
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     if (selectedModel != nullptr) {
@@ -1111,22 +1113,32 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
     Model *m = xlights->AllModels[name];
+    if (m == nullptr)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("LayoutPanel:SelectModel Unable to select model '%s'.", (const char *)name.c_str());
+    }
     SelectModel(m, highlight_tree);
 }
 
 void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
 
-    if (m) {
+    if (m != nullptr) {
         SubModel *subModel = dynamic_cast<SubModel*>(m);
         if (subModel != nullptr) {
+            // this is the only thing I can see here that could crash
+            if (subModel->GetParent() == nullptr) logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
             subModel->GetParent()->Selected = true;
         } else {
             m->Selected = true;
         }
+
         if( highlight_tree ) {
             for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
                   item.IsOk();
@@ -1140,7 +1152,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                 }
             }
         }
-        if (CheckBoxOverlap->GetValue()== true) {
+        if (CheckBoxOverlap->GetValue() == true) {
             foundStart = m->GetNumberFromChannelString(m->ModelStartChannel);
             foundEnd = m->GetLastChannel();
         }
@@ -1176,7 +1188,6 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
     UpdatePreview();
 }
-
 
 void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 {

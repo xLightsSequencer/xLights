@@ -20,7 +20,6 @@
 #include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
 #include <log4cpp/Category.hh>
-#include "osxMacUtils.h"
 
 #define GCM_DISPLAYIMAGEWIDTH 800
 #define GCM_DISPLAYIMAGEHEIGHT 600
@@ -791,9 +790,6 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
         logger_pcm.info("   Channels.");
     }
 
-
-    DisableSleepModes();
-
     _starttime = wxDateTime::UNow();
 
     // Remember our outputting state
@@ -837,8 +833,6 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     pd.Update(100);
     pd.Close();
     SetFocus();
-
-    EnableSleepModes();
 
     logger_pcm.info("   Done.");
 

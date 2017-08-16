@@ -86,6 +86,7 @@ public:
 
     void DeleteSelectedEffects();
     void SetEffectsDescription();
+    void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
@@ -119,7 +120,6 @@ public:
     void sendRenderDirtyEvent();
 protected:
     virtual void InitializeGLCanvas();
-
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
@@ -254,6 +254,7 @@ private:
     static const long ID_GRID_MNU_DELETE;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_DESCRIPTION;
+    static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;

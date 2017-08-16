@@ -22,7 +22,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -72,7 +72,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -123,7 +123,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -173,7 +173,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -224,7 +224,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_MorphStartLength" variable="Slider_MorphStartLength" member="yes">
 										<value>1</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -337,7 +337,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -388,7 +388,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" variable="Slider_Morph_End_Y1" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -439,7 +439,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -490,7 +490,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" variable="Slider_Morph_End_Y2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -541,7 +541,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_MorphEndLength" variable="Slider_MorphEndLength" member="yes">
 										<value>1</value>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -620,7 +620,7 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_MorphDuration" variable="Slider_MorphDuration" member="yes">
 												<value>20</value>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -672,7 +672,7 @@
 											<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
 												<min>-10</min>
 												<max>10</max>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -723,7 +723,7 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Count" variable="Slider_Morph_Repeat_Count" member="yes">
 												<max>250</max>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -775,7 +775,7 @@
 											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Skip" variable="Slider_Morph_Repeat_Skip" member="yes">
 												<value>1</value>
 												<min>1</min>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -826,7 +826,7 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Morph_Stagger" variable="Slider_Morph_Stagger" member="yes">
 												<min>-100</min>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
+												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>

@@ -333,7 +333,7 @@ size_t PlayListStep::GetFrameMS() const
 void PlayListStep::Start(int loops)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
+    logger_base.info("         ######## Playlist step %s starting.", (const char*)GetNameNoTime().c_str());
 
     _loops = loops;
     _startTime = wxGetUTCTimeMillis().GetLo();
@@ -350,11 +350,11 @@ void PlayListStep::Pause(bool pause)
     if (pause)
     {
         _pause = wxGetUTCTimeMillis().GetLo();
-        logger_base.info("Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
+        logger_base.info("                  Playlist step %s pausing.", (const char*)GetNameNoTime().c_str());
     }
     else
     {
-        logger_base.info("Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
+        logger_base.info("                  Playlist step %s unpausing.", (const char*)GetNameNoTime().c_str());
         _pause = 0;
     }
 
@@ -373,11 +373,11 @@ void PlayListStep::Suspend(bool suspend)
         if (suspend)
         {
             _suspend = wxGetUTCTimeMillis().GetLo();
-            logger_base.info("Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
+            logger_base.info("                  Playlist step %s suspending.", (const char*)GetNameNoTime().c_str());
         }
         else
         {
-            logger_base.info("Playlist step %s unsuspending.", (const char*)GetNameNoTime().c_str());
+            logger_base.info("                  Playlist step %s unsuspending.", (const char*)GetNameNoTime().c_str());
             _suspend = 0;
         }
     }
@@ -403,7 +403,7 @@ void PlayListStep::Restart()
 void PlayListStep::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
+    logger_base.info("         ######## Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {

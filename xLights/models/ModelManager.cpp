@@ -81,8 +81,19 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
         }
         models.erase(models.find(oldName));
         models[newName] = model;
+
+        // go through all the model groups looking for things that might need to be renamed
+        for (auto it = models.begin(); it != models.end(); ++it) {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            if (mg != nullptr)
+            {
+                changed |= mg->ModelRenamed(oldName, newName);
+            }
+        }
+
         return changed;
     }
+
     return false;
 }
 
@@ -134,7 +145,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
 
 unsigned int ModelManager::GetLastChannel() const {
     unsigned int max = 0;
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         max = std::max(max, it->second->GetLastChannel());
     }
     return max;
@@ -387,7 +398,6 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     node->AddAttribute("StartChannel", startChannel);
     node->AddAttribute("LayoutGroup", "Unassigned");
 
-    int cnt = 0;
     std::string name = GenerateModelName(type);
     node->AddAttribute("name", name);
 
@@ -412,6 +422,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     } else if (type == "Circle") {
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "50");
+        node->AddAttribute("InsideOut", "0");
         model = new CircleModel(node, *this, false);
     } else if (type == "DMX") {
         node->DeleteAttribute("parm1");

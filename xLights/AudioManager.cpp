@@ -90,10 +90,13 @@ SDL::SDL()
     }
 
     _state = SDLSTATE::SDLOPENED;
+    logger_base.debug("SDL initialised");
 }
 
 SDL::~SDL()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
         Stop();
@@ -115,9 +118,11 @@ SDL::~SDL()
         _audioData.remove(toremove);
         delete toremove;
     }
+
+    logger_base.debug("SDL uninitialised");
 }
 
-int SDL::Tell(int id)
+long SDL::Tell(int id)
 {
     std::unique_lock<std::mutex> locker(_audio_Lock);
 
@@ -128,7 +133,7 @@ int SDL::Tell(int id)
     return d->Tell(); // amount of track size played
 }
 
-void SDL::Seek(int id, int pos)
+void SDL::Seek(int id, long pos)
 {
     std::unique_lock<std::mutex> locker(_audio_Lock);
 
@@ -139,7 +144,7 @@ void SDL::Seek(int id, int pos)
     d->Seek(pos);
 }
 
-void SDL::SeekAndLimitPlayLength(int id, int pos, int len)
+void SDL::SeekAndLimitPlayLength(int id, long pos, long len)
 {
     std::unique_lock<std::mutex> locker(_audio_Lock);
 
@@ -200,6 +205,8 @@ void SDL::Reopen()
             Play();
         }
     }
+
+    logger_base.info("SDL reinitialised.");
 }
 
 int SDL::GetVolume(int id)
@@ -261,23 +268,23 @@ AudioData::AudioData()
     _paused = false;
 }
 
-int AudioData::Tell()
+long AudioData::Tell()
 {
-    return (int)(((((_original_len - _audio_len) / 4) * (Uint64)_lengthMS)) / (Uint64)_trackSize);
+    return (long)(((((Uint64)(_original_len - _audio_len) / 4) * _lengthMS)) / _trackSize);
 }
 
-void AudioData::Seek(int ms)
+void AudioData::Seek(long ms)
 {
-    _audio_len = _original_len - (((Uint64)ms * (Uint64)_rate * 2 * 2) / 1000);
+    _audio_len = (long)((Uint64)_original_len - (((Uint64)ms * _rate * 2 * 2) / 1000));
     _audio_len -= _audio_len % 4;
-    _audio_pos = _original_pos + (size_t)(_original_len - _audio_len);
+    _audio_pos = _original_pos + (_original_len - _audio_len);
 }
 
-void AudioData::SeekAndLimitPlayLength(int pos, int len)
+void AudioData::SeekAndLimitPlayLength(long pos, long len)
 {
-    _audio_len = (((Uint64)len * (Uint64)_rate * 2 * 2) / 1000);
+    _audio_len = (long)(((Uint64)len * _rate * 2 * 2) / 1000);
     _audio_len -= _audio_len % 4;
-    _audio_pos = _original_pos + (size_t)(((Uint64)pos * (Uint64)_rate * 2 * 2) / 1000);
+    _audio_pos = (_original_pos + (((Uint64)pos * _rate * 2 * 2) / 1000));
 }
 
 void AudioData::SavePos()
@@ -294,7 +301,7 @@ void AudioData::RestorePos()
     //logger_base.info("Restoring position %d as %ld 0x%ld.", _savedpos, (long)_audio_len, (long)_audio_pos);
 }
 
-int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize, int lengthMS)
+int SDL::AddAudio(long len, Uint8* buffer, int volume, int rate, long tracksize, long lengthMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = AudioData::__nextId++;
@@ -328,20 +335,26 @@ int SDL::AddAudio(Uint64 len, Uint8* buffer, int volume, int rate, int tracksize
         Reopen();
     }
 
+    logger_base.debug("SDL Audio Added: id: %d, rate: %d, len: %ld, lengthMS: %ld, trackSize: %ld.", id, rate, len, lengthMS, tracksize);
+
     return id;
 }
 
 void SDL::RemoveAudio(int id)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto toremove = GetData(id);
     if (toremove == nullptr) return;
     _audioData.remove(toremove);
     delete toremove;
+    logger_base.debug("SDL Audio Removed: id: %d.", id);
 }
 
 void SDL::Pause(int id, bool pause)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Pause: id: %d, pause %d.", id, pause);
     std::unique_lock<std::mutex> locker(_audio_Lock);
     auto topause = GetData(id);
     if (topause != nullptr)
@@ -359,18 +372,24 @@ void SDL::SetRate(float rate)
 
 void SDL::Play()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Play.");
     SDL_PauseAudio(0);
     _state = SDLSTATE::SDLPLAYING;
 }
 
 void SDL::Pause()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Pause.");
     SDL_PauseAudio(1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
 void SDL::Unpause()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Unpause.");
     SDL_PauseAudio(0);
     _state = SDLSTATE::SDLPLAYING;
 }
@@ -389,6 +408,8 @@ void SDL::TogglePause()
 
 void SDL::Stop()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SDL Audio Stop.");
     SDL_PauseAudio(1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
@@ -415,7 +436,7 @@ void AudioManager::SetGlobalVolume(int volume)
     __sdl.SetGlobalVolume(volume);
 }
 
-void AudioManager::Seek(int pos)
+void AudioManager::Seek(long pos)
 {
 	if (pos < 0 || pos > _lengthMS)
 	{
@@ -432,7 +453,7 @@ void AudioManager::Pause()
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
 
-void AudioManager::Play(int posms, int lenms)
+void AudioManager::Play(long posms, long lenms)
 {
     if (posms < 0 || posms > _lengthMS)
     {
@@ -469,7 +490,7 @@ MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
 }
 
 // return where in the file we are up to playing
-int AudioManager::Tell()
+long AudioManager::Tell()
 {
     return __sdl.Tell(_sdlid);
 }
@@ -566,7 +587,7 @@ bool AudioManager::IsDataLoaded(long pos)
     }
     else
     {
-        return _loadedData >= std::min(pos, (long)_trackSize);
+        return _loadedData >= std::min(pos, _trackSize);
     }
 }
 
@@ -712,7 +733,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     else
     {
         float *pdata[2];
-        int frames = _lengthMS / _intervalMS;
+        long frames = _lengthMS / _intervalMS;
         while (frames * _intervalMS < _lengthMS)
         {
             frames++;
@@ -733,7 +754,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
 
         bool first = true;
         int start = 0;
-        size_t len = GetTrackSize();
+        long len = GetTrackSize();
         float totalLen = len;
         int lastProgress = 0;
         while (len)
@@ -783,8 +804,8 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                     fn(dlg, (int)(((float)j * 75.0) / (float)features[0].size()) + 25.0);
                 }
 
-                int currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
-                int currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
+                long currentstart = features[0][j].timestamp.sec * 1000 + features[0][j].timestamp.msec();
+                long currentend = currentstart + features[0][j].duration.sec * 1000 + features[0][j].duration.msec();
 
                 //printf("%f\t%f\t%f\n",(float)currentstart/1000.0, (float)currentend/1000.0, features[0][j].values[0]);
                 if (logger_pianodata.isDebugEnabled())
@@ -812,13 +833,13 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 logger_pianodata.debug("Time MS, Keys");
                 for (size_t i = 0; i < _frameData.size(); i++)
                 {
-                    int ms = i * _intervalMS;
+                    long ms = i * _intervalMS;
                     std::string keys = "";
                     for (auto it2 = _frameData[i][4].begin(); it2 != _frameData[i][4].end(); ++it2)
                     {
                         keys += " " + std::string(wxString::Format("%f", *it2).c_str());
                     }
-                    logger_pianodata.debug("%d,%s", ms, (const char *)keys.c_str());
+                    logger_pianodata.debug("%ld,%s", ms, (const char *)keys.c_str());
                 }
             }
             //printf("Total points: %u", total);
@@ -1417,11 +1438,11 @@ AudioManager::~AudioManager()
 }
 
 // Split the MP# data into left and right and normalise the values
-void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, int trackSize, float* leftData, float* rightData)
+void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData)
 {
     signed short lSample, rSample;
 
-    for(int i=0;i<trackSize;i++)
+    for(size_t i=0; i<trackSize; i++)
     {
         lSample = trackData[i*2];
         leftData[i] = (float)lSample/(float)32768;
@@ -1431,10 +1452,10 @@ void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, int track
 }
 
 // NOrmalise mono track data
-void AudioManager::NormalizeMonoTrackData(signed short* trackData, int trackSize, float* leftData)
+void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData)
 {
     signed short lSample;
-    for(int i=0;i<trackSize;i++)
+    for(size_t i=0; i<trackSize; i++)
     {
         lSample = trackData[i];
         leftData[i] = (float)lSample/(float)32768;
@@ -1442,10 +1463,10 @@ void AudioManager::NormalizeMonoTrackData(signed short* trackData, int trackSize
 }
 
 // Calculate the song lenth in MS
-int AudioManager::CalcLengthMS()
+long AudioManager::CalcLengthMS()
 {
 	float seconds = (float)_trackSize * ((float)1 / (float)_rate);
-	return (int)(seconds * (float)1000);
+	return (long)(seconds * (float)1000);
 }
 
 // Open and read the media file into memory
@@ -1526,7 +1547,7 @@ int AudioManager::OpenMediaFile()
 	}
     _loadedData = 0;
 
-    size_t size = sizeof(float)*(_trackSize + _extra);
+    long size = sizeof(float)*(_trackSize + _extra);
 	_data[0] = (float*)calloc(size, 1);
 
     if (_data[0] == nullptr)
@@ -1560,7 +1581,7 @@ int AudioManager::OpenMediaFile()
     // only initialise if we successfully got data
     if (_pcmdata != nullptr)
     {
-        //Uint64 total_len = ((Uint64)_lengthMS * (Uint64)_rate * 2 * 2) / 1000;
+        //long total_len = (_lengthMS * _rate * 2 * 2) / 1000;
         //total_len -= total_len % 4;
         _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
     }
@@ -1606,7 +1627,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
     wxStopWatch sw;
 
-    int read = 0;
+    long read = 0;
 
     // setup our conversion format ... we need to conver the input to a standard format before we can process anything
     uint64_t out_channel_layout = AV_CH_LAYOUT_STEREO;
@@ -1663,7 +1684,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					if (read + frame->nb_samples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
-						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", _trackSize) +"] .");
+						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
 					}
 
 					// copy the PCM data into the PCM buffer for playing
@@ -1823,10 +1844,10 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	// Clean up!
 	av_free(frame);
 
-	_lengthMS = (int32_t)(((int64_t)_trackSize * 1000) / ((int64_t)(codecContext->time_base.den)));
+	_lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %dms", (long)_trackSize, codecContext->time_base.den, _lengthMS);
+    logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %ldms", _trackSize, codecContext->time_base.den, _lengthMS);
 }
 
 void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
@@ -1849,7 +1870,7 @@ void AudioManager::ExtractMP3Tags(AVFormatContext* formatContext)
 }
 
 // Access a single piece of track data
-float AudioManager::GetLeftData(int offset)
+float AudioManager::GetLeftData(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -1866,7 +1887,7 @@ float AudioManager::GetLeftData(int offset)
 }
 
 // Access a single piece of track data
-float AudioManager::GetRightData(int offset)
+float AudioManager::GetRightData(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -1883,7 +1904,7 @@ float AudioManager::GetRightData(int offset)
 }
 
 // Access track data but get a pointer so you can then read a block directly
-float* AudioManager::GetLeftDataPtr(int offset)
+float* AudioManager::GetLeftDataPtr(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))
@@ -1901,7 +1922,7 @@ float* AudioManager::GetLeftDataPtr(int offset)
 }
 
 // Access track data but get a pointer so you can then read a block directly
-float* AudioManager::GetRightDataPtr(int offset)
+float* AudioManager::GetRightDataPtr(long offset)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     while (!IsDataLoaded(offset))

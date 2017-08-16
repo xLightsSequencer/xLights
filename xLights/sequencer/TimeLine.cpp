@@ -18,7 +18,8 @@ END_EVENT_TABLE()
 // 1    =   1*(1/frequency) per major tick on the scale
 // 200  = 200*(1/frequency) per major tick on the scale
 // etc....
-const int TimeLine::ZoomLevelValues[] = {1,2,4,10,20,40,100,200,400,600,1200,2400,4800};
+const int TimeLine::ZoomLevelValues[] = {1,2,4,10,20,40,100,200,400,600,1200,2400,4800,8000,12000,16000,20000,30000,40000};
+#define MAX_ZOOM_OUT_INDEX      18
 
 static const int marker_size = 8;
 
@@ -583,16 +584,17 @@ int TimeLine::GetMaxZoomLevel()
 {
     int i;
     float width = (float)GetSize().x;
+    mMaxZoomLevel = MAX_ZOOM_OUT_INDEX;
     for(i=0;i<=MAX_ZOOM_OUT_INDEX;i++)
     {
         float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
         int timeMS =  (int)((float)ZoomLevelValues[i] * ((float)1000/(float)mFrequency) * majorTicks);
         if(timeMS > mTimeLength)
         {
-             break;
+            mMaxZoomLevel = i;
+            break;
         }
     }
-    mMaxZoomLevel = i;
     return mMaxZoomLevel;
 }
 

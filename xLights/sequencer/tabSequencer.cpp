@@ -430,6 +430,13 @@ void xLightsFrame::CheckForValidModels()
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // abort any in progress render ... as it may be using any already open media
+    if (xml_file.GetMedia() != nullptr)
+    {
+        AbortRender();
+    }
+
     mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
     if(xml_file.GetSequenceType()=="Media")
@@ -1967,7 +1974,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name)
     std::string type = "timing";
     TimingElement* e = dynamic_cast<TimingElement*>(mSequenceElements.AddElement(timingCount,n,type,true,false,true,false));
     e->AddEffectLayer();
-    mSequenceElements.AddTimingToAllViews(n);
+    mSequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     return e;
@@ -2357,7 +2364,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
         mSequenceElements.DeactivateAllTimingElements();
         Element* element = AddTimingElement(std::string(name.ToStdString()));
         EffectLayer* effectLayer = element->GetEffectLayer(0);
-        mSequenceElements.AddTimingToAllViews(name.ToStdString());
+        // mSequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
 
         int interval = 1000 / CurrentSeqXmlFile->GetFrequency();
         wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();

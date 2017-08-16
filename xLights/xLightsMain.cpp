@@ -62,6 +62,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include <cctype>
+#include "outputs/IPOutput.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -1800,10 +1801,19 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    // this logging is extra until we find out why this function crashes
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows");
+
+    if (m_mgr == nullptr)
+    {
+        logger_base.crit("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+    }
+
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
         for (size_t x = 0; x < info.size(); x++)
         {
             if (info[x].IsOk())
@@ -1825,6 +1835,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
     else
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide");
         savedPaneShown.resize(info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
@@ -1847,12 +1858,14 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     if (update)
     {
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
 
     // show/hide Layout Previews
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        LayoutGroup* grp = (LayoutGroup*)(*it);
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
+        LayoutGroup* grp = *it;
         if (grp != nullptr) {
             if (grp->GetMenuItem() == nullptr)
             {
@@ -1926,7 +1939,6 @@ void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
         CheckBoxLightOutput->SetValue(false);
         _outputManager.AllOff();
         _outputManager.StopOutput();
-        EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")), wxART_TOOLBAR));
         EnableNetworkChanges();
     }
@@ -1938,22 +1950,16 @@ bool xLightsFrame::EnableOutputs()
 
     if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting())
     {
-        DisableSleepModes();
         ok = _outputManager.StartOutput();
         if (ok)
         {
             CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS_ON")), wxART_TOOLBAR));
-        }
-        else
-        {
-            EnableSleepModes();
         }
     }
     else if (!CheckBoxLightOutput->IsChecked() && _outputManager.IsOutputting())
     {
         _outputManager.AllOff();
         _outputManager.StopOutput();
-        EnableSleepModes();
         CheckBoxLightOutput->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_OUTPUT_LIGHTS")),wxART_TOOLBAR));
     }
     EnableNetworkChanges();
@@ -2367,17 +2373,25 @@ wxString xLightsFrame::GetSeqXmlFileName()
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {
     if( xLightsFrame::CurrentSeqXmlFile == nullptr ) return;
+
+    // abort any in progress render ... as it may be using any already open media
+    bool aborted = false;
+    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        aborted = AbortRender();
+    }
+
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
     dialog.Fit();
     int ret_code = dialog.ShowModal();
 
-    if (ret_code != wxID_OK) return;  // user pressed cancel
-
-    if (ret_code == NEEDS_RENDER)
+    if (ret_code == NEEDS_RENDER || aborted)
     {
         RenderAll();
     }
+
+    if (ret_code != wxID_OK) return;  // user pressed cancel
 
 	if(CurrentSeqXmlFile->GetMedia() != nullptr)
 	{
@@ -3265,9 +3279,9 @@ void xLightsFrame::SaveWorking()
 
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // dont save if currently playing
     if (playType != PLAY_TYPE_MODEL) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         if (mSavedChangeCount != mSequenceElements.GetChangeCount())
@@ -3294,6 +3308,11 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         }
         logger_base.debug("    AutoSave took %d ms.", sw.Time());
     }
+    else
+    {
+        logger_base.debug("AutoSave skipped because sequence is playing.");
+    }
+
     if (AutoSaveInterval > 0) {
         Timer_AutoSave.StartOnce(AutoSaveInterval * 60000);
     }
@@ -3880,6 +3899,145 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // controllers sending to routable IP addresses
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Invalid controller IP addresses");
+
+    outputs = _outputManager.GetOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    {
+        if ((*n)->IsIpOutput())
+        {
+            if ((*n)->GetIP() != "MULTICAST")
+            {
+                if (!IPOutput::IsIPValid((*n)->GetIP()))
+                {
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+                else
+                {
+                    wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
+                    int ip1 = wxAtoi(ipElements[0]);
+                    int ip2 = wxAtoi(ipElements[1]);
+                    int ip3 = wxAtoi(ipElements[2]);
+                    int ip4 = wxAtoi(ipElements[3]);
+
+                    bool valid = true;
+                    if (ip1 == 10)
+                    {
+                        // this is valid
+                    }
+                    else if (ip1 == 192 && ip2 == 168)
+                    {
+                        // this is valid
+                    }
+                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else if (ip1 >= 224 && ip1 <= 239)
+                    {
+                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                    else
+                    {
+                        wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Models spanning controllers");
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            long start = it->second->GetFirstChannel()+1;
+            long end = it->second->GetLastChannel()+1;
+
+            long sc;
+            Output* ostart = _outputManager.GetOutput(start, sc);
+            Output* oend = _outputManager.GetOutput(end, sc);
+
+            if (ostart != nullptr && oend == nullptr)
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart == nullptr || oend == nullptr)
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' is not configured for a controller.", it->first);
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart->GetType() != oend->GetType())
+            {
+                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' of type '%s' but ends on a controller '%s' of type '%s'.", it->first, ostart->GetDescription(), ostart->GetType(), oend->GetDescription(), oend->GetType());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+            else if (ostart->GetIP() == "MULTICAST" && oend->GetIP() == "MULTICAST")
+            {
+                // ignore these
+            }
+            else if (ostart->GetIP() + oend->GetIP() != "")
+            {
+                if (ostart->GetIP() != oend->GetIP())
+                {
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetIP(), oend->GetDescription());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+            else if (ostart->GetCommPort() + oend->GetCommPort() != "")
+            {
+                if (ostart->GetCommPort() != oend->GetCommPort())
+                {
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with CommPort '%s' but ends on a controller '%s' with CommPort '%s'.", it->first, ostart->GetDescription(), ostart->GetCommPort(), oend->GetDescription(), oend->GetCommPort());
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     LogAndWrite(f, "");
     LogAndWrite(f, "Invalid start channels");
 
@@ -3910,6 +4068,12 @@ void xLightsFrame::CheckSequence(bool display)
                         errcount++;
                     }
                 }
+            }
+            if (it->second->GetLastChannel() == (unsigned int)-1)
+            {
+                wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
         }
     }
@@ -5405,6 +5569,12 @@ void xLightsFrame::OnMenuItem_DonateSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(true);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
@@ -5415,10 +5585,24 @@ void xLightsFrame::OnAC_OnClick(wxCommandEvent& event)
         Button_ACIntensity->SetValue(true);
     }
     Button_ACSelect->SetValue(false);
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(true);
     Button_ACTwinkle->SetValue(false);
@@ -5426,6 +5610,14 @@ void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
     Button_ACCascade->SetValue(false);
     Button_ACFill->SetValue(false);
     Button_ACSelect->SetValue(false);
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::UpdateACToolbar(bool forceState)
@@ -5507,6 +5699,12 @@ void xLightsFrame::OnACToolbarDropdown(wxAuiToolBarEvent& event)
 
 void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(false);
@@ -5516,10 +5714,24 @@ void xLightsFrame::OnAC_ShimmerClick(wxCommandEvent& event)
     {
         Button_ACIntensity->SetValue(true);
     }
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACOn->SetValue(false);
     Button_ACOff->SetValue(false);
     Button_ACTwinkle->SetValue(true);
@@ -5528,6 +5740,14 @@ void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
     if (!Button_ACIntensity->IsChecked() && !Button_ACRampUp->IsChecked() && !Button_ACRampDown->IsChecked() && !Button_ACRampUpDown->IsChecked())
     {
         Button_ACIntensity->SetValue(true);
+    }
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
     }
 }
 
@@ -5548,6 +5768,12 @@ void xLightsFrame::OnAC_ForegroundClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     if (!Button_ACCascade->IsChecked())
     {
         if (!Button_ACOn->IsChecked() && !Button_ACOff->IsChecked() && !Button_ACTwinkle->IsChecked() && !Button_ACShimmer->IsChecked())
@@ -5578,10 +5804,24 @@ void xLightsFrame::OnAC_CascadeClick(wxCommandEvent& event)
     {
         EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, true);
     }
+
+    if (Button_ACCascade->IsChecked() && wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     if (Button_ACFill->IsChecked())
     {
         EnableToolbarButton(ACToolbar, ID_AUITOOLBARITEM_ACOFF, false);
@@ -5614,10 +5854,24 @@ void xLightsFrame::OnAC_FillClick(wxCommandEvent& event)
     {
         Button_ACIntensity->SetValue(true);
     }
+
+    if (wasSelect && Button_ACFill->IsChecked())
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampUpDownClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(false);
@@ -5632,10 +5886,24 @@ void xLightsFrame::OnAC_RampUpDownClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUpDown));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUpDown));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampDownClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(true);
@@ -5651,10 +5919,24 @@ void xLightsFrame::OnAC_RampDownClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampDown));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampDown));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_RampUpClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(false);
     Button_ACRampUp->SetValue(true);
     Button_ACRampDown->SetValue(false);
@@ -5670,10 +5952,24 @@ void xLightsFrame::OnAC_RampUpClick(wxCommandEvent& event)
     ChoiceParm2->Enable(true);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1RampUp));
     ChoiceParm2->SetStringSelection(wxString::Format("%i", _acParm2RampUp));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::OnAC_IntensityClick(wxCommandEvent& event)
 {
+    bool wasSelect = false;
+    if (Button_ACSelect->IsChecked())
+    {
+        wasSelect = true;
+    }
+
     Button_ACIntensity->SetValue(true);
     Button_ACRampUp->SetValue(false);
     Button_ACRampDown->SetValue(false);
@@ -5688,6 +5984,14 @@ void xLightsFrame::OnAC_IntensityClick(wxCommandEvent& event)
     }
     ChoiceParm2->Enable(false);
     ChoiceParm1->SetStringSelection(wxString::Format("%i", _acParm1Intensity));
+
+    if (wasSelect)
+    {
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr)
+        {
+            mainSequencer->PanelEffectGrid->DoACDraw();
+        }
+    }
 }
 
 void xLightsFrame::GetACSettings(ACTYPE& type, ACSTYLE& style, ACTOOL& tool, ACMODE& mode)

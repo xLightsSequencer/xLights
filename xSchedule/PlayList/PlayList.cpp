@@ -412,7 +412,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
     _random = random;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist %s starting to play.", (const char*)GetName().c_str());
+    logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
 
     _forceNextStep = "";
     _loopStep = false;
@@ -463,7 +463,7 @@ void PlayList::Stop()
     if (!IsRunning()) return;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Playlist %s stopping.", (const char*)GetName().c_str());
+    logger_base.info("******** Playlist %s stopping.", (const char*)GetName().c_str());
 
     _currentStep->Stop();
     _currentStep = nullptr;
@@ -599,13 +599,16 @@ void PlayList::TogglePause()
 {
     if (_currentStep == nullptr) return;
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (IsPaused())
     {
+        logger_base.info("        Unpausing playlist %s.", (const char*)GetName().c_str());
         _currentStep->AdjustTime(wxDateTime::Now() - _pauseTime);
         _pauseTime = wxDateTime((time_t)0);
     }
     else
     {
+        logger_base.info("        Pausing playlist %s.", (const char*)GetName().c_str());
         _pauseTime = wxDateTime::Now();
     }
 
@@ -616,16 +619,22 @@ int PlayList::Suspend(bool suspend)
 {
     if (_currentStep == nullptr) return 50;
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!IsPaused())
     {
-        if (IsSuspended())
+        if (!suspend && IsSuspended())
         {
+            // unsuspend
+            logger_base.info("         Playlist %s unsuspending.", (const char*)GetNameNoTime().c_str());
             _currentStep->AdjustTime(wxDateTime::Now() - _suspendTime);
             _suspendTime = wxDateTime((time_t)0);
         }
-        else
+        else if (suspend && !IsSuspended())
         {
+            // suspend
+            logger_base.info("         Playlist %s suspending.", (const char*)GetNameNoTime().c_str());
             _suspendTime = wxDateTime::Now();
+
         }
     }
 

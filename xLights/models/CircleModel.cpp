@@ -6,7 +6,7 @@
 #include "CircleModel.h"
 #include "ModelScreenLocation.h"
 
-CircleModel::CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+CircleModel::CircleModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), insideOut(false)
 {
     SetFromXml(node, zeroBased);
 }
@@ -48,6 +48,9 @@ int CircleModel::GetNumStrands() const {
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
 void CircleModel::InitModel() {
+    if (!ModelXml->HasAttribute("StartSide")) {
+        isBotToTop = false;
+    }
     if( ModelXml->HasAttribute("circleSizes") )
     {
         wxString tempstr=ModelXml->GetAttribute("circleSizes");
@@ -68,9 +71,23 @@ void CircleModel::InitModel() {
             }
         }
     }
+    if (ModelXml->HasAttribute("InsideOut")) {
+        insideOut = wxAtoi(ModelXml->GetAttribute("InsideOut"));
+    }
     InitCircle();
     SetCircleCoord();
 }
+
+int CircleModel::maxSize() {
+    int maxLights = 0;
+    for (int x = 0; x < circleSizes.size(); x++) {
+        if (circleSizes[x] > maxLights) {
+            maxLights = circleSizes[x];
+        }
+    }
+    return maxLights;
+}
+
 
 void CircleModel::InitCircle() {
     int maxLights = 0;
@@ -113,9 +130,9 @@ void CircleModel::InitCircle() {
             double pct = (loop_count == 1) ? (double)n : (double)n / (double)(loop_count-1);
             size_t CoordCount=GetCoordCount(node);
             for(size_t c=0; c < CoordCount; c++) {
-                int x_pos = (circle == 0) ? idx : std::round(pct*(double)(maxLights-1));
-                Nodes[node]->Coords[c].bufX=x_pos;
-                Nodes[node]->Coords[c].bufY=circle;
+                int x_pos = (circleSizes[circle] == maxLights) ? idx : std::round(pct*(double)(maxLights-1));
+                Nodes[node]->Coords[c].bufX = x_pos;
+                Nodes[node]->Coords[c].bufY = circle;
                 idx++;
             }
             node++;
@@ -128,21 +145,29 @@ void CircleModel::InitCircle() {
 void CircleModel::SetCircleCoord() {
     double x,y;
     size_t NodeCount=GetNodeCount();
-    screenLocation.SetRenderSize(circleSizes[0],circleSizes[0]);
+    int maxLights = maxSize();
+    screenLocation.SetRenderSize(maxLights, maxLights);
     int nodesToMap = NodeCount;
     int node = 0;
     double maxRadius = circleSizes[0] / 2.0;
     double minRadius = (double)parm3/100.0 * maxRadius;
-    for (int circle = 0; circle < circleSizes.size(); circle++) {
+    for (int c2 = 0; c2 < circleSizes.size(); c2++) {
+        int circle = c2;
         int loop_count = std::min(nodesToMap, circleSizes[circle]);
         double midpt=loop_count;
         midpt -= 1.0;
         midpt /= 2.0;
+        if (insideOut) {
+            circle = circleSizes.size() - circle - 1;
+        }
         double radius = (circleSizes.size() == 1) ? maxRadius : (double)minRadius + (maxRadius-minRadius)*(1.0-(double)circle/(double)(circleSizes.size()-1));
         for(size_t n=0; n<loop_count; n++) {
             size_t CoordCount=GetCoordCount(node);
             for(size_t c=0; c < CoordCount; c++) {
-                double angle=-M_PI + M_PI * ((loop_count==1) ? 1 : (double)n / (double)loop_count) * 2.0;
+                double angle= (isBotToTop ? -M_PI : 0) + M_PI * ((loop_count==1) ? 1 : (double)n / (double)loop_count) * 2.0;
+                if (!IsLtoR) {
+                    angle *= -1;
+                }
                 x=sin(angle)*radius;
                 y=cos(angle)*radius;
                 Nodes[node]->Coords[c].screenX=x;
@@ -154,9 +179,21 @@ void CircleModel::SetCircleCoord() {
     }
 }
 
-
+static wxPGChoices CIRCLE_START_LOCATION;
 
 void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (CIRCLE_START_LOCATION.GetCount() == 0) {
+        CIRCLE_START_LOCATION.Add("Top Outer-CCW");
+        CIRCLE_START_LOCATION.Add("Top Outer-CW");
+        CIRCLE_START_LOCATION.Add("Top Inner-CCW");
+        CIRCLE_START_LOCATION.Add("Top Inner-CW");
+        
+        CIRCLE_START_LOCATION.Add("Bottom Outer-CCW");
+        CIRCLE_START_LOCATION.Add("Bottom Outer-CW");
+        CIRCLE_START_LOCATION.Add("Bottom Inner-CCW");
+        CIRCLE_START_LOCATION.Add("Bottom Inner-CW");
+    }
+    
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "CircleStringCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 100);
@@ -180,6 +217,15 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxStringProperty("Layer Sizes", "CircleLayerSizes", ModelXml->GetAttribute("circleSizes")));
+    
+    int start = IsLtoR ? 1 : 0;
+    if (insideOut) {
+        start += 2;
+    }
+    if (isBotToTop) {
+        start += 4;
+    }
+    p = grid->Append(new wxEnumProperty("Starting Location", "CircleStart", CIRCLE_START_LOCATION, start));
 }
 int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CircleStringCount" == event.GetPropertyName()) {
@@ -201,6 +247,18 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     } else if ("CircleLayerSizes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("circleSizes");
         ModelXml->AddAttribute("circleSizes", event.GetValue().GetString());
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    } else if ("CircleStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->DeleteAttribute("StartSide");
+        ModelXml->DeleteAttribute("InsideOut");
+        
+        int v = event.GetValue().GetLong();
+        ModelXml->AddAttribute("Dir", v & 0x1 ? "L" : "R");
+        ModelXml->AddAttribute("StartSide", v < 4 ? "T" : "B");
+        ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
+
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
