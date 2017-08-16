@@ -31,7 +31,7 @@ void ArchesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Nodes Per Arch", "ArchesNodes", parm2));
     p->SetAttribute("Min", 1);
-    p->SetAttribute("Max", 250);
+    p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Lights Per Node", "ArchesLights", parm3));
