@@ -5,7 +5,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 
-
 #include "../../include/bars-16.xpm"
 #include "../../include/bars-24.xpm"
 #include "../../include/bars-32.xpm"
@@ -25,7 +24,6 @@ BarsEffect::~BarsEffect()
 wxPanel *BarsEffect::CreatePanel(wxWindow *parent) {
     return new BarsPanel(parent);
 }
-
 
 static inline int GetDirection(const std::string & DirectionString) {
     if ("up" == DirectionString) {
@@ -106,10 +104,10 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
 void BarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset);
-    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset);
+    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX);
+    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, 10);
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
-    double Center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position);
+    double Center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position, BARCENTER_MIN, BARCENTER_MAX);
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
     bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);

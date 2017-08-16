@@ -1,6 +1,7 @@
 #include "TendrilPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "TendrilEffect.h"
 
 //(*InternalHeaders(TendrilPanel)
 #include <wx/sizer.h>
@@ -17,6 +18,7 @@
 //*)
 
 #include <wx/valnum.h>
+#include "TendrilEffect.h"
 
 //(*IdInit(TendrilPanel)
 const long TendrilPanel::ID_STATICTEXT1 = wxNewId();
@@ -334,12 +336,12 @@ TendrilPanel::TendrilPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&TendrilPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Tendril_TuneMovementVC->GetValue()->SetLimits(0, 20);
-    BitmapButton_Tendril_ThicknessVC->GetValue()->SetLimits(1, 20);
-    BitmapButton_Tendril_ManualXVC->GetValue()->SetLimits(0, 100);
-    BitmapButton_Tendril_ManualYVC->GetValue()->SetLimits(0, 100);
-    BitmapButton_Tendril_XOffsetVC->GetValue()->SetLimits(-100, 100);
-    BitmapButton_Tendril_YOffsetVC->GetValue()->SetLimits(-100, 100);
+    BitmapButton_Tendril_TuneMovementVC->GetValue()->SetLimits(TENDRIL_MOVEMENT_MIN, TENDRIL_MOVEMENT_MAX);
+    BitmapButton_Tendril_ThicknessVC->GetValue()->SetLimits(TENDRIL_THICKNESS_MIN, TENDRIL_THICKNESS_MAX);
+    BitmapButton_Tendril_ManualXVC->GetValue()->SetLimits(TENDRIL_MANUALX_MIN, TENDRIL_MANUALX_MAX);
+    BitmapButton_Tendril_ManualYVC->GetValue()->SetLimits(TENDRIL_MANUALY_MIN, TENDRIL_MANUALY_MAX);
+    BitmapButton_Tendril_XOffsetVC->GetValue()->SetLimits(TENDRIL_OFFSETX_MIN, TENDRIL_OFFSETX_MAX);
+    BitmapButton_Tendril_YOffsetVC->GetValue()->SetLimits(TENDRIL_OFFSETY_MIN, TENDRIL_OFFSETY_MAX);
 
     ValidateWindow();
 

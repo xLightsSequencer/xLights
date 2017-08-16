@@ -3,6 +3,17 @@
 
 #include "RenderableEffect.h"
 
+#define CANDLE_AGILITY_MIN 1
+#define CANDLE_AGILITY_MAX 10
+
+#define CANDLE_WINDBASELINE_MIN 0
+#define CANDLE_WINDBASELINE_MAX 255
+
+#define CANDLE_WINDVARIABILITY_MIN 0
+#define CANDLE_WINDVARIABILITY_MAX 10
+
+#define CANDLE_WINDCALMNESS_MIN 0
+#define CANDLE_WINDCALMNESS_MAX 10
 
 class CandleEffect : public RenderableEffect
 {

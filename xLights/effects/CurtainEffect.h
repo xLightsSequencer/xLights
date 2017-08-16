@@ -5,6 +5,12 @@
 
 #include <vector>
 
+#define CURTAIN_SPEED_MIN 0
+#define CURTAIN_SPEED_MAX 10
+
+#define CURTAIN_SWAG_MIN 0
+#define CURTAIN_SWAG_MAX 10
+
 class CurtainEffect : public RenderableEffect
 {
     public:

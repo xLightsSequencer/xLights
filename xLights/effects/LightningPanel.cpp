@@ -1,6 +1,7 @@
 #include "LightningPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "LightningEffect.h"
 
 //(*InternalHeaders(LightningPanel)
 #include <wx/bmpbuttn.h>
@@ -15,6 +16,7 @@
 #include <wx/textctrl.h>
 #include <wx/choice.h>
 #include <wx/image.h>
+#include "LightningEffect.h"
 //*)
 
 //(*IdInit(LightningPanel)
@@ -201,10 +203,10 @@ LightningPanel::LightningPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LightningPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Lightning_TopXVC->GetValue()->SetLimits(-50,50);
-    BitmapButton_Lightning_TopYVC->GetValue()->SetLimits(0,100);
-    BitmapButton_Number_BoltsVC->GetValue()->SetLimits(1,50);
-    BitmapButton_Number_SegmentsVC->GetValue()->SetLimits(1,20);
+    BitmapButton_Lightning_TopXVC->GetValue()->SetLimits(LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX);
+    BitmapButton_Lightning_TopYVC->GetValue()->SetLimits(LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX);
+    BitmapButton_Number_BoltsVC->GetValue()->SetLimits(LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX);
+    BitmapButton_Number_SegmentsVC->GetValue()->SetLimits(LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);
 
     SetName("ID_PANEL_LIGHTNING");
 }

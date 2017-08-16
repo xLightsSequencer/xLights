@@ -1,8 +1,7 @@
 #include "BarsPanel.h"
-
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
-
+#include "BarsEffect.h"
 
 //(*InternalHeaders(BarsPanel)
 #include <wx/sizer.h>
@@ -18,8 +17,6 @@
 #include <wx/image.h>
 #include <wx/string.h>
 //*)
-
-
 
 //(*IdInit(BarsPanel)
 const long BarsPanel::ID_SLIDER_Bars_BarCount = wxNewId();
@@ -74,12 +71,12 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer123 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer123->AddGrowableCol(0);
-	Slider_Bars_BarCount = new wxSlider(this, ID_SLIDER_Bars_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
+	Slider_Bars_BarCount = new wxSlider(this, ID_SLIDER_Bars_BarCount, 1, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
 	FlexGridSizer123->Add(Slider_Bars_BarCount, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Bars_BarCount = new ValueCurveButton(this, ID_VALUECURVE_Bars_BarCount, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_BarCount"));
 	FlexGridSizer123->Add(BitmapButton_Bars_BarCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl15 = new wxTextCtrl(this, IDD_TEXTCTRL_Bars_BarCount, _("1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Bars_BarCount"));
-	TextCtrl15->SetMaxLength(1);
+	TextCtrl15->SetMaxLength(2);
 	FlexGridSizer123->Add(TextCtrl15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer35->Add(FlexGridSizer123, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_PaletteRep = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Bars_BarCount, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Bars_BarCount"));
@@ -89,7 +86,7 @@ BarsPanel::BarsPanel(wxWindow* parent)
 	FlexGridSizer35->Add(StaticText177, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer70 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer70->AddGrowableCol(0);
-	Slider_Bars_Cycles = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
+	Slider_Bars_Cycles = new wxSlider(this, IDD_SLIDER_Bars_Cycles, 10, 0, 500, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Bars_Cycles"));
 	FlexGridSizer70->Add(Slider_Bars_Cycles, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Bars_Cycles = new ValueCurveButton(this, ID_VALUECURVE_Bars_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Bars_Cycles"));
 	FlexGridSizer70->Add(BitmapButton_Bars_Cycles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -179,10 +176,10 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BarsPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Bars_BarCount->GetValue()->SetLimits(1, 5);
-    BitmapButton_Bars_Cycles->GetValue()->SetLimits(0, 300);
+    BitmapButton_Bars_BarCount->GetValue()->SetLimits(BARCOUNT_MIN, BARCOUNT_MAX);
+    BitmapButton_Bars_Cycles->GetValue()->SetLimits(BARCYCLES_MIN, BARCYCLES_MAX);
     BitmapButton_Bars_Cycles->GetValue()->SetDivisor(10);
-    BitmapButton_Bars_Center->GetValue()->SetLimits(-100, 100);
+    BitmapButton_Bars_Center->GetValue()->SetLimits(BARCENTER_MIN, BARCENTER_MAX);
 
     ValidateWindow();
 }
@@ -194,7 +191,6 @@ BarsPanel::~BarsPanel()
 }
 
 PANEL_EVENT_HANDLERS(BarsPanel)
-
 
 void BarsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 {

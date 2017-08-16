@@ -22,7 +22,7 @@
 						<object class="wxSlider" name="ID_SLIDER_Bars_BarCount" variable="Slider_Bars_BarCount" member="yes">
 							<value>1</value>
 							<min>1</min>
-							<max>5</max>
+							<max>50</max>
 							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -41,7 +41,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Bars_BarCount" variable="TextCtrl15" member="no">
 							<value>1</value>
-							<maxlength>1</maxlength>
+							<maxlength>2</maxlength>
 							<size>20,-1d</size>
 							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
@@ -80,7 +80,7 @@
 					<object class="sizeritem">
 						<object class="wxSlider" name="IDD_SLIDER_Bars_Cycles" variable="Slider_Bars_Cycles" member="yes">
 							<value>10</value>
-							<max>300</max>
+							<max>500</max>
 							<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

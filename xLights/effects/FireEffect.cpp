@@ -161,9 +161,9 @@ void FireEffect::SetDefaultParameters(Model *cls) {
 void FireEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset);
-    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset);
-    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset);
+    int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX);
+    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset, FIRE_HUE_MIN, FIRE_HUE_MAX);
+    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
     bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
 
     int x,y,r,v1,v2,v3,v4,n,new_index;

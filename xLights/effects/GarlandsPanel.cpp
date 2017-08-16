@@ -1,6 +1,7 @@
 #include "GarlandsPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "GarlandsEffect.h"
 
 //(*InternalHeaders(GarlandsPanel)
 #include <wx/sizer.h>
@@ -14,6 +15,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "GarlandsEffect.h"
 //*)
 
 //(*IdInit(GarlandsPanel)
@@ -120,8 +122,8 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GarlandsPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Garlands_CyclesVC->GetValue()->SetLimits(0, 20);
-    BitmapButton_Garlands_SpacingVC->GetValue()->SetLimits(1, 100);
+    BitmapButton_Garlands_CyclesVC->GetValue()->SetLimits(GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX);
+    BitmapButton_Garlands_SpacingVC->GetValue()->SetLimits(GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);
 
     SetName("ID_PANEL_GARLANDS");
 }

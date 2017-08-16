@@ -2,6 +2,7 @@
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "../xLightsMain.h"
+#include "VUMeterEffect.h"
 
 //(*InternalHeaders(VUMeterPanel)
 #include <wx/sizer.h>
@@ -251,7 +252,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
 
-    BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(-100, 100);
+    BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX);
 
 	ValidateWindow();
 }

@@ -1,6 +1,7 @@
 #include "ShimmerPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "ShimmerEffect.h"
 
 //(*InternalHeaders(ShimmerPanel)
 #include <wx/sizer.h>
@@ -116,9 +117,9 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShimmerPanel::OnVCChanged, nullptr, this);
 
-    BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(0, 6000);
+    BitmapButton_Shimmer_CyclesVC->GetValue()->SetLimits(SHIMMER_CYCLES_MIN, SHIMMER_CYCLES_MAX);
     BitmapButton_Shimmer_CyclesVC->GetValue()->SetDivisor(10);
-    BitmapButton_Shimmer_Duty_FactorVC->GetValue()->SetLimits(1, 100);
+    BitmapButton_Shimmer_Duty_FactorVC->GetValue()->SetLimits(SHIMMER_DUTYFACTOR_MIN, SHIMMER_DUTYFACTOR_MAX);
 }
 
 ShimmerPanel::~ShimmerPanel()

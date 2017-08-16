@@ -95,16 +95,15 @@ void SingleStrandEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
         float offset = (float)buffer.curPeriod / ((float)buffer.curEffEndPer - (float)buffer.curEffStartPer);
         RenderSingleStrandChase(buffer,
                                 SettingsMap.Get("CHOICE_SingleStrand_Colors", "Palette"),
-                                GetValueCurveInt("Number_Chases", 1, SettingsMap, offset),
-                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, offset),
+                                GetValueCurveInt("Number_Chases", 1, SettingsMap, offset, SINGLESTRAND_CHASES_MIN, SINGLESTRAND_CHASES_MAX),
+                                GetValueCurveInt("Color_Mix1", 10, SettingsMap, offset, SINGLESTRAND_COLOURMIX_MIN, SINGLESTRAND_COLOURMIX_MAX),
                                 SettingsMap.Get("CHOICE_Chase_Type1", "Left-Right"),
                                 SettingsMap.GetBool("CHECKBOX_Chase_3dFade1", false),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", false),
-                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, offset)
+                                GetValueCurveDouble("Chase_Rotations", 1.0, SettingsMap, offset, SINGLESTRAND_ROTATIONS_MIN, SINGLESTRAND_ROTATIONS_MAX, 10)
                                 );
     }
 }
-
 
 void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos,
                                          const std::string & Skips_Direction, int advances)

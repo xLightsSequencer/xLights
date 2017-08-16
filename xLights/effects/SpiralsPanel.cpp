@@ -1,6 +1,7 @@
 #include "SpiralsPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "SpiralsEffect.h"
 
 //(*InternalHeaders(SpiralsPanel)
 #include <wx/sizer.h>
@@ -193,12 +194,12 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&SpiralsPanel::OnVCChanged, 0, this);
 
-    BitmapButton_VCSpiralsCount->GetValue()->SetLimits(1, 5);
-    BitmapButton_VCSpirals_Movement->GetValue()->SetLimits(-200, 200);
+    BitmapButton_VCSpiralsCount->GetValue()->SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+    BitmapButton_VCSpirals_Movement->GetValue()->SetLimits(SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
     BitmapButton_VCSpirals_Movement->GetValue()->SetDivisor(10);
-    BitmapButton_VCSpirals_Rotation->GetValue()->SetLimits(-300, 300);
+    BitmapButton_VCSpirals_Rotation->GetValue()->SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
     BitmapButton_VCSpirals_Rotation->GetValue()->SetDivisor(10);
-    BitmapButton_VCSpirals_Thickness->GetValue()->SetLimits(0, 100);
+    BitmapButton_VCSpirals_Thickness->GetValue()->SetLimits(SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
 }
 
 SpiralsPanel::~SpiralsPanel()

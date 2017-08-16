@@ -1,6 +1,7 @@
 #include "ServoPanel.h"
-
+#include "ServoEffect.h"
 #include "EffectPanelUtils.h"
+
 //(*InternalHeaders(ServoPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -72,9 +73,9 @@ ServoPanel::ServoPanel(wxWindow* parent)
 
     SetName("ID_PANEL_SERVO");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, 0, this);
-
-    ValueCurve_Servo->GetValue()->SetLimits(0, 100);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
+    
+    ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
 
 }
 

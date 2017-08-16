@@ -3,6 +3,33 @@
 
 #include "RenderableEffect.h"
 
+#define MORPH_X_MIN 0
+#define MORPH_X_MAX 100
+
+#define MORPH_Y_MIN 0
+#define MORPH_Y_MAX 100
+
+#define MORPH_STARTLENGTH_MIN 0
+#define MORPH_STARTLENGTH_MAX 100
+
+#define MORPH_ENDLENGTH_MIN 0
+#define MORPH_ENDLENGTH_MAX 100
+
+#define MORPH_DURATION_MIN 0
+#define MORPH_DURATION_MAX 100
+
+#define MORPH_ACCEL_MIN -10
+#define MORPH_ACCEL_MAX 10
+
+#define MORPH_REPEAT_MIN 0
+#define MORPH_REPEAT_MAX 250
+
+#define MORPH_REPEATSKIP_MIN 1
+#define MORPH_REPEATSKIP_MAX 100
+
+#define MORPH_STAGGER_MIN -100
+#define MORPH_STAGGER_MAX 100
+
 class MorphEffect : public RenderableEffect
 {
     public:

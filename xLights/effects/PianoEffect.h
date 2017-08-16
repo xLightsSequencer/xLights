@@ -6,6 +6,9 @@
 #include <list>
 class PianoPanel;
 
+#define PIANO_SCALE_MIN 0
+#define PIANO_SCALE_MAX 100
+
 class PianoEffect : public RenderableEffect
 {
     public:

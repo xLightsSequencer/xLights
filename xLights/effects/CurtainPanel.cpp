@@ -1,6 +1,7 @@
 #include "CurtainPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "CurtainEffect.h"
 
 //(*InternalHeaders(CurtainPanel)
 #include <wx/sizer.h>
@@ -139,8 +140,8 @@ CurtainPanel::CurtainPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CurtainPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Curtain_SpeedVC->GetValue()->SetLimits(0, 10);
-    BitmapButton_Curtain_SwagVC->GetValue()->SetLimits(0, 10);
+    BitmapButton_Curtain_SpeedVC->GetValue()->SetLimits(CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX);
+    BitmapButton_Curtain_SwagVC->GetValue()->SetLimits(CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX);
 
     SetName("ID_PANEL_CURTAIN");
 }

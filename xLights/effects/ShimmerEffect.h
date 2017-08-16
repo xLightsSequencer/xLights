@@ -3,6 +3,11 @@
 
 #include "RenderableEffect.h"
 
+#define SHIMMER_CYCLES_MIN 0
+#define SHIMMER_CYCLES_MAX 6000
+
+#define SHIMMER_DUTYFACTOR_MIN 1
+#define SHIMMER_DUTYFACTOR_MAX 100
 
 class ShimmerEffect : public RenderableEffect
 {

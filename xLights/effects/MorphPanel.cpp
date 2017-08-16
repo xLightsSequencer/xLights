@@ -1,6 +1,7 @@
 #include "MorphPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "MorphEffect.h"
 
 //(*InternalHeaders(MorphPanel)
 #include <wx/notebook.h>
@@ -441,23 +442,23 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_MORPH");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MorphPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MorphPanel::OnVCChanged, nullptr, this);
 
-    BitmapButton_Morph_Start_X1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_End_X1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_Start_Y1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_End_Y1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_Start_X2->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_End_X2->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_Start_Y2->GetValue()->SetLimits(0, 100);
-    BitmapButton_Morph_End_Y2->GetValue()->SetLimits(0, 100);
-    BitmapButton_MorphStartLength->GetValue()->SetLimits(0, 100);
-    BitmapButton_MorphEndLength->GetValue()->SetLimits(0, 100);
-    BitmapButton_MorphDuration->GetValue()->SetLimits(0, 100);
-    BitmapButton_MorphAccel->GetValue()->SetLimits(-10, 10);
-    BitmapButton_Morph_Repeat_Count->GetValue()->SetLimits(0, 250);
-    BitmapButton_Morph_Repeat_Skip->GetValue()->SetLimits(1, 100);
-    BitmapButton_Morph_Stagger->GetValue()->SetLimits(-100, 100);
+    BitmapButton_Morph_Start_X1->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
+    BitmapButton_Morph_End_X1->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
+    BitmapButton_Morph_Start_Y1->GetValue()->SetLimits(MORPH_Y_MIN, MORPH_Y_MAX);
+    BitmapButton_Morph_End_Y1->GetValue()->SetLimits(MORPH_Y_MIN, MORPH_Y_MAX);
+    BitmapButton_Morph_Start_X2->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
+    BitmapButton_Morph_End_X2->GetValue()->SetLimits(MORPH_X_MIN, MORPH_X_MAX);
+    BitmapButton_Morph_Start_Y2->GetValue()->SetLimits(MORPH_Y_MIN, MORPH_Y_MAX);
+    BitmapButton_Morph_End_Y2->GetValue()->SetLimits(MORPH_Y_MIN, MORPH_Y_MAX);
+    BitmapButton_MorphStartLength->GetValue()->SetLimits(MORPH_STARTLENGTH_MIN, MORPH_STARTLENGTH_MAX);
+    BitmapButton_MorphEndLength->GetValue()->SetLimits(MORPH_ENDLENGTH_MIN, MORPH_ENDLENGTH_MAX);
+    BitmapButton_MorphDuration->GetValue()->SetLimits(MORPH_DURATION_MIN, MORPH_DURATION_MAX);
+    BitmapButton_MorphAccel->GetValue()->SetLimits(MORPH_ACCEL_MIN, MORPH_ACCEL_MAX);
+    BitmapButton_Morph_Repeat_Count->GetValue()->SetLimits(MORPH_REPEAT_MIN, MORPH_REPEAT_MAX);
+    BitmapButton_Morph_Repeat_Skip->GetValue()->SetLimits(MORPH_REPEATSKIP_MIN, MORPH_REPEATSKIP_MAX);
+    BitmapButton_Morph_Stagger->GetValue()->SetLimits(MORPH_STAGGER_MIN, MORPH_STAGGER_MAX);
 }
 
 MorphPanel::~MorphPanel()

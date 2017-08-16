@@ -10,6 +10,27 @@ class wxString;
 class b2World;
 class b2ParticleSystem;
 
+#define LIQUID_LIFETIME_MIN 0
+#define LIQUID_LIFETIME_MAX 1000
+
+#define LIQUID_DIRECTION_MIN 0
+#define LIQUID_DIRECTION_MAX 360
+
+#define LIQUID_FLOW_MIN 0
+#define LIQUID_FLOW_MAX 1000
+
+#define LIQUID_VELOCITY_MIN 0
+#define LIQUID_VELOCITY_MAX 1000
+
+#define LIQUID_X_MIN 0
+#define LIQUID_X_MAX 100
+
+#define LIQUID_Y_MIN 0
+#define LIQUID_Y_MAX 100
+
+#define LIQUID_SOURCESIZE_MIN 0
+#define LIQUID_SOURCESIZE_MAX 100
+
 class LiquidEffect : public RenderableEffect
 {
     public:

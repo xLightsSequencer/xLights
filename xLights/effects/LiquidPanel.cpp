@@ -1,5 +1,6 @@
 #include "LiquidPanel.h"
 #include "EffectPanelUtils.h"
+#include "LiquidEffect.h"
 
 //(*InternalHeaders(LiquidPanel)
 #include <wx/notebook.h>
@@ -631,35 +632,35 @@ LiquidPanel::LiquidPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&LiquidPanel::OnVCChanged, 0, this);
 
-    BitmapButton_LifeTime->GetValue()->SetLimits(0, 1000);
+    BitmapButton_LifeTime->GetValue()->SetLimits(LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX);
 
-    BitmapButton_Direction1->GetValue()->SetLimits(0, 360);
-    BitmapButton_Flow1->GetValue()->SetLimits(0, 1000);
-    BitmapButton_Velocity1->GetValue()->SetLimits(0, 1000);
-    BitmapButton_X1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Y1->GetValue()->SetLimits(0, 100);
-    BitmapButton_Liquid_SourceSize1->GetValue()->SetLimits(0, 100);
+    BitmapButton_Direction1->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
+    BitmapButton_Flow1->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
+    BitmapButton_Velocity1->GetValue()->SetLimits(LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX);
+    BitmapButton_X1->GetValue()->SetLimits(LIQUID_X_MIN, LIQUID_X_MAX);
+    BitmapButton_Y1->GetValue()->SetLimits(LIQUID_Y_MIN, LIQUID_Y_MAX);
+    BitmapButton_Liquid_SourceSize1->GetValue()->SetLimits(LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX);
 
-    BitmapButton_Direction2->GetValue()->SetLimits(0, 360);
-    BitmapButton_Flow2->GetValue()->SetLimits(0, 1000);
-    BitmapButton_Velocity2->GetValue()->SetLimits(0, 1000);
-    BitmapButton_X2->GetValue()->SetLimits(0, 100);
-    BitmapButton_Y2->GetValue()->SetLimits(0, 100);
-    BitmapButton_Liquid_SourceSize2->GetValue()->SetLimits(0, 100);
+    BitmapButton_Direction2->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
+    BitmapButton_Flow2->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
+    BitmapButton_Velocity2->GetValue()->SetLimits(LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX);
+    BitmapButton_X2->GetValue()->SetLimits(LIQUID_X_MIN, LIQUID_X_MAX);
+    BitmapButton_Y2->GetValue()->SetLimits(LIQUID_Y_MIN, LIQUID_Y_MAX);
+    BitmapButton_Liquid_SourceSize2->GetValue()->SetLimits(LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX);
 
-    BitmapButton_Direction3->GetValue()->SetLimits(0, 360);
-    BitmapButton_Flow3->GetValue()->SetLimits(0, 1000);
-    BitmapButton_Velocity3->GetValue()->SetLimits(0, 1000);
-    BitmapButton_X3->GetValue()->SetLimits(0, 100);
-    BitmapButton_Y3->GetValue()->SetLimits(0, 100);
-    BitmapButton_Liquid_SourceSize3->GetValue()->SetLimits(0, 100);
+    BitmapButton_Direction3->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
+    BitmapButton_Flow3->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
+    BitmapButton_Velocity3->GetValue()->SetLimits(LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX);
+    BitmapButton_X3->GetValue()->SetLimits(LIQUID_X_MIN, LIQUID_X_MAX);
+    BitmapButton_Y3->GetValue()->SetLimits(LIQUID_Y_MIN, LIQUID_Y_MAX);
+    BitmapButton_Liquid_SourceSize3->GetValue()->SetLimits(LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX);
 
-    BitmapButton_Direction4->GetValue()->SetLimits(0, 360);
-    BitmapButton_Flow4->GetValue()->SetLimits(0, 1000);
-    BitmapButton_Velocity4->GetValue()->SetLimits(0, 1000);
-    BitmapButton_X4->GetValue()->SetLimits(0, 100);
-    BitmapButton_Y4->GetValue()->SetLimits(0, 100);
-    BitmapButton_Liquid_SourceSize4->GetValue()->SetLimits(0, 100);
+    BitmapButton_Direction4->GetValue()->SetLimits(LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX);
+    BitmapButton_Flow4->GetValue()->SetLimits(LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
+    BitmapButton_Velocity4->GetValue()->SetLimits(LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX);
+    BitmapButton_X4->GetValue()->SetLimits(LIQUID_X_MIN, LIQUID_X_MAX);
+    BitmapButton_Y4->GetValue()->SetLimits(LIQUID_Y_MIN, LIQUID_Y_MAX);
+    BitmapButton_Liquid_SourceSize4->GetValue()->SetLimits(LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX);
 
     ValidateWindow();
 

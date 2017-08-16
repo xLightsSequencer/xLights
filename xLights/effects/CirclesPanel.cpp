@@ -1,6 +1,7 @@
 #include "CirclesPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "CirclesEffect.h"
 
 //(*InternalHeaders(CirclesPanel)
 #include <wx/sizer.h>
@@ -223,9 +224,9 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CirclesPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Circles_Count->GetValue()->SetLimits(1, 10);
-    BitmapButton_Circles_Size->GetValue()->SetLimits(1, 20);
-    BitmapButton_Circles_Speed->GetValue()->SetLimits(1, 30);
+    BitmapButton_Circles_Count->GetValue()->SetLimits(CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX);
+    BitmapButton_Circles_Size->GetValue()->SetLimits(CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX);
+    BitmapButton_Circles_Speed->GetValue()->SetLimits(CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX);
 
     SetName("ID_PANEL_CIRCLES");
 }

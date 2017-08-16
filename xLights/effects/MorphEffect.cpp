@@ -206,21 +206,21 @@ static int calcPosition(int value, int base)
 void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int start_x1 = GetValueCurveInt("Morph_Start_X1", 0, SettingsMap, eff_pos);
-    int start_y1 = GetValueCurveInt("Morph_Start_Y1", 0, SettingsMap, eff_pos);
-    int start_x2 = GetValueCurveInt("Morph_Start_X2", 0, SettingsMap, eff_pos);
-    int start_y2 = GetValueCurveInt("Morph_Start_Y2", 0, SettingsMap, eff_pos);
-    int end_x1 = GetValueCurveInt("Morph_End_X1", 0, SettingsMap, eff_pos);
-    int end_y1 = GetValueCurveInt("Morph_End_Y1", 0, SettingsMap, eff_pos);
-    int end_x2 = GetValueCurveInt("Morph_End_X2", 0, SettingsMap, eff_pos);
-    int end_y2 = GetValueCurveInt("Morph_End_Y2", 0, SettingsMap, eff_pos);
-    int start_length = GetValueCurveInt("MorphStartLength", 0, SettingsMap, eff_pos);
-    int end_length = GetValueCurveInt("MorphEndLength", 0, SettingsMap, eff_pos);
-    int duration = GetValueCurveInt("MorphDuration", 0, SettingsMap, eff_pos);
-    int acceleration = GetValueCurveInt("MorphAccel", 0, SettingsMap, eff_pos);
-    int repeat_count = GetValueCurveInt("Morph_Repeat_Count", 0, SettingsMap, eff_pos);
-    int repeat_skip = GetValueCurveInt("Morph_Repeat_Skip", 0, SettingsMap, eff_pos);
-    int stagger = GetValueCurveInt("Morph_Stagger", 0, SettingsMap, eff_pos);
+    int start_x1 = GetValueCurveInt("Morph_Start_X1", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX);
+    int start_y1 = GetValueCurveInt("Morph_Start_Y1", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX);
+    int start_x2 = GetValueCurveInt("Morph_Start_X2", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX);
+    int start_y2 = GetValueCurveInt("Morph_Start_Y2", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX);
+    int end_x1 = GetValueCurveInt("Morph_End_X1", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX);
+    int end_y1 = GetValueCurveInt("Morph_End_Y1", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX);
+    int end_x2 = GetValueCurveInt("Morph_End_X2", 0, SettingsMap, eff_pos, MORPH_X_MIN, MORPH_X_MAX);
+    int end_y2 = GetValueCurveInt("Morph_End_Y2", 0, SettingsMap, eff_pos, MORPH_Y_MIN, MORPH_Y_MAX);
+    int start_length = GetValueCurveInt("MorphStartLength", 0, SettingsMap, eff_pos, MORPH_STARTLENGTH_MIN, MORPH_STARTLENGTH_MAX);
+    int end_length = GetValueCurveInt("MorphEndLength", 0, SettingsMap, eff_pos, MORPH_ENDLENGTH_MIN, MORPH_ENDLENGTH_MAX);
+    int duration = GetValueCurveInt("MorphDuration", 0, SettingsMap, eff_pos, MORPH_DURATION_MIN, MORPH_DURATION_MAX);
+    int acceleration = GetValueCurveInt("MorphAccel", 0, SettingsMap, eff_pos, MORPH_ACCEL_MIN, MORPH_ACCEL_MAX);
+    int repeat_count = GetValueCurveInt("Morph_Repeat_Count", 0, SettingsMap, eff_pos, MORPH_REPEAT_MIN, MORPH_REPEAT_MAX);
+    int repeat_skip = GetValueCurveInt("Morph_Repeat_Skip", 0, SettingsMap, eff_pos, MORPH_REPEATSKIP_MIN, MORPH_REPEATSKIP_MAX);
+    int stagger = GetValueCurveInt("Morph_Stagger", 0, SettingsMap, eff_pos, MORPH_STAGGER_MIN, MORPH_STAGGER_MAX);
     bool start_linked = SettingsMap.GetBool("CHECKBOX_Morph_Start_Link");
     bool end_linked = SettingsMap.GetBool("CHECKBOX_Morph_End_Link");
     bool showEntireHeadAtStart = SettingsMap.GetBool("CHECKBOX_ShowHeadAtStart");

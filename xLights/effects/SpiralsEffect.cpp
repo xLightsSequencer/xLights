@@ -56,10 +56,10 @@ bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap)
 
 void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset);
-    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset);
-    int Rotation = GetValueCurveInt("Spirals_Rotation", 0, SettingsMap, offset);
-    int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset);
+    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, 10);
+    int Rotation = GetValueCurveInt("Spirals_Rotation", 0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, 10);
+    int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
     bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend");
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D");
     bool grow = SettingsMap.GetBool("CHECKBOX_Spirals_Grow");

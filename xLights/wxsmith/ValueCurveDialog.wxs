@@ -116,6 +116,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter1" variable="TextCtrl_Parameter1" member="yes">
 							<value>0</value>
+							<maxlength>5</maxlength>
 							<size>40,24</size>
 							<handler function="OnTextCtrl_Parameter1Text" entry="EVT_TEXT" />
 						</object>
@@ -142,6 +143,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter2" variable="TextCtrl_Parameter2" member="yes">
 							<value>0</value>
+							<maxlength>5</maxlength>
 							<size>40,24</size>
 							<handler function="OnTextCtrl_Parameter2Text" entry="EVT_TEXT" />
 						</object>
@@ -168,6 +170,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter3" variable="TextCtrl_Parameter3" member="yes">
 							<value>0</value>
+							<maxlength>5</maxlength>
 							<size>40,24</size>
 							<handler function="OnTextCtrl_Parameter3Text" entry="EVT_TEXT" />
 						</object>
@@ -195,6 +198,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter4" variable="TextCtrl_Parameter4" member="yes">
 							<value>0</value>
+							<maxlength>5</maxlength>
 							<size>40,24</size>
 							<handler function="OnTextCtrl_Parameter4Text" entry="EVT_TEXT" />
 						</object>

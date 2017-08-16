@@ -3,6 +3,14 @@
 
 #include "RenderableEffect.h"
 
+#define FIRE_GROWTHCYCLES_MIN 0
+#define FIRE_GROWTHCYCLES_MAX 20
+
+#define FIRE_HEIGHT_MIN 1
+#define FIRE_HEIGHT_MAX 100
+
+#define FIRE_HUE_MIN 0
+#define FIRE_HUE_MAX 100
 
 class FireEffect : public RenderableEffect
 {

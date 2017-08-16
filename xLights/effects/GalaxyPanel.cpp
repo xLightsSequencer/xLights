@@ -1,6 +1,7 @@
 #include "GalaxyPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "GalaxyEffect.h"
 
 //(*InternalHeaders(GalaxyPanel)
 #include <wx/notebook.h>
@@ -15,6 +16,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "GalaxyEffect.h"
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -315,17 +317,17 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&GalaxyPanel::OnVCChanged, 0, this);
 
-    ValueCurve_Galaxy_CenterX->GetValue()->SetLimits(0, 100);
-    ValueCurve_Galaxy_CenterY->GetValue()->SetLimits(0, 100);
-    ValueCurve_Galaxy_Start_Radius->GetValue()->SetLimits(0, 250);
-    ValueCurve_Galaxy_End_Radius->GetValue()->SetLimits(0, 250);
-    ValueCurve_Galaxy_Start_Angle->GetValue()->SetLimits(0, 360);
-    ValueCurve_Galaxy_Revolutions->GetValue()->SetLimits(0, 3600);
+    ValueCurve_Galaxy_CenterX->GetValue()->SetLimits(GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX);
+    ValueCurve_Galaxy_CenterY->GetValue()->SetLimits(GALAXY_CENTREY_MIN, GALAXY_CENTREY_MAX);
+    ValueCurve_Galaxy_Start_Radius->GetValue()->SetLimits(GALAXY_STARTRADIUS_MIN, GALAXY_STARTRADIUS_MAX);
+    ValueCurve_Galaxy_End_Radius->GetValue()->SetLimits(GALAXY_ENDRADIUS_MIN, GALAXY_ENDRADIUS_MAX);
+    ValueCurve_Galaxy_Start_Angle->GetValue()->SetLimits(GALAXY_STARTANGLE_MIN, GALAXY_STARTANGLE_MAX);
+    ValueCurve_Galaxy_Revolutions->GetValue()->SetLimits(GALAXY_REVOLUTIONS_MIN, GALAXY_REVOLUTIONS_MAX);
     ValueCurve_Galaxy_Revolutions->GetValue()->SetDivisor(360);
-    ValueCurve_Galaxy_Start_Width->GetValue()->SetLimits(0, 255);
-    ValueCurve_Galaxy_End_Width->GetValue()->SetLimits(0, 255);
-    ValueCurve_Galaxy_Duration->GetValue()->SetLimits(0, 100);
-    ValueCurve_Galaxy_Accel->GetValue()->SetLimits(-10, 10);
+    ValueCurve_Galaxy_Start_Width->GetValue()->SetLimits(GALAXY_STARTWIDTH_MIN, GALAXY_STARTWIDTH_MAX);
+    ValueCurve_Galaxy_End_Width->GetValue()->SetLimits(GALAXY_ENDWIDTH_MIN, GALAXY_ENDWIDTH_MAX);
+    ValueCurve_Galaxy_Duration->GetValue()->SetLimits(GALAXY_DURATION_MIN, GALAXY_DURATION_MAX);
+    ValueCurve_Galaxy_Accel->GetValue()->SetLimits(GALAXY_ACCEL_MIN, GALAXY_ACCEL_MAX);
 }
 
 GalaxyPanel::~GalaxyPanel()

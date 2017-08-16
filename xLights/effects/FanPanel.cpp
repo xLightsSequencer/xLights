@@ -1,6 +1,7 @@
 #include "FanPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "FanEffect.h"
 
 //(*InternalHeaders(FanPanel)
 #include <wx/notebook.h>
@@ -15,6 +16,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "FanEffect.h"
 //*)
 
 //(*IdInit(FanPanel)
@@ -371,22 +373,21 @@ FanPanel::FanPanel(wxWindow* parent)
 	//*)
     SetName("ID_PANEL_FAN");
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FanPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FanPanel::OnVCChanged, nullptr, this);
 
-    ValueCurve_Fan_CenterX->GetValue()->SetLimits(0, 100);
-    ValueCurve_Fan_CenterY->GetValue()->SetLimits(0, 100);
-    ValueCurve_Fan_Start_Radius->GetValue()->SetLimits(0, 500);
-    ValueCurve_Fan_Start_Angle->GetValue()->SetLimits(0, 360);
-    ValueCurve_Fan_End_Radius->GetValue()->SetLimits(0, 500);
-    ValueCurve_Fan_Revolutions->GetValue()->SetLimits(0, 3600);
-    ValueCurve_Fan_Revolutions->GetValue()->SetDivisor(360);
-    ValueCurve_Fan_Num_Blades->GetValue()->SetLimits(1, 16);
-    ValueCurve_Fan_Blade_Width->GetValue()->SetLimits(5, 100);
-    ValueCurve_Fan_Blade_Angle->GetValue()->SetLimits(-360, 360);
-    ValueCurve_Fan_Num_Elements->GetValue()->SetLimits(1, 4);
-    ValueCurve_Fan_Element_Width->GetValue()->SetLimits(5, 100);
-    ValueCurve_Fan_Duration->GetValue()->SetLimits(0, 100);
-    ValueCurve_Fan_Accel->GetValue()->SetLimits(-10, 10);
+    ValueCurve_Fan_CenterX->GetValue()->SetLimits(FAN_CENTREX_MIN, FAN_CENTREX_MAX);
+    ValueCurve_Fan_CenterY->GetValue()->SetLimits(FAN_CENTREY_MIN, FAN_CENTREY_MAX);
+    ValueCurve_Fan_Start_Radius->GetValue()->SetLimits(FAN_STARTRADIUS_MIN, FAN_STARTRADIUS_MAX);
+    ValueCurve_Fan_Start_Angle->GetValue()->SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+    ValueCurve_Fan_End_Radius->GetValue()->SetLimits(FAN_ENDRADIUS_MIN, FAN_ENDRADIUS_MAX);
+    ValueCurve_Fan_Revolutions->GetValue()->SetLimits(FAN_REVOLUTIONS_MIN, FAN_REVOLUTIONS_MAX);
+    ValueCurve_Fan_Num_Blades->GetValue()->SetLimits(FAN_BLADES_MIN, FAN_BLADES_MAX);
+    ValueCurve_Fan_Blade_Width->GetValue()->SetLimits(FAN_BLADEWIDTH_MIN, FAN_BLADEWIDTH_MAX);
+    ValueCurve_Fan_Blade_Angle->GetValue()->SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
+    ValueCurve_Fan_Num_Elements->GetValue()->SetLimits(FAN_NUMELEMENTS_MIN, FAN_NUMELEMENTS_MAX);
+    ValueCurve_Fan_Element_Width->GetValue()->SetLimits(FAN_ELEMENTWIDTH_MIN, FAN_ELEMENTWIDTH_MAX);
+    ValueCurve_Fan_Duration->GetValue()->SetLimits(FAN_DURATION_MIN, FAN_DURATION_MAX);
+    ValueCurve_Fan_Accel->GetValue()->SetLimits(FAN_ACCEL_MIN, FAN_ACCEL_MAX);
 }
 
 FanPanel::~FanPanel()

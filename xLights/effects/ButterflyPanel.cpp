@@ -1,6 +1,7 @@
 #include "ButterflyPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "ButterflyEffect.h"
 
 //(*InternalHeaders(ButterflyPanel)
 #include <wx/sizer.h>
@@ -169,9 +170,9 @@ ButterflyPanel::ButterflyPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ButterflyPanel::OnVCChanged, 0, this);
 
-    BitmapButton_Butterfly_Speed->GetValue()->SetLimits(0, 100);
-    BitmapButton_Butterfly_Skip->GetValue()->SetLimits(2, 10);
-    BitmapButton_Butterfly_Chunks->GetValue()->SetLimits(1, 10);
+    BitmapButton_Butterfly_Speed->GetValue()->SetLimits(BUTTERFLY_SKIP_MIN, BUTTERFLY_SPEED_MAX);
+    BitmapButton_Butterfly_Skip->GetValue()->SetLimits(BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX);
+    BitmapButton_Butterfly_Chunks->GetValue()->SetLimits(BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
 
     SetName("ID_PANEL_BUTTERFLY");
 }

@@ -1,6 +1,7 @@
 #include "FirePanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "FireEffect.h"
 
 //(*InternalHeaders(FirePanel)
 #include <wx/sizer.h>
@@ -139,9 +140,9 @@ FirePanel::FirePanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FirePanel::OnVCChanged, 0, this);
 
-    BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetLimits(0, 20);
-    BitmapButton_Fire_HeightVC->GetValue()->SetLimits(1, 100);
-    BitmapButton_Fire_HueShiftVC->GetValue()->SetLimits(0, 100);
+    BitmapButton_Fire_GrowthCyclesVC->GetValue()->SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
+    BitmapButton_Fire_HeightVC->GetValue()->SetLimits(FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX);
+    BitmapButton_Fire_HueShiftVC->GetValue()->SetLimits(FIRE_HUE_MIN, FIRE_HUE_MAX);
 
     SetName("ID_PANEL_FIRE");
     ValidateWindow();

@@ -2,6 +2,7 @@
 #include "../../include/padlock16x16-blue.xpm"
 #include "../../include/padlock16x16-green.xpm"
 #include "EffectPanelUtils.h"
+#include "WaveEffect.h"
 
 //(*InternalHeaders(WavePanel)
 #include <wx/sizer.h>
@@ -16,6 +17,7 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include "WaveEffect.h"
 //*)
 
 //(*IdInit(WavePanel)
@@ -206,10 +208,10 @@ WavePanel::WavePanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&WavePanel::OnVCChanged, 0, this);
 
-    BitmapButton_Number_WavesVC->GetValue()->SetLimits(180, 3600);
-    BitmapButton_Thickness_PercentageVC->GetValue()->SetLimits(0, 100);
-    BitmapButton_Wave_HeightVC->GetValue()->SetLimits(0, 100);
-    BitmapButton_Wave_SpeedVC->GetValue()->SetLimits(0, 50);
+    BitmapButton_Number_WavesVC->GetValue()->SetLimits(WAVE_NUMBER_MIN, WAVE_NUMBER_MAX);
+    BitmapButton_Thickness_PercentageVC->GetValue()->SetLimits(WAVE_THICKNESS_MIN, WAVE_THICKNESS_MAX);
+    BitmapButton_Wave_HeightVC->GetValue()->SetLimits(WAVE_HEIGHT_MIN, WAVE_HEIGHT_MAX);
+    BitmapButton_Wave_SpeedVC->GetValue()->SetLimits(WAVE_SPEED_MIN, WAVE_SPEED_MAX);
 
     ValidateWindow();
 }
