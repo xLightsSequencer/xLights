@@ -827,6 +827,10 @@
 		<Unit filename="effects/ServoEffect.h" />
 		<Unit filename="effects/ServoPanel.cpp" />
 		<Unit filename="effects/ServoPanel.h" />
+		<Unit filename="effects/ShapeEffect.cpp" />
+		<Unit filename="effects/ShapeEffect.h" />
+		<Unit filename="effects/ShapePanel.cpp" />
+		<Unit filename="effects/ShapePanel.h" />
 		<Unit filename="effects/ShimmerEffect.cpp" />
 		<Unit filename="effects/ShimmerEffect.h" />
 		<Unit filename="effects/ShimmerPanel.cpp" />
@@ -1162,6 +1166,7 @@
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
+		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
 		<Unit filename="wxsmith/SingleStrandPanel.wxs" />
@@ -1291,6 +1296,7 @@
 					<wxPanel wxs="wxsmith/PinwheelPanel.wxs" src="effects/PinwheelPanel.cpp" hdr="effects/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlasmaPanel.wxs" src="effects/PlasmaPanel.cpp" hdr="effects/PlasmaPanel.h" fwddecl="1" i18n="1" name="PlasmaPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/RipplePanel.wxs" src="effects/RipplePanel.cpp" hdr="effects/RipplePanel.h" fwddecl="1" i18n="1" name="RipplePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/ShapePanel.wxs" src="effects/ShapePanel.cpp" hdr="effects/ShapePanel.h" fwddecl="1" i18n="1" name="ShapePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShimmerPanel.wxs" src="effects/ShimmerPanel.cpp" hdr="effects/ShimmerPanel.h" fwddecl="1" i18n="1" name="ShimmerPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/ShockwavePanel.wxs" src="effects/ShockwavePanel.cpp" hdr="effects/ShockwavePanel.h" fwddecl="1" i18n="1" name="ShockwavePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SingleStrandPanel.wxs" src="effects/SingleStrandPanel.cpp" hdr="effects/SingleStrandPanel.h" fwddecl="1" i18n="1" name="SingleStrandPanel" language="CPP" />

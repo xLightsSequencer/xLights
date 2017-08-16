@@ -170,6 +170,8 @@
     <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="effects\ShapeEffect.cpp" />
+    <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
@@ -475,6 +477,8 @@
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
+    <ClInclude Include="effects\ShapeEffect.h" />
+    <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="MSWStackWalk.h" />

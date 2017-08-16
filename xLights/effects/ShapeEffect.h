@@ -1,0 +1,52 @@
+#ifndef SHAPEEFFECT_H
+#define SHAPEEFFECT_H
+
+#include "RenderableEffect.h"
+
+#include "../Color.h"
+
+#define SHAPE_THICKNESS_MIN 1
+#define SHAPE_THICKNESS_MAX 100
+
+#define SHAPE_STARTSIZE_MIN 0
+#define SHAPE_STARTSIZE_MAX 100
+
+#define SHAPE_CENTREX_MIN 0
+#define SHAPE_CENTREX_MAX 100
+
+#define SHAPE_CENTREY_MIN 0 
+#define SHAPE_CENTREY_MAX 100
+
+#define SHAPE_LIFETIME_MIN 1
+#define SHAPE_LIFETIME_MAX 100
+
+#define SHAPE_GROWTH_MIN -100
+#define SHAPE_GROWTH_MAX 100
+
+#define SHAPE_COUNT_MIN 1
+#define SHAPE_COUNT_MAX 100
+
+class ShapeEffect : public RenderableEffect
+{
+    public:
+        ShapeEffect(int id);
+        virtual ~ShapeEffect();
+        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void SetPanelStatus(Model *cls) override;
+        virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+protected:
+        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+    private:
+
+        int DecodeShape(const std::string& shape);
+        void SetPanelTimingTracks();
+        void Drawcircle(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
+        void Drawheart(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
+        void Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, int points, xlColor color, int thickness);
+        void Drawpolygon(RenderBuffer &buffer, int xc, int yc, float radius, int sides, xlColor color, int thickness, int rotation = 0);
+        void Drawtree(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
+};
+
+#endif // SHAPEEFFECT_H

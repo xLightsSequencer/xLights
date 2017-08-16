@@ -43,6 +43,7 @@ public:
         eff_PLASMA,
         eff_RIPPLE,
         eff_SERVO,
+        eff_SHAPE,
         eff_SHIMMER,
         eff_SHOCKWAVE,
         eff_SINGLESTRAND,

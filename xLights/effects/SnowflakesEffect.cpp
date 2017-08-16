@@ -124,7 +124,6 @@ static void set_pixel_if_not_color(RenderBuffer &buffer, int x, int y, xlColor t
     }
 }
 
-
 class SnowflakesRenderCache : public EffectRenderCache {
 public:
     SnowflakesRenderCache() {};

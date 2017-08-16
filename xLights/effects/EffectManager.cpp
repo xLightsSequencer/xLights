@@ -33,6 +33,7 @@
 #include "RenderableEffect.h"
 #include "RippleEffect.h"
 #include "ServoEffect.h"
+#include "ShapeEffect.h"
 #include "ShimmerEffect.h"
 #include "ShockwaveEffect.h"
 #include "SingleStrandEffect.h"
@@ -83,6 +84,7 @@ EffectManager::EffectManager()
     add(new PlasmaEffect(eff_PLASMA));
     add(new RippleEffect(eff_RIPPLE));
     add(new ServoEffect (eff_SERVO));
+    add(new ShapeEffect (eff_SHAPE));
     add(new ShimmerEffect(eff_SHIMMER));
     add(new ShockwaveEffect(eff_SHOCKWAVE));
     add(new SingleStrandEffect(eff_SINGLESTRAND));
