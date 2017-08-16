@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.23  Aug 15, 2017
    -- enh (dkulp)   Add ability to specify starting location and direction for circle model
    -- enh (keith)   Add ability to manual edit effect timing - right click on an effect to access it
    -- bug (keith)   Fix model group panel no longer to able to repeatedly add/remove models using button
