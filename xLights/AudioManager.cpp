@@ -270,21 +270,31 @@ AudioData::AudioData()
 
 long AudioData::Tell()
 {
-    return (long)(((((Uint64)(_original_len - _audio_len) / 4) * _lengthMS)) / _trackSize);
+    long pos = (long)(((((Uint64)(_original_len - _audio_len) / 4) * _lengthMS)) / _trackSize);
+    return pos;
 }
 
 void AudioData::Seek(long ms)
 {
     _audio_len = (long)((Uint64)_original_len - (((Uint64)ms * _rate * 2 * 2) / 1000));
     _audio_len -= _audio_len % 4;
+
+    if (_audio_len > _original_len) _audio_len = _original_len;
+
     _audio_pos = _original_pos + (_original_len - _audio_len);
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Seeking to %ldMS ... calculated audio_len: %ld", ms, _audio_len);
 }
 
-void AudioData::SeekAndLimitPlayLength(long pos, long len)
+void AudioData::SeekAndLimitPlayLength(long ms, long len)
 {
     _audio_len = (long)(((Uint64)len * _rate * 2 * 2) / 1000);
     _audio_len -= _audio_len % 4;
-    _audio_pos = (_original_pos + (((Uint64)pos * _rate * 2 * 2) / 1000));
+    _audio_pos = _original_pos + (((Uint64)ms * _rate * 2 * 2) / 1000);
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Seeking to %ldMS Length %ldMS ... calculated audio_len: %ld.", ms, len, _audio_len);
 }
 
 void AudioData::SavePos()
