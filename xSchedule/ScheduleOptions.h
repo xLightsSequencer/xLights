@@ -59,6 +59,7 @@ class ScheduleOptions
         int GetWebServerPort() const { return _port; }
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
         std::string GetWWWRoot() const { return _wwwRoot; }
+        std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
         void AddProjector(const std::string& name, const std::string& ip, const std::string& password);

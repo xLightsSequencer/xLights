@@ -310,3 +310,18 @@ UserButton* ScheduleOptions::GetButton(wxUint32 id) const
     return nullptr;
 }
 
+std::string ScheduleOptions::GetDefaultRoot() const
+{
+    wxString d;
+#ifdef __WXMSW__
+    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+    d = wxStandardPaths::Get().GetDataDir();
+    if (!wxDir::Exists(d)) {
+        d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+    }
+#else
+    d = wxStandardPaths::Get().GetResourcesDir();
+#endif
+    return d.ToStdString();
+}

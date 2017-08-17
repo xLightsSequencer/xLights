@@ -181,6 +181,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
 
     TextCtrl_wwwRoot->SetValue(options->GetWWWRoot());
+    StaticText4->SetToolTip("Root Directory: " + options->GetDefaultRoot());
     TextCtrl_Password->SetValue(options->GetPassword());
 
     LoadProjectors();

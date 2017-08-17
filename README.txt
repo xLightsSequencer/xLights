@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (craig)   xSchedule Add a tooltip for where the default root web directory is located
    -- bug (dkulp)   Fix problem writing to fseq files that are larger than 2GB
 2017.23  Aug 15, 2017
    -- enh (dkulp)   Add ability to specify starting location and direction for circle model
