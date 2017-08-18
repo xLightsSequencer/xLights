@@ -284,7 +284,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     std::list<ShapeData*>& _shapes = cache->_shapes;
     int& _lastColorIdx = cache->_lastColorIdx;
     int& _sinceLastTriggered = cache->_sinceLastTriggered;
-    
+
     float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100;
     if (lifetimeFrames < 1) lifetimeFrames = 1;
     float growthPerFrame = (float)growth / lifetimeFrames;
@@ -617,7 +617,7 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, float radius, 
     for (float x = -2.0; x <= 2.0; x += 0.01f)
     {
         float y1 = sqrt(1 - (abs(x) - 1) * (abs(x) - 1));
-        float y2 = std::acosf(1 - abs(x)) - M_PI;
+        float y2 = acosf(1 - abs(x)) - M_PI;
 
         float r = radius;
 
@@ -638,7 +638,7 @@ void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, float radius, x
 {
     struct line
     {
-        wxPoint start; 
+        wxPoint start;
         wxPoint end;
 
         line(const wxPoint s, const wxPoint e)

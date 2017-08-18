@@ -59,7 +59,7 @@ class ValueCurveDialog: public wxDialog
     ValueCurve* _vc;
     ValueCurve _backup;
     void ValidateWindow();
-    void SetParameter(int p, int v);
+    void SetParameter(int p, float v);
     ValueCurvePanel* _vcp;
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
@@ -68,6 +68,7 @@ class ValueCurveDialog: public wxDialog
     void ProcessPresetDir(wxDir& directory, bool subdirs);
     void SetTextCtrlsFromSliders();
     void SetTextCtrlFromSlider(int parm, wxTextCtrl* text, int value);
+    void SetSliderMinMax();
 
     public:
 

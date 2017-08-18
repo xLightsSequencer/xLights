@@ -119,37 +119,37 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
     textctrlname.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
     textctrlname2.Replace("ID_VALUECURVE_", "IDD_TEXTCTRL_");
     wxSlider* slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername);
-    if (slider == NULL || (void*)slider == (void*)vcb)
+    if (slider == nullptr || (void*)slider == (void*)vcb)
     {
         slider = (wxSlider*)vcb->GetParent()->FindWindowByName(slidername2);
     }
     wxTextCtrl* textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname);
-    if (textctrl == NULL || (void*)textctrl == (void*)vcb)
+    if (textctrl == nullptr || (void*)textctrl == (void*)vcb)
     {
         textctrl = (wxTextCtrl*)vcb->GetParent()->FindWindowByName(textctrlname2);
     }
 
-    wxASSERT(slider != NULL && (void*)slider != (void*)vcb);
-    wxASSERT(textctrl != NULL && (void*)textctrl != (void*)vcb);
+    wxASSERT(slider != nullptr && (void*)slider != (void*)vcb);
+    wxASSERT(textctrl != nullptr && (void*)textctrl != (void*)vcb);
 
     if (vcb->GetValue()->IsActive())
     {
-        if (slider != NULL)
+        if (slider != nullptr)
         {
             slider->Disable();
         }
-        if (textctrl != NULL)
+        if (textctrl != nullptr)
         {
             textctrl->Disable();
         }
     }
     else
     {
-        if (slider != NULL)
+        if (slider != nullptr)
         {
             slider->Enable();
         }
-        if (textctrl != NULL)
+        if (textctrl != nullptr)
         {
             textctrl->Enable();
         }
@@ -177,7 +177,7 @@ void EffectPanelUtils::UpdateLinkedTextCtrlVC(wxScrollEvent& event)
     {
         if (vc->GetValue()->GetType() == "Flat")
         {
-            vc->GetValue()->SetParameter1(slider->GetValue());
+            vc->GetValue()->SetParameter1((float)slider->GetValue());
         }
     }
     else
@@ -287,11 +287,11 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
     }
     ValueCurveButton* vc = (ValueCurveButton*)slider->GetParent()->FindWindowByName(name);
 
-    if (vc != NULL)
+    if (vc != nullptr)
     {
         if (vc->GetValue()->GetType() == "Flat")
         {
-            vc->GetValue()->SetParameter1(slider->GetValue());
+            vc->GetValue()->SetParameter1((float)slider->GetValue());
         }
     }
     else
@@ -396,7 +396,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     name.Replace("IDD_VALUECURVE_", "ID_SLIDER_");
     name.Replace("ID_VALUECURVE_", "ID_SLIDER_");
     wxSlider *slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
-    if (slider == NULL || (void*)slider == (void*)vc)
+    if (slider == nullptr || (void*)slider == (void*)vc)
     {
         name = vc->GetName();
         name.Replace("IDD_VALUECURVE_", "IDD_SLIDER_");
@@ -408,7 +408,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     name.Replace("IDD_VALUECURVE_", "ID_TEXTCTRL_");
     name.Replace("ID_VALUECURVE_", "ID_TEXTCTRL_");
     wxTextCtrl *txt = (wxTextCtrl*)vc->GetParent()->FindWindowByName(name);
-    if (txt == NULL || (void*)txt == (void*)vc)
+    if (txt == nullptr || (void*)txt == (void*)vc)
     {
         name = vc->GetName();
         name.Replace("IDD_VALUECURVE_", "IDD_TEXTCTRL_");
@@ -422,22 +422,22 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
         if (vcd.ShowModal() == wxOK)
         {
-            if (slider != NULL)
+            if (slider != nullptr)
             {
                 slider->Disable();
             }
-            if (txt != NULL)
+            if (txt != nullptr)
             {
                 txt->Disable();
             }
         }
         else
         {
-            if (slider != NULL)
+            if (slider != nullptr)
             {
                 slider->Enable();
             }
-            if (txt != NULL)
+            if (txt != nullptr)
             {
                 txt->Enable();
             }
@@ -447,11 +447,11 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     }
     else
     {
-        if (slider != NULL)
+        if (slider != nullptr)
         {
             slider->Enable();
         }
-        if (txt != NULL)
+        if (txt != nullptr)
         {
             txt->Enable();
         }
