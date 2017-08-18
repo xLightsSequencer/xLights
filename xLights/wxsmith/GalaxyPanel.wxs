@@ -394,7 +394,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Galaxy_Revolutions" variable="Slider_Galaxy_Revolutions" member="yes">
 										<value>1440</value>
 										<max>3600</max>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
