@@ -43,6 +43,7 @@ public:
         eff_PLASMA,
         eff_RIPPLE,
         eff_SERVO,
+        eff_SHAPE,
         eff_SHIMMER,
         eff_SHOCKWAVE,
         eff_SINGLESTRAND,
@@ -74,20 +75,19 @@ public:
             }
             return effects[i];
         }
-        RenderableEffect *GetEffect(const std::string &str) const;
-        int GetLastEffectId() const { return size() - 1;};
 
+        RenderableEffect *GetEffect(const std::string &str) const;
+        int GetLastEffectId() const { return size() - 1; }
 
         int GetEffectIndex(const std::string &effectName) const;
         const std::string &GetEffectName(int idx) const;
-
 
         std::vector<RenderableEffect*>::const_iterator begin() const;
         std::vector<RenderableEffect*>::const_iterator end() const;
         RenderableEffect *operator[](int i) const {
             return GetEffect(i);
         }
-        int size() const {
+        size_t size() const {
             return effects.size();
         }
     protected:

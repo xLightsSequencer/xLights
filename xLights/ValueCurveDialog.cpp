@@ -244,14 +244,16 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
         break;
     }
 
+    SetSliderMinMax();
+
     StaticText_BottomValue->SetLabel(sMin);
     StaticText_TopValue->SetLabel(sMax);
 
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
-    Slider_Parameter1->SetValue((int)_vc->GetParameter1());
-    Slider_Parameter2->SetValue((int)_vc->GetParameter2());
-    Slider_Parameter3->SetValue((int)_vc->GetParameter3());
-    Slider_Parameter4->SetValue((int)_vc->GetParameter4());
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     Choice1->SetFocus();
@@ -282,7 +284,7 @@ void ValueCurveDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxCANCEL);
 }
 
-void ValueCurveDialog::SetParameter(int p, int v)
+void ValueCurveDialog::SetParameter(int p, float v)
 {
     switch (p)
     {
@@ -308,12 +310,66 @@ void ValueCurveDialog::SetParameter(int p, int v)
     SetTextCtrlsFromSliders();
 }
 
+void ValueCurveDialog::SetSliderMinMax()
+{
+    float min, max;
+
+    ValueCurve::GetRangeParm1(_vc->GetType(), min, max);
+    if (min == MINVOID)
+    {
+        Slider_Parameter1->SetMin(_vc->GetMin());
+        Slider_Parameter1->SetMax(_vc->GetMax());
+    }
+    else
+    {
+        Slider_Parameter1->SetMin(min);
+        Slider_Parameter1->SetMax(max);
+    }
+
+    ValueCurve::GetRangeParm2(_vc->GetType(), min, max);
+    if (min == MINVOID)
+    {
+        Slider_Parameter2->SetMin(_vc->GetMin());
+        Slider_Parameter2->SetMax(_vc->GetMax());
+    }
+    else
+    {
+        Slider_Parameter2->SetMin(min);
+        Slider_Parameter2->SetMax(max);
+    }
+
+    ValueCurve::GetRangeParm3(_vc->GetType(), min, max);
+    if (min == MINVOID)
+    {
+        Slider_Parameter3->SetMin(_vc->GetMin());
+        Slider_Parameter3->SetMax(_vc->GetMax());
+    }
+    else
+    {
+        Slider_Parameter3->SetMin(min);
+        Slider_Parameter3->SetMax(max);
+    }
+    ValueCurve::GetRangeParm4(_vc->GetType(), min, max);
+    if (min == MINVOID)
+    {
+        Slider_Parameter4->SetMin(_vc->GetMin());
+        Slider_Parameter4->SetMax(_vc->GetMax());
+    }
+    else
+    {
+        Slider_Parameter4->SetMin(min);
+        Slider_Parameter4->SetMax(max);
+    }
+}
+
 void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
 {
     _vcp->SetType(std::string(Choice1->GetStringSelection().c_str()));
     _vc->SetType(std::string(Choice1->GetStringSelection().c_str()));
     _vcp->Refresh();
     ValidateWindow();
+
+    SetSliderMinMax();
 
     wxString type = Choice1->GetStringSelection();
     if (type == "Flat")
@@ -1069,14 +1125,11 @@ void ValueCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
     _vcp->ClearUndo();
     _vc->SetId(id);
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
-    Slider_Parameter1->SetValue((int)_vc->GetParameter1());
-    Slider_Parameter2->SetValue((int)_vc->GetParameter2());
-    Slider_Parameter3->SetValue((int)_vc->GetParameter3());
-    Slider_Parameter4->SetValue((int)_vc->GetParameter4());
-    TextCtrl_Parameter1->SetValue(wxString::Format("%d", (int)_vc->GetParameter1()));
-    TextCtrl_Parameter2->SetValue(wxString::Format("%d", (int)_vc->GetParameter2()));
-    TextCtrl_Parameter3->SetValue(wxString::Format("%d", (int)_vc->GetParameter3()));
-    TextCtrl_Parameter4->SetValue(wxString::Format("%d", (int)_vc->GetParameter4()));
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
+    SetTextCtrlsFromSliders();
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
 }
 
@@ -1273,10 +1326,10 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     _vcp->ClearUndo();
     _vc->SetId(id);
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
-    Slider_Parameter1->SetValue((int)_vc->GetParameter1());
-    Slider_Parameter2->SetValue((int)_vc->GetParameter2());
-    Slider_Parameter3->SetValue((int)_vc->GetParameter3());
-    Slider_Parameter4->SetValue((int)_vc->GetParameter4());
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
     Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     ValidateWindow();

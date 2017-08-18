@@ -250,6 +250,7 @@
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_FIRETIMING" variable="CheckBox_FireTiming" member="yes">
 					<label>Fire with timing track</label>
+					<handler function="OnCheckBox_FireTimingClick" entry="EVT_CHECKBOX" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -281,7 +282,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_FIRETIMINGTRACK" variable="Choice_TimingTrack" member="yes" />
+				<object class="wxChoice" name="ID_CHOICE_FIRETIMINGTRACK" variable="Choice_TimingTrack" member="yes">
+					<handler function="OnChoice_TimingTrackSelect" entry="EVT_CHOICE" />
+				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
