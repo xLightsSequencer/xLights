@@ -276,7 +276,6 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloat2(wxScrollEvent& event)
 
 void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
 {
-    UpdateLinkedTextCtrlFloat(event);
     wxSlider * slider = (wxSlider*)event.GetEventObject();
     wxString name = slider->GetName();
     if (name.Contains("ID_")) {
@@ -289,6 +288,19 @@ void EffectPanelUtils::UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event)
 
     if (vc != nullptr)
     {
+        if (vc->GetValue()->GetDivisor() == 360)
+        {
+            UpdateLinkedTextCtrl360(event);
+        }
+        else if (vc->GetValue()->GetDivisor() == 100)
+        {
+            UpdateLinkedTextCtrlFloat2(event);
+        }
+        else
+        {
+            UpdateLinkedTextCtrlFloat(event);
+        }
+
         if (vc->GetValue()->GetType() == "Flat")
         {
             vc->GetValue()->SetParameter1((float)slider->GetValue());

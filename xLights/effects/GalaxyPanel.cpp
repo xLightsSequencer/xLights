@@ -16,7 +16,6 @@
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
-#include "GalaxyEffect.h"
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -300,7 +299,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Galaxy_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Galaxy_End_Width,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GalaxyPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GalaxyPanel::UpdateLinkedTextCtrlVC);
+	Connect(ID_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&GalaxyPanel::UpdateLinkedTextCtrlFloatVC);
 	Connect(ID_VALUECURVE_Galaxy_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnVCButtonClick);
 	Connect(IDD_TEXTCTRL_Galaxy_Revolutions,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GalaxyPanel::UpdateLinkedSlider360);
 	Connect(ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GalaxyPanel::OnLockButtonClick);

@@ -230,6 +230,10 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
 
     switch(_vc->GetDivisor())
     {
+    case 360:
+        sMin = wxString::Format("%.2f", _vc->GetMin() / 360.0);
+        sMax = wxString::Format("%.2f", _vc->GetMax() / 360.0);
+        break;
     case 100:
         sMin = wxString::Format("%.2f", _vc->GetMin() / 100.0);
         sMax = wxString::Format("%.2f", _vc->GetMax() / 100.0);
@@ -713,6 +717,7 @@ void ValueCurveDialog::SetTextCtrlFromSlider(int parm, wxTextCtrl* txt, int valu
     switch(d)
     {
     case 10:
+    case 360: // this kinda sucks ... its not really the same
         txt->ChangeValue(wxString::Format("%.1f", v));
         break;
     case 100:
