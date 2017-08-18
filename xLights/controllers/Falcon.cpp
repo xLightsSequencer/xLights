@@ -464,7 +464,15 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-                                sendmessage = sendmessage + BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
+                                std::string portmessage = BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
+
+                                if (portmessage == "ABORT")
+                                {
+                                    return false;
+                                }
+
+                                sendmessage = sendmessage + portmessage;
+
                                 if (count == 40)
                                 {
                                     UploadStringPort(sendmessage, false);
@@ -489,7 +497,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             if (sendmessage != "") sendmessage = sendmessage + "&";
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            sendmessage = sendmessage + BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
+                            std::string portmessage = BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
+                            sendmessage = sendmessage + portmessage;
+
+                            if (portmessage == "ABORT")
+                            {
+                                return false;
+                            }
+
                             if (count == 40)
                             {
                                 UploadStringPort(sendmessage, false);
@@ -623,27 +638,30 @@ std::string Falcon::BuildStringPort(const std::string& strings, int output, int 
     {
         if (pixels > mainPixels)
         {
-            wxString msg = wxString::Format("Output %d on main board has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, mainPixels);
+            wxString msg = wxString::Format("Output %d on main board has %d pixels but falcon is configured for a maximum of %d pixels. Aborting upload.", output, pixels, mainPixels);
             logger_base.error(msg.c_str());
             wxMessageBox(msg, "Error", wxOK, parent);
+            return "ABORT";
         }
     }
     else if (output <= 32)
     {
         if (pixels > daughter1Pixels)
         {
-            wxString msg = wxString::Format("Output %d on expansion board 1 has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, daughter1Pixels);
+            wxString msg = wxString::Format("Output %d on expansion board 1 has %d pixels but falcon is configured for a maximum of %d pixels. Aborting upload.", output, pixels, daughter1Pixels);
             logger_base.error(msg.c_str());
             wxMessageBox(msg, "Error", wxOK, parent);
+            return "ABORT";
         }
     }
     else
     {
         if (pixels > daughter2Pixels)
         {
-            wxString msg = wxString::Format("Output %d on expansion board 2 has %d pixels but falcon is configured for a maximum of %d pixels.", output, pixels, daughter2Pixels);
+            wxString msg = wxString::Format("Output %d on expansion board 2 has %d pixels but falcon is configured for a maximum of %d pixels. Aborting upload.", output, pixels, daughter2Pixels);
             logger_base.error(msg.c_str());
             wxMessageBox(msg, "Error", wxOK, parent);
+            return "ABORT";
         }
     }
 
