@@ -1663,6 +1663,11 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+    if (eff == nullptr)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.crit("xLightsFrame::GetEffectTextFromWindows eff returned nullptr for effect %d. This is going to crash.", EffectsPanel1->EffectChoicebook->GetSelection());
+    }
     std::string effectText= eff->GetEffectString();
     if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
         effectText += ",";
@@ -1684,8 +1689,8 @@ void xLightsFrame::DoForceSequencerRefresh()
     ResizeMainSequencer();
 }
 
-void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective) {
-
+void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective) 
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (perspective == nullptr)
     {

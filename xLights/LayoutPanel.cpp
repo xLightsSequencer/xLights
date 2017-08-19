@@ -1125,11 +1125,14 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    // TODO need to strip out extra logging once I know for sure what is going on
+
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
 
     if (m != nullptr) {
+        logger_base.warn("LayoutPanel::SelectModel pre dynamic cast subModel - KW");
         SubModel *subModel = dynamic_cast<SubModel*>(m);
         if (subModel != nullptr) {
             // this is the only thing I can see here that could crash
@@ -1144,11 +1147,19 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                   item.IsOk();
                   item = TreeListViewModels->GetNextSibling(item) )
             {
-                ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-                if( mitem != nullptr && mitem->GetModel() == m ) {
-                    TreeListViewModels->Select(item);
-                    TreeListViewModels->EnsureVisible(item);
-                    break;
+                if (TreeListViewModels->GetItemData(item) != nullptr)
+                {
+                    logger_base.warn("LayoutPanel::SelectModel pre dynamic cast mitem - KW");
+                    ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+                    if (mitem != nullptr && mitem->GetModel() == m) {
+                        TreeListViewModels->Select(item);
+                        TreeListViewModels->EnsureVisible(item);
+                        break;
+                    }
+                }
+                else
+                {
+                    logger_base.error("LayoutPanel::SelectModel dynamic cast mitem - KW");
                 }
             }
         }
@@ -1169,20 +1180,31 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
               item.IsOk();
               item = TreeListViewModels->GetNextSibling(item) )
         {
-            ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-            Model *mm = data != nullptr ? data->GetModel() : nullptr;
-            if( mm != nullptr && mm != selectedModel) {
-                int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
-                int endChan = mm->GetLastChannel();
-                if ((startChan >= foundStart) && (endChan <= foundEnd)) {
-                    mm->Overlapping = true;
-                } else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
-                    mm->Overlapping = true;
-                } else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
-                    mm->Overlapping = true;
-                } else {
-                    mm->Overlapping = false;
+            if (TreeListViewModels->GetItemData(item) != nullptr)
+            {
+                logger_base.warn("LayoutPanel::SelectModel pre dynamic cast mm - KW");
+                ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
+                Model *mm = data != nullptr ? data->GetModel() : nullptr;
+                if (mm != nullptr && mm != selectedModel) {
+                    int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
+                    int endChan = mm->GetLastChannel();
+                    if ((startChan >= foundStart) && (endChan <= foundEnd)) {
+                        mm->Overlapping = true;
+                    }
+                    else if ((startChan >= foundStart) && (startChan <= foundEnd)) {
+                        mm->Overlapping = true;
+                    }
+                    else if ((endChan >= foundStart) && (endChan <= foundEnd)) {
+                        mm->Overlapping = true;
+                    }
+                    else {
+                        mm->Overlapping = false;
+                    }
                 }
+            }
+            else
+            {
+                logger_base.error("LayoutPanel::SelectModel dynamic cast mm - KW");
             }
         }
     }
