@@ -101,6 +101,11 @@ void IPEntryDialog::ValidateWindow()
         {
             Button_Ok->Disable();
         }
+
+        if (d != nullptr)
+        {
+            delete d;
+        }
     }
     else
     {

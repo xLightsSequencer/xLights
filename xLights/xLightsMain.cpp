@@ -3832,6 +3832,23 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
+    // This does not seem to detect problems properly ... 
+    auto testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+    if (testSocket == nullptr || !testSocket->IsOk())
+    {
+        wxString msg = wxString::Format("    ERR: Cannot create socket on IP address '%s'. Is the network connected?", (const char*)addr.IPAddress().c_str());
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (testSocket != nullptr)
+    {
+        delete testSocket;
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Outputs");
 
@@ -5417,15 +5434,15 @@ void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
             _outputManager.StopOutput();
             _outputManager.StartOutput();
         }
+    }
 
-        if (mLocalIP == "")
-        {
-            MenuItem_ForceLocalIP->Check(false);
-        }
-        else
-        {
-            MenuItem_ForceLocalIP->Check(true);
-        }
+    if (mLocalIP == "")
+    {
+        MenuItem_ForceLocalIP->Check(false);
+    }
+    else
+    {
+        MenuItem_ForceLocalIP->Check(true);
     }
 }
 
