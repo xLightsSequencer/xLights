@@ -1326,6 +1326,7 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     float max = _vc->GetMax();
     LoadXVC(_vc, filename);
     _vc->SetLimits(min, max);
+    SetSliderMinMax();
     _vc->FixChangedScale(0, 100);
     _vcp->Refresh();
     _vcp->ClearUndo();
