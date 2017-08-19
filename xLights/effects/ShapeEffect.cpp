@@ -532,7 +532,7 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, float radius,
 
 void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, int points, xlColor color, int thickness)
 {
-    float interpolation = 1.0;
+    float interpolation = 0.5;
     double offsetangle = 0.0;
     switch (points)
     {
@@ -584,7 +584,7 @@ void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, i
 
 void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, float radius, int sides, xlColor color, int thickness, int rotation)
 {
-    float interpolation = 1.0;
+    float interpolation = 0.5;
     double increment = 360.0 / sides;
 
     for (double i = 0; i < thickness; i += interpolation)

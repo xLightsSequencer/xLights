@@ -221,7 +221,7 @@ public:
                         }
                         if (perModelEffects) {
                             ModelGroup *grp = dynamic_cast<ModelGroup*>(model);
-                            mainBuffer->InitPerModelBuffers(*grp, l);
+                            mainBuffer->InitPerModelBuffers(*grp, l, data.FrameTime());
                         }
                     }
                 }
@@ -450,7 +450,7 @@ public:
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
-            
+
             if (buffer->IsVariableSubBuffer(layer))
             {
                 buffer->PrepareVariableSubBuffer(frame, layer);

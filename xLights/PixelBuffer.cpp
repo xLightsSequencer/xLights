@@ -103,12 +103,12 @@ void PixelBufferClass::reset(int nlayers, int timing)
     }
 }
 
-void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer) {
+void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, int timing) {
     for (auto it = model.Models().begin(); it != model.Models().end(); it++) {
 
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);
-
+        buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
