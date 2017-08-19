@@ -367,17 +367,48 @@ float ValueCurve::Normalise(int parm, float value)
 
 void ValueCurve::FixChangedScale(float newmin, float newmax)
 {
+    if (newmin == _min && newmax == _max) return;
+
+    float newrange = newmax - newmin;
+    float oldrange = _max - _min;
+    float mindiff = _min - newmin;
+
     // now handle custom
     if (_type == "Custom")
     {
         wxASSERT(_min != MINVOIDF);
         wxASSERT(_max != MAXVOIDF);
 
-        float newrange = newmax - newmin;
-        float oldrange = _max - _min;
         for (auto it = _values.begin(); it != _values.end(); ++it)
         {
-            it->y = it->y * oldrange / newrange;
+            it->y = it->y * oldrange / newrange + mindiff;
+        }
+    }
+    else
+    {
+        float min, max;
+        GetRangeParm(1, _type, min, max);
+        if (min == MINVOID)
+        {
+            _parameter1 = _parameter1 * oldrange / newrange + mindiff;
+        }
+
+        GetRangeParm(2, _type, min, max);
+        if (min == MINVOID)
+        {
+            _parameter2 = _parameter2 * oldrange / newrange + mindiff;
+        }
+
+        GetRangeParm(3, _type, min, max);
+        if (min == MINVOID)
+        {
+            _parameter3 = _parameter3 * oldrange / newrange + mindiff;
+        }
+
+        GetRangeParm(4, _type, min, max);
+        if (min == MINVOID)
+        {
+            _parameter4 = _parameter4 * oldrange / newrange + mindiff;
         }
     }
 }
