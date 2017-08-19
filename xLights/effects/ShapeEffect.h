@@ -40,13 +40,14 @@ protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 
-        int DecodeShape(const std::string& shape);
-        void SetPanelTimingTracks();
-        void Drawcircle(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
-        void Drawheart(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
-        void Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, int points, xlColor color, int thickness);
-        void Drawpolygon(RenderBuffer &buffer, int xc, int yc, float radius, int sides, xlColor color, int thickness, int rotation = 0);
-        void Drawtree(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness);
+    static int DecodeShape(const std::string& shape);
+        void SetPanelTimingTracks() const;
+        void Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const;
+        void Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation = 0) const;
+        void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
 };
 
 #endif // SHAPEEFFECT_H

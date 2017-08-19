@@ -57,7 +57,7 @@ void ShapeEffect::SetPanelStatus(Model *cls)
     SetPanelTimingTracks();
 }
 
-void ShapeEffect::SetPanelTimingTracks()
+void ShapeEffect::SetPanelTimingTracks() const
 {
     ShapePanel *fp = (ShapePanel*)panel;
     if (fp == nullptr)
@@ -100,6 +100,7 @@ wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_OCTAGON    6
 #define RENDER_SHAPE_HEART      7
 #define RENDER_SHAPE_TREE       8
+#define RENDER_SHAPE_CANDYCANE  9
 
 void ShapeEffect::SetDefaultParameters(Model *cls) {
     ShapePanel *sp = (ShapePanel*)panel;
@@ -236,8 +237,12 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     {
         return RENDER_SHAPE_OCTAGON;
     }
+    else if (shape == "Candy Cane")
+    {
+        return RENDER_SHAPE_CANDYCANE;
+    }
 
-    return rand01() * 9;
+    return rand01() * 10;
 }
 
 void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -285,7 +290,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int& _lastColorIdx = cache->_lastColorIdx;
     int& _sinceLastTriggered = cache->_sinceLastTriggered;
 
-    float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100;
+    float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100.0;
     if (lifetimeFrames < 1) lifetimeFrames = 1;
     float growthPerFrame = (float)growth / lifetimeFrames;
 
@@ -478,7 +483,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         switch ((*it)->_shape)
         {
         case RENDER_SHAPE_SQUARE:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 4, color, thickness, 45);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 4, color, thickness, 45.0);
             break;
         case RENDER_SHAPE_CIRCLE:
             Drawcircle(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
@@ -487,22 +492,28 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             Drawstar(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, points, color, thickness);
             break;
         case RENDER_SHAPE_TRIANGLE:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, thickness, 90);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, thickness, 90.0);
             break;
         case RENDER_SHAPE_PENTAGON:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 5, color, thickness, 90);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 5, color, thickness, 90.0);
             break;
         case RENDER_SHAPE_HEXAGON:
             Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 6, color, thickness);
             break;
         case RENDER_SHAPE_OCTAGON:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 8, color, thickness);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 8, color, thickness, 22.5);
             break;
         case RENDER_SHAPE_TREE:
             Drawtree(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
+        case RENDER_SHAPE_CANDYCANE:
+            Drawcandycane(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
+            break;
         case RENDER_SHAPE_HEART:
             Drawheart(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
+            break;
+        default:
+            wxASSERT(false);
             break;
         }
     }
@@ -510,49 +521,52 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     cache->RemoveOld(lifetimeFrames);
 }
 
-void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness)
+void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
-    float interpolation = 1.0;
-    for (float i = 0; i < thickness; i += interpolation)
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
+    for (double i = 0; i < t; i += interpolation)
     {
-        radius -= interpolation;
-
         if (radius >= 0)
         {
             for (double degrees = 0.0; degrees < 360.0; degrees += 1.0)
             {
                 double radian = degrees * (M_PI / 180.0);
-                int x = std::round(radius * cos(radian)) + xc;
-                int y = std::round(radius * sin(radian)) + yc;
+                int x = std::round(radius * buffer.cos(radian)) + xc;
+                int y = std::round(radius * buffer.sin(radian)) + yc;
                 buffer.SetPixel(x, y, color);
             }
         }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, int points, xlColor color, int thickness)
+void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const
 {
-    float interpolation = 0.5;
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
     double offsetangle = 0.0;
     switch (points)
     {
-    case 4:
-        break;
     case 5:
-        offsetangle = 90.0 - 360.0 / 5;
+        offsetangle = 90.0 - 360.0 / 5.0;
         break;
     case 6:
         offsetangle = 30.0;
         break;
     case 7:
-        offsetangle = 90.0 - 360.0 / 7;
+        offsetangle = 90.0 - 360.0 / 7.0;
+        break;
+    default:
         break;
     }
 
-    for (double i = 0; i < thickness; i += interpolation)
+    for (double i = 0; i < t; i += interpolation)
     {
-        radius -= interpolation;
-
         if (radius >= 0)
         {
             double InnerRadius = radius / 2.618034;    // divide by golden ratio squared
@@ -563,78 +577,95 @@ void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, float radius, i
             {
                 if (degrees > 360.0) degrees = 360.0;
                 double radian = (offsetangle + degrees) * (M_PI / 180.0);
-                int xouter = std::round(radius * cos(radian)) + xc;
-                int youter = std::round(radius * sin(radian)) + yc;
+                int xouter = std::round(radius * buffer.cos(radian)) + xc;
+                int youter = std::round(radius * buffer.sin(radian)) + yc;
 
                 radian = (offsetangle + degrees + increment / 2.0) * (M_PI / 180.0);
-                int xinner = std::round(InnerRadius * cos(radian)) + xc;
-                int yinner = std::round(InnerRadius * sin(radian)) + yc;
+                int xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
+                int yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 
                 buffer.DrawLine(xinner, yinner, xouter, youter, color);
 
                 radian = (offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
-                xinner = std::round(InnerRadius * cos(radian)) + xc;
-                yinner = std::round(InnerRadius * sin(radian)) + yc;
+                xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
+                yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 
                 buffer.DrawLine(xinner, yinner, xouter, youter, color);
+
+                if (degrees == 360.0) degrees = 361.0;
             }
         }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, float radius, int sides, xlColor color, int thickness, int rotation)
+void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation) const
 {
-    float interpolation = 0.5;
+    double interpolation = 0.05;
+    double t = (double)thickness - 1.0 + interpolation;
     double increment = 360.0 / sides;
 
-    for (double i = 0; i < thickness; i += interpolation)
+    for (double i = 0; i < t; i += interpolation)
     {
-        radius = radius - interpolation;
-
         if (radius >= 0)
         {
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
             {
                 if (degrees > 360.0) degrees = 360.0;
-                double radian = (rotation + degrees) * (M_PI / 180.0);
+                double radian = (rotation + degrees) * M_PI / 180.0;
                 int x1 = std::round(radius * cos(radian)) + xc;
                 int y1 = std::round(radius * sin(radian)) + yc;
 
-                radian = (rotation + degrees + increment) * (M_PI / 180.0);
+                radian = (rotation + degrees + increment) * M_PI / 180.0;
                 int x2 = std::round(radius * cos(radian)) + xc;
                 int y2 = std::round(radius * sin(radian)) + yc;
 
                 buffer.DrawLine(x1, y1, x2, y2, color);
+
+                if (degrees == 360.0) degrees = 361.0;
             }
         }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
     }
 }
 
-void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness)
+void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
-    float interpolation = 1.0;
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
 
-    for (float x = -2.0; x <= 2.0; x += 0.01f)
+    for (double x = -2.0; x <= 2.0; x += 0.01f)
     {
-        float y1 = sqrt(1 - (abs(x) - 1) * (abs(x) - 1));
-        float y2 = acosf(1 - abs(x)) - M_PI;
+        double y1 = sqrt(1 - (abs(x) - 1) * (abs(x) - 1));
+        double y2 = acosf(1 - abs(x)) - M_PI;
 
-        float r = radius;
+        double r = radius;
 
-        for (float i = 0; i < thickness; i += interpolation)
+        for (double i = 0; i < t; i += interpolation)
         {
-            r -= interpolation;
-
             if (r >= 0)
             {
                 buffer.SetPixel(std::round(x * r / 2) + xc, std::round(y1 * r / 2) + yc, color);
                 buffer.SetPixel(std::round(x * r / 2) + xc, std::round(y2 * r / 2) + yc, color);
             }
+            else
+            {
+                break;
+            }
+            r -= interpolation;
         }
     }
 }
 
-void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, float radius, xlColor color, int thickness)
+void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
     struct line
     {
@@ -665,22 +696,59 @@ void ShapeEffect::Drawtree(RenderBuffer &buffer, int xc, int yc, float radius, x
     };
     int count = sizeof(points) / sizeof(line);
 
-    float interpolation = 1.0;
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
 
-    for (float i = 0; i < thickness; i += interpolation)
+    for (double i = 0; i < t; i += interpolation)
     {
-        radius -= interpolation;
-
         if (radius >= 0)
         {
             for (int j = 0; j < count; ++j)
             {
-                int x1 = std::round(((float)points[j].start.x - 4.0) / 11.0 * radius);
-                int y1 = std::round(((float)points[j].start.y - 4.0) / 11.0 * radius);
-                int x2 = std::round(((float)points[j].end.x - 4.0) / 11.0 * radius);
-                int y2 = std::round(((float)points[j].end.y - 4.0) / 11.0 * radius);
+                int x1 = std::round(((double)points[j].start.x - 4.0) / 11.0 * radius);
+                int y1 = std::round(((double)points[j].start.y - 4.0) / 11.0 * radius);
+                int x2 = std::round(((double)points[j].end.x - 4.0) / 11.0 * radius);
+                int y2 = std::round(((double)points[j].end.y - 4.0) / 11.0 * radius);
                 buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
             }
         }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
+    }
+}
+
+void ShapeEffect::Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+{
+    double originalRadius = radius;
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
+    for (double i = 0; i < t; i += interpolation)
+    {
+        if (radius >= 0)
+        {
+            // draw the stick
+            int y1 = std::round((double)yc + originalRadius / 6.0);
+            int y2 = std::round((double)yc - originalRadius / 2.0);
+            int x = std::round((double)xc + radius / 2.0);
+            buffer.DrawLine(x, y1, x, y2, color);
+
+            // draw the hook
+            double r = radius / 3.0;
+            for (double degrees = 0.0; degrees < 180; degrees += 1.0)
+            {
+                double radian = degrees * (M_PI / 180.0);
+                x = std::round((r-interpolation) * buffer.cos(radian) + xc + originalRadius / 6.0);
+                int y = std::round((r - interpolation) * buffer.sin(radian) + y1);
+                buffer.SetPixel(x, y, color);
+            }
+        }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
     }
 }

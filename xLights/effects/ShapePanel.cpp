@@ -99,6 +99,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	Choice_Shape_ObjectToDraw->Append(_("Star"));
 	Choice_Shape_ObjectToDraw->Append(_("Heart"));
 	Choice_Shape_ObjectToDraw->Append(_("Tree"));
+	Choice_Shape_ObjectToDraw->Append(_("Candy Cane"));
 	Choice_Shape_ObjectToDraw->Append(_("Random"));
 	FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
