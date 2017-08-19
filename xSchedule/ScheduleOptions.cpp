@@ -2,6 +2,8 @@
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
+#include <wx/dir.h>
+#include <wx/filename.h>
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "Projector.h"
