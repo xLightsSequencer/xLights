@@ -337,7 +337,7 @@ Element* SequenceElements::GetElement(const std::string &name)
 {
     if (mAllViews.size() == 0) return nullptr;
 
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();++i)
+    for(size_t i=0; i<mAllViews[MASTER_VIEW].size(); ++i)
     {
         Element *el =  mAllViews[MASTER_VIEW][i];
         if(name == el->GetFullName())
@@ -345,10 +345,16 @@ Element* SequenceElements::GetElement(const std::string &name)
             return mAllViews[MASTER_VIEW][i];
         } else if (el->GetType() == ELEMENT_TYPE_MODEL){
             ModelElement *mel = dynamic_cast<ModelElement*>(el);
-            for (int x = 0; x < mel->GetSubModelCount(); ++x) {
-                SubModelElement *sme = mel->GetSubModel(x);
-                if (sme->GetFullName() == name) {
-                    return sme;
+            if (mel != nullptr)
+            {
+                for (int x = 0; x < mel->GetSubModelCount(); ++x) {
+                    SubModelElement *sme = mel->GetSubModel(x);
+                    if (sme != nullptr)
+                    {
+                        if (sme->GetFullName() == name) {
+                            return sme;
+                        }
+                    }
                 }
             }
         }

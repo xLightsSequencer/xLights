@@ -383,4 +383,3 @@ void ModelPreview::EndDrawing()
     accumulator.Reset();
     mIsDrawing = false;
 }
-

@@ -228,18 +228,22 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
     mnuLayer.AppendSeparator();
     mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS,"Edit Display Elements");
-    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
     Draw();
     PopupMenu(&mnuLayer);
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
 
-    if (ri == nullptr) return;
+    if (ri == nullptr || mSequenceElements == nullptr) return;
 
     Element* element = ri->element;
+
+    if (element == nullptr) return;
+
     int layer_index = ri->layerIndex;
     int id = event.GetId();
     if (id == ID_ROW_MNU_INSERT_LAYER_ABOVE)
@@ -361,6 +365,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 	}
     else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS)
     {
+        logger_base.debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
         for (int i = 0; i < element->GetEffectLayerCount(); ++i)
         {
@@ -552,11 +557,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             StrandElement *se = dynamic_cast<StrandElement *>(element);
             me = se->GetModelElement();
         }
-        me->ShowStrands(!me->ShowStrands());
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        eventRowHeaderChanged.SetString(element->GetModelName());
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
+        if (me != nullptr)
+        {
+            me->ShowStrands(!me->ShowStrands());
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            eventRowHeaderChanged.SetString(element->GetModelName());
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
     } else if (id == ID_ROW_MNU_SHOW_EFFECTS) {
+        logger_base.debug("RowHeading::OnLayerPopup Show effects.");
         int view = mSequenceElements->GetCurrentView();
         for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
@@ -573,6 +582,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     }
     else if (id == ID_ROW_MNU_COLLAPSEALL) {
+        logger_base.debug("RowHeading::OnLayerPopup Collapse all.");
         int view = mSequenceElements->GetCurrentView();
 
         for (int i = 0;  i < mSequenceElements->GetElementCount(view); ++i)
@@ -582,7 +592,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             {
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr)
+                {
                     me->ShowStrands(false);
+                }
             }
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);

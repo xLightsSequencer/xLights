@@ -612,6 +612,8 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
 
+    if (m == nullptr) return;
+
     for (size_t x = 0; x < dataModel->GetChildCount(); ++x) {
         xLightsImportModelNode * tmp = dataModel->GetNthChild(x);
         if (tmp->_model == m->GetName()) {
@@ -638,7 +640,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
 
     for (int s = 0; s < m->GetNumStrands(); s++) {
         wxString sn = m->GetStrandName(s);
-        if ("" == sn) {
+        if (sn == "") {
             sn = wxString::Format("Strand %d", s + 1);
         }
         xLightsImportModelNode* laststrand = nullptr;
@@ -654,7 +656,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         for (int n = 0; n < m->GetStrandLength(s); n++)
         {
             wxString nn = m->GetNodeName(n);
-            if ("" == nn)
+            if (nn == "")
             {
                 nn = wxString::Format("Node %d", n + 1);
             }

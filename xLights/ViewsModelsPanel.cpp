@@ -381,108 +381,111 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 
     _numModels = 0;
     _numNonModels = 0;
-    int current_view = _sequenceElements->GetCurrentView();
-    for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
+    if (_sequenceElements != nullptr)
     {
-        Element* elem = _sequenceElements->GetElement(i);
-        if (elem->GetType() == ELEMENT_TYPE_TIMING)
-        {
-            TimingElement *te = dynamic_cast<TimingElement*>(elem);
-            if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view))
-            {
-                AddTimingToList(elem);
-            }
-            else
-            {
-                AddTimingToNotList(elem);
-            }
-        }
-    }
-
-    if (current_view > 0)
-    {
-        SequenceView * view = _sequenceViewManager->GetSelectedView();
-        if (view != nullptr)
-        {
-            _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
-            auto models = view->GetModels();
-            for (auto it = models.begin(); it != models.end(); ++it)
-            {
-                Element* elem = _sequenceElements->GetElement(*it);
-                AddModelToList(elem);
-            }
-
-            // add everything that isnt in the view
-            for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
-            {
-                Element* elem = _sequenceElements->GetElement(i);
-                if (elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
-                {
-                    AddModelToNotList(elem);
-                }
-            }
-        }
-    }
-    else
-    {
+        int current_view = _sequenceElements->GetCurrentView();
         for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
         {
             Element* elem = _sequenceElements->GetElement(i);
-            if (elem->GetType() == ELEMENT_TYPE_MODEL)
+            if (elem->GetType() == ELEMENT_TYPE_TIMING)
             {
-                AddModelToList(elem);
-            }
-        }
-
-        for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
-        {
-            if (e->GetName() == "modelGroup")
-            {
-                wxString name = e->GetAttribute("name");
-                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                TimingElement *te = dynamic_cast<TimingElement*>(elem);
+                if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view))
                 {
-                    ModelElement *me = new ModelElement(name.ToStdString());
-                    AddModelToNotList(me);
+                    AddTimingToList(elem);
+                }
+                else
+                {
+                    AddTimingToNotList(elem);
                 }
             }
         }
 
-        for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
+        if (current_view > 0)
         {
-            if (e->GetName() == "model")
+            SequenceView * view = _sequenceViewManager->GetSelectedView();
+            if (view != nullptr)
             {
-                wxString name = e->GetAttribute("name");
-                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+                auto models = view->GetModels();
+                for (auto it = models.begin(); it != models.end(); ++it)
                 {
-                    ModelElement *me = new ModelElement(name.ToStdString());
-                    AddModelToNotList(me);
+                    Element* elem = _sequenceElements->GetElement(*it);
+                    AddModelToList(elem);
+                }
+
+                // add everything that isnt in the view
+                for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
+                {
+                    Element* elem = _sequenceElements->GetElement(i);
+                    if (elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
+                    {
+                        AddModelToNotList(elem);
+                    }
                 }
             }
         }
-    }
-
-    if (ListCtrlModels->GetItemCount() > 0) {
-        if (topM + visibileM - 1< ListCtrlModels->GetItemCount())
+        else
         {
-            ListCtrlModels->EnsureVisible(topM + visibileM - 1);
+            for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
+            {
+                Element* elem = _sequenceElements->GetElement(i);
+                if (elem->GetType() == ELEMENT_TYPE_MODEL)
+                {
+                    AddModelToList(elem);
+                }
+            }
+
+            for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
+            {
+                if (e->GetName() == "modelGroup")
+                {
+                    wxString name = e->GetAttribute("name");
+                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                    {
+                        ModelElement *me = new ModelElement(name.ToStdString());
+                        AddModelToNotList(me);
+                    }
+                }
+            }
+
+            for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
+            {
+                if (e->GetName() == "model")
+                {
+                    wxString name = e->GetAttribute("name");
+                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
+                    {
+                        ModelElement *me = new ModelElement(name.ToStdString());
+                        AddModelToNotList(me);
+                    }
+                }
+            }
         }
-        ListCtrlModels->EnsureVisible(topM);
-    }
-    if (ListCtrlNonModels->GetItemCount() > 0) {
-        if (topN + visibileN - 1< ListCtrlNonModels->GetItemCount())
-        {
-            ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
+
+        if (ListCtrlModels->GetItemCount() > 0) {
+            if (topM + visibileM - 1 < ListCtrlModels->GetItemCount())
+            {
+                ListCtrlModels->EnsureVisible(topM + visibileM - 1);
+            }
+            ListCtrlModels->EnsureVisible(topM);
         }
-        ListCtrlNonModels->EnsureVisible(topN);
-    }
+        if (ListCtrlNonModels->GetItemCount() > 0) {
+            if (topN + visibileN - 1 < ListCtrlNonModels->GetItemCount())
+            {
+                ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
+            }
+            ListCtrlNonModels->EnsureVisible(topN);
+        }
 
-    if (selectModels != "")
-    {
-        wxArrayString models = wxSplit(selectModels, ',');
-
-        for (auto it = models.begin(); it != models.end(); ++it)
+        if (selectModels != "")
         {
-            SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
+            wxArrayString models = wxSplit(selectModels, ',');
+
+            for (auto it = models.begin(); it != models.end(); ++it)
+            {
+                SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
+            }
         }
     }
 
