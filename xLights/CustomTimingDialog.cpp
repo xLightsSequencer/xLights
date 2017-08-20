@@ -2,6 +2,7 @@
 
 //(*InternalHeaders(CustomTimingDialog)
 #include <wx/intl.h>
+#include <wx/button.h>
 #include <wx/string.h>
 //*)
 
@@ -9,18 +10,20 @@
 const long CustomTimingDialog::ID_STATICTEXT1 = wxNewId();
 const long CustomTimingDialog::ID_SPINCTRL_Interval = wxNewId();
 const long CustomTimingDialog::ID_TEXTCTRL_FPS = wxNewId();
-const long CustomTimingDialog::ID_BUTTON_Ok = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(CustomTimingDialog,wxDialog)
 	//(*EventTable(CustomTimingDialog)
 	//*)
+EVT_TEXT(ID_SPINCTRL_Interval, CustomTimingDialog::OnTextChange)
 END_EVENT_TABLE()
 
 CustomTimingDialog::CustomTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+	: init(false)
 {
 	//(*Initialize(CustomTimingDialog)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -33,18 +36,19 @@ CustomTimingDialog::CustomTimingDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer1->Add(SpinCtrl_Interval, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_FPS = new wxTextCtrl(this, ID_TEXTCTRL_FPS, _("33.30 fps"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_FPS"));
 	FlexGridSizer1->Add(TextCtrl_FPS, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Ok = new wxButton(this, ID_BUTTON_Ok, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Ok"));
-	Button_Ok->SetDefault();
-	FlexGridSizer1->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
+	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
+	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
+	StdDialogButtonSizer1->Realize();
+	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
-
-	Connect(ID_SPINCTRL_Interval,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&CustomTimingDialog::OnSpinCtrl_IntervalChange);
-	Connect(ID_BUTTON_Ok,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomTimingDialog::OnButton_OkClick);
 	//*)
+	init = true;
+    UpdateFPS();
 }
 
 CustomTimingDialog::~CustomTimingDialog()
@@ -53,17 +57,33 @@ CustomTimingDialog::~CustomTimingDialog()
 	//*)
 }
 
-void CustomTimingDialog::OnSpinCtrl_IntervalChange(wxSpinEvent& event)
-{
-    TextCtrl_FPS->SetValue(wxString::Format("%.2f fps", 1000.0 / SpinCtrl_Interval->GetValue()));
-}
-
-void CustomTimingDialog::OnButton_OkClick(wxCommandEvent& event)
-{
-    EndDialog(wxID_OK);
-}
-
 wxString CustomTimingDialog::GetTiming() const
 {
     return wxString::Format("%i ms", SpinCtrl_Interval->GetValue());
+}
+
+int CustomTimingDialog::GetValue() const
+{
+    return SpinCtrl_Interval->GetValue();
+}
+
+void CustomTimingDialog::SetTiming(int value)
+{
+    SpinCtrl_Interval->SetValue(value);
+    UpdateFPS();
+}
+
+void CustomTimingDialog::OnTextChange(wxCommandEvent& event)
+{
+    UpdateFPS();
+    event.Skip();
+}
+
+void CustomTimingDialog::UpdateFPS()
+{
+    if( init )
+    {
+        int spin_value = SpinCtrl_Interval->GetValue();
+        TextCtrl_FPS->SetValue(wxString::Format("%.2f fps", 1000.0 / spin_value));
+    }
 }

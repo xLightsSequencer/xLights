@@ -84,6 +84,7 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* Button_Move_Down;
 		wxTextCtrl* TextCtrl_Xml_Artist;
 		wxButton* Button_Move_Up;
+		wxBitmapButton* BitmapButton_ModifyTiming;
 		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxButton* Button_Xml_New_Timing;
 		//*)
@@ -129,6 +130,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
 		static const long ID_CHECKBOX_Overwrite_Tags;
 		static const long ID_TEXTCTRL_SeqTiming;
+		static const long ID_BITMAPBUTTON__ModifyTiming;
 		static const long ID_CHECKBOX1;
 		static const long ID_PANEL3;
 		static const long ID_STATICTEXT_Xml_Author;
@@ -208,8 +210,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_SaveClick(wxCommandEvent& event);
 		void OnButton_CloseClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
-		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);		
-        void OnBitmapButton_skip_importClick(wxCommandEvent& event);
+		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);
+		void OnBitmapButton_skip_importClick(wxCommandEvent& event);
 		void OnButton_Layer_ImportClick(wxCommandEvent& event);
 		void OnButton_Layer_DeleteClick(wxCommandEvent& event);
 		void OnButton_Move_UpClick(wxCommandEvent& event);
@@ -220,6 +222,9 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_ReimportClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnCheckBox1Click(wxCommandEvent& event);
+		void OnTextCtrl_SeqTimingText(wxCommandEvent& event);
+		void OnTextCtrl_SeqTimingTextEnter(wxCommandEvent& event);
+		void OnBitmapButton_ModifyTimingClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

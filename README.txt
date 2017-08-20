@@ -11,12 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Allow sequence timing to be changed in the GUI.
    -- enh (craig)   xSchedule Add a tooltip for where the default root web directory is located
    -- bug (dkulp)   Fix problem writing to fseq files that are larger than 2GB
    -- enh (keith)   Add the Shape Effect
-   -- enh (keith)   Change value curves to use the true values of the setting they control. 
-                    This is major heart surgery once you save a sequence with a value curve 
-                    in it in this version we strongly recommend you dont load it again in an 
+   -- enh (keith)   Change value curves to use the true values of the setting they control.
+                    This is major heart surgery once you save a sequence with a value curve
+                    in it in this version we strongly recommend you dont load it again in an
                     older version of xlights.
    -- enh (keith)   Increase maximum number of nodes per arch
    -- enh (keith)   Increase maximum file size backed up

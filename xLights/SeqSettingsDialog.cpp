@@ -40,6 +40,7 @@ const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const long SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_SeqTiming = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON__ModifyTiming = wxNewId();
 const long SeqSettingsDialog::ID_CHECKBOX1 = wxNewId();
 const long SeqSettingsDialog::ID_PANEL3 = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Author = wxNewId();
@@ -222,7 +223,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer3->Add(StaticText_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_SeqTiming = new wxTextCtrl(Panel3, ID_TEXTCTRL_SeqTiming, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_SeqTiming"));
 	FlexGridSizer3->Add(TextCtrl_SeqTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_ModifyTiming = new wxBitmapButton(Panel3, ID_BITMAPBUTTON__ModifyTiming, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON__ModifyTiming"));
+	FlexGridSizer3->Add(BitmapButton_ModifyTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BlendingCheckBox = new wxCheckBox(Panel3, ID_CHECKBOX1, _("Allow Blending Between Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	BlendingCheckBox->SetValue(false);
 	FlexGridSizer3->Add(BlendingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -345,6 +347,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_CHOICE_Xml_Seq_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect);
 	Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
 	Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
+	Connect(ID_BITMAPBUTTON__ModifyTiming,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_ModifyTimingClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnCheckBox1Click);
 	Connect(ID_TEXTCTRL_Xml_Author,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_AuthorText);
 	Connect(ID_TEXTCTRL_Xml_Author_Email,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Author_EmailText);
@@ -1281,12 +1284,6 @@ void SeqSettingsDialog::MediaChooser()
         StaticText_Warning->Hide();
         ProcessSequenceType();
         xLightsParent->UpdateSequenceLength();
-
-		//if (!xml_file->GetMedia()->IsCBR())
-		//{
-			// warn user that variable bitrate files should be avoided.
-		//	wxMessageBox(string_format("Using Variable Bitrate audio files can cause playback issues when sequencing. It is recommended you convert them to constant bitrate using softfare like Audacity."), "Warning", wxICON_WARNING | wxOK);
-		//}
     }
 }
 
@@ -1440,4 +1437,34 @@ void SeqSettingsDialog::OnCheckBox1Click(wxCommandEvent& event)
 {
     xml_file->setSupportsModelBlending(BlendingCheckBox->GetValue());
     xLightsParent->GetSequenceElements().SetSupportsModelBlending(BlendingCheckBox->GetValue());
+}
+
+void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
+{
+    if (wxMessageBox("Are you sure?  Modifying the timing interval will cause the sequence to be Saved, Closed, then Re-Opened.  Effects will be moved to the nearest interval", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+    {
+        return;
+    }
+
+    CustomTimingDialog dialog(this);
+    int start_ms = xml_file->GetSequenceTimingAsInt();
+    dialog.SetTiming(start_ms);
+
+    if( dialog.ShowModal() == wxID_OK )
+    {
+        if( start_ms < dialog.GetValue() )
+        {
+            if (wxMessageBox("Are you sure? Moving to a larger timing interval may truncate small effects?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
+            {
+                return;
+            }
+        }
+
+        TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
+        xml_file->SetSequenceTiming(dialog.GetTiming());
+        xLightsParent->SaveSequence();
+        wxString name = xml_file->GetFullPath();
+        xLightsParent->CloseSequence();
+        xLightsParent->OpenSequence( name, nullptr );
+    }
 }

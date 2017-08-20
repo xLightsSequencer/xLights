@@ -18,7 +18,6 @@
 					<value>33</value>
 					<min>15</min>
 					<max>1000</max>
-					<handler function="OnSpinCtrl_IntervalChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -39,10 +38,17 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxButton" name="ID_BUTTON_Ok" variable="Button_Ok" member="yes">
-					<label>Ok</label>
-					<default>1</default>
-					<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+					<object class="button">
+						<object class="wxButton" name="wxID_OK">
+							<label></label>
+						</object>
+					</object>
+					<object class="button">
+						<object class="wxButton" name="wxID_CANCEL">
+							<label></label>
+						</object>
+					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

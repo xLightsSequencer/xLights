@@ -209,7 +209,11 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON__ModifyTiming" variable="BitmapButton_ModifyTiming" member="yes">
+												<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_BUTTON" />
+												<handler function="OnBitmapButton_ModifyTimingClick" entry="EVT_BUTTON" />
+											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>

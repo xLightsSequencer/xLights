@@ -1055,10 +1055,7 @@ protected:
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
     void NewSequence();
-    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
-    void SaveSequence();
     void SaveAsSequence();
-    bool CloseSequence();
     void OpenRenderAndSaveSequences(const wxArrayString &filenames);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
@@ -1078,6 +1075,9 @@ public:
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
+    void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
+    void SaveSequence();
+    bool CloseSequence();
 
 private:
     wxXmlNode* SettingsNode;
