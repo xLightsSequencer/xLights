@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Make double-click in open grid work like it used to.
    -- enh (gil)     Allow sequence timing to be changed in the GUI.
    -- enh (craig)   xSchedule Add a tooltip for where the default root web directory is located
    -- bug (dkulp)   Fix problem writing to fseq files that are larger than 2GB

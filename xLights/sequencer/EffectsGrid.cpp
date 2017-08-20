@@ -126,18 +126,26 @@ EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endT
 
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
+    int update_time = -1;
+
     if (mSequenceElements == nullptr) {
         return;
     }
     int selectedTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
 
-    if (!event.ShiftDown() && !mTimingPlayOnDClick) {
-        UpdateTimePosition(selectedTimeMS);
+    if (!event.ShiftDown()) {
+        update_time = selectedTimeMS;
     }
 
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetVisibleRowInformationSize() || row < 0)
+    {
+        if( update_time > -1 )
+        {
+            UpdateTimePosition(update_time);
+        }
         return;
+    }
     int effectIndex;
     HitLocation selectionType = HitLocation::NONE;
     Effect* selectedEffect = GetEffectAtRowAndTime(row,selectedTimeMS,effectIndex,selectionType);
@@ -154,6 +162,13 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 }
                 Refresh();
             }
+            else
+            {
+                if( update_time > -1 )
+                {
+                    UpdateTimePosition(update_time);
+                }
+            }
         } else {
             // we have double clicked on an effect - highlight that part of the waveform
             ((MainSequencer*)mParent)->PanelWaveForm->SetSelectedInterval(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
@@ -163,6 +178,20 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
                 wxPostEvent(mParent, playEvent);
             }
+            else
+            {
+                if( update_time > -1 )
+                {
+                    UpdateTimePosition(update_time);
+                }
+            }
+        }
+    }
+    else
+    {
+        if( update_time > -1 )
+        {
+            UpdateTimePosition(update_time);
         }
     }
 }
