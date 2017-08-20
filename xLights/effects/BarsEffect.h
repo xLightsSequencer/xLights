@@ -4,10 +4,12 @@
 #include "RenderableEffect.h"
 
 #define BARCOUNT_MIN 1
-#define BARCOUNT_MAX 50
+//#define BARCOUNT_MAX 50
+#define BARCOUNT_MAX 5
 
 #define BARCYCLES_MIN 0
-#define BARCYCLES_MAX 500
+//#define BARCYCLES_MAX 500
+#define BARCYCLES_MAX 300
 
 #define BARCENTER_MIN -100
 #define BARCENTER_MAX 100

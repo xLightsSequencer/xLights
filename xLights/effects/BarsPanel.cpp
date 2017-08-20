@@ -176,6 +176,10 @@ BarsPanel::BarsPanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BarsPanel::OnVCChanged, 0, this);
 
+    Slider_Bars_BarCount->SetRange(BARCOUNT_MIN, BARCOUNT_MAX);
+    Slider_Bars_Cycles->SetRange(BARCYCLES_MIN, BARCYCLES_MAX);
+    Slider_Bars_Center->SetRange(BARCENTER_MIN, BARCENTER_MAX);
+
     BitmapButton_Bars_BarCount->GetValue()->SetLimits(BARCOUNT_MIN, BARCOUNT_MAX);
     BitmapButton_Bars_Cycles->GetValue()->SetLimits(BARCYCLES_MIN, BARCYCLES_MAX);
     BitmapButton_Bars_Cycles->GetValue()->SetDivisor(10);

@@ -6,6 +6,7 @@
 #include "SequenceData.h"
 
 // Consolidated set of utility functions
+bool IsVersionOlder(const std::string compare, const std::string version);
 std::string UnXmlSafe(const std::string& s);
 std::string XmlSafe(const std::string& s);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);

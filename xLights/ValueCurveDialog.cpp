@@ -254,12 +254,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     StaticText_TopValue->SetLabel(sMax);
 
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     SetParameter(1, _vc->GetParameter1());
     SetParameter(2, _vc->GetParameter2());
     SetParameter(3, _vc->GetParameter3());
     SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
-    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     Choice1->SetFocus();
 
     PopulatePresets();
@@ -1125,17 +1125,28 @@ void ValueCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose value curve file"), wxEmptyString, wxEmptyString, wxEmptyString, "Value Curve files (*.xvc)|*.xvc", wxFD_OPEN);
     if (filename.IsEmpty()) return;
 
+    float min = _vc->GetMin();
+    float max = _vc->GetMax();
+    int div = _vc->GetDivisor();
+    _vc->SetLimits(0, 100);
+    _vc->SetDivisor(1);
     LoadXVC(_vc, filename);
+    _vc->SetLimits(min, max);
+    _vc->SetDivisor(div);
+    SetSliderMinMax();
+    _vc->FixChangedScale(min, max, 1);
     _vcp->Refresh();
     _vcp->ClearUndo();
     _vc->SetId(id);
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
     SetParameter(1, _vc->GetParameter1());
     SetParameter(2, _vc->GetParameter2());
     SetParameter(3, _vc->GetParameter3());
     SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
-    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    _vcp->SetType(_vc->GetType());
+    ValidateWindow();
 }
 
 void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
@@ -1162,7 +1173,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     ValueCurve vc(_vc->Serialise());
     vc.SetId("ID_VALUECURVE_XVC");
     vc.SetLimits(0, 100);
-    vc.FixChangedScale(_vc->GetMin(), _vc->GetMax());
+    vc.UnFixChangedScale(_vc->GetMin(), _vc->GetMax());
     f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
     f.Write(" >\n");
@@ -1293,7 +1304,7 @@ void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
                 float min = vc->GetMin();
                 float max = vc->GetMax();
                 vc->SetLimits(0, 100);
-                vc->FixChangedScale(min, max);
+                vc->FixChangedScale(min, max, 1);
             }
 
             vc->SetActive(true);
@@ -1324,19 +1335,24 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     std::string id = _vc->GetId(); // save if because it will be overwritten
     float min = _vc->GetMin();
     float max = _vc->GetMax();
+    int div = _vc->GetDivisor();
+    _vc->SetLimits(0, 100);
+    _vc->SetDivisor(1);
     LoadXVC(_vc, filename);
     _vc->SetLimits(min, max);
+    _vc->SetDivisor(div);
     SetSliderMinMax();
-    _vc->FixChangedScale(0, 100);
+    _vc->FixChangedScale(min, max, 1);
     _vcp->Refresh();
     _vcp->ClearUndo();
     _vc->SetId(id);
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
     CheckBox_WrapValues->SetValue(_vc->GetWrap());
     SetParameter(1, _vc->GetParameter1());
     SetParameter(2, _vc->GetParameter2());
     SetParameter(3, _vc->GetParameter3());
     SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
-    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    _vcp->SetType(_vc->GetType());
     ValidateWindow();
 }

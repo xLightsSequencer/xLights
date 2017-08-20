@@ -1,6 +1,11 @@
 #include "ValueCurve.h"
 #include <wx/wx.h>
 #include <wx/string.h>
+#include "xLightsVersion.h"
+#include "xLightsMain.h"
+#include "xLightsXmlFile.h"
+#include <wx/msgdlg.h>
+#include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 
 float ValueCurve::SafeParameter(size_t p, float v)
@@ -11,7 +16,7 @@ float ValueCurve::SafeParameter(size_t p, float v)
 
     if (low == MINVOID) low = _min;
     if (high == MAXVOID) high = _max;
-    
+
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
 
@@ -75,12 +80,20 @@ float ValueCurve::Denormalise(int parm, float value)
     return res;
 }
 
-void ValueCurve::ConvertToRealValues()
+void ValueCurve::ConvertToRealValues(float oldmin, float oldmax)
 {
+    float min = _min;
+    _min = oldmin;
+    float max = _max;
+    _max = oldmax;
+
     _parameter1 = Denormalise(1, _parameter1);
     _parameter2 = Denormalise(2, _parameter2);
     _parameter3 = Denormalise(3, _parameter3);
     _parameter4 = Denormalise(4, _parameter4);
+
+    _min = min;
+    _max = max;
 }
 
 void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
@@ -365,13 +378,88 @@ float ValueCurve::Normalise(int parm, float value)
     return res;
 }
 
-void ValueCurve::FixChangedScale(float newmin, float newmax)
+// unfixes the changed scale from whatever it is now to 0-100
+void ValueCurve::UnFixChangedScale(float newmin, float newmax)
+{
+    if (newmin == 0 && newmax == 100) return;
+
+    float oldrange = newmax - newmin;
+    float newrange = 100 - 0;
+    float mindiff = 0 - newmin;
+
+    float min, max;
+    GetRangeParm(1, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter1 = _parameter1 * newrange / oldrange + mindiff;
+    }
+
+    GetRangeParm(2, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter2 = _parameter2 * newrange / oldrange + mindiff;
+    }
+
+    GetRangeParm(3, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter3 = _parameter3 * newrange / oldrange + mindiff;
+    }
+
+    GetRangeParm(4, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter4 = _parameter4 * newrange / oldrange + mindiff;
+    }
+}
+
+// fixes the changed scale from 0-100 to whatever it is now
+void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
+{
+    if (newmin == 0 && newmax == 100 && divisor == 1) return;
+
+    float newrange = newmax - newmin;
+    float oldrange = 100 - 0;
+    float mindiff = newmin - 0;
+
+    float min, max;
+    GetRangeParm(1, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter1 = (_parameter1 * newrange / oldrange + mindiff) * divisor;
+    }
+
+    GetRangeParm(2, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter2 = (_parameter2 * newrange / oldrange + mindiff) * divisor;
+    }
+
+    GetRangeParm(3, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter3 = (_parameter3 * newrange / oldrange + mindiff) * divisor;
+    }
+
+    GetRangeParm(4, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter4 = (_parameter4 * newrange / oldrange + mindiff) * divisor;
+    }
+}
+
+void ValueCurve::ConvertChangedScale(float newmin, float newmax)
 {
     if (newmin == _min && newmax == _max) return;
 
     float newrange = newmax - newmin;
     float oldrange = _max - _min;
-    float mindiff = _min - newmin;
+
+    if (newrange > oldrange)
+    {
+        // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
+        return;
+    }
 
     // now handle custom
     if (_type == "Custom")
@@ -381,34 +469,7 @@ void ValueCurve::FixChangedScale(float newmin, float newmax)
 
         for (auto it = _values.begin(); it != _values.end(); ++it)
         {
-            it->y = it->y * oldrange / newrange + mindiff;
-        }
-    }
-    else
-    {
-        float min, max;
-        GetRangeParm(1, _type, min, max);
-        if (min == MINVOID)
-        {
-            _parameter1 = _parameter1 * oldrange / newrange + mindiff;
-        }
-
-        GetRangeParm(2, _type, min, max);
-        if (min == MINVOID)
-        {
-            _parameter2 = _parameter2 * oldrange / newrange + mindiff;
-        }
-
-        GetRangeParm(3, _type, min, max);
-        if (min == MINVOID)
-        {
-            _parameter3 = _parameter3 * oldrange / newrange + mindiff;
-        }
-
-        GetRangeParm(4, _type, min, max);
-        if (min == MINVOID)
-        {
-            _parameter4 = _parameter4 * oldrange / newrange + mindiff;
+            it->y = it->y * newrange / oldrange;
         }
     }
 }
@@ -488,14 +549,14 @@ void ValueCurve::RenderType()
             {
                 if (i != 0)
                 {
-                    _values.push_back(vcSortablePoint(f1, (float)_parameter2 / 100.0, false));
+                    _values.push_back(vcSortablePoint(f1, (float)parameter2 / 100.0, false));
                 }
-                _values.push_back(vcSortablePoint(f2, (float)_parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint(f2, (float)parameter1 / 100.0, false));
             }
             else
             {
-                _values.push_back(vcSortablePoint(f1, (float)_parameter1 / 100.0, false));
-                _values.push_back(vcSortablePoint(f2, (float)_parameter2 / 100.0, false));
+                _values.push_back(vcSortablePoint(f1, (float)parameter1 / 100.0, false));
+                _values.push_back(vcSortablePoint(f2, (float)parameter2 / 100.0, false));
             }
             low = !low;
         }
@@ -889,15 +950,45 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         // this is generally only done when loading an xvc file ... particularly an old one
         if (!holdminmax)
         {
-            if (_active && !_realValues)
+            // This converts curves from the 0-100 to the real scale
+            if (_active && !_realValues && oldmin != MINVOIDF)
             {
-                ConvertToRealValues();
+                if (_min != 0 || _max != 100)
+                {
+                    // use the scale in the file if it wasnt 0-100
+                    FixChangedScale(_min, _max, _divisor);
+                }
+                else
+                {
+                    if (oldmin != 0 || oldmax != 100 || _divisor != 1)
+                    {
+                        // otherwise use the scale of this VC ... this is not great ... if the VC range has been expanded then
+                        // it isnt going to convert correctly
+
+                        // this is actually checking for something .25 or newer
+                        // this should be updated every release by 1 until we decide to change a slider range for the first time
+                        // at that point we are going to need to force people to go back to a version after .24 but before the
+                        // first version with the change
+                        if (!::IsVersionOlder("2017.25", xlights_version_string.ToStdString()))
+                        {
+                            static std::string warnedfile = "";
+
+                            if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
+                            {
+                                warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
+                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2017.24 before proceeding.");
+                            }
+                        }
+                        FixChangedScale(oldmin, oldmax, _divisor);
+                    }
+                }
                 _realValues = true;
             }
 
-            if (_active && ((oldmin != MINVOIDF && oldmin != _min) || (oldmax != MAXVOIDF && oldmax != _max)))
+            // This converts curves to the new scale when a parameters range has been expanded ... but only if it was already real values
+            if (_active && _realValues && ((oldmin != MINVOIDF && oldmin != _min) || (oldmax != MAXVOIDF && oldmax != _max)))
             {
-                FixChangedScale(oldmin, oldmax);
+                ConvertChangedScale(oldmin, oldmax);
             }
 
             if (oldmin != MINVOIDF) _min = oldmin;
@@ -1036,7 +1127,7 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
                 _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
             }
         }
-    
+
     _values.sort();
     //_active = true;
 }
@@ -1194,9 +1285,9 @@ void ValueCurve::SetValueAt(float offset, float value)
     _values.sort();
 }
 
-void ValueCurve::SetWrap(bool wrap) 
-{ 
-    _wrap = wrap; 
+void ValueCurve::SetWrap(bool wrap)
+{
+    _wrap = wrap;
 
     if (!_wrap)
     {
@@ -1206,7 +1297,7 @@ void ValueCurve::SetWrap(bool wrap)
         }
     }
 
-    RenderType(); 
+    RenderType();
 }
 
 float ValueCurve::FindMinPointLessThan(float point)
@@ -1256,7 +1347,7 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
 {
     float width = w * scaleFactor;
     float height = h * scaleFactor;
-    
+
     wxBitmap bmp(width, height);
 
     wxMemoryDC dc(bmp);

@@ -85,10 +85,9 @@ class ValueCurve
     void SetSerialisedValue(std::string k, std::string s);
     float SafeParameter(size_t p, float v);
     float Safe01(float v);
-    void ConvertToRealValues();
+    void ConvertToRealValues(float oldmin, float oldmax);
     float Normalise(int parm, float value);
     float Denormalise(int parm, float value);
-    float FixChangeScaleParm(int parm, float oldmin, float oldmax, float oldvalue);
 
 public:
     ValueCurve() { SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; _divisor = 1; }
@@ -98,37 +97,39 @@ public:
     wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     std::string Serialise();
     static void GetRangeParm(int parm, const std::string& type, float& low, float& high);
-    bool IsOk() { return _id != ""; }
+    bool IsOk() const { return _id != ""; }
     void Deserialise(const std::string& s, bool holdminmax = false);
     void SetType(std::string type);
-    void FixChangedScale(float oldmin, float oldmax);
-    float GetMax() { wxASSERT(_max != MAXVOIDF); return _max; }
-    float GetMin() { wxASSERT(_min != MINVOIDF); return _min; }
-    int GetDivisor() { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
+    void FixChangedScale(float oldmin, float oldmax, int divisor);
+    void UnFixChangedScale(float newmin, float newmax);
+    void ConvertChangedScale(float newmin, float newmax);
+    float GetMax() const { wxASSERT(_max != MAXVOIDF); return _max; }
+    float GetMin() const { wxASSERT(_min != MINVOIDF); return _min; }
+    int GetDivisor() const { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
     float GetOutputValue(float offset);
     void SetActive(bool a) { _active = a; RenderType(); }
-    bool IsActive() { return IsOk() && _active; }
+    bool IsActive() const { return IsOk() && _active; }
     void ToggleActive() { _active = !_active; if (_active) RenderType(); }
     void SetValueAt(float offset, float value);
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
     void SetDivisor(float divisor) { _divisor = divisor; }
-    int GetPointCount() { return _values.size(); }
+    int GetPointCount() const { return _values.size(); }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
     void SetWrap(bool wrap);
-    float GetParameter1() { return _parameter1; }
-    float GetParameter2() { return _parameter2; }
-    float GetParameter3() { return _parameter3; }
-    float GetParameter4() { return _parameter4; }
-    bool GetWrap() { return _wrap; }
-    std::string GetType() { return _type; }
-    std::list<vcSortablePoint> GetPoints() { return _values; }
+    float GetParameter1() const { return _parameter1; }
+    float GetParameter2() const { return _parameter2; }
+    float GetParameter3() const { return _parameter3; }
+    float GetParameter4() const { return _parameter4; }
+    bool GetWrap() const { return _wrap; }
+    std::string GetType() const { return _type; }
+    std::list<vcSortablePoint> GetPoints() const { return _values; }
     void RemoveExcessCustomPoints();
     float FindMinPointLessThan(float point);
     float FindMaxPointGreaterThan(float point);
