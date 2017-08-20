@@ -249,7 +249,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
 
     logger_base.debug("LayoutPanel basic setup complete");
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights->PreviewModels, xlights->LayoutGroups, true);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, xlights->PreviewModels, xlights->LayoutGroups, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -2900,12 +2900,12 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
-    
+
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;
-    
+
     std::vector<Model *> modelsToAdd(models);
-    
+
     wxTreeListItem root = TreeListViewModels->GetRootItem();
     std::vector<wxTreeListItem> toRemove;
 

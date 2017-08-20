@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix custom previews not showing correct background in House Preview window.
+   -- bug (gil)     Fix custom previews not initialized with correct brightness. Fixes #691.
    -- enh (gil)     Make double-click in open grid work like it used to.
    -- enh (gil)     Allow sequence timing to be changed in the GUI.
    -- enh (craig)   xSchedule Add a tooltip for where the default root web directory is located

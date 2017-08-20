@@ -13,6 +13,7 @@
 class Model;
 class PreviewPane;
 class LayoutGroup;
+class xLightsFrame;
 
 class ModelPreview : public xlGLCanvas
 {
@@ -20,6 +21,7 @@ class ModelPreview : public xlGLCanvas
 public:
     ModelPreview(wxPanel* parent);
 	ModelPreview(wxPanel* parent,
+                 xLightsFrame* xlights_,
                  std::vector<Model*> &models,
                  std::vector<LayoutGroup *> &groups,
                  bool allowSelected,
@@ -112,6 +114,7 @@ private:
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
+    xLightsFrame* xlights;
 
     double currentPixelScaleFactor = 1.0;
 

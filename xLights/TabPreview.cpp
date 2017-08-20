@@ -59,7 +59,7 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
 
 const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
 {
-    return sPreview2->GetBackgroundImage();
+    return mBackgroundImage;
 }
 
 void xLightsFrame::SetPreviewBackgroundBrightness(int i)
@@ -76,7 +76,7 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i)
 
 bool xLightsFrame::GetDefaultPreviewBackgroundScaled()
 {
-    return sPreview2->GetScaleBackgroundImage();
+    return mScaleBackgroundImage;
 }
 
 void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
@@ -91,5 +91,5 @@ void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
 
 int xLightsFrame::GetDefaultPreviewBackgroundBrightness()
 {
-    return sPreview2->GetBackgroundBrightness();
+    return mBackgroundBrightness;
 }

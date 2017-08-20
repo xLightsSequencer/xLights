@@ -17,6 +17,7 @@
 #include "osxMacUtils.h"
 #include "ColorManager.h"
 #include "LayoutGroup.h"
+#include "xLightsMain.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -120,7 +121,7 @@ void ModelPreview::Render(const unsigned char *data) {
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 
 void ModelPreview::rightClick(wxMouseEvent& event) {
-    if( allowPreviewChange ) {
+    if( allowPreviewChange && xlights != nullptr) {
         wxMenu mnuSelectPreview;
         mnuSelectPreview.Append(1,"House Preview");
         int index = 2;
@@ -138,8 +139,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     int id = event.GetId() - 1;
     if(id == 0) {
         SetModels(*HouseModels);
+        SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness());
+        SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
     } else if (id > 0 && id <= LayoutGroups->size()) {
         SetModels( (*LayoutGroups)[id-1]->GetModels());
+        SetBackgroundBrightness((*LayoutGroups)[id-1]->GetBackgroundBrightness());
+        SetbackgroundImage((*LayoutGroups)[id-1]->GetBackgroundImage());
     }
     Refresh();
     Update();
@@ -148,9 +153,9 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
+ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
-      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc)
+      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -170,6 +175,7 @@ ModelPreview::ModelPreview(wxPanel* parent)
     virtualHeight = 0;
     image = nullptr;
     sprite = nullptr;
+    xlights = nullptr;
 }
 ModelPreview::~ModelPreview()
 {

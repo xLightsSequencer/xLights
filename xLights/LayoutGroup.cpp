@@ -159,7 +159,7 @@ void LayoutGroup::ShowPreview(bool show)
         mPreviewPane = preview;
         wxPanel* panel = preview->GetPreviewPanel();
         wxFlexGridSizer* panel_sizer = preview->GetPreviewPanelSizer();
-        ModelPreview* new_preview = new ModelPreview(panel, GetModels(), xlights->LayoutGroups, false);
+        ModelPreview* new_preview = new ModelPreview(panel, xlights, GetModels(), xlights->LayoutGroups, false);
         new_preview->SetPreviewPane(preview);
         mModelPreview = new_preview;
         panel_sizer->Add(new_preview, 1, wxALL | wxEXPAND, 0);
@@ -179,8 +179,8 @@ void LayoutGroup::ShowPreview(bool show)
         }
         preview->SetSize(mPosX, mPosY, mPaneWidth, mPaneHeight);
         xlights->PreviewWindows.push_back(new_preview);
-        new_preview->InitializePreview(mBackgroundImage,modelPreview->GetBackgroundBrightness());
-        new_preview->SetScaleBackgroundImage(modelPreview->GetScaleBackgroundImage());
+        new_preview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+        new_preview->SetScaleBackgroundImage(mScaleBackgroundImage);
         new_preview->SetCanvasSize(modelPreview->GetVirtualCanvasWidth(),modelPreview->GetVirtualCanvasHeight());
         mPreviewCreated = true;
         mMenuItemPreview->Check(true);
