@@ -1495,8 +1495,13 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
         {
-            std::string::size_type ofs;
-            if ((ofs = line.find("#") != std::string::npos)) line.erase(ofs); //remove comments
+            // remove comments
+            if (line.Contains("#"))
+            {
+                int pos = line.Find("#");
+                line.Truncate(pos);
+            }
+
             while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
             if (line.empty())
             {
