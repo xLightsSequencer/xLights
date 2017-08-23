@@ -46,6 +46,7 @@ protected:
         void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const;
         void Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation = 0) const;
+        void Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation = 0) const;
         void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
 };

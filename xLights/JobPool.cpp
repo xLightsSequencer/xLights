@@ -154,22 +154,22 @@ void* JobPoolWorker::Entry()
         // Did we get a request to terminate?
         if (TestDestroy())
         {
-            logger_base.debug("JobPoolWorker::Entry requested to terminate.");
+            //logger_base.debug("JobPoolWorker::Entry requested to terminate.");
             break;
         }
 
         Job *job = GetJob();
         if (job != nullptr) {
-            logger_base.debug("JobPoolWorker::Entry processing job.");
+            //logger_base.debug("JobPoolWorker::Entry processing job.");
             // Call user's implementation for processing request
             ProcessJob(job);
             if (job->DeleteWhenComplete()) {
-                logger_base.debug("JobPoolWorker::Entry Job done ... deleting job.");
+                //logger_base.debug("JobPoolWorker::Entry Job done ... deleting job.");
                 delete job;
             }
             else
             {
-                logger_base.debug("JobPoolWorker::Entry Job done.");
+                //logger_base.debug("JobPoolWorker::Entry Job done.");
             }
             std::unique_lock<std::mutex> mutLock(*lock);
             inFlight--;
@@ -180,7 +180,7 @@ void* JobPoolWorker::Entry()
             }
         }
     }
-    logger_base.debug("JobPoolWorker::Entry exiting.");
+    //logger_base.debug("JobPoolWorker::Entry exiting.");
     std::unique_lock<std::mutex> mutLock(*lock);
     numThreads--;
     return nullptr;

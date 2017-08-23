@@ -28,6 +28,7 @@ class ShapePanel: public wxPanel
 		ValueCurveButton* BitmapButton_Shape_StartSizeVC;
 		wxTextCtrl* TextCtrl_Shape_Points;
 		wxChoice* Choice_Shape_ObjectToDraw;
+		wxTextCtrl* TextCtrl_Shape_Thickness;
 		wxSlider* Slider_Shape_Count;
 		ValueCurveButton* BitmapButton_Shape_GrowthVC;
 		wxSlider* Slider_Shape_CentreX;

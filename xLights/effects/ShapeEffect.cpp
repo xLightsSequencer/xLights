@@ -101,6 +101,7 @@ wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_HEART      7
 #define RENDER_SHAPE_TREE       8
 #define RENDER_SHAPE_CANDYCANE  9
+#define RENDER_SHAPE_SNOWFLAKE  10
 
 void ShapeEffect::SetDefaultParameters(Model *cls) {
     ShapePanel *sp = (ShapePanel*)panel;
@@ -241,8 +242,12 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     {
         return RENDER_SHAPE_CANDYCANE;
     }
+    else if (shape == "Snowflake")
+    {
+        return RENDER_SHAPE_SNOWFLAKE;
+    }
 
-    return rand01() * 10;
+    return rand01() * 11;
 }
 
 void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -509,6 +514,9 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         case RENDER_SHAPE_CANDYCANE:
             Drawcandycane(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
+        case RENDER_SHAPE_SNOWFLAKE:
+            Drawsnowflake(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, 30);
+            break;
         case RENDER_SHAPE_HEART:
             Drawheart(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
@@ -634,6 +642,32 @@ void ShapeEffect::Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radiu
             break;
         }
         radius -= interpolation;
+    }
+}
+
+void ShapeEffect::Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation) const
+{
+    double increment = 360.0 / (sides * 2);
+    double angle = rotation;
+
+    if (radius >= 0)
+    {
+        for (int i = 0; i < sides * 2; i++)
+        {
+            double radian = angle * M_PI / 180.0;
+
+            int x1 = std::round(radius * cos(radian)) + xc;
+            int y1 = std::round(radius * sin(radian)) + yc;
+
+            radian = (180 + angle) * M_PI / 180.0;
+
+            int x2 = std::round(radius * cos(radian)) + xc;
+            int y2 = std::round(radius * sin(radian)) + yc;
+
+            buffer.DrawLine(x1, y1, x2, y2, color);
+
+            angle += increment;
+        }
     }
 }
 

@@ -82,7 +82,6 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStaticText* StaticText176;
-	wxTextCtrl* TextCtrl33;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -99,6 +98,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	Choice_Shape_ObjectToDraw->Append(_("Star"));
 	Choice_Shape_ObjectToDraw->Append(_("Heart"));
 	Choice_Shape_ObjectToDraw->Append(_("Tree"));
+	Choice_Shape_ObjectToDraw->Append(_("Snowflake"));
 	Choice_Shape_ObjectToDraw->Append(_("Candy Cane"));
 	Choice_Shape_ObjectToDraw->Append(_("Random"));
 	FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 5);
@@ -112,9 +112,9 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	BitmapButton_Shape_ThicknessVC = new ValueCurveButton(this, ID_VALUECURVE_Shape_Thickness, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Thickness"));
 	FlexGridSizer1->Add(BitmapButton_Shape_ThicknessVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer57->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
-	TextCtrl33 = new wxTextCtrl(this, IDD_TEXTCTRL_Shape_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Thickness"));
-	TextCtrl33->SetMaxLength(3);
-	FlexGridSizer57->Add(TextCtrl33, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	TextCtrl_Shape_Thickness = new wxTextCtrl(this, IDD_TEXTCTRL_Shape_Thickness, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Thickness"));
+	TextCtrl_Shape_Thickness->SetMaxLength(3);
+	FlexGridSizer57->Add(TextCtrl_Shape_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText176 = new wxStaticText(this, wxID_ANY, _("Count"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer57->Add(StaticText176, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -295,6 +295,17 @@ void ShapePanel::ValidateWindow()
     {
         Slider_Shape_Points->Disable();
         TextCtrl_Shape_Points->Disable();
+    }
+
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
+    {
+        Slider_Shape_Thickness->Disable();
+        TextCtrl_Shape_Thickness->Disable();
+    }
+    else
+    {
+        Slider_Shape_Thickness->Enable();
+        TextCtrl_Shape_Thickness->Enable();
     }
 
     if (CheckBox_Shape_RandomLocation->IsChecked())

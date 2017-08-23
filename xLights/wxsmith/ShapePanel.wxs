@@ -25,6 +25,7 @@
 						<item>Star</item>
 						<item>Heart</item>
 						<item>Tree</item>
+						<item>Snowflake</item>
 						<item>Candy Cane</item>
 						<item>Random</item>
 					</content>
@@ -78,7 +79,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shape_Thickness" variable="TextCtrl33" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shape_Thickness" variable="TextCtrl_Shape_Thickness" member="yes">
 					<value>3</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
