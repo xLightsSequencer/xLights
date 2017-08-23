@@ -233,9 +233,9 @@ void xlGridCanvasPictures::ResizeImage()
                                  0,0,0);
                     break;
             }
-            if( sprite != NULL ) {
+            if (sprite != nullptr) {
                 delete sprite;
-                sprite = NULL;
+                sprite = nullptr;
             }
             ProcessNewImage();
         }
@@ -356,7 +356,7 @@ void xlGridCanvasPictures::SetEffect(Effect* effect_)
 
     mEffect = effect_;
 
-    if( mEffect == NULL ) return;
+    if (mEffect == nullptr) return;
 
     NewPictureName = GetImageFilename();
 
@@ -409,7 +409,7 @@ void xlGridCanvasPictures::mouseLeftDown(wxMouseEvent& event)
 
 void xlGridCanvasPictures::mouseDown(int x, int y)
 {
-    if( mEffect == NULL ) return;
+    if (mEffect == nullptr) return;
 
     if( img_mode == IMAGE_SINGLE_FITS )
     {
@@ -477,7 +477,7 @@ void xlGridCanvasPictures::mouseDown(int x, int y)
 
 void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    if (mEffect == nullptr) return;
 
     int column =  GetCellFromPosition(event.GetX());
     int row = GetCellFromPosition(event.GetY());
@@ -579,8 +579,8 @@ void xlGridCanvasPictures::mouseRightUp(wxMouseEvent& event)
 
 void xlGridCanvasPictures::mouseUp()
 {
-    if( mEffect == NULL ) return;
-    if( mDragging )
+    if (mEffect == nullptr) return;
+    if (mDragging)
     {
         ReleaseMouse();
         mDragging = false;
@@ -624,9 +624,9 @@ void xlGridCanvasPictures::render( wxPaintEvent& event )
 void xlGridCanvasPictures::DrawPicturesEffect()
 {
     if( NewPictureName == "" ) return;
-    if( NewPictureName != PictureName || sprite == NULL || mPasteCopy)
+    if( NewPictureName != PictureName || sprite == nullptr || mPasteCopy)
     {
-        if( sprite != NULL ) {
+        if (sprite != nullptr) {
             delete sprite;
         }
         if( use_ping )
@@ -675,12 +675,12 @@ void xlGridCanvasPictures::DrawPicturesEffect()
     {
         mPasteCopy = false;
         if( use_ping ) {
-            if( imageGL_pong != NULL ) {
+            if (imageGL_pong != nullptr) {
                 delete imageGL_pong;
             }
             use_ping = false;
         } else {
-            if( imageGL_ping != NULL ) {
+            if (imageGL_ping != nullptr) {
                 delete imageGL_ping;
             }
             use_ping = true;
@@ -769,7 +769,7 @@ void xlGridCanvasPictures::Copy()
 {
     SetCurrentGLContext();
 
-    if( mImageCopy != NULL ) {
+    if (mImageCopy != nullptr) {
         delete mImageCopy;
     }
 
@@ -784,7 +784,7 @@ void xlGridCanvasPictures::Copy()
 
     image_copy = image.GetSubImage(rect);
     mImageCopy = new Image(image_copy);
-    if( copy_sprite != NULL ) {
+    if (copy_sprite != nullptr) {
         delete copy_sprite;
     }
     copy_sprite = new xLightsDrawable(mImageCopy);

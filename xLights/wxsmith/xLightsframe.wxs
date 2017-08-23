@@ -1159,6 +1159,12 @@
 						<label>Edit/Load</label>
 						<handler function="OnMenuItemLoadEditPerspectiveSelected" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MNU_PERSPECTIVES_AUTOSAVE" variable="MenuItem_PerspectiveAutosave" member="yes">
+						<label>Auto Save</label>
+						<help>Save the current perspective between sessions independent of the show directory.</help>
+						<handler function="OnMenuItem_PerspectiveAutosaveSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="separator" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">

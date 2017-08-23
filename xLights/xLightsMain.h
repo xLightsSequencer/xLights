@@ -497,6 +497,7 @@ private:
     void OnChoiceParm2Select(wxCommandEvent& event);
     void OnAC_SelectClick(wxCommandEvent& event);
     void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
+    void OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -614,6 +615,7 @@ private:
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_SAVE_AS_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
+    static const long ID_MNU_PERSPECTIVES_AUTOSAVE;
     static const long ID_MENUITEM7;
     static const long ID_MENUITEM_DISPLAY_ELEMENTS;
     static const long ID_MENUITEM12;
@@ -797,6 +799,7 @@ private:
     wxAuiNotebook* Notebook1;
     wxMenuItem* MenuItemTimingPlayMode;
     wxMenuItem* MenuItem35;
+    wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenu* OpenGLMenu;
     wxStaticText* StatusText;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
@@ -886,6 +889,7 @@ private:
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
     bool _showACRamps;
+    bool _autoSavePerspecive;
 
     void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);

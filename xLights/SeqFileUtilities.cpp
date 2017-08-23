@@ -382,7 +382,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
-        if( (numChan > SeqData.NumChannels()) ||
+        if ((numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
         {
             if (SeqData.NumChannels() > 0)
@@ -429,6 +429,18 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
 bool xLightsFrame::CloseSequence()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Closing sequence.");
+
+    if (CurrentSeqXmlFile != nullptr && _autoSavePerspecive)
+    {
+        // save perspective on this machine so we can restore it next time
+        wxConfigBase* config = wxConfigBase::Get();
+        wxString machinePerspective = m_mgr->SavePerspective();
+        config->Write("xLightsMachinePerspective", machinePerspective);
+        logger_base.debug("Save perspective: %s", (const char *)machinePerspective.c_str());
+    }
+
     if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() )
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
@@ -597,6 +609,7 @@ static bool CalcPercentage(std::string& value, double base, bool reverse, int of
     value = wxString::Format(wxT("%i"),(int)percent);
     return true;
 }
+
 static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, int offset) {
     int val = wxAtoi(value);
     val -= offset;
@@ -611,12 +624,14 @@ static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, in
     }
     return true;
 }
+
 static int CalcUnBoundedPercentage(int val, int base) {
     double half_width = 50.0/base;
     double percent = (double)val/base*100.0 + half_width;
 
     return percent;
 }
+
 static xlColor GetColor(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
 {
     double red,green,blue;

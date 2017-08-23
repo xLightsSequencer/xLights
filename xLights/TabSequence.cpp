@@ -13,6 +13,7 @@
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
 #include "BufferPanel.h"
+#include <wx/config.h>
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -298,6 +299,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
 void xLightsFrame::LoadEffectsFile()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxStopWatch sw; // start a stopwatch timer
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?
@@ -401,9 +404,24 @@ void xLightsFrame::LoadEffectsFile()
     UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
     mSequencerInitialize = false;
+
+    // load the perspectives
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
+
+    if (_autoSavePerspecive)
+    {
+        // if we have a saved perspective on this machine then make that the current one
+        wxConfigBase* config = wxConfigBase::Get();
+        wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
+        if (machinePerspective != "")
+        {
+            m_mgr->LoadPerspective(machinePerspective);
+            logger_base.debug("Loaded machine perspective.");
+        }
+    }
+
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
@@ -431,7 +449,7 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
 
     int pCount = 0;
 
-    for(wxXmlNode* p=perspectivesNode->GetChildren(); p!=NULL; p=p->GetNext() )
+    for(wxXmlNode* p=perspectivesNode->GetChildren(); p != nullptr; p=p->GetNext() )
     {
         if (p->GetName() == "perspective")
         {
@@ -440,7 +458,7 @@ void xLightsFrame::LoadPerspectivesMenu(wxXmlNode* perspectivesNode)
             {
                 int id = wxNewId();
                 MenuItemPerspectives->AppendRadioItem(id,name);
-                if (mCurrentPerpective != NULL && (name == mCurrentPerpective->GetAttribute("name")))
+                if (mCurrentPerpective != nullptr && (name == mCurrentPerpective->GetAttribute("name")))
                   MenuItemPerspectives->Check(id,true);
                 PerspectiveId pmenu;
                 pmenu.id=id;

@@ -23,6 +23,7 @@
 #include "../SeqElementMismatchDialog.h"
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
+#include <wx/config.h>
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -133,6 +134,8 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 
 void xLightsFrame::InitSequencer()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if(EffectsPanel1 == nullptr || timingPanel == nullptr)
     {
         return;
@@ -145,6 +148,19 @@ void xLightsFrame::InitSequencer()
     {
         DoLoadPerspective(mCurrentPerpective);
     }
+
+    // if we have a saved perspective on this machine then make that the current one
+    if (_autoSavePerspecive)
+    {
+        wxConfigBase* config = wxConfigBase::Get();
+        wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
+        if (machinePerspective != "")
+        {
+            m_mgr->LoadPerspective(machinePerspective);
+            logger_base.debug("Loaded machine perspective.");
+        }
+    }
+
     mSequencerInitialize = true;
     sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
     sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);

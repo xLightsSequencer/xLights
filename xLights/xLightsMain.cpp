@@ -199,6 +199,7 @@ const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
+const long xLightsFrame::ID_MNU_PERSPECTIVES_AUTOSAVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM7 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_DISPLAY_ELEMENTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM12 = wxNewId();
@@ -773,6 +774,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItemPerspectives->Append(MenuItemViewSaveAsPerspective);
     MenuItemLoadEditPerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_LOAD_PERSPECTIVE, _("Edit/Load"), wxEmptyString, wxITEM_NORMAL);
     MenuItemPerspectives->Append(MenuItemLoadEditPerspective);
+    MenuItem_PerspectiveAutosave = new wxMenuItem(MenuItemPerspectives, ID_MNU_PERSPECTIVES_AUTOSAVE, _("Auto Save"), _("Save the current perspective between sessions independent of the show directory."), wxITEM_CHECK);
+    MenuItemPerspectives->Append(MenuItem_PerspectiveAutosave);
     MenuItemPerspectives->AppendSeparator();
     MenuView->Append(ID_MENUITEM7, _("Perspectives"), MenuItemPerspectives, wxEmptyString);
     MenuItem18 = new wxMenu();
@@ -1051,6 +1054,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
+    Connect(ID_MNU_PERSPECTIVES_AUTOSAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PerspectiveAutosaveSelected);
     Connect(ID_MENUITEM_DISPLAY_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_MENUITEM3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
@@ -1407,6 +1411,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ShowACRamps->Check(_showACRamps);
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
 
+    config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
+    MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
+    logger_base.debug("Autosave perspectives: %s.", _autoSavePerspecive ? "true" : "false");
+
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
@@ -1653,6 +1661,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
+    config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
     config->Write("xLightse131Sync", me131Sync);
@@ -3835,7 +3844,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
-    // This does not seem to detect problems properly ... 
+    // This does not seem to detect problems properly ...
     auto testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     if (testSocket == nullptr || !testSocket->IsOk())
     {
@@ -6263,3 +6272,8 @@ void xLightsFrame::SetACSettings(ACTYPE type)
     ACToolbar->Refresh();
 }
 
+
+void xLightsFrame::OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event)
+{
+    _autoSavePerspecive = MenuItem_PerspectiveAutosave->IsChecked();
+}
