@@ -33,4 +33,8 @@ inline double rand01()
 {
     return (double)rand() / (double)RAND_MAX;
 }
+
+void SaveWindowPosition(const std::string tag, wxWindow* window);
+void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position);
+
 #endif

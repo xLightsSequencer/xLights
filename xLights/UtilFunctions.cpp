@@ -1,6 +1,7 @@
 #include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
+#include <wx/config.h>
 
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
@@ -344,4 +345,35 @@ bool IsVersionOlder(const std::string compare, const std::string version)
         if (wxAtoi(version_parts[2]) < wxAtoi(compare_parts[2])) return true;
     }
     return false;
+}
+
+void SaveWindowPosition(const std::string tag, wxWindow* window)
+{
+    wxPoint position = window->GetPosition();
+    wxSize size = window->GetSize();
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(tag, wxString::Format("%d|%d|%d|%d", position.x, position.y, size.GetWidth(), size.GetHeight()));
+}
+
+void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+
+    wxString pos = config->Read(tag, "");
+
+    position.x = -1;
+    position.y = -1;
+    size.SetWidth(-1);
+    size.SetHeight(-1);
+
+    wxArrayString ss = wxSplit(pos, '|');
+
+    if (ss.size() == 4)
+    {
+        position.x = wxAtoi(ss[0]);
+        position.y = wxAtoi(ss[1]);
+        size.SetWidth(wxAtoi(ss[2]));
+        size.SetHeight(wxAtoi(ss[3]));
+    }
 }

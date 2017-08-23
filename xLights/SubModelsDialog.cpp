@@ -22,6 +22,7 @@
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include "UtilFunctions.h"
 //*)
 
 
@@ -173,12 +174,19 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
 
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        SetPosition(loc);
+    }
+
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(150, 150));
     PreviewSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 0);
     PreviewSizer->Fit(ModelPreviewPanelLocation);
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
-
 
     subBufferPanel = new SubBufferPanel(SubBufferPanelHolder, false, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     wxSize s(50,50);
@@ -189,7 +197,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    Center();
+    //Center();
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
 }
@@ -198,6 +206,7 @@ SubModelsDialog::~SubModelsDialog()
 {
 	//(*Destroy(SubModelsDialog)
 	//*)
+    SaveWindowPosition("xLightsSubModelDialogPosition", this);
 }
 
 SubModelsDialog::SubModelInfo &SubModelsDialog::GetSubModelInfo(const wxString &str) {
@@ -254,7 +263,17 @@ void SubModelsDialog::Setup(Model *m)
         subBufferPanel->Disable();
         TypeNotebook->Disable();
     }
+
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        SetPosition(loc);
+        SetSize(sz);
+    }
 }
+
 void SubModelsDialog::Save()
 {
     wxXmlNode * root = model->GetModelXml();
@@ -344,6 +363,7 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
 {
     Select(event.GetString());
 }
+
 void SubModelsDialog::Select(const wxString &name) {
     if (name == "") {
         NameChoice->Disable();
@@ -391,7 +411,6 @@ void SubModelsDialog::Select(const wxString &name) {
         DisplayRange(sm.subBuffer);
     }
 }
-
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
@@ -468,28 +487,28 @@ void SubModelsDialog::SelectRow(int r) {
         while (wtkz.HasMoreTokens()) {
             wxString valstr = wtkz.GetNextToken();
 
-            int start, end;
+            int start2, end2;
             if (valstr.Contains("-")) {
                 int idx = valstr.Index('-');
-                start = wxAtoi(valstr.Left(idx));
-                end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                start2 = wxAtoi(valstr.Left(idx));
+                end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
             } else {
-                start = end = wxAtoi(valstr);
+                start2 = end2 = wxAtoi(valstr);
             }
-            start--;
-            end--;
+            start2--;
+            end2--;
             bool done = false;
-            int n = start;
+            int n = start2;
             while (!done) {
                 if (n < model->GetNodeCount()) {
                     model->SetNodeColor(n, xlWHITE);
                 }
-                if (start > end) {
+                if (start2 > end2) {
                     n--;
-                    done = n < end;
+                    done = n < end2;
                 } else {
                     n++;
-                    done = n > end;
+                    done = n > end2;
                 }
             }
         }
