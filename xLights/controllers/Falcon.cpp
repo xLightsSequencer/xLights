@@ -350,6 +350,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int currentStrings = CountStrings(strings);
     logger_base.info("Falcon has %d strings. Max port we are trying to use is %d.", currentStrings, maxport);
 
+    int mainPixels = MaxPixels(strings, 0);
+    int daughter1Pixels = MaxPixels(strings, 1);
+    int daughter2Pixels = MaxPixels(strings, 2);
+
     bool changed = false;
     if (_model == "F16V2" || _model == "F16V3")
     {
@@ -357,14 +361,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         {
             logger_base.info("Adjusting string port count to 48.");
             progress.Update(25, "Adjusting string port count to 48.");
-            InitialiseStrings("m=2&S=48", currentStrings + 1, 48);
+            InitialiseStrings("m=2&S=48", currentStrings + 1, 48, mainPixels, daughter1Pixels, daughter2Pixels);
             changed = true;
         }
         else if (maxport > 16 && currentStrings < 32)
         {
             logger_base.info("Adjusting string port count to 32.");
             progress.Update(25, "Adjusting string port count to 32.");
-            InitialiseStrings("m=1&S=32", currentStrings + 1, 32);
+            InitialiseStrings("m=1&S=32", currentStrings + 1, 32, mainPixels, daughter1Pixels, daughter2Pixels);
             changed = true;
         }
     }
@@ -374,7 +378,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         {
             logger_base.info("Adjusting string port count to 12.");
             progress.Update(25, "Adjusting string port count to 12.");
-            InitialiseStrings("m=1&S=12", currentStrings + 1, 12);
+            InitialiseStrings("m=1&S=12", currentStrings + 1, 12, mainPixels, daughter1Pixels, daughter2Pixels);
             changed = true;
         }
     }
@@ -393,9 +397,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
-    int mainPixels = MaxPixels(strings, 0);
-    int daughter1Pixels = MaxPixels(strings, 1);
-    int daughter2Pixels = MaxPixels(strings, 2);
+    mainPixels = MaxPixels(strings, 0);
+    daughter1Pixels = MaxPixels(strings, 1);
+    daughter2Pixels = MaxPixels(strings, 2);
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
@@ -552,9 +556,51 @@ int Falcon::DecodeStringPortProtocol(std::string protocol)
     return -1;
 }
 
-void Falcon::InitialiseStrings(const std::string& prefix, int start, int end)
+void Falcon::InitialiseStrings(const std::string& prefix, int start, int end, int mainPixels, int daughter1Pixels, int daughter2Pixels)
 {
     std::string request = prefix;
+
+    if (end == 32)
+    {
+        if (daughter1Pixels == 0)
+        {
+            if (request != "")
+            {
+                request += "&";
+            }
+            request += wxString::Format("k0=%d&k1=%d", mainPixels - 1, 1);
+        }
+    }
+    else if (end == 48)
+    {
+        if (daughter1Pixels == 0)
+        {
+            daughter1Pixels = 1;
+            mainPixels -= 1;
+        }
+        if (daughter2Pixels == 0)
+        {
+            daughter2Pixels = 1;
+            mainPixels -= 1;
+        }
+
+        if (request != "")
+        {
+            request += "&";
+        }
+        request += wxString::Format("k0=%d&k1=%d&k2=%d", mainPixels, daughter1Pixels, daughter2Pixels);
+    }
+    else if (end == 12)
+    {
+        if (daughter1Pixels == 0)
+        {
+            if (request != "")
+            {
+                request += "&";
+            }
+            request += wxString::Format("k0=%d&k1=%d", mainPixels - 1, 1);
+        }
+    }
 
     for (int i = start-1; i < end; ++i)
     {

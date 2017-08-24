@@ -27,7 +27,7 @@ class Falcon
     int GetMaxSerialOutputs() const;
     int CountStrings(const std::string& strings);
     int MaxPixels(const std::string& strings, int board);
-    void InitialiseStrings(const std::string& prefix, int start, int end);
+    void InitialiseStrings(const std::string& prefix, int start, int end, int mainPixels, int daughter1Pixels, int daughter2Pixels);
 
 public:
     Falcon(const std::string& ip);
