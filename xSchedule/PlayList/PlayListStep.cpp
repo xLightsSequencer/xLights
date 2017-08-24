@@ -530,6 +530,8 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
 
 void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     std::string fseq = GetActiveSyncItemFSEQ();
 
     for (auto it = _items.begin(); it != _items.end(); ++it)
@@ -539,8 +541,11 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
+                logger_base.debug("Sync: Position was %d - setting to %d", pli->GetPositionMS(), frame * pli->GetFrameMS());
+
                 if (!pli->SetPosition(frame, ms))
                 {
+                    // not managed by audio file so adjust the start time
                     _startTime += frame * pli->GetFrameMS() - GetPosition();
                 }
                 break;
@@ -551,8 +556,11 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
+                logger_base.debug("Sync: Position was %d - setting to %d", pli->GetPositionMS(), frame * pli->GetFrameMS());
+
                 if (!pli->SetPosition(frame, ms))
                 {
+                    // not managed by audio file so adjust the start time
                     _startTime += frame * pli->GetFrameMS() - GetPosition();
                 }
                 break;

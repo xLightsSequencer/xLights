@@ -3753,7 +3753,6 @@ void ScheduleManager::OnServerEvent(wxSocketEvent& event)
 
                                     if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
                                     {
-                                        // if this fseq file is running stop it
                                         pls->SetSyncPosition(sp->frameNumber, (size_t)sp->secondsElapsed * 1000);
                                     }
                                 }

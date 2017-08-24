@@ -414,6 +414,8 @@ std::list<std::string> PlayListItemFSEQ::GetMissingFiles() const
 
 bool PlayListItemFSEQ::SetPosition(size_t frame, size_t ms)
 {
+    //wxASSERT(frame * _msPerFrame == ms);
+
     if (_audioManager != nullptr)
     {
         _audioManager->Seek(frame * _msPerFrame);
