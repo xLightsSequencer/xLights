@@ -1695,6 +1695,9 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					{
 						// I dont understand why this happens ... add logging when i can
 						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
+
+                        // override the track size
+                        _trackSize = read + frame->nb_samples;
 					}
 
 					// copy the PCM data into the PCM buffer for playing
