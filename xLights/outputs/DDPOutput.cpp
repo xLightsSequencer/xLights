@@ -254,7 +254,9 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
 
 void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-    wxASSERT(channel + size < _channels);
+    if (_fulldata == nullptr) return;
+
+    wxASSERT(channel + size <= _channels);
 
 #ifdef _MSC_VER
     long chs = min(size, _channels - channel);

@@ -541,12 +541,16 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
-                logger_base.debug("Sync: Position was %d - setting to %d", pli->GetPositionMS(), frame * pli->GetFrameMS());
-
-                if (!pli->SetPosition(frame, ms))
+                // only adjust position if we are more that one frame out of sync
+                if (abs((long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS()) > pli->GetFrameMS())
                 {
-                    // not managed by audio file so adjust the start time
-                    _startTime += frame * pli->GetFrameMS() - GetPosition();
+                    logger_base.debug("Sync: Position was %d - setting to %d: %d", pli->GetPositionMS(), frame * pli->GetFrameMS(), frame * pli->GetFrameMS() - pli->GetPositionMS());
+
+                    if (!pli->SetPosition(frame, ms))
+                    {
+                        // not managed by audio file so adjust the start time
+                        _startTime += frame * pli->GetFrameMS() - GetPosition();
+                    }
                 }
                 break;
             }
@@ -556,12 +560,16 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
-                logger_base.debug("Sync: Position was %d - setting to %d", pli->GetPositionMS(), frame * pli->GetFrameMS());
-
-                if (!pli->SetPosition(frame, ms))
+                // only adjust position if we are more that one frame out of sync
+                if (abs((long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS()) > pli->GetFrameMS())
                 {
-                    // not managed by audio file so adjust the start time
-                    _startTime += frame * pli->GetFrameMS() - GetPosition();
+                    logger_base.debug("Sync: Position was %d - setting to %d: %d", pli->GetPositionMS(), frame * pli->GetFrameMS(), frame * pli->GetFrameMS() - pli->GetPositionMS());
+
+                    if (!pli->SetPosition(frame, ms))
+                    {
+                        // not managed by audio file so adjust the start time
+                        _startTime += frame * pli->GetFrameMS() - GetPosition();
+                    }
                 }
                 break;
             }
