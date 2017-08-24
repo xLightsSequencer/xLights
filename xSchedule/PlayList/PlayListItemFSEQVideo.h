@@ -29,7 +29,7 @@ protected:
     size_t _startChannel;
     size_t _channels;
     bool _fastStartAudio;
-	
+
 	std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;

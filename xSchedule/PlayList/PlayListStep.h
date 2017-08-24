@@ -80,7 +80,7 @@ public:
     size_t GetFrameMS() const;
     void AdjustTime(wxTimeSpan by);
     bool IsRunningFSEQ(const std::string& fseqFile);
-    void SetSyncPosition(size_t frame, size_t ms);
+    void SetSyncPosition(size_t frame, size_t ms, bool force = false);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
     AudioManager* GetAudioManager() const;
     #pragma endregion Getters and Setters

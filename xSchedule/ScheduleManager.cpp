@@ -56,6 +56,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _brightness = 100;
     _lastBrightness = 100;
     _xyzzy = nullptr;
+    _timerAdjustment = 0;
     _lastXyzzyCommand = wxDateTime::Now();
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -365,9 +366,10 @@ void ScheduleManager::StopAll()
     }
 }
 
-void ScheduleManager::Frame(bool outputframe)
+int ScheduleManager::Frame(bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int rate = 0;
 
     // timeout xyzzy if no api calls for 15 seconds
     if (_xyzzy != nullptr && (wxDateTime::Now() - _lastXyzzyCommand).GetSeconds() > 15)
@@ -393,6 +395,7 @@ void ScheduleManager::Frame(bool outputframe)
         bool done = false;
         if (running != nullptr)
         {
+            rate = running->GetFrameMS();
             done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
             if (outputframe && _mode == SYNCMODE::FPPMASTER)
@@ -543,6 +546,8 @@ void ScheduleManager::Frame(bool outputframe)
             }
         }
     }
+
+    return rate;
 }
 
 void ScheduleManager::CreateBrightnessArray()
@@ -3745,15 +3750,21 @@ void ScheduleManager::OnServerEvent(wxSocketEvent& event)
                                 {
                                     StartFSEQ(std::string(sp->filename));
                                     pl = GetRunningPlayList();
-                                }
 
-                                if (pl != nullptr)
+                                    PlayListStep* pls = pl->GetRunningStep();
+
+                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
+                                    {
+                                        pls->SetSyncPosition(sp->frameNumber, (size_t)(sp->secondsElapsed * 1000), true);
+                                    }
+                                }
+                                else
                                 {
                                     PlayListStep* pls = pl->GetRunningStep();
 
                                     if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
                                     {
-                                        pls->SetSyncPosition(sp->frameNumber, (size_t)sp->secondsElapsed * 1000);
+                                        pls->SetSyncPosition(sp->frameNumber, (size_t)(sp->secondsElapsed * 1000));
                                     }
                                 }
                             }

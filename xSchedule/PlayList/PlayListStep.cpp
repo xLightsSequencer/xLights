@@ -18,6 +18,8 @@
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemAudio.h"
 #include <wx/filename.h>
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 int __playliststepid = 0;
 
@@ -528,9 +530,14 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
     return (fn.GetFullName().Lower() == wxString(fseqFile).Lower());
 }
 
-void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
+// Because frame and ms dont seem to be properly correlated #defining USEMS will derive the frame from the time.
+// not defining it will ignore the ms and rely on the frame
+// #define USEMS
+
+void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("SetSyncPosition: Frame %ld MS %ld Force %s.", (long)frame, (long)ms, force? "true" : "false");
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
@@ -541,16 +548,40 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
-                // only adjust position if we are more that one frame out of sync
-                if (abs((long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS()) > pli->GetFrameMS())
-                {
-                    logger_base.debug("Sync: Position was %d - setting to %d: %d", pli->GetPositionMS(), frame * pli->GetFrameMS(), frame * pli->GetFrameMS() - pli->GetPositionMS());
+                // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
-                    if (!pli->SetPosition(frame, ms))
+#ifdef USEMS
+                frame = ms / pli->GetFrameMS();
+                logger_base.debug("    Adjusted: Frame %ld.", (long)frame);
+#endif
+
+                if (force)
+                {
+                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                    pli->SetPosition(frame, ms);
+                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                }
+                else
+                {
+                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                    // only adjust position if we are more that one frame out of sync
+
+                    int adjustment = 0;
+                    if (timeDiff == 0)
                     {
-                        // not managed by audio file so adjust the start time
-                        _startTime += frame * pli->GetFrameMS() - GetPosition();
                     }
+                    else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                    {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                    }
+                    else if (abs(timeDiff) > pli->GetFrameMS())
+                    {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                    }
+
+                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                 }
                 break;
             }
@@ -560,16 +591,39 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms)
             PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
             if (fseq == pli->GetFSEQFileName())
             {
-                // only adjust position if we are more that one frame out of sync
-                if (abs((long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS()) > pli->GetFrameMS())
-                {
-                    logger_base.debug("Sync: Position was %d - setting to %d: %d", pli->GetPositionMS(), frame * pli->GetFrameMS(), frame * pli->GetFrameMS() - pli->GetPositionMS());
+                //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
+#ifdef USEMS
+                frame = ms / pli->GetFrameMS();
+                logger_base.debug("    Adjusted: Frame %ld.", (long)frame);
+#endif
 
-                    if (!pli->SetPosition(frame, ms))
-                    {
-                        // not managed by audio file so adjust the start time
-                        _startTime += frame * pli->GetFrameMS() - GetPosition();
+                if (force)
+                {
+                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                    pli->SetPosition(frame, ms);
+                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                }
+                else
+                {
+                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                    // only adjust position if we are more that one frame out of sync
+
+                    int adjustment = 0;
+                    if (timeDiff == 0)
+                    {                        
                     }
+                    else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                    {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                    }
+                    else if (abs(timeDiff) > pli->GetFrameMS())
+                    {
+                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                    }
+
+                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                 }
                 break;
             }

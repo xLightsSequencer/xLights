@@ -7,6 +7,7 @@
 
 PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
 {
+    _currentFrame = 0;
     _channels = 0;
     _startChannel = 1;
     _controlsTimingCache = false;
@@ -28,6 +29,7 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
+    _currentFrame = 0;
 
     if (_fastStartAudio)
     {
@@ -83,7 +85,10 @@ void PlayListItemFSEQ::LoadAudio()
         }
     }
 
-    if (wxFile::Exists(af))
+    if (IsInSlaveMode())
+    {
+    }
+    else if (wxFile::Exists(af))
     {
         _audioManager = new AudioManager(af);
 
@@ -134,6 +139,7 @@ PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
     _durationMS = 0;
     _audioManager = nullptr;
     _fseqFile = nullptr;
+    _currentFrame = 0;
 }
 
 PlayListItem* PlayListItemFSEQ::Copy() const
@@ -302,6 +308,10 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     {
         return _audioManager->Tell();
     }
+    else
+    {
+        return _currentFrame * GetFrameMS();
+    }
 
     return 0;
 }
@@ -322,6 +332,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
                 _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
             }
         }
+        _currentFrame++;
     }
 }
 
@@ -332,6 +343,7 @@ void PlayListItemFSEQ::Restart()
         _audioManager->Stop();
         _audioManager->Play(0, _audioManager->LengthMS());
     }
+    _currentFrame = 0;
 }
 
 void PlayListItemFSEQ::Start()
@@ -344,6 +356,7 @@ void PlayListItemFSEQ::Start()
     {
         _audioManager->Play(0, _audioManager->LengthMS());
     }
+    _currentFrame = 0;
 }
 
 void PlayListItemFSEQ::Suspend(bool suspend)
@@ -373,6 +386,7 @@ void PlayListItemFSEQ::Stop()
         _audioManager->Stop();
     }
     CloseFiles();
+    _currentFrame = 0;
 }
 
 void PlayListItemFSEQ::CloseFiles()
@@ -414,8 +428,9 @@ std::list<std::string> PlayListItemFSEQ::GetMissingFiles() const
 
 bool PlayListItemFSEQ::SetPosition(size_t frame, size_t ms)
 {
-    wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
 
+    _currentFrame = frame;
     if (_audioManager != nullptr)
     {
         _audioManager->Seek(frame * _msPerFrame);

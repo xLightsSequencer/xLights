@@ -48,7 +48,11 @@ void PlayListItemAudio::LoadFiles()
         }
     }
 
-    if (wxFile::Exists(_audioFile))
+    if (IsInSlaveMode())
+    {
+        
+    }
+    else if (wxFile::Exists(_audioFile))
     {
         _audioManager = new AudioManager(_audioFile);
 

@@ -1,10 +1,13 @@
 #include "PlayListItem.h"
 #include <wx/xml/xml.h>
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 int __playlistitemid = 0;
 
 PlayListItem::PlayListItem(wxXmlNode* node)
 {
+    _currentFrame = 0;
     _id = __playlistitemid++;
     _priority = 0;
     _volume = -1;
@@ -27,6 +30,7 @@ void PlayListItem::Load(wxXmlNode* node)
 
 PlayListItem::PlayListItem()
 {
+    _currentFrame = 0;
     _name = "";
     _id = __playlistitemid++;
     _volume = -1;
@@ -81,4 +85,11 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_name = _name;
     to->_priority = _priority;
     to->_volume = _volume;
+}
+
+bool PlayListItem::IsInSlaveMode() const
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+
+    return (sm->GetMode() == SYNCMODE::FPPSLAVE || sm->GetMode() == SYNCMODE::ARTNETSLAVE);
 }

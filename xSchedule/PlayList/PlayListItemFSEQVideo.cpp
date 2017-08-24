@@ -10,6 +10,7 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _currentFrame = 0;
     _topMost = true;
     _window = nullptr;
     _videoFile = "";
@@ -97,7 +98,10 @@ void PlayListItemFSEQVideo::LoadAudio()
         }
     }
 
-    if (wxFile::Exists(af))
+    if (IsInSlaveMode())
+    {
+    }
+    else if (wxFile::Exists(af))
     {
         _audioManager = new AudioManager(af);
 
@@ -139,6 +143,7 @@ void PlayListItemFSEQVideo::LoadFiles()
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 {
+    _currentFrame = 0;
     _topMost = true;
     _fastStartAudio = false;
     _channels = 0;
@@ -349,13 +354,17 @@ size_t PlayListItemFSEQVideo::GetPositionMS() const
     {
         return _audioManager->Tell();
     }
+    else
+    {
+        return _currentFrame * GetFrameMS();
+    }
 
     return 0;
 }
 
 wxImage PlayListItemFSEQVideo::CreateImageFromFrame(AVFrame* frame)
 {
-    if (frame != NULL)
+    if (frame != nullptr)
     {
         wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
         img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
@@ -384,6 +393,7 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         {
             _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
         }
+        _currentFrame++;
     }
 	
     AVFrame* img = _videoReader->GetNextFrame(ms, framems);
@@ -402,6 +412,7 @@ void PlayListItemFSEQVideo::Restart()
         _audioManager->Stop();
         _audioManager->Play(0, _audioManager->LengthMS());
     }
+    _currentFrame = 0;
 }
 
 void PlayListItemFSEQVideo::Start()
@@ -410,6 +421,7 @@ void PlayListItemFSEQVideo::Start()
     // load the audio
     LoadFiles();
 
+    _currentFrame = 0;
     if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Play(0, _audioManager->LengthMS());
@@ -470,6 +482,7 @@ void PlayListItemFSEQVideo::Stop()
         delete _window;
         _window = nullptr;
     }
+    _currentFrame = 0;
 }
 
 void PlayListItemFSEQVideo::CloseFiles()
@@ -527,8 +540,9 @@ std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles() const
 
 bool PlayListItemFSEQVideo::SetPosition(size_t frame, size_t ms)
 {
-    wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
+    //wxASSERT(abs((long)frame * _msPerFrame - (long)ms) < _msPerFrame);
 
+    _currentFrame = frame;
     if (_audioManager != nullptr)
     {
         _audioManager->Seek(frame * _msPerFrame);

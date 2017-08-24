@@ -166,6 +166,7 @@ public:
         void DoCheckSchedule(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
+        void CorrectTimer(int rate);
 
         //(*Identifiers(xScheduleFrame)
         static const long ID_BITMAPBUTTON1;

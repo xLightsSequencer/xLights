@@ -1020,7 +1020,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     static int last = -1;
     if (__schedule == nullptr) return;
 
-    __schedule->Frame(_timerOutputFrame);
+    int rate = __schedule->Frame(_timerOutputFrame);
 
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
@@ -1030,6 +1030,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     }
 
     _timerOutputFrame = !_timerOutputFrame;
+
+    CorrectTimer(rate);
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1084,13 +1086,7 @@ void xScheduleFrame::UpdateSchedule()
         }
     }
 
-    // if the desired rate is different than the current rate then restart timer with the desired rate
-    if (_timer.GetInterval() != rate / 2)
-    {
-        _timer.Stop();
-        if (rate == 0) rate = 50;
-        _timer.Start(rate / 2);
-    }
+    CorrectTimer(rate);
 
     // Ensure I am firing on the minute
     if (wxDateTime::Now().GetSecond() != 0)
@@ -1245,13 +1241,7 @@ void xScheduleFrame::CreateButtons()
 
 void xScheduleFrame::RateNotification(wxCommandEvent& event)
 {
-    if (_timer.GetInterval() != event.GetInt() / 2)
-    {
-        _timer.Stop();
-        int rate = event.GetInt();
-        if (rate == 0) rate = 50;
-        _timer.Start(rate / 2);
-    }
+    CorrectTimer(event.GetInt());
 }
 
 void xScheduleFrame::StatusMsgNotification(wxCommandEvent& event)
@@ -1295,12 +1285,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     std::string msg = "";
     __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, schedule, rate, msg);
 
-    if (rate / 2 != _timer.GetInterval())
-    {
-        _timer.Stop();
-        if (rate == 0) rate = 50;
-        _timer.Start(rate / 2);
-    }
+    CorrectTimer(rate);
 
     UpdateSchedule();
     UpdateUI();
@@ -1949,12 +1934,7 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             std::string msg = "";
             __schedule->Action((*it)->GetLabel(), playlist, schedule, rate, msg);
 
-            if (rate / 2 != _timer.GetInterval())
-            {
-                _timer.Stop();
-                if (rate == 0) rate = 50;
-                _timer.Start(rate / 2);
-            }
+            CorrectTimer(rate);
 
             UpdateSchedule();
             return true;
@@ -1962,6 +1942,16 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
     }
 
     return false;
+}
+
+void xScheduleFrame::CorrectTimer(int rate)
+{
+    if (rate == 0) rate = 50;
+    if ((rate - __schedule->GetTimerAdjustment()) / 2 != _timer.GetInterval())
+    {
+        _timer.Stop();
+        _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
+    }
 }
 
 void xScheduleFrame::OnBitmapButton_VolumeDownClick(wxCommandEvent& event)

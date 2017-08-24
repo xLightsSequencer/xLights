@@ -22,10 +22,12 @@ protected:
     size_t _delay;
     size_t _priority;
     int _volume;
+    int _currentFrame;
     #pragma endregion Member Variables
 
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
+    bool IsInSlaveMode() const;
 
 public:
 
@@ -47,6 +49,7 @@ public:
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     virtual long GetLength() { return _frames; }
     long GetDelay() const { return _delay; }
+    int GetCurrentFrame() const { return _currentFrame; }
     void SetDelay(long delay) { if (_delay != delay) { _delay = delay; _changeCount++; } }
     int GetVolume() const { return _volume; }
     void SetVolume(int volume) { if (_volume != volume) { _volume = volume; _changeCount++; } }
