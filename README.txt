@@ -11,10 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (gil)     Improve effect selection so it selects effects with boundaries outside both edges of the selection.
    -- enh (keith)   Add option to auto save your perspectives and keep them between show directories on the same machine
    -- bug (keith)   Prevent invalid pixel split on falcon upload
    -- enh (keith)   Remember submodel dialog size and position
-   -- enh (keith)   Add a simple snowflake shape 
+   -- enh (keith)   Add a simple snowflake shape
    -- bug (chris)   Fix #900 ogg files not loading correctly
    -- enh (keith)   Add ability to import LOR prop files as custom models
    -- enh (keith)   Make scheduler slowy adjust synch with an FPP master instead of jumping

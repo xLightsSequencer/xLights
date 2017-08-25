@@ -402,6 +402,11 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
             }
             num_selected++;
         }
+        else if(mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
+        {
+            mEffects[i]->SetSelected(EFFECT_SELECTED);
+            num_selected++;
+        }
     }
     return num_selected;
 }
