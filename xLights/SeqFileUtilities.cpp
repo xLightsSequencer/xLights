@@ -210,8 +210,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                     }
                     else
                     {
-                        // Touch the xml file to stop this prompt occuring again
-                        fn.Touch();
+                        if (wxFile::Exists(fn.GetFullPath()))
+                        {
+                            // Touch the xml file to stop this prompt occuring again
+                            fn.Touch();
+                        }
                     }
                 }
             }

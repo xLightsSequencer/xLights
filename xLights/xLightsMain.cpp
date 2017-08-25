@@ -2858,7 +2858,10 @@ void xLightsFrame::CheckUnsavedChanges()
             effectsFile.AssignDir(CurrentDir);
             effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
             wxFileName fn(effectsFile.GetFullPath());
-            fn.Touch();
+            if (wxFile::Exists(fn.GetFullPath()))
+            {
+                fn.Touch();
+            }
         }
     }
 
