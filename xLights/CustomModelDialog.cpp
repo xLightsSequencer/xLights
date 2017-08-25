@@ -892,8 +892,6 @@ void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
         }
     }
 
-
     UpdateBackground();
     ValidateWindow();
-
 }

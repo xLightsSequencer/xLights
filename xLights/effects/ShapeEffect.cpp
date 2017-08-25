@@ -678,17 +678,17 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
 
     for (double x = -2.0; x <= 2.0; x += 0.01f)
     {
-        double y1 = sqrt(1 - (abs(x) - 1) * (abs(x) - 1));
-        double y2 = acosf(1 - abs(x)) - M_PI;
+        double y1 = sqrt(1.0 - (abs(x) - 1.0) * (abs(x) - 1.0));
+        double y2 = acosf(1.0 - abs(x)) - M_PI;
 
         double r = radius;
 
-        for (double i = 0; i < t; i += interpolation)
+        for (double i = 0.0; i < t; i += interpolation)
         {
             if (r >= 0)
             {
-                buffer.SetPixel(std::round(x * r / 2) + xc, std::round(y1 * r / 2) + yc, color);
-                buffer.SetPixel(std::round(x * r / 2) + xc, std::round(y2 * r / 2) + yc, color);
+                buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y1 * r / 2.0) + yc, color);
+                buffer.SetPixel(std::round(x * r / 2.0) + xc, std::round(y2 * r / 2.0) + yc, color);
             }
             else
             {

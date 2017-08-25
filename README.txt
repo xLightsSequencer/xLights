@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add option to auto save your perspectives and keep them between show directories on the same machine
+   -- bug (keith)   Prevent invalid pixel split on falcon upload
+   -- enh (keith)   Remember submodel dialog size and position
+   -- enh (keith)   Add a simple snowflake shape 
+   -- bug (chris)   Fix #900 ogg files not loading correctly
+   -- enh (keith)   Add ability to import LOR prop files as custom models
+   -- enh (keith)   Make scheduler slowy adjust synch with an FPP master instead of jumping
+2017.24  Aug 21, 2017
    -- bug (gil)     Fix custom previews not showing correct background in House Preview window.
    -- bug (gil)     Fix custom previews not initialized with correct brightness. Fixes #691.
    -- enh (gil)     Make double-click in open grid work like it used to.

@@ -220,7 +220,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     } else {
                         Nodes.back()->SetName(wxString::Format("Node %d", (idx + 1)).ToStdString());
                     }
-                    
+
                     Nodes.back()->AddBufCoord(col,height - row - 1);
                 } else {
                     // mapped - so add a coord to existing node
@@ -313,6 +313,11 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
 
 void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    if (!wxString(filename).Lower().EndsWith("xmodel"))
+    {
+        return ImportLORModel(filename, xlights, min_x, max_x, min_y, max_y);
+    }
+
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())
@@ -376,6 +381,273 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
     else
     {
         wxMessageBox("Failure loading custom model file.");
+    }
+}
+
+bool point_compare(const wxPoint first, const wxPoint second)
+{
+    if (first.x == second.x)
+    {
+        return first.y < second.y;
+    }
+
+    return first.x < second.x;
+}
+
+void RemoveDuplicatePixels(std::list<std::list<wxPoint>>& chs)
+{
+    std::list<wxPoint> flat;
+    std::list<wxPoint> duplicates;
+
+    for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+    {
+        for (auto it = ch->begin(); it != ch->end(); ++it)
+        {
+            flat.push_back(wxPoint(it->x, it->y));
+        }
+    }
+
+    flat.sort(point_compare);
+
+    for (auto it = flat.begin(); it != flat.end(); ++it)
+    {
+        auto it2 = it;
+        ++it2;
+
+        if (it2 != flat.end())
+        {
+            if (it->x == it2->x && it->y == it2->y && 
+                (duplicates.size() == 0 || duplicates.back().x != it->x || duplicates.back().y != it->y))
+            {
+                duplicates.push_back(*it);
+            }
+        }
+    }
+
+    for (auto d = duplicates.begin(); d != duplicates.end(); ++d)
+    {
+        bool first = true;
+
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+        {
+            auto it = ch->begin();
+            while (it != ch->end())
+            {
+                if (it->x == d->x && it->y == d->y)
+                {
+                    if (first)
+                    {
+                        first = false;
+                        ++it;
+                    }
+                    else
+                    {
+                        ch->erase(it++);
+                    }
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+    }
+}
+
+bool HasDuplicates(float divisor, std::list<std::list<wxPoint>> chs)
+{
+    std::list<wxPoint> scaled;
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Checking for duplicates at scale %f.", divisor);
+
+    for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+    {
+        for (auto it = ch->begin(); it != ch->end(); ++it)
+        {
+            scaled.push_back(wxPoint((float)it->x * divisor, (float)it->y * divisor));
+        }
+    }
+
+    scaled.sort(point_compare);
+
+    for (auto it = scaled.begin(); it != scaled.end(); ++it)
+    {
+        auto it2 = it;
+        ++it2;
+
+        if (it2 != scaled.end())
+        {
+            if (it->x == it2->x && it->y == it2->y) return true;
+        }
+    }
+
+    return false;
+}
+
+void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        logger_base.debug("Loading LOR model %s.", (const char *)filename.c_str());
+
+        wxXmlNode* root = doc.GetRoot();
+
+        std::list<std::list<wxPoint>> chs;
+
+        for (wxXmlNode* n1 = root->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
+        {
+            if (n1->GetName() == "DrawObjects")
+            {
+                for (wxXmlNode* n2 = n1->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+                {
+                    if (n2->GetName() == "DrawObject")
+                    {
+                        for (wxXmlNode* n3 = n2->GetChildren(); n3 != nullptr; n3 = n3->GetNext())
+                        {
+                            if (n3->GetName() == "DrawPoints")
+                            {
+                                std::list<wxPoint> points;
+                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
+                                {
+                                    if (n4->GetName() == "DrawPoint")
+                                    {
+                                        points.push_back(wxPoint(wxAtoi(n4->GetAttribute("X", "-5")) / 5, wxAtoi(n4->GetAttribute("Y", "-1")) / 5));
+                                    }
+                                }
+                                chs.push_back(points);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        wxFileName fn(filename);
+        wxString newname = xlights->AllModels.GenerateModelName(fn.GetName().ToStdString());
+        SetProperty("name", newname, true);
+
+        xlights->MarkEffectsFileDirty(true);
+
+        if (chs.size() == 0)
+        {
+            logger_base.error("No model data found.");
+            wxMessageBox("Unable to import model data.");
+            return;
+        }
+
+        int minx = 999999999;
+        int maxx = -1;
+        int miny = 999999999;
+        int maxy = -1;
+
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+        {
+            for (auto it = ch->begin(); it != ch->end(); ++it)
+            {
+                if (it->x >= 0)
+                {
+                    if (it->x < minx) minx = it->x;
+                    if (it->x > maxx) maxx = it->x;
+                }
+                if (it->y >= 0)
+                {
+                    if (it->y < miny) miny = it->y;
+                    if (it->y > maxy) maxy = it->y;
+                }
+            }
+        }
+
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+        {
+            for (auto it = ch->begin(); it != ch->end(); ++it)
+            {
+                it->x = (it->x - minx);
+                it->y = (it->y - miny);
+            }
+        }
+
+        maxx -= minx;
+        maxy -= miny;
+
+        float divisor = 0.1;
+        if (HasDuplicates(1.0, chs))
+        {
+            logger_base.warn("This model is not going to import correctly as some pixels overlap.");
+            wxMessageBox("WARNING: This model is not going to import correctly as one or more pixels overlap.");
+
+            RemoveDuplicatePixels(chs);
+        }
+
+        while (HasDuplicates(divisor, chs))
+            {
+                divisor += 0.1;
+
+                if (divisor >= 1.0) break;
+            }
+
+            divisor -= 0.1 + 0.01;
+
+            while (HasDuplicates(divisor, chs))
+            {
+                divisor += 0.01;
+
+                if (divisor >= 1.0) break;
+            }
+
+        maxx = ((float)maxx * divisor) + 1;
+        maxy = ((float)maxy * divisor) + 1;
+
+        logger_base.debug("Divisor chosen %f. Model dimensions %d,%d", divisor, maxx+1, maxy+1);
+
+        SetProperty("parm1", wxString::Format("%i", maxx));
+        SetProperty("parm2", wxString::Format("%i", maxy));
+
+        int* data = (int*)malloc(maxx *  maxy * sizeof(int));
+        memset(data, 0x00, maxx *  maxy * sizeof(int));
+
+        int c = 1;
+
+        for (auto ch = chs.begin(); ch != chs.end(); ++ch)
+        {
+            for (auto it = ch->begin(); it != ch->end(); ++it)
+            {
+                int x = (float)it->x * divisor;
+                int y = (float)it->y * divisor;
+
+                wxASSERT(x >= 0 && x < maxx);
+                wxASSERT(y >= 0 && y < maxy);
+
+                data[y*maxx + x] = c;
+            }
+            c++;
+        }
+
+        std::string cm = "";
+        for (int y = 0; y < maxy; ++y)
+        {
+            for (int x = 0; x < maxx; ++x)
+            {
+                if (data[y * maxx + x] != 0)
+                {
+                    cm += wxString::Format("%i", data[y * maxx + x]);
+                }
+                if (x != maxx - 1) cm += ",";
+            }
+
+            if (y != maxy - 1) cm += ";";
+        }
+        free(data);
+
+        SetProperty("CustomModel", cm);
+        logger_base.debug("Model import done.");
+    }
+    else
+    {
+        wxMessageBox("Failure loading LOR model file.");
     }
 }
 

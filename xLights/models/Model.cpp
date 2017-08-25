@@ -2884,7 +2884,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 {
     if (last_model == "")
     {
-        wxString filename = wxFileSelector(_("Choose xLights model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf", wxFD_OPEN);
         if (filename.IsEmpty()) {
             cancelled = true;
             return model;
@@ -2892,8 +2892,10 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
         last_model = filename.ToStdString();
     }
 
-    wxXmlDocument doc(last_model);
+    // if it isnt an xmodel then it is custom
+    if (!wxString(last_model).Lower().EndsWith(".xmodel")) return model;
 
+    wxXmlDocument doc(last_model);
     if (doc.IsOk())
     {
         wxXmlNode* root = doc.GetRoot();

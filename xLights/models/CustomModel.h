@@ -31,6 +31,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsXlightsModel() override {return true;}
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
+        void ImportLORModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
         virtual void ExportXlightsModel() override;
 
         virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
