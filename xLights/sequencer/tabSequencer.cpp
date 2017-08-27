@@ -24,6 +24,7 @@
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
 #include <wx/config.h>
+#include "HousePreviewPanel.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -45,12 +46,12 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
-    sPreview1 = new ModelPreview(PanelSequencer);
-    m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
+    _modelPreviewPanel = new ModelPreview(PanelSequencer);
+    m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
-    sPreview2 = new ModelPreview(PanelSequencer, this, PreviewModels, LayoutGroups, false, 0 , true);
-    m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
-                   Left().Layer(1).BestSize(250,250));
+    _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
+    m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
+        Left().Layer(1).BestSize(250, 250));
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
@@ -162,8 +163,8 @@ void xLightsFrame::InitSequencer()
     }
 
     mSequencerInitialize = true;
-    sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
-    sPreview2->SetScaleBackgroundImage(mScaleBackgroundImage);
+    _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+    _housePreviewPanel->GetModelPreview()->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
 Model *xLightsFrame::GetModel(const std::string& name) const
@@ -562,8 +563,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
     mainSequencer->PanelEffectGrid->Refresh();
-    sPreview1->Refresh();
-    sPreview2->Refresh();
+    _modelPreviewPanel->Refresh();
+    _housePreviewPanel->Refresh();
     m_mgr->Update();
 }
 
@@ -714,8 +715,8 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
     selectedEffectName = "";
     selectedEffectString = "";
     selectedEffectPalette = "";
-    sPreview1->Refresh();
-    sPreview2->Refresh();
+    _modelPreviewPanel->Refresh();
+    _housePreviewPanel->Refresh();
 }
 
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
@@ -984,6 +985,13 @@ void xLightsFrame::SetAudioControls()
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
+        _housePreviewPanel->EnablePlayControls("Play", false);
+        _housePreviewPanel->EnablePlayControls("Pause", false);
+        _housePreviewPanel->EnablePlayControls("Stop", false);
+        _housePreviewPanel->EnablePlayControls("Rewind", false);
+        _housePreviewPanel->EnablePlayControls("Rewind10", false);
+        _housePreviewPanel->EnablePlayControls("FForward10", false);
+        _housePreviewPanel->EnablePlayControls("End", false);
 	}
 	else if (CurrentSeqXmlFile->GetSequenceType() != "Media")
 	{
@@ -995,7 +1003,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", true);
+            _housePreviewPanel->EnablePlayControls("Stop", true);
+            _housePreviewPanel->EnablePlayControls("Rewind", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("End", true);
+        }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
@@ -1004,7 +1019,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", true);
+            _housePreviewPanel->EnablePlayControls("Stop", true);
+            _housePreviewPanel->EnablePlayControls("Rewind", false);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("End", false);
+        }
 		else
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
@@ -1013,7 +1035,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", false);
+            _housePreviewPanel->EnablePlayControls("Stop", false);
+            _housePreviewPanel->EnablePlayControls("Rewind", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("End", true);
+        }
 	}
 	else
 	{
@@ -1025,7 +1054,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", false);
+            _housePreviewPanel->EnablePlayControls("Pause", false);
+            _housePreviewPanel->EnablePlayControls("Stop", false);
+            _housePreviewPanel->EnablePlayControls("Rewind", false);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("End", false);
+        }
 		else if (playType == PLAY_TYPE_STOPPED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
@@ -1034,7 +1070,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", false);
+            _housePreviewPanel->EnablePlayControls("Stop", false);
+            _housePreviewPanel->EnablePlayControls("Rewind", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("End", true);
+        }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
@@ -1043,7 +1086,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", true);
+            _housePreviewPanel->EnablePlayControls("Stop", true);
+            _housePreviewPanel->EnablePlayControls("Rewind", false);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("End", false);
+        }
 		else if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
@@ -1052,7 +1102,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", true);
+            _housePreviewPanel->EnablePlayControls("Stop", true);
+            _housePreviewPanel->EnablePlayControls("Rewind", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("End", true);
+        }
 		else
 		{
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
@@ -1061,7 +1118,14 @@ void xLightsFrame::SetAudioControls()
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, true);
 			EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, true);
-		}
+            _housePreviewPanel->EnablePlayControls("Play", true);
+            _housePreviewPanel->EnablePlayControls("Pause", false);
+            _housePreviewPanel->EnablePlayControls("Stop", false);
+            _housePreviewPanel->EnablePlayControls("Rewind", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("End", true);
+        }
 	}
 }
 
@@ -1146,6 +1210,16 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
     mainSequencer->PanelEffectGrid->ForceRefresh();
     mainSequencer->UpdateTimeDisplay(end_ms, _fps);
+}
+
+void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
+{
+    // TODO 
+}
+
+void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
+{
+    // TODO 
 }
 
 void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
@@ -1447,10 +1521,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
     TimerOutput(frame);
     if (playModel != nullptr) {
-        playModel->DisplayEffectOnWindow(sPreview1, mPointSize);
+        playModel->DisplayEffectOnWindow(_modelPreviewPanel, mPointSize);
     }
-    sPreview2->Render(&SeqData[frame][0]);
-    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); it++) {
+    _housePreviewPanel->GetModelPreview()->Render(&SeqData[frame][0]);
+    for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         if( preview->GetActive() ) {
             preview->Render(&SeqData[frame][0]);
@@ -1743,8 +1817,8 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         //did not have the layer settings panel
         m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Left().Show();
 
-        sPreview1->Refresh(false);
-        sPreview2->Refresh(false);
+        _modelPreviewPanel->Refresh(false);
+        _housePreviewPanel->Refresh(false);
         m_mgr->Update();
 
         perspective->DeleteAttribute("settings");
@@ -1752,8 +1826,8 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         perspective->AddAttribute("version", "2.0");
         perspective->AddAttribute("settings", m_mgr->SavePerspective());
     } else {
-        sPreview1->Refresh(false);
-        sPreview2->Refresh(false);
+        _modelPreviewPanel->Refresh(false);
+        _housePreviewPanel->Refresh(false);
         m_mgr->Update();
     }
 

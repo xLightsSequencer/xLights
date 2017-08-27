@@ -966,6 +966,9 @@
     <ClCompile Include="effects\ShapeEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HousePreviewPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1875,6 +1878,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="effects\ShapeEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HousePreviewPanel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

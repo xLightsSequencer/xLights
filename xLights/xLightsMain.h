@@ -84,6 +84,7 @@ class ConvertDialog;
 class ConvertLogDialog;
 class wxDebugReport;
 class RenderTreeData;
+class HousePreviewPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -135,6 +136,8 @@ wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_REWIND10, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
@@ -502,6 +505,7 @@ private:
     void OnMenuItem_SD_20Selected(wxCommandEvent& event);
     void OnMenuItem_SD_40Selected(wxCommandEvent& event);
     void OnMenuItem_SD_NoneSelected(wxCommandEvent& event);
+    void OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -679,6 +683,7 @@ private:
     static const long ID_MENU_OPENGL_2;
     static const long ID_MENU_OPENGL_1;
     static const long ID_MENUITEM19;
+    static const long ID_MNU_PLAYCONTROLSONPREVIEW;
     static const long ID_MENUITEM_AUTOSAVE_0;
     static const long ID_MENUITEM_AUTOSAVE_3;
     static const long ID_MENUITEM_AUTOSAVE_10;
@@ -782,6 +787,7 @@ private:
     wxMenuItem* MenuItemBackup;
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* Menu_GenerateCustomModel;
+    wxMenuItem* MenuItem_PlayControlsOnPreview;
     wxMenuItem* MenuItem38;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemRenderEraseMode;
@@ -901,6 +907,7 @@ private:
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
     bool _showACRamps;
+    bool _playControlsOnPreview;
     bool _autoSavePerspecive;
 
     void ShowACLights();
@@ -984,8 +991,8 @@ public:
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
     void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
-    void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
-    void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg); // = NULL);
+    void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
+    void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     OutputManager* GetOutputManager() { return &_outputManager; };
 
@@ -1192,6 +1199,7 @@ public:
     void SetACSettings(ACSTYLE style);
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
+    bool IsPaneDocked(wxWindow* window) const;
 
 private:
 
@@ -1210,8 +1218,8 @@ private:
     SequenceElements mSequenceElements;
 
     MainSequencer* mainSequencer;
-    ModelPreview * sPreview1;
-    ModelPreview * sPreview2;
+    ModelPreview * _modelPreviewPanel;
+    HousePreviewPanel *_housePreviewPanel;
     LayoutPanel *layoutPanel;
     EffectAssist* sEffectAssist;
     ColorPanel* colorPanel;
@@ -1254,6 +1262,8 @@ private:
     void StopSequence(wxCommandEvent& event);
     void SequenceFirstFrame(wxCommandEvent& event);
     void SequenceLastFrame(wxCommandEvent& event);
+    void SequenceRewind10(wxCommandEvent& event);
+    void SequenceFForward10(wxCommandEvent& event);
     void SequenceReplaySection(wxCommandEvent& event);
     void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);

@@ -530,12 +530,12 @@
 		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
-		<Unit filename="EffectTimingDialog.cpp" />
-		<Unit filename="EffectTimingDialog.h" />
 		<Unit filename="EffectIconPanel.cpp" />
 		<Unit filename="EffectIconPanel.h" />
 		<Unit filename="EffectListDialog.cpp" />
 		<Unit filename="EffectListDialog.h" />
+		<Unit filename="EffectTimingDialog.cpp" />
+		<Unit filename="EffectTimingDialog.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
 		<Unit filename="Effects.h" />
@@ -549,6 +549,8 @@
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
+		<Unit filename="HousePreviewPanel.cpp" />
+		<Unit filename="HousePreviewPanel.h" />
 		<Unit filename="IPEntryDialog.cpp" />
 		<Unit filename="IPEntryDialog.h" />
 		<Unit filename="Image.cpp" />
@@ -1109,8 +1111,8 @@
 		<Unit filename="wxsmith/DDPDialog.wxs" />
 		<Unit filename="wxsmith/DMXPanel.wxs" />
 		<Unit filename="wxsmith/EffectAssist.wxs" />
-		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
+		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
@@ -1124,6 +1126,7 @@
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
+		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
@@ -1345,6 +1348,7 @@
 					<wxDialog wxs="wxsmith/SubModelGenerateDialog.wxs" src="SubModelGenerateDialog.cpp" hdr="SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

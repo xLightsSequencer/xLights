@@ -69,9 +69,11 @@
 #include "../include/home-24.xpm"
 #include "../include/gears-24.xpm"
 #include "../include/forward-24.xpm"
+#include "../include/fforward10-24.xpm"
 #include "../include/forward-24_off.xpm"
 #include "../include/eye-open-24.xpm"
 #include "../include/backward-24.xpm"
+#include "../include/rewind10-24.xpm"
 #include "../include/backward-24_off.xpm"
 
 #include "../include/ACon.xpm"
@@ -331,6 +333,10 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm);
     } else if ("xlART_BACKWARD" == id) {
         return effectBitmaps.get(24, false, id, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm);
+    } else if ("xlART_REWIND10" == id) {
+        return effectBitmaps.get(24, false, id, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm);
+    } else if ("xlART_FFORWARD10" == id) {
+        return effectBitmaps.get(24, false, id, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm);
     } else if ("xlART_FORWARD" == id) {
         return effectBitmaps.get(24, false, id, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm);
     } else if ("xlART_REPLAY" == id) {
