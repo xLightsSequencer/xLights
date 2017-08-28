@@ -523,6 +523,8 @@
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
+		67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D181F4D21EB00983072 /* ShapePanel.cpp */; };
+		67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
@@ -1416,6 +1418,10 @@
 		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
 		67FA9FD11C67837500FED13B /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		67FA9FD21C67837500FED13B /* AudioManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioManager.cpp; sourceTree = "<group>"; };
+		67FB9D171F4D21EB00983072 /* ShapePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapePanel.h; path = effects/ShapePanel.h; sourceTree = "<group>"; };
+		67FB9D181F4D21EB00983072 /* ShapePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapePanel.cpp; path = effects/ShapePanel.cpp; sourceTree = "<group>"; };
+		67FB9D191F4D21EB00983072 /* ShapeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapeEffect.h; path = effects/ShapeEffect.h; sourceTree = "<group>"; };
+		67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapeEffect.cpp; path = effects/ShapeEffect.cpp; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
 		67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsModelsPanel.h; sourceTree = "<group>"; };
 		67FF398B1D57F54D00290DB4 /* Shapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shapes.cpp; path = models/Shapes.cpp; sourceTree = "<group>"; };
@@ -1641,6 +1647,10 @@
 		679BD3281C37552D000539FE /* Effects */ = {
 			isa = PBXGroup;
 			children = (
+				67FB9D171F4D21EB00983072 /* ShapePanel.h */,
+				67FB9D181F4D21EB00983072 /* ShapePanel.cpp */,
+				67FB9D191F4D21EB00983072 /* ShapeEffect.h */,
+				67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */,
 				67C115601E9071E900B06690 /* CandleEffect.cpp */,
 				67C115611E9071E900B06690 /* CandleEffect.h */,
 				67C115621E9071E900B06690 /* CandlePanel.cpp */,
@@ -2736,6 +2746,7 @@
 				675D404C1E896AFD0033C950 /* LiquidPanel.cpp in Sources */,
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
+				67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */,
 				67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */,
 				67BC8BBA1D2152EC009B660F /* ModelStateDialog.cpp in Sources */,
 				67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */,
@@ -2885,6 +2896,7 @@
 				67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */,
 				67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */,
 				671130B41E4EB18100AF09A7 /* VsaImportDialog.cpp in Sources */,
+				67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
 				670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
