@@ -2300,7 +2300,7 @@ ModelFaceDialog.cpp: ModelFaceDialog.h xLightsXmlFile.h NodesGridCellEditor.h Mo
 
 ModelGroupPanel.cpp: ModelGroupPanel.h xLightsMain.h models/ModelManager.h models/ModelGroup.h LayoutPanel.h
 
-ModelPreview.cpp: ModelPreview.h models/Model.h PreviewPane.h DrawGLUtils.h osxMacUtils.h ColorManager.h LayoutGroup.h
+ModelPreview.cpp: ModelPreview.h models/Model.h PreviewPane.h DrawGLUtils.h osxMacUtils.h ColorManager.h LayoutGroup.h xLightsMain.h
 
 ModelStateDialog.cpp: ModelStateDialog.h xLightsXmlFile.h NodesGridCellEditor.h ModelPreview.h DimmingCurve.h SevenSegmentDialog.h models/Model.h
 
@@ -2320,7 +2320,7 @@ PaletteMgmtDialog.h: EffectsPanel.h
 
 SubModelGenerateDialog.cpp: SubModelGenerateDialog.h
 
-SubModelsDialog.cpp: SubModelsDialog.h models/Model.h SubBufferPanel.h SubModelGenerateDialog.h ModelPreview.h DimmingCurve.h
+SubModelsDialog.cpp: SubModelsDialog.h models/Model.h SubBufferPanel.h SubModelGenerateDialog.h UtilFunctions.h ModelPreview.h DimmingCurve.h
 
 SubBufferPanel.h: xlCustomControl.h
 
@@ -2456,7 +2456,7 @@ EffectsPanel.cpp: effects/EffectManager.h effects/RenderableEffect.h EffectsPane
 
 ExportModelSelect.cpp: ExportModelSelect.h
 
-ValueCurve.cpp: ValueCurve.h
+ValueCurve.cpp: ValueCurve.h xLightsVersion.h xLightsMain.h xLightsXmlFile.h UtilFunctions.h
 
 FlickerFreeBitmapButton.cpp: FlickerFreeBitmapButton.h
 
@@ -2620,7 +2620,7 @@ effects/GarlandsEffect.cpp: effects/GarlandsEffect.h effects/GarlandsPanel.h seq
 
 effects/PlasmaPanel.cpp: effects/PlasmaPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PlasmaEffect.h
 
-effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h ValueCurveButton.h
+effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h UtilFunctions.h ValueCurveButton.h
 
 effects/RippleEffect.cpp: effects/RippleEffect.h effects/RipplePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/ripple-16.xpm ../include/ripple-24.xpm ../include/ripple-32.xpm ../include/ripple-48.xpm ../include/ripple-64.xpm
 

@@ -1742,6 +1742,8 @@ ScheduleManager.h: Schedule.h CommandManager.h FSEQFile.h
 
 FSEQFile.h: Blend.h
 
+PlayList/PlayListStep.cpp: xScheduleMain.h ScheduleManager.h
+
 PlayList/PlayListSimpleDialog.cpp: MyTreeItemData.h
 
 ScheduleManager.cpp: ScheduleManager.h ScheduleOptions.h RunningSchedule.h xScheduleMain.h xScheduleApp.h UserButton.h OutputProcess.h Xyzzy.h Control.h
@@ -1803,6 +1805,8 @@ VirtualMatrixDialog.cpp: VirtualMatrixDialog.h xScheduleMain.h ScheduleManager.h
 VirtualMatrix.cpp: VirtualMatrix.h xScheduleApp.h
 
 PlayList/PlayListItemAllOffPanel.cpp: xScheduleMain.h ScheduleManager.h
+
+PlayList/PlayListItem.cpp: xScheduleMain.h ScheduleManager.h
 
 PlayList/PlayListDialog.cpp: MyTreeItemData.h
 
