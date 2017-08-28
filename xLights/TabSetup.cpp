@@ -44,6 +44,9 @@ const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEDESCRIPTION = wxNewId();
+const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATES = wxNewId();
+const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATESYES = wxNewId();
+const long xLightsFrame::ID_NETWORK_BESUPPRESSDUPLICATESNO = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADD = wxNewId();
 const long xLightsFrame::ID_NETWORK_BULKEDIT = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
@@ -385,6 +388,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         }
         GridNetwork->SetItem(newidx, 7, (*e)->GetDescription());
         GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
+        GridNetwork->SetItem(newidx, 8, (*e)->IsSuppressDuplicateFrames() ? "Y" : "");
         if (!(*e)->IsEnabled())
         {
             GridNetwork->SetItemTextColour(newidx, *wxLIGHT_GREY);
@@ -600,6 +604,28 @@ void xLightsFrame::UpdateSelectedIPAddresses()
                 item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
         }
+    }
+}
+
+void xLightsFrame::UpdateSelectedSuppressDuplicates(bool suppressDuplicates)
+{
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    while (item != -1)
+    {
+        _outputManager.GetOutput(item)->SetSuppressDuplicateFrames(suppressDuplicates);
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    NetworkChange();
+    UpdateNetworkList(false);
+
+    item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    while (item != -1)
+    {
+        GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+        item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 }
 
@@ -1518,7 +1544,14 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         bech->Enable(false);
     }
     mnuBulkEdit->Append(ID_NETWORK_BEDESCRIPTION, "Description")->Enable(selcnt > 0);
-    mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, NULL, this);
+
+    wxMenu* mnuBulkEditSD = new wxMenu();
+    mnuBulkEditSD->Append(ID_NETWORK_BESUPPRESSDUPLICATESYES, "Yes")->Enable(selcnt > 0);
+    mnuBulkEditSD->Append(ID_NETWORK_BESUPPRESSDUPLICATESNO, "No")->Enable(selcnt > 0);
+    mnuBulkEditSD->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+
+    mnuBulkEdit->Append(ID_NETWORK_BESUPPRESSDUPLICATES, "Suppress duplicate frames", mnuBulkEditSD, "")->Enable(selcnt > 0);
+    mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenuItem* ma =  mnu.Append(ID_NETWORK_ADD, "Insert After", mnuAdd, "");
     wxMenuItem* be = mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
@@ -1637,6 +1670,14 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_BEDESCRIPTION)
     {
         UpdateSelectedDescriptions();
+    }
+    else if (id == ID_NETWORK_BESUPPRESSDUPLICATESYES)
+    {
+        UpdateSelectedSuppressDuplicates(true);
+    }
+    else if (id == ID_NETWORK_BESUPPRESSDUPLICATESNO)
+    {
+        UpdateSelectedSuppressDuplicates(false);
     }
     else if (id == ID_NETWORK_DELETE)
     {

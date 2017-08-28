@@ -19,6 +19,7 @@ const long DDPDialog::ID_STATICTEXT4 = wxNewId();
 const long DDPDialog::ID_SPINCTRL_ChannelsPerPacket = wxNewId();
 const long DDPDialog::ID_STATICTEXT3 = wxNewId();
 const long DDPDialog::ID_TEXTCTRL2 = wxNewId();
+const long DDPDialog::ID_CHECKBOX1 = wxNewId();
 const long DDPDialog::ID_BUTTON1 = wxNewId();
 const long DDPDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -65,11 +66,15 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 	FlexGridSizer4->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_ChannelsPerPacket = new wxSpinCtrl(this, ID_SPINCTRL_ChannelsPerPacket, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 512, _T("ID_SPINCTRL_ChannelsPerPacket"));
 	SpinCtrl_ChannelsPerPacket->SetValue(_T("512"));
-	FlexGridSizer4->Add(SpinCtrl_ChannelsPerPacket, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(SpinCtrl_ChannelsPerPacket, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrlDescription = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer4->Add(TextCtrlDescription, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox1 = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox1->SetValue(false);
+	FlexGridSizer4->Add(CheckBox1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	ButtonOk = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -92,6 +97,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
     SpinCtrl_ChannelsPerPacket->SetValue(DDP->GetChannelsPerPacket());
     TextCtrlDescription->SetValue(DDP->GetDescription());
     TextCtrlIPAddress->SetValue(DDP->GetIP());
+    CheckBox1->SetValue(DDP->IsSuppressDuplicateFrames());
 
     ButtonOk->SetDefault();
 
@@ -116,6 +122,7 @@ void DDPDialog::OnButtonOkClick(wxCommandEvent& event)
     _DDP->SetChannels(SpinCtrlChannels->GetValue());
     _DDP->SetChannelsPerPacket(SpinCtrl_ChannelsPerPacket->GetValue());
     _DDP->SetDescription(TextCtrlDescription->GetValue().ToStdString());
+    _DDP->SetSuppressDuplicateFrames(CheckBox1->IsChecked());
 
     EndDialog(wxID_OK);
 }

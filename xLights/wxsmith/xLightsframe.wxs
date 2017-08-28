@@ -759,15 +759,6 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON_DDP" variable="Button_DDP" member="yes">
-																<label>Add DDP</label>
-																<handler function="OnButton_DDPClick" entry="EVT_BUTTON" />
-															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON_NETWORK_CHANGE" variable="ButtonNetworkChange" member="yes">
 																<label>Change</label>
 																<handler function="OnButtonNetworkChangeClick" entry="EVT_BUTTON" />
@@ -1484,6 +1475,29 @@
 					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_30" variable="MenuItem48" member="no">
 						<label>30 Minutes</label>
 						<handler function="AutoSaveIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
+				<object class="wxMenu" name="ID_MNU_SUPPRESSDUPLICATES" variable="MenuItem29" member="yes">
+					<label>Duplicate Frames To Suppress</label>
+					<object class="wxMenuItem" name="ID_MNU_SD_None" variable="MenuItem_SD_None" member="yes">
+						<label>None</label>
+						<handler function="OnMenuItem_SD_NoneSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_SD_10" variable="MenuItem_SD_10" member="yes">
+						<label>10</label>
+						<handler function="OnMenuItem_SD_10Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_SD_20" variable="MenuItem_SD_20" member="yes">
+						<label>20</label>
+						<handler function="OnMenuItem_SD_20Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_SD_40" variable="MenuItem_SD_40" member="yes">
+						<label>40</label>
+						<handler function="OnMenuItem_SD_40Selected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 				</object>

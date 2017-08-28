@@ -35,23 +35,17 @@ bool PixelNetOutput::Open()
     _datalen = _channels;
     memset(_data, 0, sizeof(_data));
 
-#ifdef USECHANGEDETECTION
-    changed = false;
-#endif
-
     return _ok;
 }
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void PixelNetOutput::EndFrame()
+void PixelNetOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         if (_serial != nullptr)
         {
             if (_serial->WaitingToWrite() == 0)
@@ -59,31 +53,31 @@ void PixelNetOutput::EndFrame()
                 memcpy(&_serialBuffer[1], _data, sizeof(_data));
                 _serialBuffer[0] = 170;    // start of message
                 _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+                FrameOutput();
             }
         }
-#ifdef USECHANGEDETECTION
-        changed = false;
     }
-#endif
+    else
+    {
+        SkipFrame();
+    }
 }
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
 void PixelNetOutput::SetOneChannel(long channel, unsigned char data)
 {
-    _data[channel] = data == 170 ? 171 : data;
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (_data[channel] != (data == 170 ? 171 : data))
+    {
+        _data[channel] = (data == 170 ? 171 : data);
+        _changed = true;
+    }
 }
 
 void PixelNetOutput::AllOff()
 {
     memset(_data, 0, _channels);
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 

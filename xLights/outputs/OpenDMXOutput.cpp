@@ -32,64 +32,61 @@ bool OpenDMXOutput::Open()
     _data[0] = 0;   // dmx start code
     _serialConfig[2] = '2'; // use 2 stop bits so padding chars are not required
 
-#ifdef USECHANGEDETECTION
-    changed = false;
-#endif
-
     return _ok;
 }
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void OpenDMXOutput::EndFrame()
+void OpenDMXOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         if (_serial != nullptr)
         {
             _serial->SendBreak();  // sends a 1 millisecond break
             wxMilliSleep(1);      // mark after break (MAB) - 1 millisecond is overkill (8 microseconds is the minimum dmx requirement)
             _serial->Write((char *)_data, 513);
+            FrameOutput();
         }
-
-#ifdef USECHANGEDETECTION
-        changed = false;
     }
-#endif
+    else
+    {
+        SkipFrame();
+    }
 }
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
 void OpenDMXOutput::SetOneChannel(long channel, unsigned char data)
 {
-    _data[channel + 1] = data;
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (_data[channel + 1] != data)
+    {
+        _data[channel + 1] = data;
+        _changed = true;
+    }
 }
 
 void OpenDMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
     long chs = std::min(size, GetMaxChannels() - channel);
-    memcpy(&_data[channel + 1], data, chs);
 
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (memcmp(&_data[channel + 1], data, chs) == 0)
+    {
+         // nothing changed
+    }
+    else
+    {
+        memcpy(&_data[channel + 1], data, chs);
+        _changed = true;
+    }
 }
 
 void OpenDMXOutput::AllOff()
 {
     memset(&_data[1], 0x00, _channels);
-
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 

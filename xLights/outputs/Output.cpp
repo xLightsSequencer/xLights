@@ -19,10 +19,7 @@
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
 {
-#ifdef USECHANGEDETECTION
-    _changed = true;
-    _skipCount = 0;
-#endif
+    _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
@@ -30,7 +27,10 @@ Output::Output(Output* output)
     _ok = true;
     _baudRate = 0;
     _universe = 0;
+    _lastOutputTime = 0;
+    _skippedFrames = 9999;
 
+    _suppressDuplicateFrames = output->IsSuppressDuplicateFrames();
     _dirty = output->IsDirty();
     _enabled = output->IsEnabled();
     _description = output->GetDescription();
@@ -40,10 +40,7 @@ Output::Output(Output* output)
 
 Output::Output(wxXmlNode* node)
 {
-    #ifdef USECHANGEDETECTION
-        _changed = true;
-        _skipCount = 0;
-    #endif
+    _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
@@ -55,8 +52,12 @@ Output::Output(wxXmlNode* node)
     _controller = nullptr;
     _dirty = false;
     _ok = true;
+    _suppressDuplicateFrames = false;
+    _lastOutputTime = 0 ;
+    _skippedFrames = 9999;
 
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
+    _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description").ToStdString());
     _dirty = false;
     _channels = wxAtoi(node->GetAttribute("MaxChannels"));
@@ -69,10 +70,7 @@ Output::Output(wxXmlNode* node)
 
 Output::Output()
 {
-#ifdef USECHANGEDETECTION
-    _changed = true;
-    _skipCount = 0;
-#endif
+    _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
@@ -88,6 +86,9 @@ Output::Output()
     _channels = 0;
     _ip = "";
     _ok = true;
+    _suppressDuplicateFrames = false;
+    _lastOutputTime = 0;
+    _skippedFrames = 9999;
 }
 #pragma endregion Constructors and Destructors
 
@@ -97,6 +98,11 @@ void Output::Save(wxXmlNode* node)
     if (!_enabled)
     {
         node->AddAttribute("Enabled", "No");
+    }
+
+    if (_suppressDuplicateFrames)
+    {
+        node->AddAttribute("SuppressDuplicates", "Yes");
     }
 
     if (_description != "")
@@ -234,9 +240,9 @@ bool Output::operator==(const Output& output) const
 #pragma region Start and Stop
 bool Output::Open()
 {
-#ifdef USECHANGEDETECTION
-    _skipCount = 0;
-#endif
+    _changed = false;
+    _skippedFrames = 9999;
+    _lastOutputTime = 0;
 
     return true;
 }
@@ -256,9 +262,5 @@ void Output::SetManyChannels(long channel, unsigned char data[], long size)
     {
         SetOneChannel(channel + i, data[i]);
     }
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
 }
 #pragma endregion Data Setting

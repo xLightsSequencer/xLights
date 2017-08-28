@@ -34,31 +34,28 @@ bool RenardOutput::Open()
     _data[0] = 0x7E;               // start of message
     _data[1] = 0x80;               // start address
     _serialConfig[2] = '2'; // use 2 stop bits so padding chars are not required
-#ifdef USECHANGEDETECTION
-    changed = false;
-#endif
 
     return _ok;
 }
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void RenardOutput::EndFrame()
+void RenardOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         if (_serial != nullptr)
         {
             _serial->Write((char *)&_data[0], _datalen);
+            FrameOutput();
         }
-#ifdef USECHANGEDETECTION
-        changed = false;
     }
-#endif
+    else
+    {
+        SkipFrame();
+    }
 }
 #pragma endregion Frame Handling
 
@@ -79,11 +76,12 @@ void RenardOutput::SetOneChannel(long channel, unsigned char data)
     default:
         RenIntensity = data;
     }
-    _data[channel + 2] = RenIntensity;
 
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (_data[channel + 2] != RenIntensity)
+    {
+        _data[channel + 2] = RenIntensity;
+        _changed = true;
+    }
 }
 
 void RenardOutput::AllOff()

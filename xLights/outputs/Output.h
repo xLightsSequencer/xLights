@@ -3,13 +3,9 @@
 
 #include "Controller.h"
 #include <wx/window.h>
+#include <wx/time.h>
 
 class OutputManager;
-
-// Uncomment this line to turn on change detection
-// This will reduce the sending of duplicate packets but according to documentation there are certain controllers that dont like this
-// For maximum compatibility I am turning it off
-//#define USECHANGEDETECTION
 
 #pragma region Output Constants
 // These are used to identify each output type
@@ -45,13 +41,10 @@ protected:
     long _startChannel; // cached start channel of this output ... may change when reordered or other output are changed
     long _timer_msec;
     bool _ok;
-
-#ifdef USECHANGEDETECTION
-    // This suppresses duplicate packets
-    #define MAXDUPLICATESTOSUPPRESS 10
-    bool _changed;
-    int _skipCount;
-#endif
+    bool _suppressDuplicateFrames;
+    wxLongLong _lastOutputTime;
+    int _skippedFrames;
+    bool _changed; // set to true when something in the packed has changed
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node);
@@ -79,6 +72,7 @@ public:
     virtual long GetEndChannel() const { return _startChannel + _channels - 1; }
     std::string GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { _description = description; _dirty = true; }
+    void SetSuppressDuplicateFrames(const bool suppressDuplicateFrames) { _suppressDuplicateFrames = suppressDuplicateFrames; _dirty = true; }
     std::string GetIP() const { return _ip; }
     void SetIP(const std::string& ip);
     std::string GetCommPort() const { return _commPort; }
@@ -112,6 +106,7 @@ public:
     virtual bool IsValidChannelCount(long channelCount) const = 0;
     virtual size_t TxNonEmptyCount() const { return 0; }
     virtual bool TxEmpty() const { return true; }
+    bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
     #pragma endregion Getters and Setters
 
     #pragma region Operators
@@ -127,8 +122,11 @@ public:
 
     #pragma region Frame Handling
     virtual void StartFrame(long msec) { _timer_msec = msec; }
-    virtual void EndFrame() = 0;
+    virtual void EndFrame(int suppressFrames) = 0;
     virtual void ResetFrame() {}
+    void FrameOutput() { _lastOutputTime = wxGetUTCTimeMillis(); _skippedFrames = 0; _changed = false; }
+    void SkipFrame() { _skippedFrames++; }
+    bool NeedToOutput(int suppressFrames) const { return !IsSuppressDuplicateFrames() || _skippedFrames >= suppressFrames; }
     #pragma endregion Frame Handling
 
     #pragma region Data Setting

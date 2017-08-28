@@ -46,54 +46,48 @@ bool OpenPixelNetOutput::Open()
     _serialBuffer[4] = 0x15;
     _serialBuffer[5] = 0x5D;
 
-#ifdef USECHANGEDETECTION
-    changed = false;
-#endif
-
     return _ok;
 }
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void OpenPixelNetOutput::EndFrame()
+void OpenPixelNetOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         if (_serial != nullptr)
         {
             if (_serial->WaitingToWrite() == 0)
             {
                 memcpy(&_serialBuffer[6], _data, sizeof(_data));
                 _serial->Write((char *)_serialBuffer, sizeof(_serialBuffer));
+                FrameOutput();
             }
         }
-#ifdef USECHANGEDETECTION
-        changed = false;
     }
-#endif
+    else
+    {
+        SkipFrame();
+    }
 }
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
 void OpenPixelNetOutput::SetOneChannel(long channel, unsigned char data)
 {
-    _data[channel] = data == 170 ? 171 : data;
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (_data[channel] != (data == 170 ? 171 : data))
+    {
+        _data[channel] = (data == 170 ? 171 : data);
+        _changed = true;
+    }
 }
 
 void OpenPixelNetOutput::AllOff()
 {
     memset(_data, 0, _channels);
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 

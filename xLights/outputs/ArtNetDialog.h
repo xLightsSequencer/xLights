@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/button.h>
@@ -40,6 +41,7 @@ class ArtNetDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrlDescription;
+		wxCheckBox* CheckBox_SuppressDuplicates;
 		wxButton* ButtonCancel;
 		wxSpinCtrl* SpinCtrlUniverse;
 		wxStaticText* StaticText5;
@@ -75,6 +77,7 @@ class ArtNetDialog: public wxDialog
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

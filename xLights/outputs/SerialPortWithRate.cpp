@@ -22,6 +22,7 @@ const long SerialPortWithRate::ID_TEXTCTRL_LAST_CHANNEL = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT1 = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT2 = wxNewId();
 const long SerialPortWithRate::ID_TEXTCTRL_DESCRIPTION = wxNewId();
+const long SerialPortWithRate::ID_CHECKBOX1 = wxNewId();
 const long SerialPortWithRate::ID_BUTTON1 = wxNewId();
 const long SerialPortWithRate::ID_BUTTON2 = wxNewId();
 //*)
@@ -92,6 +93,9 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_DESCRIPTION"));
     TextCtrl_Description->SetMaxLength(64);
     FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+    CheckBox_SuppressDuplicates = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_SuppressDuplicates->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_SuppressDuplicates, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -123,6 +127,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
 
     FlexGridSizer1->Fit(this);
 
+    CheckBox_SuppressDuplicates->SetValue((*_serial)->IsSuppressDuplicateFrames());
     ChoiceProtocol->SetStringSelection((*_serial)->GetType());
     ChoicePort->SetStringSelection((*_serial)->GetCommPort());
     if ((*_serial)->GetBaudRate() == 0)
@@ -181,6 +186,7 @@ void SerialPortWithRate::OnButton_OkClick(wxCommandEvent& event)
     }
     (*_serial)->SetChannels(wxAtoi(TextCtrlLastChannel->GetValue()));
     (*_serial)->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+    (*_serial)->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
 
     EndDialog(wxID_OK);
 }

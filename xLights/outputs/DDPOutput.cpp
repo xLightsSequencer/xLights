@@ -135,9 +135,6 @@ bool DDPOutput::Open()
     _data[2] = 1;
     _data[3] = DDP_ID_DISPLAY;
     _sequenceNum = 1;
-    #ifdef USECHANGEDETECTION
-        _skipCount = 0;
-    #endif
 
     wxIPV4address localaddr;
     if (IPOutput::__localIP == "")
@@ -176,14 +173,12 @@ bool DDPOutput::Open()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void DDPOutput::EndFrame()
+void DDPOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _datagram == nullptr) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed || SkipCount > 10)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         long index = 0;
         long tosend = _channels;
 
@@ -224,16 +219,13 @@ void DDPOutput::EndFrame()
 
             tosend -= thissend;
             index += thissend;
+            FrameOutput();
         }
-#ifdef USECHANGEDETECTION
-        _skipCount = 0;
-        changed = false;
     }
     else
     {
-        _skipCount++;
+        SkipFrame();
     }
-#endif
 }
 #pragma endregion Frame Handling
 
@@ -242,14 +234,11 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
 {
     wxASSERT(channel < _channels);
 
-#ifdef USECHANGEDETECTION
-    if (*(_fulldata + channel) != data) {
-#endif
+    if (*(_fulldata + channel) != data) 
+    {
         *(_fulldata + channel) = data;
-#ifdef USECHANGEDETECTION
         _changed = true;
     }
-#endif
 }
 
 void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
@@ -264,19 +253,21 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
     long chs = std::min(size, _channels - channel);
 #endif
 
-    memcpy(_fulldata + channel, data, chs);
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (memcmp(_fulldata + channel, data, chs) == 0)
+    {
+        // nothing changed
+    }
+    else
+    {
+        memcpy(_fulldata + channel, data, chs);
+        _changed = true;
+    }
 }
 
 void DDPOutput::AllOff()
 {
     memset(_fulldata, 0x00, _channels);
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 

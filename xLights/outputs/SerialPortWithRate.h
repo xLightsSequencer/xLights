@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -35,6 +36,7 @@ public:
     wxChoice* ChoicePort;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxCheckBox* CheckBox_SuppressDuplicates;
     wxTextCtrl* TextCtrlLastChannel;
     wxButton* Button_Cancel;
     wxStaticText* StaticTextExplanation;
@@ -56,6 +58,7 @@ protected:
     static const long ID_STATICTEXT1;
     static const long ID_STATICTEXT2;
     static const long ID_TEXTCTRL_DESCRIPTION;
+    static const long ID_CHECKBOX1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     //*)

@@ -41,61 +41,60 @@ bool DMXOutput::Open()
     _data[3] = (len >> 8) & 0xFF;  // length MSB
     _data[4] = 0;                  // DMX start
     _data[_datalen - 1] = 0xE7;       // end of message
-#ifdef USECHANGEDETECTION
-    changed = false;
-#endif
 
     return _ok;
 }
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void DMXOutput::EndFrame()
+void DMXOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         if (_serial != nullptr)
         {
             _serial->Write((char *)_data, _datalen);
         }
-#ifdef USECHANGEDETECTION
-        changed = false;
+        FrameOutput();
     }
-#endif
+    else
+    {
+        SkipFrame();
+    }
 }
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
 void DMXOutput::SetOneChannel(long channel, unsigned char data)
 {
-    _data[channel + 5] = data;
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (_data[channel + 5] != data)
+    {
+        _changed = true;
+        _data[channel + 5] = data;
+    }
 }
 
 void DMXOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
     long chs = std::min(size, GetMaxChannels() - channel);
-    memcpy(&_data[channel + 5], data, chs);
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    
+    if (memcmp(&_data[channel + 5], data, chs) == 0)
+    {
+        // nothing changed
+    }
+    else
+    {
+        memcpy(&_data[channel + 5], data, chs);
+        _changed = true;
+    }
 }
 
 void DMXOutput::AllOff()
 {
     memset(&_data[5], 0x00, _channels);
-
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 
