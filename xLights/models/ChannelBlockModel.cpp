@@ -48,7 +48,7 @@ void ChannelBlockModel::AddTypeProperties(wxPropertyGridInterface *grid) {
             ModelXml->DeleteAttribute("ChannelProperties." + nm);
             ModelXml->AddAttribute("ChannelProperties." + nm, val);
         }
-        wxPGProperty* sp = grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(val)));
+        grid->AppendIn(p, new wxColourProperty(nm, nm, wxColor(val)));
     }
 }
 

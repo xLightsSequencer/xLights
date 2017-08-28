@@ -1305,8 +1305,6 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
         if (i != startRow)
         {
             EffectLayer* elTarget = mSequenceElements->GetVisibleEffectLayer(i - mSequenceElements->GetFirstVisibleModelRow());
-            Element *eTarget = elTarget->GetParentElement();
-
             if (std::find(uniqueLayers.begin(), uniqueLayers.end(), elTarget) == uniqueLayers.end() && elTarget != el)
             {
                 uniqueLayers.push_back(elTarget);
@@ -1916,7 +1914,6 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(r - mSequenceElements->GetFirstVisibleModelRow());
         if (el == nullptr) return;
-        Element *e = el->GetParentElement();
 
         int startBrightness = 0;
         int startTime = startMS;
@@ -1955,8 +1952,6 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
             }
             else if (eff->GetStartTimeMS() > endMS)
             {
-                int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
-
                 if (startTime < endMS && startBrightness != 0)
                 {
                     CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
@@ -1975,8 +1970,6 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
         if (!done)
         {
             // ramp to end
-            int endBrightness = 0;
-
             if (startBrightness != 0)
             {
                 CreateACEffect(el, type, startTime, endMS, startBrightness, -1, 0, false);
@@ -3922,7 +3915,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 {
                     timestopaste = selectedrows;
                     mDropRow = std::min(mRangeStartRow, mRangeEndRow);
-                    int drop_end_row = mDropRow + rowstopaste - 1 + mSequenceElements->GetFirstVisibleModelRow();
                     if (mRangeCursorRow == mRangeEndRow)
                     {
                         drop_row_offset -= timestopaste - 1;
@@ -4527,8 +4519,6 @@ void EffectsGrid::EstablishSelectionRectangle()
 
 void EffectsGrid::UpdateSelectionRectangle()
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     mSequenceElements->UnSelectAllEffects();
     mRangeEndRow = GetRow(mDragEndY) + mSequenceElements->GetFirstVisibleModelRow();
     if( mRangeEndRow >= mSequenceElements->GetRowInformationSize() )

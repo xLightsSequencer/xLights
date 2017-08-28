@@ -738,7 +738,6 @@ void MainSequencer::GetACEffectsData(wxString& copy_data) {
     int number_of_timings = 0;
     int number_of_effects = 0;
     int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
-    int first_timing_row = -1;
     int last_timing_row = 0;
     wxString effect_data;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());

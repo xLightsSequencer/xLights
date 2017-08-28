@@ -298,7 +298,6 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
             if (first != nullptr)
             {
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-                int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
                 int numstrings = first->GetNumPhysicalStrings();
                 int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
                 // upload it

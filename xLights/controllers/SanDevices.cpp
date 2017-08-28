@@ -654,7 +654,6 @@ char SanDevices::DecodeStringPortProtocol(std::string protocol)
 
 bool SanDevices::UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
 {
-    bool success = true;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxStringOutputs())
     {

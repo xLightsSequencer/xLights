@@ -297,7 +297,6 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         wxArrayString all_efdata = wxSplit(settings, '\n');
 
         bool cf1 = false;
-        bool cfac = false;
         for (int i = 0; i < all_efdata.size(); i++)
         {
             //logger_base.debug("    %d: %s", i, (const char *)all_efdata[i].c_str());

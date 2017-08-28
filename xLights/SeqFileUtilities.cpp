@@ -2263,7 +2263,6 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
     for (int str = 0; str < mc->GetNumStrands(); ++str)
     {
         StrandElement *se = model->GetStrand(str, true);
-        EffectLayer *sl = se->GetEffectLayer(0);
 
         for (int n = 0; n < se->GetNodeLayerCount(); n++) {
 

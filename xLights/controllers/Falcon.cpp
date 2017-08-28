@@ -180,7 +180,6 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
 {
     wxString request;
     int output = 0;
-    bool success = true;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);

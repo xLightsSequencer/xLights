@@ -100,6 +100,9 @@ bool FPP::Exists(const std::string& ip)
             connected = false;
         }
 
+        if (httpStream != nullptr) {
+            delete httpStream;
+        }
         http.Close();
     }
 

@@ -331,8 +331,6 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     int blue = 0;
     int count = 0;
 
-    bool edge = (x == 0 || y == 0 || x == buffer.BufferWi - 1 || y == buffer.BufferHt - 1);
-
     int startx = x - 1;
     if (startx < 0) startx = 0;
 

@@ -3957,7 +3957,6 @@ void xLightsFrame::CheckSequence(bool display)
                     int ip3 = wxAtoi(ipElements[2]);
                     int ip4 = wxAtoi(ipElements[3]);
 
-                    bool valid = true;
                     if (ip1 == 10)
                     {
                         // this is valid
