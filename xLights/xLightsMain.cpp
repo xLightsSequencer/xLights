@@ -6177,6 +6177,8 @@ void xLightsFrame::SetACSettings(ACTOOL tool)
         Button_ACFill->SetValue(true);
         OnAC_FillClick(event);
         break;
+    default:
+        break;
     }
 
     if (Button_ACSelect->IsChecked() || Button_ACOff->IsChecked())
@@ -6216,6 +6218,8 @@ void xLightsFrame::SetACSettings(ACSTYLE style)
         Button_ACRampUpDown->SetValue(true);
         OnAC_RampUpDownClick(event);
         break;
+    default:
+        break;
     }
     ACToolbar->Refresh();
 }
@@ -6232,6 +6236,8 @@ void xLightsFrame::SetACSettings(ACMODE mode)
     case ACMODE::BACKGROUND:
         Button_ACBackground->SetValue(true);
         OnAC_BackgroundClick(event);
+        break;
+    default:
         break;
     }
     ACToolbar->Refresh();
@@ -6261,6 +6267,8 @@ void xLightsFrame::SetACSettings(ACTYPE type)
     case ACTYPE::TWINKLE:
         Button_ACTwinkle->SetValue(true);
         OnAC_TwinkleClick(event);
+        break;
+    default:
         break;
     }
 

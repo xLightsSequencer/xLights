@@ -45,7 +45,7 @@ namespace log4cpp {
     **/
     class LOG4CPP_EXPORT PropertyConfigurator {
         public:
-        static void configure(const std::string& initFileName) throw (ConfigureFailure);
+        static void configure(const std::string& initFileName);
     };
 }
 
