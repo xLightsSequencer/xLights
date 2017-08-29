@@ -34,8 +34,10 @@ $(SUBDIRS): FORCE
 
 linkliquid:
 	if test ! -e lib/linux/libliquidfun.a; \
-		then if test -n "${DEB_HOST_ARCH}"; \
-            then ln -s libliquidfun.a.${DEB_HOST_ARCH} lib/linux/libliquidfun.a; \
+		then if test "${DEB_HOST_ARCH}" = "i386"; \
+            then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
+            elif test "${DEB_HOST_ARCH}" = "amd64"; \
+            then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
             else ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
         fi; \
 	fi
