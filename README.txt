@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.25  Aug 29, 2017
    -- enh (gil)     Improve effect selection so it selects effects with boundaries outside both edges of the selection.
    -- enh (keith)   Add option to auto save your perspectives and keep them between show directories on the same machine
    -- bug (keith)   Prevent invalid pixel split on falcon upload
