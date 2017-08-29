@@ -679,7 +679,7 @@ void ShapeEffect::Drawheart(RenderBuffer &buffer, int xc, int yc, double radius,
     for (double x = -2.0; x <= 2.0; x += 0.01f)
     {
         double y1 = std::sqrt(1.0 - (std::abs(x) - 1.0) * (std::abs(x) - 1.0));
-        double y2 = std::acosf(1.0 - std::abs(x)) - M_PI;
+        double y2 = std::acos(1.0 - std::abs(x)) - M_PI;
 
         double r = radius;
 
