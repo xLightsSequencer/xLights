@@ -433,8 +433,6 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
     {
         std::string sendmessage = base + "&q=0";
-        int count = 0;
-        bool somethingToUpload = false;
 
         bool portdone[100];
         memset(&portdone, 0x00, sizeof(portdone)); // all false
@@ -489,12 +487,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             else
                             {
                                 portdone[i + j] = true;
-                                count++;
                                 if (sendmessage != "") sendmessage = sendmessage + "&";
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
                                 std::string portmessage = BuildStringPort(strings, i + j, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), channelsperstring / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
-                                somethingToUpload = true;
 
                                 if (portmessage == "ABORT")
                                 {
@@ -502,15 +498,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 }
 
                                 sendmessage = sendmessage + portmessage;
+                            }
 
-                                if (count == 40)
-                                {
-                                    UploadStringPort(sendmessage, false);
-                                    stringGroup++;
-                                    sendmessage = "q=" + wxString::Format("%i", stringGroup);
-                                    count = 0;
-                                    somethingToUpload = false;
-                                }
+                            if (i+j == 40 && stringGroup == 0)
+                            {
+                                UploadStringPort(sendmessage, false);
+                                stringGroup++;
+                                sendmessage = base + "&q=" + wxString::Format("%i", stringGroup);
                             }
                         }
                     }
@@ -525,26 +519,15 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         else
                         {
                             portdone[i] = true;
-                            count++;
                             if (sendmessage != "") sendmessage = sendmessage + "&";
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
                             std::string portmessage = BuildStringPort(strings, i, DecodeStringPortProtocol(*protocol), startChannel, output->GetUniverse(), (portend - portstart + 1) / 3, first->GetName(), parent, mainPixels, daughter1Pixels, daughter2Pixels);
                             sendmessage = sendmessage + portmessage;
-                            somethingToUpload = true;
 
                             if (portmessage == "ABORT")
                             {
                                 return false;
-                            }
-
-                            if (count == 40)
-                            {
-                                UploadStringPort(sendmessage, false);
-                                stringGroup++;
-                                sendmessage = "q=" + wxString::Format("%i", stringGroup);
-                                count = 0;
-                                somethingToUpload = false;
                             }
                         }
                     }                    
@@ -565,12 +548,16 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             {
                 // nothing on this port ... ignore it
             }
+
+            if (i == 40 && stringGroup == 0)
+            {
+                UploadStringPort(sendmessage, false);
+                stringGroup++;
+                sendmessage = base + "&q=" + wxString::Format("%i", stringGroup);
+            }
         }
 
-        if (somethingToUpload)
-        {
-            UploadStringPort(sendmessage, true);
-        }
+        UploadStringPort(sendmessage, true);
     }
 
     progress.Update(100, "Done.");
@@ -639,8 +626,16 @@ void Falcon::InitialiseStrings(const std::string& prefix, int start, int end, in
         }
     }
 
+    int stringGroup = 0;
     for (int i = start-1; i < end; ++i)
     {
+        if (i == 40)
+        {
+            UploadStringPort(request + "&q=0", false);
+            request = prefix;
+            stringGroup++;
+        }
+
         if (request != "")
         {
             request += "&";
@@ -648,7 +643,7 @@ void Falcon::InitialiseStrings(const std::string& prefix, int start, int end, in
         request += wxString::Format("p%d=%d&u%d=1&s%d=1&c%d=50", i, i, i, i, i);
     }
 
-    UploadStringPort(request + "&q=0", true);
+    UploadStringPort(request + "&q=" + wxString::Format("%i", stringGroup).ToStdString(), true);
 }
 
 void Falcon::UploadStringPort(const std::string& request, bool final)
