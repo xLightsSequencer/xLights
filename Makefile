@@ -34,7 +34,10 @@ $(SUBDIRS): FORCE
 
 linkliquid:
 	if test ! -e lib/linux/libliquidfun.a; \
-		then ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
+		then if test -n "${DEB_HOST_ARCH}"; \
+            then ln -s libliquidfun.a.${DEB_HOST_ARCH} lib/linux/libliquidfun.a; \
+            else ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
+        fi; \
 	fi
 
 wxwidgets31: FORCE
