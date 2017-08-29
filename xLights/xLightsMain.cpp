@@ -544,7 +544,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACOFF, _("Off"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_OFF")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Off - DELETE"), wxEmptyString, NULL);
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACON, _("On"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_ON")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("On - O"), wxEmptyString, NULL);
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACSHIMMER, _("Shimmer"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_SHIMMER")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Shimmer - S"), wxEmptyString, NULL);
-    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle - T"), wxEmptyString, NULL);
+    ACToolbar->AddTool(ID_AUITOOLBARITEM_ACTWINKLE, _("Twinkle"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_TWINKLE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Twinkle - K"), wxEmptyString, NULL);
     ACToolbar->AddSeparator();
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACINTENSITY, _("Intensity"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_INTENSITY")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Intensity - I"), wxEmptyString, NULL);
     ACToolbar->AddTool(ID_AUITOOLBARITEM_ACRAMPUP, _("Ramp Up"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlAC_RAMPUP")),wxART_TOOLBAR), wxNullBitmap, wxITEM_CHECK, _("Ramp Up - U"), wxEmptyString, NULL);

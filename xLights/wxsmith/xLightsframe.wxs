@@ -322,7 +322,7 @@
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ACTWINKLE" variable="AC_Twinkle" member="yes">
 							<bitmap stock_id="xlAC_TWINKLE" stock_client="wxART_TOOLBAR" />
-							<shorthelp>Twinkle - T</shorthelp>
+							<shorthelp>Twinkle - K</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnAC_TwinkleClick" entry="EVT_TOOL" />
 						</object>

@@ -1992,19 +1992,19 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         return false;
     }
 
-    if (key == 'h')
+    if (key == 'h' || key == 'H')
     {
         xlights->SetACSettings(ACTOOL::CASCADE);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'f')
+    else if (key == 'f' || key == 'F')
     {
         xlights->SetACSettings(ACTOOL::FILL);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'n')
+    else if (key == 'n' || key == 'N')
     {
         xlights->SetACSettings(ACTYPE::ON);
         DoACDraw(true);
@@ -2016,54 +2016,54 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         DoACDraw(true);
         return true;
     }
-    else if (key == 't')
+    else if (key == 'k' || key == 'K')
     {
         xlights->SetACSettings(ACTYPE::TWINKLE);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'L')
+    else if (key == 'l' || key == 'L')
     {
         xlights->SetACSettings(ACTYPE::SELECT);
         DoACDraw(true);
         return true;
     }
-    else if (key == 's')
+    else if (key == 's' || key == 'S')
     {
         xlights->SetACSettings(ACTYPE::SHIMMER);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'i')
+    else if (key == 'i' || key == 'I')
     {
         xlights->SetACSettings(ACSTYLE::INTENSITY);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'u')
+    else if (key == 'u' || key == 'U')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUP);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'd')
+    else if (key == 'd' || key == 'D')
     {
         xlights->SetACSettings(ACSTYLE::RAMPDOWN);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'a')
+    else if (key == 'a' || key == 'A')
     {
         xlights->SetACSettings(ACSTYLE::RAMPUPDOWN);
         DoACDraw(true);
         return true;
     }
-    else if (key == 'g')
+    else if (key == 'g' || key == 'G')
     {
         xlights->SetACSettings(ACMODE::FOREGROUND);
         return true;
     }
-    else if (key == 'b')
+    else if (key == 'b' || key == 'B')
     {
         xlights->SetACSettings(ACMODE::BACKGROUND);
         return true;
