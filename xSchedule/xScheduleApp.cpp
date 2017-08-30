@@ -81,7 +81,12 @@ void DumpConfig()
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
-        logger_base.info("  Free Memory:%ld.", s);
+#if wxUSE_LONGLONG
+        wxString msg = wxString::Format(_T("  Free Memory: %" wxLongLongFmtSpec "d."), s);
+#else
+        wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
+#endif
+        logger_base.info("%s", (const char *)msg.c_str());
     }
     logger_base.info("  Current directory: " + std::string(wxGetCwd().c_str()));
     logger_base.info("  Machine name: " + std::string(wxGetHostName().c_str()));

@@ -1863,7 +1863,6 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 
 	_lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %ldms", _trackSize, codecContext->time_base.den, _lengthMS);
 }
 
