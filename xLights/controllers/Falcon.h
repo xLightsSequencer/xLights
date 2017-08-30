@@ -2,11 +2,24 @@
 #define FALCON_H
 
 #include <wx/protocol/http.h>
+#include <wx/xml/xml.h>
 #include <list>
 
 class Output;
 class OutputManager;
 class ModelManager;
+
+class FalconString
+{
+public:
+    int protocol;
+    int universe;
+    int startChannel;
+    int pixels;
+    std::string description;
+    int index;
+    int port;
+};
 
 class Falcon
 {
@@ -19,15 +32,19 @@ class Falcon
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol);
     void UploadStringPort(const std::string& request, bool final);
-    std::string BuildStringPort(const std::string& strings, int output, int protocol, int portstartchannel, int universe, int pixels, const std::string& description, wxWindow* parent, int mainPixels, int daughter1Pixels, int daughter2Pixels);
+    void UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, const std::vector<FalconString*>& virtualStringData);
+    std::string BuildStringPort(FalconString* string) const;
     int DecodeSerialOutputProtocol(std::string protocol);
     void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
     void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
-    int CountStrings(const std::string& strings);
-    int MaxPixels(const std::string& strings, int board);
-    void InitialiseStrings(const std::string& prefix, int start, int end, int mainPixels, int daughter1Pixels, int daughter2Pixels);
+    int CountStrings(const wxXmlDocument& stringsDoc) const;
+    int ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, std::vector<FalconString*>& virtualStringData);
+    int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int virtualStrings);
+    std::string SafeDescription(const std::string description) const;
+    FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
 
 public:
     Falcon(const std::string& ip);
