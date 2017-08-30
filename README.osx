@@ -97,3 +97,9 @@ Other library notes:
 If you need to rebuild ffmpeg:
 ./configure --disable-videotoolbox --disable-vda --disable-yasm --disable-securetransport --enable-shared --disable-indev=qtkit --extra-cflags="-mmacosx-version-min=10.7"  --disable-indev=avfoundation --disable-indev=lavfi
 
+
+wxWidgets git hash history:
+Feb 28, 2016 - cbb799b1ae3f309c99beb0d287e9bb3b62ea405c Update to 3.1.0 release from 3.0.x
+Nov 23, 2016 - b28dd88994ec144c2235721ef8e1133b3651e790 Newer version fixing various bugs, also for 10.12 sdk support
+Jun  1, 2017 - ff447038714f853a0bae1720e3e8d6f8da279c51 to be able to compile with 10.13 sdk
+Aug 30, 2017 - 4a71ba820f085a3d5a7233e9fd0e23ae4e45af58 attempt to see if fixes #884
