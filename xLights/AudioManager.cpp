@@ -648,7 +648,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     }
     else
     {
-        logger_base.error("Audio file not loaded.");
+        logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
     }
 }
 
@@ -1501,7 +1501,7 @@ int AudioManager::OpenMediaFile()
 	int res = avformat_open_input(&formatContext, _audio_file.c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
-		logger_base.error("Error opening the file %s => %d.", (const char *) _audio_file.c_str(), res);
+		logger_base.error("avformat_open_input Error opening the file %s => %d.", (const char *) _audio_file.c_str(), res);
         _ok = false;
 		return 1;
 	}
@@ -1509,7 +1509,7 @@ int AudioManager::OpenMediaFile()
 	if (avformat_find_stream_info(formatContext, nullptr) < 0)
 	{
 		avformat_close_input(&formatContext);
-        logger_base.error("Error finding the stream info %s.", (const char *)_audio_file.c_str());
+        logger_base.error("avformat_find_stream_info Error finding the stream info %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1520,7 +1520,7 @@ int AudioManager::OpenMediaFile()
 	if (streamIndex < 0)
 	{
 		avformat_close_input(&formatContext);
-        logger_base.error("Could not find any audio stream in the file %s.", (const char *)_audio_file.c_str());
+        logger_base.error("av_find_best_stream Could not find any audio stream in the file %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1532,7 +1532,7 @@ int AudioManager::OpenMediaFile()
 	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
-        logger_base.error("Couldn't open the context with the decoder %s.", (const char *)_audio_file.c_str());
+        logger_base.error("avcodec_open2 Couldn't open the context with the decoder %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
 	}
@@ -1609,8 +1609,9 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
 
     AVFrame* frame = av_frame_alloc();
-    if (!frame)
+    if (frame == nullptr)
     {
+        logger_base.error("av_frame_alloc ... error allocating frame.");
         _resultMessage = "Error allocating the frame";
         _state = 0;
         _ok = false;
@@ -1621,6 +1622,7 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
     _pcmdata = (Uint8*)malloc(_pcmdatasize + 16384); // 16384 is a fudge because some ogg files dont read consistently
     if (_pcmdata == nullptr)
     {
+        logger_base.error("Error allocating memory for pcm data: %ld", (long)_pcmdatasize + 16384);
         _ok = false;
         return;
     }
@@ -1787,12 +1789,14 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
-	_trackSize = 0;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _trackSize = 0;
 
 	AVFrame* frame = av_frame_alloc();
 	if (!frame)
 	{
-		_resultMessage = "Error allocating the frame";
+        logger_base.error("av_frame_alloc ... error allocating frame.");
+        _resultMessage = "Error allocating the frame";
 		_state = 0;
         _ok = false;
         return;
