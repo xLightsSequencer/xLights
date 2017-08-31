@@ -258,7 +258,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
                 if (starttime != 0)
                 {
-                    logger_base.debug("Video effect initialising ... seeking to start location for the video %ldMS.", (long)starttime);
+                    logger_base.debug("Video effect initialising ... seeking to start location for the video %f.", (float)starttime);
                     _videoreader->Seek(starttime * 1000);
                 }
 
