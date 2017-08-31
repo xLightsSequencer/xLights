@@ -545,7 +545,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
 
-    for (auto i = 0; i < stringData.size(); +i)
+    for (auto i = 0; i < stringData.size(); i++)
     {
         if (i < 16)
         {
