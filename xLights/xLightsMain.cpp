@@ -5574,9 +5574,9 @@ void xLightsFrame::DoDonate()
         f.Close();
         ::wxLaunchDefaultBrowser("file://" + filename);
 
-        // this is a bit dodgy ... basically I wait a second and then delete the temporary file.
+        // this is a bit dodgy ... basically I wait threee seconds and then delete the temporary file.
         // To keep the app responsive I yield frequently
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 300; ++i)
         {
             wxYield();
             wxMilliSleep(10);

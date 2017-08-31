@@ -12,10 +12,11 @@
 
 Falcon::Falcon(const std::string& ip)
 {
-	_ip = ip;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _ip = ip;
 
     _http.SetMethod("GET");
-	_connected = _http.Connect(_ip);
+    _connected = _http.Connect(_ip);
 
     if (_connected)
     {
@@ -43,25 +44,25 @@ Falcon::Falcon(const std::string& ip)
         {
             _model = modelregex.GetMatch(wxString(version), 2).ToStdString();
         }
+        logger_base.debug("Connected to falcon - Model: %s Version %s.", _model.c_str(), _version.c_str());
     }
     else
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
     }
 }
 
 int Falcon::GetMaxStringOutputs() const
 {
-    if (_model == "F4V2" || _model == "F4V3")
+    if (IsF4())
     {
         return 12;
     }
-    else if (_model == "F16V2")
+    else if (IsF16() && IsV2())
     {
         return 32;
     }
-    else if (_model == "F16V3")
+    else if (IsF16() && IsV3())
     {
         return 48;
     }
@@ -70,11 +71,11 @@ int Falcon::GetMaxStringOutputs() const
 
 int Falcon::GetMaxSerialOutputs() const
 {
-    if (_model == "F4V2")
+    if (IsF4())
     {
         return 1;
     }
-    else if (_model == "F16V2")
+    else if (IsF16())
     {
         return 4;
     }
@@ -146,36 +147,6 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     return res.ToStdString();
 }
 
-//void Falcon::SetInputUniverses(OutputManager* outputManager)
-//{
-//    wxString request;
-//    int output = 0;
-//
-//    auto outputs = outputManager->GetAllOutputs(_ip);
-//
-//    for (auto it = outputs.begin(); it != outputs.end(); ++it)
-//    {
-//        int t = -1;
-//        if ((*it)->GetType() == "E131")
-//        {
-//            t = 0;
-//        }
-//        else if ((*it)->GetType() == "ArtNet")
-//        {
-//            t = 1;
-//        }
-//        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-//            output, (*it)->GetUniverse(),
-//            output, (*it)->GetChannels(),
-//            output, (*it)->GetStartChannel(),
-//            output, t);
-//        output++;
-//    }
-//
-//    request = wxString::Format("z=%d", output) + request;
-//    std::string response = PutURL("/E131.htm", request.ToStdString());
-//}
-
 bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
     wxString request;
@@ -208,38 +179,6 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
     return (response != "");
 }
 
-//void Falcon::SetInputUniverses(const std::list<Output*>& inputs)
-//{
-//    wxString request;
-//
-//    request = wxString::Format("z=%d", inputs.size());
-//
-//    int output = 0;
-//
-//    for (auto it = inputs.begin(); it != inputs.end(); ++it)
-//    {
-//        int t = -1;
-//
-//        if ((*it)->GetType() == "E131")
-//        {
-//            t = 0;
-//        }
-//        else if ((*it)->GetType() == "ArtNet")
-//        {
-//            t = 1;
-//        }
-//
-//        request += wxString::Format("&u%d=%d&s%d=%d&c%d=%d&t%d=%d",
-//            output, (*it)->GetUniverse(),
-//            output, (*it)->GetChannels(),
-//            output, (*it)->GetStartChannel(),
-//            output, t);
-//        output++;
-//    }
-//
-//    std::string response = PutURL("/E131.htm", request.ToStdString());
-//}
-
 bool compare_startchannel(const Model* first, const Model* second)
 {
     int firstmodelstart = first->GetNumberFromChannelString(first->ModelStartChannel);
@@ -259,6 +198,19 @@ std::string Falcon::SafeDescription(const std::string description) const
     return desc.ToStdString();
 }
 
+int Falcon::GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port)
+{
+    int count = 0;
+    for (int i = 0; i < virtualStringData.size(); ++i)
+    {
+        if (virtualStringData[i]->port == port)
+        {
+            count += virtualStringData[i]->pixels;
+        }
+    }
+    return count;
+}
+
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
@@ -268,6 +220,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+
     // build a list of models on this controller
     std::list<Model*> models;
     std::list<std::string> protocolsused;
@@ -397,35 +350,22 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     int maxPixels = 680;
-    if (_model == "F16V3" || _model == "F4V3")
+    if (IsV3())
     {
         maxPixels = 1024;
     }
 
-    if (_model == "F16V2" || _model == "F16V3")
+    if (maxport > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
     {
-        if (maxport > 32 && currentStrings < 48)
-        {
-            logger_base.info("Adjusting string port count to 48.");
-            progress.Update(45, "Adjusting string port count to 48.");
-            InitialiseStrings(stringData, 48, virtualStrings);
-        }
-        else if (maxport > 16 && currentStrings < 32)
-        {
-            logger_base.info("Adjusting string port count to 32.");
-            progress.Update(45, "Adjusting string port count to 32.");
-            InitialiseStrings(stringData, 32, virtualStrings);
-        }
+        logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
+        progress.Update(45, "Adjusting string port count.");
+        InitialiseStrings(stringData, GetMaxStringOutputs(), virtualStrings);
     }
-    else
+    else if (maxport > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
     {
-        // F4Vx
-        if (maxport > 4 && currentStrings != 12)
-        {
-            logger_base.info("Adjusting string port count to 12.");
-            progress.Update(45, "Adjusting string port count to 12.");
-            InitialiseStrings(stringData, 12, virtualStrings);
-        }
+        logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
+        progress.Update(45, "Adjusting string port count.");
+        InitialiseStrings(stringData, GetDaughter2Threshold(), virtualStrings);
     }
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
@@ -545,29 +485,29 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
 
-    for (auto i = 0; i < stringData.size(); i++)
+    for (auto i = 0; i < stringData.size(); ++i)
     {
-        if (i < 16)
+        int pixels = stringData[i]->pixels + GetVirtualStringPixels(virtualStringData, stringData[i]->port);
+        if (i < GetDaughter1Threshold())
         {
-            if (stringData[i]->pixels > maxMain) maxMain = stringData[i]->pixels;
+            if (pixels > maxMain) maxMain = pixels;
         }
-        else if (i < 32)
+        else if (i < GetDaughter2Threshold())
         {
-            if (stringData[i]->pixels > maxDaughter1) maxDaughter1 = stringData[i]->pixels;
+            if (pixels > maxDaughter1) maxDaughter1 = pixels;
         }
-        else if (i < 48)
+        else
         {
-            if (stringData[i]->pixels > maxDaughter2) maxDaughter2 = stringData[i]->pixels;
+            if (pixels > maxDaughter2) maxDaughter2 = pixels;
         }
-        i++;
     }
 
-    if (stringData.size() > 32 && maxDaughter2 == 0)
+    if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
     {
         maxDaughter2 = 1;
     }
 
-    if (stringData.size() > 16 && maxDaughter1 == 0)
+    if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
     {
         maxDaughter1 = 1;
     }
@@ -602,7 +542,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     // delete all our string data
     while (stringData.size() > 0)
     {
-        delete stringData[stringData.size()-1];
+        delete stringData[stringData.size() - 1];
         stringData.pop_back();
     }
     while (virtualStringData.size() > 0)
@@ -751,11 +691,11 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
     int S = stringData.size() + virtualStringData.size();
     int m = 0;
 
-    if (stringData.size() == 48)
+    if (stringData.size() > GetDaughter2Threshold())
     {
         m = 2;
     }
-    else if (stringData.size() == 32 || stringData.size() == 12)
+    else if (stringData.size() > GetDaughter1Threshold())
     {
         m = 1;
     }
@@ -776,6 +716,7 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
             hasGreaterThan40 = true;
         }
     }
+ 
     for (int i = 0; i < virtualStringData.size(); ++i)
     {
         if (virtualStringData[i]->port < 40)

@@ -45,6 +45,13 @@ class Falcon
     void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int virtualStrings);
     std::string SafeDescription(const std::string description) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
+    bool IsF16() const { return (wxString(_model).StartsWith("F16")); }
+    bool IsF4() const { return (wxString(_model).StartsWith("F4")); }
+    bool IsV3() const { return (wxString(_model).EndsWith("V3"));}
+    bool IsV2() const { return (wxString(_model).EndsWith("V2"));}
+    int GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port);
+    int GetDaughter1Threshold() const { if (IsF16()) { return 16; } else { return 4; } }
+    int GetDaughter2Threshold() const { if (IsF16()) { return 32; } else { return 12; } }
 
 public:
     Falcon(const std::string& ip);
