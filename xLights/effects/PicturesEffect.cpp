@@ -526,7 +526,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (!rawimage.IsOk())
             return;
     }
-    
+
     if (scale_to_fit == "No Scaling" && (start_scale != end_scale))
     {
         image = rawimage;
@@ -651,10 +651,10 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 switch (dir)
                 {
                     case RENDER_PICTURE_LEFT: //0:
-                        buffer.ProcessPixel(x+xoffset_adj+BufferWi-calc_position_wi,yoffset-y-yoffset_adj,c, wrap_x);
+                        buffer.ProcessPixel(x+xoffset_adj+BufferWi-calc_position_wi,yoffset-y-yoffset_adj-1,c, wrap_x);
                         break; // left
                     case RENDER_PICTURE_RIGHT: //1:
-                        buffer.ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,yoffset-y-yoffset_adj,c, wrap_x);
+                        buffer.ProcessPixel(x+xoffset_adj+calc_position_wi-imgwidth,yoffset-y-yoffset_adj-1,c, wrap_x);
                         break; // right
                     case RENDER_PICTURE_UP: //2:
                     case RENDER_PICTURE_UPONCE: //18
@@ -678,7 +678,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                         break; // down-right
 
                     case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
-                        buffer.ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x); // - BufferHt, c);
+                        buffer.ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj-1, c, wrap_x); // - BufferHt, c);
                         break;
                     case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
                         //TODO: use rescale or resize?
