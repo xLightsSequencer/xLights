@@ -25,6 +25,8 @@ const long E131Dialog::ID_STATICTEXT6 = wxNewId();
 const long E131Dialog::ID_SPINCTRL_LAST_CHANNEL = wxNewId();
 const long E131Dialog::ID_STATICTEXT8 = wxNewId();
 const long E131Dialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
+const long E131Dialog::ID_STATICTEXT9 = wxNewId();
+const long E131Dialog::ID_CHECKBOX2 = wxNewId();
 const long E131Dialog::ID_BUTTON1 = wxNewId();
 const long E131Dialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -45,7 +47,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
 
-    Create(parent, id, _("E1.31 Setup"), pos, size, wxCAPTION, _T("id"));
+    Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -91,6 +93,11 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_DESCRIPTION"));
     TextCtrl_Description->SetMaxLength(64);
     FlexGridSizer2->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_SuppressDuplicates = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    CheckBox_SuppressDuplicates->SetValue(false);
+    FlexGridSizer2->Add(CheckBox_SuppressDuplicates, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -112,6 +119,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&E131Dialog::OnButton_CancelClick);
     //*)
 
+    CheckBox_SuppressDuplicates->SetValue(_e131->IsSuppressDuplicateFrames());
     SpinCtrl_StartUniv->SetValue(_e131->GetUniverse());
     SpinCtrl_NumUniv->SetValue(_e131->GetUniverses());
     MultiE131CheckBox->SetValue(_e131->IsOutputCollection());
@@ -191,6 +199,7 @@ void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
     _e131->SetUniverse(SpinCtrl_StartUniv->GetValue());
     _e131->SetChannels(SpinCtrl_LastChannel->GetValue());
     _e131->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+    _e131->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
 
     if (SpinCtrl_NumUniv->GetValue() > 1 && !MultiE131CheckBox->GetValue())
     {
@@ -202,6 +211,7 @@ void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
             e->SetUniverse(SpinCtrl_StartUniv->GetValue() + i);
             e->SetChannels(SpinCtrl_LastChannel->GetValue());
             e->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+            e->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
             _outputManager->AddOutput(e, last);
             last = e;
         }

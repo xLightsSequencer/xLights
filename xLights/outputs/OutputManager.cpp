@@ -19,6 +19,7 @@ OutputManager::OutputManager()
     _dirty = false;
     _syncUniverse = 0;
     _outputting = false;
+    _suppressFrames = 0;
 }
 
 OutputManager::~OutputManager()
@@ -54,6 +55,10 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
             {
                 _syncUniverse = wxAtoi(e->GetAttribute("universe"));
             }
+            else if (e->GetName() == "suppressframes")
+            {
+                _suppressFrames = wxAtoi(e->GetAttribute("frames"));
+            }
             else if (e->GetName() == "testpreset")
             {
                 _testPresets.push_back(new TestPreset(e));
@@ -83,6 +88,13 @@ bool OutputManager::Save()
     {
         wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "e131sync");
         newNode->AddAttribute("universe", wxString::Format("%d", _syncUniverse));
+        root->AddChild(newNode);
+    }
+
+    if (_suppressFrames != 0)
+    {
+        wxXmlNode* newNode = new wxXmlNode(wxXmlNodeType::wxXML_ELEMENT_NODE, "suppressframes");
+        newNode->AddAttribute("frames", wxString::Format("%d", _suppressFrames));
         root->AddChild(newNode);
     }
 
@@ -641,7 +653,7 @@ void OutputManager::EndFrame()
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        (*it)->EndFrame();
+        (*it)->EndFrame(_suppressFrames);
     }
 
     if (IsSyncEnabled())
@@ -725,7 +737,7 @@ void OutputManager::AllOff()
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
         (*it)->AllOff();
-        (*it)->EndFrame();
+        (*it)->EndFrame(_suppressFrames);
     }
     _outputCriticalSection.Leave();
 }

@@ -573,7 +573,7 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
         maxx -= minx;
         maxy -= miny;
 
-        float divisor = 0.1;
+        float divisor = 0.1f;
         if (HasDuplicates(1.0, chs))
         {
             logger_base.warn("This model is not going to import correctly as some pixels overlap.");
@@ -584,18 +584,18 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
 
         while (HasDuplicates(divisor, chs))
             {
-                divisor += 0.1;
+                divisor += 0.1f;
 
-                if (divisor >= 1.0) break;
+                if (divisor >= 1.0f) break;
             }
 
-            divisor -= 0.1 + 0.01;
+            divisor -= 0.1f + 0.01f;
 
             while (HasDuplicates(divisor, chs))
             {
-                divisor += 0.01;
+                divisor += 0.01f;
 
-                if (divisor >= 1.0) break;
+                if (divisor >= 1.0f) break;
             }
 
         maxx = ((float)maxx * divisor) + 1;

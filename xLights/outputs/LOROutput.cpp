@@ -75,7 +75,7 @@ bool LOROutput::Open()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void LOROutput::EndFrame()
+void LOROutput::EndFrame(int suppressFrames)
 {
     if (!_enabled) return;
 

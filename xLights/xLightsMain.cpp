@@ -155,7 +155,6 @@ const long xLightsFrame::ID_BUTTON_ADD_DONGLE = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
-const long xLightsFrame::ID_BUTTON_DDP = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
@@ -266,6 +265,11 @@ const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
 const long xLightsFrame::ID_MENUITEM20 = wxNewId();
+const long xLightsFrame::ID_MNU_SD_None = wxNewId();
+const long xLightsFrame::ID_MNU_SD_10 = wxNewId();
+const long xLightsFrame::ID_MNU_SD_20 = wxNewId();
+const long xLightsFrame::ID_MNU_SD_40 = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESSDUPLICATES = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
@@ -615,8 +619,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     BoxSizer1->Add(ButtonAddNull, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonArtNET = new wxButton(PanelSetup, ID_BUTTON2, _("Add ArtNET"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     BoxSizer1->Add(ButtonArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_DDP = new wxButton(PanelSetup, ID_BUTTON_DDP, _("Add DDP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DDP"));
-    BoxSizer1->Add(Button_DDP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonNetworkChange = new wxButton(PanelSetup, ID_BUTTON_NETWORK_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_CHANGE"));
     BoxSizer1->Add(ButtonNetworkChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDelete = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE"));
@@ -922,6 +924,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem48 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_30, _("30 Minutes"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem48);
     MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
+    MenuItem29 = new wxMenu();
+    MenuItem_SD_None = new wxMenuItem(MenuItem29, ID_MNU_SD_None, _("None"), wxEmptyString, wxITEM_RADIO);
+    MenuItem29->Append(MenuItem_SD_None);
+    MenuItem_SD_10 = new wxMenuItem(MenuItem29, ID_MNU_SD_10, _("10"), wxEmptyString, wxITEM_RADIO);
+    MenuItem29->Append(MenuItem_SD_10);
+    MenuItem_SD_20 = new wxMenuItem(MenuItem29, ID_MNU_SD_20, _("20"), wxEmptyString, wxITEM_RADIO);
+    MenuItem29->Append(MenuItem_SD_20);
+    MenuItem_SD_40 = new wxMenuItem(MenuItem29, ID_MNU_SD_40, _("40"), wxEmptyString, wxITEM_RADIO);
+    MenuItem29->Append(MenuItem_SD_40);
+    MenuSettings->Append(ID_MNU_SUPPRESSDUPLICATES, _("Duplicate Frames To Suppress"), MenuItem29, wxEmptyString);
     MenuItem_e131sync = new wxMenuItem(MenuSettings, ID_E131_Sync, _("Frame Sync"), _("Only enable this if your controllers support e1.31 sync. You will also need to set the synchronisation universe on the setup tab."), wxITEM_CHECK);
     MenuSettings->Append(MenuItem_e131sync);
     MenuItem_ForceLocalIP = new wxMenuItem(MenuSettings, ID_MNU_FORCEIP, _("&Force Local IP"), wxEmptyString, wxITEM_CHECK);
@@ -1007,7 +1019,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_BUTTON_ADD_E131,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddE131Click);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddNullClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonArtNETClick);
-    Connect(ID_BUTTON_DDP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_DDPClick);
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
@@ -1110,6 +1121,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MNU_SD_None,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_NoneSelected);
+    Connect(ID_MNU_SD_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_10Selected);
+    Connect(ID_MNU_SD_20,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_20Selected);
+    Connect(ID_MNU_SD_40,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_40Selected);
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -1127,6 +1142,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
+
+    _suppressDuplicateFrames = 0;
 
     AddWindowsMenu();
 
@@ -1320,6 +1337,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 	itemCol.SetAlign(wxLIST_FORMAT_LEFT);
 	GridNetwork->InsertColumn(7, itemCol);
 
+    itemCol.SetText(_T("Duplicate Suppress"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(8, itemCol);
+
     GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(2, 100);
@@ -1328,22 +1349,22 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     GridNetwork->SetColumnWidth(5, 170);
     GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
+    GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
 
     _scrollTimer.Connect(wxEVT_TIMER,
         wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
 
     // get list of most recently used directories
-    wxString dir,mru_name;
-    int idx;
+    wxString dir;
     for (int i=0; i<MRU_LENGTH; i++)
     {
-        mru_name=wxString::Format("mru%d",i);
+        wxString mru_name=wxString::Format("mru%d",i);
         dir.clear();
         if ( config->Read(mru_name, &dir) )
         {
             if (!dir.IsEmpty())
             {
-                idx=mru.Index(dir);
+                int idx=mru.Index(dir);
                 if (idx == wxNOT_FOUND) mru.Add(dir);
             }
         }
@@ -1596,6 +1617,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     else
     {
         MenuItem_ForceLocalIP->Check(false);
+    }
+
+    switch(_outputManager.GetSuppressFrames())
+    {
+    case 10:
+        MenuItem_SD_10->Check();
+        break;
+    case 20:
+        MenuItem_SD_20->Check();
+        break;
+    case 40:
+        MenuItem_SD_40->Check();
+        break;
+    default:
+    case 0:
+        MenuItem_SD_None->Check();
+        break;
     }
 
     UpdateACToolbar();
@@ -1982,7 +2020,6 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonAddDongle->Enable(flag);
     ButtonAddE131->Enable(flag);
     ButtonArtNET->Enable(flag);
-    Button_DDP->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonNetworkChange->Enable(flag);
     ButtonNetworkDelete->Enable(flag);
@@ -6286,4 +6323,32 @@ void xLightsFrame::SetACSettings(ACTYPE type)
 void xLightsFrame::OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event)
 {
     _autoSavePerspecive = MenuItem_PerspectiveAutosave->IsChecked();
+}
+
+void xLightsFrame::OnMenuItem_SD_10Selected(wxCommandEvent& event)
+{
+    _suppressDuplicateFrames = 10;
+    _outputManager.SetSuppressFrames(_suppressDuplicateFrames);
+    NetworkChange();
+}
+
+void xLightsFrame::OnMenuItem_SD_20Selected(wxCommandEvent& event)
+{
+    _suppressDuplicateFrames = 20;
+    _outputManager.SetSuppressFrames(_suppressDuplicateFrames);
+    NetworkChange();
+}
+
+void xLightsFrame::OnMenuItem_SD_40Selected(wxCommandEvent& event)
+{
+    _suppressDuplicateFrames = 40;
+    _outputManager.SetSuppressFrames(_suppressDuplicateFrames);
+    NetworkChange();
+}
+
+void xLightsFrame::OnMenuItem_SD_NoneSelected(wxCommandEvent& event)
+{
+    _suppressDuplicateFrames = 0;
+    _outputManager.SetSuppressFrames(_suppressDuplicateFrames);
+    NetworkChange();
 }

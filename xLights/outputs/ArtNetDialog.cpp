@@ -30,6 +30,7 @@ const long ArtNetDialog::ID_STATICTEXT7 = wxNewId();
 const long ArtNetDialog::ID_SPINCTRL4 = wxNewId();
 const long ArtNetDialog::ID_STATICTEXT3 = wxNewId();
 const long ArtNetDialog::ID_TEXTCTRL2 = wxNewId();
+const long ArtNetDialog::ID_CHECKBOX1 = wxNewId();
 const long ArtNetDialog::ID_BUTTON1 = wxNewId();
 const long ArtNetDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -53,7 +54,7 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent, ArtNetOutput* artnet, OutputManager
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, _("ArtNET Setup"), pos, size, wxCAPTION, _T("id"));
+	Create(parent, id, _("ArtNET Setup"), wxDefaultPosition, wxDefaultSize, wxCAPTION, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -123,6 +124,10 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent, ArtNetOutput* artnet, OutputManager
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrlDescription = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer4->Add(TextCtrlDescription, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressDuplicates = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_SuppressDuplicates->SetValue(false);
+	FlexGridSizer4->Add(CheckBox_SuppressDuplicates, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	ButtonOk = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -146,6 +151,7 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent, ArtNetOutput* artnet, OutputManager
 
     wxASSERT(artnet != nullptr);
 
+    CheckBox_SuppressDuplicates->SetValue(artnet->IsSuppressDuplicateFrames());
     SpinCtrlNet->SetValue(artnet->GetArtNetNet());
     SpinCtrlSubnet->SetValue(artnet->GetArtNetSubnet());
     SpinCtrlUniverse->SetValue(artnet->GetArtNetUniverse());
@@ -188,6 +194,7 @@ void ArtNetDialog::OnButtonOkClick(wxCommandEvent& event)
     _artnet->SetArtNetUniverse(SpinCtrlNet->GetValue(), SpinCtrlSubnet->GetValue(), SpinCtrlUniverse->GetValue());
     _artnet->SetChannels(SpinCtrlChannels->GetValue());
     _artnet->SetDescription(TextCtrlDescription->GetValue().ToStdString());
+    _artnet->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
 
     if (SpinCtrl_NumUniv->GetValue() > 1)
     {
@@ -199,6 +206,7 @@ void ArtNetDialog::OnButtonOkClick(wxCommandEvent& event)
             a->SetUniverse(SpinCtrlUniverseOnly->GetValue() + i);
             a->SetDescription(TextCtrlDescription->GetValue().ToStdString());
             a->SetChannels(SpinCtrlChannels->GetValue());
+            a->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
             _outputManager->AddOutput(a, last);
             last = a;
         }
@@ -256,6 +264,7 @@ void ArtNetDialog::UniverseChange()
         SpinCtrlNet->SetValue(ArtNetOutput::GetArtNetNet(u));
         SpinCtrlSubnet->SetValue(ArtNetOutput::GetArtNetSubnet(u));
         SpinCtrlUniverse->SetValue(ArtNetOutput::GetArtNetUniverse(u));
+
     }
 }
 

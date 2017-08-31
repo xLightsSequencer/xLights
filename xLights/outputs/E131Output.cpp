@@ -57,6 +57,7 @@ void E131Output::CreateMultiUniverses(int num)
         e->SetUniverse(_universe + i);
         e->SetChannels(_channels);
         e->SetDescription(_description);
+        e->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
         _outputs.push_back(e);
     }
 }
@@ -365,7 +366,7 @@ void E131Output::StartFrame(long msec)
     }
 }
 
-void E131Output::EndFrame()
+void E131Output::EndFrame(int suppressFrames)
 {
     if (!_enabled) return;
 
@@ -373,31 +374,24 @@ void E131Output::EndFrame()
     {
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
-            (*it)->EndFrame();
+            (*it)->EndFrame(suppressFrames);
         }
     }
     else
     {
         if (_datagram == nullptr) return;
 
-#ifdef USECHANGEDETECTION
-        // skipping would cause ECG-DR4 (firmware version 1.30) to timeout
-        if (_changed || _skipCount > 10)
+        if (_changed || NeedToOutput(suppressFrames))
         {
-#endif
             _data[111] = _sequenceNum;
             _datagram->SendTo(_remoteAddr, _data, E131_PACKET_LEN - (512 - _channels));
             _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
-
-#ifdef USECHANGEDETECTION
-            _skipCount = 0;
-            changed = false;
+            FrameOutput();
         }
         else
         {
-            _skipCount++;
+            SkipFrame();
         }
-#endif
     }
 }
 
@@ -436,14 +430,10 @@ void E131Output::SetOneChannel(long channel, unsigned char data)
     }
     else
     {
-#ifdef USECHANGEDETECTION
         if (_data[channel + E131_PACKET_HEADERLEN] != data) {
-#endif
             _data[channel + E131_PACKET_HEADERLEN] = data;
-#ifdef USECHANGEDETECTION
             _changed = true;
         }
-#endif
     }
 }
 
@@ -481,11 +471,16 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
 #else
         long chs = std::min(size, GetMaxChannels() - channel);
 #endif
-        memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
 
-#ifdef USECHANGEDETECTION
-        _changed = true;
-#endif
+        if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0)
+        {
+            // nothing changed
+        }
+        else
+        {
+            memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
+            _changed = true;
+        }
     }
 }
 
@@ -501,9 +496,7 @@ void E131Output::AllOff()
     else
     {
         memset(&_data[E131_PACKET_HEADERLEN], 0x00, _channels);
-#ifdef USECHANGEDETECTION
         _changed = true;
-#endif
     }
 }
 #pragma endregion Data Setting

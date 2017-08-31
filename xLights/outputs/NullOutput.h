@@ -31,7 +31,7 @@ public:
     
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override {}
-    virtual void EndFrame() override {}
+    virtual void EndFrame(int suppressFrames) override {}
     virtual void ResetFrame() override {}
     #pragma endregion Frame Handling
     

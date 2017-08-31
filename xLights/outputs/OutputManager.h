@@ -20,6 +20,7 @@ class OutputManager
     int _syncUniverse;
     bool _syncEnabled;
     bool _dirty;
+    int _suppressFrames;
     bool _outputting; // true if we are currently sending out data
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
@@ -106,6 +107,8 @@ public:
     TestPreset* CreateTestPreset(std::string preset);
     #pragma endregion Test Presets
 
+    void SetSuppressFrames(int suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; }
+    int GetSuppressFrames() const { return _suppressFrames; }
     std::list<std::string> GetIps() const;
     size_t TxNonEmptyCount();
     bool TxEmpty();

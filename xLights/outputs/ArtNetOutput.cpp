@@ -136,9 +136,6 @@ bool ArtNetOutput::Open()
     memset(_data, 0x00, sizeof(_data));
 
     _sequenceNum = 0;
-    #ifdef USECHANGEDETECTION
-        _skipCount = 0;
-    #endif
 
     _data[0] = 'A';   // ID[8]
     _data[1] = 'r';
@@ -224,26 +221,22 @@ bool ArtNetOutput::Open()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
-void ArtNetOutput::EndFrame()
+void ArtNetOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _datagram == nullptr) return;
 
-#ifdef USECHANGEDETECTION
-    if (changed || SkipCount > 10)
+    if (_changed || NeedToOutput(suppressFrames))
     {
-#endif
         _data[12] = _sequenceNum;
         _datagram->SendTo(_remoteAddr, _data, ARTNET_PACKET_LEN - (512 - _channels));
         _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
-#ifdef USECHANGEDETECTION
-        _skipCount = 0;
-        changed = false;
+        FrameOutput();
+        _changed = false;
     }
     else
     {
-        _skipCount++;
+        SkipFrame();
     }
-#endif
 }
 #pragma endregion Frame Handling
 
@@ -252,14 +245,10 @@ void ArtNetOutput::SetOneChannel(long channel, unsigned char data)
 {
     wxASSERT(channel < _channels);
 
-#ifdef USECHANGEDETECTION
     if (_data[channel + ARTNET_PACKET_HEADERLEN] != data) {
-#endif
         _data[channel + ARTNET_PACKET_HEADERLEN] = data;
-#ifdef USECHANGEDETECTION
         _changed = true;
     }
-#endif
 }
 
 void ArtNetOutput::SetManyChannels(long channel, unsigned char data[], long size)
@@ -272,19 +261,21 @@ void ArtNetOutput::SetManyChannels(long channel, unsigned char data[], long size
     long chs = std::min(size, _channels - channel);
 #endif
 
-    memcpy(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs);
-
-#ifdef USECHANGEDETECTION
-    _changed = true;
-#endif
+    if (memcmp(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs) == 0)
+    {
+        // nothing has changed
+    }
+    else
+    {
+        memcpy(&_data[channel + ARTNET_PACKET_HEADERLEN], data, chs);
+        _changed = true;
+    }
 }
 
 void ArtNetOutput::AllOff()
 {
     memset(&_data[ARTNET_PACKET_HEADERLEN], 0x00, _channels);
-#ifdef USECHANGEDETECTION
     _changed = true;
-#endif
 }
 #pragma endregion Data Setting
 

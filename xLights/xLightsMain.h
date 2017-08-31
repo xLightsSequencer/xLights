@@ -498,6 +498,10 @@ private:
     void OnAC_SelectClick(wxCommandEvent& event);
     void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
     void OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event);
+    void OnMenuItem_SD_10Selected(wxCommandEvent& event);
+    void OnMenuItem_SD_20Selected(wxCommandEvent& event);
+    void OnMenuItem_SD_40Selected(wxCommandEvent& event);
+    void OnMenuItem_SD_NoneSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -571,7 +575,6 @@ private:
     static const long ID_BUTTON_ADD_E131;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
-    static const long ID_BUTTON_DDP;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -682,6 +685,11 @@ private:
     static const long ID_MENUITEM_AUTOSAVE_15;
     static const long ID_MENUITEM_AUTOSAVE_30;
     static const long ID_MENUITEM20;
+    static const long ID_MNU_SD_None;
+    static const long ID_MNU_SD_10;
+    static const long ID_MNU_SD_20;
+    static const long ID_MNU_SD_40;
+    static const long ID_MNU_SUPPRESSDUPLICATES;
     static const long ID_E131_Sync;
     static const long ID_MNU_FORCEIP;
     static const long idMenuHelpContent;
@@ -722,7 +730,7 @@ private:
     wxMenuItem* MenuItem33;
     wxMenuItem* MenuItemLoadEditPerspective;
     wxMenuItem* MenuItemGridNodeValuesOff;
-    wxButton* Button_DDP;
+    wxMenuItem* MenuItem_SD_40;
     wxMenuItem* MenuItem40;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenu* ToolIconSizeMenu;
@@ -730,6 +738,7 @@ private:
     wxAuiManager* m_mgr;
     wxMenuItem* MenuItem_ExportEffects;
     wxAuiManager* MainAuiManager;
+    wxMenuItem* MenuItem_SD_20;
     wxMenuItem* MenuItemRenderCanvasMode;
     wxMenuItem* MenuItem_BackupSubfolders;
     wxMenu* MenuItem15;
@@ -813,6 +822,7 @@ private:
     wxPanel* PanelSetup;
     wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
+    wxMenu* MenuItem29;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenu* MenuItemPerspectives;
@@ -831,12 +841,14 @@ private:
     wxMenu* MenuItem1;
     wxGauge* ProgressBar;
     xlAuiToolBar* EffectsToolBar;
+    wxMenuItem* MenuItem_SD_None;
     wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* MenuItem_Help_Forum;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* MenuView;
     wxMenuItem* MenuItem_ViewLog;
     wxMenu* AudioMenu;
+    wxMenuItem* MenuItem_SD_10;
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
@@ -937,6 +949,7 @@ private:
     void UpdateSelectedIPAddresses();
     void UpdateSelectedChannels();
     void UpdateSelectedDescriptions();
+    void UpdateSelectedSuppressDuplicates(bool suppressDuplicates);
 
     void OnProgressBarDoubleClick(wxMouseEvent& event);
     std::list<RenderProgressInfo *>renderProgressInfo;
@@ -958,6 +971,7 @@ private:
     int mBackgroundBrightness;
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
+    int _suppressDuplicateFrames;
 
     // convert
 public:
@@ -1301,6 +1315,9 @@ private:
     static const long ID_NETWORK_BEIPADDR;
     static const long ID_NETWORK_BECHANNELS;
     static const long ID_NETWORK_BEDESCRIPTION;
+    static const long ID_NETWORK_BESUPPRESSDUPLICATES;
+    static const long ID_NETWORK_BESUPPRESSDUPLICATESYES;
+    static const long ID_NETWORK_BESUPPRESSDUPLICATESNO;
     static const long ID_NETWORK_ADD;
     static const long ID_NETWORK_BULKEDIT;
     static const long ID_NETWORK_DELETE;

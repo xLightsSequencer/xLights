@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -30,6 +31,7 @@ class DDPDialog: public wxDialog
 		wxTextCtrl* TextCtrlIPAddress;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxCheckBox* CheckBox1;
 		wxTextCtrl* TextCtrlDescription;
 		wxButton* ButtonCancel;
 		wxStaticText* StaticText7;
@@ -50,6 +52,7 @@ class DDPDialog: public wxDialog
 		static const long ID_SPINCTRL_ChannelsPerPacket;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

@@ -40,7 +40,7 @@ public:
     #pragma endregion Start and Stop
     
     #pragma region Frame Handling
-    virtual void EndFrame() override;
+    virtual void EndFrame(int suppressFrames) override;
     #pragma endregion Frame Handling
 
     #pragma region Data Setting

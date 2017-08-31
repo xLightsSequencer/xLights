@@ -11,8 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- bug (keith)   Fix falcon upload occasionally losing descriptions or crashing the controller
    -- bug (gil)     Fix some picture effects not displaying in the correct place
+   -- enh (keith)   Add optional output frame deduplication with key frames if a frames data does not change
+   -- bug (keith)   Fix falcon upload occasionally losing descriptions or crashing the controller
    -- bug (keith)   Change AC shortcut key Twinkle from 't' to 'k' so it doesnt clash with setting timing marks
 2017.25  Aug 29, 2017
    -- enh (gil)     Improve effect selection so it selects effects with boundaries outside both edges of the selection.
