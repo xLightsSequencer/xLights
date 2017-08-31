@@ -84,7 +84,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 
 	// get the video length in MS
 	// Use the number of frames as the best possible way to calculate length
-	_frames = _videoStream->nb_frames;
+	_frames = (long)_videoStream->nb_frames;
     if (_frames == 0 || _videoStream->avg_frame_rate.den == 0)
     {
         logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
@@ -128,7 +128,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
         if (_videoStream->avg_frame_rate.den != 0)
         {
             // This seems to work for .asf, .mkv, .flv
-            _lengthMS = _formatContext->duration / 1000;
+            _lengthMS = (long)(_formatContext->duration / 1000);
             _frames = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
         }
     }

@@ -197,6 +197,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 	double starttime, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
 		cache = new VideoRenderCache();
@@ -257,6 +258,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
                 if (starttime != 0)
                 {
+                    logger_base.debug("Video effect initialising ... seeking to start location for the video %ldMS.", (long)starttime);
                     _videoreader->Seek(starttime * 1000);
                 }
 
@@ -281,12 +283,12 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
 	}
 
-
 	if (_videoreader != nullptr)
 	{
         long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
-        // get the image for the current frame
-		AVFrame* image = _videoreader->GetNextFrame(frame);
+
+	    // get the image for the current frame
+        AVFrame* image = _videoreader->GetNextFrame(frame);
 		
 		// if we have reached the end and we are to loop
 		if (_videoreader->AtEnd() && durationTreatment == "Loop")
@@ -314,20 +316,24 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 			xlColor c;
 			for (int y = 0; y < _videoreader->GetHeight(); y++)
 			{
+                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3;
+
 				for (int x = 0; x < _videoreader->GetWidth(); x++)
 				{
 					try
 					{
-						c.Set(*(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3),
-							  *(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3 + 1),
-							  *(image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3 + x * 3 + 2), 255);
+						c.Set(*(ptr),
+							  *(ptr + 1),
+							  *(ptr + 2), 255);
 					}
 					catch (...)
 					{
 						// this shouldnt happen so make it stand out
 						c = xlRED;
 					}
-					buffer.SetPixel(x + startx, y+starty, c);
+					buffer.SetPixel(x + startx, y + starty, c);
+
+                    ptr += 3;
 				}
 			}
             //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
