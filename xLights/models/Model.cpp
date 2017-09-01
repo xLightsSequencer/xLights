@@ -1645,9 +1645,11 @@ void Model::ApplyTransform(const std::string &type,
 void Model::InitRenderBufferNodes(const std::string &type,
                                   const std::string &transform,
                                   std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int firstNode = newNodes.size();
     newNodes.reserve(firstNode + Nodes.size());
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }
     if (type == DEFAULT) {
@@ -1658,7 +1660,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
         bufferWi = newNodes.size();
         int cnt = 0;
         for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            if (newNodes[x] == nullptr)
+            {
+                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+            }
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, cnt, 0);
             }
             cnt++;
@@ -1678,7 +1684,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 strandLen = GetStrandLength(strand);
                 cnt = 0;
             } else {
-                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                if (newNodes[x] == nullptr)
+                {
+                    logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                }
+                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, strand, cnt, -1, bufferHi, strandLen);
                 }
                 cnt++;
@@ -1700,7 +1710,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 strandLen = GetStrandLength(strand);
                 cnt = 0;
             } else {
-                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+                if (newNodes[x] == nullptr)
+                {
+                    logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                }
+                for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, cnt, strand, bufferWi, -1, strandLen);
                 }
                 cnt++;
@@ -1716,7 +1730,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
         GetModelScreenLocation().PrepareToDraw();
 
         for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            if (newNodes[x] == nullptr)
+            {
+                logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+            }
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 sx = it2->screenX;
                 sy = it2->screenY;
 
@@ -1745,7 +1763,11 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
         bufferHi = bufferWi = -1;
         for (int x = firstNode; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            if (newNodes[x] == nullptr)
+            {
+                logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+            }
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 sx = it2->screenX;
                 sy = it2->screenY;
 
@@ -1946,6 +1968,7 @@ static wxString AA(int x) {
     retval += 'A' + x;
     return retval;
 }
+
 //add just the node#s to a choice list:
 //NO add parsed info to choice list or check list box:
 size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3)
@@ -1973,6 +1996,7 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
     }
     return choices.GetCount(); //choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
+
 //get parsed node info:
 std::string Model::GetNodeXY(const std::string& nodenumstr) {
     long nodenum;
@@ -1988,6 +2012,7 @@ std::string Model::GetNodeXY(const std::string& nodenumstr) {
     }
     return nodenumstr; //not found?
 }
+
 std::string Model::GetNodeXY(int nodeinx) {
     if ((nodeinx < 0) || (nodeinx >= GetNodeCount())) return "";
     if (Nodes[nodeinx]->Coords.empty()) return "";
@@ -2286,7 +2311,6 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
     return html;
 }
 
-
 // initialize screen coordinates
 void Model::CopyBufCoord2ScreenCoord() {
     size_t NodeCount=GetNodeCount();
@@ -2413,40 +2437,40 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             }
         }
         size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
+        for(size_t c2=0; c2 < CoordCount; c2++) {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;;
-            sy=Nodes[n]->Coords[c].screenY;
+            sx=Nodes[n]->Coords[c2].screenX;;
+            sy=Nodes[n]->Coords[c2].screenY;
             GetModelScreenLocation().TranslatePoint(sx, sy);
 
             if (pixelStyle < 2) {
                 started = true;
                 if (splitRGB) {
                     if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
-                        xlColor c(color);
-                        ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
-                        va.AddVertex(sx, sy, c);
+                        xlColor c3(color);
+                        ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                        va.AddVertex(sx, sy, c3);
                     } else {
-                        xlColor c(color.Red(), 0 , 0);
-                        if (c != xlBLACK) {
-                            ApplyTransparency(c, transparency);
-                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, c);
+                        xlColor c3(color.Red(), 0 , 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, c3);
                         }
-                        c.Set(0, color.Green(), 0);
-                        if (c != xlBLACK) {
-                            ApplyTransparency(c, transparency);
-                            va.AddVertex(sx, sy-pixelSize, c);
+                        c3.Set(0, color.Green(), 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx, sy-pixelSize, c3);
                         }
-                        c.Set(0, 0, color.Blue());
-                        if (c != xlBLACK) {
-                            ApplyTransparency(c, transparency);
-                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, c);
+                        c3.Set(0, 0, color.Blue());
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, c3);
                         }
                     }
                 } else {
-                    xlColor c(color);
-                    ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
-                    va.AddVertex(sx, sy, c);
+                    xlColor c3(color);
+                    ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                    va.AddVertex(sx, sy, c3);
                 }
             } else {
                 xlColor ccolor(color);
@@ -2463,7 +2487,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if (Selected && c != NULL && allowSelected) {
+    if (Selected && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -2630,41 +2654,40 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
                     lastPixelSize = Nodes[n]->model->pixelSize;
                 }
 
-
                 if (lastPixelStyle < 2) {
                     if (splitRGB) {
                         float sxn = (sx*scale)+(w/2);
                         float syn = newsy;
 
                         if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
-                            xlColor c(color);
-                            ApplyTransparency(c, color == xlBLACK ? blackTransparency : transparency);
-                            va.AddVertex(sxn, syn, c);
+                            xlColor c2(color);
+                            ApplyTransparency(c2, color == xlBLACK ? blackTransparency : transparency);
+                            va.AddVertex(sxn, syn, c2);
                         } else {
-                            xlColor c(color.Red(), 0 , 0);
-                            ApplyTransparency(c, transparency);
-                            if (c != xlBLACK) {
-                                ApplyTransparency(c, transparency);
-                                va.AddVertex(sxn-pixelSize, syn+pixelSize/2.0f, c);
+                            xlColor c2(color.Red(), 0 , 0);
+                            ApplyTransparency(c2, transparency);
+                            if (c2 != xlBLACK) {
+                                ApplyTransparency(c2, transparency);
+                                va.AddVertex(sxn-pixelSize, syn+pixelSize/2.0f, c2);
                             }
-                            c.Set(0, color.Green(), 0);
-                            if (c != xlBLACK) {
-                                ApplyTransparency(c, transparency);
-                                va.AddVertex(sxn, syn-pixelSize, c);
+                            c2.Set(0, color.Green(), 0);
+                            if (c2 != xlBLACK) {
+                                ApplyTransparency(c2, transparency);
+                                va.AddVertex(sxn, syn-pixelSize, c2);
                             }
-                            c.Set(0, 0, color.Blue());
-                            if (c != xlBLACK) {
-                                ApplyTransparency(c, transparency);
-                                va.AddVertex(sxn+pixelSize, syn+pixelSize/2.0f, c);
+                            c2.Set(0, 0, color.Blue());
+                            if (c2 != xlBLACK) {
+                                ApplyTransparency(c2, transparency);
+                                va.AddVertex(sxn+pixelSize, syn+pixelSize/2.0f, c2);
                             }
                         }
                     } else {
-                        xlColor c(color);
-                        ApplyTransparency(c, color == xlBLACK ? Nodes[n]->model->blackTransparency
+                        xlColor c2(color);
+                        ApplyTransparency(c2, color == xlBLACK ? Nodes[n]->model->blackTransparency
                                                             : Nodes[n]->model->transparency);
 
                         sx = (sx*scale)+(w/2);
-                        va.AddVertex(sx, newsy, c);
+                        va.AddVertex(sx, newsy, c2);
                     }
                 } else {
                     xlColor ccolor(color);

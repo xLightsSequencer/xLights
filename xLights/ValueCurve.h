@@ -109,6 +109,7 @@ public:
     void SetLimits(float min, float max) { _min = min; _max = max; }
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
+    float GetOutputValueAtDivided(float offset);
     float GetOutputValue(float offset);
     void SetActive(bool a) { _active = a; RenderType(); }
     bool IsActive() const { return IsOk() && _active; }

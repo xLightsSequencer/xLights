@@ -847,9 +847,20 @@ void ViewsModelsPanel::Clear()
 
 void ViewsModelsPanel::Initialize()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_seqData == nullptr || _seqData->NumFrames() == 0) {
         Clear();
         return;
+    }
+
+    if (_sequenceElements == nullptr)
+    {
+        logger_base.crit("ViewsModelsPanel::Initialize _sequenceElements was null ... this is going to crash.");
+    }
+    if (_sequenceViewManager == nullptr)
+    {
+        logger_base.crit("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
     }
 
     PopulateViews();

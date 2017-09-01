@@ -969,7 +969,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                         // this should be updated every release by 1 until we decide to change a slider range for the first time
                         // at that point we are going to need to force people to go back to a version after .24 but before the
                         // first version with the change
-                        if (!::IsVersionOlder("2017.25", xlights_version_string.ToStdString()))
+                        if (!::IsVersionOlder("2017.30", xlights_version_string.ToStdString()))
                         {
                             static std::string warnedfile = "";
 
@@ -1150,6 +1150,13 @@ float ValueCurve::GetOutputValueAt(float offset)
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
     return _min + (_max - _min) * GetValueAt(offset);
+}
+
+float ValueCurve::GetOutputValueAtDivided(float offset)
+{
+    wxASSERT(_min != MINVOIDF);
+    wxASSERT(_max != MAXVOIDF);
+    return _min + (_max - _min) * GetValueAt(offset) / _divisor;
 }
 
 float ValueCurve::GetValueAt(float offset)

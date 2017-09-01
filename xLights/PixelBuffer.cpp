@@ -558,7 +558,6 @@ xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xl
     return c;
 }
 
-
 void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -789,9 +788,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     }
 }
 
-
 //http://blog.ivank.net/fastest-gaussian-blur.html
-
 static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard deviation, number of boxes
 {
     switch (d) {
@@ -847,25 +844,6 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
         default:
             boxes.push_back(b + 2.0);
     }
-
-
-
-    /*
-    float wIdeal = std::sqrt((12.0f*sigma*sigma/n)+1.0f);  // Ideal averaging filter width
-    float wl = std::floor(wIdeal);
-    if ( (((int)wl)%2) == 0) {
-        wl -= 1.0;
-    }
-    float wu = wl+2;
-
-    float mIdeal = (12.0f*sigma*sigma - n*wl*wl - 4.0f*n*wl - 3.0f*n)/(-4.0f*wl - 4.0f);
-    int m = std::round(mIdeal);
-
-    for(int i=1; i<(n+1); i++) {
-        boxes.push_back(i<=m?wl:wu);
-        printf("%f  %d:    %f\n", sigma, i,  boxes.back());
-    }
-    */
 }
 
 #define RED(a, b) a[(b)*4]
@@ -949,6 +927,7 @@ static void boxBlurH_4 (const float  * const scl, float *tcl, int w, int h, floa
         }
     }
 }
+
 static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float r) {
     float iarr = 1.0f / (r+r+1.0f);
     for(int i=0; i<w; i++) {
@@ -1020,6 +999,7 @@ static void boxBlurT_4 (const float * const scl, float *tcl, int w, int h, float
         }
     }
 }
+
 static void boxBlur_4(float *scl, float *tcl, int w, int h, float r, int size) {
     memcpy(tcl, scl, sizeof(float)*4*size);
     boxBlurH_4(tcl, scl, w, h, r);
@@ -1097,7 +1077,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
             {
                 int r = 0;
                 int g = 0;
-                int b = 0;
+                int b2 = 0;
                 int a = 0;
                 int sm = 0;
                 for (int i = x - d; i <= x + u; i++)
@@ -1111,14 +1091,14 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
                                 const xlColor &c = orig.GetPixel(i, j);
                                 r += c.red;
                                 g += c.green;
-                                b += c.blue;
+                                b2 += c.blue;
                                 a += c.alpha;
                                 ++sm;
                             }
                         }
                     }
                 }
-                layer->buffer.SetPixel(x, y, xlColor(r/sm, g/sm, b/sm, a/sm));
+                layer->buffer.SetPixel(x, y, xlColor(r/sm, g/sm, b2/sm, a/sm));
             }
         }
     }
@@ -1134,7 +1114,6 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
         }
     }
 }
-
 
 static const std::string CHOICE_LayerMethod("CHOICE_LayerMethod");
 static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
@@ -1185,7 +1164,7 @@ static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adj
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
 
-void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
+void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve, int divisor = 1)
 {
     if (valueCurve == STR_EMPTY) {
         theValueCurve.SetDefault();
@@ -1193,6 +1172,7 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve)
     }
 
     theValueCurve.Deserialise(valueCurve);
+    theValueCurve.SetDivisor(divisor);
 }
 
 // Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
@@ -1472,8 +1452,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
         ComputeValueCurve(sparklesValueCurve, inf->SparklesValueCurve);
         ComputeValueCurve(rotationValueCurve, inf->RotationValueCurve);
-        ComputeValueCurve(zoomValueCurve, inf->ZoomValueCurve);
-        ComputeValueCurve(rotationsValueCurve, inf->RotationsValueCurve);
+        ComputeValueCurve(zoomValueCurve, inf->ZoomValueCurve, 10);
+        ComputeValueCurve(rotationsValueCurve, inf->RotationsValueCurve, 10);
         ComputeValueCurve(pivotpointxValueCurve, inf->PivotPointXValueCurve);
         ComputeValueCurve(pivotpointyValueCurve, inf->PivotPointYValueCurve);
         inf->bufferType = type;
@@ -1633,14 +1613,14 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
-        zoom = layer->ZoomValueCurve.GetOutputValueAt(offset);
+        zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset);
     }
     float rotations = layer->rotations;
     float rotationoffset = offset;
     float offsetperrotation = 1.0f;
     if (layer->RotationsValueCurve.IsActive())
     {
-        rotations = layer->RotationsValueCurve.GetOutputValueAt(offset);
+        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset);
     }
     if (rotations > 0)
     {
@@ -1683,7 +1663,6 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
         float yoff = (cy * layer->BufferHt) / 100.0;
         float anglecos = cos(-angle);
         float anglesin = sin(-angle);
-
 
         layer->buffer.Clear();
         for (int x = 0; x < layer->BufferWi; x++)
@@ -1875,7 +1854,6 @@ static int DecodeType(const std::string &type)
     return 0;
 }
 
-
 void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
@@ -1982,7 +1960,6 @@ void PixelBufferClass::LayerInfo::createSquareExplodeMask(bool out)
         }
     }
 }
-
 
 static bool isLeft(const wxPoint &a, const wxPoint &b, const wxPoint &test) {
     return ((b.x - a.x)*(test.y - a.y) - (b.y - a.y)*(test.x - a.x)) > 0;
@@ -2386,4 +2363,3 @@ bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
     }
     return false;
 }
-

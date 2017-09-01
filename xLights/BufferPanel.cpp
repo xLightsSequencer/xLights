@@ -375,12 +375,14 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     Slider_PivotPointY->SetValue(__pivotpointy);
     TextCtrl_PivotPointY->SetValue(wxString::Format("%d", __pivotpointy));
 
-    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferPanel::OnVCChanged, nullptr, this);
 
     BitmapButton_Blur->GetValue()->SetLimits(1, 15);
     BitmapButton_VCRotation->GetValue()->SetLimits(0, 100);
-    BitmapButton_VCZoom->GetValue()->SetLimits(0, 3);
-    BitmapButton_VCRotations->GetValue()->SetLimits(0, 20);
+    BitmapButton_VCZoom->GetValue()->SetLimits(0, 30);
+    BitmapButton_VCZoom->GetValue()->SetDivisor(10);
+    BitmapButton_VCRotations->GetValue()->SetLimits(0, 200);
+    BitmapButton_VCRotations->GetValue()->SetDivisor(10);
     BitmapButton_VCPivotPointX->GetValue()->SetLimits(0, 100);
     BitmapButton_VCPivotPointY->GetValue()->SetLimits(0, 100);
 
@@ -564,12 +566,14 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         __zoom = 1;
         Slider_Zoom->SetValue(1);
         TextCtrl_Zoom->SetValue("1");
-        BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 3.0f);
+        BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 30.0f);
+        BitmapButton_VCZoom->GetValue()->SetDivisor(10);
         BitmapButton_VCZoom->UpdateState();
         __rotations = 0;
         Slider_Rotations->SetValue(0);
         TextCtrl_Rotations->SetValue("0.0");
-        BitmapButton_VCRotations->GetValue()->SetDefault(0.0f, 10.0f);
+        BitmapButton_VCRotations->GetValue()->SetDefault(0.0f, 200.0f);
+        BitmapButton_VCRotations->GetValue()->SetDivisor(10);
         BitmapButton_VCRotations->UpdateState();
         __zoomquality = 1;
         Slider_ZoomQuality->SetValue(1);

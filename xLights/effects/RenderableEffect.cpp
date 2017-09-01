@@ -131,19 +131,11 @@ void RenderableEffect::initBitmaps(const char **data16,
 
 }
 
-
-
-bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2016.50", version);
-}
-
-
 // return true if version string is older than compare string
 bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::string& version)
 {
     return ::IsVersionOlder(compare, version);
 }
-
 
 // this is recursive
 static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
@@ -254,7 +246,9 @@ std::string RenderableEffect::GetEffectString() {
     return GetEffectStringFromWindow(panel);
 }
 
-
+bool RenderableEffect::needToAdjustSettings(const std::string &version) {
+    return IsVersionOlder("2017.26", version);
+}
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     if (IsVersionOlder("4.2.20", version)) {
@@ -281,7 +275,38 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             }
         }
     }
+
+    if (IsVersionOlder("2017.24", version))
+    {
+        SettingsMap& sm = effect->GetSettings();
+
+        wxString rzRotations = sm.Get("B_VALUECURVE_Rotations", "");
+        if (rzRotations != "")
+        {
+            ValueCurve vc(rzRotations.ToStdString());
+            if (vc.IsActive())
+            {
+                vc.SetLimits(0, 200);
+                vc.SetDivisor(10);
+                sm["B_VALUECURVE_Rotations"] = vc.Serialise();
+            }
+        }
+
+        wxString rzZoom = sm.Get("B_VALUECURVE_Zoom", "");
+        if (rzZoom != "")
+        {
+            ValueCurve vc;
+            vc.SetLimits(0, 30);
+            vc.SetDivisor(10);
+            vc.Deserialise(rzZoom.ToStdString(), false);
+            if (vc.IsActive())
+            {
+                sm["B_VALUECURVE_Zoom"] = vc.Serialise();
+            }
+        }
+    }
 }
+
 void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     SettingsMap &palette = effect->GetPaletteMap();
     bool changed = false;
@@ -364,7 +389,6 @@ void RenderableEffect::RemoveDefaults(const std::string &version, Effect *effect
         settings.erase("T_TEXTCTRL_Fadeout");
     }
 }
-
 
 void RenderableEffect::AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors)
 {

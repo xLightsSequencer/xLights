@@ -58,8 +58,7 @@ public:
 
 class RenderEvent {
 public:
-    RenderEvent() : mutex(), signal() {
-    }
+    RenderEvent() : mutex(), signal() {}
     std::mutex mutex;
     std::condition_variable signal;
 
@@ -75,11 +74,13 @@ public:
 
 class NextRenderer {
 public:
+    
     NextRenderer() : nextLock(), nextSignal() {
         previousFrameDone = -1;
     }
-    virtual ~NextRenderer() {
-    }
+
+    virtual ~NextRenderer() {}
+    
     bool addNext(NextRenderer *n) {
         for (auto i = next.begin(); i < next.end(); ++i) {
             if (*i == n) return false;
@@ -87,9 +88,11 @@ public:
         next.push_back(n);
         return true;
     }
+    
     bool HasNext() {
         return !next.empty();
     }
+    
     void FrameDone(int frame) {
         for (auto i = next.begin(); i < next.end(); ++i) {
             (*i)->setPreviousFrameDone(frame);
@@ -101,6 +104,7 @@ public:
         previousFrameDone = i;
         nextSignal.notify_all();
     }
+    
     int waitForFrame(int frame) {
         std::unique_lock<std::mutex> lock(nextLock);
         while (frame > previousFrameDone) {
@@ -108,14 +112,17 @@ public:
         }
         return previousFrameDone;
     }
+    
     bool checkIfDone(int frame, int timeout = 5) {
         std::unique_lock<std::mutex> lock(nextLock);
         return previousFrameDone >= frame;
     }
+
     int GetPreviousFrameDone()
     {
         return previousFrameDone;
     }
+
 protected:
     std::mutex nextLock;
     std::condition_variable nextSignal;
@@ -126,6 +133,7 @@ private:
 
 class AggregatorRenderer: public NextRenderer {
 public:
+    
     AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19) {
         data = new int[numFrames + 20];
         for (int x = 0; x < (numFrames + 20); ++x) {
@@ -133,15 +141,19 @@ public:
         }
         max = 0;
     }
+
     virtual ~AggregatorRenderer() {
         delete [] data;
     }
+
     void incNumAggregated() {
         ++max;
     }
+
     int getNumAggregated() {
         return max;
     }
+
     virtual void setPreviousFrameDone(int frame) {
         if (max <= 1) {
             FrameDone(frame);
@@ -162,6 +174,7 @@ public:
             }
         }
     }
+
 private:
     int *data;
     int max;
@@ -170,19 +183,20 @@ private:
 
 class SNPair {
 public:
-    SNPair(int s, int n) : strand(s), node(n) {
-    }
-    SNPair(const SNPair &p) : strand(p.strand), node(p.node) {
-    }
+    SNPair(int s, int n) : strand(s), node(n) {}
+
+    SNPair(const SNPair &p) : strand(p.strand), node(p.node) {}
 
     bool operator>(const SNPair &p) const {
         return strand > p.strand
                || (strand == p.strand && node > p.node);
     }
+    
     bool operator<(const SNPair &p) const {
         return strand < p.strand
                || (strand == p.strand && node < p.node);
     }
+
     bool operator==(const SNPair &p) const {
         return strand == p.strand && node == p.node;
     }
@@ -227,7 +241,7 @@ public:
                 }
                 for (int x = 0; x < row->GetSubModelCount(); ++x) {
                     SubModelElement *se = row->GetSubModel(x);
-                    if (se->HasEffects() > 0) {
+                    if (se->HasEffects()) {
                         if (se->GetType() == ELEMENT_TYPE_STRAND) {
                             StrandElement *ste = (StrandElement*)se;
                             if (ste->GetStrand() < model->GetNumStrands()) {
@@ -295,9 +309,11 @@ public:
     virtual bool DeleteWhenComplete() override {
         return deleteWhenComplete;
     }
+
     void SetDeleteWhenComplete() {
         deleteWhenComplete = true;
     }
+
     void LogToLogger(int logLevel) {
         // these can only be set at start time
         static bool debug = renderLog.isPriorityEnabled((log4cpp::Priority::DEBUG));
@@ -309,12 +325,14 @@ public:
             renderLog.log(logLevel, (const char *)GetwxStatus().c_str());
         }
     }
+
     void SetGenericStatus(const wxString &msg, int frame, bool debugLog = false) {
         statusType = 4;
         statusMsg = msg;
         statusFrame = frame;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+
     void SetGenericStatus(const char *msg, int frame, bool debugLog = false) {
         statusType = 6;
         statusMsgChars = msg;
@@ -328,6 +346,7 @@ public:
         statusLayer = layer;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+
     void SetGenericStatus(const char *msg, int frame, int layer, bool debugLog = false) {
         statusType = 7;
         statusMsgChars = msg;
@@ -335,6 +354,7 @@ public:
         statusLayer = layer;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand, int node, bool debugLog = false) {
         statusType = 2;
         statusFrame = frame;
@@ -344,6 +364,7 @@ public:
         statusMap = map;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+    
     void SetCalOutputStatus(int frame, int strand = -1, int node = -1, bool debugLog = true) {
         statusType = 3;
         statusFrame = frame;
@@ -351,6 +372,7 @@ public:
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+    
     void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1, bool debugLog = false) {
         statusType = 1;
         statusFrame = frame;
@@ -359,19 +381,23 @@ public:
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+    
     void SetStatus(const wxString &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+    
     void SetStatus(const char *st, bool debugLog = false) {
         statusMsgChars = st;
         statusType = 8;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
+    
     std::string GetStatus() override {
         return GetwxStatus().ToStdString();
     }
+    
     wxString GetwxStatus() {
         switch (statusType) {
         case 0:
@@ -413,12 +439,14 @@ public:
         }
         return statusMsg;
     }
+    
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
         sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetActChanCount(), seqData->NumFrames(), seqData->FrameTime());
         seqData = sb;
         return sb;
     }
+    
     PixelBufferClass *getBuffer() {
         return mainBuffer;
     }
@@ -427,9 +455,11 @@ public:
         startFrame = start;
         endFrame = end;
     }
+    
     void SetRangeRestriction(const std::list<NodeRange> &rng) {
         rangeRestriction = rng;
     }
+    
     void SetModelBlending() {
         supportsModelBlending = true;
     }
@@ -629,6 +659,7 @@ public:
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
 		renderLog.debug("Rendering thread exiting.");
 	}
+    
     void AbortRender() {
         std::unique_lock<std::mutex> lock(nextLock);
         abort = true;
@@ -670,9 +701,11 @@ private:
         }
         return nullptr;
     }
+    
     Effect *findEffectForFrame(int layer, int frame, int &lastIdx) {
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
     }
+    
     void loadSettingsMap(const std::string &effectName,
                          Effect *effect,
                          SettingsMap& settingsMap) {
@@ -796,6 +829,7 @@ void xLightsFrame::OnProgressBarDoubleClick(wxMouseEvent &evt) {
         }
     }
 }
+
 void xLightsFrame::UpdateRenderStatus() {
     if (renderProgressInfo.empty()) {
         return;
@@ -908,6 +942,7 @@ public:
         }
         return false;
     }
+
     static void sortRanges(std::list<NodeRange> &ranges) {
         ranges.sort();
         auto it = ranges.begin();
@@ -941,12 +976,14 @@ public:
     std::list<NodeRange> ranges;
     Model *model;
 };
+
 void xLightsFrame::RenderTree::Clear() {
     for (auto it = data.begin(); it != data.end(); ++it) {
         delete *it;
     }
     data.clear();
 }
+
 void xLightsFrame::RenderTree::Add(Model *el) {
     RenderTreeData *elData = new RenderTreeData(el);
     for (auto it = data.begin(); it != data.end(); ++it) {
@@ -991,6 +1028,7 @@ void xLightsFrame::BuildRenderTree() {
         renderTree.renderTreeChangeCount = curChangeCount;
     }
 }
+
 void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
@@ -1132,6 +1170,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
             }
         }
     }
+
     for (row = 0; row < numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
@@ -1139,6 +1178,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
             ++count;
         }
     }
+
     if (count) {
         if (progressDialog) {
             renderProgressDialog->SetSize(250, 400);
@@ -1355,7 +1395,6 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     }
 }
 
-
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
      
     std::string model = command.GetString().ToStdString();
@@ -1411,11 +1450,11 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             }
         }
         else {
-            Model *m = GetModel(model);
+            Model *m2 = GetModel(model);
             for (int frame = 0; frame < SeqData.NumFrames(); ++frame) {
                 for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
                     //chan in main buffer
-                    int ostart = m->NodeStartChannel(x);
+                    int ostart = m2->NodeStartChannel(x);
                     int nstart = job->getBuffer()->NodeStartChannel(x);
                     //copy to render buffer for export
                     job->getBuffer()->SetNodeChannelValues(x, &SeqData[frame][ostart]);
@@ -1479,7 +1518,6 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         EnableSequenceControls(true);
     }
 }
-
 
 bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, const SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
@@ -1567,7 +1605,6 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 if (event->signal.wait_for(lock, std::chrono::seconds(20)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
-                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
                     printf("HELP!!!!   Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.\n", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);
                 }

@@ -218,7 +218,7 @@ void CirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             if (bubbles) //keep bubbles going mostly up
             {
                 angle = 90 + rand() % 45 - 22.5; //+/- 22.5 degrees from 90 degrees
-                angle *= 2 * M_PI / 180;
+                angle *= 2.0 * M_PI / 180.0;
                 effectObjects[ii]._dx = spd * cos(angle);
                 effectObjects[ii]._dy = spd * sin(angle);
             }

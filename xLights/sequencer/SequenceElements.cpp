@@ -1502,7 +1502,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
     IncrementChangeCount(nullptr);
 
-    if(index<mAllViews[view].size() > 0 && dest<mAllViews[view].size())
+    if(index < mAllViews[view].size() && dest < mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin()+index);
@@ -1515,7 +1515,7 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
             mAllViews[view].insert(mAllViews[view].begin()+(dest-1),e);
         }
     }
-    else if (index<mAllViews[view].size() > 0)
+    else if (index < mAllViews[view].size())
     {
         Element* e = mAllViews[view][index];
         mAllViews[view].erase(mAllViews[view].begin() + index);
