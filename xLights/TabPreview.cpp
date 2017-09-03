@@ -4,6 +4,8 @@
 #include "SaveChangesDialog.h"
 #include "models/Model.h"
 #include "xLightsXmlFile.h"
+#include "HousePreviewPanel.h"
+
 #define PREVIEWROTATIONFACTOR 3
 
 #include "LayoutPanel.h"
@@ -53,7 +55,7 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
         UnsavedRgbEffectsChanges=true;
     }
     modelPreview->SetbackgroundImage(mBackgroundImage);
-    sPreview2->SetbackgroundImage(mBackgroundImage);
+    _housePreviewPanel->GetModelPreview()->SetbackgroundImage(mBackgroundImage);
     UpdatePreview();
 }
 
@@ -70,7 +72,7 @@ void xLightsFrame::SetPreviewBackgroundBrightness(int i)
         UnsavedRgbEffectsChanges=true;
     }
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
-    sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
+    _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness);
     UpdatePreview();
 }
 
@@ -86,7 +88,7 @@ void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
         UnsavedRgbEffectsChanges=true;
     }
     modelPreview->SetScaleBackgroundImage(scaled);
-    sPreview2->SetScaleBackgroundImage(scaled);
+    _housePreviewPanel->GetModelPreview()->SetScaleBackgroundImage(scaled);
 }
 
 int xLightsFrame::GetDefaultPreviewBackgroundBrightness()

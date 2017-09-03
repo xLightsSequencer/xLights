@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "wx/wx.h"
+#include <wx/wx.h>
 
 #include "Image.h"
 #include "XlightsDrawable.h"
@@ -36,13 +36,16 @@ public:
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);
-    void GetVirtualCanvasSize(int &w, int& h) {
+    void GetVirtualCanvasSize(int &w, int& h) const
+    {
         w = virtualWidth; h = virtualHeight;
     }
-    int GetVirtualCanvasHeight() {
+    int GetVirtualCanvasHeight() const
+    {
         return virtualHeight;
     }
-    int GetVirtualCanvasWidth() {
+    int GetVirtualCanvasWidth() const
+    {
         return virtualWidth;
     }
 	void SetbackgroundImage(wxString image);
@@ -88,7 +91,7 @@ private:
 	void mouseLeftDown(wxMouseEvent& event);
 	void mouseLeftUp(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
-	void mouseReleased(wxMouseEvent& event);
+	//void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);
@@ -102,7 +105,7 @@ private:
     wxDouble mPointSize = 2.0;
     int virtualWidth, virtualHeight;
 
-    Image* image = NULL;
+    Image* image = nullptr;
     bool scaleImage = false;
     xLightsDrawable* sprite;
     std::vector<Model*> previewModels;

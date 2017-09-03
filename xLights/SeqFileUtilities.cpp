@@ -13,6 +13,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
+#include "HousePreviewPanel.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -496,8 +497,8 @@ bool xLightsFrame::CloseSequence()
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, 1);
-    sPreview1->Refresh();
-    sPreview2->Refresh();
+    _modelPreviewPanel->Refresh();
+    _housePreviewPanel->GetModelPreview()->Refresh();
 
     SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
 
@@ -564,7 +565,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
         {
             if( start_rendering )
             {
-                if (plog != NULL)
+                if (plog != nullptr)
                 {
                     plog->Show(true);
                 }
@@ -2663,7 +2664,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 }
             }
         } else if ("scenes" == e->GetName() || "images" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); (element != NULL) && ("" == imagePfx); element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); (element != nullptr) && ("" == imagePfx); element=element->GetNext()) {
                 if ("image" == element->GetName() || "scene" == element->GetName()) {
                     if ("" == imagePfx) {
                         wxFileDialog fd(this,

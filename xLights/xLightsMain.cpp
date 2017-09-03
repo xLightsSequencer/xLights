@@ -38,6 +38,7 @@
 #include "controllers/FPPConnectDialog.h"
 #include "IPEntryDialog.h"
 #include "ColorManagerDialog.h"
+#include "HousePreviewPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -259,6 +260,7 @@ const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
+const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
@@ -331,6 +333,8 @@ wxDEFINE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_REWIND10, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_FFORWARD10, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
@@ -371,6 +375,8 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_STOP_SEQUENCE, xLightsFrame::StopSequence)
     EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_FIRST_FRAME, xLightsFrame::SequenceFirstFrame)
     EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_LAST_FRAME, xLightsFrame::SequenceLastFrame)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REWIND10, xLightsFrame::SequenceRewind10)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_FFORWARD10, xLightsFrame::SequenceFForward10)
     EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REPLAY_SECTION, xLightsFrame::SequenceReplaySection)
     EVT_COMMAND(wxID_ANY, EVT_TOGGLE_PLAY, xLightsFrame::TogglePlay)
     EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
@@ -912,6 +918,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem43);
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
+    MenuItem_PlayControlsOnPreview = new wxMenuItem(MenuSettings, ID_MNU_PLAYCONTROLSONPREVIEW, _("Play Controls On Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_PlayControlsOnPreview);
     AutoSaveMenu = new wxMenu();
     MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem44);
@@ -1116,6 +1124,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1432,6 +1441,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_ShowACRamps->Check(_showACRamps);
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
 
+    config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
+    MenuItem_PlayControlsOnPreview->Check(_playControlsOnPreview);
+    logger_base.debug("Play Controls On Preview: %s.", _playControlsOnPreview ? "true" : "false");
+
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", _autoSavePerspecive ? "true" : "false");
@@ -1699,6 +1712,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
+    config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -2373,8 +2387,8 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     SetXmlSetting("previewHeight",wxString::Format(wxT("%i"),height));
     modelPreview->SetCanvasSize(width,height);
     modelPreview->Refresh();
-    sPreview2->SetVirtualCanvasSize(width, height);
-    sPreview2->Refresh();
+    _housePreviewPanel->GetModelPreview()->SetVirtualCanvasSize(width, height);
+    _housePreviewPanel->GetModelPreview()->Refresh();
 }
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {
@@ -6351,4 +6365,18 @@ void xLightsFrame::OnMenuItem_SD_NoneSelected(wxCommandEvent& event)
     _suppressDuplicateFrames = 0;
     _outputManager.SetSuppressFrames(_suppressDuplicateFrames);
     NetworkChange();
+}
+
+void xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event)
+{
+    _playControlsOnPreview = MenuItem_PlayControlsOnPreview->IsChecked();
+    _housePreviewPanel->SetToolbar(_playControlsOnPreview);
+    _housePreviewPanel->PostSizeEvent();
+}
+
+bool xLightsFrame::IsPaneDocked(wxWindow* window) const
+{
+    if (m_mgr == nullptr) return true;
+
+    return m_mgr->GetPane(window).IsDocked();
 }

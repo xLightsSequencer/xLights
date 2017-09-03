@@ -18,6 +18,7 @@
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
+#include <wx/artprov.h>
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -343,7 +344,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     }
     if(mBackgroundImageExists)
     {
-        if (image == NULL)
+        if (image == nullptr)
         {
            image = new Image(mBackgroundImage);
            sprite = new xLightsDrawable(image);

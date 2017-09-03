@@ -61,7 +61,6 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
-																	<style></style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>

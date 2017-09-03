@@ -230,7 +230,9 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
+    // ReSharper disable CppVirtualFunctionCallInsideCtor
     SetName("MainSequencer");
+    // ReSharper restore CppVirtualFunctionCallInsideCtor
     touchBarSupport.Init(this);
 }
 
