@@ -183,6 +183,13 @@ void HousePreviewPanel::ValidateWindow(const wxSize& size)
             }
         }
     }
+    else
+    {
+        if (Panel1->IsShown())
+        {
+            Panel1->Hide();
+        }
+    }
     Layout();
     ButtonSizer->Layout();
 }
