@@ -91,5 +91,7 @@ bool PlayListItem::IsInSlaveMode() const
 {
     ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
 
+    if (sm == nullptr) return false;
+
     return (sm->GetMode() == SYNCMODE::FPPSLAVE || sm->GetMode() == SYNCMODE::ARTNETSLAVE);
 }
