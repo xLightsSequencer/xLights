@@ -156,7 +156,10 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
 }
 
-
+int CustomModel::NodesPerString()
+{
+    return GetChanCount() / GetChanCountPerNode();
+}
 
 int CustomModel::GetCustomMaxChannel(const std::string& customModel) {
     wxString value;

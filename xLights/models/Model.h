@@ -265,7 +265,7 @@ public:
     void SetMinMaxModelScreenCoordinates(int w, int y);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
-    int NodesPerString();
+    virtual int NodesPerString();
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);

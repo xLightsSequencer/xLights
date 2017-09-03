@@ -19,6 +19,11 @@ void WindowFrameModel::InitModel() {
     //CopyBufCoord2ScreenCoord();
 }
 
+int WindowFrameModel::NodesPerString()
+{
+    return GetChanCount() / GetChanCountPerNode();
+}
+
 // initialize buffer coordinates
 // parm1=Nodes on Top
 // parm2=Nodes left and right

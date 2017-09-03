@@ -1924,6 +1924,10 @@ void xLightsFrame::UploadFalconOutput()
                 SetStatusText("Falcon Output Upload Failed.");
             }
         }
+        else
+        {
+            SetStatusText("Falcon Output Upload Failed.");
+        }
         SetCursor(wxCURSOR_ARROW);
     }
 }

@@ -573,11 +573,11 @@ void DmxModel::InitModel() {
         Nodes[curNode]->StringNum=0;
         // the screenx/screeny positions are used to fake it into giving a bigger selection area
         if( x == 1 ) {
-            Nodes[curNode]->Coords[0].screenX = -0.65;
-            Nodes[curNode]->Coords[0].screenY = -1.0;
+            Nodes[curNode]->Coords[0].screenX = -0.65f;
+            Nodes[curNode]->Coords[0].screenY = -1.0f;
         } else if( x == 2 ) {
-            Nodes[curNode]->Coords[0].screenX = 0.65;
-            Nodes[curNode]->Coords[0].screenY = 1.0;
+            Nodes[curNode]->Coords[0].screenX = 0.65f;
+            Nodes[curNode]->Coords[0].screenY = 1.0f;
         } else {
             Nodes[curNode]->Coords[0].screenX = 0;
             Nodes[curNode]->Coords[0].screenY = 0;
@@ -1273,51 +1273,51 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     float scale = radius / sf;
 
     // Create Head
-    dmxPoint3 p1(-7.5, 13.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p2(7.5, 13.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p3(13.2, 6.0, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p8(-13.2, 6.0, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p4(9, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p7(-9, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p5(6.3, -16, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p6(-6.3, -16, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p1(-7.5f, 13.7f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p2(7.5f, 13.7f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p3(13.2f, 6.0f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p8(-13.2f, 6.0f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p4(9, -11.4f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7(-9, -11.4f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5(6.3f, -16, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6(-6.3f, -16, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
-    dmxPoint3 p9(0, 3.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p10(-2.5, -1.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p11(2.5, -1.7, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p9(0, 3.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p10(-2.5f, -1.7f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p11(2.5f, -1.7f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
-    dmxPoint3 p14(0, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p12(-6, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p16(6, -6.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p13(-3, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p15(3, -11.4, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p14(0, -6.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p12(-6, -6.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p16(6, -6.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p13(-3, -11.4f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p15(3, -11.4f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
     // Create Back of Head
-    dmxPoint3 p1b(-7.5, 13.7, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p2b(7.5, 13.7, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p3b(13.2, 6.0, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p8b(-13.2, 6.0, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p4b(9, -11.4, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p7b(-9, -11.4, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p5b(6.3, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p6b(-6.3, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p1b(-7.5f, 13.7f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p2b(7.5f, 13.7f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p3b(13.2f, 6.0f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p8b(-13.2f, 6.0f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p4b(9, -11.4f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7b(-9, -11.4f, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5b(6.3f, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6b(-6.3f, -16, -3, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
     // Create Lower Mouth
-    dmxPoint3 p4m(9, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p7m(-9, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p5m(6.3, -16+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p6m(-6.3, -16+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p14m(0, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p12m(-6, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p16m(6, -6.5+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p13m(-3, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 p15m(3, -11.4+jaw_pos, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p4m(9, -11.4f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p7m(-9, -11.4f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p5m(6.3f, -16+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p6m(-6.3f, -16+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p14m(0, -6.5f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p12m(-6, -6.5f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p16m(6, -6.5f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p13m(-3, -11.4f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 p15m(3, -11.4f+jaw_pos, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
     // Create Eyes
-    dmxPoint3 left_eye_socket(-5, 7.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 right_eye_socket(5, 7.5, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 left_eye(-5+eye_x, 7.5+eye_y, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
-    dmxPoint3 right_eye(5+eye_x, 7.5+eye_y, 0.0, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 left_eye_socket(-5, 7.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 right_eye_socket(5, 7.5f, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 left_eye(-5+eye_x, 7.5f+eye_y, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
+    dmxPoint3 right_eye(5+eye_x, 7.5f+eye_y, 0.0f, sx, sy, scale, pan_angle, tilt_angle, nod_angle);
 
     // Draw Back of Head
     va.AddVertex(p1.x, p1.y, base_color2);
@@ -1631,18 +1631,18 @@ void DmxModel::Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, f
 {
     // draw the head
     float pan_angle1 = pan_angle + 270.0f;  // needs to be rotated from reference we drew it
-    dmxPoint3 p31(-2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p32(2,3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p31(-2,3.45f,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p32(2,3.45f,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p33(4,0,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p34(2,-3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p35(-2,-3.45,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p34(2,-3.45f,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p35(-2,-3.45f,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p36(-4,0,-4, sx, sy, scale, pan_angle1, 0, tilt_angle);
 
-    dmxPoint3 p41(-1,1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p42(1,1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p41(-1,1.72f,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p42(1,1.72f,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p43(2,0,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p44(1,-1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
-    dmxPoint3 p45(-1,-1.72,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p44(1,-1.72f,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
+    dmxPoint3 p45(-1,-1.72f,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
     dmxPoint3 p46(-2,0,4, sx, sy, scale, pan_angle1, 0, tilt_angle);
 
     va.AddVertex(p31.x, p31.y, c);

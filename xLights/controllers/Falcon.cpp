@@ -21,6 +21,13 @@ Falcon::Falcon(const std::string& ip)
     if (_connected)
     {
         std::string versionxml = GetURL("/status.xml");
+        if (versionxml == "")
+        {
+            logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
+            _connected = false;
+            return;
+        }
+
         std::string version = GetURL("/index.htm");
         if (versionxml != "")
         {
@@ -865,7 +872,7 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol)
 void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (output >= GetMaxSerialOutputs())
+    if (output > GetMaxSerialOutputs())
     {
         logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d serial outputs. Attempt to upload to serail output %d.", (const char *)_model.c_str(), GetMaxStringOutputs(), output);
         wxMessageBox("Falcon " + wxString(_model.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid Serial Output", wxOK, parent);
