@@ -52,6 +52,7 @@ class Falcon
     int GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port);
     int GetDaughter1Threshold() const { if (IsF16()) { return 16; } else { return 4; } }
     int GetDaughter2Threshold() const { if (IsF16()) { return 32; } else { return 12; } }
+    bool SupportsVariableExpansions() const { return IsV3(); }
 
 public:
     Falcon(const std::string& ip);

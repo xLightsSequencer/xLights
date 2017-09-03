@@ -327,10 +327,16 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     progress.Update(40, "Processing current configuration data.");
 
     int currentStrings = CountStrings(stringsDoc);
-    int mainPixels = MaxPixels(stringsDoc, 0);
-    int daughter1Pixels = MaxPixels(stringsDoc, 1);
-    int daughter2Pixels = MaxPixels(stringsDoc, 2);
-
+    int mainPixels = 680;
+    int daughter1Pixels = 340;
+    int daughter2Pixels = 0;
+    if (SupportsVariableExpansions())
+    {
+        mainPixels = MaxPixels(stringsDoc, 0);
+        daughter1Pixels = MaxPixels(stringsDoc, 1);
+        daughter2Pixels = MaxPixels(stringsDoc, 2);
+    }
+ 
     logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
     logger_base.info("Maximum string port configured in xLights: %d", maxport);
 
@@ -502,39 +508,71 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
-    if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
+    if (!SupportsVariableExpansions())
     {
-        maxDaughter2 = 1;
-    }
-
-    if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
-    {
-        maxDaughter1 = 1;
-    }
-
-    logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
-
-    if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
-    {
-        maxMain = maxPixels - maxDaughter1 - maxDaughter2;
-        logger_base.warn("     Total was more than %d ... main adjusted to %d.", maxPixels, maxMain);
-    }
-
-    if (maxMain + maxDaughter1 + maxDaughter2 < maxPixels)
-    {
-        if (maxDaughter2 != 0)
+        if (maxDaughter1 > 0)
         {
-            maxDaughter2 = maxPixels - maxMain - maxDaughter1;
+            if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2)
+            {
+                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
+                    (const char *)_ip.c_str(), maxMain, maxDaughter1);
+                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
+                    (const char *)_ip.c_str(), maxMain, maxDaughter1));
+                success = false;
+            }
+
+            maxMain = maxPixels / 2;
+            maxDaughter1 = maxPixels / 2;
+
+            if (maxDaughter2 > 0)
+            {
+                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
+                    (const char *)_ip.c_str());
+                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
+                    (const char *)_ip.c_str()));
+                success = false;
+                maxDaughter2 = 0;
+            }
         }
-        else if (maxDaughter1 != 0)
+
+        logger_base.info("Falcon pixel fixed split: Main = %d, Expansion1 = %d", maxMain, maxDaughter1);
+    }
+    else
+    {
+        if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
         {
-            maxDaughter1 = maxPixels - maxMain;
+            maxDaughter2 = 1;
         }
-        else
+
+        if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
         {
-            maxMain = maxPixels;
+            maxDaughter1 = 1;
         }
-        logger_base.info("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
+
+        logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
+
+        if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
+        {
+            maxMain = maxPixels - maxDaughter1 - maxDaughter2;
+            logger_base.warn("     Total was more than %d ... main adjusted to %d.", maxPixels, maxMain);
+        }
+
+        if (maxMain + maxDaughter1 + maxDaughter2 < maxPixels)
+        {
+            if (maxDaughter2 != 0)
+            {
+                maxDaughter2 = maxPixels - maxMain - maxDaughter1;
+            }
+            else if (maxDaughter1 != 0)
+            {
+                maxDaughter1 = maxPixels - maxMain;
+            }
+            else
+            {
+                maxMain = maxPixels;
+            }
+            logger_base.info("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
+        }
     }
 
     UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, virtualStringData);
@@ -700,7 +738,12 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
         m = 1;
     }
 
-    std::string base = wxString::Format("m=%i&S=%i&k0=%i&k1=%i&k2=%i", m, S, maxMain, maxDaughter1, maxDaughter2).ToStdString();
+    std::string base = wxString::Format("m=%i&S=%i", m, S).ToStdString();
+
+    if (SupportsVariableExpansions())
+    {
+        base += wxString::Format("&k0=%i&k1=%i&k2=%i", maxMain, maxDaughter1, maxDaughter2).ToStdString();
+    }
 
     bool hasGreaterThan40 = false;
 
