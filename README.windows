@@ -14,10 +14,7 @@ compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights is 3.1.0.  Do not use the pre-compiled
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
-We are in the process of transitioning from the MinGW compiler to the
-MS Visual C++ compiler for Windows builds. Support for the MS Visual C+ compiler
-is a work in progress.
-
+We support both the CodeBlocks/MinGW compiler and the VisualStudio/MS Visual C++ compiler for Windows builds.
 
 Instructions for MinGW
 ================================================
@@ -99,7 +96,7 @@ Instructions for MS Visual Studio C++
 
 Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
-  a) Install Visual Studio 2015 ... the community edition is fine
+  a) Install Visual Studio 2017 ... the community edition is fine
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
   
