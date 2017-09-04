@@ -991,7 +991,6 @@ void xLightsFrame::SetAudioControls()
         _housePreviewPanel->EnablePlayControls("Rewind", false);
         _housePreviewPanel->EnablePlayControls("Rewind10", false);
         _housePreviewPanel->EnablePlayControls("FForward10", false);
-        _housePreviewPanel->EnablePlayControls("End", false);
 	}
 	else if (CurrentSeqXmlFile->GetSequenceType() != "Media")
 	{
@@ -1007,9 +1006,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", true);
             _housePreviewPanel->EnablePlayControls("Stop", true);
             _housePreviewPanel->EnablePlayControls("Rewind", true);
-            _housePreviewPanel->EnablePlayControls("Rewind10", true);
-            _housePreviewPanel->EnablePlayControls("FForward10", true);
-            _housePreviewPanel->EnablePlayControls("End", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
         }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
@@ -1023,9 +1021,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", true);
             _housePreviewPanel->EnablePlayControls("Stop", true);
             _housePreviewPanel->EnablePlayControls("Rewind", false);
-            _housePreviewPanel->EnablePlayControls("Rewind10", false);
-            _housePreviewPanel->EnablePlayControls("FForward10", false);
-            _housePreviewPanel->EnablePlayControls("End", false);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
         }
 		else
 		{
@@ -1039,9 +1036,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", false);
             _housePreviewPanel->EnablePlayControls("Stop", false);
             _housePreviewPanel->EnablePlayControls("Rewind", true);
-            _housePreviewPanel->EnablePlayControls("Rewind10", true);
-            _housePreviewPanel->EnablePlayControls("FForward10", true);
-            _housePreviewPanel->EnablePlayControls("End", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
         }
 	}
 	else
@@ -1060,7 +1056,6 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", false);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
-            _housePreviewPanel->EnablePlayControls("End", false);
         }
 		else if (playType == PLAY_TYPE_STOPPED)
 		{
@@ -1074,9 +1069,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", false);
             _housePreviewPanel->EnablePlayControls("Stop", false);
             _housePreviewPanel->EnablePlayControls("Rewind", true);
-            _housePreviewPanel->EnablePlayControls("Rewind10", true);
-            _housePreviewPanel->EnablePlayControls("FForward10", true);
-            _housePreviewPanel->EnablePlayControls("End", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
         }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
@@ -1090,9 +1084,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", true);
             _housePreviewPanel->EnablePlayControls("Stop", true);
             _housePreviewPanel->EnablePlayControls("Rewind", false);
-            _housePreviewPanel->EnablePlayControls("Rewind10", false);
-            _housePreviewPanel->EnablePlayControls("FForward10", false);
-            _housePreviewPanel->EnablePlayControls("End", false);
+            _housePreviewPanel->EnablePlayControls("Rewind10", true);
+            _housePreviewPanel->EnablePlayControls("FForward10", true);
         }
 		else if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
 		{
@@ -1106,9 +1099,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", true);
             _housePreviewPanel->EnablePlayControls("Stop", true);
             _housePreviewPanel->EnablePlayControls("Rewind", true);
-            _housePreviewPanel->EnablePlayControls("Rewind10", true);
-            _housePreviewPanel->EnablePlayControls("FForward10", true);
-            _housePreviewPanel->EnablePlayControls("End", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
         }
 		else
 		{
@@ -1122,9 +1114,8 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Pause", false);
             _housePreviewPanel->EnablePlayControls("Stop", false);
             _housePreviewPanel->EnablePlayControls("Rewind", true);
-            _housePreviewPanel->EnablePlayControls("Rewind10", true);
-            _housePreviewPanel->EnablePlayControls("FForward10", true);
-            _housePreviewPanel->EnablePlayControls("End", true);
+            _housePreviewPanel->EnablePlayControls("Rewind10", false);
+            _housePreviewPanel->EnablePlayControls("FForward10", false);
         }
 	}
 }
@@ -1214,12 +1205,87 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 
 void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
 {
-    // TODO 
+    int current_play_time;
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+    }
+    else
+    {
+        wxTimeSpan ts = wxDateTime::UNow() - starttime;
+        long curtime = ts.GetMilliseconds().ToLong();
+        int msec = 0;
+        if (playAnimation) {
+            msec = curtime * playSpeed;
+        }
+        else {
+            msec = curtime;
+        }
+
+        current_play_time = (playStartTime + msec - playStartMS);
+    }
+
+    long origtime = current_play_time;
+    current_play_time -= 10000;
+    if (current_play_time < 0) current_play_time = 0;
+
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr)
+        {
+            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        }
+    }
+    else
+    {
+        starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
+    }
+
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
 }
 
 void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 {
-    // TODO 
+    int current_play_time;
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+    }
+    else
+    {
+        wxTimeSpan ts = wxDateTime::UNow() - starttime;
+        long curtime = ts.GetMilliseconds().ToLong();
+        int msec = 0;
+        if (playAnimation) {
+            msec = curtime * playSpeed;
+        }
+        else {
+            msec = curtime;
+        }
+
+        current_play_time = (playStartTime + msec - playStartMS);
+    }
+
+    long origtime = current_play_time;
+    current_play_time += 10000;
+    int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
+    if (current_play_time > end_ms) current_play_time = end_ms;
+
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr)
+        {
+            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        }
+    }
+    else
+    {
+        starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
+    }
+
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
 }
 
 void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)

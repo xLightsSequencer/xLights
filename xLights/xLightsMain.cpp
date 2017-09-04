@@ -2764,8 +2764,6 @@ void xLightsFrame::OnSetGridNodeValues(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
-
-
 void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 {
     playSpeed = 1.0;

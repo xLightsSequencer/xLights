@@ -40,7 +40,6 @@ class HousePreviewPanel: public wxPanel
 		wxBitmapButton* Rewind10Button;
 		wxBitmapButton* PlayButton;
 		wxBitmapButton* StopButton;
-		wxBitmapButton* EndButton;
 		wxBitmapButton* RewindButton;
 		//*)
 
@@ -53,7 +52,6 @@ class HousePreviewPanel: public wxPanel
 		static const long ID_BITMAPBUTTON4;
 		static const long ID_BITMAPBUTTON6;
 		static const long ID_BITMAPBUTTON7;
-		static const long ID_BITMAPBUTTON5;
 		static const long ID_PANEL1;
 		//*)
 

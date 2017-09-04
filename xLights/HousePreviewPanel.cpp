@@ -15,7 +15,6 @@ const long HousePreviewPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON6 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON7 = wxNewId();
-const long HousePreviewPanel::ID_BITMAPBUTTON5 = wxNewId();
 const long HousePreviewPanel::ID_PANEL1 = wxNewId();
 //*)
 
@@ -49,7 +48,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	ModelPreviewSizer->AddGrowableRow(0);
 	FlexGridSizer1->Add(ModelPreviewSizer, 1, wxALL|wxEXPAND, 0);
 	Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	ButtonSizer = new wxFlexGridSizer(0, 7, 0, 0);
+	ButtonSizer = new wxFlexGridSizer(0, 6, 0, 0);
 	PlayButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	PlayButton->SetMinSize(wxSize(24,24));
 	ButtonSizer->Add(PlayButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -68,9 +67,6 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	FastForward10Button = new wxBitmapButton(Panel1, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
 	FastForward10Button->SetMinSize(wxSize(24,24));
 	ButtonSizer->Add(FastForward10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	EndButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON5, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
-	EndButton->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(EndButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Panel1->SetSizer(ButtonSizer);
 	ButtonSizer->Fit(Panel1);
 	ButtonSizer->SetSizeHints(Panel1);
@@ -85,7 +81,6 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnRewindButtonClick);
 	Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnRewind10ButtonClick);
 	Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnFastForward10ButtonClick);
-	Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnEndButtonClick);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&HousePreviewPanel::OnResize);
 	//*)
 
@@ -100,11 +95,9 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
     RewindButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_BACKWARD"))));
     Rewind10Button->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_REWIND10"))));
     FastForward10Button->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_FFORWARD10"))));
-    EndButton->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_FORWARD"))));
 
-    //TODO remove these when I write these functions
-    Rewind10Button->Hide();
-    FastForward10Button->Hide();
+    Rewind10Button->SetToolTip("Rewind 10 seconds.");
+    FastForward10Button->SetToolTip("Fast forward 10 seconds.");
 
     Fit();
     Layout();
@@ -219,9 +212,5 @@ void HousePreviewPanel::EnablePlayControls(const std::string& control, bool enab
     else if (control == "FForward10")
     {
         FastForward10Button->Enable(enable);
-    }
-    else if (control == "End")
-    {
-        EndButton->Enable(enable);
     }
 }
