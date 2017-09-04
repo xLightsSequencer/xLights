@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (gil)     Fix issue where playback can hang when selecting an effect.
    -- bug (gil)     Fix some picture effects not displaying in the correct place
    -- enh (keith)   Add optional output frame deduplication with key frames if a frames data does not change
    -- bug (keith)   Fix falcon upload occasionally losing descriptions or crashing the controller and failing on V2 controllers

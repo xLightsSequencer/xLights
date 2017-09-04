@@ -4621,8 +4621,10 @@ void EffectsGrid::UpdateSelectedEffects()
 
 void EffectsGrid::ForceRefresh()
 {
-    if( mDragging ) {
-        UpdateSelectionRectangle();
+    if( xlights->GetPlayStatus() != PLAY_TYPE_EFFECT && xlights->GetPlayStatus() != PLAY_TYPE_MODEL ) {
+        if( mDragging ) {
+            UpdateSelectionRectangle();
+        }
     }
     Draw();
 }

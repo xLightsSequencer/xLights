@@ -142,7 +142,6 @@ private:
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
     void DrawLines();
-    //void DrawModelOrViewEffects(int row);
     void DrawSelectedCells();
 
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
