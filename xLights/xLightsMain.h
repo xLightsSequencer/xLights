@@ -638,6 +638,10 @@ private:
     static const long ID_MENUITEM11;
     static const long ID_MENUITEM10;
     static const long ID_PLAY_FULL;
+    static const long ID_MNU_1POINT5SPEED;
+    static const long ID_MN_2SPEED;
+    static const long ID_MNU_3SPEED;
+    static const long ID_MNU_4SPEED;
     static const long ID_PLAY_3_4;
     static const long ID_PLAY_1_2;
     static const long ID_PLAY_1_4;
@@ -741,6 +745,8 @@ private:
     wxMenu* ToolIconSizeMenu;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxAuiManager* m_mgr;
+    wxMenuItem* MenuItem49;
+    wxMenuItem* MenuItem50;
     wxMenuItem* MenuItem_ExportEffects;
     wxAuiManager* MainAuiManager;
     wxMenuItem* MenuItem_SD_20;
@@ -788,6 +794,7 @@ private:
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem39;
     wxMenuItem* MenuItem38;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemRenderEraseMode;
@@ -822,6 +829,7 @@ private:
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxTimer Timer_AutoSave;
     wxMenuItem* MenuItemColorManager;
+    wxMenuItem* MenuItem51;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;

@@ -1218,6 +1218,26 @@
 					<handler function="SetPlaySpeed" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_1POINT5SPEED" variable="MenuItem39" member="yes">
+					<label>Play 1.5x Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MN_2SPEED" variable="MenuItem49" member="yes">
+					<label>Play 2x Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_3SPEED" variable="MenuItem50" member="yes">
+					<label>Play 3x Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_4SPEED" variable="MenuItem51" member="yes">
+					<label>Play 4x Speed</label>
+					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_PLAY_3_4" variable="MenuItem9" member="no">
 					<label>Play 3/4 Speed</label>
 					<handler function="SetPlaySpeed" entry="EVT_MENU" />

@@ -798,7 +798,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
         DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
     }
 
-    if (Selected && c != NULL && allowSelected) {
+    if (Selected && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -827,7 +827,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     xlColor base_color(200, 200, 200);
     xlColor base_color2(150, 150, 150);
     xlColor color;
-    if (c != NULL) {
+    if (c != nullptr) {
         color = *c;
     }
 
@@ -1169,8 +1169,8 @@ int DmxModel::GetChannelValue( int channel )
 void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
     float pan_angle, pan_angle_raw, tilt_angle, nod_angle, jaw_pos, eye_x, eye_y;
-    float jaw_range_of_motion = -4.0;
-    float eye_range_of_motion = 3.8;
+    float jaw_range_of_motion = -4.0f;
+    float eye_range_of_motion = 3.8f;
     int channel_value;
     size_t NodeCount=Nodes.size();
     bool beam_off = false;
@@ -1192,7 +1192,7 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     xlColor base_color(200, 200, 200);
     xlColor base_color2(150, 150, 150);
     xlColor color;
-    if (c != NULL) {
+    if (c != nullptr) {
         color = *c;
     }
 

@@ -215,6 +215,10 @@ const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
 const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_PLAY_FULL = wxNewId();
+const long xLightsFrame::ID_MNU_1POINT5SPEED = wxNewId();
+const long xLightsFrame::ID_MN_2SPEED = wxNewId();
+const long xLightsFrame::ID_MNU_3SPEED = wxNewId();
+const long xLightsFrame::ID_MNU_4SPEED = wxNewId();
 const long xLightsFrame::ID_PLAY_3_4 = wxNewId();
 const long xLightsFrame::ID_PLAY_1_2 = wxNewId();
 const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
@@ -817,6 +821,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     AudioMenu = new wxMenu();
     MenuItem8 = new wxMenuItem(AudioMenu, ID_PLAY_FULL, _("Play Full Speed"), wxEmptyString, wxITEM_RADIO);
     AudioMenu->Append(MenuItem8);
+    MenuItem39 = new wxMenuItem(AudioMenu, ID_MNU_1POINT5SPEED, _("Play 1.5x Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem39);
+    MenuItem49 = new wxMenuItem(AudioMenu, ID_MN_2SPEED, _("Play 2x Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem49);
+    MenuItem50 = new wxMenuItem(AudioMenu, ID_MNU_3SPEED, _("Play 3x Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem50);
+    MenuItem51 = new wxMenuItem(AudioMenu, ID_MNU_4SPEED, _("Play 4x Speed"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem51);
     MenuItem9 = new wxMenuItem(AudioMenu, ID_PLAY_3_4, _("Play 3/4 Speed"), wxEmptyString, wxITEM_RADIO);
     AudioMenu->Append(MenuItem9);
     MenuItem30 = new wxMenuItem(AudioMenu, ID_PLAY_1_2, _("Play 1/2 Speed"), wxEmptyString, wxITEM_RADIO);
@@ -1087,6 +1099,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
     Connect(ID_PLAY_FULL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_MNU_1POINT5SPEED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_MN_2SPEED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_MNU_3SPEED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_MNU_4SPEED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_3_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_1_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_1_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
@@ -2770,14 +2786,26 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
     {
         playSpeed = 0.25;
     }
-	AudioManager::SetPlaybackRate(playSpeed);
+    else if (event.GetId() == ID_MNU_1POINT5SPEED)
+    {
+        playSpeed = 1.5;
+    }
+    else if (event.GetId() == ID_MN_2SPEED)
+    {
+        playSpeed = 2.0;
+    }
+    else if (event.GetId() == ID_MNU_3SPEED)
+    {
+        playSpeed = 3.0;
+    }
+    else if (event.GetId() == ID_MNU_4SPEED)
+    {
+        playSpeed = 4.0;
+    }
+    AudioManager::SetPlaybackRate(playSpeed);
 	if (CurrentSeqXmlFile != nullptr)
 	{
-	    if( CurrentSeqXmlFile->GetMedia() != nullptr )
-        {
-            //CurrentSeqXmlFile->GetMedia()->SetPlaybackRate(playSpeed);
-        }
-        else
+	    if( CurrentSeqXmlFile->GetMedia() == nullptr )
         {
             playAnimation = true;
         }
