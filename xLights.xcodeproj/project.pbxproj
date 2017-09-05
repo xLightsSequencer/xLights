@@ -44,6 +44,7 @@
 		671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67145C2B1D6607AE00A35D4B /* SubModel.cpp */; };
+		6715B4FA1F5F15CF00D60087 /* HousePreviewPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */; };
 		671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */; };
 		6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */; };
 		6719BF4B1CCB1D8800899A4B /* MusicEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6719BF471CCB1D8800899A4B /* MusicEffect.cpp */; };
@@ -637,6 +638,8 @@
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		67145C2B1D6607AE00A35D4B /* SubModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SubModel.cpp; path = models/SubModel.cpp; sourceTree = "<group>"; };
 		67145C2C1D6607AE00A35D4B /* SubModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SubModel.h; path = models/SubModel.h; sourceTree = "<group>"; };
+		6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HousePreviewPanel.h; sourceTree = "<group>"; };
+		6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HousePreviewPanel.cpp; sourceTree = "<group>"; };
 		671859E11D61FFF5008F52AA /* SevenSegmentDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SevenSegmentDialog.cpp; sourceTree = "<group>"; };
 		671859E21D61FFF5008F52AA /* SevenSegmentDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SevenSegmentDialog.h; sourceTree = "<group>"; };
 		6718EE711CDA4BD400A6E842 /* SubBufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubBufferPanel.cpp; sourceTree = "<group>"; };
@@ -2067,6 +2070,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */,
+				6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */,
 				6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */,
 				6797A1351F427205007CF7A0 /* EffectTimingDialog.h */,
 				67BF7FF31F278946002F118D /* Controllers */,
@@ -2812,6 +2817,7 @@
 				67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */,
 				67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */,
 				679BD33A1C37555C000539FE /* OffEffect.cpp in Sources */,
+				6715B4FA1F5F15CF00D60087 /* HousePreviewPanel.cpp in Sources */,
 				67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */,
 				67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */,
 				67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */,

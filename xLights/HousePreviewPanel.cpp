@@ -55,22 +55,16 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	ButtonSizer->AddGrowableCol(1);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 6, 0, 0);
 	PlayButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-	PlayButton->SetMinSize(wxSize(24,24));
-	FlexGridSizer2->Add(PlayButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(PlayButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PauseButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
-	PauseButton->SetMinSize(wxSize(24,24));
-	FlexGridSizer2->Add(PauseButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(PauseButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StopButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-	StopButton->SetMinSize(wxSize(24,24));
-	FlexGridSizer2->Add(StopButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(StopButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	RewindButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-	RewindButton->SetMinSize(wxSize(24,24));
-	FlexGridSizer2->Add(RewindButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(RewindButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Rewind10Button = new wxBitmapButton(Panel1, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
-	Rewind10Button->SetMinSize(wxSize(24,24));
 	FlexGridSizer2->Add(Rewind10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FastForward10Button = new wxBitmapButton(Panel1, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
-	FastForward10Button->SetMinSize(wxSize(24,24));
 	FlexGridSizer2->Add(FastForward10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SliderPosition = new wxSlider(Panel1, ID_SLIDER1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
@@ -78,7 +72,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	Panel1->SetSizer(ButtonSizer);
 	ButtonSizer->Fit(Panel1);
 	ButtonSizer->SetSizeHints(Panel1);
-	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 4);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -94,7 +88,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	//*)
 
     _modelPreview = new ModelPreview(this, _xLights, models ,groups, allowSelected, style, allowPreviewChange);
-    ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 2);
+    ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
 
     ValidateWindow(GetSize());
 
