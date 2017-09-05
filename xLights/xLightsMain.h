@@ -1371,6 +1371,8 @@ public:
 	void DoPlaySequence();
     static std::string DecodeMidi(int midi);
     void RecalcModels(bool force = false);
+    int GetPlayStatus() const { return playType; }
+    MainSequencer* GetMainSequencer() const { return mainSequencer; }
 
     EffectTreeDialog *EffectTreeDlg;
 };

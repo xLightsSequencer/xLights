@@ -2404,7 +2404,7 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     modelPreview->SetCanvasSize(width,height);
     modelPreview->Refresh();
     _housePreviewPanel->GetModelPreview()->SetVirtualCanvasSize(width, height);
-    _housePreviewPanel->GetModelPreview()->Refresh();
+    _housePreviewPanel->Refresh();
 }
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {

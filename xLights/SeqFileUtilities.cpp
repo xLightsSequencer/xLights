@@ -498,7 +498,7 @@ bool xLightsFrame::CloseSequence()
     SetStatusText("");
     SetStatusText(CurrentDir, 1);
     _modelPreviewPanel->Refresh();
-    _housePreviewPanel->GetModelPreview()->Refresh();
+    _housePreviewPanel->Refresh();
 
     SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
 
@@ -596,6 +596,7 @@ void xLightsFrame::SetSequenceEnd(int ms)
 {
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() * CurrentSeqXmlFile->GetFrequency() / 1000);
 }
 
 static bool CalcPercentage(std::string& value, double base, bool reverse, int offset)

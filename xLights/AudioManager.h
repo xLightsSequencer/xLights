@@ -205,14 +205,14 @@ class AudioManager
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);
-	long CalcLengthMS();
-	void SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData);
+	long CalcLengthMS() const;
+	void SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData) const;
 	void NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData);
 	int OpenMediaFile();
 	void PrepareFrameData(bool separateThread);
 	int decodebitrateindex(int bitrateindex, int version, int layertype);
 	int decodesamplerateindex(int samplerateindex, int version);
-	int decodesideinfosize(int version, int mono);
+	int decodesideinfosize(int version, int mono) const;
 	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
     void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void SetLoadedData(long pos);

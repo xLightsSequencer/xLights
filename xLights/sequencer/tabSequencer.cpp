@@ -559,6 +559,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() * CurrentSeqXmlFile->GetFrequency() / 1000);
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
@@ -991,6 +992,7 @@ void xLightsFrame::SetAudioControls()
         _housePreviewPanel->EnablePlayControls("Rewind", false);
         _housePreviewPanel->EnablePlayControls("Rewind10", false);
         _housePreviewPanel->EnablePlayControls("FForward10", false);
+        _housePreviewPanel->EnablePlayControls("Position", false);
 	}
 	else if (CurrentSeqXmlFile->GetSequenceType() != "Media")
 	{
@@ -1008,6 +1010,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", true);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
@@ -1023,6 +1026,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", false);
             _housePreviewPanel->EnablePlayControls("Rewind10", true);
             _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 		else
 		{
@@ -1038,6 +1042,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", true);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 	}
 	else
@@ -1056,6 +1061,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", false);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", false);
         }
 		else if (playType == PLAY_TYPE_STOPPED)
 		{
@@ -1071,6 +1077,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", true);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 		else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_MODEL)
 		{
@@ -1086,6 +1093,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", false);
             _housePreviewPanel->EnablePlayControls("Rewind10", true);
             _housePreviewPanel->EnablePlayControls("FForward10", true);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 		else if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED)
 		{
@@ -1101,6 +1109,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", true);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 		else
 		{
@@ -1116,6 +1125,7 @@ void xLightsFrame::SetAudioControls()
             _housePreviewPanel->EnablePlayControls("Rewind", true);
             _housePreviewPanel->EnablePlayControls("Rewind10", false);
             _housePreviewPanel->EnablePlayControls("FForward10", false);
+            _housePreviewPanel->EnablePlayControls("Position", true);
         }
 	}
 }
@@ -1569,6 +1579,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->PanelWaveForm->CheckNeedToScroll();
             mainSequencer->PanelEffectGrid->ForceRefresh();
+            _housePreviewPanel->SetPositionFrames(current_play_time * CurrentSeqXmlFile->GetFrequency() / 1000);
         }
 
         //wxLongLong me = wxGetUTCTimeMillis();

@@ -77,8 +77,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 
     this->SetName("Effect");
 
-
-    for (auto it = effectManager->begin(); it != effectManager->end(); it++) {
+    for (auto it = effectManager->begin(); it != effectManager->end(); ++it) {
         RenderableEffect *p = *it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
         wxPanel *panel = p->GetPanel(sw);
@@ -90,7 +89,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
         sw->SetSizer(fgs);
         fgs->Fit(sw);
         fgs->SetSizeHints(sw);
-
 
         EffectChoicebook->AddPage(sw, p->ToolTip(), false);
     }

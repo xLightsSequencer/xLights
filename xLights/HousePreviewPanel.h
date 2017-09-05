@@ -3,6 +3,7 @@
 
 //(*Headers(HousePreviewPanel)
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
 //*)
@@ -31,6 +32,8 @@ class HousePreviewPanel: public wxPanel
         ModelPreview* GetModelPreview() const { return _modelPreview; }
         void EnablePlayControls(const std::string& control, bool enable);
         void SetToolbar(bool toolbar) { _showToolbar = toolbar; }
+        void SetDurationFrames(long frames);
+        void SetPositionFrames(long frames);
 
 		//(*Declarations(HousePreviewPanel)
 		wxFlexGridSizer* ButtonSizer;
@@ -41,6 +44,7 @@ class HousePreviewPanel: public wxPanel
 		wxBitmapButton* PlayButton;
 		wxBitmapButton* StopButton;
 		wxBitmapButton* RewindButton;
+		wxSlider* SliderPosition;
 		//*)
 
 	protected:
@@ -52,6 +56,7 @@ class HousePreviewPanel: public wxPanel
 		static const long ID_BITMAPBUTTON4;
 		static const long ID_BITMAPBUTTON6;
 		static const long ID_BITMAPBUTTON7;
+		static const long ID_SLIDER1;
 		static const long ID_PANEL1;
 		//*)
 
@@ -66,6 +71,7 @@ class HousePreviewPanel: public wxPanel
 		void OnFastForward10ButtonClick(wxCommandEvent& event);
 		void OnEndButtonClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnSliderPositionCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

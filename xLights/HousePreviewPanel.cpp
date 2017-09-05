@@ -2,6 +2,7 @@
 #include "xLightsMain.h"
 #include "ModelPreview.h"
 #include <wx/artprov.h>
+#include "xLightsXmlFile.h"
 
 //(*InternalHeaders(HousePreviewPanel)
 #include <wx/intl.h>
@@ -15,6 +16,7 @@ const long HousePreviewPanel::ID_BITMAPBUTTON3 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON6 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON7 = wxNewId();
+const long HousePreviewPanel::ID_SLIDER1 = wxNewId();
 const long HousePreviewPanel::ID_PANEL1 = wxNewId();
 //*)
 
@@ -37,6 +39,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 
 	//(*Initialize(HousePreviewPanel)
 	wxFlexGridSizer* ModelPreviewSizer;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
@@ -48,29 +51,34 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	ModelPreviewSizer->AddGrowableRow(0);
 	FlexGridSizer1->Add(ModelPreviewSizer, 1, wxALL|wxEXPAND, 0);
 	Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	ButtonSizer = new wxFlexGridSizer(0, 6, 0, 0);
+	ButtonSizer = new wxFlexGridSizer(0, 2, 0, 0);
+	ButtonSizer->AddGrowableCol(1);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 6, 0, 0);
 	PlayButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	PlayButton->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(PlayButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(PlayButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	PauseButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON2, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
 	PauseButton->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(PauseButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(PauseButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StopButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON3, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
 	StopButton->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(StopButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(StopButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RewindButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON4, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
 	RewindButton->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(RewindButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(RewindButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Rewind10Button = new wxBitmapButton(Panel1, ID_BITMAPBUTTON6, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
 	Rewind10Button->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(Rewind10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(Rewind10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FastForward10Button = new wxBitmapButton(Panel1, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
 	FastForward10Button->SetMinSize(wxSize(24,24));
-	ButtonSizer->Add(FastForward10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FastForward10Button, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	SliderPosition = new wxSlider(Panel1, ID_SLIDER1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
+	ButtonSizer->Add(SliderPosition, 1, wxALL|wxEXPAND, 2);
 	Panel1->SetSizer(ButtonSizer);
 	ButtonSizer->Fit(Panel1);
 	ButtonSizer->SetSizeHints(Panel1);
-	FlexGridSizer1->Add(Panel1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -81,6 +89,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnRewindButtonClick);
 	Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnRewind10ButtonClick);
 	Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&HousePreviewPanel::OnFastForward10ButtonClick);
+	Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&HousePreviewPanel::OnSliderPositionCmdSliderUpdated);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&HousePreviewPanel::OnResize);
 	//*)
 
@@ -130,6 +139,8 @@ void HousePreviewPanel::OnStopButtonClick(wxCommandEvent& event)
 
 void HousePreviewPanel::OnRewindButtonClick(wxCommandEvent& event)
 {
+    SliderPosition->SetValue(0);
+    _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(0);
     wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
     wxPostEvent(_xLights, playEvent);
 }
@@ -213,4 +224,23 @@ void HousePreviewPanel::EnablePlayControls(const std::string& control, bool enab
     {
         FastForward10Button->Enable(enable);
     }
+    else if (control == "Position")
+    {
+        SliderPosition->Enable(enable);
+    }
+}
+
+void HousePreviewPanel::SetDurationFrames(long frames)
+{
+    SliderPosition->SetMax(frames);
+}
+
+void HousePreviewPanel::SetPositionFrames(long frames)
+{
+    SliderPosition->SetValue(frames);
+}
+
+void HousePreviewPanel::OnSliderPositionCmdSliderUpdated(wxScrollEvent& event)
+{
+    _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(event.GetPosition() * 1000 / _xLights->CurrentSeqXmlFile->GetFrequency());
 }

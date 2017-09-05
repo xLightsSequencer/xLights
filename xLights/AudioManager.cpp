@@ -734,7 +734,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     // Initialise Polyphonic Transcription
     _vamp.GetAllAvailablePlugins(this); // this initialises Vamp
     Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
-    size_t pref_step = 0;
+    size_t pref_step;
 
     if (pt == nullptr)
     {
@@ -1224,7 +1224,6 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 				return 16 + bitrateindex * 16;
 			}
 		}
-		break;
 	case 3: // v1
 		switch (layertype)
 		{
@@ -1288,13 +1287,11 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 				return bitrateindex * 32;
 			}
 		}
-		break;
 	case 1:
     default:
         // invalid
 		return 0;
 	}
-    return 0;
 }
 
 // Decode samplerate
@@ -1315,7 +1312,6 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
         default:
 			return 0;
 		}
-		break;
 	case 2: // v2
 		switch (samplerateindex)
 		{
@@ -1329,7 +1325,6 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
         default:
 			return 0;
 		}
-		break;
 	case 3: // v1
 		switch (samplerateindex)
 		{
@@ -1343,19 +1338,15 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
         default:
 			return 0;
 		}
-		break;
 	case 1:
     default:
 		// invalid
 		return 0;
 	}
-
-	// this should never happen
-	return 0;
 }
 
 // Decode side info
-int AudioManager::decodesideinfosize(int version, int mono)
+int AudioManager::decodesideinfosize(int version, int mono) const
 {
 	if (version == 3) // v1
 	{
@@ -1448,16 +1439,14 @@ AudioManager::~AudioManager()
 }
 
 // Split the MP# data into left and right and normalise the values
-void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData)
+void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData) const
 {
-    signed short lSample, rSample;
-
     for(size_t i=0; i<trackSize; i++)
     {
-        lSample = trackData[i*2];
-        leftData[i] = (float)lSample/(float)32768;
-        rSample = trackData[(i*2)+1];
-        rightData[i] = (float)rSample/(float)32768;
+        float lSample = trackData[i*2];
+        leftData[i] = lSample/32768.0f;
+        float rSample = trackData[(i*2)+1];
+        rightData[i] = rSample/32768.0f;
     }
 }
 
@@ -1473,10 +1462,10 @@ void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSiz
 }
 
 // Calculate the song lenth in MS
-long AudioManager::CalcLengthMS()
+long AudioManager::CalcLengthMS() const
 {
-	float seconds = (float)_trackSize * ((float)1 / (float)_rate);
-	return (long)(seconds * (float)1000);
+	float seconds = (float)_trackSize * (1.0f / (float)_rate);
+	return (long)(seconds * 1000.0f);
 }
 
 // Open and read the media file into memory
