@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.26  Sep  4, 2017
    -- bug (gil)     Fix issue where playback can hang when selecting an effect.
    -- bug (gil)     Fix some picture effects not displaying in the correct place
    -- enh (keith)   Add optional output frame deduplication with key frames if a frames data does not change
