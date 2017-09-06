@@ -2311,9 +2311,11 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
 
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
+    std::vector<std::string> timingTrackNames;
+    std::map<std::string, wxXmlNode*> timingTracks;
 
     for(wxXmlNode* e=input_xml.GetRoot()->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "channels"){
@@ -2361,10 +2363,28 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 }
             }
         }
+        else if (e->GetName() == "timingGrids")
+        {
+            for (wxXmlNode* timing = e->GetChildren(); timing != nullptr; timing = timing->GetNext()) {
+                if (timing->GetName() == "timingGrid") {
+                    wxString type = timing->GetAttribute("type", "");
+                    if (type != "fixed")
+                    {
+                        std::string name = timing->GetAttribute("name", "").ToStdString();
+                        if (name != "")
+                        {
+                            timingTrackNames.push_back(name);
+                            timingTracks[name] = timing;
+                        }
+                    }
+                }
+            }
+        }
     }
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
 
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
     std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
+    dlg.timingTracks = timingTrackNames;
 
     dlg.InitImport();
 
@@ -2375,6 +2395,37 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
+    }
+
+    for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
+        if (dlg.TimingTrackListBox->IsChecked(tt)) {
+            std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
+            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(name, "timing", true, true, false, false);
+            char cnt = '1';
+            while (target == nullptr) {
+                target = (TimingElement*)mSequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false);
+            }
+            if (target->GetEffectLayerCount() == 0)
+            {
+                target->AddEffectLayer();
+            }
+
+            EffectLayer *targetLayer = target->GetEffectLayer(0);
+            long last = 0;
+            for (wxXmlNode* t = timingTracks[name]->GetChildren(); t != nullptr; t = t->GetNext())
+            {
+                if (t->GetName() == "timing")
+                {
+                    int time = wxAtoi(t->GetAttribute("centisecond")) * 10;
+                    int adjTime = TimeLine::RoundToMultipleOfPeriod(time, CurrentSeqXmlFile->GetFrequency());
+                    if (adjTime != last)
+                    {
+                        targetLayer->AddEffect(0, "", "", "", last, adjTime, false, false);
+                        last = adjTime;
+                    }
+                }
+            }
+        }
     }
 
     for (size_t i = 0; i < dlg.dataModel->GetChildCount(); ++i)

@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Fix falcon upload only uploading enough pixels for first model on a chained output
+   -- enh (keith)   Add LMS timing import
+   -- bug (keith)   Fix value curves not sticking
 2017.26  Sep  4, 2017
    -- bug (gil)     Fix issue where playback can hang when selecting an effect.
    -- bug (gil)     Fix some picture effects not displaying in the correct place
