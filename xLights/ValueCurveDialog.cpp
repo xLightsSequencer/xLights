@@ -279,6 +279,7 @@ ValueCurveDialog::~ValueCurveDialog()
 
 void ValueCurveDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    _vc->SetRealValue();
     EndDialog(wxOK);
 }
 

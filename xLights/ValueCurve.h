@@ -106,6 +106,7 @@ public:
     float GetMax() const { wxASSERT(_max != MAXVOIDF); return _max; }
     float GetMin() const { wxASSERT(_min != MINVOIDF); return _min; }
     int GetDivisor() const { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
+    void SetRealValue() { _realValues = true; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
