@@ -468,7 +468,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             FindPort(stringData, i - 1)->protocol = DecodeStringPortProtocol(*protocol);
                             FindPort(stringData, i - 1)->universe = output->GetUniverse();
                             FindPort(stringData, i - 1)->startChannel = startChannel;
-                            FindPort(stringData, i - 1)->pixels = channelsperstring / 3;
+                            FindPort(stringData, i - 1)->pixels = (portend - portstart + 1) / 3;
                             FindPort(stringData, i - 1)->description = SafeDescription(first->GetName());
                         }
                     }
