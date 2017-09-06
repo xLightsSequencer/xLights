@@ -147,9 +147,9 @@ void E131Output::SendSync(int syncUniverse)
             }
             else if (!syncdatagram->IsOk())
             {
+                logger_base.error("Error initialising E131 sync datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
-                logger_base.error("Error initialising E131 sync datagram ... is network connected.");
             }
 
             // multicast - universe number must be in lower 2 bytes
@@ -267,7 +267,7 @@ bool E131Output::Open()
         }
         else if (!_datagram->IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram ... network may not be connected.");
+            logger_base.error("E131Output: Error opening datagram ... network may not be connected: %s", (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
             delete _datagram;
             _datagram = nullptr;
         }

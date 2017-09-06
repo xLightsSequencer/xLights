@@ -102,9 +102,9 @@ void ArtNetOutput::SendSync()
 
         if (!syncdatagram->IsOk())
         {
+            logger_base.error("Error initialising Artnet sync datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
-            logger_base.error("Error initialising Artnet sync datagram ... is network connected.");
             return;
         }
 
@@ -170,9 +170,9 @@ bool ArtNetOutput::Open()
 
     if (!_datagram->IsOk())
     {
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d.", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
         _ok = false;
         return _ok;
     }

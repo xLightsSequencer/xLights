@@ -80,9 +80,9 @@ void DDPOutput::SendSync()
 
         if (!syncdatagram->IsOk())
         {
+            logger_base.error("Error initialising DDP sync datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
-            logger_base.error("Error initialising DDP sync datagram ... is network connected.");
             return;
         }
 
@@ -156,9 +156,9 @@ bool DDPOutput::Open()
 
     if (!_datagram->IsOk())
     {
+        logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
-        logger_base.error("Error initialising DDP datagram for %s.", (const char *)_ip.c_str());
         _ok = false;
         return _ok;
     }

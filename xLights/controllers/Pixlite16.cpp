@@ -5,6 +5,7 @@
 #include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
+#include "outputs/IPOutput.h"
 
 Pixlite16::Pixlite16(const std::string& ip)
 {
@@ -28,7 +29,7 @@ Pixlite16::Pixlite16(const std::string& ip)
 
     if (!discovery->IsOk())
     {
-        logger_base.error("Error initialising Pixlite discovery datagram ... is network connected.");
+        logger_base.error("Error initialising Pixlite discovery datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(discovery->LastError()).c_str());
         return;
     }
 
@@ -113,6 +114,7 @@ Pixlite16::Pixlite16(const std::string& ip)
     }
 
     discovery->Close();
+    delete discovery;
 }
 
 int Pixlite16::GetMaxStringOutputs() const
@@ -150,7 +152,7 @@ bool Pixlite16::SendConfig(bool logresult)
 
     if (!config->IsOk())
     {
-        logger_base.error("Error initialising Pixlite config datagram ... is network connected.");
+        logger_base.error("Error initialising Pixlite config datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(config->LastError()).c_str());
         return false;
     }
 
@@ -162,6 +164,7 @@ bool Pixlite16::SendConfig(bool logresult)
     config->SendTo(toAddr, _pixliteData, sizeof(_pixliteData));
 
     config->Close();
+    delete config;
 
     return true;
 }

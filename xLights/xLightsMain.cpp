@@ -3928,7 +3928,7 @@ void xLightsFrame::CheckSequence(bool display)
     auto testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     if (testSocket == nullptr || !testSocket->IsOk())
     {
-        wxString msg = wxString::Format("    ERR: Cannot create socket on IP address '%s'. Is the network connected?", (const char*)addr.IPAddress().c_str());
+        wxString msg = wxString::Format("    ERR: Cannot create socket on IP address '%s'. Is the network connected: %s", (const char*)addr.IPAddress().c_str(), (const char *)IPOutput::DecodeError(testSocket->LastError()).c_str());
         LogAndWrite(f, msg.ToStdString());
         errcount++;
     }
