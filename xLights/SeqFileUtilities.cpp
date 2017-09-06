@@ -2410,15 +2410,16 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 target->AddEffectLayer();
             }
 
+            int offset = dlg.TimeAdjustSpinCtrl->GetValue();
             EffectLayer *targetLayer = target->GetEffectLayer(0);
-            long last = 0;
+            long last = offset;
             for (wxXmlNode* t = timingTracks[name]->GetChildren(); t != nullptr; t = t->GetNext())
             {
                 if (t->GetName() == "timing")
                 {
-                    int time = wxAtoi(t->GetAttribute("centisecond")) * 10;
+                    int time = wxAtoi(t->GetAttribute("centisecond")) * 10 + offset;
                     int adjTime = TimeLine::RoundToMultipleOfPeriod(time, CurrentSeqXmlFile->GetFrequency());
-                    if (adjTime != last)
+                    if (adjTime > last)
                     {
                         targetLayer->AddEffect(0, "", "", "", last, adjTime, false, false);
                         last = adjTime;
