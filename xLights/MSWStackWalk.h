@@ -80,7 +80,7 @@ wxString windows_get_stacktrace(void *data)
             symbol                      // Where to save the symbol
         )) {
             // Add the name of the function to the function list:
-            char buffer[2048]; sprintf(buffer, "0x%08llx %s\n", frame.AddrPC.Offset, symbol->Name);
+            char buffer[2048]; sprintf(buffer, "0x%08llx %s offset: 0x%08llx\n", frame.AddrPC.Offset, symbol->Name, displacement);
             trace += buffer;
             //logger_base.debug("SymGetSymFromAddr64: %s", (const char *)buffer);
         }

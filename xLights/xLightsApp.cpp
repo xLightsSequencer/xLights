@@ -327,7 +327,7 @@ void handleCrash(void *data) {
 #endif
 
     int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: %X\n", id);
+    trace += wxString::Format("\nCrashed thread id: %X or %i\n", id, id);
 #ifndef LINUX
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX
@@ -335,6 +335,9 @@ void handleCrash(void *data) {
 	logger_base.crit(trace);
 
     report->AddText("backtrace.txt", trace, "Backtrace");
+
+    logger_base.crit("%s", (const char *)trace.c_str());
+
     if (!wxThread::IsMain() && topFrame != nullptr) 
     {
         topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
