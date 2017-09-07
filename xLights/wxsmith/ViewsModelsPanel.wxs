@@ -26,6 +26,7 @@
 										<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 											<minsize>10</minsize>
 											<orientation>vertical</orientation>
+											<minsize>10,10</minsize>
 											<object class="wxPanel" name="ID_PANEL2" variable="Panel1" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 													<cols>2</cols>
@@ -175,7 +176,7 @@
 																			<label>Add</label>
 																			<handler function="OnButton_AddViewClick" entry="EVT_BUTTON" />
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
 																		<option>1</option>
 																	</object>
@@ -184,7 +185,7 @@
 																			<label>Delete</label>
 																			<handler function="OnButton_DeleteViewClick" entry="EVT_BUTTON" />
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
 																		<option>1</option>
 																	</object>
@@ -193,7 +194,7 @@
 																			<label>Rename</label>
 																			<handler function="OnButtonRenameClick" entry="EVT_BUTTON" />
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
 																		<option>1</option>
 																	</object>
@@ -202,7 +203,16 @@
 																			<label>Clone</label>
 																			<handler function="OnButtonCloneClick" entry="EVT_BUTTON" />
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>2</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON11" variable="Button_MakeMaster" member="yes">
+																			<label>Make Master</label>
+																			<handler function="OnButton_MakeMasterClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxEXPAND</flag>
 																		<border>2</border>
 																		<option>1</option>
 																	</object>

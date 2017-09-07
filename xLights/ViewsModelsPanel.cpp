@@ -90,6 +90,7 @@ const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
+const long ViewsModelsPanel::ID_BUTTON11 = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
 const long ViewsModelsPanel::ID_PANEL3 = wxNewId();
@@ -146,6 +147,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	ScrollWindowSizer->AddGrowableCol(0);
 	ScrollWindowSizer->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(ScrolledWindowViewsModels, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinSize(wxSize(10,10));
 	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -196,13 +198,15 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddView = new wxButton(Panel2, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxEXPAND, 2);
 	Button_DeleteView = new wxButton(Panel2, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxEXPAND, 2);
 	ButtonRename = new wxButton(Panel2, ID_BUTTON7, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-	FlexGridSizer8->Add(ButtonRename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(ButtonRename, 1, wxALL|wxEXPAND, 2);
 	ButtonClone = new wxButton(Panel2, ID_BUTTON8, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxEXPAND, 2);
+	Button_MakeMaster = new wxButton(Panel2, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	FlexGridSizer8->Add(Button_MakeMaster, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -247,6 +251,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
+	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsBeginDrag);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsItemSelect);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemRClick);
@@ -935,11 +940,13 @@ void ViewsModelsPanel::ValidateWindow()
     {
         Button_DeleteView->Enable(false);
         ButtonRename->Enable(false);
+        Button_MakeMaster->Enable(false);
     }
     else
     {
         Button_DeleteView->Enable(true);
         ButtonRename->Enable(true);
+        Button_MakeMaster->Enable(true);
     }
 
     if (GetSelectedModelCount() > 0)
@@ -996,6 +1003,7 @@ void ViewsModelsPanel::OnListCtrlViewsItemSelect(wxListEvent& event)
 {
     int index = event.m_itemIndex;
     SelectView(ListCtrlViews->GetItemText(index, 1).ToStdString());
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
@@ -1078,6 +1086,7 @@ void ViewsModelsPanel::SelectView(const std::string& view)
     }
 
     ListCtrlViews->SetChecked(_sequenceElements->GetCurrentView(), false);
+
     int selected_view = GetViewIndex(view);
     if (selected_view > 0)
     {
@@ -1672,6 +1681,7 @@ void ViewsModelsPanel::SortModelsByName()
     PopulateModels();
 
     _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
 }
 
 wxArrayString ViewsModelsPanel::MergeStringArrays(const wxArrayString& arr1, const wxArrayString& arr2)
@@ -1754,6 +1764,7 @@ void ViewsModelsPanel::SortModelsByNameGM()
     PopulateModels();
 
     _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::SortModelsByType()
@@ -1819,6 +1830,7 @@ void ViewsModelsPanel::SortModelsByType()
     PopulateModels();
 
     _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::SortModelsUnderThisGroup(int groupIndex)
@@ -1867,6 +1879,7 @@ void ViewsModelsPanel::SortModelsUnderThisGroup(int groupIndex)
     PopulateModels();
 
     _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
 }
 
 void ViewsModelsPanel::SortModelsBubbleUpGroups()
@@ -1917,6 +1930,7 @@ void ViewsModelsPanel::SortModelsBubbleUpGroups()
     PopulateModels();
 
     _xlFrame->DoForceSequencerRefresh();
+    ValidateWindow();
 }
 
 int ViewsModelsPanel::GetTimingCount()
@@ -2402,5 +2416,53 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
         UpdateModelsForSelectedView();
         PopulateModels(wxJoin(movedModels, ',').ToStdString());
         _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
+{
+    // this should never happen
+    if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
+
+    // get the selected view
+    SequenceView* view = _sequenceViewManager->GetView(ListCtrlViews->GetItemText(_sequenceElements->GetCurrentView(), 1).ToStdString());
+    SequenceView* master = _sequenceViewManager->GetView(MASTER_VIEW);
+    if (view != nullptr)
+    {
+        auto models = view->GetModels();
+
+        for (int i = 0; i < _sequenceElements->GetElementCount(MASTER_VIEW); ++i)
+        {
+            std::string name = _sequenceElements->GetElement(i)->GetFullName();
+            if (std::find(models.begin(), models.end(), name) == models.end())
+            {
+                Element* element = _sequenceElements->GetElement(name);
+
+                if (element != nullptr && element->GetType() != ELEMENT_TYPE_TIMING)
+                {
+                    // model shouldnt be in master
+                    _sequenceElements->DeleteElement(name);
+                    --i;
+                }
+            }
+        }
+
+        // add the missing models and sort them
+        std::string m = view->GetModelsString();
+        wxArrayString ms = wxSplit(m, ',');
+        SetMasterViewModels(ms);
+
+        // Now select the master view
+        SelectView("Master View");
+
+        // Deselect all items
+        int itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        while (itemIndex != -1)
+        {
+            ListCtrlViews->SetItemState(itemIndex, 0, wxLIST_STATE_SELECTED);
+            itemIndex = ListCtrlViews->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+
+        ValidateWindow();
     }
 }
