@@ -150,15 +150,15 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     }
 }
 
+int xLightsXmlFile::GetFrameMS()
+{
+    return wxAtoi(seq_timing);
+}
+
 int xLightsXmlFile::GetFrequency()
 {
     int freq_ms = wxAtoi(seq_timing);
     return (int)(1000/freq_ms);
-}
-
-int xLightsXmlFile::GetSequenceTimingAsInt()
-{
-	return wxAtoi(seq_timing);
 }
 
 void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
@@ -1201,12 +1201,12 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 
 	if (audio != nullptr)
 	{
-		if (audio->GetFrameInterval() < 0 && GetSequenceTimingAsInt() > 0)
+		if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
 		{
-			audio->SetFrameInterval(GetSequenceTimingAsInt());
+			audio->SetFrameInterval(GetFrameMS());
 		}
 	}
-    logger_base.info("Sequence timing interval %dms.", GetSequenceTimingAsInt());
+    logger_base.info("Sequence timing interval %dms.", GetFrameMS());
 	logger_base.info("Sequence loaded.");
 
 	return is_open;

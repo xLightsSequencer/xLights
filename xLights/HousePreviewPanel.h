@@ -3,6 +3,7 @@
 
 //(*Headers(HousePreviewPanel)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
@@ -37,6 +38,7 @@ class HousePreviewPanel: public wxPanel
 
 		//(*Declarations(HousePreviewPanel)
 		wxFlexGridSizer* ButtonSizer;
+		wxStaticText* StaticText_Time;
 		wxPanel* Panel1;
 		wxBitmapButton* FastForward10Button;
 		wxBitmapButton* PauseButton;
@@ -57,6 +59,7 @@ class HousePreviewPanel: public wxPanel
 		static const long ID_BITMAPBUTTON6;
 		static const long ID_BITMAPBUTTON7;
 		static const long ID_SLIDER1;
+		static const long ID_STATICTEXT1;
 		static const long ID_PANEL1;
 		//*)
 

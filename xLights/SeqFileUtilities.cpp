@@ -86,7 +86,7 @@ void xLightsFrame::NewSequence()
 		{
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
-				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
 			}
 		}
 	}
@@ -376,7 +376,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
 			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
-				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
 			}
 			SetAudioControls();
 		}
@@ -596,7 +596,7 @@ void xLightsFrame::SetSequenceEnd(int ms)
 {
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
-    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() * CurrentSeqXmlFile->GetFrequency() / 1000);
+    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
 }
 
 static bool CalcPercentage(std::string& value, double base, bool reverse, int offset)

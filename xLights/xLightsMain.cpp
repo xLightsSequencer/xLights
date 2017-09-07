@@ -1277,6 +1277,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     modelsChangeCount = 0;
 
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config == nullptr)
+    {
+        logger_base.error("Null config ... this wont end well.");
+    }
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
+
+    config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
+    MenuItem_PlayControlsOnPreview->Check(_playControlsOnPreview);
+    logger_base.debug("Play Controls On Preview: %s.", _playControlsOnPreview ? "true" : "false");
+
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
     CreateSequencer();
@@ -1312,13 +1323,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     logger_base.debug("Window Location Restored.");
-
-    wxConfigBase* config = wxConfigBase::Get();
-    if (config == nullptr)
-    {
-        logger_base.error("Null config ... this wont end well.");
-    }
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor %s.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
 
     effGridPrevX = 0;
     effGridPrevY = 0;
@@ -1456,10 +1460,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsShowACRamps", &_showACRamps, false);
     MenuItem_ShowACRamps->Check(_showACRamps);
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
-
-    config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
-    MenuItem_PlayControlsOnPreview->Check(_playControlsOnPreview);
-    logger_base.debug("Play Controls On Preview: %s.", _playControlsOnPreview ? "true" : "false");
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
@@ -2324,19 +2324,13 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
     SetStatusText("All xml files backed up.");
 }
 
-
-//#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
 bool xLightsFrame::isRandom_(wxControl* ctl, const char*debug)
 {
-//    if (!ctl->GetName().length()) djdebug("NO NAME FOR %s", debug);
-    bool retval = (buttonState[std::string(ctl->GetName())] != Locked); //== Random);
-//    djdebug("isRandom(%s) = %d", (const char*)ctl->GetName().c_str(), retval);
+    bool retval = (buttonState[std::string(ctl->GetName())] != Locked); 
     return retval;
 }
 
-void xLightsFrame::OnEffectsPanel1Paint(wxPaintEvent& event)
-{
-}
+void xLightsFrame::OnEffectsPanel1Paint(wxPaintEvent& event) {}
 
 void xLightsFrame::OnGrid1SetFocus(wxFocusEvent& event)
 {
@@ -2348,11 +2342,7 @@ void xLightsFrame::OnGrid1KillFocus(wxFocusEvent& event)
     Grid1HasFocus = false;
 }
 
-
-void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
-{
-}
-
+void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event) {}
 
 static void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString& value)
 {
@@ -2397,42 +2387,45 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
+
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
-    SetXmlSetting("previewWidth",wxString::Format(wxT("%i"),width));
-    SetXmlSetting("previewHeight",wxString::Format(wxT("%i"),height));
-    modelPreview->SetCanvasSize(width,height);
+    SetXmlSetting("previewWidth", wxString::Format(wxT("%i"),width));
+    SetXmlSetting("previewHeight", wxString::Format(wxT("%i"),height));
+    modelPreview->SetCanvasSize(width, height);
     modelPreview->Refresh();
     _housePreviewPanel->GetModelPreview()->SetVirtualCanvasSize(width, height);
     _housePreviewPanel->Refresh();
 }
+
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {
-    wxXmlNode* e;
     // Delete existing setting node
-    for(e=SettingsNode->GetChildren(); e!=nullptr; e=e->GetNext())
+    for(wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
-        if(e->GetName() == settingName)
+        if (e->GetName() == settingName)
         {
             SettingsNode->RemoveChild(e);
         }
     }
+
     // Add new one
-    wxXmlNode* setting = new wxXmlNode( wxXML_ELEMENT_NODE, settingName );
-    setting->AddAttribute("value",value);
+    wxXmlNode* setting = new wxXmlNode(wxXML_ELEMENT_NODE, settingName);
+    setting->AddAttribute("value", value);
     SettingsNode->AddChild(setting);
 }
-wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString& defaultValue)
+
+wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue)
 {
-    wxXmlNode* e;
     // Delete existing setting node
-    for(e=SettingsNode->GetChildren(); e!=nullptr; e=e->GetNext())
+    for(wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
-        if(e->GetName() == settingName)
+        if (e->GetName() == settingName)
         {
-            return e->GetAttribute("value",defaultValue);
+            return e->GetAttribute("value", defaultValue);
         }
     }
+
     return defaultValue;
 }
 
@@ -2447,6 +2440,7 @@ wxString xLightsFrame::GetSeqXmlFileName()
     {
         return "";
     }
+
     return CurrentSeqXmlFile->GetFullPath();
 }
 
@@ -2477,12 +2471,11 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 	{
 		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 		{
-			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetSequenceTimingAsInt());
+			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
 		}
 	}
 	SetAudioControls();
 }
-
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 {

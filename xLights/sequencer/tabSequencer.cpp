@@ -478,7 +478,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
                     ObtainAccessToURL(mediaFilename.ToStdString());
                     if (xml_file.GetMedia() != nullptr && xml_file.GetMedia()->GetFrameInterval() < 0)
                     {
-                        xml_file.GetMedia()->SetFrameInterval(xml_file.GetSequenceTimingAsInt());
+                        xml_file.GetMedia()->SetFrameInterval(xml_file.GetFrameMS());
                     }
                     SetAudioControls();
                 }
@@ -559,7 +559,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
-    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() * CurrentSeqXmlFile->GetFrequency() / 1000);
+    _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
@@ -1579,7 +1579,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             mainSequencer->PanelWaveForm->UpdatePlayMarker();
             mainSequencer->PanelWaveForm->CheckNeedToScroll();
             mainSequencer->PanelEffectGrid->ForceRefresh();
-            _housePreviewPanel->SetPositionFrames(current_play_time * CurrentSeqXmlFile->GetFrequency() / 1000);
+            _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
 
         //wxLongLong me = wxGetUTCTimeMillis();
@@ -2538,7 +2538,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
         EffectLayer* effectLayer = element->GetEffectLayer(0);
         // mSequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
 
-        int interval = 1000 / CurrentSeqXmlFile->GetFrequency();
+        int interval = CurrentSeqXmlFile->GetFrameMS();
         wxString type = dlgNoteImport.Choice_Piano_Notes_Source->GetStringSelection();
         std::map<int, std::list<float>> notes;
         if (type == "Audacity Timing File")

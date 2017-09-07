@@ -20,7 +20,7 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 					<object class="wxFlexGridSizer" variable="ButtonSizer" member="yes">
-						<cols>2</cols>
+						<cols>3</cols>
 						<growablecols>1</growablecols>
 						<object class="sizeritem">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
@@ -83,6 +83,14 @@
 								<handler function="OnSliderPositionCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 							</object>
 							<flag>wxALL|wxEXPAND</flag>
+							<border>2</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_Time" member="yes">
+								<label>00:00.000</label>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>2</border>
 							<option>1</option>
 						</object>

@@ -7,6 +7,7 @@
 //(*InternalHeaders(HousePreviewPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "SequenceCheck.h"
 //*)
 
 //(*IdInit(HousePreviewPanel)
@@ -17,6 +18,7 @@ const long HousePreviewPanel::ID_BITMAPBUTTON4 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON6 = wxNewId();
 const long HousePreviewPanel::ID_BITMAPBUTTON7 = wxNewId();
 const long HousePreviewPanel::ID_SLIDER1 = wxNewId();
+const long HousePreviewPanel::ID_STATICTEXT1 = wxNewId();
 const long HousePreviewPanel::ID_PANEL1 = wxNewId();
 //*)
 
@@ -51,7 +53,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	ModelPreviewSizer->AddGrowableRow(0);
 	FlexGridSizer1->Add(ModelPreviewSizer, 1, wxALL|wxEXPAND, 0);
 	Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	ButtonSizer = new wxFlexGridSizer(0, 2, 0, 0);
+	ButtonSizer = new wxFlexGridSizer(0, 3, 0, 0);
 	ButtonSizer->AddGrowableCol(1);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 6, 0, 0);
 	PlayButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
@@ -69,6 +71,8 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	ButtonSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SliderPosition = new wxSlider(Panel1, ID_SLIDER1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
 	ButtonSizer->Add(SliderPosition, 1, wxALL|wxEXPAND, 2);
+	StaticText_Time = new wxStaticText(Panel1, ID_STATICTEXT1, _("00:00.000"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	ButtonSizer->Add(StaticText_Time, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Panel1->SetSizer(ButtonSizer);
 	ButtonSizer->Fit(Panel1);
 	ButtonSizer->SetSizeHints(Panel1);
@@ -133,6 +137,7 @@ void HousePreviewPanel::OnStopButtonClick(wxCommandEvent& event)
 
 void HousePreviewPanel::OnRewindButtonClick(wxCommandEvent& event)
 {
+    StaticText_Time->SetLabel(FORMATTIME(0));
     SliderPosition->SetValue(0);
     _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(0);
     wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
@@ -232,9 +237,11 @@ void HousePreviewPanel::SetDurationFrames(long frames)
 void HousePreviewPanel::SetPositionFrames(long frames)
 {
     SliderPosition->SetValue(frames);
+    StaticText_Time->SetLabel(FORMATTIME(frames * _xLights->CurrentSeqXmlFile->GetFrameMS()));
 }
 
 void HousePreviewPanel::OnSliderPositionCmdSliderUpdated(wxScrollEvent& event)
 {
-    _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(event.GetPosition() * 1000 / _xLights->CurrentSeqXmlFile->GetFrequency());
+    _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(event.GetPosition() * _xLights->CurrentSeqXmlFile->GetFrameMS());
+    StaticText_Time->SetLabel(FORMATTIME(event.GetPosition() * _xLights->CurrentSeqXmlFile->GetFrameMS()));
 }
