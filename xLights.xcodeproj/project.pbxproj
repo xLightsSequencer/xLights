@@ -345,7 +345,6 @@
 		67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */; };
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
-		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -1199,7 +1198,6 @@
 		67C581571E4B95CA00932DFA /* PlayListItemText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemText.h; path = PlayList/PlayListItemText.h; sourceTree = "<group>"; };
 		67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTextPanel.cpp; path = PlayList/PlayListItemTextPanel.cpp; sourceTree = "<group>"; };
 		67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTextPanel.h; path = PlayList/PlayListItemTextPanel.h; sourceTree = "<group>"; };
-		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
@@ -2224,7 +2222,6 @@
 				67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
-				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				671130AF1E4EB18100AF09A7 /* VSAFile.cpp */,
 				671130B01E4EB18100AF09A7 /* VSAFile.h */,
 				671130B11E4EB18100AF09A7 /* VsaImportDialog.cpp */,
@@ -2879,7 +2876,6 @@
 				675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
 				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
-				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
 				67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67B2CFEE1C3A186A003C17CA /* GalaxyEffect.cpp in Sources */,
