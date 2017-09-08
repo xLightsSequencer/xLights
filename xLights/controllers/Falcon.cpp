@@ -334,8 +334,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     progress.Update(40, "Processing current configuration data.");
 
     int currentStrings = CountStrings(stringsDoc);
-    int mainPixels = 680;
-    int daughter1Pixels = 340;
+    int mainPixels = GetMaxPixels();
+    int daughter1Pixels = mainPixels / 2;
     int daughter2Pixels = 0;
     if (SupportsVariableExpansions())
     {
@@ -362,11 +362,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
-    int maxPixels = 680;
-    if (IsV3())
-    {
-        maxPixels = 1024;
-    }
+    int maxPixels = GetMaxPixels();
 
     if (maxport > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
     {
@@ -517,6 +513,12 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
     if (!SupportsVariableExpansions())
     {
+        // minimum of main is 1
+        if (maxMain == 0)
+        {
+            maxMain = 1;
+        }
+
         if (maxDaughter1 > 0)
         {
             if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2)
@@ -546,6 +548,11 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
     else
     {
+        if (maxMain == 0)
+        {
+            maxMain = 1;
+        }
+
         if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
         {
             maxDaughter2 = 1;
@@ -627,9 +634,12 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
         {
             FalconString* string = new FalconString();
             string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
+            if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
             string->pixels = wxAtoi(e->GetAttribute("c"));
+            if (string->pixels < 0 || string->pixels > GetMaxPixels()) string->pixels = 0;
             string->protocol = wxAtoi(e->GetAttribute("t"));
             string->universe = wxAtoi(e->GetAttribute("u"));
+            if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
             string->description = e->GetAttribute("y").ToStdString();
             string->port = wxAtoi(e->GetAttribute("p"));
             string->index = i;
@@ -639,11 +649,11 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
         {
             FalconString* string = new FalconString();
             string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
-            if (string->startChannel <= 0 || string->startChannel > 512) string->startChannel = 1;
+            if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
             string->pixels = wxAtoi(e->GetAttribute("c"));
             string->protocol = -1;
             string->universe = wxAtoi(e->GetAttribute("u"));
-            if (string->universe <= 0 || string->universe > 64000) string->universe = 1;
+            if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
             string->description = e->GetAttribute("y").ToStdString();
             string->port = wxAtoi(e->GetAttribute("p"));
             string->index = i;

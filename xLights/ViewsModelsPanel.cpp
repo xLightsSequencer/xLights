@@ -317,7 +317,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     int topM = ListCtrlModels->GetTopItem();
     int topN = ListCtrlNonModels->GetTopItem();
 
-    int itemSize = 0;
+    int itemSize;
     if (ListCtrlModels->GetItemCount() > 0)
     {
         wxRect rect;
@@ -2428,7 +2428,6 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
     // get the selected view
     SequenceView* view = _sequenceViewManager->GetView(ListCtrlViews->GetItemText(_sequenceElements->GetCurrentView(), 1).ToStdString());
-    SequenceView* master = _sequenceViewManager->GetView(MASTER_VIEW);
     if (view != nullptr)
     {
         auto models = view->GetModels();
