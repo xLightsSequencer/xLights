@@ -118,7 +118,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
     }
     while (countValid != models.size()) {
         int newCountValid = 0;
-        for (auto it = models.begin(); it != models.end(); it++) {
+        for (auto it = models.begin(); it != models.end(); ++it) {
             if (!it->second->CouldComputeStartChannel) {
                 it->second->SetFromXml(it->second->GetModelXml());
                 newCountValid += it->second->CouldComputeStartChannel ? 1 : 0;
@@ -127,15 +127,8 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             }
         }
         if (countValid == newCountValid) {
-            logger_base.warn("Could not calculate start channels for models:");
-            std::string msg = "Could not calculate start channels for models:\n";
-            for (auto it = models.begin(); it != models.end(); it++) {
-                if (!it->second->CouldComputeStartChannel) {
-                    msg += it->second->name +  "\n";
-                    logger_base.warn("     %s : %s", (const char *)it->second->name.c_str(), (const char *)it->second->ModelStartChannel.c_str());
-                }
-            }
-            wxMessageBox(msg);
+            DisplayStartChannelCalcWarning();
+
             //nothing improved
             return;
         }
@@ -189,10 +182,10 @@ void ModelManager::OldRecalcStartChannels() const {
     //wxStopWatch sw;
     //sw.Start();
     int countValid = 0;
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         it->second->CouldComputeStartChannel = false;
     }
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         if( it->second->GetDisplayAs() != "ModelGroup" ) {
             it->second->SetFromXml(it->second->GetModelXml());
             countValid += it->second->CouldComputeStartChannel ? 1 : 0;
@@ -202,7 +195,7 @@ void ModelManager::OldRecalcStartChannels() const {
     }
     while (countValid != models.size()) {
         int newCountValid = 0;
-        for (auto it = models.begin(); it != models.end(); it++) {
+        for (auto it = models.begin(); it != models.end(); ++it) {
             if( it->second->GetDisplayAs() != "ModelGroup" ) {
                 if (!it->second->CouldComputeStartChannel) {
                     it->second->SetFromXml(it->second->GetModelXml());
@@ -215,15 +208,8 @@ void ModelManager::OldRecalcStartChannels() const {
             }
         }
         if (countValid == newCountValid) {
-            std::string msg = "Could not calculate start channels for models:\n";
-            for (auto it = models.begin(); it != models.end(); it++) {
-                if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
-                    msg += it->second->name + "\n";
-                }
-            }
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.warn(msg);
-            wxMessageBox(msg);
+            DisplayStartChannelCalcWarning();
+
             //nothing improved
             return;
         }
@@ -233,6 +219,24 @@ void ModelManager::OldRecalcStartChannels() const {
     //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
 }
 
+void ModelManager::DisplayStartChannelCalcWarning() const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    static std::string lastwarn = "";
+    std::string msg = "Could not calculate start channels for models:\n";
+    for (auto it = models.begin(); it != models.end(); ++it) {
+        if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
+            msg += it->second->name + ":" + it->second->ModelStartChannel + "\n";
+        }
+    }
+    if (msg != lastwarn)
+    {
+        logger_base.warn(msg);
+        wxMessageBox(msg);
+        lastwarn = msg;
+    }
+}
 
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

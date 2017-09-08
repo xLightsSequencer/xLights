@@ -23,6 +23,7 @@ class ModelManager
         void OldRecalcStartChannels() const;
         void NewRecalcStartChannels() const;
         unsigned int GetLastChannel() const;
+        void DisplayStartChannelCalcWarning() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
         void AddModel(Model *m);

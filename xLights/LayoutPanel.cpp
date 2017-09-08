@@ -714,7 +714,14 @@ void LayoutPanel::refreshModelList() {
                 wxString startStr = model->GetStartChannelInDisplayFormat();
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+                    if (model->CouldComputeStartChannel)
+                    {
+                        TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+                    }
+                    else
+                    {
+                        TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
+                    }
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_EndChan);
                 if (cv != endStr) {
@@ -802,7 +809,14 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat();
-        TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+        if (model->CouldComputeStartChannel)
+        {
+            TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
+        }
+        else
+        {
+            TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
+        }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
@@ -870,7 +884,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         TreeListViewModels->DeleteAllItems();
         // add all the model groups
         wxTreeListItem root = TreeListViewModels->GetRootItem();
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
             if (model->GetDisplayAs() == "ModelGroup") {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
