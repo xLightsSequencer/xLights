@@ -155,7 +155,7 @@ void ModelManager::NewRecalcStartChannels() const
     std::string msg = "Could not calculate start channels for models:\n";
     bool failed = false;
     
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         it->second->CouldComputeStartChannel = false;
     }
 
@@ -227,9 +227,10 @@ void ModelManager::DisplayStartChannelCalcWarning() const
     std::string msg = "Could not calculate start channels for models:\n";
     for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup" && !it->second->CouldComputeStartChannel) {
-            msg += it->second->name + ":" + it->second->ModelStartChannel + "\n";
+            msg += it->second->name + " : " + it->second->ModelStartChannel + "\n";
         }
     }
+
     if (msg != lastwarn)
     {
         logger_base.warn(msg);
