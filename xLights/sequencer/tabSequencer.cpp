@@ -901,6 +901,30 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::AutoShowHouse()
+{
+    if (_autoShowHousePreview)
+    {
+        bool visible = m_mgr->GetPane("HousePreview").IsShown();
+        if (playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED)
+        {
+            if (!visible)
+            {
+                m_mgr->GetPane("HousePreview").Show();
+                m_mgr->Update();
+            }
+        }
+        else
+        {
+            if (visible)
+            {
+                m_mgr->GetPane("HousePreview").Hide();
+                m_mgr->Update();
+            }
+        }
+    }
+}
+
 void xLightsFrame::DoPlaySequence()
 {
 	if (CurrentSeqXmlFile != nullptr)
@@ -935,6 +959,7 @@ void xLightsFrame::DoPlaySequence()
 		}
 	}
 	SetAudioControls();
+    AutoShowHouse();
 }
 
 void xLightsFrame::PlaySequence(wxCommandEvent& event)
@@ -974,6 +999,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
         playType = PLAY_TYPE_EFFECT_PAUSED;
     }
 	SetAudioControls();
+    AutoShowHouse();
 }
 
 void xLightsFrame::SetAudioControls()
@@ -1172,6 +1198,7 @@ void xLightsFrame::DoStopSequence()
         _outputManager.AllOff();
     }
 	SetAudioControls();
+    AutoShowHouse();
 }
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
@@ -1300,7 +1327,6 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 
 void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
 {
-    //FIXME implement this:  use as a loop flag?
 	mLoopAudio = true;
 	DoPlaySequence();
 }

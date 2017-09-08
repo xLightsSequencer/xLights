@@ -265,6 +265,7 @@ const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
@@ -932,6 +933,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
     MenuItem_PlayControlsOnPreview = new wxMenuItem(MenuSettings, ID_MNU_PLAYCONTROLSONPREVIEW, _("Play Controls On Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_PlayControlsOnPreview);
+    MenuItem_AutoShowHousePreview = new wxMenuItem(MenuSettings, ID_MNU_AUTOSHOWHOUSEPREVIEW, _("Auto Show House Preview"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_AutoShowHousePreview);
     AutoSaveMenu = new wxMenu();
     MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem44);
@@ -1141,6 +1144,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
+    Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1287,6 +1291,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsPlayControlsOnPreview", &_playControlsOnPreview, false);
     MenuItem_PlayControlsOnPreview->Check(_playControlsOnPreview);
     logger_base.debug("Play Controls On Preview: %s.", _playControlsOnPreview ? "true" : "false");
+
+    config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
+    MenuItem_AutoShowHousePreview->Check(_autoShowHousePreview);
+    logger_base.debug("Autoshow House Preview: %s.", _autoShowHousePreview ? "true" : "false");
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -1729,6 +1737,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
+    config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -2326,7 +2335,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
 
 bool xLightsFrame::isRandom_(wxControl* ctl, const char*debug)
 {
-    bool retval = (buttonState[std::string(ctl->GetName())] != Locked); 
+    bool retval = (buttonState[std::string(ctl->GetName())] != Locked);
     return retval;
 }
 
@@ -6391,6 +6400,11 @@ void xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& even
     _playControlsOnPreview = MenuItem_PlayControlsOnPreview->IsChecked();
     _housePreviewPanel->SetToolbar(_playControlsOnPreview);
     _housePreviewPanel->PostSizeEvent();
+}
+
+void xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event)
+{
+    _autoShowHousePreview = MenuItem_AutoShowHousePreview->IsChecked();
 }
 
 bool xLightsFrame::IsPaneDocked(wxWindow* window) const

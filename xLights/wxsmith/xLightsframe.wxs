@@ -1475,6 +1475,11 @@
 					<handler function="OnMenuItem_PlayControlsOnPreviewSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_AUTOSHOWHOUSEPREVIEW" variable="MenuItem_AutoShowHousePreview" member="yes">
+					<label>Auto Show House Preview</label>
+					<handler function="OnMenuItem_AutoShowHousePreviewSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM20" variable="AutoSaveMenu" member="yes">
 					<label>Auto Save</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_AUTOSAVE_0" variable="MenuItem44" member="no">

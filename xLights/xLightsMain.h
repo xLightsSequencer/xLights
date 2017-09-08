@@ -506,6 +506,7 @@ private:
     void OnMenuItem_SD_40Selected(wxCommandEvent& event);
     void OnMenuItem_SD_NoneSelected(wxCommandEvent& event);
     void OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event);
+    void OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -688,6 +689,7 @@ private:
     static const long ID_MENU_OPENGL_1;
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
+    static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
     static const long ID_MENUITEM_AUTOSAVE_0;
     static const long ID_MENUITEM_AUTOSAVE_3;
     static const long ID_MENUITEM_AUTOSAVE_10;
@@ -728,6 +730,7 @@ private:
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
     //(*Declarations(xLightsFrame)
+    wxMenuItem* MenuItem_AutoShowHousePreview;
     xlAuiToolBar* OutputToolBar;
     wxMenuItem* MenuItem_VideoTutorials;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
@@ -916,6 +919,7 @@ private:
     bool _showACLights;
     bool _showACRamps;
     bool _playControlsOnPreview;
+    bool _autoShowHousePreview;
     bool _autoSavePerspecive;
 
     void ShowACLights();
@@ -1281,6 +1285,7 @@ private:
     void ShowHideSync();
     void ValidateWindow();
     void DoDonate();
+    void AutoShowHouse();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
