@@ -33,7 +33,8 @@ $(SUBDIRS): FORCE
 #############################################################################
 
 linkliquid:
-	if test ! -e lib/linux/libliquidfun.a; \
+	@printf "Linking libliquid\n"
+	@if test ! -e lib/linux/libliquidfun.a; \
 		then if test "${DEB_HOST_ARCH}" = "i386"; \
             then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
             elif test "${DEB_HOST_ARCH}" = "amd64"; \
@@ -43,15 +44,18 @@ linkliquid:
 	fi
 
 wxwidgets31: FORCE
-	if test "`wx-config --release`" != "3.1"; \
+	@printf "Checking wxwidgets\n"
+	@if test "`wx-config --release`" != "3.1"; \
 		then if test ! -d wxWidgets-3.1.0; \
-			then wget -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
-			tar xvfj wxWidgets-3.1.0.tar.bz2; \
+			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
+			tar xfj wxWidgets-3.1.0.tar.bz2; \
 		fi; \
 		sed '/^== Patch/$!d' README.linux |grep -v '^==' | patch wxWidgets-3.1.0/src/gtk/button.cpp;\
 		cd wxWidgets-3.1.0;\
 			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff; \
-			${MAKE} ;\
+			echo Building wxwidgets; \
+			${MAKE} -s; \
+			echo Completed build of wxwidgets; \
 	fi
 
 #############################################################################
@@ -102,7 +106,7 @@ uninstall:
 #############################################################################
 
 cbp2make:
-	if test -n "`cbp2make --version`"; \
+	@if test -n "`cbp2make --version`"; \
 		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak; \
 	fi
 
@@ -111,8 +115,8 @@ makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
 			--with-deps --keep-outdir --keep-objdir
-	cp xLights/xLights.cbp.mak xLights/xLights.cbp.mak.orig
-	cat xLights/xLights.cbp.mak.orig \
+	@cp xLights/xLights.cbp.mak xLights/xLights.cbp.mak.orig
+	@cat xLights/xLights.cbp.mak.orig \
 		| sed \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
@@ -121,8 +125,8 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp
 	@cbp2make -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak \
 			--with-deps --keep-outdir --keep-objdir
-	cp xSchedule/xSchedule.cbp.mak xSchedule/xSchedule.cbp.mak.orig
-	cat xSchedule/xSchedule.cbp.mak.orig \
+	@cp xSchedule/xSchedule.cbp.mak xSchedule/xSchedule.cbp.mak.orig
+	@cat xSchedule/xSchedule.cbp.mak.orig \
 		| sed \
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
