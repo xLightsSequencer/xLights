@@ -22,6 +22,7 @@ build_script:
   - cd ..\wxWidgets\build\msw
   - msbuild wx_custom_build.vcxproj
   - sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' ..\..\include\wx\msw\setup.h
+  - msbuild wx_vc14.sln
   - cd %xlightsdir%
   - cd xLights
   - msbuild xLights.sln
