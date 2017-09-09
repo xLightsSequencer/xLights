@@ -1,0 +1,31 @@
+# ci.appveyor.com build file ... continuous integration build of xLights for windows on appveyor
+
+# Creates a VM with Visual Studio and pulls xLights and its dependencies and builds it
+
+version: '{build}'
+
+os: Visual Studio 2017
+platform: x64
+configuration: Debug
+  
+notifications:
+  - provider: Email
+    to:
+      - keithsw1111@hotmail.com
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: true
+    
+build_script:
+  - set "xlightsdir=%cd%"
+  - git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
+  - cd ..\wxWidgets\build\msw
+  - msbuild wx_custom_build.vcxproj
+  - sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' ..\..\include\wx\msw\setup.h
+  - cd %xlightsdir%
+  - cd xLights
+  - msbuild xLights.sln
+  - cd ..
+  - cd xSchedule
+  - msbuild xSchedule.sln
+  
