@@ -120,13 +120,12 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
         float tmax = (pinwheel_thickness / 100.0)*degrees_per_arm;
 
         // Force single visible line in case width is narrower than visible
-        float pi_180 = M_PI/180;
+        float pi_180 = M_PI / 180.0f;
         for(int a=0; a<pinwheel_arms; a++)
         {
             int ColorIdx = a%pinwheel_arms;
-            xlColor color;
             buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
-            color = xlColor(hsv);
+            xlColor color = xlColor(hsv);
 
             int angle = (a*degrees_per_arm);
             if (pinwheel_rotation == 1) { // do we have CW rotation
@@ -134,14 +133,14 @@ void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
             } else {
                 angle = angle - 90 - pos;
             }
-            int x,y, degrees_twist;
+
             for (float r=0; r<=max_radius; r+=0.5)
             {
-                degrees_twist = (r/max_radius) * pinwheel_twist;
+                int degrees_twist = (r/max_radius) * pinwheel_twist;
                 int t2 = (int)angle%degrees_per_arm;
                 double round = (float)t2 / (float)tmax;
-                x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
-                y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
+                int x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
+                int y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
                 if (buffer.palette.IsSpatial(colorarray[ColorIdx]))
                 {
                     buffer.palette.GetSpatialColor(colorarray[ColorIdx], xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
@@ -292,8 +291,8 @@ void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     float pi_180 = M_PI/180;
 
-    int xc = buffer.BufferWi / 2;
-    int yc = buffer.BufferHt / 2;
+    int xc = buffer.BufferWi / 2.0;
+    int yc = buffer.BufferHt / 2.0;
     xc = xc + (xc_adj / 100.0) * xc; // xc_adj is from -100 to 100
     yc = yc + (yc_adj / 100.0) * yc;
     

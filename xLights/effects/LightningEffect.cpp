@@ -147,7 +147,6 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     else
                         x3 = xc + topX - (3 * j % Number_Segments);
                 }
-                buffer.BufferHt - (i * StepSegment) - topY - rand() % 5;
                 LightningDrawBolt(buffer, x1 + xoffset, y1, x3 + xoffset, y2, color, curState);
             }
         }
