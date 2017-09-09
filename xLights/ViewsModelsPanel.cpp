@@ -411,7 +411,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             SequenceView * view = _sequenceViewManager->GetSelectedView();
             if (view != nullptr)
             {
-                //_sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+                _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
                 auto models = view->GetModels();
                 for (auto it = models.begin(); it != models.end(); ++it)
                 {
@@ -650,7 +650,8 @@ void ViewsModelsPanel::RemoveSelectedModels()
                 {
                     // Got a selected item so handle it
                     Element* e = (Element*)ListCtrlModels->GetItemData(i);
-                    _sequenceElements->DeleteElementFromView(e->GetName(), MASTER_VIEW);
+                    //_sequenceElements->DeleteElementFromView(e->GetName(), MASTER_VIEW);
+                    _sequenceElements->DeleteElement(e->GetName());
                 }
             }
         }
@@ -764,7 +765,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
             }
         }
 
-        //_sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+        _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
         for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
         {
             if (IsItemSelected(ListCtrlNonModels, i))
@@ -1093,7 +1094,7 @@ void ViewsModelsPanel::SelectView(const std::string& view)
     if (selected_view > 0)
     {
         std::string modelsString = _sequenceElements->GetViewModels(view);
-        //_sequenceElements->AddMissingModelsToSequence(modelsString);
+        _sequenceElements->AddMissingModelsToSequence(modelsString);
         _sequenceElements->PopulateView(modelsString, selected_view);
     }
     _sequenceElements->SetCurrentView(selected_view);
@@ -2445,7 +2446,8 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                     if (!element->HasEffects())
                     {
                         // model shouldnt be in master
-                        _sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
+                        //_sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
+                        _sequenceElements->DeleteElement(name);
                         --i;
                     }
                     else
@@ -2461,7 +2463,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
             wxMessageBox("One or more models had effects on them so they were not removed.");
         }
 
-        _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+        //_sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
 
         // Now select the master view
         SelectView("Master View");
