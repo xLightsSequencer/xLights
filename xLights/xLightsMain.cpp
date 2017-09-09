@@ -1342,7 +1342,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     // Load headings into network list
     wxListItem itemCol;
 
-    itemCol.SetText(_T("Output #"));
+    itemCol.SetText(_T("Number"));
     itemCol.SetImage(-1);
     GridNetwork->InsertColumn(0, itemCol);
 
