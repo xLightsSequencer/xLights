@@ -895,6 +895,16 @@ void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, Seq
 
 void ViewsModelsPanel::ValidateWindow()
 {
+    if (_sequenceViewManager == nullptr)
+    {
+        Enable(false);
+        return;
+    }
+    else
+    {
+        Enable(true);
+    }
+
     if (ListCtrlNonModels->GetItemCount() > 0)
     {
         Button_AddAll->Enable(true);
@@ -2463,7 +2473,11 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
             wxMessageBox("One or more models had effects on them so they were not removed.");
         }
 
-        //_sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
+        // While all models might already be there they are likely not in the right order
+        // add the missing models and sort them
+        std::string m = view->GetModelsString();
+        wxArrayString ms = wxSplit(m, ',');
+        SetMasterViewModels(ms);
 
         // Now select the master view
         SelectView("Master View");
