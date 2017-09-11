@@ -1,0 +1,18 @@
+dist: trusty
+sudo: required
+services:
+  - docker
+git:
+  depth: 3
+script:
+  - docker pull debenham/xlights
+  - docker run --name buildvm debenham/xlights /bin/bash Recipe
+  - docker cp buildvm:/xLights/out out
+
+deploy:
+  provider: releases
+  api_key:
+    secure: SOsesKl4yJ3tupahwnd61br/4kXMkKekHV/pxjyWighixCG0wee9Hmo1flqQyd+vGepGZO+zbx5gDzvo41TAkSwzHiHsX0cMmKZmkfWR4gzeXWaQDIwTs97A7Dqq4lsqOQS+OO4vIRQBzZP0u0C6zYBN3u/iKSaICLxmrtyyAeQM5mVDE5kDCSCS4emQalCns+k2jwS1+g1lsQJcMF+JdE2OiBEiySe3mAZV7i7T7ZaOKNYR3eZsNGQn4CDfYIMvGRHDbX1MghcICsuqoCjk8T5ag15h2IHHMW8cpQtx8n4Ghrew5UZhcGgfZP5T5mTn6w5+YXjLQaSRsJbB9eYsSAFIauK3eI3oYWhLpiup/HycF4JmmdmPVwKA+wso47HQgXGPjJO44+F3yc1eE44Aw7noNGIgsyxmV4NQT+gArGiSkGQCcpoj7r1X3ZODzptrbOUolPkHJgbfJuZWxJw0+zyuPwsxb6t+4dQSra25WMV960cOwGjswr6VZJ1H6ETT7aS3tgnr3SDKnEd1PQtT7WCj0uqsAJmNE8IYwZ/b9YUVHbe/iCR2HdroWjAjVYhJQT4yCDzw+Ee/a9pndCb53RkOsbQ7KiLkBsCX2lK8Dgis5In5nyckr7Cv4vbt2sjLcxbr0TLsIR9HSmP94qWRNVYOgarxlbOPCPsOwHrKqLQ=
+  file: out/*
+  on:
+    repo: cjd/xLights
