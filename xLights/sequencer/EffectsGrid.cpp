@@ -159,6 +159,13 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
                 wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
                 if (dlg.ShowModal()) {
                     selectedEffect->SetEffectName(dlg.GetValue().ToStdString());
+
+                    // If we have a fixed timing track and we add a label then we can no longer store it as a fixed timing track
+                    TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
+                    if (dlg.GetValue().ToStdString() != "" && te->GetFixedTiming() != 0)
+                    {
+                        te->SetFixedTiming(0);
+                    }
                 }
                 Refresh();
             }

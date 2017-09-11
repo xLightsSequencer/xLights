@@ -754,7 +754,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 if(elementNode->GetName()==STR_ELEMENT)
                 {
                     Element* element = GetElement(elementNode->GetAttribute(STR_NAME).ToStdString());
-                    if (element !=NULL)
+                    if (element != nullptr)
                     {
                         // check for fixed timing interval
                         int interval = 0;
