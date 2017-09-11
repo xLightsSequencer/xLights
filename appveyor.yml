@@ -4,9 +4,26 @@
 
 version: '{build}'
 
-os: Visual Studio 2017
-platform: x64
-configuration: Debug
+# only build the master branch
+branches:
+  only:
+    - master
+
+# setup multiple build styles
+environment:
+  matrix:
+    # Visual Studio 64 bit debug
+    - os: Visual Studio 2017
+      platform: x64
+      configuration: Debug
+    # gcc 64 bit release
+    #-os: Visual Studio 2015
+    #  platform: x64
+    #  configuration: 64bit  MinGW_Release
+    # gcc 32 bit release
+    #-os: Visual Studio 2015
+    #  platform: x86
+    #  configuration: MinGW_Release
   
 notifications:
   - provider: Email
@@ -17,6 +34,7 @@ notifications:
     on_build_status_changed: true
     
 build_script:
+  # I need to rework this so it works for mingw builds as well
   - set "xlightsdir=%cd%"
   - git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
   - cd ..\wxWidgets\build\msw
@@ -30,3 +48,6 @@ build_script:
   - cd xSchedule
   - msbuild /m xSchedule.sln
   
+# fail as soon as any build fails
+matrix:
+  fast_finish: true
