@@ -604,7 +604,7 @@ void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo& sm, int seg
         if ((segment + 1) / segments == count / segments) end = 100;
 
         sm.isRanges = false;
-        sm.subBuffer = wxString::Format("%fx%fx%fx%f", startx, start, endx, end);
+        sm.subBuffer = wxString::Format("%.2fx%.2fx%.2fx%.2f", startx, start, endx, end);
     }
     else
     {
@@ -621,7 +621,7 @@ void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo& sm, int seg
         if ((segment + 1) / segments == count /segments) end = 100;
 
         sm.isRanges = false;
-        sm.subBuffer = wxString::Format("%fx%fx%fx%f", start, starty, end, endy);
+        sm.subBuffer = wxString::Format("%.2fx%.2fx%.2fx%.2f", start, starty, end, endy);
     }
 }
 

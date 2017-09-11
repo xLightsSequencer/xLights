@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Fix timing track labels dont save if added to a fixed timing track
+   -- bug (keith)   Generated submodels leave gaps on large models - overlaps are better than gaps
+   -- bug (keith)   Rename "Output #" column on setup tab to just "Number" to try to address some new user confusion
+   -- enh (keith)   Add optional auto hide show of house preview when playing
+   -- enh (keith)   Add Make master capability to display elements which can take any view and copy its definition to the master view
+   -- enh (keith)   Tag start channels with leading *** where the number has not calculated correctly
+   -- bug (keith)   Prevent duplicate model start calculation errors from displaying
+   -- enh (keith)   Add time display to play controls toolbar on house preview
 2017.27  Sep  6, 2017
    -- bug (keith)   Fix falcon upload only uploading enough pixels for first model on a chained output
    -- enh (keith)   Add LMS timing import
