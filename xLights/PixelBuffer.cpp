@@ -314,7 +314,6 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     layers[layer]->buffer.SetAllowAlphaChannel(MixTypeHandlesAlpha(MixType));
 }
 
-
 xlColor PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, const xlColor &fg, const xlColor &c1, int layer)
 {
     static const int n = 0;  //increase to change the curve of the crossfade

@@ -49,7 +49,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                         NodeBaseClass *node = p->Nodes[n]->clone();
                         startChannel = std::min(startChannel, node->ActChan);
                         Nodes.push_back(NodeBaseClassPtr(node));
-                        for (auto c = node->Coords.begin(); c != node->Coords.end(); c++) {
+                        for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
                             c->bufX = col;
                             c->bufY = row;
                         }

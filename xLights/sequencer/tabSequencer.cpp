@@ -1351,6 +1351,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
         }
     }
 }
+
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette;
     std::string effectText = GetEffectTextFromWindows(palette);
@@ -1377,7 +1378,6 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
-
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
@@ -1412,7 +1412,6 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
-
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 {
@@ -1671,9 +1670,8 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
 void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    long TempLong;
-	wxWindow *CtrlWin, *ContextWin;
 
+    wxWindow* ContextWin;
 	if (name.StartsWith("E_"))
 	{
 		ContextWin = EffectsPanel1;
@@ -1708,18 +1706,19 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
 	name = "ID_" + name.Mid(2);
 
-	CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
+	wxWindow *CtrlWin = wxWindow::FindWindowByName(name, ContextWin);
 	if (CtrlWin)
 	{
 		if (name.StartsWith("ID_SLIDER"))
 		{
 			wxSlider* ctrl = (wxSlider*)CtrlWin;
-			if (value.ToLong(&TempLong)) {
-				ctrl->SetValue(TempLong);
+            long tempLong;
+			if (value.ToLong(&tempLong)) {
+				ctrl->SetValue(tempLong);
 
 				wxScrollEvent event(wxEVT_SLIDER, ctrl->GetId());
 				event.SetEventObject(ctrl);
-				event.SetInt(TempLong);
+				event.SetInt(tempLong);
 				ctrl->ProcessWindowEvent(event);
 			}
 		}
@@ -1744,7 +1743,6 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 				wxPostEvent(b->GetEventHandler(), evt);
 			}
 
-
 			wxChoice* ctrl = (wxChoice*)CtrlWin;
 			ctrl->SetStringSelection(value);
 
@@ -1763,11 +1761,12 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 		else if (name.StartsWith("ID_CHECKBOX"))
 		{
 			wxCheckBox* ctrl = (wxCheckBox*)CtrlWin;
-			if (value.ToLong(&TempLong)) {
-				ctrl->SetValue(TempLong != 0);
+            long tempLong;
+			if (value.ToLong(&tempLong)) {
+				ctrl->SetValue(tempLong != 0);
 				wxCommandEvent evt(wxEVT_COMMAND_CHECKBOX_CLICKED, ctrl->GetId());
 				evt.SetEventObject(ctrl);
-				evt.SetInt(TempLong != 0);
+				evt.SetInt(tempLong != 0);
 				ctrl->ProcessWindowEvent(evt);
 			}
 		}
@@ -1829,7 +1828,8 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 }
 
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
-    int cnt=0;
+
+    int cnt = 0;
 
 	// Apply those settings without APPLYLAST in their name first
     for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
@@ -1948,9 +1948,9 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         }
     }
 
-    for (int i=0;i<10;i++) {
+    for (int i=0; i<10; i++) {
         if (perspectives[i].p == perspective) {
-            MenuItemPerspectives->Check(perspectives[i].id,true);
+            MenuItemPerspectives->Check(perspectives[i].id, true);
         }
     }
 
@@ -2101,7 +2101,6 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
     }
     m_mgr->Update();
 }
-
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {

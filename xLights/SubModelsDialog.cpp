@@ -582,41 +582,46 @@ void SubModelsDialog::OnNodesGridLabelLeftClick(wxGridEvent& event)
     }
 }
 
+// Value must be 0-1
+// When zero then we will always get generated segments slightly overlapping
+// When one then they should never overlap but you may also get some gaps
+#define GENERATE_GAP 0.25
+
 void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo& sm, int segments, int segment, bool horizontal, int count)
 {
     if (horizontal)
     {
         float perx = 100.0 / segments;
         int offset = segment % segments;
-        int startx = offset * perx;
-        int endx = startx + perx - 1;
+        float startx = offset * perx;
+        float endx = startx + perx - GENERATE_GAP;
         if ((segment + 1) % segments == 0) endx = 100;
 
         float per = 100.0 / (count / segments);
-        int start = segment / segments * per;
-        int end = (segment / segments + 1.0) * per - 1;
+        float start = segment / segments * per;
+        float end = start + per - GENERATE_GAP;
 
         if ((segment + 1) / segments == count / segments) end = 100;
 
         sm.isRanges = false;
-        sm.subBuffer = wxString::Format("%ix%ix%ix%i", startx, start, endx, end);
+        sm.subBuffer = wxString::Format("%fx%fx%fx%f", startx, start, endx, end);
     }
     else
     {
         float pery = 100.0 / segments;
         int offset = segment % segments;
-        int starty = offset * pery;
-        int endy = starty + pery - 1;
+        float starty = offset * pery;
+        float endy = starty + pery - GENERATE_GAP;
         if ((segment + 1) % segments == 0) endy = 100;
 
         float per = 100.0 / (count / segments);
-        int start = segment / segments * per;
-        int end = (segment / segments + 1.0) * per - 1;
+        float start = segment / segments * per;
+        float end = start + per - GENERATE_GAP;
 
         if ((segment + 1) / segments == count /segments) end = 100;
 
         sm.isRanges = false;
-        sm.subBuffer = wxString::Format("%ix%ix%ix%i", start, starty, end, endy);
+        sm.subBuffer = wxString::Format("%fx%fx%fx%f", start, starty, end, endy);
     }
 }
 
