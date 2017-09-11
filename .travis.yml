@@ -1,0 +1,10 @@
+dist: trusty
+sudo: required
+services:
+- docker
+git:
+  depth: 3
+script:
+- docker pull debenham/xlights
+- docker run --name buildvm debenham/xlights /bin/bash Recipe
+- docker cp buildvm:/xLights/out out
