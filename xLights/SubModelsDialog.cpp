@@ -449,6 +449,8 @@ void SubModelsDialog::DisplayRange(const wxString &range) {
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
+    x1 = std::ceil(x1);
+    y1 = std::ceil(y1);
 
     int nn = model->GetNodeCount();
     xlColor c(xlDARK_GREY);
