@@ -17,10 +17,10 @@ environment:
     # Visual Studio 64 bit debug
     - platform: x64
       configuration: Debug
-	# gcc 64 bit release
+    # gcc 64 bit release
     - platform: x64
       configuration: 64bit  MinGW_Release
-	# gcc 32 bit release
+    # gcc 32 bit release
     - platform: x86
       configuration: MinGW_Release
   
