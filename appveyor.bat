@@ -52,7 +52,30 @@ exit 0
 
 :x86ReleaseGCC
 
-cd ..\wxWidgets\build\msw
+cd %xlightsdir%
+
+7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
+if %ERRORLEVEL% NEQ 0 exit 1
+
+cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
+if %ERRORLEVEL% NEQ 0 exit 1
+
+type xLights/xLights.cbp.mak
+
+dir c:\MinGW
+
+c:\MinGW\bin\mingw32-make -f xLights/xLights.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
+if %ERRORLEVEL% NEQ 0 exit 1
+
+cbp2make.exe -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir
+if %ERRORLEVEL% NEQ 0 exit 1
+
+c:\MinGW\bin\mingw32-make -f xSchedule/xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
+if %ERRORLEVEL% NEQ 0 exit 1
+
+exit 0
+
+:x64ReleaseGCC
 
 cd %xlightsdir%
 
@@ -62,21 +85,8 @@ if %ERRORLEVEL% NEQ 0 exit 1
 cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
-mingw32-make -f xLights/xLights.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
-if %ERRORLEVEL% NEQ 0 exit 1
+type xLights/xLights.cbp.mak
 
-cbp2make.exe -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir
-if %ERRORLEVEL% NEQ 0 exit 1
-
-mingw32-make -f xSchedule/xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
-if %ERRORLEVEL% NEQ 0 exit 1
-
-exit 0
-
-:x64ReleaseGCC
-
-cd %xlightsdir%
-
-cd xLights
+dir C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0
 
 exit 0
