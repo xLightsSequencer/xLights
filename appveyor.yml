@@ -9,21 +9,20 @@ branches:
   only:
     - master
 
+os: Visual Studio 2017
+
 # setup multiple build styles
 environment:
   matrix:
     # Visual Studio 64 bit debug
-    - os: Visual Studio 2017
-      platform: x64
+    - platform: x64
       configuration: Debug
-    # gcc 64 bit release
-    #-os: Visual Studio 2015
-    #  platform: x64
-    #  configuration: 64bit  MinGW_Release
-    # gcc 32 bit release
-    #-os: Visual Studio 2015
-    #  platform: x86
-    #  configuration: MinGW_Release
+	# gcc 64 bit release
+    - platform: x64
+      configuration: 64bit  MinGW_Release
+	# gcc 32 bit release
+    - platform: x86
+      configuration: MinGW_Release
   
 notifications:
   - provider: Email
@@ -34,19 +33,7 @@ notifications:
     on_build_status_changed: true
     
 build_script:
-  # I need to rework this so it works for mingw builds as well
-  - set "xlightsdir=%cd%"
-  - git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
-  - cd ..\wxWidgets\build\msw
-  - msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v141
-  - sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' ..\..\include\wx\msw\setup.h
-  - msbuild /m wx_vc14.sln /p:PlatformToolset=v141
-  - cd %xlightsdir%
-  - cd xLights
-  - msbuild /m xLights.sln
-  - cd ..
-  - cd xSchedule
-  - msbuild /m xSchedule.sln
+  - appveyor.bat
   
 # fail as soon as any build fails
 matrix:
