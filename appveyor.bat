@@ -58,6 +58,11 @@ cd %xlightsdir%
 
 cd xLights
 
+dir
+
+7z e cbp2make-stl-rev147-all.tar.7z -o:. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
+if %ERRORLEVEL% NEQ 0 exit 1
+
 cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
