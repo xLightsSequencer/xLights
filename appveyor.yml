@@ -20,10 +20,10 @@ environment:
     #  PLATFORMTOOLSET: 140
     #  BUILDTYPE: X64DEBUGVS
     # gcc 64 bit release
-    - platform: x64
-      configuration: 64bit  MinGW_Release
-      PLATFORMTOOLSET: 140
-      BUILDTYPE: X64RELEASEGCC
+    #- platform: x64
+    #  configuration: 64bit  MinGW_Release
+    #  PLATFORMTOOLSET: 140
+    #  BUILDTYPE: X64RELEASEGCC
     # gcc 32 bit release
     - platform: x86
       configuration: MinGW_Release
