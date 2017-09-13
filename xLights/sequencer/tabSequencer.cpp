@@ -25,6 +25,7 @@
 #include "../xLightsVersion.h"
 #include <wx/config.h>
 #include "HousePreviewPanel.h"
+#include "UtilFunctions.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -130,8 +131,12 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
             grp->ResetPositions();
         }
     }
-}
 
+    wxConfigBase* config = wxConfigBase::Get();
+    config->DeleteEntry("ToolbarLocations");
+    config->DeleteEntry("xLightsMachinePerspective");
+    SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
+}
 
 void xLightsFrame::InitSequencer()
 {
@@ -191,10 +196,10 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         {
             PerspectivesNode->DeleteAttribute("current");
         }
-        PerspectivesNode->AddAttribute("current","Default Perspective");
+        PerspectivesNode->AddAttribute("current", "Default Perspective");
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
-        p->AddAttribute("settings",m_mgr->SavePerspective());
+        p->AddAttribute("settings", m_mgr->SavePerspective());
         p->AddAttribute("version", "2.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
@@ -338,7 +343,7 @@ void xLightsFrame::CheckForValidModels()
     SeqElementMismatchDialog dialog(this);
     for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
-            ModelElement *me = (ModelElement*)mSequenceElements.GetElement(x);
+            ModelElement *me = static_cast<ModelElement*>(mSequenceElements.GetElement(x));
             std::string name = me->GetModelName();
             Model *m = AllModels[name];
             if (m == nullptr) {

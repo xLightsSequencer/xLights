@@ -349,11 +349,17 @@ bool IsVersionOlder(const std::string compare, const std::string version)
 
 void SaveWindowPosition(const std::string tag, wxWindow* window)
 {
-    wxPoint position = window->GetPosition();
-    wxSize size = window->GetSize();
-
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write(tag, wxString::Format("%d|%d|%d|%d", position.x, position.y, size.GetWidth(), size.GetHeight()));
+    if (window != nullptr)
+    {
+        wxPoint position = window->GetPosition();
+        wxSize size = window->GetSize();
+        config->Write(tag, wxString::Format("%d|%d|%d|%d", position.x, position.y, size.GetWidth(), size.GetHeight()));
+    }
+    else
+    {
+        config->DeleteEntry(tag);
+    }
 }
 
 void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
