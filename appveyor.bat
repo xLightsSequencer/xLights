@@ -10,7 +10,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 rem prepare the header files for wxWidgets
 
 cd ..\wxWidgets\build\msw
-msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v%PLATFORMTOOLSET% /p:Configuration="Release|x64"
+msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v%PLATFORMTOOLSET% /p:Configuration="Release"
 if %ERRORLEVEL% NEQ 0 exit 1
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' ..\..\include\wx\msw\setup.h
