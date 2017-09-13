@@ -62,7 +62,7 @@ cd xlights
 ..\cbp2make.exe -in xLights.cbp -cfg cbp2make.cfg -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
-c:\MinGW\bin\mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 10 %configuration%
+c:\MinGW\bin\mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd ..\xSchedule
