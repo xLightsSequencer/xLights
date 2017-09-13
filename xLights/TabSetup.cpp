@@ -544,6 +544,8 @@ void xLightsFrame::MoveNetworkRows(int toRow, bool reverse)
 
 void xLightsFrame::ChangeSelectedNetwork()
 {
+    if (!ButtonAddE131->IsEnabled()) return;
+
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
     if (item == -1 || GridNetwork->GetSelectedItemCount() != 1)
