@@ -39,6 +39,7 @@ notifications:
     on_build_status_changed: true
     
 build_script:
+  - ps: Start-FileDownload 'https://downloads.sourceforge.net/project/cbp2make/cbp2make-stl-rev147-all.tar.7z'
   - appveyor.bat
   
 # fail as soon as any build fails
