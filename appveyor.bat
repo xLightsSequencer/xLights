@@ -60,10 +60,6 @@ if %ERRORLEVEL% NEQ 0 exit 1
 cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
-echo =====================================================================
-type xLights\xLights.cbp.mak
-echo =====================================================================
-
 c:\MinGW\bin\mingw32-make -f xLights/xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 10 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
