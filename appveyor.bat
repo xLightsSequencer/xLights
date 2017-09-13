@@ -59,13 +59,13 @@ cd %xlightsdir%
 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
 if %ERRORLEVEL% NEQ 0 exit 1
 
-..\cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
+cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
 mingw32-make -f xLights/xLights.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
 if %ERRORLEVEL% NEQ 0 exit 1
 
-..\cbp2make.exe -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir
+cbp2make.exe -in xSchedule/xSchedule.cbp -cfg cbp2make.cfg -out xSchedule/xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
 mingw32-make -f xSchedule/xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" BUILD=%configuration% -j 10
