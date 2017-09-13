@@ -60,7 +60,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
-type xLights/xLights.cbp.mak
+type xLights\xLights.cbp.mak
 
 dir c:\MinGW
 
@@ -85,7 +85,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 cbp2make.exe -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 if %ERRORLEVEL% NEQ 0 exit 1
 
-type xLights/xLights.cbp.mak
+type xLights\xLights.cbp.mak
 
 dir C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0
 
