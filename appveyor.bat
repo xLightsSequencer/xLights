@@ -1,5 +1,7 @@
 rem I need to rework this so it works for mingw builds as well
 
+echo on
+
 set "xlightsdir=%cd%"
 
 git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
