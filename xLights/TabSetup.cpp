@@ -663,12 +663,20 @@ void xLightsFrame::UpdateSelectedChannels()
 {
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     Output* f = _outputManager.GetOutput(item);
-    wxNumberEntryDialog dlg(this, "Change channels per controller", "Channels", wxEmptyString, f->GetChannels(), 1, 512);
+    wxNumberEntryDialog dlg(this, "Change channels per controller", "Channels", wxEmptyString, f->GetChannels(), 1, f->GetMaxChannels());
     if (dlg.ShowModal() == wxID_OK)
     {
         while (item != -1)
         {
-            _outputManager.GetOutput(item)->SetChannels(dlg.GetValue());
+            Output* o = _outputManager.GetOutput(item);
+            if (dlg.GetValue() > o->GetMaxChannels())
+            {
+                wxMessageBox(wxString::Format("%i Too many channels for %s controller %s. Channels not changed.", dlg.GetValue(), o->GetType(), o->GetDescription()));
+            }
+            else
+            {
+                o->SetChannels(dlg.GetValue());
+            }
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }

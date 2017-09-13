@@ -336,6 +336,7 @@ void SerialOutput::Close()
             wxMilliSleep(5);
             i++;
         }
+        _serial->Close();
         delete _serial;
         _serial = nullptr;
     }

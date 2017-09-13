@@ -1715,6 +1715,7 @@ xLightsFrame::~xLightsFrame()
     DrawingContext::CleanUp();
 
     selectedEffect = nullptr;
+    _outputManager.DeleteAllOutputs();
 
     wxConfigBase* config = wxConfigBase::Get();
     if (mResetToolbars)

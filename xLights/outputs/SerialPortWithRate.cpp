@@ -215,7 +215,9 @@ void SerialPortWithRate::ValidateWindow()
 {
     if (ChoicePort->GetStringSelection().IsEmpty() || 
         (ChoiceBaudRate->IsEnabled() && ChoiceBaudRate->GetStringSelection() == "") ||
-        wxAtoi(TextCtrlLastChannel->GetValue()) <= 0)
+        wxAtoi(TextCtrlLastChannel->GetValue()) <= 0 ||
+        wxAtoi(TextCtrlLastChannel->GetValue()) > (*_serial)->GetMaxChannels()
+        )
     {
         Button_Ok->Enable(false);
     }

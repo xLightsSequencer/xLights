@@ -39,8 +39,12 @@ ModelManager::~ModelManager()
 }
 
 void ModelManager::clear() {
-    for (auto it = models.begin(); it != models.end(); it++) {
-        delete it->second;
+    for (auto it = models.begin(); it != models.end(); ++it) {
+        if (it->second != nullptr)
+        {
+            delete it->second;
+            it->second = nullptr;
+        }
     }
     models.clear();
 }
@@ -254,6 +258,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                     auto it = models.find(model->name);
                     if (it != models.end()) {
                         delete it->second;
+                        it->second = nullptr;
                     }
                     model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     models[model->name] = model;
@@ -558,6 +563,7 @@ void ModelManager::AddModel(Model *model) {
         auto it = models.find(model->name);
         if (it != models.end()) {
             delete it->second;
+            it->second = nullptr;
         }
         models[model->name] = model;
 
