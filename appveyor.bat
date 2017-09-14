@@ -52,6 +52,8 @@ exit 0
 
 :x86ReleaseGCC
 
+set PATH=%PATH%;C:\MinGW\bin
+
 cd %xlightsdir%
 
 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
@@ -62,11 +64,7 @@ cd xlights
 ..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%,MinGW_Release
 if %ERRORLEVEL% NEQ 0 exit 1
 
-sed -i "'s/[[if ((GetCompilerFactory().GetCompilerVersionString(_T(""gcc"")) >= _T(""4.0.0""))) print(_T(""-Wno-attributes""));]]/-Wno-attributes/g'" xLights.cbp.mak
-
-type xLights.cbp.mak
-
-c:\MinGW\bin\mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
+mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd ..\xSchedule
@@ -74,7 +72,7 @@ cd ..\xSchedule
 ..\cbp2make.exe -in xSchedule.cbp -out xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
-c:\MinGW\bin\mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" -j 10 %configuration%
+mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" -j 10 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 exit 0
@@ -91,6 +89,6 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 type xLights\xLights.cbp.mak
 
-dir C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0
+dir C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\MinGW\bin
 
 exit 0
