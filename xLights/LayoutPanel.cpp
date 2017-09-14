@@ -1150,8 +1150,10 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         SubModel *subModel = dynamic_cast<SubModel*>(m);
         if (subModel != nullptr) {
             // this is the only thing I can see here that could crash
-            if (subModel->GetParent() == nullptr) logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
-            subModel->GetParent()->Selected = true;
+            if (subModel->GetParent() == nullptr) {
+                logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
+                subModel->GetParent()->Selected = true;
+            }
         } else {
             m->Selected = true;
         }
