@@ -19,6 +19,11 @@ if %ERRORLEVEL% NEQ 0 exit 1
 sed -i 's/bool IsKindOf(const wxClassInfo *info) const/bool __attribute__((optimize("O0"))) IsKindOf(const wxClassInfo *info) const/g' ..\..\include\wx\rtti.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
+if not exist \projects\wxWidgets\lib\gcc_dll mkdir \projects\wxWidgets\lib\gcc_dll
+if not exist \projects\wxWidgets\lib\gcc_dll\mswu mkdir \projects\wxWidgets\lib\gcc_dll\mswu
+if not exist \projects\wxWidgets\lib\gcc_dll\mswu\wx mkdir \projects\wxWidgets\lib\gcc_dll\mswu\wx
+if not exist \projects\wxWidgets\lib\gcc_dll\mswu\wx\setup.h copy \projects\wxWidgets\include\wx\msw\setup.h \projects\wxWidgets\lib\gcc_dll\mswu\wx
+
 if [%BUILDTYPE%] EQU [X64DEBUGVS] goto x64DebugVS 
 if [%BUILDTYPE%] EQU [X64RELEASEGCC] goto x64ReleaseGCC 
 if [%BUILDTYPE%] EQU [X86RELEASEGCC] goto x86ReleaseGCC 
