@@ -73,7 +73,7 @@ void EffectIconPanel::OnResize(wxSizeEvent& event) {
     }
 
     double cols = wsz.GetWidth() * cnt;
-    cols /= wsz.GetHeight();
+    cols /= std::max(wsz.GetHeight(), 1);
     cols = std::sqrt(cols);
     int i = std::round(cols);
     GridSizer1->SetCols(i);
