@@ -62,6 +62,8 @@ cd xlights
 ..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%,MinGW_Release
 if %ERRORLEVEL% NEQ 0 exit 1
 
+sed -i 's/[[if ((GetCompilerFactory().GetCompilerVersionString(_T("gcc")) >= _T("4.0.0"))) print(_T("-Wno-attributes"));]]/-Wno-attributes/g' xLights.cbp.mak
+
 type xLights.cbp.mak
 
 c:\MinGW\bin\mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
