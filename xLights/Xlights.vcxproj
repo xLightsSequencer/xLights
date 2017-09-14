@@ -180,6 +180,7 @@
     <ClCompile Include="effects\LiquidPanel.cpp" />
     <ClCompile Include="effects\ServoEffect.cpp" />
     <ClCompile Include="effects\ServoPanel.cpp" />
+    <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
@@ -481,6 +482,7 @@
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
+    <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="MSWStackWalk.h" />

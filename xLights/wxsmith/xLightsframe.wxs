@@ -1075,6 +1075,11 @@
 					<label>&amp;Generate Custom Model</label>
 					<handler function="OnMenu_GenerateCustomModelSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_GENERATELYRICS" variable="MenuItem_GenerateLyrics" member="yes">
+					<label>Generate &amp;Lyrics From Data</label>
+					<help>Generate lyric phenomes from data</help>
+					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CHECKSEQ" variable="MenuItemCheckSequence" member="yes">
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />

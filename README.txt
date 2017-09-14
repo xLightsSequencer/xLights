@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Validate serial controller number of channels
+   -- enh (keith)   Add ability to extract Phonemes from imported single channel face data
    -- bug (keith)   Fix timing track labels dont save if added to a fixed timing track
    -- bug (keith)   Generated submodels leave gaps on large models - overlaps are better than gaps
    -- bug (keith)   Rename "Output #" column on setup tab to just "Number" to try to address some new user confusion

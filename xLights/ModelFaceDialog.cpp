@@ -392,7 +392,7 @@ void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, s
     }
     finfo.clear();
     for (std::map<std::string, std::map<std::string, std::string> >::iterator it = faceData.begin();
-         it != faceData.end(); it++) {
+         it != faceData.end(); ++it) {
         if (!it->second.empty()) {
             finfo[it->first] = it->second;
         }

@@ -37,7 +37,6 @@ static const std::string STR_PALETTE("palette");
 static const std::string STR_LABEL("label");
 static const std::string STR_ZERO("0");
 
-
 SequenceElements::SequenceElements(xLightsFrame *f)
 : undo_mgr(this), xframe(f)
 {
@@ -189,7 +188,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     return nullptr;
 }
 
-size_t SequenceElements::GetElementCount(int view)
+size_t SequenceElements::GetElementCount(int view) const
 {
     return mAllViews[view].size();
 }
@@ -333,7 +332,7 @@ int SequenceElements::GetElementIndex(const std::string &name, int view)
     return -1;
 }
 
-Element* SequenceElements::GetElement(const std::string &name)
+Element* SequenceElements::GetElement(const std::string &name) const
 {
     if (mAllViews.size() == 0) return nullptr;
 
@@ -362,7 +361,7 @@ Element* SequenceElements::GetElement(const std::string &name)
     return nullptr;
 }
 
-Element* SequenceElements::GetElement(size_t index, int view)
+Element* SequenceElements::GetElement(size_t index, int view) const
 {
     if (view < mAllViews.size() && index < mAllViews[view].size())
     {
@@ -549,6 +548,22 @@ Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_numbe
     return NULL;
 }
 
+std::string SequenceElements::UniqueElementName(const std::string& basename) const
+{
+    Element* timing = GetElement(basename);
+
+    if (timing == nullptr) return basename;
+
+    int i = 1;
+    for (;;)
+    {
+        std::string newName = wxString::Format("%s-%i", basename, i).ToStdString();
+        timing = GetElement(newName);
+        if (timing == nullptr) return newName;
+        i++;
+    }
+}
+
 int SequenceElements::GetRowInformationSize()
 {
     return mRowInformation.size();
@@ -592,7 +607,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
                                    const std::vector<std::string> & effectStrings,
                                    const std::vector<std::string> & colorPalettes) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
+    for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=nullptr; effect=effect->GetNext())
     {
         if (effect->GetName() == STR_EFFECT)
         {
@@ -678,22 +693,22 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
     std::vector<std::string> colorPalettes;
     Clear();
     supportsModelBlending = xml_file.supportsModelBlending();
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext() )
     {
        if (e->GetName() == "DisplayElements")
        {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            for(wxXmlNode* element = e->GetChildren(); element != nullptr; element = element->GetNext() )
             {
                 bool active=false;
                 bool selected=false;
                 bool collapsed=false;
                 std::string name = element->GetAttribute(STR_NAME).ToStdString();
                 std::string type = element->GetAttribute(STR_TYPE).ToStdString();
-                bool visible = element->GetAttribute("visible")=='1'?true:false;
+                bool visible = element->GetAttribute("visible") == '1' ? true : false;
 
-                if (type==STR_TIMING)
+                if (type == STR_TIMING)
                 {
-                    active = element->GetAttribute("active")=='1'?true:false;
+                    active = element->GetAttribute("active") == '1' ? true : false;
                 }
                 else
                 {
@@ -719,7 +734,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
        else if (e->GetName() == "EffectDB")
        {
            effectStrings.clear();
-           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
+           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=nullptr; elementNode=elementNode->GetNext() )
            {
                if(elementNode->GetName()==STR_EFFECT)
                {
@@ -739,7 +754,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
        else if (e->GetName() == "ColorPalettes")
        {
            colorPalettes.clear();
-           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
+           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=nullptr; elementNode=elementNode->GetNext() )
            {
                if(elementNode->GetName() == STR_COLORPALETTE)
                {
@@ -780,10 +795,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                         }
                         else
                         {
-                            for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
+                            for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode != nullptr; effectLayerNode=effectLayerNode->GetNext())
                             {
 
-                                EffectLayer* effectLayer = NULL;
+                                EffectLayer* effectLayer = nullptr;
                                 if (effectLayerNode->GetName() == STR_EFFECTLAYER) {
                                     effectLayer = element->AddEffectLayer();
                                 } else if (effectLayerNode->GetName() == STR_SUBMODEL_EFFECTLAYER) {
@@ -1232,7 +1247,7 @@ void SequenceElements::PopulateRowInformation()
     for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
-		if (elem != NULL)
+		if (elem != nullptr)
 		{
 			if (elem->GetType() == ELEMENT_TYPE_TIMING)
 			{
@@ -1247,7 +1262,7 @@ void SequenceElements::PopulateRowInformation()
     for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
     {
         Element* elem = mAllViews[mCurrentView][i];
-		if (elem != NULL)
+		if (elem != nullptr)
 		{
             if (elem->GetVisible() && elem->GetType() == ELEMENT_TYPE_MODEL) {
                 addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
@@ -1385,7 +1400,7 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
 {
     int num_selected = 0;
     EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
-    if( tel != nullptr )
+    if (tel != nullptr)
     {
         Effect* eff1 = tel->GetEffect(startCol);
         Effect* eff2 = tel->GetEffect(endCol);
@@ -1674,10 +1689,10 @@ void SequenceElements::IncrementChangeCount(Element *el) {
         if (it != renderDependency.end()) {
             int origChangeCount, ss, es;
             el->GetAndResetDirtyRange(origChangeCount, ss, es);
-            for (std::set<std::string>::iterator sit = it->second.begin(); sit != it->second.end(); sit++) {
-                Element *el = this->GetElement(*sit);
-                if (el != nullptr) {
-                    el->IncrementChangeCount(ss, es);
+            for (std::set<std::string>::iterator sit = it->second.begin(); sit != it->second.end(); ++sit) {
+                Element *el2 = this->GetElement(*sit);
+                if (el2 != nullptr) {
+                    el2->IncrementChangeCount(ss, es);
                     modelsToRender.insert(*sit);
                 }
             }
@@ -1687,7 +1702,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
 bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
     std::unique_lock<std::mutex> locker(renderDepLock);
     if (!modelsToRender.empty()) {
-        for (std::set<std::string>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); sit++) {
+        for (std::set<std::string>::iterator sit = modelsToRender.begin(); sit != modelsToRender.end(); ++sit) {
             Element *el = this->GetElement(*sit);
             if (el != nullptr) {
                 models.push_back(el);

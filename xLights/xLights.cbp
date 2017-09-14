@@ -230,7 +230,7 @@
 					<Add option="-static-libgcc" />
 					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
 					<Add option="-DWXUSINGDLL" />
@@ -376,7 +376,7 @@
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
 					<Add option="-DWXUSINGDLL" />
@@ -549,6 +549,8 @@
 		<Unit filename="FlickerFreeBitmapButton.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
+		<Unit filename="GenerateLyricsDialog.cpp" />
+		<Unit filename="GenerateLyricsDialog.h" />
 		<Unit filename="HousePreviewPanel.cpp" />
 		<Unit filename="HousePreviewPanel.h" />
 		<Unit filename="IPEntryDialog.cpp" />
@@ -1125,6 +1127,7 @@
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
+		<Unit filename="wxsmith/GenerateLyricsDialog.wxs" />
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
@@ -1349,6 +1352,7 @@
 					<wxPanel wxs="wxsmith/ViewsModelsPanel.wxs" src="ViewsModelsPanel.cpp" hdr="ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
