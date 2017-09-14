@@ -507,6 +507,7 @@ private:
     void OnMenuItem_SD_NoneSelected(wxCommandEvent& event);
     void OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event);
     void OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -609,6 +610,7 @@ private:
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
+    static const long ID_MNU_GENERATELYRICS;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
@@ -831,6 +833,7 @@ private:
     xlAuiToolBar* MainToolBar;
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxTimer Timer_AutoSave;
+    wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItemColorManager;
     wxMenuItem* MenuItem51;
     wxStaticText* MediaDirectoryLabel;

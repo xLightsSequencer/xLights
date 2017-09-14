@@ -65,6 +65,7 @@
 #include <wx/wfstream.h>
 #include <cctype>
 #include "outputs/IPOutput.h"
+#include "GenerateLyricsDialog.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -185,6 +186,7 @@ const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
+const long xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
@@ -750,6 +752,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemConvert);
     Menu_GenerateCustomModel = new wxMenuItem(Menu1, ID_MENUITEM_GenerateCustomModel, _("&Generate Custom Model"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_GenerateCustomModel);
+    MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_GenerateLyrics);
     MenuItemCheckSequence = new wxMenuItem(Menu1, ID_MNU_CHECKSEQ, _("C&heck Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemCheckSequence);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
@@ -1072,6 +1076,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
+    Connect(ID_MNU_GENERATELYRICS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
@@ -6413,4 +6418,125 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
     if (m_mgr == nullptr) return true;
 
     return m_mgr->GetPane(window).IsDocked();
+}
+
+void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
+{
+    GenerateLyricsDialog dlg(this, SeqData.NumChannels());
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        std::map<std::string, std::list<long>> face; // these channels need to be set to not zero when this phenome is displayed
+
+        std::list<long> data = dlg.GetChannels("AI");
+        if (data.size() > 0) face["AI"] = data;
+        std::list<long> all = data; // this is all the channels used by one or more phenomes
+        data = dlg.GetChannels("E");
+        if (data.size() > 0) face["E"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("etc");
+        if (data.size() > 0) face["etc"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("FV");
+        if (data.size() > 0) face["FV"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("L");
+        if (data.size() > 0) face["L"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("MBP");
+        if (data.size() > 0) face["MBP"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("O");
+        if (data.size() > 0) face["O"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("rest");
+        if (data.size() > 0) face["rest"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("U");
+        if (data.size() > 0) face["U"] = data;
+        all.merge(data);
+        data = dlg.GetChannels("WQ");
+        if (data.size() > 0) face["WQ"] = data;
+        all.merge(data);
+        all.unique();
+
+        std::map<std::string, std::list<long>> notface; // this is the list of channels that must be zero for a given phenome
+        for (auto it = face.begin(); it != face.end(); ++it)
+        {
+            std::list<long> notdata;
+
+            for (auto it2 = all.begin(); it2 != all.end(); ++it2)
+            {
+                if (std::find(it->second.begin(), it->second.end(), *it2) == it->second.end())
+                {
+                    notdata.push_back(*it2);
+                }
+            }
+            notface[it->first] = notdata;
+        }
+
+        // now create the phenome timing track
+        std::string name = mSequenceElements.UniqueElementName(dlg.GetLyricName());
+        int timingCount = mSequenceElements.GetNumberOfTimingElements();
+        Element* e = mSequenceElements.AddElement(timingCount, name, "timing", true, false, true, false);
+        mSequenceElements.AddTimingToCurrentView(name);
+        TimingElement* timing = dynamic_cast<TimingElement*>(e);
+        timing->AddEffectLayer();
+        timing->AddEffectLayer();
+        EffectLayer* tl = timing->AddEffectLayer();
+
+        Effect* lastEffect = nullptr;
+        std::string lastPhenome = "";
+
+        for (int i = 0; i < SeqData.NumFrames(); ++i)
+        {
+            bool phenomeFound = false;
+            for (auto it = face.begin(); it != face.end(); ++it)
+            {
+                bool match = true;
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+                {
+                    if (SeqData[i][*it2-1] == 0)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                for (auto it2 = notface[it->first].begin(); it2 != notface[it->first].end(); ++it2)
+                {
+                    if (SeqData[i][*it2-1] != 0)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                {
+                    if (lastEffect != nullptr && lastPhenome == it->first)
+                    {
+                        lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());                        phenomeFound = true;
+                    }
+                    else
+                    {
+                        long start = i * CurrentSeqXmlFile->GetFrameMS();
+                        lastEffect = tl->AddEffect(0, it->first, "", "", start, start + CurrentSeqXmlFile->GetFrameMS(), false, false);
+                        lastPhenome = it->first;
+                    }
+                    phenomeFound = true;
+
+                    break;
+                }
+            }
+
+            if (!phenomeFound)
+            {
+                lastPhenome = "";
+                lastEffect = nullptr;
+            }
+        }
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+    }
 }

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="GenerateLyricsDialog">
+		<title>Generate Lyrics From Data</title>
+		<centered>1</centered>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>This tool will read data (typically from a data layer) and generate &#x0A;a lyric phoneme track from that data. Typically this data would come &#x0A;from an old sequence which had 7 or 8 channel singing faces.&#x0A;&#x0A;Just as you would when setting up faces select as many nodes as you &#x0A;need to represent the face. If multiple phenomes light up the same &#x0A;nodes then only the first one will be used ... so choose wisely.&#x0A;&#x0A;WARNING: Your sequence must be rendered for this tool to work correctly.</label>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label>Timing Name:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Name" member="yes">
+							<handler function="OnTextCtrl_NameText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>First Channel (absolute):</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_FirstChannel" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<handler function="OnSpinCtrl_FirstChannelChange" entry="EVT_SPINCTRL" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<cols>3</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+							<size>36,0</size>
+							<handler function="Paint" entry="EVT_PAINT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxGrid" name="ID_GRID_COROFACES" variable="SingleNodeGrid" member="yes">
+							<cols>1</cols>
+							<rows>10</rows>
+							<labelrowheight>20</labelrowheight>
+							<labelcolwidth>150</labelcolwidth>
+							<defaultcolsize>250</defaultcolsize>
+							<collabels>
+								<item>Node Offsets From First Channel</item>
+							</collabels>
+							<rowlabels>
+								<item>Mouth - AI</item>
+								<item>Mouth - E</item>
+								<item>Mouth - etc</item>
+								<item>Mouth - FV</item>
+								<item>Mouth - L</item>
+								<item>Mouth - MBP</item>
+								<item>Mouth - O</item>
+								<item>Mouth - rest</item>
+								<item>Mouth - U</item>
+								<item>Mouth - WQ</item>
+							</rowlabels>
+							<minsize>-1,130d</minsize>
+							<handler function="OnSingleNodeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
+							<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
+							<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
+							<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>3</cols>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
+							<label>Ok</label>
+							<default>1</default>
+							<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON2" variable="Button_Cancel" member="yes">
+							<label>Cancel</label>
+							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>
