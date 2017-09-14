@@ -69,10 +69,12 @@ class CustomModelDialog: public wxDialog
 		wxButton* ButtonOk;
 		wxSlider* SliderCustomLightness;
 		wxBitmapButton* BitmapButtonCustomCut;
+		wxSpinCtrl* SpinCtrlRENUMVALUE;
 		wxCheckBox* CheckBox_RearView;
 		wxButton* Button_CustomModelZoomOut;
 		wxFlexGridSizer* Sizer1;
 		wxSpinCtrl* WidthSpin;
+		wxButton* ButtonRENUMBER;
 		//*)
 
 
@@ -92,6 +94,8 @@ class CustomModelDialog: public wxDialog
 		static const long ID_BUTTON_Flip_Horizontal;
 		static const long ID_BUTTON_Flip_Vertical;
 		static const long ID_BUTTON_Reverse;
+		static const long ID_SPINCTRL_RENUMVALUE;
+		static const long ID_BUTTON_RENUMBER;
 		static const long ID_BITMAPBUTTON_CUSTOM_CUT;
 		static const long ID_BITMAPBUTTON_CUSTOM_COPY;
 		static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
@@ -143,6 +147,8 @@ class CustomModelDialog: public wxDialog
 		void OnButton_Flip_HorizonalClick(wxCommandEvent& event);
 		void OnButton_Flip_VerticalClick(wxCommandEvent& event);
 		void OnButton_ReverseClick(wxCommandEvent& event);
+		void OnButton1Click(wxCommandEvent& event);
+		void OnButtonRENUMBERClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
