@@ -59,8 +59,10 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 cd xlights
 
-..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%
+..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%,MinGW_Release
 if %ERRORLEVEL% NEQ 0 exit 1
+
+type xLights.cbp.mak
 
 c:\MinGW\bin\mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
