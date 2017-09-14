@@ -7,8 +7,6 @@ set "xlightsdir=%cd%"
 git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
 if %ERRORLEVEL% NEQ 0 exit 1
 
-set WX=c:\projects\wxWidgets
-
 rem prepare the header files for wxWidgets
 
 cd ..\wxWidgets\build\msw
@@ -68,7 +66,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 type xLights.cbp.mak
 
-mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" -j 1 %configuration%
+mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets -j 1 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd ..\xSchedule
@@ -76,7 +74,7 @@ cd ..\xSchedule
 ..\cbp2make.exe -in xSchedule.cbp -out xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
-mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" -j 10 %configuration%
+mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets -j 10 %configuration%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 exit 0
