@@ -69,7 +69,6 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticText* StaticText2;
-	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* Sizer2;
 	wxFlexGridSizer* FlexGridSizer5;
@@ -84,7 +83,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
-	SetClientSize(wxDLG_UNIT(parent,wxSize(195,310)));
+	SetClientSize(wxDLG_UNIT(parent,wxSize(450,350)));
 	SetMinSize(wxDLG_UNIT(parent,wxSize(300,200)));
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	Sizer1->AddGrowableCol(1);
@@ -119,15 +118,12 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer9->Add(Button_Flip_Vertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reverse = new wxButton(this, ID_BUTTON_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reverse"));
 	FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_RenumValue = new wxSpinCtrl(this, ID_SPINCTRL_RENUMVALUE, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100000, 100000, 0, _T("ID_SPINCTRL_RENUMVALUE"));
+	SpinCtrl_RenumValue->SetValue(_T("0"));
+	FlexGridSizer9->Add(SpinCtrl_RenumValue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Renumber = new wxButton(this, ID_BUTTON_RENUMBER, _("ReNumber"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RENUMBER"));
+	FlexGridSizer9->Add(Button_Renumber, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
-	SpinCtrlRENUMVALUE = new wxSpinCtrl(this, ID_SPINCTRL_RENUMVALUE, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -9999999, 9999999, 0, _T("ID_SPINCTRL_RENUMVALUE"));
-	SpinCtrlRENUMVALUE->SetValue(_T("0"));
-	FlexGridSizer10->Add(SpinCtrlRENUMVALUE, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonRENUMBER = new wxButton(this, ID_BUTTON_RENUMBER, _("Renumber"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RENUMBER"));
-	ButtonRENUMBER->SetToolTip(_("Increase/Decresse All the Node Values"));
-	FlexGridSizer10->Add(ButtonRENUMBER, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Sizer2->Add(FlexGridSizer10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
 	BitmapButtonCustomCut->SetToolTip(_("Cut"));
@@ -208,7 +204,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BUTTON_Flip_Horizontal,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_HorizonalClick);
 	Connect(ID_BUTTON_Flip_Vertical,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_VerticalClick);
 	Connect(ID_BUTTON_Reverse,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_ReverseClick);
-	Connect(ID_BUTTON_RENUMBER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButtonRENUMBERClick);
+	Connect(ID_BUTTON_RENUMBER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_RenumberClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -907,8 +903,7 @@ void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
     UpdateBackground();
     ValidateWindow();
 }
-
-void CustomModelDialog::OnButtonRENUMBERClick(wxCommandEvent& event)
+void CustomModelDialog::OnButton_RenumberClick(wxCommandEvent& event)
 {
     auto min = 1;
     auto max = 1;
@@ -948,7 +943,7 @@ void CustomModelDialog::OnButtonRENUMBERClick(wxCommandEvent& event)
 
                 if(s.ToCLong(&val)==true)
                 {
-                    long newVal = val+SpinCtrlNextChannel->GetValue();
+                    long newVal = val + SpinCtrl_RenumValue->GetValue();
                     if(newVal>max)
                     {
                         newVal -= max;
