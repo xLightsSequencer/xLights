@@ -272,32 +272,42 @@ void xlGridCanvasMorph::SetMorphCorner2b(int x, int y)
     }
 }
 
+void DeactivateValueCurve(SettingsMap& settings, const std::string& setting)
+{
+    if (settings.Contains(setting))
+    {
+        wxString s = wxString(settings[setting]);
+        s.Replace("Active=TRUE", "Active=FALSE");
+        settings[setting] = s;
+    }
+}
+
 void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 {
     SettingsMap& settings = mEffect->GetSettings();
     if( mSelectedCorner == CORNER_1A_SELECTED ) {
         settings["E_SLIDER_Morph_Start_X1"] = wxString::Format("%d", SetColumnCenter(x1a));
         settings["E_SLIDER_Morph_Start_Y1"] = wxString::Format("%d", SetRowCenter(y1a));
-        settings["E_VALUECURVE_Morph_Start_X1"] = wxString(settings["E_VALUECURVE_Morph_Start_X1"].c_str()).Replace("Active=TRUE", "Active=FALSE");
-        settings["E_VALUECURVE_Morph_Start_Y1"] = wxString(settings["E_VALUECURVE_Morph_Start_Y1"].c_str()).Replace("Active=TRUE", "Active=FALSE");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X1");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y1");
     }
     else if( mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
         settings["E_SLIDER_Morph_Start_X2"] = wxString::Format("%d", SetColumnCenter(x1b));
         settings["E_SLIDER_Morph_Start_Y2"] = wxString::Format("%d", SetRowCenter(y1b));
-        settings["E_VALUECURVE_Morph_Start_X2"] = wxString(settings["E_VALUECURVE_Morph_Start_X2"].c_str()).Replace("Active=TRUE", "Active=FALSE");
-        settings["E_VALUECURVE_Morph_Start_Y2"] = wxString(settings["E_VALUECURVE_Morph_Start_Y2"].c_str()).Replace("Active=TRUE", "Active=FALSE");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X2");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y2");
     }
     else if( mSelectedCorner == CORNER_2A_SELECTED ) {
         settings["E_SLIDER_Morph_End_X1"] = wxString::Format("%d", SetColumnCenter(x2a));
         settings["E_SLIDER_Morph_End_Y1"] = wxString::Format("%d", SetRowCenter(y2a));
-        settings["E_VALUECURVE_Morph_End_X1"] = wxString(settings["E_VALUECURVE_Morph_End_X1"].c_str()).Replace("Active=TRUE", "Active=FALSE");
-        settings["E_VALUECURVE_Morph_End_Y1"] = wxString(settings["E_VALUECURVE_Morph_End_Y1"].c_str()).Replace("Active=TRUE", "Active=FALSE");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X1");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_Y1");
     }
     else if( mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
         settings["E_SLIDER_Morph_End_X2"] = wxString::Format("%d", SetColumnCenter(x2b));
         settings["E_SLIDER_Morph_End_Y2"] = wxString::Format("%d", SetRowCenter(y2b));
-        settings["E_VALUECURVE_Morph_End_X2"] = wxString(settings["E_VALUECURVE_Morph_End_X2"].c_str()).Replace("Active=TRUE", "Active=FALSE");
-        settings["E_VALUECURVE_Morph_End_Y2"] = wxString(settings["E_VALUECURVE_Morph_End_Y2"].c_str()).Replace("Active=TRUE", "Active=FALSE");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X2");
+        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_Y2");
     }
 
     wxCommandEvent eventVCChange(EVT_VC_CHANGED);
