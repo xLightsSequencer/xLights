@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/outputs/E131Dialog.o $(OBJDIR_LINUX_DEBUG)/outputs/ArtNetOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/outputs/DDPDialog.o $(OBJDIR_LINUX_DEBUG)/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/NullOutputDialog.o $(OBJDIR_LINUX_DEBUG)/models/TreeModel.o $(OBJDIR_LINUX_DEBUG)/models/SingleLineModel.o $(OBJDIR_LINUX_DEBUG)/models/SphereModel.o $(OBJDIR_LINUX_DEBUG)/models/SpinnerModel.o $(OBJDIR_LINUX_DEBUG)/models/StarModel.o $(OBJDIR_LINUX_DEBUG)/models/SubModel.o $(OBJDIR_LINUX_DEBUG)/models/WholeHouseModel.o $(OBJDIR_LINUX_DEBUG)/models/WindowFrameModel.o $(OBJDIR_LINUX_DEBUG)/models/WreathModel.o $(OBJDIR_LINUX_DEBUG)/osx_utils/TouchBars.o $(OBJDIR_LINUX_DEBUG)/outputs/ArtNetDialog.o $(OBJDIR_LINUX_DEBUG)/sequencer/MainSequencer.o $(OBJDIR_LINUX_DEBUG)/sequencer/Effect.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectDropTarget.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectLayer.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectsGrid.o $(OBJDIR_LINUX_DEBUG)/sequencer/Element.o $(OBJDIR_LINUX_DEBUG)/sequencer/DragEffectBitmapButton.o $(OBJDIR_LINUX_DEBUG)/sequencer/RowHeading.o $(OBJDIR_LINUX_DEBUG)/sequencer/SequenceElements.o $(OBJDIR_LINUX_DEBUG)/sequencer/TimeLine.o $(OBJDIR_LINUX_DEBUG)/sequencer/UndoManager.o $(OBJDIR_LINUX_DEBUG)/sequencer/Waveform.o $(OBJDIR_LINUX_DEBUG)/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/models/Shapes.o $(OBJDIR_LINUX_DEBUG)/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/SerialPortWithRate.o $(OBJDIR_LINUX_DEBUG)/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/effects/TwinklePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TextEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TextPanel.o $(OBJDIR_LINUX_DEBUG)/effects/TreeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TreePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TwinkleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TendrilPanel.o $(OBJDIR_LINUX_DEBUG)/effects/VUMeterEffect.o $(OBJDIR_LINUX_DEBUG)/effects/VUMeterPanel.o $(OBJDIR_LINUX_DEBUG)/effects/VideoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/VideoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/WaveEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SpiralsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SpiralsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SpirographEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SpirographPanel.o $(OBJDIR_LINUX_DEBUG)/effects/StateEffect.o $(OBJDIR_LINUX_DEBUG)/effects/StatePanel.o $(OBJDIR_LINUX_DEBUG)/effects/StrobeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/StrobePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TendrilEffect.o $(OBJDIR_LINUX_DEBUG)/models/CircleModel.o $(OBJDIR_LINUX_DEBUG)/models/CustomModel.o $(OBJDIR_LINUX_DEBUG)/models/DmxModel.o $(OBJDIR_LINUX_DEBUG)/models/IciclesModel.o $(OBJDIR_LINUX_DEBUG)/models/MatrixModel.o $(OBJDIR_LINUX_DEBUG)/models/Model.o $(OBJDIR_LINUX_DEBUG)/models/ModelGroup.o $(OBJDIR_LINUX_DEBUG)/models/ModelManager.o $(OBJDIR_LINUX_DEBUG)/models/ModelScreenLocation.o $(OBJDIR_LINUX_DEBUG)/models/Node.o $(OBJDIR_LINUX_DEBUG)/models/PolyLineModel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasPictures.o $(OBJDIR_LINUX_DEBUG)/effects/WavePanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/AssistPanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/PicturesAssistPanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasEmpty.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasMorph.o $(OBJDIR_LINUX_DEBUG)/heartbeat.o $(OBJDIR_LINUX_DEBUG)/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_DEBUG)/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_DEBUG)/models/ArchesModel.o $(OBJDIR_LINUX_DEBUG)/models/CandyCaneModel.o $(OBJDIR_LINUX_DEBUG)/models/ChannelBlockModel.o $(OBJDIR_LINUX_DEBUG)/xlColorPicker.o $(OBJDIR_LINUX_DEBUG)/xLightsImportChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o $(OBJDIR_LINUX_DEBUG)/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/xLightsXmlFile.o $(OBJDIR_LINUX_DEBUG)/xlColorCanvas.o $(OBJDIR_LINUX_DEBUG)/xLightsApp.o $(OBJDIR_LINUX_DEBUG)/xlColorPickerFields.o $(OBJDIR_LINUX_DEBUG)/xlGLCanvas.o $(OBJDIR_LINUX_DEBUG)/xlGridCanvas.o $(OBJDIR_LINUX_DEBUG)/xlSlider.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginSummarisingAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/host-c.o $(OBJDIR_LINUX_DEBUG)/wxCheckedListCtrl.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o $(OBJDIR_LINUX_DEBUG)/sequencer/tabSequencer.o $(OBJDIR_LINUX_DEBUG)/support/EzGrid.o $(OBJDIR_LINUX_DEBUG)/support/FastComboEditor.o $(OBJDIR_LINUX_DEBUG)/support/GridCellChoiceRenderer.o $(OBJDIR_LINUX_DEBUG)/tmGridCell.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o $(OBJDIR_LINUX_DEBUG)/PreviewPane.o $(OBJDIR_LINUX_DEBUG)/PerspectivesPanel.o $(OBJDIR_LINUX_DEBUG)/PhonemeDictionary.o $(OBJDIR_LINUX_DEBUG)/PixelAppearanceDlg.o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o $(OBJDIR_LINUX_DEBUG)/PreviewModels.o $(OBJDIR_LINUX_DEBUG)/RenameTextDialog.o $(OBJDIR_LINUX_DEBUG)/Render.o $(OBJDIR_LINUX_DEBUG)/RenderBuffer.o $(OBJDIR_LINUX_DEBUG)/RenderProgressDialog.o $(OBJDIR_LINUX_DEBUG)/ResizeImageDialog.o $(OBJDIR_LINUX_DEBUG)/ModelDimmingCurveDialog.o $(OBJDIR_LINUX_DEBUG)/ModelFaceDialog.o $(OBJDIR_LINUX_DEBUG)/ModelGroupPanel.o $(OBJDIR_LINUX_DEBUG)/ModelPreview.o $(OBJDIR_LINUX_DEBUG)/ModelStateDialog.o $(OBJDIR_LINUX_DEBUG)/MusicXML.o $(OBJDIR_LINUX_DEBUG)/NewTimingDialog.o $(OBJDIR_LINUX_DEBUG)/NodesGridCellEditor.o $(OBJDIR_LINUX_DEBUG)/NoteImportDialog.o $(OBJDIR_LINUX_DEBUG)/OptionChooser.o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o $(OBJDIR_LINUX_DEBUG)/TestDialog.o $(OBJDIR_LINUX_DEBUG)/SubModelGenerateDialog.o $(OBJDIR_LINUX_DEBUG)/SubModelsDialog.o $(OBJDIR_LINUX_DEBUG)/SuperStarImportDialog.o $(OBJDIR_LINUX_DEBUG)/TabConvert.o $(OBJDIR_LINUX_DEBUG)/TabPreview.o $(OBJDIR_LINUX_DEBUG)/TabSequence.o $(OBJDIR_LINUX_DEBUG)/TabSetup.o $(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o $(OBJDIR_LINUX_DEBUG)/TimingPanel.o $(OBJDIR_LINUX_DEBUG)/TopEffectsPanel.o $(OBJDIR_LINUX_DEBUG)/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/VAMPPluginDialog.o $(OBJDIR_LINUX_DEBUG)/VSAFile.o $(OBJDIR_LINUX_DEBUG)/SaveChangesDialog.o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o $(OBJDIR_LINUX_DEBUG)/SeqFileUtilities.o $(OBJDIR_LINUX_DEBUG)/SeqSettingsDialog.o $(OBJDIR_LINUX_DEBUG)/SequenceData.o $(OBJDIR_LINUX_DEBUG)/SequenceViewManager.o $(OBJDIR_LINUX_DEBUG)/SevenSegmentDialog.o $(OBJDIR_LINUX_DEBUG)/StartChannelDialog.o $(OBJDIR_LINUX_DEBUG)/StrandNodeNamesDialog.o $(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o $(OBJDIR_LINUX_DEBUG)/CustomModelDialog.o $(OBJDIR_LINUX_DEBUG)/CustomTimingDialog.o $(OBJDIR_LINUX_DEBUG)/DataLayer.o $(OBJDIR_LINUX_DEBUG)/DimmingCurve.o $(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils21.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils31.o $(OBJDIR_LINUX_DEBUG)/EffectAssist.o $(OBJDIR_LINUX_DEBUG)/EffectIconPanel.o $(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o $(OBJDIR_LINUX_DEBUG)/BitmapCache.o $(OBJDIR_LINUX_DEBUG)/BufferPanel.o $(OBJDIR_LINUX_DEBUG)/BufferSizeDialog.o $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o $(OBJDIR_LINUX_DEBUG)/Color.o $(OBJDIR_LINUX_DEBUG)/ColorCurve.o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o $(OBJDIR_LINUX_DEBUG)/ColorManager.o $(OBJDIR_LINUX_DEBUG)/ColorManagerDialog.o $(OBJDIR_LINUX_DEBUG)/ColorPanel.o $(OBJDIR_LINUX_DEBUG)/ControllerConnectionDialog.o $(OBJDIR_LINUX_DEBUG)/ConvertDialog.o $(OBJDIR_LINUX_DEBUG)/LayoutPanel.o $(OBJDIR_LINUX_DEBUG)/Image_Loader.o $(OBJDIR_LINUX_DEBUG)/JobPool.o $(OBJDIR_LINUX_DEBUG)/KeyBindings.o $(OBJDIR_LINUX_DEBUG)/LMSImportChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/LayoutGroup.o $(OBJDIR_LINUX_DEBUG)/LorConvertDialog.o $(OBJDIR_LINUX_DEBUG)/LyricsDialog.o $(OBJDIR_LINUX_DEBUG)/MIDI/Binasc.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiEvent.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiEventList.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiFile.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o $(OBJDIR_LINUX_DEBUG)/FileConverter.o $(OBJDIR_LINUX_DEBUG)/EffectTimingDialog.o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o $(OBJDIR_LINUX_DEBUG)/FlickerFreeBitmapButton.o $(OBJDIR_LINUX_DEBUG)/GenerateCustomModelDialog.o $(OBJDIR_LINUX_DEBUG)/HousePreviewPanel.o $(OBJDIR_LINUX_DEBUG)/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/Image.o $(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MeteorsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MeteorsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MorphEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MorphPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MusicEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o $(OBJDIR_LINUX_DEBUG)/effects/OffEffect.o $(OBJDIR_LINUX_DEBUG)/effects/OffPanel.o $(OBJDIR_LINUX_DEBUG)/effects/OnEffect.o $(OBJDIR_LINUX_DEBUG)/effects/OnPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GarlandsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GarlandsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/GlediatorEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GlediatorPanel.o $(OBJDIR_LINUX_DEBUG)/effects/LifeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o $(OBJDIR_LINUX_DEBUG)/effects/LightningEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LightningPanel.o $(OBJDIR_LINUX_DEBUG)/effects/LiquidEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LiquidPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MarqueeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ServoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ShapeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShapePanel.o $(OBJDIR_LINUX_DEBUG)/effects/ShimmerEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShimmerPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShockwavePanel.o $(OBJDIR_LINUX_DEBUG)/effects/SingleStrandEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SingleStrandPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PianoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PicturesEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PicturesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PinwheelEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PinwheelPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaPanel.o $(OBJDIR_LINUX_DEBUG)/effects/RenderableEffect.o $(OBJDIR_LINUX_DEBUG)/effects/RippleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/RipplePanel.o $(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o $(OBJDIR_LINUX_DEBUG)/controllers/J1Sys.o $(OBJDIR_LINUX_DEBUG)/controllers/Pixlite16.o $(OBJDIR_LINUX_DEBUG)/controllers/SanDevices.o $(OBJDIR_LINUX_DEBUG)/controllers/SimpleFTP.o $(OBJDIR_LINUX_DEBUG)/djdebug.o $(OBJDIR_LINUX_DEBUG)/effects/BarsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ButterflyEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ButterflyPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CandleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/CandlePanel.o $(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o $(OBJDIR_LINUX_DEBUG)/ValueCurve.o $(OBJDIR_LINUX_DEBUG)/ValueCurveButton.o $(OBJDIR_LINUX_DEBUG)/ValueCurveDialog.o $(OBJDIR_LINUX_DEBUG)/VideoReader.o $(OBJDIR_LINUX_DEBUG)/ViewsModelsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o $(OBJDIR_LINUX_DEBUG)/WiringDialog.o $(OBJDIR_LINUX_DEBUG)/XlightsDrawable.o $(OBJDIR_LINUX_DEBUG)/controllers/FPP.o $(OBJDIR_LINUX_DEBUG)/controllers/FPPConnectDialog.o $(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o $(OBJDIR_LINUX_DEBUG)/effects/FanEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FanPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FillEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FillPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FireEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FireworksEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FireworksPanel.o $(OBJDIR_LINUX_DEBUG)/effects/GIFImage.o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CirclesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ColorWashEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ColorWashPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CurtainEffect.o $(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o $(OBJDIR_LINUX_DEBUG)/AudioManager.o $(OBJDIR_LINUX_DEBUG)/effects/DMXEffect.o $(OBJDIR_LINUX_DEBUG)/effects/DMXPanel.o $(OBJDIR_LINUX_DEBUG)/effects/EffectManager.o $(OBJDIR_LINUX_DEBUG)/effects/EffectPanelUtils.o $(OBJDIR_LINUX_DEBUG)/effects/FacesEffect.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/outputs/E131Dialog.o $(OBJDIR_LINUX_DEBUG)/outputs/ArtNetOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/Controller.o $(OBJDIR_LINUX_DEBUG)/outputs/DDPDialog.o $(OBJDIR_LINUX_DEBUG)/outputs/DDPOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/DMXOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/E131Output.o $(OBJDIR_LINUX_DEBUG)/outputs/IPOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/LOROutput.o $(OBJDIR_LINUX_DEBUG)/outputs/NullOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/NullOutputDialog.o $(OBJDIR_LINUX_DEBUG)/models/TreeModel.o $(OBJDIR_LINUX_DEBUG)/models/SingleLineModel.o $(OBJDIR_LINUX_DEBUG)/models/SphereModel.o $(OBJDIR_LINUX_DEBUG)/models/SpinnerModel.o $(OBJDIR_LINUX_DEBUG)/models/StarModel.o $(OBJDIR_LINUX_DEBUG)/models/SubModel.o $(OBJDIR_LINUX_DEBUG)/models/WholeHouseModel.o $(OBJDIR_LINUX_DEBUG)/models/WindowFrameModel.o $(OBJDIR_LINUX_DEBUG)/models/WreathModel.o $(OBJDIR_LINUX_DEBUG)/osx_utils/TouchBars.o $(OBJDIR_LINUX_DEBUG)/outputs/ArtNetDialog.o $(OBJDIR_LINUX_DEBUG)/sequencer/MainSequencer.o $(OBJDIR_LINUX_DEBUG)/sequencer/Effect.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectDropTarget.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectLayer.o $(OBJDIR_LINUX_DEBUG)/sequencer/EffectsGrid.o $(OBJDIR_LINUX_DEBUG)/sequencer/Element.o $(OBJDIR_LINUX_DEBUG)/sequencer/DragEffectBitmapButton.o $(OBJDIR_LINUX_DEBUG)/sequencer/RowHeading.o $(OBJDIR_LINUX_DEBUG)/sequencer/SequenceElements.o $(OBJDIR_LINUX_DEBUG)/sequencer/TimeLine.o $(OBJDIR_LINUX_DEBUG)/sequencer/UndoManager.o $(OBJDIR_LINUX_DEBUG)/sequencer/Waveform.o $(OBJDIR_LINUX_DEBUG)/outputs/RenardOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/Output.o $(OBJDIR_LINUX_DEBUG)/outputs/OutputManager.o $(OBJDIR_LINUX_DEBUG)/outputs/PixelNetOutput.o $(OBJDIR_LINUX_DEBUG)/models/Shapes.o $(OBJDIR_LINUX_DEBUG)/outputs/SerialOutput.o $(OBJDIR_LINUX_DEBUG)/outputs/SerialPortWithRate.o $(OBJDIR_LINUX_DEBUG)/outputs/TestPreset.o $(OBJDIR_LINUX_DEBUG)/outputs/serial.o $(OBJDIR_LINUX_DEBUG)/effects/TwinklePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TextEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TextPanel.o $(OBJDIR_LINUX_DEBUG)/effects/TreeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TreePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TwinkleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/TendrilPanel.o $(OBJDIR_LINUX_DEBUG)/effects/VUMeterEffect.o $(OBJDIR_LINUX_DEBUG)/effects/VUMeterPanel.o $(OBJDIR_LINUX_DEBUG)/effects/VideoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/VideoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/WaveEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SpiralsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SpiralsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SpirographEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SpirographPanel.o $(OBJDIR_LINUX_DEBUG)/effects/StateEffect.o $(OBJDIR_LINUX_DEBUG)/effects/StatePanel.o $(OBJDIR_LINUX_DEBUG)/effects/StrobeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/StrobePanel.o $(OBJDIR_LINUX_DEBUG)/effects/TendrilEffect.o $(OBJDIR_LINUX_DEBUG)/models/CircleModel.o $(OBJDIR_LINUX_DEBUG)/models/CustomModel.o $(OBJDIR_LINUX_DEBUG)/models/DmxModel.o $(OBJDIR_LINUX_DEBUG)/models/IciclesModel.o $(OBJDIR_LINUX_DEBUG)/models/MatrixModel.o $(OBJDIR_LINUX_DEBUG)/models/Model.o $(OBJDIR_LINUX_DEBUG)/models/ModelGroup.o $(OBJDIR_LINUX_DEBUG)/models/ModelManager.o $(OBJDIR_LINUX_DEBUG)/models/ModelScreenLocation.o $(OBJDIR_LINUX_DEBUG)/models/Node.o $(OBJDIR_LINUX_DEBUG)/models/PolyLineModel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasPictures.o $(OBJDIR_LINUX_DEBUG)/effects/WavePanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/AssistPanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/PicturesAssistPanel.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasEmpty.o $(OBJDIR_LINUX_DEBUG)/effects/assist/xlGridCanvasMorph.o $(OBJDIR_LINUX_DEBUG)/heartbeat.o $(OBJDIR_LINUX_DEBUG)/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_DEBUG)/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_DEBUG)/models/ArchesModel.o $(OBJDIR_LINUX_DEBUG)/models/CandyCaneModel.o $(OBJDIR_LINUX_DEBUG)/models/ChannelBlockModel.o $(OBJDIR_LINUX_DEBUG)/xlColorPicker.o $(OBJDIR_LINUX_DEBUG)/xLightsImportChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o $(OBJDIR_LINUX_DEBUG)/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/xLightsXmlFile.o $(OBJDIR_LINUX_DEBUG)/xlColorCanvas.o $(OBJDIR_LINUX_DEBUG)/xLightsApp.o $(OBJDIR_LINUX_DEBUG)/xlColorPickerFields.o $(OBJDIR_LINUX_DEBUG)/xlGLCanvas.o $(OBJDIR_LINUX_DEBUG)/xlGridCanvas.o $(OBJDIR_LINUX_DEBUG)/xlSlider.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginSummarisingAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/host-c.o $(OBJDIR_LINUX_DEBUG)/wxCheckedListCtrl.o $(OBJDIR_LINUX_DEBUG)/sequencer/tabSequencer.o $(OBJDIR_LINUX_DEBUG)/support/EzGrid.o $(OBJDIR_LINUX_DEBUG)/support/FastComboEditor.o $(OBJDIR_LINUX_DEBUG)/support/GridCellChoiceRenderer.o $(OBJDIR_LINUX_DEBUG)/tmGridCell.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_DEBUG)/PerspectivesPanel.o $(OBJDIR_LINUX_DEBUG)/PhonemeDictionary.o $(OBJDIR_LINUX_DEBUG)/PixelAppearanceDlg.o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o $(OBJDIR_LINUX_DEBUG)/PreviewModels.o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o $(OBJDIR_LINUX_DEBUG)/PreviewPane.o $(OBJDIR_LINUX_DEBUG)/RenameTextDialog.o $(OBJDIR_LINUX_DEBUG)/Render.o $(OBJDIR_LINUX_DEBUG)/RenderBuffer.o $(OBJDIR_LINUX_DEBUG)/RenderProgressDialog.o $(OBJDIR_LINUX_DEBUG)/ResizeImageDialog.o $(OBJDIR_LINUX_DEBUG)/MusicXML.o $(OBJDIR_LINUX_DEBUG)/ModelDimmingCurveDialog.o $(OBJDIR_LINUX_DEBUG)/ModelFaceDialog.o $(OBJDIR_LINUX_DEBUG)/ModelGroupPanel.o $(OBJDIR_LINUX_DEBUG)/ModelPreview.o $(OBJDIR_LINUX_DEBUG)/ModelStateDialog.o $(OBJDIR_LINUX_DEBUG)/NewTimingDialog.o $(OBJDIR_LINUX_DEBUG)/NodesGridCellEditor.o $(OBJDIR_LINUX_DEBUG)/NoteImportDialog.o $(OBJDIR_LINUX_DEBUG)/OptionChooser.o $(OBJDIR_LINUX_DEBUG)/TabSetup.o $(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o $(OBJDIR_LINUX_DEBUG)/SubModelGenerateDialog.o $(OBJDIR_LINUX_DEBUG)/SubModelsDialog.o $(OBJDIR_LINUX_DEBUG)/SuperStarImportDialog.o $(OBJDIR_LINUX_DEBUG)/TabConvert.o $(OBJDIR_LINUX_DEBUG)/TabPreview.o $(OBJDIR_LINUX_DEBUG)/TabSequence.o $(OBJDIR_LINUX_DEBUG)/TestDialog.o $(OBJDIR_LINUX_DEBUG)/TimingPanel.o $(OBJDIR_LINUX_DEBUG)/TopEffectsPanel.o $(OBJDIR_LINUX_DEBUG)/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/VAMPPluginDialog.o $(OBJDIR_LINUX_DEBUG)/SaveChangesDialog.o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o $(OBJDIR_LINUX_DEBUG)/SeqFileUtilities.o $(OBJDIR_LINUX_DEBUG)/SeqSettingsDialog.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o $(OBJDIR_LINUX_DEBUG)/SequenceData.o $(OBJDIR_LINUX_DEBUG)/SequenceViewManager.o $(OBJDIR_LINUX_DEBUG)/SevenSegmentDialog.o $(OBJDIR_LINUX_DEBUG)/StartChannelDialog.o $(OBJDIR_LINUX_DEBUG)/StrandNodeNamesDialog.o $(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o $(OBJDIR_LINUX_DEBUG)/CustomModelDialog.o $(OBJDIR_LINUX_DEBUG)/CustomTimingDialog.o $(OBJDIR_LINUX_DEBUG)/DataLayer.o $(OBJDIR_LINUX_DEBUG)/DimmingCurve.o $(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils21.o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils31.o $(OBJDIR_LINUX_DEBUG)/EffectAssist.o $(OBJDIR_LINUX_DEBUG)/EffectIconPanel.o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o $(OBJDIR_LINUX_DEBUG)/BitmapCache.o $(OBJDIR_LINUX_DEBUG)/BufferPanel.o $(OBJDIR_LINUX_DEBUG)/BufferSizeDialog.o $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o $(OBJDIR_LINUX_DEBUG)/Color.o $(OBJDIR_LINUX_DEBUG)/ColorCurve.o $(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o $(OBJDIR_LINUX_DEBUG)/ColorManager.o $(OBJDIR_LINUX_DEBUG)/ColorManagerDialog.o $(OBJDIR_LINUX_DEBUG)/ColorPanel.o $(OBJDIR_LINUX_DEBUG)/ControllerConnectionDialog.o $(OBJDIR_LINUX_DEBUG)/ConvertDialog.o $(OBJDIR_LINUX_DEBUG)/Image_Loader.o $(OBJDIR_LINUX_DEBUG)/JobPool.o $(OBJDIR_LINUX_DEBUG)/KeyBindings.o $(OBJDIR_LINUX_DEBUG)/LMSImportChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/LayoutGroup.o $(OBJDIR_LINUX_DEBUG)/Image.o $(OBJDIR_LINUX_DEBUG)/LayoutPanel.o $(OBJDIR_LINUX_DEBUG)/LorConvertDialog.o $(OBJDIR_LINUX_DEBUG)/LyricsDialog.o $(OBJDIR_LINUX_DEBUG)/MIDI/Binasc.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiEvent.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiEventList.o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiFile.o $(OBJDIR_LINUX_DEBUG)/EffectTimingDialog.o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o $(OBJDIR_LINUX_DEBUG)/FileConverter.o $(OBJDIR_LINUX_DEBUG)/VSAFile.o $(OBJDIR_LINUX_DEBUG)/FlickerFreeBitmapButton.o $(OBJDIR_LINUX_DEBUG)/GenerateCustomModelDialog.o $(OBJDIR_LINUX_DEBUG)/GenerateLyricsDialog.o $(OBJDIR_LINUX_DEBUG)/HousePreviewPanel.o $(OBJDIR_LINUX_DEBUG)/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o $(OBJDIR_LINUX_DEBUG)/effects/MeteorsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MeteorsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MorphEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MorphPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MusicEffect.o $(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o $(OBJDIR_LINUX_DEBUG)/effects/OffEffect.o $(OBJDIR_LINUX_DEBUG)/effects/OffPanel.o $(OBJDIR_LINUX_DEBUG)/effects/OnEffect.o $(OBJDIR_LINUX_DEBUG)/effects/OnPanel.o $(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o $(OBJDIR_LINUX_DEBUG)/effects/GarlandsEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GarlandsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/GlediatorEffect.o $(OBJDIR_LINUX_DEBUG)/effects/GlediatorPanel.o $(OBJDIR_LINUX_DEBUG)/effects/LifeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LightningEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LightningPanel.o $(OBJDIR_LINUX_DEBUG)/effects/LiquidEffect.o $(OBJDIR_LINUX_DEBUG)/effects/LiquidPanel.o $(OBJDIR_LINUX_DEBUG)/effects/MarqueeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ServoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ShapeEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShapePanel.o $(OBJDIR_LINUX_DEBUG)/effects/ShimmerEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShimmerPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ShockwavePanel.o $(OBJDIR_LINUX_DEBUG)/effects/SingleStrandEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SingleStrandPanel.o $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesEffect.o $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PianoPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PicturesEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PicturesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PinwheelEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PinwheelPanel.o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaPanel.o $(OBJDIR_LINUX_DEBUG)/effects/RenderableEffect.o $(OBJDIR_LINUX_DEBUG)/effects/RippleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/RipplePanel.o $(OBJDIR_LINUX_DEBUG)/controllers/J1Sys.o $(OBJDIR_LINUX_DEBUG)/controllers/Pixlite16.o $(OBJDIR_LINUX_DEBUG)/controllers/SanDevices.o $(OBJDIR_LINUX_DEBUG)/controllers/SimpleFTP.o $(OBJDIR_LINUX_DEBUG)/djdebug.o $(OBJDIR_LINUX_DEBUG)/effects/BarsEffect.o $(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o $(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ButterflyEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ButterflyPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CandleEffect.o $(OBJDIR_LINUX_DEBUG)/effects/CandlePanel.o $(OBJDIR_LINUX_DEBUG)/ValueCurve.o $(OBJDIR_LINUX_DEBUG)/ValueCurveButton.o $(OBJDIR_LINUX_DEBUG)/ValueCurveDialog.o $(OBJDIR_LINUX_DEBUG)/VideoReader.o $(OBJDIR_LINUX_DEBUG)/ViewsModelsPanel.o $(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o $(OBJDIR_LINUX_DEBUG)/WiringDialog.o $(OBJDIR_LINUX_DEBUG)/XlightsDrawable.o $(OBJDIR_LINUX_DEBUG)/controllers/FPP.o $(OBJDIR_LINUX_DEBUG)/controllers/FPPConnectDialog.o $(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FanEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FanPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FillEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FillPanel.o $(OBJDIR_LINUX_DEBUG)/effects/FireEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o $(OBJDIR_LINUX_DEBUG)/effects/FireworksEffect.o $(OBJDIR_LINUX_DEBUG)/effects/FireworksPanel.o $(OBJDIR_LINUX_DEBUG)/effects/GIFImage.o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyEffect.o $(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o $(OBJDIR_LINUX_DEBUG)/effects/CirclesPanel.o $(OBJDIR_LINUX_DEBUG)/effects/ColorWashEffect.o $(OBJDIR_LINUX_DEBUG)/effects/ColorWashPanel.o $(OBJDIR_LINUX_DEBUG)/effects/CurtainEffect.o $(OBJDIR_LINUX_DEBUG)/AudioManager.o $(OBJDIR_LINUX_DEBUG)/effects/DMXEffect.o $(OBJDIR_LINUX_DEBUG)/effects/DMXPanel.o $(OBJDIR_LINUX_DEBUG)/effects/EffectManager.o $(OBJDIR_LINUX_DEBUG)/effects/EffectPanelUtils.o $(OBJDIR_LINUX_DEBUG)/effects/FacesEffect.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/outputs/E131Dialog.o $(OBJDIR_LINUX_RELEASE)/outputs/ArtNetOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/outputs/DDPDialog.o $(OBJDIR_LINUX_RELEASE)/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/NullOutputDialog.o $(OBJDIR_LINUX_RELEASE)/models/TreeModel.o $(OBJDIR_LINUX_RELEASE)/models/SingleLineModel.o $(OBJDIR_LINUX_RELEASE)/models/SphereModel.o $(OBJDIR_LINUX_RELEASE)/models/SpinnerModel.o $(OBJDIR_LINUX_RELEASE)/models/StarModel.o $(OBJDIR_LINUX_RELEASE)/models/SubModel.o $(OBJDIR_LINUX_RELEASE)/models/WholeHouseModel.o $(OBJDIR_LINUX_RELEASE)/models/WindowFrameModel.o $(OBJDIR_LINUX_RELEASE)/models/WreathModel.o $(OBJDIR_LINUX_RELEASE)/osx_utils/TouchBars.o $(OBJDIR_LINUX_RELEASE)/outputs/ArtNetDialog.o $(OBJDIR_LINUX_RELEASE)/sequencer/MainSequencer.o $(OBJDIR_LINUX_RELEASE)/sequencer/Effect.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectDropTarget.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectLayer.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectsGrid.o $(OBJDIR_LINUX_RELEASE)/sequencer/Element.o $(OBJDIR_LINUX_RELEASE)/sequencer/DragEffectBitmapButton.o $(OBJDIR_LINUX_RELEASE)/sequencer/RowHeading.o $(OBJDIR_LINUX_RELEASE)/sequencer/SequenceElements.o $(OBJDIR_LINUX_RELEASE)/sequencer/TimeLine.o $(OBJDIR_LINUX_RELEASE)/sequencer/UndoManager.o $(OBJDIR_LINUX_RELEASE)/sequencer/Waveform.o $(OBJDIR_LINUX_RELEASE)/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/models/Shapes.o $(OBJDIR_LINUX_RELEASE)/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/SerialPortWithRate.o $(OBJDIR_LINUX_RELEASE)/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/effects/TwinklePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TextEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TextPanel.o $(OBJDIR_LINUX_RELEASE)/effects/TreeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TreePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TwinkleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TendrilPanel.o $(OBJDIR_LINUX_RELEASE)/effects/VUMeterEffect.o $(OBJDIR_LINUX_RELEASE)/effects/VUMeterPanel.o $(OBJDIR_LINUX_RELEASE)/effects/VideoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/VideoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/WaveEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SpiralsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SpiralsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SpirographEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SpirographPanel.o $(OBJDIR_LINUX_RELEASE)/effects/StateEffect.o $(OBJDIR_LINUX_RELEASE)/effects/StatePanel.o $(OBJDIR_LINUX_RELEASE)/effects/StrobeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/StrobePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TendrilEffect.o $(OBJDIR_LINUX_RELEASE)/models/CircleModel.o $(OBJDIR_LINUX_RELEASE)/models/CustomModel.o $(OBJDIR_LINUX_RELEASE)/models/DmxModel.o $(OBJDIR_LINUX_RELEASE)/models/IciclesModel.o $(OBJDIR_LINUX_RELEASE)/models/MatrixModel.o $(OBJDIR_LINUX_RELEASE)/models/Model.o $(OBJDIR_LINUX_RELEASE)/models/ModelGroup.o $(OBJDIR_LINUX_RELEASE)/models/ModelManager.o $(OBJDIR_LINUX_RELEASE)/models/ModelScreenLocation.o $(OBJDIR_LINUX_RELEASE)/models/Node.o $(OBJDIR_LINUX_RELEASE)/models/PolyLineModel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasPictures.o $(OBJDIR_LINUX_RELEASE)/effects/WavePanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/AssistPanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/PicturesAssistPanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasEmpty.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasMorph.o $(OBJDIR_LINUX_RELEASE)/heartbeat.o $(OBJDIR_LINUX_RELEASE)/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_RELEASE)/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_RELEASE)/models/ArchesModel.o $(OBJDIR_LINUX_RELEASE)/models/CandyCaneModel.o $(OBJDIR_LINUX_RELEASE)/models/ChannelBlockModel.o $(OBJDIR_LINUX_RELEASE)/xlColorPicker.o $(OBJDIR_LINUX_RELEASE)/xLightsImportChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o $(OBJDIR_LINUX_RELEASE)/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/xLightsXmlFile.o $(OBJDIR_LINUX_RELEASE)/xlColorCanvas.o $(OBJDIR_LINUX_RELEASE)/xLightsApp.o $(OBJDIR_LINUX_RELEASE)/xlColorPickerFields.o $(OBJDIR_LINUX_RELEASE)/xlGLCanvas.o $(OBJDIR_LINUX_RELEASE)/xlGridCanvas.o $(OBJDIR_LINUX_RELEASE)/xlSlider.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginSummarisingAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/host-c.o $(OBJDIR_LINUX_RELEASE)/wxCheckedListCtrl.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o $(OBJDIR_LINUX_RELEASE)/sequencer/tabSequencer.o $(OBJDIR_LINUX_RELEASE)/support/EzGrid.o $(OBJDIR_LINUX_RELEASE)/support/FastComboEditor.o $(OBJDIR_LINUX_RELEASE)/support/GridCellChoiceRenderer.o $(OBJDIR_LINUX_RELEASE)/tmGridCell.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o $(OBJDIR_LINUX_RELEASE)/PreviewPane.o $(OBJDIR_LINUX_RELEASE)/PerspectivesPanel.o $(OBJDIR_LINUX_RELEASE)/PhonemeDictionary.o $(OBJDIR_LINUX_RELEASE)/PixelAppearanceDlg.o $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o $(OBJDIR_LINUX_RELEASE)/PreviewModels.o $(OBJDIR_LINUX_RELEASE)/RenameTextDialog.o $(OBJDIR_LINUX_RELEASE)/Render.o $(OBJDIR_LINUX_RELEASE)/RenderBuffer.o $(OBJDIR_LINUX_RELEASE)/RenderProgressDialog.o $(OBJDIR_LINUX_RELEASE)/ResizeImageDialog.o $(OBJDIR_LINUX_RELEASE)/ModelDimmingCurveDialog.o $(OBJDIR_LINUX_RELEASE)/ModelFaceDialog.o $(OBJDIR_LINUX_RELEASE)/ModelGroupPanel.o $(OBJDIR_LINUX_RELEASE)/ModelPreview.o $(OBJDIR_LINUX_RELEASE)/ModelStateDialog.o $(OBJDIR_LINUX_RELEASE)/MusicXML.o $(OBJDIR_LINUX_RELEASE)/NewTimingDialog.o $(OBJDIR_LINUX_RELEASE)/NodesGridCellEditor.o $(OBJDIR_LINUX_RELEASE)/NoteImportDialog.o $(OBJDIR_LINUX_RELEASE)/OptionChooser.o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o $(OBJDIR_LINUX_RELEASE)/TestDialog.o $(OBJDIR_LINUX_RELEASE)/SubModelGenerateDialog.o $(OBJDIR_LINUX_RELEASE)/SubModelsDialog.o $(OBJDIR_LINUX_RELEASE)/SuperStarImportDialog.o $(OBJDIR_LINUX_RELEASE)/TabConvert.o $(OBJDIR_LINUX_RELEASE)/TabPreview.o $(OBJDIR_LINUX_RELEASE)/TabSequence.o $(OBJDIR_LINUX_RELEASE)/TabSetup.o $(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o $(OBJDIR_LINUX_RELEASE)/TimingPanel.o $(OBJDIR_LINUX_RELEASE)/TopEffectsPanel.o $(OBJDIR_LINUX_RELEASE)/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/VAMPPluginDialog.o $(OBJDIR_LINUX_RELEASE)/VSAFile.o $(OBJDIR_LINUX_RELEASE)/SaveChangesDialog.o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o $(OBJDIR_LINUX_RELEASE)/SeqFileUtilities.o $(OBJDIR_LINUX_RELEASE)/SeqSettingsDialog.o $(OBJDIR_LINUX_RELEASE)/SequenceData.o $(OBJDIR_LINUX_RELEASE)/SequenceViewManager.o $(OBJDIR_LINUX_RELEASE)/SevenSegmentDialog.o $(OBJDIR_LINUX_RELEASE)/StartChannelDialog.o $(OBJDIR_LINUX_RELEASE)/StrandNodeNamesDialog.o $(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o $(OBJDIR_LINUX_RELEASE)/CustomModelDialog.o $(OBJDIR_LINUX_RELEASE)/CustomTimingDialog.o $(OBJDIR_LINUX_RELEASE)/DataLayer.o $(OBJDIR_LINUX_RELEASE)/DimmingCurve.o $(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils21.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils31.o $(OBJDIR_LINUX_RELEASE)/EffectAssist.o $(OBJDIR_LINUX_RELEASE)/EffectIconPanel.o $(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o $(OBJDIR_LINUX_RELEASE)/BitmapCache.o $(OBJDIR_LINUX_RELEASE)/BufferPanel.o $(OBJDIR_LINUX_RELEASE)/BufferSizeDialog.o $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o $(OBJDIR_LINUX_RELEASE)/Color.o $(OBJDIR_LINUX_RELEASE)/ColorCurve.o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o $(OBJDIR_LINUX_RELEASE)/ColorManager.o $(OBJDIR_LINUX_RELEASE)/ColorManagerDialog.o $(OBJDIR_LINUX_RELEASE)/ColorPanel.o $(OBJDIR_LINUX_RELEASE)/ControllerConnectionDialog.o $(OBJDIR_LINUX_RELEASE)/ConvertDialog.o $(OBJDIR_LINUX_RELEASE)/LayoutPanel.o $(OBJDIR_LINUX_RELEASE)/Image_Loader.o $(OBJDIR_LINUX_RELEASE)/JobPool.o $(OBJDIR_LINUX_RELEASE)/KeyBindings.o $(OBJDIR_LINUX_RELEASE)/LMSImportChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/LayoutGroup.o $(OBJDIR_LINUX_RELEASE)/LorConvertDialog.o $(OBJDIR_LINUX_RELEASE)/LyricsDialog.o $(OBJDIR_LINUX_RELEASE)/MIDI/Binasc.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiEvent.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiEventList.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiFile.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o $(OBJDIR_LINUX_RELEASE)/FileConverter.o $(OBJDIR_LINUX_RELEASE)/EffectTimingDialog.o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o $(OBJDIR_LINUX_RELEASE)/FlickerFreeBitmapButton.o $(OBJDIR_LINUX_RELEASE)/GenerateCustomModelDialog.o $(OBJDIR_LINUX_RELEASE)/HousePreviewPanel.o $(OBJDIR_LINUX_RELEASE)/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/Image.o $(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MeteorsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MeteorsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MorphEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MorphPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MusicEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o $(OBJDIR_LINUX_RELEASE)/effects/OffEffect.o $(OBJDIR_LINUX_RELEASE)/effects/OffPanel.o $(OBJDIR_LINUX_RELEASE)/effects/OnEffect.o $(OBJDIR_LINUX_RELEASE)/effects/OnPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GarlandsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GarlandsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/GlediatorEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GlediatorPanel.o $(OBJDIR_LINUX_RELEASE)/effects/LifeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o $(OBJDIR_LINUX_RELEASE)/effects/LightningEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LightningPanel.o $(OBJDIR_LINUX_RELEASE)/effects/LiquidEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LiquidPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MarqueeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ServoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ShapeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShapePanel.o $(OBJDIR_LINUX_RELEASE)/effects/ShimmerEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShimmerPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShockwavePanel.o $(OBJDIR_LINUX_RELEASE)/effects/SingleStrandEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SingleStrandPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PianoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PicturesEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PicturesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PinwheelEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PinwheelPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaPanel.o $(OBJDIR_LINUX_RELEASE)/effects/RenderableEffect.o $(OBJDIR_LINUX_RELEASE)/effects/RippleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/RipplePanel.o $(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o $(OBJDIR_LINUX_RELEASE)/controllers/J1Sys.o $(OBJDIR_LINUX_RELEASE)/controllers/Pixlite16.o $(OBJDIR_LINUX_RELEASE)/controllers/SanDevices.o $(OBJDIR_LINUX_RELEASE)/controllers/SimpleFTP.o $(OBJDIR_LINUX_RELEASE)/djdebug.o $(OBJDIR_LINUX_RELEASE)/effects/BarsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ButterflyEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ButterflyPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CandleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/CandlePanel.o $(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o $(OBJDIR_LINUX_RELEASE)/ValueCurve.o $(OBJDIR_LINUX_RELEASE)/ValueCurveButton.o $(OBJDIR_LINUX_RELEASE)/ValueCurveDialog.o $(OBJDIR_LINUX_RELEASE)/VideoReader.o $(OBJDIR_LINUX_RELEASE)/ViewsModelsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o $(OBJDIR_LINUX_RELEASE)/WiringDialog.o $(OBJDIR_LINUX_RELEASE)/XlightsDrawable.o $(OBJDIR_LINUX_RELEASE)/controllers/FPP.o $(OBJDIR_LINUX_RELEASE)/controllers/FPPConnectDialog.o $(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o $(OBJDIR_LINUX_RELEASE)/effects/FanEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FanPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FillEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FillPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FireEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FireworksEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FireworksPanel.o $(OBJDIR_LINUX_RELEASE)/effects/GIFImage.o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CirclesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ColorWashEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ColorWashPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CurtainEffect.o $(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o $(OBJDIR_LINUX_RELEASE)/AudioManager.o $(OBJDIR_LINUX_RELEASE)/effects/DMXEffect.o $(OBJDIR_LINUX_RELEASE)/effects/DMXPanel.o $(OBJDIR_LINUX_RELEASE)/effects/EffectManager.o $(OBJDIR_LINUX_RELEASE)/effects/EffectPanelUtils.o $(OBJDIR_LINUX_RELEASE)/effects/FacesEffect.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/outputs/E131Dialog.o $(OBJDIR_LINUX_RELEASE)/outputs/ArtNetOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/Controller.o $(OBJDIR_LINUX_RELEASE)/outputs/DDPDialog.o $(OBJDIR_LINUX_RELEASE)/outputs/DDPOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/DMXOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/E131Output.o $(OBJDIR_LINUX_RELEASE)/outputs/IPOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/LOROutput.o $(OBJDIR_LINUX_RELEASE)/outputs/NullOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/NullOutputDialog.o $(OBJDIR_LINUX_RELEASE)/models/TreeModel.o $(OBJDIR_LINUX_RELEASE)/models/SingleLineModel.o $(OBJDIR_LINUX_RELEASE)/models/SphereModel.o $(OBJDIR_LINUX_RELEASE)/models/SpinnerModel.o $(OBJDIR_LINUX_RELEASE)/models/StarModel.o $(OBJDIR_LINUX_RELEASE)/models/SubModel.o $(OBJDIR_LINUX_RELEASE)/models/WholeHouseModel.o $(OBJDIR_LINUX_RELEASE)/models/WindowFrameModel.o $(OBJDIR_LINUX_RELEASE)/models/WreathModel.o $(OBJDIR_LINUX_RELEASE)/osx_utils/TouchBars.o $(OBJDIR_LINUX_RELEASE)/outputs/ArtNetDialog.o $(OBJDIR_LINUX_RELEASE)/sequencer/MainSequencer.o $(OBJDIR_LINUX_RELEASE)/sequencer/Effect.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectDropTarget.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectLayer.o $(OBJDIR_LINUX_RELEASE)/sequencer/EffectsGrid.o $(OBJDIR_LINUX_RELEASE)/sequencer/Element.o $(OBJDIR_LINUX_RELEASE)/sequencer/DragEffectBitmapButton.o $(OBJDIR_LINUX_RELEASE)/sequencer/RowHeading.o $(OBJDIR_LINUX_RELEASE)/sequencer/SequenceElements.o $(OBJDIR_LINUX_RELEASE)/sequencer/TimeLine.o $(OBJDIR_LINUX_RELEASE)/sequencer/UndoManager.o $(OBJDIR_LINUX_RELEASE)/sequencer/Waveform.o $(OBJDIR_LINUX_RELEASE)/outputs/RenardOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/OpenDMXOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/OpenPixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/Output.o $(OBJDIR_LINUX_RELEASE)/outputs/OutputManager.o $(OBJDIR_LINUX_RELEASE)/outputs/PixelNetOutput.o $(OBJDIR_LINUX_RELEASE)/models/Shapes.o $(OBJDIR_LINUX_RELEASE)/outputs/SerialOutput.o $(OBJDIR_LINUX_RELEASE)/outputs/SerialPortWithRate.o $(OBJDIR_LINUX_RELEASE)/outputs/TestPreset.o $(OBJDIR_LINUX_RELEASE)/outputs/serial.o $(OBJDIR_LINUX_RELEASE)/effects/TwinklePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TextEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TextPanel.o $(OBJDIR_LINUX_RELEASE)/effects/TreeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TreePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TwinkleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/TendrilPanel.o $(OBJDIR_LINUX_RELEASE)/effects/VUMeterEffect.o $(OBJDIR_LINUX_RELEASE)/effects/VUMeterPanel.o $(OBJDIR_LINUX_RELEASE)/effects/VideoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/VideoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/WaveEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SpiralsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SpiralsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SpirographEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SpirographPanel.o $(OBJDIR_LINUX_RELEASE)/effects/StateEffect.o $(OBJDIR_LINUX_RELEASE)/effects/StatePanel.o $(OBJDIR_LINUX_RELEASE)/effects/StrobeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/StrobePanel.o $(OBJDIR_LINUX_RELEASE)/effects/TendrilEffect.o $(OBJDIR_LINUX_RELEASE)/models/CircleModel.o $(OBJDIR_LINUX_RELEASE)/models/CustomModel.o $(OBJDIR_LINUX_RELEASE)/models/DmxModel.o $(OBJDIR_LINUX_RELEASE)/models/IciclesModel.o $(OBJDIR_LINUX_RELEASE)/models/MatrixModel.o $(OBJDIR_LINUX_RELEASE)/models/Model.o $(OBJDIR_LINUX_RELEASE)/models/ModelGroup.o $(OBJDIR_LINUX_RELEASE)/models/ModelManager.o $(OBJDIR_LINUX_RELEASE)/models/ModelScreenLocation.o $(OBJDIR_LINUX_RELEASE)/models/Node.o $(OBJDIR_LINUX_RELEASE)/models/PolyLineModel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasPictures.o $(OBJDIR_LINUX_RELEASE)/effects/WavePanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/AssistPanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/PicturesAssistPanel.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasEmpty.o $(OBJDIR_LINUX_RELEASE)/effects/assist/xlGridCanvasMorph.o $(OBJDIR_LINUX_RELEASE)/heartbeat.o $(OBJDIR_LINUX_RELEASE)/kiss_fft/kiss_fft.o $(OBJDIR_LINUX_RELEASE)/kiss_fft/tools/kiss_fftr.o $(OBJDIR_LINUX_RELEASE)/models/ArchesModel.o $(OBJDIR_LINUX_RELEASE)/models/CandyCaneModel.o $(OBJDIR_LINUX_RELEASE)/models/ChannelBlockModel.o $(OBJDIR_LINUX_RELEASE)/xlColorPicker.o $(OBJDIR_LINUX_RELEASE)/xLightsImportChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o $(OBJDIR_LINUX_RELEASE)/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/xLightsXmlFile.o $(OBJDIR_LINUX_RELEASE)/xlColorCanvas.o $(OBJDIR_LINUX_RELEASE)/xLightsApp.o $(OBJDIR_LINUX_RELEASE)/xlColorPickerFields.o $(OBJDIR_LINUX_RELEASE)/xlGLCanvas.o $(OBJDIR_LINUX_RELEASE)/xlGridCanvas.o $(OBJDIR_LINUX_RELEASE)/xlSlider.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginLoader.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginSummarisingAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginWrapper.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/RealTime.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/host-c.o $(OBJDIR_LINUX_RELEASE)/wxCheckedListCtrl.o $(OBJDIR_LINUX_RELEASE)/sequencer/tabSequencer.o $(OBJDIR_LINUX_RELEASE)/support/EzGrid.o $(OBJDIR_LINUX_RELEASE)/support/FastComboEditor.o $(OBJDIR_LINUX_RELEASE)/support/GridCellChoiceRenderer.o $(OBJDIR_LINUX_RELEASE)/tmGridCell.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginBufferingAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginChannelAdapter.o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginHostAdapter.o $(OBJDIR_LINUX_RELEASE)/PerspectivesPanel.o $(OBJDIR_LINUX_RELEASE)/PhonemeDictionary.o $(OBJDIR_LINUX_RELEASE)/PixelAppearanceDlg.o $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o $(OBJDIR_LINUX_RELEASE)/PreviewModels.o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o $(OBJDIR_LINUX_RELEASE)/PreviewPane.o $(OBJDIR_LINUX_RELEASE)/RenameTextDialog.o $(OBJDIR_LINUX_RELEASE)/Render.o $(OBJDIR_LINUX_RELEASE)/RenderBuffer.o $(OBJDIR_LINUX_RELEASE)/RenderProgressDialog.o $(OBJDIR_LINUX_RELEASE)/ResizeImageDialog.o $(OBJDIR_LINUX_RELEASE)/MusicXML.o $(OBJDIR_LINUX_RELEASE)/ModelDimmingCurveDialog.o $(OBJDIR_LINUX_RELEASE)/ModelFaceDialog.o $(OBJDIR_LINUX_RELEASE)/ModelGroupPanel.o $(OBJDIR_LINUX_RELEASE)/ModelPreview.o $(OBJDIR_LINUX_RELEASE)/ModelStateDialog.o $(OBJDIR_LINUX_RELEASE)/NewTimingDialog.o $(OBJDIR_LINUX_RELEASE)/NodesGridCellEditor.o $(OBJDIR_LINUX_RELEASE)/NoteImportDialog.o $(OBJDIR_LINUX_RELEASE)/OptionChooser.o $(OBJDIR_LINUX_RELEASE)/TabSetup.o $(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o $(OBJDIR_LINUX_RELEASE)/SubModelGenerateDialog.o $(OBJDIR_LINUX_RELEASE)/SubModelsDialog.o $(OBJDIR_LINUX_RELEASE)/SuperStarImportDialog.o $(OBJDIR_LINUX_RELEASE)/TabConvert.o $(OBJDIR_LINUX_RELEASE)/TabPreview.o $(OBJDIR_LINUX_RELEASE)/TabSequence.o $(OBJDIR_LINUX_RELEASE)/TestDialog.o $(OBJDIR_LINUX_RELEASE)/TimingPanel.o $(OBJDIR_LINUX_RELEASE)/TopEffectsPanel.o $(OBJDIR_LINUX_RELEASE)/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/VAMPPluginDialog.o $(OBJDIR_LINUX_RELEASE)/SaveChangesDialog.o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o $(OBJDIR_LINUX_RELEASE)/SeqFileUtilities.o $(OBJDIR_LINUX_RELEASE)/SeqSettingsDialog.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o $(OBJDIR_LINUX_RELEASE)/SequenceData.o $(OBJDIR_LINUX_RELEASE)/SequenceViewManager.o $(OBJDIR_LINUX_RELEASE)/SevenSegmentDialog.o $(OBJDIR_LINUX_RELEASE)/StartChannelDialog.o $(OBJDIR_LINUX_RELEASE)/StrandNodeNamesDialog.o $(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o $(OBJDIR_LINUX_RELEASE)/CustomModelDialog.o $(OBJDIR_LINUX_RELEASE)/CustomTimingDialog.o $(OBJDIR_LINUX_RELEASE)/DataLayer.o $(OBJDIR_LINUX_RELEASE)/DimmingCurve.o $(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils21.o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils31.o $(OBJDIR_LINUX_RELEASE)/EffectAssist.o $(OBJDIR_LINUX_RELEASE)/EffectIconPanel.o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o $(OBJDIR_LINUX_RELEASE)/BitmapCache.o $(OBJDIR_LINUX_RELEASE)/BufferPanel.o $(OBJDIR_LINUX_RELEASE)/BufferSizeDialog.o $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o $(OBJDIR_LINUX_RELEASE)/Color.o $(OBJDIR_LINUX_RELEASE)/ColorCurve.o $(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o $(OBJDIR_LINUX_RELEASE)/ColorManager.o $(OBJDIR_LINUX_RELEASE)/ColorManagerDialog.o $(OBJDIR_LINUX_RELEASE)/ColorPanel.o $(OBJDIR_LINUX_RELEASE)/ControllerConnectionDialog.o $(OBJDIR_LINUX_RELEASE)/ConvertDialog.o $(OBJDIR_LINUX_RELEASE)/Image_Loader.o $(OBJDIR_LINUX_RELEASE)/JobPool.o $(OBJDIR_LINUX_RELEASE)/KeyBindings.o $(OBJDIR_LINUX_RELEASE)/LMSImportChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/LayoutGroup.o $(OBJDIR_LINUX_RELEASE)/Image.o $(OBJDIR_LINUX_RELEASE)/LayoutPanel.o $(OBJDIR_LINUX_RELEASE)/LorConvertDialog.o $(OBJDIR_LINUX_RELEASE)/LyricsDialog.o $(OBJDIR_LINUX_RELEASE)/MIDI/Binasc.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiEvent.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiEventList.o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiFile.o $(OBJDIR_LINUX_RELEASE)/EffectTimingDialog.o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o $(OBJDIR_LINUX_RELEASE)/FileConverter.o $(OBJDIR_LINUX_RELEASE)/VSAFile.o $(OBJDIR_LINUX_RELEASE)/FlickerFreeBitmapButton.o $(OBJDIR_LINUX_RELEASE)/GenerateCustomModelDialog.o $(OBJDIR_LINUX_RELEASE)/GenerateLyricsDialog.o $(OBJDIR_LINUX_RELEASE)/HousePreviewPanel.o $(OBJDIR_LINUX_RELEASE)/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o $(OBJDIR_LINUX_RELEASE)/effects/MeteorsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MeteorsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MorphEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MorphPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MusicEffect.o $(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o $(OBJDIR_LINUX_RELEASE)/effects/OffEffect.o $(OBJDIR_LINUX_RELEASE)/effects/OffPanel.o $(OBJDIR_LINUX_RELEASE)/effects/OnEffect.o $(OBJDIR_LINUX_RELEASE)/effects/OnPanel.o $(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o $(OBJDIR_LINUX_RELEASE)/effects/GarlandsEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GarlandsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/GlediatorEffect.o $(OBJDIR_LINUX_RELEASE)/effects/GlediatorPanel.o $(OBJDIR_LINUX_RELEASE)/effects/LifeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LightningEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LightningPanel.o $(OBJDIR_LINUX_RELEASE)/effects/LiquidEffect.o $(OBJDIR_LINUX_RELEASE)/effects/LiquidPanel.o $(OBJDIR_LINUX_RELEASE)/effects/MarqueeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ServoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ShapeEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShapePanel.o $(OBJDIR_LINUX_RELEASE)/effects/ShimmerEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShimmerPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ShockwavePanel.o $(OBJDIR_LINUX_RELEASE)/effects/SingleStrandEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SingleStrandPanel.o $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesEffect.o $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PianoPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PicturesEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PicturesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PinwheelEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PinwheelPanel.o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaPanel.o $(OBJDIR_LINUX_RELEASE)/effects/RenderableEffect.o $(OBJDIR_LINUX_RELEASE)/effects/RippleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/RipplePanel.o $(OBJDIR_LINUX_RELEASE)/controllers/J1Sys.o $(OBJDIR_LINUX_RELEASE)/controllers/Pixlite16.o $(OBJDIR_LINUX_RELEASE)/controllers/SanDevices.o $(OBJDIR_LINUX_RELEASE)/controllers/SimpleFTP.o $(OBJDIR_LINUX_RELEASE)/djdebug.o $(OBJDIR_LINUX_RELEASE)/effects/BarsEffect.o $(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o $(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ButterflyEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ButterflyPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CandleEffect.o $(OBJDIR_LINUX_RELEASE)/effects/CandlePanel.o $(OBJDIR_LINUX_RELEASE)/ValueCurve.o $(OBJDIR_LINUX_RELEASE)/ValueCurveButton.o $(OBJDIR_LINUX_RELEASE)/ValueCurveDialog.o $(OBJDIR_LINUX_RELEASE)/VideoReader.o $(OBJDIR_LINUX_RELEASE)/ViewsModelsPanel.o $(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o $(OBJDIR_LINUX_RELEASE)/WiringDialog.o $(OBJDIR_LINUX_RELEASE)/XlightsDrawable.o $(OBJDIR_LINUX_RELEASE)/controllers/FPP.o $(OBJDIR_LINUX_RELEASE)/controllers/FPPConnectDialog.o $(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FanEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FanPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FillEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FillPanel.o $(OBJDIR_LINUX_RELEASE)/effects/FireEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o $(OBJDIR_LINUX_RELEASE)/effects/FireworksEffect.o $(OBJDIR_LINUX_RELEASE)/effects/FireworksPanel.o $(OBJDIR_LINUX_RELEASE)/effects/GIFImage.o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyEffect.o $(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o $(OBJDIR_LINUX_RELEASE)/effects/CirclesPanel.o $(OBJDIR_LINUX_RELEASE)/effects/ColorWashEffect.o $(OBJDIR_LINUX_RELEASE)/effects/ColorWashPanel.o $(OBJDIR_LINUX_RELEASE)/effects/CurtainEffect.o $(OBJDIR_LINUX_RELEASE)/AudioManager.o $(OBJDIR_LINUX_RELEASE)/effects/DMXEffect.o $(OBJDIR_LINUX_RELEASE)/effects/DMXPanel.o $(OBJDIR_LINUX_RELEASE)/effects/EffectManager.o $(OBJDIR_LINUX_RELEASE)/effects/EffectPanelUtils.o $(OBJDIR_LINUX_RELEASE)/effects/FacesEffect.o
 
 all: linux_debug linux_release
 
@@ -242,6 +242,9 @@ $(OBJDIR_LINUX_DEBUG)/effects/VideoPanel.o: effects/VideoPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/WaveEffect.o: effects/WaveEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/WaveEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/WaveEffect.o
 
+$(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o: effects/SnowstormEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/SnowstormEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o
+
 $(OBJDIR_LINUX_DEBUG)/effects/SnowstormPanel.o: effects/SnowstormPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/SnowstormPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormPanel.o
 
@@ -377,8 +380,8 @@ $(OBJDIR_LINUX_DEBUG)/xlGridCanvas.o: xlGridCanvas.cpp
 $(OBJDIR_LINUX_DEBUG)/xlSlider.o: xlSlider.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xlSlider.cpp -o $(OBJDIR_LINUX_DEBUG)/xlSlider.o
 
-$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o: vamp-hostsdk/PluginInputDomainAdapter.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/PluginInputDomainAdapter.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o
+$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o: vamp-hostsdk/acsymbols.c
+	$(CC) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/acsymbols.c -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o
 
 $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginLoader.o: vamp-hostsdk/PluginLoader.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/PluginLoader.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginLoader.o
@@ -392,17 +395,14 @@ $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginWrapper.o: vamp-hostsdk/PluginWrapper.c
 $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/RealTime.o: vamp-hostsdk/RealTime.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/RealTime.o
 
-$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o: vamp-hostsdk/acsymbols.c
-	$(CC) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/acsymbols.c -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/acsymbols.o
+$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o: vamp-hostsdk/PluginInputDomainAdapter.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/PluginInputDomainAdapter.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginInputDomainAdapter.o
 
 $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/host-c.o: vamp-hostsdk/host-c.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/host-c.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/host-c.o
 
 $(OBJDIR_LINUX_DEBUG)/wxCheckedListCtrl.o: wxCheckedListCtrl.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c wxCheckedListCtrl.cpp -o $(OBJDIR_LINUX_DEBUG)/wxCheckedListCtrl.o
-
-$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o: vamp-hostsdk/Files.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o
 
 $(OBJDIR_LINUX_DEBUG)/sequencer/tabSequencer.o: sequencer/tabSequencer.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c sequencer/tabSequencer.cpp -o $(OBJDIR_LINUX_DEBUG)/sequencer/tabSequencer.o
@@ -419,6 +419,9 @@ $(OBJDIR_LINUX_DEBUG)/support/GridCellChoiceRenderer.o: support/GridCellChoiceRe
 $(OBJDIR_LINUX_DEBUG)/tmGridCell.o: tmGridCell.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c tmGridCell.cpp -o $(OBJDIR_LINUX_DEBUG)/tmGridCell.o
 
+$(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o: vamp-hostsdk/Files.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/Files.o
+
 $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginBufferingAdapter.o: vamp-hostsdk/PluginBufferingAdapter.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/PluginBufferingAdapter.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginBufferingAdapter.o
 
@@ -427,12 +430,6 @@ $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginChannelAdapter.o: vamp-hostsdk/PluginCh
 
 $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginHostAdapter.o: vamp-hostsdk/PluginHostAdapter.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c vamp-hostsdk/PluginHostAdapter.cpp -o $(OBJDIR_LINUX_DEBUG)/vamp-hostsdk/PluginHostAdapter.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o: effects/SnowstormEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/SnowstormEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/SnowstormEffect.o
-
-$(OBJDIR_LINUX_DEBUG)/PreviewPane.o: PreviewPane.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PreviewPane.cpp -o $(OBJDIR_LINUX_DEBUG)/PreviewPane.o
 
 $(OBJDIR_LINUX_DEBUG)/PerspectivesPanel.o: PerspectivesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PerspectivesPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/PerspectivesPanel.o
@@ -449,6 +446,12 @@ $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o: PixelBuffer.cpp
 $(OBJDIR_LINUX_DEBUG)/PreviewModels.o: PreviewModels.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PreviewModels.cpp -o $(OBJDIR_LINUX_DEBUG)/PreviewModels.o
 
+$(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/PreviewPane.o: PreviewPane.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PreviewPane.cpp -o $(OBJDIR_LINUX_DEBUG)/PreviewPane.o
+
 $(OBJDIR_LINUX_DEBUG)/RenameTextDialog.o: RenameTextDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenameTextDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/RenameTextDialog.o
 
@@ -463,6 +466,9 @@ $(OBJDIR_LINUX_DEBUG)/RenderProgressDialog.o: RenderProgressDialog.cpp
 
 $(OBJDIR_LINUX_DEBUG)/ResizeImageDialog.o: ResizeImageDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ResizeImageDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ResizeImageDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/MusicXML.o: MusicXML.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MusicXML.cpp -o $(OBJDIR_LINUX_DEBUG)/MusicXML.o
 
 $(OBJDIR_LINUX_DEBUG)/ModelDimmingCurveDialog.o: ModelDimmingCurveDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelDimmingCurveDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelDimmingCurveDialog.o
@@ -479,9 +485,6 @@ $(OBJDIR_LINUX_DEBUG)/ModelPreview.o: ModelPreview.cpp
 $(OBJDIR_LINUX_DEBUG)/ModelStateDialog.o: ModelStateDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelStateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelStateDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/MusicXML.o: MusicXML.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MusicXML.cpp -o $(OBJDIR_LINUX_DEBUG)/MusicXML.o
-
 $(OBJDIR_LINUX_DEBUG)/NewTimingDialog.o: NewTimingDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c NewTimingDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/NewTimingDialog.o
 
@@ -494,11 +497,11 @@ $(OBJDIR_LINUX_DEBUG)/NoteImportDialog.o: NoteImportDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/OptionChooser.o: OptionChooser.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c OptionChooser.cpp -o $(OBJDIR_LINUX_DEBUG)/OptionChooser.o
 
-$(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o
+$(OBJDIR_LINUX_DEBUG)/TabSetup.o: TabSetup.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabSetup.cpp -o $(OBJDIR_LINUX_DEBUG)/TabSetup.o
 
-$(OBJDIR_LINUX_DEBUG)/TestDialog.o: TestDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TestDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/TestDialog.o
+$(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o: SubBufferPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SubBufferPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/SubModelGenerateDialog.o: SubModelGenerateDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SubModelGenerateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SubModelGenerateDialog.o
@@ -518,11 +521,8 @@ $(OBJDIR_LINUX_DEBUG)/TabPreview.o: TabPreview.cpp
 $(OBJDIR_LINUX_DEBUG)/TabSequence.o: TabSequence.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabSequence.cpp -o $(OBJDIR_LINUX_DEBUG)/TabSequence.o
 
-$(OBJDIR_LINUX_DEBUG)/TabSetup.o: TabSetup.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabSetup.cpp -o $(OBJDIR_LINUX_DEBUG)/TabSetup.o
-
-$(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o: SubBufferPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SubBufferPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/SubBufferPanel.o
+$(OBJDIR_LINUX_DEBUG)/TestDialog.o: TestDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TestDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/TestDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/TimingPanel.o: TimingPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TimingPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/TimingPanel.o
@@ -535,9 +535,6 @@ $(OBJDIR_LINUX_DEBUG)/UtilFunctions.o: UtilFunctions.cpp
 
 $(OBJDIR_LINUX_DEBUG)/VAMPPluginDialog.o: VAMPPluginDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c VAMPPluginDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/VAMPPluginDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/VSAFile.o: VSAFile.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c VSAFile.cpp -o $(OBJDIR_LINUX_DEBUG)/VSAFile.o
 
 $(OBJDIR_LINUX_DEBUG)/SaveChangesDialog.o: SaveChangesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SaveChangesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SaveChangesDialog.o
@@ -554,6 +551,9 @@ $(OBJDIR_LINUX_DEBUG)/SeqFileUtilities.o: SeqFileUtilities.cpp
 $(OBJDIR_LINUX_DEBUG)/SeqSettingsDialog.o: SeqSettingsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqSettingsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqSettingsDialog.o
 
+$(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o: MIDI/MidiMessage.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDI/MidiMessage.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o
+
 $(OBJDIR_LINUX_DEBUG)/SequenceData.o: SequenceData.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SequenceData.cpp -o $(OBJDIR_LINUX_DEBUG)/SequenceData.o
 
@@ -569,8 +569,8 @@ $(OBJDIR_LINUX_DEBUG)/StartChannelDialog.o: StartChannelDialog.cpp
 $(OBJDIR_LINUX_DEBUG)/StrandNodeNamesDialog.o: StrandNodeNamesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c StrandNodeNamesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/StrandNodeNamesDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o: ConvertLogDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ConvertLogDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o
+$(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o: DimmingCurvePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DimmingCurvePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o
 
 $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o: CurrentPreviewModels.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c CurrentPreviewModels.cpp -o $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o
@@ -587,8 +587,8 @@ $(OBJDIR_LINUX_DEBUG)/DataLayer.o: DataLayer.cpp
 $(OBJDIR_LINUX_DEBUG)/DimmingCurve.o: DimmingCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DimmingCurve.cpp -o $(OBJDIR_LINUX_DEBUG)/DimmingCurve.o
 
-$(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o: DimmingCurvePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DimmingCurvePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/DimmingCurvePanel.o
+$(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o: ConvertLogDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ConvertLogDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ConvertLogDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/DrawGLUtils.o: DrawGLUtils.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c DrawGLUtils.cpp -o $(OBJDIR_LINUX_DEBUG)/DrawGLUtils.o
@@ -605,8 +605,8 @@ $(OBJDIR_LINUX_DEBUG)/EffectAssist.o: EffectAssist.cpp
 $(OBJDIR_LINUX_DEBUG)/EffectIconPanel.o: EffectIconPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectIconPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectIconPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o: ColorCurveDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ColorCurveDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o
+$(OBJDIR_LINUX_DEBUG)/EffectListDialog.o: EffectListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/BitmapCache.o: BitmapCache.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c BitmapCache.cpp -o $(OBJDIR_LINUX_DEBUG)/BitmapCache.o
@@ -626,8 +626,8 @@ $(OBJDIR_LINUX_DEBUG)/Color.o: Color.cpp
 $(OBJDIR_LINUX_DEBUG)/ColorCurve.o: ColorCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ColorCurve.cpp -o $(OBJDIR_LINUX_DEBUG)/ColorCurve.o
 
-$(OBJDIR_LINUX_DEBUG)/EffectListDialog.o: EffectListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o
+$(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o: ColorCurveDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ColorCurveDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ColorCurveDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/ColorManager.o: ColorManager.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ColorManager.cpp -o $(OBJDIR_LINUX_DEBUG)/ColorManager.o
@@ -644,9 +644,6 @@ $(OBJDIR_LINUX_DEBUG)/ControllerConnectionDialog.o: ControllerConnectionDialog.c
 $(OBJDIR_LINUX_DEBUG)/ConvertDialog.o: ConvertDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ConvertDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ConvertDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/LayoutPanel.o: LayoutPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c LayoutPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/LayoutPanel.o
-
 $(OBJDIR_LINUX_DEBUG)/Image_Loader.o: Image_Loader.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Image_Loader.cpp -o $(OBJDIR_LINUX_DEBUG)/Image_Loader.o
 
@@ -661,6 +658,12 @@ $(OBJDIR_LINUX_DEBUG)/LMSImportChannelMapDialog.o: LMSImportChannelMapDialog.cpp
 
 $(OBJDIR_LINUX_DEBUG)/LayoutGroup.o: LayoutGroup.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c LayoutGroup.cpp -o $(OBJDIR_LINUX_DEBUG)/LayoutGroup.o
+
+$(OBJDIR_LINUX_DEBUG)/Image.o: Image.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Image.cpp -o $(OBJDIR_LINUX_DEBUG)/Image.o
+
+$(OBJDIR_LINUX_DEBUG)/LayoutPanel.o: LayoutPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c LayoutPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/LayoutPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/LorConvertDialog.o: LorConvertDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c LorConvertDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/LorConvertDialog.o
@@ -680,12 +683,6 @@ $(OBJDIR_LINUX_DEBUG)/MIDI/MidiEventList.o: MIDI/MidiEventList.cpp
 $(OBJDIR_LINUX_DEBUG)/MIDI/MidiFile.o: MIDI/MidiFile.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDI/MidiFile.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiFile.o
 
-$(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o: MIDI/MidiMessage.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDI/MidiMessage.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDI/MidiMessage.o
-
-$(OBJDIR_LINUX_DEBUG)/FileConverter.o: FileConverter.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FileConverter.cpp -o $(OBJDIR_LINUX_DEBUG)/FileConverter.o
-
 $(OBJDIR_LINUX_DEBUG)/EffectTimingDialog.o: EffectTimingDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectTimingDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectTimingDialog.o
 
@@ -698,11 +695,20 @@ $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o: EffectsPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o: ExportModelSelect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ExportModelSelect.cpp -o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o
 
+$(OBJDIR_LINUX_DEBUG)/FileConverter.o: FileConverter.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FileConverter.cpp -o $(OBJDIR_LINUX_DEBUG)/FileConverter.o
+
+$(OBJDIR_LINUX_DEBUG)/VSAFile.o: VSAFile.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c VSAFile.cpp -o $(OBJDIR_LINUX_DEBUG)/VSAFile.o
+
 $(OBJDIR_LINUX_DEBUG)/FlickerFreeBitmapButton.o: FlickerFreeBitmapButton.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FlickerFreeBitmapButton.cpp -o $(OBJDIR_LINUX_DEBUG)/FlickerFreeBitmapButton.o
 
 $(OBJDIR_LINUX_DEBUG)/GenerateCustomModelDialog.o: GenerateCustomModelDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c GenerateCustomModelDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/GenerateCustomModelDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/GenerateLyricsDialog.o: GenerateLyricsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c GenerateLyricsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/GenerateLyricsDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/HousePreviewPanel.o: HousePreviewPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c HousePreviewPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/HousePreviewPanel.o
@@ -710,11 +716,8 @@ $(OBJDIR_LINUX_DEBUG)/HousePreviewPanel.o: HousePreviewPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/IPEntryDialog.o: IPEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/IPEntryDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/Image.o: Image.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Image.cpp -o $(OBJDIR_LINUX_DEBUG)/Image.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o: effects/MusicPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MusicPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o: effects/MarqueePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MarqueePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/MeteorsEffect.o: effects/MeteorsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MeteorsEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MeteorsEffect.o
@@ -731,8 +734,8 @@ $(OBJDIR_LINUX_DEBUG)/effects/MorphPanel.o: effects/MorphPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/MusicEffect.o: effects/MusicEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MusicEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MusicEffect.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o: effects/MarqueePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MarqueePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MarqueePanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o: effects/MusicPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MusicPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MusicPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/OffEffect.o: effects/OffEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/OffEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/OffEffect.o
@@ -746,8 +749,8 @@ $(OBJDIR_LINUX_DEBUG)/effects/OnEffect.o: effects/OnEffect.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/OnPanel.o: effects/OnPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/OnPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/OnPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o: effects/PianoEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PianoEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o
+$(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o: effects/LifePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/LifePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/GarlandsEffect.o: effects/GarlandsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/GarlandsEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/GarlandsEffect.o
@@ -764,8 +767,8 @@ $(OBJDIR_LINUX_DEBUG)/effects/GlediatorPanel.o: effects/GlediatorPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/LifeEffect.o: effects/LifeEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/LifeEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/LifeEffect.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o: effects/LifePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/LifePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/LifePanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o: effects/PianoEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PianoEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PianoEffect.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/LightningEffect.o: effects/LightningEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/LightningEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/LightningEffect.o
@@ -782,6 +785,9 @@ $(OBJDIR_LINUX_DEBUG)/effects/LiquidPanel.o: effects/LiquidPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/MarqueeEffect.o: effects/MarqueeEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/MarqueeEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/MarqueeEffect.o
 
+$(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o: effects/ShockwaveEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ShockwaveEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o
+
 $(OBJDIR_LINUX_DEBUG)/effects/ServoPanel.o: effects/ServoPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ServoPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ServoPanel.o
 
@@ -797,8 +803,8 @@ $(OBJDIR_LINUX_DEBUG)/effects/ShimmerEffect.o: effects/ShimmerEffect.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/ShimmerPanel.o: effects/ShimmerPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ShimmerPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ShimmerPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o: effects/ShockwaveEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ShockwaveEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ShockwaveEffect.o
+$(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o: effects/ServoEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ServoEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/ShockwavePanel.o: effects/ShockwavePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ShockwavePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ShockwavePanel.o
@@ -815,9 +821,6 @@ $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesEffect.o: effects/SnowflakesEffect.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesPanel.o: effects/SnowflakesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/SnowflakesPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/SnowflakesPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o: effects/PlasmaEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PlasmaEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o
-
 $(OBJDIR_LINUX_DEBUG)/effects/PianoPanel.o: effects/PianoPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PianoPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PianoPanel.o
 
@@ -833,6 +836,12 @@ $(OBJDIR_LINUX_DEBUG)/effects/PinwheelEffect.o: effects/PinwheelEffect.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/PinwheelPanel.o: effects/PinwheelPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PinwheelPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PinwheelPanel.o
 
+$(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o: effects/GalaxyPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/GalaxyPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o
+
+$(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o: effects/PlasmaEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PlasmaEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaEffect.o
+
 $(OBJDIR_LINUX_DEBUG)/effects/PlasmaPanel.o: effects/PlasmaPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/PlasmaPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/PlasmaPanel.o
 
@@ -844,12 +853,6 @@ $(OBJDIR_LINUX_DEBUG)/effects/RippleEffect.o: effects/RippleEffect.cpp
 
 $(OBJDIR_LINUX_DEBUG)/effects/RipplePanel.o: effects/RipplePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/RipplePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/RipplePanel.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o: effects/ServoEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ServoEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ServoEffect.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o: effects/BarsPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/BarsPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/controllers/J1Sys.o: controllers/J1Sys.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c controllers/J1Sys.cpp -o $(OBJDIR_LINUX_DEBUG)/controllers/J1Sys.o
@@ -869,6 +872,12 @@ $(OBJDIR_LINUX_DEBUG)/djdebug.o: djdebug.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/BarsEffect.o: effects/BarsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/BarsEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/BarsEffect.o
 
+$(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o: controllers/Falcon.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c controllers/Falcon.cpp -o $(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o
+
+$(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o: effects/BarsPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/BarsPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/BarsPanel.o
+
 $(OBJDIR_LINUX_DEBUG)/effects/ButterflyEffect.o: effects/ButterflyEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/ButterflyEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/ButterflyEffect.o
 
@@ -880,9 +889,6 @@ $(OBJDIR_LINUX_DEBUG)/effects/CandleEffect.o: effects/CandleEffect.cpp
 
 $(OBJDIR_LINUX_DEBUG)/effects/CandlePanel.o: effects/CandlePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CandlePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CandlePanel.o
-
-$(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o: VsaImportDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c VsaImportDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/ValueCurve.o: ValueCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ValueCurve.cpp -o $(OBJDIR_LINUX_DEBUG)/ValueCurve.o
@@ -899,8 +905,8 @@ $(OBJDIR_LINUX_DEBUG)/VideoReader.o: VideoReader.cpp
 $(OBJDIR_LINUX_DEBUG)/ViewsModelsPanel.o: ViewsModelsPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ViewsModelsPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/ViewsModelsPanel.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o: effects/CirclesEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CirclesEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o
+$(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o: VsaImportDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c VsaImportDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/VsaImportDialog.o
 
 $(OBJDIR_LINUX_DEBUG)/WiringDialog.o: WiringDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c WiringDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/WiringDialog.o
@@ -914,11 +920,8 @@ $(OBJDIR_LINUX_DEBUG)/controllers/FPP.o: controllers/FPP.cpp
 $(OBJDIR_LINUX_DEBUG)/controllers/FPPConnectDialog.o: controllers/FPPConnectDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c controllers/FPPConnectDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/controllers/FPPConnectDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o: controllers/Falcon.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c controllers/Falcon.cpp -o $(OBJDIR_LINUX_DEBUG)/controllers/Falcon.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o: effects/FirePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FirePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o: effects/FacesPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FacesPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/FanEffect.o: effects/FanEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FanEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FanEffect.o
@@ -935,8 +938,8 @@ $(OBJDIR_LINUX_DEBUG)/effects/FillPanel.o: effects/FillPanel.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/FireEffect.o: effects/FireEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FireEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FireEffect.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o: effects/FacesPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FacesPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FacesPanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o: effects/FirePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FirePanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FirePanel.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/FireworksEffect.o: effects/FireworksEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/FireworksEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/FireworksEffect.o
@@ -950,8 +953,11 @@ $(OBJDIR_LINUX_DEBUG)/effects/GIFImage.o: effects/GIFImage.cpp
 $(OBJDIR_LINUX_DEBUG)/effects/GalaxyEffect.o: effects/GalaxyEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/GalaxyEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyEffect.o
 
-$(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o: effects/GalaxyPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/GalaxyPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/GalaxyPanel.o
+$(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o: effects/CurtainPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CurtainPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o
+
+$(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o: effects/CirclesEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CirclesEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CirclesEffect.o
 
 $(OBJDIR_LINUX_DEBUG)/effects/CirclesPanel.o: effects/CirclesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CirclesPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CirclesPanel.o
@@ -964,9 +970,6 @@ $(OBJDIR_LINUX_DEBUG)/effects/ColorWashPanel.o: effects/ColorWashPanel.cpp
 
 $(OBJDIR_LINUX_DEBUG)/effects/CurtainEffect.o: effects/CurtainEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CurtainEffect.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CurtainEffect.o
-
-$(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o: effects/CurtainPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c effects/CurtainPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/effects/CurtainPanel.o
 
 $(OBJDIR_LINUX_DEBUG)/AudioManager.o: AudioManager.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c AudioManager.cpp -o $(OBJDIR_LINUX_DEBUG)/AudioManager.o
@@ -1183,6 +1186,9 @@ $(OBJDIR_LINUX_RELEASE)/effects/VideoPanel.o: effects/VideoPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/WaveEffect.o: effects/WaveEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/WaveEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/WaveEffect.o
 
+$(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o: effects/SnowstormEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/SnowstormEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o
+
 $(OBJDIR_LINUX_RELEASE)/effects/SnowstormPanel.o: effects/SnowstormPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/SnowstormPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormPanel.o
 
@@ -1318,8 +1324,8 @@ $(OBJDIR_LINUX_RELEASE)/xlGridCanvas.o: xlGridCanvas.cpp
 $(OBJDIR_LINUX_RELEASE)/xlSlider.o: xlSlider.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xlSlider.cpp -o $(OBJDIR_LINUX_RELEASE)/xlSlider.o
 
-$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o: vamp-hostsdk/PluginInputDomainAdapter.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/PluginInputDomainAdapter.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o
+$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o: vamp-hostsdk/acsymbols.c
+	$(CC) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/acsymbols.c -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o
 
 $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginLoader.o: vamp-hostsdk/PluginLoader.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/PluginLoader.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginLoader.o
@@ -1333,17 +1339,14 @@ $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginWrapper.o: vamp-hostsdk/PluginWrapper
 $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/RealTime.o: vamp-hostsdk/RealTime.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/RealTime.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/RealTime.o
 
-$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o: vamp-hostsdk/acsymbols.c
-	$(CC) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/acsymbols.c -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/acsymbols.o
+$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o: vamp-hostsdk/PluginInputDomainAdapter.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/PluginInputDomainAdapter.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginInputDomainAdapter.o
 
 $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/host-c.o: vamp-hostsdk/host-c.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/host-c.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/host-c.o
 
 $(OBJDIR_LINUX_RELEASE)/wxCheckedListCtrl.o: wxCheckedListCtrl.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c wxCheckedListCtrl.cpp -o $(OBJDIR_LINUX_RELEASE)/wxCheckedListCtrl.o
-
-$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o: vamp-hostsdk/Files.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o
 
 $(OBJDIR_LINUX_RELEASE)/sequencer/tabSequencer.o: sequencer/tabSequencer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c sequencer/tabSequencer.cpp -o $(OBJDIR_LINUX_RELEASE)/sequencer/tabSequencer.o
@@ -1360,6 +1363,9 @@ $(OBJDIR_LINUX_RELEASE)/support/GridCellChoiceRenderer.o: support/GridCellChoice
 $(OBJDIR_LINUX_RELEASE)/tmGridCell.o: tmGridCell.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c tmGridCell.cpp -o $(OBJDIR_LINUX_RELEASE)/tmGridCell.o
 
+$(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o: vamp-hostsdk/Files.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/Files.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/Files.o
+
 $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginBufferingAdapter.o: vamp-hostsdk/PluginBufferingAdapter.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/PluginBufferingAdapter.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginBufferingAdapter.o
 
@@ -1368,12 +1374,6 @@ $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginChannelAdapter.o: vamp-hostsdk/Plugin
 
 $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginHostAdapter.o: vamp-hostsdk/PluginHostAdapter.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c vamp-hostsdk/PluginHostAdapter.cpp -o $(OBJDIR_LINUX_RELEASE)/vamp-hostsdk/PluginHostAdapter.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o: effects/SnowstormEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/SnowstormEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/SnowstormEffect.o
-
-$(OBJDIR_LINUX_RELEASE)/PreviewPane.o: PreviewPane.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PreviewPane.cpp -o $(OBJDIR_LINUX_RELEASE)/PreviewPane.o
 
 $(OBJDIR_LINUX_RELEASE)/PerspectivesPanel.o: PerspectivesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PerspectivesPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/PerspectivesPanel.o
@@ -1390,6 +1390,12 @@ $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o: PixelBuffer.cpp
 $(OBJDIR_LINUX_RELEASE)/PreviewModels.o: PreviewModels.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PreviewModels.cpp -o $(OBJDIR_LINUX_RELEASE)/PreviewModels.o
 
+$(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/PreviewPane.o: PreviewPane.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PreviewPane.cpp -o $(OBJDIR_LINUX_RELEASE)/PreviewPane.o
+
 $(OBJDIR_LINUX_RELEASE)/RenameTextDialog.o: RenameTextDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenameTextDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/RenameTextDialog.o
 
@@ -1404,6 +1410,9 @@ $(OBJDIR_LINUX_RELEASE)/RenderProgressDialog.o: RenderProgressDialog.cpp
 
 $(OBJDIR_LINUX_RELEASE)/ResizeImageDialog.o: ResizeImageDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ResizeImageDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ResizeImageDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/MusicXML.o: MusicXML.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MusicXML.cpp -o $(OBJDIR_LINUX_RELEASE)/MusicXML.o
 
 $(OBJDIR_LINUX_RELEASE)/ModelDimmingCurveDialog.o: ModelDimmingCurveDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelDimmingCurveDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelDimmingCurveDialog.o
@@ -1420,9 +1429,6 @@ $(OBJDIR_LINUX_RELEASE)/ModelPreview.o: ModelPreview.cpp
 $(OBJDIR_LINUX_RELEASE)/ModelStateDialog.o: ModelStateDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelStateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelStateDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/MusicXML.o: MusicXML.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MusicXML.cpp -o $(OBJDIR_LINUX_RELEASE)/MusicXML.o
-
 $(OBJDIR_LINUX_RELEASE)/NewTimingDialog.o: NewTimingDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c NewTimingDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/NewTimingDialog.o
 
@@ -1435,11 +1441,11 @@ $(OBJDIR_LINUX_RELEASE)/NoteImportDialog.o: NoteImportDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/OptionChooser.o: OptionChooser.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c OptionChooser.cpp -o $(OBJDIR_LINUX_RELEASE)/OptionChooser.o
 
-$(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o
+$(OBJDIR_LINUX_RELEASE)/TabSetup.o: TabSetup.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabSetup.cpp -o $(OBJDIR_LINUX_RELEASE)/TabSetup.o
 
-$(OBJDIR_LINUX_RELEASE)/TestDialog.o: TestDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TestDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/TestDialog.o
+$(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o: SubBufferPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SubBufferPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/SubModelGenerateDialog.o: SubModelGenerateDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SubModelGenerateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SubModelGenerateDialog.o
@@ -1459,11 +1465,8 @@ $(OBJDIR_LINUX_RELEASE)/TabPreview.o: TabPreview.cpp
 $(OBJDIR_LINUX_RELEASE)/TabSequence.o: TabSequence.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabSequence.cpp -o $(OBJDIR_LINUX_RELEASE)/TabSequence.o
 
-$(OBJDIR_LINUX_RELEASE)/TabSetup.o: TabSetup.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabSetup.cpp -o $(OBJDIR_LINUX_RELEASE)/TabSetup.o
-
-$(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o: SubBufferPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SubBufferPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/SubBufferPanel.o
+$(OBJDIR_LINUX_RELEASE)/TestDialog.o: TestDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TestDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/TestDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/TimingPanel.o: TimingPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TimingPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/TimingPanel.o
@@ -1476,9 +1479,6 @@ $(OBJDIR_LINUX_RELEASE)/UtilFunctions.o: UtilFunctions.cpp
 
 $(OBJDIR_LINUX_RELEASE)/VAMPPluginDialog.o: VAMPPluginDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c VAMPPluginDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/VAMPPluginDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/VSAFile.o: VSAFile.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c VSAFile.cpp -o $(OBJDIR_LINUX_RELEASE)/VSAFile.o
 
 $(OBJDIR_LINUX_RELEASE)/SaveChangesDialog.o: SaveChangesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SaveChangesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SaveChangesDialog.o
@@ -1495,6 +1495,9 @@ $(OBJDIR_LINUX_RELEASE)/SeqFileUtilities.o: SeqFileUtilities.cpp
 $(OBJDIR_LINUX_RELEASE)/SeqSettingsDialog.o: SeqSettingsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqSettingsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqSettingsDialog.o
 
+$(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o: MIDI/MidiMessage.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDI/MidiMessage.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o
+
 $(OBJDIR_LINUX_RELEASE)/SequenceData.o: SequenceData.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SequenceData.cpp -o $(OBJDIR_LINUX_RELEASE)/SequenceData.o
 
@@ -1510,8 +1513,8 @@ $(OBJDIR_LINUX_RELEASE)/StartChannelDialog.o: StartChannelDialog.cpp
 $(OBJDIR_LINUX_RELEASE)/StrandNodeNamesDialog.o: StrandNodeNamesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c StrandNodeNamesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/StrandNodeNamesDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o: ConvertLogDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ConvertLogDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o
+$(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o: DimmingCurvePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DimmingCurvePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o
 
 $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o: CurrentPreviewModels.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c CurrentPreviewModels.cpp -o $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o
@@ -1528,8 +1531,8 @@ $(OBJDIR_LINUX_RELEASE)/DataLayer.o: DataLayer.cpp
 $(OBJDIR_LINUX_RELEASE)/DimmingCurve.o: DimmingCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DimmingCurve.cpp -o $(OBJDIR_LINUX_RELEASE)/DimmingCurve.o
 
-$(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o: DimmingCurvePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DimmingCurvePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/DimmingCurvePanel.o
+$(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o: ConvertLogDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ConvertLogDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ConvertLogDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/DrawGLUtils.o: DrawGLUtils.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c DrawGLUtils.cpp -o $(OBJDIR_LINUX_RELEASE)/DrawGLUtils.o
@@ -1546,8 +1549,8 @@ $(OBJDIR_LINUX_RELEASE)/EffectAssist.o: EffectAssist.cpp
 $(OBJDIR_LINUX_RELEASE)/EffectIconPanel.o: EffectIconPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectIconPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectIconPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o: ColorCurveDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ColorCurveDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o
+$(OBJDIR_LINUX_RELEASE)/EffectListDialog.o: EffectListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/BitmapCache.o: BitmapCache.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c BitmapCache.cpp -o $(OBJDIR_LINUX_RELEASE)/BitmapCache.o
@@ -1567,8 +1570,8 @@ $(OBJDIR_LINUX_RELEASE)/Color.o: Color.cpp
 $(OBJDIR_LINUX_RELEASE)/ColorCurve.o: ColorCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ColorCurve.cpp -o $(OBJDIR_LINUX_RELEASE)/ColorCurve.o
 
-$(OBJDIR_LINUX_RELEASE)/EffectListDialog.o: EffectListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o
+$(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o: ColorCurveDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ColorCurveDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ColorCurveDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/ColorManager.o: ColorManager.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ColorManager.cpp -o $(OBJDIR_LINUX_RELEASE)/ColorManager.o
@@ -1585,9 +1588,6 @@ $(OBJDIR_LINUX_RELEASE)/ControllerConnectionDialog.o: ControllerConnectionDialog
 $(OBJDIR_LINUX_RELEASE)/ConvertDialog.o: ConvertDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ConvertDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ConvertDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/LayoutPanel.o: LayoutPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c LayoutPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/LayoutPanel.o
-
 $(OBJDIR_LINUX_RELEASE)/Image_Loader.o: Image_Loader.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Image_Loader.cpp -o $(OBJDIR_LINUX_RELEASE)/Image_Loader.o
 
@@ -1602,6 +1602,12 @@ $(OBJDIR_LINUX_RELEASE)/LMSImportChannelMapDialog.o: LMSImportChannelMapDialog.c
 
 $(OBJDIR_LINUX_RELEASE)/LayoutGroup.o: LayoutGroup.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c LayoutGroup.cpp -o $(OBJDIR_LINUX_RELEASE)/LayoutGroup.o
+
+$(OBJDIR_LINUX_RELEASE)/Image.o: Image.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Image.cpp -o $(OBJDIR_LINUX_RELEASE)/Image.o
+
+$(OBJDIR_LINUX_RELEASE)/LayoutPanel.o: LayoutPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c LayoutPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/LayoutPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/LorConvertDialog.o: LorConvertDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c LorConvertDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/LorConvertDialog.o
@@ -1621,12 +1627,6 @@ $(OBJDIR_LINUX_RELEASE)/MIDI/MidiEventList.o: MIDI/MidiEventList.cpp
 $(OBJDIR_LINUX_RELEASE)/MIDI/MidiFile.o: MIDI/MidiFile.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDI/MidiFile.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiFile.o
 
-$(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o: MIDI/MidiMessage.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDI/MidiMessage.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDI/MidiMessage.o
-
-$(OBJDIR_LINUX_RELEASE)/FileConverter.o: FileConverter.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FileConverter.cpp -o $(OBJDIR_LINUX_RELEASE)/FileConverter.o
-
 $(OBJDIR_LINUX_RELEASE)/EffectTimingDialog.o: EffectTimingDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectTimingDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectTimingDialog.o
 
@@ -1639,11 +1639,20 @@ $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o: EffectsPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o: ExportModelSelect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ExportModelSelect.cpp -o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o
 
+$(OBJDIR_LINUX_RELEASE)/FileConverter.o: FileConverter.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FileConverter.cpp -o $(OBJDIR_LINUX_RELEASE)/FileConverter.o
+
+$(OBJDIR_LINUX_RELEASE)/VSAFile.o: VSAFile.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c VSAFile.cpp -o $(OBJDIR_LINUX_RELEASE)/VSAFile.o
+
 $(OBJDIR_LINUX_RELEASE)/FlickerFreeBitmapButton.o: FlickerFreeBitmapButton.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FlickerFreeBitmapButton.cpp -o $(OBJDIR_LINUX_RELEASE)/FlickerFreeBitmapButton.o
 
 $(OBJDIR_LINUX_RELEASE)/GenerateCustomModelDialog.o: GenerateCustomModelDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c GenerateCustomModelDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/GenerateCustomModelDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/GenerateLyricsDialog.o: GenerateLyricsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c GenerateLyricsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/GenerateLyricsDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/HousePreviewPanel.o: HousePreviewPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c HousePreviewPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/HousePreviewPanel.o
@@ -1651,11 +1660,8 @@ $(OBJDIR_LINUX_RELEASE)/HousePreviewPanel.o: HousePreviewPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/IPEntryDialog.o: IPEntryDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/IPEntryDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/Image.o: Image.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Image.cpp -o $(OBJDIR_LINUX_RELEASE)/Image.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o: effects/MusicPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MusicPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o: effects/MarqueePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MarqueePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/MeteorsEffect.o: effects/MeteorsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MeteorsEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MeteorsEffect.o
@@ -1672,8 +1678,8 @@ $(OBJDIR_LINUX_RELEASE)/effects/MorphPanel.o: effects/MorphPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/MusicEffect.o: effects/MusicEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MusicEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MusicEffect.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o: effects/MarqueePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MarqueePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MarqueePanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o: effects/MusicPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MusicPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MusicPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/OffEffect.o: effects/OffEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/OffEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/OffEffect.o
@@ -1687,8 +1693,8 @@ $(OBJDIR_LINUX_RELEASE)/effects/OnEffect.o: effects/OnEffect.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/OnPanel.o: effects/OnPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/OnPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/OnPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o: effects/PianoEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PianoEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o
+$(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o: effects/LifePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/LifePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/GarlandsEffect.o: effects/GarlandsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/GarlandsEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/GarlandsEffect.o
@@ -1705,8 +1711,8 @@ $(OBJDIR_LINUX_RELEASE)/effects/GlediatorPanel.o: effects/GlediatorPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/LifeEffect.o: effects/LifeEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/LifeEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/LifeEffect.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o: effects/LifePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/LifePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/LifePanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o: effects/PianoEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PianoEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PianoEffect.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/LightningEffect.o: effects/LightningEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/LightningEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/LightningEffect.o
@@ -1723,6 +1729,9 @@ $(OBJDIR_LINUX_RELEASE)/effects/LiquidPanel.o: effects/LiquidPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/MarqueeEffect.o: effects/MarqueeEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/MarqueeEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/MarqueeEffect.o
 
+$(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o: effects/ShockwaveEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ShockwaveEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o
+
 $(OBJDIR_LINUX_RELEASE)/effects/ServoPanel.o: effects/ServoPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ServoPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ServoPanel.o
 
@@ -1738,8 +1747,8 @@ $(OBJDIR_LINUX_RELEASE)/effects/ShimmerEffect.o: effects/ShimmerEffect.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/ShimmerPanel.o: effects/ShimmerPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ShimmerPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ShimmerPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o: effects/ShockwaveEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ShockwaveEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ShockwaveEffect.o
+$(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o: effects/ServoEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ServoEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/ShockwavePanel.o: effects/ShockwavePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ShockwavePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ShockwavePanel.o
@@ -1756,9 +1765,6 @@ $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesEffect.o: effects/SnowflakesEffect.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesPanel.o: effects/SnowflakesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/SnowflakesPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/SnowflakesPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o: effects/PlasmaEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PlasmaEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o
-
 $(OBJDIR_LINUX_RELEASE)/effects/PianoPanel.o: effects/PianoPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PianoPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PianoPanel.o
 
@@ -1774,6 +1780,12 @@ $(OBJDIR_LINUX_RELEASE)/effects/PinwheelEffect.o: effects/PinwheelEffect.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/PinwheelPanel.o: effects/PinwheelPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PinwheelPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PinwheelPanel.o
 
+$(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o: effects/GalaxyPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/GalaxyPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o
+
+$(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o: effects/PlasmaEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PlasmaEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaEffect.o
+
 $(OBJDIR_LINUX_RELEASE)/effects/PlasmaPanel.o: effects/PlasmaPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/PlasmaPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/PlasmaPanel.o
 
@@ -1785,12 +1797,6 @@ $(OBJDIR_LINUX_RELEASE)/effects/RippleEffect.o: effects/RippleEffect.cpp
 
 $(OBJDIR_LINUX_RELEASE)/effects/RipplePanel.o: effects/RipplePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/RipplePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/RipplePanel.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o: effects/ServoEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ServoEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ServoEffect.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o: effects/BarsPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/BarsPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/controllers/J1Sys.o: controllers/J1Sys.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c controllers/J1Sys.cpp -o $(OBJDIR_LINUX_RELEASE)/controllers/J1Sys.o
@@ -1810,6 +1816,12 @@ $(OBJDIR_LINUX_RELEASE)/djdebug.o: djdebug.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/BarsEffect.o: effects/BarsEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/BarsEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/BarsEffect.o
 
+$(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o: controllers/Falcon.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c controllers/Falcon.cpp -o $(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o
+
+$(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o: effects/BarsPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/BarsPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/BarsPanel.o
+
 $(OBJDIR_LINUX_RELEASE)/effects/ButterflyEffect.o: effects/ButterflyEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/ButterflyEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/ButterflyEffect.o
 
@@ -1821,9 +1833,6 @@ $(OBJDIR_LINUX_RELEASE)/effects/CandleEffect.o: effects/CandleEffect.cpp
 
 $(OBJDIR_LINUX_RELEASE)/effects/CandlePanel.o: effects/CandlePanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CandlePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CandlePanel.o
-
-$(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o: VsaImportDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c VsaImportDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/ValueCurve.o: ValueCurve.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ValueCurve.cpp -o $(OBJDIR_LINUX_RELEASE)/ValueCurve.o
@@ -1840,8 +1849,8 @@ $(OBJDIR_LINUX_RELEASE)/VideoReader.o: VideoReader.cpp
 $(OBJDIR_LINUX_RELEASE)/ViewsModelsPanel.o: ViewsModelsPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ViewsModelsPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/ViewsModelsPanel.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o: effects/CirclesEffect.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CirclesEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o
+$(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o: VsaImportDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c VsaImportDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/VsaImportDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/WiringDialog.o: WiringDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c WiringDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/WiringDialog.o
@@ -1855,11 +1864,8 @@ $(OBJDIR_LINUX_RELEASE)/controllers/FPP.o: controllers/FPP.cpp
 $(OBJDIR_LINUX_RELEASE)/controllers/FPPConnectDialog.o: controllers/FPPConnectDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c controllers/FPPConnectDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/controllers/FPPConnectDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o: controllers/Falcon.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c controllers/Falcon.cpp -o $(OBJDIR_LINUX_RELEASE)/controllers/Falcon.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o: effects/FirePanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FirePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o: effects/FacesPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FacesPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/FanEffect.o: effects/FanEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FanEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FanEffect.o
@@ -1876,8 +1882,8 @@ $(OBJDIR_LINUX_RELEASE)/effects/FillPanel.o: effects/FillPanel.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/FireEffect.o: effects/FireEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FireEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FireEffect.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o: effects/FacesPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FacesPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FacesPanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o: effects/FirePanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FirePanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FirePanel.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/FireworksEffect.o: effects/FireworksEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/FireworksEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/FireworksEffect.o
@@ -1891,8 +1897,11 @@ $(OBJDIR_LINUX_RELEASE)/effects/GIFImage.o: effects/GIFImage.cpp
 $(OBJDIR_LINUX_RELEASE)/effects/GalaxyEffect.o: effects/GalaxyEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/GalaxyEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyEffect.o
 
-$(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o: effects/GalaxyPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/GalaxyPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/GalaxyPanel.o
+$(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o: effects/CurtainPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CurtainPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o
+
+$(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o: effects/CirclesEffect.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CirclesEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CirclesEffect.o
 
 $(OBJDIR_LINUX_RELEASE)/effects/CirclesPanel.o: effects/CirclesPanel.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CirclesPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CirclesPanel.o
@@ -1905,9 +1914,6 @@ $(OBJDIR_LINUX_RELEASE)/effects/ColorWashPanel.o: effects/ColorWashPanel.cpp
 
 $(OBJDIR_LINUX_RELEASE)/effects/CurtainEffect.o: effects/CurtainEffect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CurtainEffect.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CurtainEffect.o
-
-$(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o: effects/CurtainPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c effects/CurtainPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/effects/CurtainPanel.o
 
 $(OBJDIR_LINUX_RELEASE)/AudioManager.o: AudioManager.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c AudioManager.cpp -o $(OBJDIR_LINUX_RELEASE)/AudioManager.o
@@ -2116,6 +2122,10 @@ effects/WaveEffect.h: effects/RenderableEffect.h
 
 effects/WavePanel.h: ValueCurveButton.h
 
+effects/SnowstormEffect.cpp: effects/SnowstormEffect.h effects/SnowstormPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowstorm-16.xpm ../include/snowstorm-24.xpm ../include/snowstorm-32.xpm ../include/snowstorm-48.xpm ../include/snowstorm-64.xpm
+
+effects/SnowstormEffect.h: effects/RenderableEffect.h
+
 effects/SnowstormPanel.cpp: effects/SnowstormPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/SpiralsEffect.cpp: effects/SpiralsEffect.h effects/SpiralsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/spirals-16.xpm ../include/spirals-24.xpm ../include/spirals-32.xpm ../include/spirals-48.xpm ../include/spirals-64.xpm
@@ -2232,7 +2242,7 @@ xLightsImportChannelMapDialog.cpp: xLightsImportChannelMapDialog.h sequencer/Seq
 
 xLightsImportChannelMapDialog.h: Color.h
 
-xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h models/CustomModel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h IPEntryDialog.h ColorManagerDialog.h HousePreviewPanel.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm osxMacUtils.h
+xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h models/CustomModel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h IPEntryDialog.h ColorManagerDialog.h HousePreviewPanel.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm osxMacUtils.h GenerateLyricsDialog.h
 
 SeqSettingsDialog.h: xLightsMain.h xLightsXmlFile.h tmGridCell.h FlickerFreeBitmapButton.h
 
@@ -2264,7 +2274,7 @@ xlSlider.cpp: xlSlider.h
 
 wxCheckedListCtrl.cpp: wxCheckedListCtrl.h
 
-sequencer/tabSequencer.cpp: xLightsMain.h sequencer/SequenceElements.h TopEffectsPanel.h EffectIconPanel.h sequencer/Element.h sequencer/Effect.h BufferPanel.h SeqSettingsDialog.h ViewsModelsPanel.h effects/RenderableEffect.h xlCustomControl.h NoteImportDialog.h MusicXML.h osxMacUtils.h SeqElementMismatchDialog.h RenderCommandEvent.h xLightsVersion.h HousePreviewPanel.h
+sequencer/tabSequencer.cpp: xLightsMain.h sequencer/SequenceElements.h TopEffectsPanel.h EffectIconPanel.h sequencer/Element.h sequencer/Effect.h BufferPanel.h SeqSettingsDialog.h ViewsModelsPanel.h effects/RenderableEffect.h xlCustomControl.h NoteImportDialog.h MusicXML.h osxMacUtils.h SeqElementMismatchDialog.h RenderCommandEvent.h xLightsVersion.h HousePreviewPanel.h UtilFunctions.h
 
 BufferPanel.h: ValueCurve.h ValueCurveButton.h
 
@@ -2276,12 +2286,6 @@ support/GridCellChoiceRenderer.cpp: support/GridCellChoiceRenderer.h
 
 tmGridCell.cpp: tmGridCell.h
 
-effects/SnowstormEffect.cpp: effects/SnowstormEffect.h effects/SnowstormPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/snowstorm-16.xpm ../include/snowstorm-24.xpm ../include/snowstorm-32.xpm ../include/snowstorm-48.xpm ../include/snowstorm-64.xpm
-
-effects/SnowstormEffect.h: effects/RenderableEffect.h
-
-PreviewPane.cpp: PreviewPane.h LayoutGroup.h
-
 PerspectivesPanel.cpp: PerspectivesPanel.h
 
 PhonemeDictionary.cpp: PhonemeDictionary.h
@@ -2291,6 +2295,12 @@ PixelAppearanceDlg.cpp: PixelAppearanceDlg.h
 PixelBuffer.cpp: PixelBuffer.h DimmingCurve.h models/ModelManager.h models/SingleLineModel.h models/ModelGroup.h UtilClasses.h AudioManager.h xLightsMain.h
 
 PreviewModels.cpp: PreviewModels.h models/ModelManager.h models/ModelGroup.h
+
+PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
+
+PaletteMgmtDialog.h: EffectsPanel.h
+
+PreviewPane.cpp: PreviewPane.h LayoutGroup.h
 
 RenameTextDialog.cpp: RenameTextDialog.h
 
@@ -2302,6 +2312,8 @@ RenderProgressDialog.cpp: RenderProgressDialog.h
 
 ResizeImageDialog.cpp: ResizeImageDialog.h
 
+MusicXML.cpp: MusicXML.h
+
 ModelDimmingCurveDialog.cpp: ModelDimmingCurveDialog.h xLightsXmlFile.h UtilFunctions.h
 
 ModelFaceDialog.cpp: ModelFaceDialog.h xLightsXmlFile.h NodesGridCellEditor.h ModelPreview.h DimmingCurve.h ../include/AI.xpm ../include/E.xpm ../include/ETC.xpm ../include/FV.xpm ../include/L.xpm ../include/MBP.xpm ../include/O.xpm ../include/REST.xpm ../include/U.xpm ../include/WQ.xpm UtilFunctions.h models/Model.h
@@ -2312,8 +2324,6 @@ ModelPreview.cpp: ModelPreview.h models/Model.h PreviewPane.h DrawGLUtils.h osxM
 
 ModelStateDialog.cpp: ModelStateDialog.h xLightsXmlFile.h NodesGridCellEditor.h ModelPreview.h DimmingCurve.h SevenSegmentDialog.h models/Model.h
 
-MusicXML.cpp: MusicXML.h
-
 NewTimingDialog.cpp: NewTimingDialog.h
 
 NodesGridCellEditor.cpp: NodesGridCellEditor.h
@@ -2322,17 +2332,17 @@ NoteImportDialog.cpp: NoteImportDialog.h sequencer/SequenceElements.h MusicXML.h
 
 OptionChooser.cpp: OptionChooser.h
 
-PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
+TabSetup.cpp: xLightsMain.h LayoutPanel.h xLightsXmlFile.h osxMacUtils.h
 
-PaletteMgmtDialog.h: EffectsPanel.h
+SubBufferPanel.cpp: SubBufferPanel.h BufferSizeDialog.h
 
-TestDialog.cpp: TestDialog.h models/Model.h models/ModelGroup.h xLightsXmlFile.h UtilFunctions.h
+SubBufferPanel.h: xlCustomControl.h
+
+BufferSizeDialog.h: ValueCurveButton.h
 
 SubModelGenerateDialog.cpp: SubModelGenerateDialog.h
 
 SubModelsDialog.cpp: SubModelsDialog.h models/Model.h SubBufferPanel.h SubModelGenerateDialog.h UtilFunctions.h ModelPreview.h DimmingCurve.h
-
-SubBufferPanel.h: xlCustomControl.h
 
 SuperStarImportDialog.cpp: SuperStarImportDialog.h
 
@@ -2344,11 +2354,7 @@ TabPreview.cpp: xLightsMain.h heartbeat.h DrawGLUtils.h SaveChangesDialog.h mode
 
 TabSequence.cpp: xLightsMain.h SeqSettingsDialog.h xLightsXmlFile.h effects/RenderableEffect.h models/ModelGroup.h models/SubModel.h SequenceViewManager.h LayoutPanel.h osxMacUtils.h UtilFunctions.h BufferPanel.h
 
-TabSetup.cpp: xLightsMain.h LayoutPanel.h xLightsXmlFile.h osxMacUtils.h
-
-SubBufferPanel.cpp: SubBufferPanel.h BufferSizeDialog.h
-
-BufferSizeDialog.h: ValueCurveButton.h
+TestDialog.cpp: TestDialog.h models/Model.h models/ModelGroup.h xLightsXmlFile.h UtilFunctions.h
 
 TimingPanel.cpp: TimingPanel.h ../include/padlock16x16-blue.xpm models/Model.h effects/EffectPanelUtils.h
 
@@ -2359,8 +2365,6 @@ UtilFunctions.cpp: UtilFunctions.h
 VAMPPluginDialog.cpp: VAMPPluginDialog.h
 
 VAMPPluginDialog.h: xLightsXmlFile.h AudioManager.h
-
-VSAFile.cpp: VSAFile.h
 
 SaveChangesDialog.cpp: SaveChangesDialog.h
 
@@ -2384,7 +2388,7 @@ StartChannelDialog.cpp: StartChannelDialog.h models/ModelManager.h models/Model.
 
 StrandNodeNamesDialog.cpp: StrandNodeNamesDialog.h models/Model.h
 
-ConvertLogDialog.cpp: ConvertLogDialog.h
+DimmingCurvePanel.cpp: DimmingCurvePanel.h DrawGLUtils.h
 
 CurrentPreviewModels.cpp: CurrentPreviewModels.h PreviewModels.h models/ModelManager.h
 
@@ -2396,7 +2400,7 @@ DataLayer.cpp: DataLayer.h
 
 DimmingCurve.cpp: DimmingCurve.h
 
-DimmingCurvePanel.cpp: DimmingCurvePanel.h DrawGLUtils.h
+ConvertLogDialog.cpp: ConvertLogDialog.h
 
 DrawGLUtils.cpp: DrawGLUtils.h osxMacUtils.h Image_Loader.h Image.h
 
@@ -2408,9 +2412,7 @@ EffectAssist.cpp: EffectAssist.h xLightsMain.h effects/EffectManager.h effects/a
 
 EffectIconPanel.cpp: EffectIconPanel.h sequencer/DragEffectBitmapButton.h BitmapCache.h effects/EffectManager.h
 
-ColorCurveDialog.cpp: ColorCurveDialog.h xLightsMain.h xLightsVersion.h
-
-ColorCurveDialog.h: xlCustomControl.h ColorCurve.h
+EffectListDialog.cpp: EffectListDialog.h
 
 BitmapCache.cpp: BitmapCache.h ../include/padlock16x16-blue.xpm ../include/padlock16x16-red.xpm ../include/stop_sign_24.xpm ../include/output_lights_24.xpm ../include/output_lights_off_16.xpm ../include/output_lights_off_24.xpm ../include/output_lights_off_32.xpm ../include/output_lights_off_48.xpm ../include/output_lights_off_64.xpm ../include/output_lights_on_16.xpm ../include/output_lights_on_24.xpm ../include/output_lights_on_32.xpm ../include/output_lights_on_48.xpm ../include/output_lights_on_64.xpm ../include/effects.xpm ../include/colors.xpm ../include/layers.xpm ../include/layers2.xpm ../include/effsettings.xpm ../include/model_preview_24.xpm ../include/house_preview_24.xpm ../include/lights_off_24.xpm ../include/zoom-out-24.xpm ../include/zoom-in-24.xpm ../include/settings-24.xpm ../include/paste-by-time-24.xpm ../include/paste-by-cell-24.xpm ../include/render-all-16.xpm ../include/render-all-24.xpm ../include/render-all-32.xpm ../include/render-all-48.xpm ../include/render-all-64.xpm ../include/select_show_folder-24.xpm ../include/save-24.xpm ../include/save-as-24.xpm ../include/folder.xpm ../include/file_new-24.xpm ../include/stop-24.xpm ../include/stop-24_off.xpm ../include/trash-24.xpm ../include/search-24.xpm ../include/replay-24.xpm ../include/play-24.xpm ../include/play-24_off.xpm ../include/pause-24.xpm ../include/pause-24_off.xpm ../include/move-24.xpm ../include/home-24.xpm ../include/gears-24.xpm ../include/forward-24.xpm ../include/fforward10-24.xpm ../include/forward-24_off.xpm ../include/eye-open-24.xpm ../include/backward-24.xpm ../include/rewind10-24.xpm ../include/backward-24_off.xpm ../include/ACon.xpm ../include/ACoff.xpm ../include/ACenabled.xpm ../include/ACdisabled.xpm ../include/ACtwinkle.xpm ../include/ACshimmer.xpm ../include/ACintensity.xpm ../include/ACrampup.xpm ../include/ACrampdown.xpm ../include/ACrampupdown.xpm ../include/ACfill.xpm ../include/ACcascade.xpm ../include/ACforeground.xpm ../include/ACbackground.xpm ../include/ACselect.xpm ../include/group-open-24.xpm ../include/group-open-64.xpm ../include/group-closed-24.xpm ../include/group-closed-64.xpm ../include/arch-icon-16.xpm ../include/arch-icon-64.xpm ../include/cane-icon-16.xpm ../include/cane-icon-64.xpm ../include/channelblock-icon-16.xpm ../include/channelblock-icon-64.xpm ../include/circle-icon-16.xpm ../include/circle-icon-64.xpm ../include/custom-icon-16.xpm ../include/custom-icon-64.xpm ../include/dmx-icon-16.xpm ../include/dmx-icon-64.xpm ../include/icicle-icon-16.xpm ../include/icicle-icon-64.xpm ../include/line-icon-16.xpm ../include/line-icon-64.xpm ../include/matrix-icon-16.xpm ../include/matrix-icon-64.xpm ../include/poly-icon-16.xpm ../include/poly-icon-64.xpm ../include/spinner-icon-16.xpm ../include/spinner-icon-64.xpm ../include/star-icon-16.xpm ../include/star-icon-64.xpm ../include/submarine-16.xpm ../include/submarine-32.xpm ../include/tree-icon-16.xpm ../include/tree-icon-64.xpm ../include/window-icon-16.xpm ../include/window-icon-64.xpm ../include/wreath-icon-16.xpm ../include/wreath-icon-64.xpm ../include/link-48.xpm ../include/unlink-48.xpm ../include/sequence_elements-24.xpm ../include/point_1a-64.xpm ../include/point_1b-64.xpm ../include/point_2a-64.xpm ../include/point_2b-64.xpm ../include/point_1ab-64.xpm ../include/point_2ab-64.xpm ../include/papagayo-16.xpm ../include/papagayo-64.xpm ../include/model-16.xpm ../include/model-64.xpm
 
@@ -2426,7 +2428,9 @@ Color.cpp: Color.h
 
 ColorCurve.cpp: ColorCurve.h ColorCurveDialog.h UtilFunctions.h
 
-EffectListDialog.cpp: EffectListDialog.h
+ColorCurveDialog.h: xlCustomControl.h ColorCurve.h
+
+ColorCurveDialog.cpp: ColorCurveDialog.h xLightsMain.h xLightsVersion.h
 
 ColorManager.cpp: ColorManager.h xLightsMain.h
 
@@ -2438,8 +2442,6 @@ ControllerConnectionDialog.cpp: ControllerConnectionDialog.h models/Model.h
 
 ConvertDialog.cpp: ConvertDialog.h FileConverter.h xLightsMain.h UtilFunctions.h
 
-LayoutPanel.cpp: LayoutPanel.h ModelPreview.h xLightsMain.h DrawGLUtils.h ChannelLayoutDialog.h models/ModelGroup.h ModelGroupPanel.h ../include/eye-16.xpm ../include/eye-16_gray.xpm PreviewPane.h models/SubModel.h
-
 Image_Loader.cpp: Image_Loader.h DrawGLUtils.h
 
 JobPool.cpp: JobPool.h
@@ -2450,11 +2452,13 @@ LMSImportChannelMapDialog.cpp: LMSImportChannelMapDialog.h sequencer/SequenceEle
 
 LayoutGroup.cpp: LayoutGroup.h xLightsMain.h models/Model.h PreviewPane.h
 
+Image.cpp: Image.h Image_Loader.h
+
+LayoutPanel.cpp: LayoutPanel.h ModelPreview.h xLightsMain.h DrawGLUtils.h ChannelLayoutDialog.h models/ModelGroup.h ModelGroupPanel.h ../include/eye-16.xpm ../include/eye-16_gray.xpm PreviewPane.h models/SubModel.h
+
 LorConvertDialog.cpp: LorConvertDialog.h
 
 LyricsDialog.cpp: LyricsDialog.h
-
-FileConverter.cpp: FileConverter.h UtilFunctions.h xLightsMain.h ConvertDialog.h ConvertLogDialog.h
 
 EffectTimingDialog.cpp: EffectTimingDialog.h sequencer/Effect.h sequencer/EffectLayer.h
 
@@ -2464,21 +2468,21 @@ EffectsPanel.cpp: effects/EffectManager.h effects/RenderableEffect.h EffectsPane
 
 ExportModelSelect.cpp: ExportModelSelect.h
 
+FileConverter.cpp: FileConverter.h UtilFunctions.h xLightsMain.h ConvertDialog.h ConvertLogDialog.h
+
+VSAFile.cpp: VSAFile.h
+
 FlickerFreeBitmapButton.cpp: FlickerFreeBitmapButton.h
 
 GenerateCustomModelDialog.cpp: GenerateCustomModelDialog.h effects/VideoPanel.h xLightsMain.h xLightsVersion.h xLightsXmlFile.h
+
+GenerateLyricsDialog.cpp: GenerateLyricsDialog.h ../include/AI.xpm ../include/E.xpm ../include/ETC.xpm ../include/FV.xpm ../include/L.xpm ../include/MBP.xpm ../include/O.xpm ../include/REST.xpm ../include/U.xpm ../include/WQ.xpm NodesGridCellEditor.h
 
 HousePreviewPanel.cpp: HousePreviewPanel.h xLightsMain.h ModelPreview.h xLightsXmlFile.h SequenceCheck.h
 
 IPEntryDialog.cpp: IPEntryDialog.h
 
-Image.cpp: Image.h Image_Loader.h
-
-effects/MusicPanel.cpp: effects/MusicPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h xLightsMain.h effects/MusicEffect.h
-
-effects/MusicPanel.h: ValueCurveButton.h
-
-effects/MusicEffect.h: effects/RenderableEffect.h RenderBuffer.h
+effects/MarqueePanel.cpp: effects/MarqueePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/MeteorsEffect.cpp: effects/MeteorsEffect.h effects/MeteorsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h SequenceCheck.h ../include/meteors-16.xpm ../include/meteors-24.xpm ../include/meteors-32.xpm ../include/meteors-48.xpm ../include/meteors-64.xpm UtilFunctions.h
 
@@ -2496,7 +2500,11 @@ effects/MorphPanel.cpp: effects/MorphPanel.h ../include/padlock16x16-blue.xpm ef
 
 effects/MusicEffect.cpp: effects/MusicPanel.h effects/MusicEffect.h AudioManager.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h SequenceCheck.h ../include/music-16.xpm ../include/music-24.xpm ../include/music-32.xpm ../include/music-48.xpm ../include/music-64.xpm
 
-effects/MarqueePanel.cpp: effects/MarqueePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
+effects/MusicPanel.h: ValueCurveButton.h
+
+effects/MusicEffect.h: effects/RenderableEffect.h RenderBuffer.h
+
+effects/MusicPanel.cpp: effects/MusicPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h xLightsMain.h effects/MusicEffect.h
 
 effects/OffEffect.cpp: effects/OffEffect.h effects/OffPanel.h RenderBuffer.h ../include/Off.xpm
 
@@ -2512,11 +2520,7 @@ effects/OnPanel.h: ValueCurveButton.h
 
 effects/OnPanel.cpp: effects/OnPanel.h effects/OnEffect.h effects/EffectPanelUtils.h
 
-effects/PianoEffect.cpp: effects/PianoEffect.h effects/PianoPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h xLightsXmlFile.h SequenceCheck.h ../include/piano-16.xpm ../include/piano-64.xpm
-
-effects/PianoEffect.h: effects/RenderableEffect.h
-
-effects/PianoPanel.h: ValueCurveButton.h
+effects/LifePanel.cpp: effects/LifePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/GarlandsEffect.cpp: effects/GarlandsEffect.h effects/GarlandsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/garlands-16.xpm ../include/garlands-24.xpm ../include/garlands-32.xpm ../include/garlands-48.xpm ../include/garlands-64.xpm
 
@@ -2536,7 +2540,11 @@ effects/LifeEffect.cpp: effects/LifeEffect.h effects/LifePanel.h sequencer/Effec
 
 effects/LifeEffect.h: effects/RenderableEffect.h
 
-effects/LifePanel.cpp: effects/LifePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
+effects/PianoEffect.cpp: effects/PianoEffect.h effects/PianoPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h xLightsXmlFile.h SequenceCheck.h ../include/piano-16.xpm ../include/piano-64.xpm
+
+effects/PianoEffect.h: effects/RenderableEffect.h
+
+effects/PianoPanel.h: ValueCurveButton.h
 
 effects/LightningEffect.cpp: effects/LightningEffect.h effects/LightningPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/lightning-16.xpm ../include/lightning-24.xpm ../include/lightning-32.xpm ../include/lightning-48.xpm ../include/lightning-64.xpm
 
@@ -2557,6 +2565,12 @@ effects/LiquidPanel.cpp: effects/LiquidPanel.h effects/EffectPanelUtils.h effect
 effects/MarqueeEffect.cpp: effects/MarqueeEffect.h effects/MarqueePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/marquee-16.xpm ../include/marquee-24.xpm ../include/marquee-32.xpm ../include/marquee-48.xpm ../include/marquee-64.xpm
 
 effects/MarqueeEffect.h: effects/RenderableEffect.h
+
+effects/ShockwaveEffect.cpp: effects/ShockwaveEffect.h effects/ShockwavePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shockwave-16.xpm ../include/shockwave-24.xpm ../include/shockwave-32.xpm ../include/shockwave-48.xpm ../include/shockwave-64.xpm
+
+effects/ShockwaveEffect.h: effects/RenderableEffect.h
+
+effects/ShockwavePanel.h: ValueCurveButton.h
 
 effects/ServoPanel.cpp: effects/ServoPanel.h effects/ServoEffect.h effects/EffectPanelUtils.h
 
@@ -2580,11 +2594,7 @@ effects/ShimmerPanel.h: ValueCurveButton.h
 
 effects/ShimmerPanel.cpp: effects/ShimmerPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/ShimmerEffect.h
 
-effects/ShockwaveEffect.cpp: effects/ShockwaveEffect.h effects/ShockwavePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/shockwave-16.xpm ../include/shockwave-24.xpm ../include/shockwave-32.xpm ../include/shockwave-48.xpm ../include/shockwave-64.xpm
-
-effects/ShockwaveEffect.h: effects/RenderableEffect.h
-
-effects/ShockwavePanel.h: ValueCurveButton.h
+effects/ServoEffect.cpp: effects/ServoEffect.h effects/ServoPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h models/DmxModel.h ../include/servo-16.xpm ../include/servo-24.xpm ../include/servo-32.xpm ../include/servo-48.xpm ../include/servo-64.xpm
 
 effects/ShockwavePanel.cpp: effects/ShockwavePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/ShockwaveEffect.h
 
@@ -2602,12 +2612,6 @@ effects/SnowflakesEffect.h: effects/RenderableEffect.h
 
 effects/SnowflakesPanel.cpp: effects/SnowflakesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
-effects/PlasmaEffect.cpp: effects/PlasmaEffect.h effects/PlasmaPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/plasma-16.xpm ../include/plasma-24.xpm ../include/plasma-32.xpm ../include/plasma-48.xpm ../include/plasma-64.xpm
-
-effects/PlasmaEffect.h: effects/RenderableEffect.h
-
-effects/PlasmaPanel.h: ValueCurveButton.h
-
 effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h sequencer/Effect.h effects/PianoEffect.h xLightsMain.h
 
 effects/PicturesEffect.cpp: effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h models/Model.h SequenceCheck.h effects/GIFImage.h ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm UtilFunctions.h
@@ -2624,6 +2628,18 @@ effects/PinwheelPanel.h: ValueCurveButton.h
 
 effects/PinwheelPanel.cpp: effects/PinwheelPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
+effects/GalaxyPanel.cpp: effects/GalaxyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/GalaxyEffect.h
+
+effects/GalaxyPanel.h: ValueCurveButton.h
+
+effects/GalaxyEffect.h: effects/RenderableEffect.h
+
+effects/PlasmaEffect.cpp: effects/PlasmaEffect.h effects/PlasmaPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/plasma-16.xpm ../include/plasma-24.xpm ../include/plasma-32.xpm ../include/plasma-48.xpm ../include/plasma-64.xpm
+
+effects/PlasmaEffect.h: effects/RenderableEffect.h
+
+effects/PlasmaPanel.h: ValueCurveButton.h
+
 effects/PlasmaPanel.cpp: effects/PlasmaPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/PlasmaEffect.h
 
 effects/RenderableEffect.cpp: effects/RenderableEffect.h sequencer/Effect.h effects/EffectManager.h effects/assist/xlGridCanvasEmpty.h UtilFunctions.h ValueCurveButton.h
@@ -2636,14 +2652,6 @@ effects/RipplePanel.h: ValueCurveButton.h
 
 effects/RipplePanel.cpp: effects/RipplePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/RippleEffect.h
 
-effects/ServoEffect.cpp: effects/ServoEffect.h effects/ServoPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsMain.h models/DmxModel.h ../include/servo-16.xpm ../include/servo-24.xpm ../include/servo-32.xpm ../include/servo-48.xpm ../include/servo-64.xpm
-
-effects/BarsPanel.cpp: effects/BarsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/BarsEffect.h
-
-effects/BarsPanel.h: ValueCurveButton.h
-
-effects/BarsEffect.h: effects/RenderableEffect.h
-
 controllers/J1Sys.cpp: models/Model.h models/ModelManager.h
 
 controllers/Pixlite16.cpp: models/Model.h
@@ -2653,6 +2661,14 @@ controllers/SanDevices.cpp: models/Model.h models/ModelManager.h
 djdebug.cpp: xLightsApp.h
 
 effects/BarsEffect.cpp: effects/BarsEffect.h effects/BarsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/bars-16.xpm ../include/bars-24.xpm ../include/bars-32.xpm ../include/bars-48.xpm ../include/bars-64.xpm
+
+effects/BarsEffect.h: effects/RenderableEffect.h
+
+effects/BarsPanel.h: ValueCurveButton.h
+
+controllers/Falcon.cpp: models/Model.h models/ModelManager.h
+
+effects/BarsPanel.cpp: effects/BarsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/BarsEffect.h
 
 effects/ButterflyEffect.cpp: effects/ButterflyEffect.h effects/ButterflyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/butterfly-16.xpm ../include/butterfly-24.xpm ../include/butterfly_32.xpm ../include/butterfly-48.xpm ../include/butterfly-64.xpm
 
@@ -2670,8 +2686,6 @@ effects/CandlePanel.h: ValueCurveButton.h
 
 effects/CandlePanel.cpp: effects/CandlePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/CandleEffect.h
 
-VsaImportDialog.cpp: VsaImportDialog.h sequencer/SequenceElements.h xLightsMain.h models/Model.h VSAFile.h support/FastComboEditor.h support/GridCellChoiceRenderer.h support/EzGrid.h
-
 ValueCurve.cpp: ValueCurve.h xLightsVersion.h xLightsMain.h xLightsXmlFile.h UtilFunctions.h
 
 ValueCurveButton.cpp: ValueCurveButton.h ../include/valuecurveselected.xpm
@@ -2682,11 +2696,7 @@ VideoReader.cpp: VideoReader.h
 
 ViewsModelsPanel.cpp: ViewsModelsPanel.h ../include/model-16.xpm ../include/timing-16.xpm ../include/eye-16.xpm ../include/eye-16_gray.xpm sequencer/SequenceElements.h xLightsMain.h SequenceViewManager.h
 
-effects/CirclesEffect.cpp: effects/CirclesEffect.h effects/CirclesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/circles-16.xpm ../include/circles-24.xpm ../include/circles-32.xpm ../include/circles-48.xpm ../include/circles-64.xpm
-
-effects/CirclesEffect.h: effects/RenderableEffect.h
-
-effects/CirclesPanel.h: ValueCurveButton.h
+VsaImportDialog.cpp: VsaImportDialog.h sequencer/SequenceElements.h xLightsMain.h models/Model.h VSAFile.h support/FastComboEditor.h support/GridCellChoiceRenderer.h support/EzGrid.h
 
 WiringDialog.cpp: WiringDialog.h
 
@@ -2696,13 +2706,7 @@ controllers/FPP.cpp: xLightsXmlFile.h models/Model.h UtilFunctions.h
 
 controllers/FPPConnectDialog.cpp: xLightsMain.h xLightsXmlFile.h UtilFunctions.h
 
-controllers/Falcon.cpp: models/Model.h models/ModelManager.h
-
-effects/FirePanel.cpp: effects/FirePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/FireEffect.h
-
-effects/FirePanel.h: ValueCurveButton.h
-
-effects/FireEffect.h: effects/RenderableEffect.h
+effects/FacesPanel.cpp: effects/FacesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
 
 effects/FanEffect.cpp: effects/FanEffect.h effects/FanPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/fan-16.xpm ../include/fan-24.xpm ../include/fan-32.xpm ../include/fan-48.xpm ../include/fan-64.xpm
 
@@ -2722,7 +2726,11 @@ effects/FillPanel.cpp: effects/FillPanel.h effects/FillEffect.h ../include/padlo
 
 effects/FireEffect.cpp: effects/FireEffect.h effects/FirePanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h SequenceCheck.h ../include/fire-16.xpm ../include/fire-24.xpm ../include/fire-32.xpm ../include/fire-48.xpm ../include/fire-64.xpm
 
-effects/FacesPanel.cpp: effects/FacesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h
+effects/FireEffect.h: effects/RenderableEffect.h
+
+effects/FirePanel.h: ValueCurveButton.h
+
+effects/FirePanel.cpp: effects/FirePanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/FireEffect.h
 
 effects/FireworksEffect.cpp: effects/FireworksEffect.h effects/FireworksPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h SequenceCheck.h sequencer/SequenceElements.h ../include/fireworks-16.xpm ../include/fireworks-24.xpm ../include/fireworks-32.xpm ../include/fireworks-48.xpm ../include/fireworks-64.xpm UtilFunctions.h
 
@@ -2734,11 +2742,17 @@ effects/GIFImage.cpp: effects/GIFImage.h
 
 effects/GalaxyEffect.cpp: effects/GalaxyEffect.h effects/GalaxyPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/galaxy-16.xpm ../include/galaxy-24.xpm ../include/galaxy-32.xpm ../include/galaxy-48.xpm ../include/galaxy-64.xpm
 
-effects/GalaxyEffect.h: effects/RenderableEffect.h
+effects/CurtainPanel.cpp: effects/CurtainPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/CurtainEffect.h
 
-effects/GalaxyPanel.h: ValueCurveButton.h
+effects/CurtainPanel.h: ValueCurveButton.h
 
-effects/GalaxyPanel.cpp: effects/GalaxyPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/GalaxyEffect.h
+effects/CurtainEffect.h: effects/RenderableEffect.h
+
+effects/CirclesEffect.cpp: effects/CirclesEffect.h effects/CirclesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/circles-16.xpm ../include/circles-24.xpm ../include/circles-32.xpm ../include/circles-48.xpm ../include/circles-64.xpm
+
+effects/CirclesEffect.h: effects/RenderableEffect.h
+
+effects/CirclesPanel.h: ValueCurveButton.h
 
 effects/CirclesPanel.cpp: effects/CirclesPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/CirclesEffect.h
 
@@ -2751,12 +2765,6 @@ effects/ColorWashPanel.h: ValueCurveButton.h
 effects/ColorWashPanel.cpp: effects/ColorWashPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/ColorWashEffect.h
 
 effects/CurtainEffect.cpp: effects/CurtainEffect.h effects/CurtainPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h ../include/curtain-16.xpm ../include/curtain-24.xpm ../include/curtain-32.xpm ../include/curtain-48.xpm ../include/curtain-64.xpm
-
-effects/CurtainEffect.h: effects/RenderableEffect.h
-
-effects/CurtainPanel.h: ValueCurveButton.h
-
-effects/CurtainPanel.cpp: effects/CurtainPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/CurtainEffect.h
 
 AudioManager.cpp: AudioManager.h
 

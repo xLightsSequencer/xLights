@@ -118,7 +118,7 @@ GenerateLyricsDialog::GenerateLyricsDialog(wxWindow* parent, long channels, wxWi
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateLyricsDialog::OnButton_CancelClick);
 	//*)
 
-    SpinCtrl_FirstChannel->SetMax(channels);
+    SpinCtrl_FirstChannel->SetRange(1,channels);
 
     wxArrayString names;
     names.push_back("");
