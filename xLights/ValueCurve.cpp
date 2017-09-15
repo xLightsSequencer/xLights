@@ -426,25 +426,25 @@ void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
     GetRangeParm(1, _type, min, max);
     if (min == MINVOID)
     {
-        _parameter1 = (_parameter1 * newrange / oldrange + mindiff) * divisor;
+        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(2, _type, min, max);
     if (min == MINVOID)
     {
-        _parameter2 = (_parameter2 * newrange / oldrange + mindiff) * divisor;
+        _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(3, _type, min, max);
     if (min == MINVOID)
     {
-        _parameter3 = (_parameter3 * newrange / oldrange + mindiff) * divisor;
+        _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(4, _type, min, max);
     if (min == MINVOID)
     {
-        _parameter4 = (_parameter4 * newrange / oldrange + mindiff) * divisor;
+        _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
 }
 
