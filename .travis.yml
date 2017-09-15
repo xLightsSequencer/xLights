@@ -7,7 +7,6 @@ git:
 script:
 - docker pull debenham/xlights
 - docker run --name buildvm debenham/xlights /bin/bash Recipe
-- docker cp buildvm:/xLights/out out
 notifications:
   email:
     recipients:
