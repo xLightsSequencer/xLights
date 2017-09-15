@@ -230,10 +230,7 @@ void GenerateLyricsDialog::Paint(wxPaintEvent& event)
     wxPaintDC dc(p);
 
     int x = 2;
-    int dummy = 0;
-    int y = 0;
-    SingleNodeGrid->GetPosition(&dummy, &y);
-    y += SingleNodeGrid->GetColLabelSize();
+    int y = SingleNodeGrid->GetColLabelSize();
 
     for (int i = 0; i < SingleNodeGrid->GetNumberRows(); i++)
     {
