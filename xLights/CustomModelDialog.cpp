@@ -953,6 +953,10 @@ void CustomModelDialog::OnButtonRENUMBERClick(wxCommandEvent& event)
                     {
                         newVal -= max;
                     }
+					else if (newVal < min)
+					{
+						newVal += max;
+					}
                     s.Printf("%d",newVal);
 
                     GridCustom->SetCellValue(r, c, s);
