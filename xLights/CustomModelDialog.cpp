@@ -931,7 +931,6 @@ void CustomModelDialog::OnButton_RenumberClick(wxCommandEvent& event)
         }
     }
 
-    //max++;
     //Rewrite the grid values
     for(auto c = 0; c < GridCustom->GetNumberCols(); c++)
     {
