@@ -822,11 +822,12 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
     if (SettingsMap.Contains(vn))
     {
         wxString vc = SettingsMap.Get(vn, "");
-        ValueCurve valc(vc.ToStdString());
+        ValueCurve valc;
+        valc.SetDivisor(divisor);
+        valc.SetLimits(min, max);
+        valc.Deserialise(vc.ToStdString());
         if (valc.IsActive())
         {
-            valc.SetLimits(min, max);
-            valc.SetDivisor(divisor);
             res = valc.GetOutputValueAt(offset);
         }
     }
