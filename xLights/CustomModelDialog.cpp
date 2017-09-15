@@ -77,6 +77,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText3;
 	wxFlexGridSizer* FlexGridSizer7;
+	wxStaticBoxSizer* StaticBoxSizer3;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticBoxSizer* StaticBoxSizer1;
@@ -88,7 +89,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	Sizer1->AddGrowableCol(1);
 	Sizer1->AddGrowableRow(0);
-	Sizer2 = new wxFlexGridSizer(7, 1, 0, 0);
+	Sizer2 = new wxFlexGridSizer(8, 1, 0, 0);
 	Sizer2->AddGrowableCol(0);
 	Sizer2->AddGrowableRow(6);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -118,12 +119,14 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer9->Add(Button_Flip_Vertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reverse = new wxButton(this, ID_BUTTON_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reverse"));
 	FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_RenumValue = new wxSpinCtrl(this, ID_SPINCTRL_RENUMVALUE, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100000, 100000, 0, _T("ID_SPINCTRL_RENUMVALUE"));
-	SpinCtrl_RenumValue->SetValue(_T("0"));
-	FlexGridSizer9->Add(SpinCtrl_RenumValue, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Renumber = new wxButton(this, ID_BUTTON_RENUMBER, _("ReNumber"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RENUMBER"));
-	FlexGridSizer9->Add(Button_Renumber, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+	StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Increment/Decrement Node Numbers"));
+	SpinCtrl_RenumValue = new wxSpinCtrl(this, ID_SPINCTRL_RENUMVALUE, _T("0"), wxDefaultPosition, wxSize(90,-1), 0, -100000, 100000, 0, _T("ID_SPINCTRL_RENUMVALUE"));
+	SpinCtrl_RenumValue->SetValue(_T("0"));
+	StaticBoxSizer3->Add(SpinCtrl_RenumValue, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Renumber = new wxButton(this, ID_BUTTON_RENUMBER, _("Renumber"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RENUMBER"));
+	StaticBoxSizer3->Add(Button_Renumber, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer2->Add(StaticBoxSizer3, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
 	BitmapButtonCustomCut->SetToolTip(_("Cut"));
