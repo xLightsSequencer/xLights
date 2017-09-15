@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add ability to display wiring view from the front
+   -- enh (keith)   Add wiring views for most inbuilt models
    -- bug (keith)   Validate serial controller number of channels
    -- enh (keith)   Add ability to extract Phonemes from imported single channel face data
    -- bug (keith)   Fix timing track labels dont save if added to a fixed timing track

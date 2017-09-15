@@ -795,7 +795,8 @@ void CustomModelDialog::OnButtonOkClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonWiringClick(wxCommandEvent& event)
 {
-    WiringDialog dlg(this, GridCustom, CheckBox_RearView->IsChecked(), name);
+    WiringDialog dlg(this, name);
+    dlg.SetData(GridCustom, CheckBox_RearView->IsChecked());
     dlg.ShowModal();
 }
 

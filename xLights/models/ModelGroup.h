@@ -28,6 +28,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual bool SupportsExportAsCustom() const override { return false; }
+        virtual bool SupportsWiringView() const override { return false; }
 
         virtual int GetNumStrands() const override { return 0;}
 

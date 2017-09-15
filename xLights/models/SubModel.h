@@ -17,7 +17,8 @@ public:
 
     virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual bool SupportsExportAsCustom() const override { return false; }
-    
+    virtual bool SupportsWiringView() const override { return false; }
+
     Model* GetParent() const { return parent; }
 private:
     Model *parent;

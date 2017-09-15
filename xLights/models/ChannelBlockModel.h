@@ -20,6 +20,7 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool SupportsExportAsCustom() const override { return false; }
+        virtual bool SupportsWiringView() const override { return false; }
 
     protected:
         virtual void InitModel() override;

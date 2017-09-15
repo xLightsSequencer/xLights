@@ -12,31 +12,39 @@
 #include <map>
 #include <list>
 
+class Model;
+
 class WiringDialog: public wxDialog
 {
     wxString _modelname;
     wxBitmap _bmp;
     bool _dark;
+    bool _rear;
     bool _multilight;
-    wxGrid* _grid;
+    int _cols;
+    int _rows;
     int _fontSize;
-    std::map<int, std::list<wxPoint>> _points;
-    void RenderMultiLight(std::map<int, std::list<wxPoint>>& points, int width, int height);
-    void RenderNodes(std::map<int, std::list<wxPoint>>& points, int width, int height);
+    std::map<int, std::map<int, std::list<wxPoint>>> _points;
+    void RenderMultiLight(std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height);
+    void RenderNodes(std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height);
     std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     static const long ID_MNU_EXPORT;
     static const long ID_MNU_DARK;
     static const long ID_MNU_LIGHT;
+    static const long ID_MNU_FRONT;
+    static const long ID_MNU_REAR;
     static const long ID_MNU_FONTSMALLER;
     static const long ID_MNU_FONTLARGER;
     void Render();
 
     public:
 
-		WiringDialog(wxWindow* parent, wxGrid* grid, bool reverse, wxString modelname,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		WiringDialog(wxWindow* parent, wxString modelname,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~WiringDialog();
+        void SetData(wxGrid* grid, bool reverse);
+        void SetData(Model* model);
 
 		//(*Declarations(WiringDialog)
 		wxStaticBitmap* StaticBitmap_Wiring;

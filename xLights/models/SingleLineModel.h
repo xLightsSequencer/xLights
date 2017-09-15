@@ -22,6 +22,7 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; }
+        virtual bool SupportsWiringView() const override { return false; }
 
     protected:
         static std::vector<std::string> LINE_BUFFER_STYLES;

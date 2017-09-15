@@ -11,6 +11,7 @@ class WholeHouseModel : public ModelWithScreenLocation<BoxedScreenLocation>
         WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb = false);
         virtual ~WholeHouseModel();
         virtual bool SupportsExportAsCustom() const override { return false; } 
+        virtual bool SupportsWiringView() const override { return false; }
 
     protected:
         WholeHouseModel(const ModelManager &manager);

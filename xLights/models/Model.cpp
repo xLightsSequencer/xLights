@@ -2368,7 +2368,6 @@ void Model::ApplyTransparency(xlColor &color, int transparency) {
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
-    float sx,sy;
     xlColor color;
     if (c != nullptr) {
         color = *c;
@@ -2381,7 +2380,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     GetModelScreenLocation().PrepareToDraw();
 
     int vcount = 0;
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         vcount += it->get()->Coords.size();
     }
     if (pixelStyle > 1) {
@@ -2439,8 +2438,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         size_t CoordCount=GetCoordCount(n);
         for(size_t c2=0; c2 < CoordCount; c2++) {
             // draw node on screen
-            sx=Nodes[n]->Coords[c2].screenX;;
-            sy=Nodes[n]->Coords[c2].screenY;
+            float sx = Nodes[n]->Coords[c2].screenX;;
+            float sy = Nodes[n]->Coords[c2].screenY;
             GetModelScreenLocation().TranslatePoint(sx, sy);
 
             if (pixelStyle < 2) {

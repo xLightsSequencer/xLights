@@ -285,6 +285,7 @@ public:
     void ExportAsCustomXModel() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;
+    virtual bool SupportsWiringView() const = 0;
     size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const std::string& str, std::vector<wxPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<wxPoint>& first_xy);

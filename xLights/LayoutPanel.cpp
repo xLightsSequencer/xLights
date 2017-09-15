@@ -33,6 +33,7 @@
 #include "models/ModelImages.h"
 #include "PreviewPane.h"
 #include "models/SubModel.h"
+#include "WiringDialog.h"
 
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_PANEL3 = wxNewId();
@@ -64,6 +65,7 @@ const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
@@ -1741,6 +1743,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
             }
+            if (model->SupportsWiringView())
+            {
+                mnu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
+            }
             if (model->SupportsXlightsModel())
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
@@ -1813,6 +1819,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         Model* md = selectedModel;
         if (md == nullptr) return;
         md->ExportAsCustomXModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
+    {
+        Model* md = selectedModel;
+        if (md == nullptr) return;
+        WiringDialog dlg(this, md->GetName());
+        dlg.SetData(md);
+        dlg.ShowModal();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
