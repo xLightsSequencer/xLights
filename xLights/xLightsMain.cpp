@@ -1996,6 +1996,7 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
+        layoutPanel->UnSelectAllModels();
         RecalcModels();
     }
 }
@@ -3198,6 +3199,8 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     if (fd.ShowModal() == wxID_CANCEL) return;
 
     // make sure everything is up to date
+    if (Notebook1->GetSelection() != PREVIEWTAB)
+        layoutPanel->UnSelectAllModels();
     RecalcModels();
 
     // check the curent sequence to ensure this analysis is in the log
@@ -3592,6 +3595,8 @@ void xLightsFrame::ExportModels(wxString filename)
     }
 
     // make sure everything is up to date
+    if (Notebook1->GetSelection() != PREVIEWTAB)
+        layoutPanel->UnSelectAllModels();
     RecalcModels();
 
     long minchannel = 99999999;
@@ -3894,6 +3899,8 @@ void xLightsFrame::CheckSequence(bool display)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // make sure everything is up to date
+    if (Notebook1->GetSelection() != PREVIEWTAB)
+        layoutPanel->UnSelectAllModels();
     RecalcModels();
 
     int errcount = 0;
@@ -5279,6 +5286,8 @@ std::string StripPresets(const std::string& sourcefile)
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
     // make sure everything is up to date
+    if (Notebook1->GetSelection() != PREVIEWTAB)
+        layoutPanel->UnSelectAllModels();
     RecalcModels();
 
     FPPConnectDialog dlg(this, &_outputManager);
@@ -5305,6 +5314,8 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     if (fd.ShowModal() == wxID_CANCEL) return;
 
     // make sure everything is up to date
+    if (Notebook1->GetSelection() != PREVIEWTAB)
+        layoutPanel->UnSelectAllModels();
     RecalcModels();
 
     wxFileName fnZip(fd.GetPath());

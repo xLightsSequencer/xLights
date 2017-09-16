@@ -716,7 +716,7 @@ void LayoutPanel::refreshModelList() {
                 wxString startStr = model->GetStartChannelInDisplayFormat();
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if (model->CouldComputeStartChannel)
+                    if (model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel")
                     {
                         TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
                     }
@@ -811,7 +811,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat();
-        if (model->CouldComputeStartChannel)
+        if (model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel")
         {
             TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
         }
@@ -1142,18 +1142,26 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // TODO need to strip out extra logging once I know for sure what is going on
+    if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectModel modelPreview is nullptr ... this is going to crash.");
 
     modelPreview->SetFocus();
     int foundStart = 0;
     int foundEnd = 0;
 
     if (m != nullptr) {
-        logger_base.warn("LayoutPanel::SelectModel pre dynamic cast subModel - KW");
-        SubModel *subModel = dynamic_cast<SubModel*>(m);
-        if (subModel != nullptr) {
-            // this is the only thing I can see here that could crash
-            if (subModel->GetParent() == nullptr) logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
-            subModel->GetParent()->Selected = true;
+
+        if (m->GetDisplayAs() == "SubModel")
+        {
+            logger_base.warn("LayoutPanel::SelectModel pre dynamic cast subModel - KW");
+            SubModel *subModel = dynamic_cast<SubModel*>(m);
+            if (subModel != nullptr) {
+                // this is the only thing I can see here that could crash
+                if (subModel->GetParent() == nullptr) logger_base.crit("LayoutPanel::SelectModel subModel->GetParent is nullptr ... this is going to crash.");
+                subModel->GetParent()->Selected = true;
+            }
+            else {
+                m->Selected = true;
+            }
         } else {
             m->Selected = true;
         }
