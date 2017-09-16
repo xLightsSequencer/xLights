@@ -37,7 +37,7 @@ class LiquidEffect : public RenderableEffect
         LiquidEffect(int id);
         virtual ~LiquidEffect();
         virtual void SetDefaultParameters(Model *cls) override;
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 
     protected:

@@ -12,7 +12,7 @@ class ServoEffect : public RenderableEffect
         ServoEffect(int id);
         virtual ~ServoEffect();
         virtual bool CanBeRandom() override {return false;}
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void SetDefaultParameters(Model *cls) override;
     protected:

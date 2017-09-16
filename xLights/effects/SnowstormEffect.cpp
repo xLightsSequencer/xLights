@@ -135,7 +135,7 @@ void SnowstormEffect::SetDefaultParameters(Model *cls)
     SetSliderValue(sp->Slider_Snowstorm_Speed, 10);
 }
 
-void SnowstormEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SnowstormEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", 50);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", 50);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", 10);

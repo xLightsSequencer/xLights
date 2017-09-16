@@ -83,7 +83,7 @@ void SingleStrandEffect::SetDefaultParameters(Model *cls)
     SetCheckBoxValue(sp->CheckBox_Chase_Group_All, false);
 }
 
-void SingleStrandEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SingleStrandEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
         RenderSingleStrandSkips(buffer, effect,
                                 SettingsMap.GetInt("SLIDER_Skips_BandSize",1),

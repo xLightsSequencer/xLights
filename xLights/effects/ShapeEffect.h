@@ -32,7 +32,7 @@ class ShapeEffect : public RenderableEffect
         ShapeEffect(int id);
         virtual ~ShapeEffect();
         virtual void SetDefaultParameters(Model *cls) override;
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;

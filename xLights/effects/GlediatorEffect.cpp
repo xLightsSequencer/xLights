@@ -176,7 +176,7 @@ public:
     int _frameMS;
 };
 
-void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

@@ -67,7 +67,7 @@ void LifeEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(lp->Slider_Life_Speed, 10);
 }
 
-void LifeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void LifeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Count = SettingsMap.GetInt("SLIDER_Life_Count", 50);
     int Type = SettingsMap.GetInt("SLIDER_Life_Seed", 0);
     int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", 10);

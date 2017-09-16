@@ -153,7 +153,7 @@ void PianoEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     SetPanelTimingTracks();
 }
 
-void PianoEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PianoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),

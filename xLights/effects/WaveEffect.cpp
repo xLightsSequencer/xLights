@@ -93,7 +93,7 @@ void WaveEffect::SetDefaultParameters(Model *cls) {
     wp->BitmapButton_Wave_SpeedVC->SetActive(false);
 }
 
-void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

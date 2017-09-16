@@ -250,7 +250,7 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     return rand01() * 11;
 }
 
-void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
 	float oset = buffer.GetEffectTimeIntervalPosition();
 

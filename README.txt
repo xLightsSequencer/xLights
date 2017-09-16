@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Force value curves to update to real values ... it wasnt doing this which may have masked some issues
+   -- enh (keith)   Add row heading tooltips where the model names are too wide to display
    -- enh (keith)   Add ability to display wiring view from the front
    -- enh (keith)   Add wiring views for most inbuilt models
    -- bug (keith)   Validate serial controller number of channels

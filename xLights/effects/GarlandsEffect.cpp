@@ -62,7 +62,7 @@ void GarlandsEffect::SetDefaultParameters(Model *cls) {
     SetChoiceValue(fp->Choice_Garlands_Direction, "Up");
 }
 
-void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void GarlandsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int GarlandType = SettingsMap.GetInt("SLIDER_Garlands_Type", 0);
     int Spacing = GetValueCurveInt("Garlands_Spacing", 10, SettingsMap, oset, GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);

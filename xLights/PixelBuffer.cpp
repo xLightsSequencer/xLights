@@ -1170,8 +1170,8 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
         return;
     }
 
-    theValueCurve.Deserialise(valueCurve);
     theValueCurve.SetDivisor(divisor);
+    theValueCurve.Deserialise(valueCurve);
 }
 
 // Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size

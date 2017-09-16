@@ -93,7 +93,7 @@ void MusicEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(mp->CheckBox_Music_Fade, false);
 }
 
-void MusicEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MusicEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         SettingsMap.GetInt("SLIDER_Music_Bars", 20),

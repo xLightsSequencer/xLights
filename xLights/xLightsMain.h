@@ -1041,7 +1041,7 @@ public:
     void RenderGridToSeqData(std::function<void()>&& callback);
     bool AbortRender();
     void UpdateRenderStatus();
-    bool RenderEffectFromMap(Effect *effect, int layer, int period, const SettingsMap& SettingsMap,
+    bool RenderEffectFromMap(Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = nullptr);
     void RenderMainThreadEffects();

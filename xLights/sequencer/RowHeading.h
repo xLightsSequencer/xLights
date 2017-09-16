@@ -25,8 +25,8 @@ class RowHeading : public wxWindow
 
         void SetSequenceElements(SequenceElements* elements);
         void SetSelectedRow(int row_number);
-        int getWidth();
-        int getHeight();
+        int getWidth() const;
+        int getHeight() const;
         int GetMaxRows();
         void SetCanPaste(bool value) { mCanPaste = value; }
 
@@ -38,6 +38,10 @@ class RowHeading : public wxWindow
         void Draw();
         void render( wxPaintEvent& event );
         void mouseLeftDown( wxMouseEvent& event);
+        void mouseEnter( wxMouseEvent& event);
+        void mouseLeave( wxMouseEvent& event);
+        void mouseMove( wxMouseEvent& event);
+        void ProcessTooltip(wxMouseEvent& event);
         void rightClick( wxMouseEvent& event);
         void leftDoubleClick(wxMouseEvent &event);
         void OnLayerPopup(wxCommandEvent& event);
@@ -46,7 +50,7 @@ class RowHeading : public wxWindow
         bool HitTestTimingActive(int row,int x, bool* IsActive);
         void BreakdownTimingPhrases(TimingElement* element);
         void BreakdownTimingWords(TimingElement* element);
-        const xlColor GetHeaderColor(Row_Information_Struct* info);
+    xlColor GetHeaderColor(Row_Information_Struct* info) const;
         bool ExpandElementIfEffects(Element* e);
         bool ModelInView(const std::string& model, int view);
 

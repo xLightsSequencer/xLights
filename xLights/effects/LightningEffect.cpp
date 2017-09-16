@@ -67,7 +67,7 @@ static inline int GetLightningEffect(const std::string &dir) {
     }
 }
 
-void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void LightningEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX);
     int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);

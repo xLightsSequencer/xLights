@@ -180,7 +180,7 @@ void FireworksEffect::SetPanelTimingTracks()
     wxPostEvent(fp, event);
 }
 
-void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Explosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
     int Count = SettingsMap.GetInt("SLIDER_Fireworks_Count", 50);
     float Velocity = SettingsMap.GetDouble("SLIDER_Fireworks_Velocity", 2.0f);

@@ -439,7 +439,7 @@ void TendrilEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(tp->Slider_Tendril_ManualY, 0);
 }
 
-void TendrilEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TendrilEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
         SettingsMap.Get("CHOICE_Tendril_Movement", "Random"),

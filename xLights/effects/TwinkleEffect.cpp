@@ -156,7 +156,7 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
     return 1;
 }
 
-void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     int Count = SettingsMap.GetInt("SLIDER_Twinkle_Count", 3);
     int Steps = SettingsMap.GetInt("SLIDER_Twinkle_Steps", 30);

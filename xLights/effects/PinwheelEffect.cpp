@@ -82,7 +82,7 @@ PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string &pinwh
 }
 
 
-void PinwheelEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

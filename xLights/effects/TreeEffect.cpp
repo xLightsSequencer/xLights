@@ -54,7 +54,7 @@ void TreeEffect::adjustSettings(const std::string &version, Effect *effect, bool
     }
 }
 
-void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void TreeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 1);
     int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);
     bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", false);

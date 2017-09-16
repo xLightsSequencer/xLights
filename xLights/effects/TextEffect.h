@@ -12,7 +12,7 @@ class TextEffect : public RenderableEffect
         TextEffect(int id);
         virtual ~TextEffect();
         virtual void SetDefaultParameters(Model *cls) override;
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override {return false;};
 #endif

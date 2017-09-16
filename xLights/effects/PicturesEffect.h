@@ -14,7 +14,7 @@ class PicturesEffect : public RenderableEffect
         virtual ~PicturesEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void SetDefaultParameters(Model *cls) override;
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         static void Render(RenderBuffer &buffer,
                            const std::string & dirstr, const std::string &NewPictureName2,
                            float movementSpeed, float frameRateAdj,

@@ -174,7 +174,7 @@ void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
 }
 
 
-void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);

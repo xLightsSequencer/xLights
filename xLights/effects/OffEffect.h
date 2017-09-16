@@ -9,7 +9,7 @@ class OffEffect : public RenderableEffect
         OffEffect(int id);
         virtual ~OffEffect();
         virtual bool CanBeRandom() override {return false;}
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::string GetEffectString() override { return "";};
 
     protected:

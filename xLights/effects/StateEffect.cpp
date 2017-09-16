@@ -135,7 +135,7 @@ void StateEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     }
 }
 
-void StateEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     RenderState(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
                 SettingsMap.Get("CHOICE_State_StateDefinition", ""),

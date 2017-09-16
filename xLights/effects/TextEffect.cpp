@@ -333,6 +333,7 @@ static int TextCountDownIndex(const wxString &st) {
     if (st == "minutes seconds") return 7;
     return 0;
 }
+
 static int TextEffectsIndex(const wxString &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;
@@ -342,7 +343,8 @@ static int TextEffectsIndex(const wxString &st) {
     if (st == "rotate down 90") return 6;
     return 0;
 }
-void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+
+void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     xlColor c;
     buffer.GetTextDrawingContext()->Clear();
 

@@ -145,7 +145,7 @@ void MeteorsEffect::SetDefaultParameters(Model *cls) {
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
-void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Count = SettingsMap.GetInt("SLIDER_Meteors_Count", 10);
     int Length = SettingsMap.GetInt("SLIDER_Meteors_Length", 25);
     int SwirlIntensity = SettingsMap.GetInt("SLIDER_Meteors_Swirl_Intensity", 0);

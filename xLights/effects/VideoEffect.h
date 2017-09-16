@@ -9,7 +9,7 @@ class VideoEffect : public RenderableEffect
     public:
         VideoEffect(int id);
         virtual ~VideoEffect();
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
 					std::string filename, double starttime, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio);
         virtual bool CanBeRandom() override {return false;}

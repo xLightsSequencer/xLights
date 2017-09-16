@@ -52,7 +52,7 @@ void RippleEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
 }
 
-void RippleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     const std::string &Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
     const std::string &MovementStr = SettingsMap["CHOICE_Ripple_Movement"];

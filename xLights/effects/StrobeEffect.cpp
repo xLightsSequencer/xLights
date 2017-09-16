@@ -80,7 +80,7 @@ void StrobeEffect::SetDefaultParameters(Model *cls)
     SetCheckBoxValue(sp->CheckBox_Strobe_Music, false);
 }
 
-void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 3);
     int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", 10);
     int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", 1);

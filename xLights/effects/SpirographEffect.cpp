@@ -47,7 +47,7 @@ void SpirographEffect::SetDefaultParameters(Model *cls)
     SetSliderValue(sp->Slider_Spirograph_Length, 20);
 }
 
-void SpirographEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SpirographEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 

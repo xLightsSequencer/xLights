@@ -352,7 +352,7 @@ std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &Sett
     return res;
 }
 
-void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PicturesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
            SettingsMap["CHOICE_Pictures_Direction"],
            SettingsMap["FILEPICKER_Pictures_Filename"],

@@ -10,7 +10,7 @@ class LifeEffect : public RenderableEffect
         LifeEffect(int id);
         virtual ~LifeEffect();
         virtual void SetDefaultParameters(Model *cls) override;
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

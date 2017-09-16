@@ -148,7 +148,7 @@ void SnowflakesEffect::SetDefaultParameters(Model *cls)
     SetChoiceValue(sp->Choice_Falling, "Driving");
 }
 
-void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     int Count = SettingsMap.GetInt("SLIDER_Snowflakes_Count", 5);
     int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 1);

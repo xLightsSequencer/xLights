@@ -7,10 +7,15 @@
 #include <wx/numdlg.h>
 #include "models/ModelGroup.h"
 
+#define ICON_SPACE 25
+
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
 EVT_RIGHT_DOWN(RowHeading::rightClick)
 EVT_LEFT_DCLICK(RowHeading::leftDoubleClick)
+EVT_ENTER_WINDOW(RowHeading::mouseEnter)
+EVT_LEAVE_WINDOW(RowHeading::mouseLeave)
+EVT_MOTION(RowHeading::mouseMove)
 EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
 
@@ -64,6 +69,58 @@ RowHeading::~RowHeading()
 {
 }
 
+void RowHeading::ProcessTooltip(wxMouseEvent& event)
+{
+    int mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
+    if (mSelectedRow < mSequenceElements->GetVisibleRowInformationSize())
+    {
+        Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
+        if (e != nullptr)
+        {
+            wxClientDC dc(this);
+            wxSize size = dc.GetTextExtent(e->GetName());
+
+            // Only set tooltip if the text looks too big to display correctly
+            if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE)
+            {
+                auto s1 = GetToolTipText().ToStdString();
+                auto s2 = e->GetName();
+                if (GetToolTipText() != e->GetName())
+                {
+                    SetToolTip(e->GetName());
+                }
+            }
+            else
+            {
+                SetToolTip("");
+            }
+        }
+        else
+        {
+            SetToolTip("");
+        }
+    }
+    else
+    {
+        SetToolTip("");
+    }
+}
+
+void RowHeading::mouseEnter(wxMouseEvent& event)
+{
+    mouseMove(event);
+}
+
+void RowHeading::mouseLeave(wxMouseEvent& event)
+{
+    SetToolTip("");
+}
+
+void RowHeading::mouseMove(wxMouseEvent& event)
+{
+    ProcessTooltip(event);
+}
+
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
@@ -100,6 +157,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         }
     }
 }
+
 void RowHeading::leftDoubleClick(wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
@@ -873,7 +931,7 @@ void RowHeading::Draw()
             {
                 if (m->GetDisplayAs() == "ModelGroup")
                 {
-                    dc.DrawBitmap(model_group_icon, getWidth() - 25, startY + 3, true);
+                    dc.DrawBitmap(model_group_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
                 else if (m->GetStringType().find("Single Color") == 0)
                 {
@@ -927,7 +985,7 @@ void RowHeading::Draw()
                 dc.SetBrush(brush2);
                 if(rowInfo->element->GetEffectLayerCount() > 1)
                 {
-                    dc.DrawBitmap(papagayo_icon, getWidth()-25, startY+3, true);
+                    dc.DrawBitmap(papagayo_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
             }
         }
@@ -938,7 +996,7 @@ void RowHeading::Draw()
     dc.DrawRectangle(0,endY,w,h);
 }
 
-const xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info)
+xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info) const
 {
     if (info->element->GetType() == ELEMENT_TYPE_TIMING)
     {
@@ -964,12 +1022,12 @@ void RowHeading::DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row)
 {
 }
 
-int RowHeading::getWidth()
+int RowHeading::getWidth() const
 {
     return GetSize().x;
 }
 
-int RowHeading::getHeight()
+int RowHeading::getHeight() const
 {
     return GetSize().y;
 }

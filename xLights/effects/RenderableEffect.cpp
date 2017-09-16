@@ -786,25 +786,33 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
-double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
 {
     double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);
 
-    wxString vc = SettingsMap.Get("VALUECURVE_" + name, "");
+    wxString vn = "VALUECURVE_" + name;
+    wxString vc = SettingsMap.Get(vn, "");
     if (vc != "")
     {
+        bool needsUpgrade = !vc.Contains("RV=TRUE");
         ValueCurve valc(vc.ToStdString());
         if (valc.IsActive())
         {
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
             res = valc.GetOutputValueAt(offset);
+
+            if (needsUpgrade)
+            {
+                SettingsMap[vn] == valc.Serialise();
+            }
         }
     }
 
     return res;
 }
-int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, int divisor)
+
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, int divisor)
 {
     int res = def;
     const std::string sn = "SLIDER_" + name;
@@ -822,6 +830,9 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
     if (SettingsMap.Contains(vn))
     {
         wxString vc = SettingsMap.Get(vn, "");
+
+        bool needsUpgrade = !vc.Contains("RV=TRUE");
+
         ValueCurve valc;
         valc.SetDivisor(divisor);
         valc.SetLimits(min, max);
@@ -829,6 +840,11 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
         if (valc.IsActive())
         {
             res = valc.GetOutputValueAt(offset);
+
+            if (needsUpgrade)
+            {
+                SettingsMap[vn] = valc.Serialise();
+            }
         }
     }
 

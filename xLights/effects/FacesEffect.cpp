@@ -179,7 +179,7 @@ void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
     }
 }
 
-void FacesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
         && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
         //3.x style Faces effect

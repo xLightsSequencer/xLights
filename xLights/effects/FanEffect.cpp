@@ -102,7 +102,7 @@ void FanEffect::SetDefaultParameters(Model *cls) {
 
 const double PI  =3.141592653589793238463;
 
-void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FanEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos, FAN_CENTREX_MIN , FAN_CENTREX_MAX);
     int center_y = GetValueCurveInt("Fan_CenterY", 50, SettingsMap, eff_pos, FAN_CENTREY_MIN, FAN_CENTREY_MAX);

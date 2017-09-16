@@ -149,7 +149,7 @@ static inline int GetDirection(const std::string & DirectionString) {
     return 0;
 }
 
-void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int position = GetValueCurveInt("Fill_Position", 100, SettingsMap, eff_pos, FILL_POSITION_MIN, FILL_POSITION_MAX);

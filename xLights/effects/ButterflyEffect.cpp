@@ -67,7 +67,7 @@ void ButterflyEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(bp->Slider_Butterfly_Speed, 10);
 }
 
-void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
+void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);

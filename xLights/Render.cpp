@@ -65,7 +65,7 @@ public:
     int layer;
     int period;
     Effect *effect;
-    const SettingsMap *settingsMap;
+    SettingsMap *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
     bool returnVal = true;
@@ -89,7 +89,8 @@ public:
         return true;
     }
     
-    bool HasNext() {
+    bool HasNext() const
+    {
         return !next.empty();
     }
     
@@ -118,7 +119,7 @@ public:
         return previousFrameDone >= frame;
     }
 
-    int GetPreviousFrameDone()
+    int GetPreviousFrameDone() const
     {
         return previousFrameDone;
     }
@@ -1519,7 +1520,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     }
 }
 
-bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, const SettingsMap& SettingsMap,
+bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
     

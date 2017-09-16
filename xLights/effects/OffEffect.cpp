@@ -19,7 +19,7 @@ wxPanel *OffEffect::CreatePanel(wxWindow *parent) {
     return new OffPanel(parent);
 }
 
-void OffEffect::Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) {
+void OffEffect::Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) {
     int x,y;
     //  Every Node, every frame set to BLACK
     for (x = 0; x < buffer.BufferWi; x++) {

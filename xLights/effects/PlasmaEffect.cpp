@@ -58,7 +58,7 @@ void PlasmaEffect::SetDefaultParameters(Model *cls) {
     SetChoiceValue(pp->Choice_Plasma_Color, "Normal");
 }
 
-void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PlasmaEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Style = SettingsMap.GetInt("SLIDER_Plasma_Style", 1);
