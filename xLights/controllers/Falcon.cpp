@@ -613,14 +613,12 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int virtualStrings = 0;
 
-    if (stringsDoc.GetRoot() == nullptr)
-    {
-        return 0;
-    }
+    if (stringsDoc.GetRoot() == nullptr) return 0;
 
     int count = wxAtoi(stringsDoc.GetRoot()->GetAttribute("c"));
 
     logger_base.debug("Strings.xml had %d entries.", count);
+    if (count == 0) return 0;
 
     stringData.resize(count);
 

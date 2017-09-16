@@ -690,6 +690,7 @@ bool OutputManager::StartOutput()
 
     int started = 0;
     bool ok = true;
+    bool err = false;
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
@@ -699,10 +700,18 @@ bool OutputManager::StartOutput()
         {
             logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)(*it)->GetDescription().c_str());
             if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started+1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            err = true;
         }
         if (ok) started++;
         _outputting = (started > 0);
     }
+
+    if (err && !_outputting)
+    {
+        // fake it so we dont keep getting error messages
+        _outputting = true;
+    }
+
     _outputCriticalSection.Leave();
 
     if (_outputting)

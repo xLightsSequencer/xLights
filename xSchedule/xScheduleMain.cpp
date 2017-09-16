@@ -500,6 +500,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
+    SetTitle("xLights Scheduler " + xlights_version_string + " " + GetBitness());
+
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
     icons.AddIcon(wxIcon(xlights_32_xpm));

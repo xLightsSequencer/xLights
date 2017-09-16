@@ -62,8 +62,27 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     wxConfigBase* config = wxConfigBase::Get();
     _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
 
-    if (_mode == SYNCMODE::FPPMASTER) OpenFPPSyncSendSocket();
-    if (_mode == SYNCMODE::FPPSLAVE) OpenFPPSyncListenSocket();
+    if (_mode == SYNCMODE::FPPMASTER) {
+        logger_base.info("SyncMode: FPPMASTER");
+        OpenFPPSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::FPPSLAVE)
+    {
+        logger_base.info("SyncMode: FPPREMOTE");
+        OpenFPPSyncListenSocket();
+    }
+    else if (_mode == SYNCMODE::STANDALONE)
+    {
+        logger_base.info("SyncMode: STANDALONE");
+    }
+    else if (_mode == SYNCMODE::ARTNETMASTER)
+    {
+        logger_base.info("SyncMode: ARTNETMASTER");
+    }
+    else if (_mode == SYNCMODE::ARTNETSLAVE)
+    {
+        logger_base.info("SyncMode: ARTNETREMOTE");
+    }
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -398,7 +417,7 @@ int ScheduleManager::Frame(bool outputframe)
             rate = running->GetFrameMS();
             done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
-            if (outputframe && _mode == SYNCMODE::FPPMASTER)
+            if (outputframe && _mode == SYNCMODE::FPPMASTER && running->GetRunningStep() != nullptr)
             {
                 SendFPPSync(running->GetActiveSyncItemFSEQ(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
                 if (running->GetActiveSyncItemMedia() != "")

@@ -60,9 +60,9 @@ void FRAMECLASS ConversionInit()
 void FRAMECLASS SetMediaFilename(const wxString& filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Setting media file to: " + filename);
+    logger_base.debug("Setting media file to: %s.", (const char *)filename.c_str());
 
-    mediaFilename=filename;
+    mediaFilename = filename;
     if (mediaFilename.size() == 0)
     {
         mMediaLengthMS = 0;
@@ -73,8 +73,8 @@ void FRAMECLASS SetMediaFilename(const wxString& filename)
     wxFileName fn1(mediaFilename, PathFmt);
     if (!fn1.FileExists())
     {
-        wxFileName fn2(CurrentDir,fn1.GetFullName());
-        mediaFilename=fn2.GetFullPath();
+        wxFileName fn2(CurrentDir, fn1.GetFullName());
+        mediaFilename = fn2.GetFullPath();
     }
 }
 

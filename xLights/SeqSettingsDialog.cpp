@@ -875,14 +875,19 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
         if( xml_file->GetSequenceLoaded() )
         {
             timing_list = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
-            xLightsParent->DeleteTimingElement(timing_list[row].ToStdString());
+            if (timing_list.size() > row)
+                xLightsParent->DeleteTimingElement(timing_list[row].ToStdString());
         }
         else
         {
             timing_list = xml_file->GetTimingList();
         }
-        xml_file->DeleteTimingSection(timing_list[row].ToStdString());
-        Grid_Timing->DeleteRows(row);
+
+        if (timing_list.size() > row)
+        {
+            xml_file->DeleteTimingSection(timing_list[row].ToStdString());
+            Grid_Timing->DeleteRows(row);
+        }
         Refresh();
     }
 }

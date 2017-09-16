@@ -320,7 +320,7 @@ std::string SequenceElements::GetViewModels(const std::string &viewName) const
 
 int SequenceElements::GetElementIndex(const std::string &name, int view)
 {
-    for (size_t i = 0; i<mAllViews[view].size(); ++i)
+    for (size_t i = 0; i < mAllViews[view].size(); ++i)
     {
         Element *el = mAllViews[view][i];
         if (name == el->GetFullName())
@@ -336,18 +336,18 @@ Element* SequenceElements::GetElement(const std::string &name) const
 {
     if (mAllViews.size() == 0) return nullptr;
 
-    for(size_t i=0; i<mAllViews[MASTER_VIEW].size(); ++i)
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); ++i)
     {
         Element *el =  mAllViews[MASTER_VIEW][i];
-        if(name == el->GetFullName())
+        if (name == el->GetFullName())
         {
             return mAllViews[MASTER_VIEW][i];
-        } else if (el->GetType() == ELEMENT_TYPE_MODEL){
-            ModelElement *mel = dynamic_cast<ModelElement*>(el);
+        } else if (el->GetType() == ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr)
             {
                 for (int x = 0; x < mel->GetSubModelCount(); ++x) {
-                    SubModelElement *sme = mel->GetSubModel(x);
+                    SubModelElement* sme = mel->GetSubModel(x);
                     if (sme != nullptr)
                     {
                         if (sme->GetFullName() == name) {
@@ -358,6 +358,7 @@ Element* SequenceElements::GetElement(const std::string &name) const
             }
         }
     }
+
     return nullptr;
 }
 

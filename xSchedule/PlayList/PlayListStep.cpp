@@ -243,30 +243,31 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
     ms = 9999;
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
+        size_t msec = (*it)->GetFrameMS();
+
         if ((*it)->ControlsTiming())
         {
             if (timesource == nullptr)
             {
                 timesource = *it;
-                ms = (*it)->GetFrameMS();
+                ms = msec;
             }
             else
             {
                 if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
                 {
                     timesource = *it;
-                    ms = (*it)->GetFrameMS();
+                    ms = msec;
                 }
             }
         }
         else if (timesource == nullptr)
         {
-            if ((*it)->GetFrameMS() != 0 && (*it)->GetFrameMS() < ms)
+            if (msec != 0 && msec < ms)
             {
-                ms = (*it)->GetFrameMS();
+                ms = msec;
             }
         }
-           
     }
 
     if (ms == 9999)
