@@ -1968,6 +1968,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                 grp->SetPreviewActive(show);
             }
         }
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
     }
 }
 

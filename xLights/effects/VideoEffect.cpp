@@ -250,6 +250,11 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 // extract the video length
                 int videolen = _videoreader->GetLengthMS();
 
+                if (videolen == 0)
+                {
+                    logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
+                }
+
                 VideoPanel *fp = static_cast<VideoPanel*>(panel);
                 if (fp != nullptr)
                 {
@@ -283,7 +288,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
 	}
 
-	if (_videoreader != nullptr)
+	if (_videoreader != nullptr && _videoreader->GetLengthMS() > 0)
 	{
         long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
 

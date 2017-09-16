@@ -672,11 +672,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             laststrand->Insert(lastnode, n);
         }
     }
-    if (dynamic_cast<ModelGroup *>(m) != nullptr) {
-        ModelGroup *grp = dynamic_cast<ModelGroup *>(m);
+    if (dynamic_cast<ModelGroup*>(m) != nullptr) {
+        ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
         if (grp != nullptr)
         {
-            std::vector<Model *> models = grp->Models();
+            std::vector<Model*> models = grp->Models();
             for (auto a = models.begin(); a != models.end(); ++a) {
                 AddModel(*a, ms);
             }

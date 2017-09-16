@@ -245,7 +245,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                                           &_outputManager,                                 // global network info
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
-                                          NULL,
+                                          nullptr,
                                           plog,
                                           &mf );                                        // media filename
 

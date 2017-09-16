@@ -359,6 +359,14 @@ wxString xLightsFrame::GetThreadStatusReport() {
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+
+    static bool inHere = false;
+
+    // if we are in here a second time ... just exit
+    if (inHere) exit(1);
+
+    inHere = true;
+
     if (wxDebugReportPreviewStd().Show(*report)) {
         report->Process();
         SendReport("crashUpload", *report);
@@ -367,6 +375,9 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
 	delete report;
+
+    inHere = false;
+
 	exit(1);
 }
 

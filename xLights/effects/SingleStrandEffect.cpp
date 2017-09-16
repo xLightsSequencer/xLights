@@ -361,8 +361,10 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
 {
     size_t colorcnt=buffer.GetColorCount();
 
-    int max_chase_width = width * Chase_Width/100.0;
+    int max_chase_width = width * Chase_Width / 100.0;
     if (max_chase_width < 1) max_chase_width = 1;
+
+    wxASSERT(Number_Chases != 0);
 
     int pixels_per_chase = width / Number_Chases;
     if (pixels_per_chase < 1) {
@@ -423,9 +425,9 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
         }
     }
 
-    if (max_chase_width>=1)
+    if (max_chase_width >= 1)
     {
-        for (int i=0; i<max_chase_width; i++)
+        for (int i = 0; i < max_chase_width; i++)
         {
             xlColor color;
             if(ColorScheme==0) {

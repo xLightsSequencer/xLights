@@ -588,14 +588,18 @@ void MainSequencer::DoPaste(wxCommandEvent& event) {
         Paste();
     }
 }
+
 void MainSequencer::DoUndo(wxCommandEvent& event) {
-    if( mSequenceElements != nullptr
-       && mSequenceElements->get_undo_mgr().CanUndo() ) {
+    
+    if (PanelEffectGrid == nullptr) return;
+
+    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
         PanelEffectGrid->Refresh();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
 }
+
 void MainSequencer::DoRedo(wxCommandEvent& event) {
 }
 
