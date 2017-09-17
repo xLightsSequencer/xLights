@@ -64,6 +64,8 @@ const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_LOCK = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_UNLOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
@@ -162,7 +164,6 @@ private:
     unsigned int state;
     wxBitmap bitmap;
 };
-
 
 #include <log4cpp/Category.hh>
 
@@ -367,7 +368,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
-
 }
 
 
@@ -854,6 +854,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
     std::vector<Model *> models;
     UpdateModelList(full_refresh, models);
 }
+
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
     if (full_refresh) {
         UnSelectAllModels();
@@ -1447,7 +1448,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         return;
     }
 
-
     ShowPropGrid(true);
     modelPreview->SetFocus();
     int y = event.GetY();
@@ -1718,7 +1718,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     }
     if (selectedModelCnt > 0) {
         Model* model = selectedModel;
-        if (model != nullptr)
+        if (model != nullptr && !model->GetModelScreenLocation().IsLocked())
         {
             bool need_sep = false;
             int sel_seg = model->GetSelectedSegment();
@@ -1747,6 +1747,8 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         if (model != nullptr)
         {
             mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
+            mnu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
+            mnu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
             if (model->SupportsExportAsCustom())
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTASCUSTOM, "Export as Custom xLights Model");
@@ -1773,7 +1775,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     PopupMenu(&mnu);
     modelPreview->SetFocus();
 }
-
 
 void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 {
@@ -1821,6 +1822,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
+    {
+        LockSelectedModels(true);
+        UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
+    {
+        LockSelectedModels(false);
+        UpdatePreview();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
     {
@@ -2289,8 +2300,9 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             break;
     }
 }
+
 void LayoutPanel::DeleteSelectedModel() {
-    if( selectedModel != nullptr ) {
+    if( selectedModel != nullptr && !selectedModel->GetModelScreenLocation().IsLocked()) {
         CreateUndoPoint("All", selectedModel->name);
         // This should delete all selected models
         //xlights->AllModels.Delete(selectedModel->name);
@@ -2314,6 +2326,28 @@ void LayoutPanel::DeleteSelectedModel() {
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
     }
+}
+
+void LayoutPanel::LockSelectedModels(bool lock)
+{
+    bool selectedModelFound = false;
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedModel->name)
+            {
+                selectedModelFound = true;
+            }
+
+            modelPreview->GetModels()[i]->Lock(lock);
+        }
+    }
+    if (!selectedModelFound)
+    {
+        selectedModel->Lock(lock);
+    }
+    xlights->MarkEffectsFileDirty(true);
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
@@ -2373,6 +2407,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     std::string name = xlights->AllModels.GenerateModelName(newModel->name);
                     newModel->name = name;
                     newModel->GetModelXml()->DeleteAttribute("name");
+                    newModel->Lock(false);
                     newModel->GetModelXml()->AddAttribute("name", name);
                     newModel->AddOffset(0.02, 0.02);
                     newModel->UpdateXmlWithScale();

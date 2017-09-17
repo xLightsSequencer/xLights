@@ -82,10 +82,12 @@ public:
         RenderHt=NewHt;
         RenderWi=NewWi;
     }
-    float GetRenderHt() { return RenderHt; }
-    float GetRenderWi() { return RenderWi; }
-    float RenderHt,RenderWi;  // size of the rendered output
-    int previewW,previewH;
+    bool IsLocked() const { return _locked; }
+    void Lock(bool value = true) { _locked = value; }
+    float GetRenderHt() const { return RenderHt; }
+    float GetRenderWi() const { return RenderWi; }
+    float RenderHt, RenderWi;  // size of the rendered output
+    int previewW, previewH;
 
 protected:
     ModelScreenLocation(int points);
@@ -96,6 +98,7 @@ protected:
         int y;
     };
     mutable std::vector<xlPoint> mHandlePosition;
+    bool _locked;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -150,6 +153,9 @@ public:
         offsetYpct=yPct;
     }
     virtual void AddOffset(float xPct, float yPct) override {
+
+        if (_locked) return;
+
         offsetXpct+=xPct;
         offsetYpct+=yPct;
     }
