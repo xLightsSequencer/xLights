@@ -804,7 +804,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
 
             if (needsUpgrade)
             {
-                SettingsMap[vn] == valc.Serialise();
+                SettingsMap[vn] = valc.Serialise();
             }
         }
     }

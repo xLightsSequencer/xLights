@@ -153,6 +153,7 @@
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677989A11F321BC200A26FA9 /* valuecurves in Resources */ = {isa = PBXBuildFile; fileRef = 677989A01F321BC200A26FA9 /* valuecurves */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
+		6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
 		6784F92A1A5653670018EC0C /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9211A5653670018EC0C /* Element.cpp */; };
@@ -848,6 +849,8 @@
 		677989A01F321BC200A26FA9 /* valuecurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = valuecurves; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
+		6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateLyricsDialog.h; sourceTree = "<group>"; };
+		6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenerateLyricsDialog.cpp; sourceTree = "<group>"; };
 		6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LMSImportChannelMapDialog.cpp; sourceTree = "<group>"; };
 		6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LMSImportChannelMapDialog.h; sourceTree = "<group>"; };
 		6784F9201A5653670018EC0C /* EffectsGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectsGrid.cpp; path = sequencer/EffectsGrid.cpp; sourceTree = "<group>"; };
@@ -2068,6 +2071,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */,
+				6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */,
 				6715B4F81F5F15CF00D60087 /* HousePreviewPanel.h */,
 				6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */,
 				6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */,
@@ -2820,6 +2825,7 @@
 				67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
 				67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */,
+				6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
