@@ -1997,7 +1997,9 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
-        layoutPanel->UnSelectAllModels();
+        if (layoutPanel != nullptr) {
+            layoutPanel->UnSelectAllModels();
+        }
         RecalcModels();
     }
 }
