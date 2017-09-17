@@ -77,7 +77,7 @@ std::string PlayListItemRunProcess::GetNameNoTime() const
 
 std::string PlayListItemRunProcess::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3";
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
 }
 
 void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -98,6 +98,12 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
         }
 
         wxString cmd = _command;
+
+        if (cmd.Contains("%SHOWDIR%"))
+        {
+            cmd.Replace("%SHOWDIR%", xScheduleFrame::GetScheduleManager()->GetShowDir(), true);
+        }
+
         PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
         if (pl != nullptr)
         {
@@ -153,7 +159,12 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Launching command %s wait %d.", (const char *)cmd.c_str(), (int)_waitForCompletion);
-        wxExecute(cmd, flags);
+
+        // ensure we start in the show directory
+        wxExecuteEnv execEnv;
+        execEnv.cwd = xScheduleFrame::GetScheduleManager()->GetShowDir();
+
+        wxExecute(cmd, flags, nullptr, &execEnv);
         logger_base.info("Command launched.");
     }
 }
