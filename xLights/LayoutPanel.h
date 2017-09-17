@@ -101,6 +101,8 @@ class LayoutPanel: public wxPanel
 		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
+        static const long ID_PREVIEW_MODEL_LOCK;
+        static const long ID_PREVIEW_MODEL_UNLOCK;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
@@ -156,6 +158,7 @@ class LayoutPanel: public wxPanel
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
         void DeleteSelectedModel();
+        void LockSelectedModels(bool lock);
 
     public:
         void UpdatePreview();

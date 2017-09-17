@@ -85,14 +85,15 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 }
 
 ModelScreenLocation::ModelScreenLocation(int sz) : RenderWi(0), RenderHt(0), previewW(800), previewH(600), mHandlePosition(sz) {
+    _locked = false;
 }
-
 
 BoxedScreenLocation::BoxedScreenLocation() : ModelScreenLocation(5),
     offsetXpct(0.5f), offsetYpct(0.5f), singleScale(false),
     PreviewScaleX(0.333f), PreviewScaleY(0.333f),
     PreviewRotation(0) {
 }
+
 void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
     offsetXpct = wxAtof(ModelNode->GetAttribute("offsetXpct","0"));
     if(offsetXpct<0 || offsetXpct>1) {
@@ -118,7 +119,9 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         PreviewScaleY = 0.33f;
     }
     PreviewRotation=wxAtoi(ModelNode->GetAttribute("PreviewRotation","0"));
+    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
+
 void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("offsetXpct");
     ModelXml->DeleteAttribute("offsetYpct");
@@ -126,6 +129,7 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("PreviewScaleX");
     ModelXml->DeleteAttribute("PreviewScaleY");
     ModelXml->DeleteAttribute("PreviewRotation");
+    ModelXml->DeleteAttribute("Locked");
     ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
     ModelXml->AddAttribute("offsetYpct", wxString::Format("%6.4f",offsetYpct));
     if (singleScale) {
@@ -135,8 +139,11 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
         ModelXml->AddAttribute("PreviewScaleY", wxString::Format("%6.4f",PreviewScaleY));
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
+    if (_locked)
+    {
+        ModelXml->AddAttribute("Locked", "1");
+    }
 }
-
 
 void BoxedScreenLocation::TranslatePoint(float &sx, float &sy) const {
     sx = (sx*scalex);
@@ -168,6 +175,13 @@ bool BoxedScreenLocation::HitTest(int x, int y) const {
 }
 
 wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord y) const {
+
+    if (_locked)
+    {
+        handle = OVER_NO_HANDLE;
+        return wxCURSOR_DEFAULT;
+    }
+
     if (x>mHandlePosition[0].x && x<mHandlePosition[0].x+RECT_HANDLE_WIDTH &&
         y>mHandlePosition[0].y && y<mHandlePosition[0].y+RECT_HANDLE_WIDTH) {
         handle = OVER_L_TOP_HANDLE;
@@ -193,6 +207,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
     }
     return wxCURSOR_DEFAULT;
 }
+
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
     offsetXpct = (float)x/(float)previewW;
     offsetYpct = (float)y/(float)previewH;
@@ -275,7 +290,14 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+
+    xlColor handleColor = xlBLUE;
+    if (_locked)
+    {
+        handleColor = xlRED;
+    }
+
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
 
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
@@ -285,7 +307,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
     // Lower Right Handle
@@ -294,7 +316,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
     // Lower Left Handle
@@ -303,7 +325,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
 
@@ -313,7 +335,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePointDoubles(radians,sx,sy,sx,sy);
     sx += w1;
     sy += h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     // Save rotate handle
     mHandlePosition[4].x = sx;
     mHandlePosition[4].y = sy;
@@ -333,7 +355,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 }
 
 void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("X (%)", "ModelX", offsetXpct * 100.0));
+    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
+    prop->SetAttribute("UseCheckbox", 1);
+    prop = propertyEditor->Append(new wxFloatProperty("X (%)", "ModelX", offsetXpct * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
@@ -354,26 +378,57 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
     prop->SetAttribute("Max", "180");
     prop->SetEditor("SpinCtrl");
 }
+
 int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if ("ModelRotation" == name) {
+    if (!_locked && "ModelRotation" == name) {
         PreviewRotation = event.GetValue().GetInteger();
-    } else if ("ModelWidth" == name) {
+    }
+    else if (_locked && "ModelRotation" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "ModelWidth" == name) {
         PreviewScaleX = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } else if ("ModelHeight" == name) {
+    }
+    else if (_locked && "ModelWidth" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "ModelHeight" == name) {
         PreviewScaleY = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } else if ("ModelX" == name) {
+    }
+    else if (_locked && "ModelHeight" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "ModelX" == name) {
         offsetXpct = event.GetValue().GetDouble() / 100.0f;
         return 3;
-    } else if ("ModelY" == name) {
+    }
+    else if (_locked && "ModelX" == name) {
+        event.Veto();
+        return 0;
+    } else if (!_locked && "ModelY" == name) {
         offsetYpct = event.GetValue().GetDouble() / 100.0f;
         return 3;
     }
+    else if (_locked && "ModelY" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if ("Locked" == name)
+    {
+        _locked = event.GetValue().GetBool();
+        return 3;
+    }
+
     return 0;
 }
+
 int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
+
+    if (_locked) return 0;
+
     if (handle == OVER_ROTATE_HANDLE) {
         int sx,sy;
         sx = mouseX-centerx;
@@ -475,16 +530,23 @@ void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
         y1 = wxAtof(ModelNode->GetAttribute("Y1", ".4"));
         y2 = wxAtof(ModelNode->GetAttribute("Y2", ".6"));
     }
+    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
+
 void TwoPointScreenLocation::Write(wxXmlNode *node) {
     node->DeleteAttribute("X1");
     node->DeleteAttribute("Y1");
     node->DeleteAttribute("X2");
     node->DeleteAttribute("Y2");
+    node->DeleteAttribute("Locked");
     node->AddAttribute("X1", std::to_string(x1));
     node->AddAttribute("Y1", std::to_string(y1));
     node->AddAttribute("X2", std::to_string(x2));
     node->AddAttribute("Y2", std::to_string(y2));
+    if (_locked)
+    {
+        node->AddAttribute("Locked", "1");
+    }
 }
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
@@ -519,6 +581,7 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     }
     matrix = new glm::mat3(mat3);
 }
+
 void TwoPointScreenLocation::TranslatePoint(float &x, float &y) const {
     glm::vec3 v = *matrix * glm::vec3(x, y, 1);
     x = v.x;
@@ -580,6 +643,13 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
 }
 
 wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
+
+    if (_locked)
+    {
+        handle = OVER_NO_HANDLE;
+        return wxCURSOR_DEFAULT;
+    }
+
     for (size_t h = 0; h < mHandlePosition.size(); h++) {
         if (x>mHandlePosition[h].x && x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
             y>mHandlePosition[h].y && y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
@@ -590,11 +660,18 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) c
     handle = -1;
     return wxCURSOR_DEFAULT;
 }
+
 void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     int x1_pos = x1 * previewW;
     int x2_pos = x2 * previewW;
     int y1_pos = y1 * previewH;
     int y2_pos = y2 * previewH;
+
+    xlColor handleColor = xlBLUE;
+    if (_locked)
+    {
+        handleColor = xlRED;
+    }
 
     va.PreAlloc(10);
     if( y2_pos - y1_pos == 0 )
@@ -605,8 +682,8 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     }
     else if( x2_pos - x1_pos == 0 )
     {
-        va.AddVertex(x1_pos, y1_pos, xlBLUE);
-        va.AddVertex(x2_pos, y2_pos, xlBLUE);
+        va.AddVertex(x1_pos, y1_pos, handleColor);
+        va.AddVertex(x2_pos, y2_pos, handleColor);
         va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
     }
 
@@ -618,13 +695,15 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
     sx = x2 * previewW - RECT_HANDLE_WIDTH / 2;
     sy = y2 * previewH - RECT_HANDLE_WIDTH / 2;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
     va.Finish(GL_TRIANGLES);
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+
+    if (_locked) return 0;
 
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
@@ -669,7 +748,9 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
 
 
 void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", x1 * 100.0));
+    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
+    prop->SetAttribute("UseCheckbox", 1);
+    prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", x1 * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
@@ -691,21 +772,46 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxBLUE);
 }
+
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if ("ModelX1" == name) {
+    if (!_locked && "ModelX1" == name) {
         x1 = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } else if ("ModelY1" == name) {
+    }
+    else if (_locked && "ModelX1" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "ModelY1" == name) {
         y1 = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } else if ("ModelX2" == name) {
+    }
+    else if (_locked && "ModelY1" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "ModelX2" == name) {
         x2 = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } else if ("ModelY2" == name) {
+    } 
+    else if (_locked && "ModelX2" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "ModelY2" == name) {
         y2 = event.GetValue().GetDouble() / 100.0;
         return 3;
     }
+    else if (_locked && "ModelY2" == name) {
+        event.Veto();
+        return 0;
+    } else if ("Locked" == name)
+    {
+        _locked = event.GetValue().GetBool();
+        return 3;
+    }
+
     return 0;
 }
 
@@ -767,6 +873,9 @@ void TwoPointScreenLocation::SetVcenterOffset(float f) {
 }
 
 void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
+
+    if (_locked) return;
+
     float diffx = (x1 + x2) / 2.0 - xPct;
     float diffy = (y1 + y2) / 2.0 - yPct;
 
@@ -775,12 +884,17 @@ void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
     x1 -= diffx;
     x2 -= diffx;
 }
+
 void TwoPointScreenLocation::AddOffset(float xPct, float yPct) {
+
+    if (_locked) return;
+
     y1 += yPct;
     y2 += yPct;
     x1 += xPct;
     x2 += xPct;
 }
+
 int TwoPointScreenLocation::GetTop() const {
     float y1i = y1 * previewH;
     float y2i = y2 * previewH;
@@ -904,9 +1018,11 @@ void ThreePointScreenLocation::Read(wxXmlNode *node) {
     angle = wxAtoi(node->GetAttribute("Angle", "0"));
     shear = wxAtof(node->GetAttribute("Shear", "0.0"));
 }
+
 void ThreePointScreenLocation::Write(wxXmlNode *node) {
     TwoPointScreenLocation::Write(node);
     node->DeleteAttribute("Height");
+    node->DeleteAttribute("Locked");
     node->AddAttribute("Height", std::to_string(height));
     if (supportsAngle) {
         node->DeleteAttribute("Angle");
@@ -916,42 +1032,60 @@ void ThreePointScreenLocation::Write(wxXmlNode *node) {
         node->DeleteAttribute("Shear");
         node->AddAttribute("Shear", std::to_string(shear));
     }
+    if (_locked)
+    {
+        node->AddAttribute("Locked", "1");
+    }
 }
 
-void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *grid) const {
-    TwoPointScreenLocation::AddSizeLocationProperties(grid);
-    wxPGProperty *prop = grid->Append(new wxFloatProperty("Height", "ModelHeight", height));
+void ThreePointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
+    TwoPointScreenLocation::AddSizeLocationProperties(propertyEditor);
+    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("Height", "ModelHeight", height));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
     if (supportsShear) {
-        prop = grid->Append(new wxFloatProperty("Shear", "ModelShear", shear));
+        prop = propertyEditor->Append(new wxFloatProperty("Shear", "ModelShear", shear));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.1);
         prop->SetEditor("SpinCtrl");
     }
 }
+
 int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
-    if ("ModelHeight" == event.GetPropertyName()) {
+    wxString name = event.GetPropertyName();
+    if (!_locked && "ModelHeight" == name) {
         height = event.GetValue().GetDouble();
         if (std::abs(height) < 0.01f) {
             if (height < 0.0f) {
                 height = -0.01f;
-            } else {
+            }
+            else {
                 height = 0.01f;
             }
         }
         return 3;
-    } else if ("ModelShear" == event.GetPropertyName()) {
+    }
+    else if (_locked && "ModelHeight" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "ModelShear" == name) {
         shear = event.GetValue().GetDouble();
         return 3;
     }
+    else if (_locked && "ModelShear" == name) {
+        event.Veto();
+        return 0;
+    }
+
     return TwoPointScreenLocation::OnPropertyGridChange(grid, event);
 }
 
 inline float toRadians(int degrees) {
     return 2.0*M_PI*float(degrees)/360.0;
 }
+
 static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
@@ -1038,19 +1172,21 @@ void ThreePointScreenLocation::SetMWidth(int w)
 {
     TwoPointScreenLocation::SetMWidth(w);
 }
+
 void ThreePointScreenLocation::SetMHeight(int h)
 {
     SetHeight((float)h / RenderHt);
     //TwoPointScreenLocation::SetMHeight(h);
 }
+
 int ThreePointScreenLocation::GetMWidth() const
 {
     return TwoPointScreenLocation::GetMWidth();
 }
+
 int ThreePointScreenLocation::GetMHeight() const
 {
     return GetHeight() * RenderHt;
-    //return TwoPointScreenLocation::GetMHeight();
 }
 
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
@@ -1078,16 +1214,24 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const
     va.AddVertex(sx, sy, xlWHITE);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
-
     TwoPointScreenLocation::DrawHandles(va);
 
+    xlColor handleColor = xlBLUE;
+    if (_locked)
+    {
+        handleColor = xlRED;
+    }
 
-    va.AddRect(sx - RECT_HANDLE_WIDTH/2.0, sy - RECT_HANDLE_WIDTH/2.0, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, xlBLUE);
+    va.AddRect(sx - RECT_HANDLE_WIDTH/2.0, sy - RECT_HANDLE_WIDTH/2.0, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     va.Finish(GL_TRIANGLES);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
 }
+
 int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+
+    if (_locked) return 0;
+
     if (handle == 2) {
         glm::mat3 m = glm::inverse(*matrix);
         glm::vec3 v = m * glm::vec3(mouseX, mouseY, 1);
@@ -1125,6 +1269,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         }
         return 1;
     }
+
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
@@ -1134,12 +1279,14 @@ float ThreePointScreenLocation::GetVScaleFactor() const {
     }
     return height;
 }
+
 float ThreePointScreenLocation::GetYShear() const {
     if (supportsShear) {
         return shear;
     }
     return 0.0;
 }
+
 void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     BoxedScreenLocation box;
     box.Read(old);
@@ -1177,6 +1324,7 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[1].has_curve = false;
     main_matrix = nullptr;
 }
+
 PolyPointScreenLocation::~PolyPointScreenLocation() {
     for( int i = 0; i < mPos.size(); ++i ) {
         if (mPos[i].matrix != nullptr) {
@@ -1193,6 +1341,9 @@ PolyPointScreenLocation::~PolyPointScreenLocation() {
 }
 
 void PolyPointScreenLocation::SetCurve(int seg_num, bool create) {
+
+    if (_locked) return;
+
     if( create ) {
         mPos[seg_num].has_curve = true;
         if( mPos[seg_num].curve == nullptr ) {
@@ -1238,12 +1389,14 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
         mPos[seg_num].curve->SetScale(previewW, previewH, RenderWi);
         mPos[seg_num].curve->UpdatePoints();
     }
+    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
 
 void PolyPointScreenLocation::Write(wxXmlNode *node) {
     node->DeleteAttribute("NumPoints");
     node->DeleteAttribute("PointData");
     node->DeleteAttribute("cPointData");
+    node->DeleteAttribute("Locked");
     wxString point_data = "";
     for( int i = 0; i < num_points; ++i ) {
         point_data += wxString::Format( "%f,", mPos[i].x );
@@ -1262,6 +1415,10 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
     node->AddAttribute("NumPoints", std::to_string(num_points));
     node->AddAttribute("PointData", point_data);
     node->AddAttribute("cPointData", cpoint_data);
+    if (_locked)
+    {
+        node->AddAttribute("Locked", "1");
+    }
 }
 
 void PolyPointScreenLocation::PrepareToDraw() const {
@@ -1358,9 +1515,6 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
 
 bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
     for( int i = 0; i < num_points-1; ++i ) {
-
-        float min_y, max_y;
-
         if( mPos[i].has_curve ) {
             if( mPos[i].curve->HitTest(sx, sy) ) {
                 selected_segment = i;
@@ -1379,8 +1533,8 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
             glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
             glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
             glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
-            max_y = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-            min_y = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+            float max_y = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+            float min_y = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
 
             if (v.x >= 0.0 && v.x <= 1.0 && v.y >= min_y && v.y <= max_y) {
                 selected_segment = i;
@@ -1401,6 +1555,13 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
 }
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
+
+    if (_locked)
+    {
+        handle = OVER_NO_HANDLE;
+        return wxCURSOR_DEFAULT;
+    }
+
     // check handle of selected curve first
     if( selected_segment != -1 ) {
         if( mPos[selected_segment].has_curve ) {
@@ -1427,6 +1588,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) 
     handle = -1;
     return wxCURSOR_DEFAULT;
 }
+
 void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.PreAlloc(10*num_points+12);
 
@@ -1435,10 +1597,15 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
     float y1 = minY * previewH - RECT_HANDLE_WIDTH / 2;
     float x2 = maxX * previewW - RECT_HANDLE_WIDTH / 2;
     float y2 = maxY * previewH - RECT_HANDLE_WIDTH / 2;
-    va.AddRect(x1, y1, x1 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, xlBLUE);
-    va.AddRect(x1, y2, x1 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, xlBLUE);
-    va.AddRect(x2, y1, x2 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, xlBLUE);
-    va.AddRect(x2, y2, x2 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, xlBLUE);
+    xlColor handleColor = xlBLUE;
+    if (_locked)
+    {
+        handleColor = xlRED;
+    }
+    va.AddRect(x1, y1, x1 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, handleColor);
+    va.AddRect(x1, y2, x1 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, handleColor);
+    va.AddRect(x2, y1, x2 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, handleColor);
+    va.AddRect(x2, y2, x2 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[num_points].x = x1;
     mHandlePosition[num_points].y = y1;
     mHandlePosition[num_points+1].x = x1;
@@ -1491,7 +1658,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         // add handle for start of this vector
         float sx = mPos[i].x * previewW - RECT_HANDLE_WIDTH / 2;
         float sy = mPos[i].y * previewH - RECT_HANDLE_WIDTH / 2;
-        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == selected_handle ? xlMAGENTA : (i == 0 ? xlGREEN : xlBLUE));
+        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == selected_handle ? xlMAGENTA : (i == 0 ? xlGREEN : handleColor));
         mHandlePosition[i].x = sx;
         mHandlePosition[i].y = sy;
 
@@ -1499,7 +1666,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         if( i == num_points-2 ) {
             sx = mPos[i+1].x * previewW - RECT_HANDLE_WIDTH / 2;
             sy = mPos[i+1].y * previewH - RECT_HANDLE_WIDTH / 2;
-            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == selected_handle ? xlMAGENTA : xlBLUE);
+            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == selected_handle ? xlMAGENTA : handleColor);
             mHandlePosition[i+1].x = sx;
             mHandlePosition[i+1].y = sy;
         }
@@ -1526,6 +1693,9 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
 }
 
 int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
+
+    if (_locked) return 0;
+
     float newx = (float)mouseX / (float)previewW;
     float newy = (float)mouseY / (float)previewH;
 
@@ -1691,7 +1861,9 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
 }
 
 void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
-    wxPGProperty *prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", mPos[0].x * 100.0));
+    wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
+    prop->SetAttribute("UseCheckbox", 1);
+    prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", mPos[0].x * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
@@ -1721,15 +1893,29 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
     if( name.length() > 6 ) {
         selected_handle = wxAtoi(name.substr(6, name.length()-6)) - 1;
         selected_segment = -1;
-        if (name.find("ModelX") != std::string::npos) {
+        if (!_locked && name.find("ModelX") != std::string::npos) {
             mPos[selected_handle].x = event.GetValue().GetDouble() / 100.0;
             return 3;
         }
-        else if (name.find("ModelY") != std::string::npos) {
+        else if (_locked && name.find("ModelX") != std::string::npos) {
+            event.Veto();
+            return 0;
+        }
+        else if (!_locked && name.find("ModelY") != std::string::npos) {
             mPos[selected_handle].y = event.GetValue().GetDouble() / 100.0;
             return 3;
         }
+        else if (_locked && name.find("ModelY") != std::string::npos) {
+            event.Veto();
+            return 0;
+        }
     }
+    else if ("Locked" == name)
+    {
+        _locked = event.GetValue().GetBool();
+        return 3;
+    }
+
     return 0;
 }
 
@@ -1745,6 +1931,7 @@ float PolyPointScreenLocation::GetHcenterOffset() const {
     }
     return x_total / (float)num_points;
 }
+
 float PolyPointScreenLocation::GetVcenterOffset() const {
     float y_total = 0.0f;
     for(int i = 0; i < num_points; ++i ) {
@@ -1763,6 +1950,7 @@ void PolyPointScreenLocation::SetHcenterOffset(float f) {
     }
     FixCurveHandles();
 }
+
 void PolyPointScreenLocation::SetVcenterOffset(float f) {
     float diffy = GetVcenterOffset() - f;
     for(int i = 0; i < num_points; ++i ) {
@@ -1775,10 +1963,17 @@ void PolyPointScreenLocation::SetVcenterOffset(float f) {
 }
 
 void PolyPointScreenLocation::SetOffset(float xPct, float yPct) {
+
+    if (_locked) return;
+
     SetHcenterOffset(xPct);
     SetVcenterOffset(yPct);
 }
+
 void PolyPointScreenLocation::AddOffset(float xPct, float yPct) {
+
+    if (_locked) return;
+
     for(int i = 0; i < num_points; ++i ) {
         mPos[i].x += xPct;
         mPos[i].y += yPct;
@@ -1797,6 +1992,7 @@ int PolyPointScreenLocation::GetTop() const {
     }
     return topy;
 }
+
 int PolyPointScreenLocation::GetLeft() const {
     int leftx = std::round(mPos[0].x * previewH);
     for(int i = 1; i < num_points; ++i ) {
@@ -1876,40 +2072,55 @@ int PolyPointScreenLocation::GetBottom() const {
 
 }
 void PolyPointScreenLocation::SetTop(int i) {
+
+    if (_locked) return;
+
     float newtop = (float)i / (float)previewH;
     float topy = mPos[0].y * (float)previewH;
-    for(int i = 1; i < num_points; ++i ) {
-        float newy = mPos[i].y * (float)previewH;
+    for(int j = 1; j < num_points; ++j ) {
+        float newy = mPos[j].y * (float)previewH;
         topy = std::max(topy, newy);
     }
     float diff = topy - newtop;
     SetVcenterOffset(diff);
 }
+
 void PolyPointScreenLocation::SetLeft(int i) {
+
+    if (_locked) return;
+
     float newleft = (float)i / (float)previewW;
     float leftx = mPos[0].x * (float)previewW;
-    for(int i = 1; i < num_points; ++i ) {
-        float newx = mPos[i].x * (float)previewW;
+    for(int j = 1; j < num_points; ++j ) {
+        float newx = mPos[j].x * (float)previewW;
         leftx = std::max(leftx, newx);
     }
     float diff = leftx - newleft;
     SetHcenterOffset(diff);
 }
+
 void PolyPointScreenLocation::SetRight(int i) {
+
+    if (_locked) return;
+
     float newright = (float)i / (float)previewW;
     float rightx = mPos[0].x * (float)previewW;
-    for(int i = 1; i < num_points; ++i ) {
-        float newx = mPos[i].x * (float)previewW;
+    for(int j = 1; j < num_points; ++j ) {
+        float newx = mPos[j].x * (float)previewW;
         rightx = std::max(rightx, newx);
     }
     float diff = rightx - newright;
     SetHcenterOffset(diff);
 }
+
 void PolyPointScreenLocation::SetBottom(int i) {
+
+    if (_locked) return;
+
     float newbot = (float)i / (float)previewH;
     float boty = mPos[0].y * (float)previewH;
-    for(int i = 1; i < num_points; ++i ) {
-        float newy = mPos[i].y * (float)previewH;
+    for(int j = 1; j < num_points; ++j ) {
+        float newy = mPos[j].y * (float)previewH;
         boty = std::max(boty, newy);
     }
     float diff = boty - newbot;

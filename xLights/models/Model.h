@@ -260,6 +260,7 @@ public:
     void SaveModelState( std::vector<std::string>& state );
 
     bool HitTest(ModelPreview* preview,int x,int y);
+    void Lock(bool lock);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     void SetMinMaxModelScreenCoordinates(int w, int y);

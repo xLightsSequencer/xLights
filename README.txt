@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Fix crash when change setup and then switch to layout
+   -- bug (keith)   Fix crash when FPP master xschedule step finishes
+   -- enh (keith)   Add creation of a phoneme track from channel data
+   -- enh (keith)   Add model locking
    -- bug (keith)   Force value curves to update to real values ... it wasnt doing this which may have masked some issues
    -- enh (keith)   Add row heading tooltips where the model names are too wide to display
    -- enh (keith)   Add ability to display wiring view from the front

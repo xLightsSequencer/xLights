@@ -684,14 +684,18 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         return 3 | 0x0010;
     }
+
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
+
     if (i & 0x2) {
         GetModelScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
     }
+
     return i;
 }
+
 void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
     wxPropertyGrid *pg = (wxPropertyGrid*)grid;
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
@@ -1463,16 +1467,31 @@ unsigned int Model::GetNumChannels() {
 }
 
 void Model::SetOffset(double xPct, double yPct) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     GetModelScreenLocation().SetOffset(xPct, yPct);
     IncrementChangeCount();
 }
 
-
-void Model::AddOffset(double xPct, double yPct) {
-    GetModelScreenLocation().AddOffset(xPct, yPct);
+void Model::Lock(bool lock)
+{
+    GetModelScreenLocation().Lock(lock);
+    GetModelXml()->DeleteAttribute("Locked");
+    if (lock)
+    {
+        GetModelXml()->AddAttribute("Locked", "1");
+    }
     IncrementChangeCount();
 }
 
+void Model::AddOffset(double xPct, double yPct) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
+    GetModelScreenLocation().AddOffset(xPct, yPct);
+    IncrementChangeCount();
+}
 
 // initialize screen coordinates
 // parm1=Number of Strings/Arches/Canes
@@ -2718,11 +2737,15 @@ void Model::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
     preview->GetVirtualCanvasSize(w, h);
     SetMinMaxModelScreenCoordinates(w, h);
 }
+
 void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
     GetModelScreenLocation().SetPreviewSize(w, h, Nodes);
 }
 
 void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
     GetModelScreenLocation().Write(ModelXml);
     if (i) {
@@ -2760,32 +2783,50 @@ void Model::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
 }
 
 void Model::InsertHandle(int after_handle) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     GetModelScreenLocation().InsertHandle(after_handle);
 }
 
 void Model::DeleteHandle(int handle) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
 void Model::SetTop(ModelPreview* preview,int y) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetTop(y);
     IncrementChangeCount();
 }
 
 void Model::SetBottom(ModelPreview* preview,int y) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetBottom(y);
     IncrementChangeCount();
 }
 
 void Model::SetLeft(ModelPreview* preview,int x) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetLeft(x);
     IncrementChangeCount();
 }
 
 void Model::SetRight(ModelPreview* preview,int x) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetRight(x);
     IncrementChangeCount();
@@ -2807,12 +2848,18 @@ int Model::GetHeight(ModelPreview* preview) {
 }
 
 void Model::SetWidth(ModelPreview* preview, int w) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetMWidth(w);
     IncrementChangeCount();
 }
 
 void Model::SetHeight(ModelPreview* preview, int h) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetMHeight(h);
 
@@ -2846,11 +2893,17 @@ float Model::GetVcenterOffset() {
     return GetModelScreenLocation().GetVcenterOffset();
 }
 void Model::SetHcenterOffset(float offset) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     GetModelScreenLocation().SetHcenterOffset(offset);
     IncrementChangeCount();
 }
 
 void Model::SetVcenterOffset(float offset) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
     GetModelScreenLocation().SetVcenterOffset(offset);
     IncrementChangeCount();
 }
