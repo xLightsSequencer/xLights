@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add ability to import LAS files ... actually this existed ... it just wasnt selectable
+   -- bug (keith)   Add warning if i am importing a datalayer that is bigger than the number of xlights channels
    -- enh (keith)   Add a xSchedule file play list item which can write information about current song etc to a file 
    -- bug (keith)   Fix crash when change setup and then switch to layout
    -- bug (keith)   Fix crash when FPP master xschedule step finishes
