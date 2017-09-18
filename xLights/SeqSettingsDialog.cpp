@@ -906,7 +906,6 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
 {
     bool return_val = false;
     wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, filetypes, wxFD_OPEN, wxDefaultPosition);
-    wxString fDir;
     Button_Close->Enable(false);
     Button_Layer_Import->Enable(false);
     if (ImportDialog->ShowModal() == wxID_OK)
@@ -917,7 +916,7 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         GetSize(&w, &h);
         x += w;
         _plog->SetPosition(wxPoint(x, y));
-        fDir =	ImportDialog->GetDirectory();
+        wxString fDir = ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
         wxFileName full_name(filename);
         full_name.SetPath(fDir);

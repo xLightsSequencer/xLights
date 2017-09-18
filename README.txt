@@ -9,9 +9,15 @@ Videos tutorials are found at videos.xlights.org
 Forums are located at nutcracker123.com/forum
 Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
-XLIGHTS/NUTCRACKER RELEASE NOTES:
+XLIGHTS/NUTCRACKER RELEASE NOTES: 
 ---------------------------------
-2017.28  Sep  17, 2017
+2017.28  Sep  18, 2017
+   -- bug (dkulp)   Fix crash on startup when ViesModelsPanel is not visible
+   -- bug (scottH)  Fixed Divide by zero error if main window is re-sized too small. (#913)
+   -- enh (keith)   Add ability to import LAS files ... actually this existed ... it just wasnt selectable
+   -- bug (keith)   Add warning if i am importing a datalayer that is bigger than the number of xlights channels
+   -- enh (keith)   Add a xSchedule file play list item which can write information about current song etc to a file 
+   -- bug (dkulp)   OSX - Popup menu in "WiringView" dialog is completely disabled
    -- bug (keith)   Fix crash when change setup and then switch to layout
    -- bug (keith)   Fix crash when FPP master xschedule step finishes
    -- enh (keith)   Add creation of a phoneme track from channel data

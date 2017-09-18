@@ -134,6 +134,7 @@ static int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * 
     }
     return atoi(val);
 }
+
 static wxString getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name)
 {
     const char *val = stagEvent -> getAttrValue(name);
@@ -217,10 +218,12 @@ void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *unitSizes)
 
 void FileConverter::ReadLorFile(ConvertParameters& params)
 {
-    wxString NodeName,msg,EffectType,ChannelName,deviceType,networkAsString;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxString NodeName,msg, deviceType,networkAsString;
     wxArrayString context;
-    int unit,circuit,startcsec,endcsec,intensity,startIntensity,endIntensity,rampdiff,ChannelColor;
-    int i,startper,endper,perdiff,twinklestate,nexttwinkle;
+    int unit,circuit, rampdiff;
+    int i, twinklestate;
     int twinkleperiod = 400;
     int curchannel = -1;
     int MappedChannelCnt = 0;
@@ -235,8 +238,9 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params._outputManager->GetTotalChannels();
-    for (int x = 0; x < TotChannels; x++) {
+    long totalChannels = params._outputManager->GetTotalChannels();
+
+    for (int x = 0; x < totalChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
@@ -411,10 +415,15 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     }
     params.AppendConvertStatus (string_format(wxString("Total channels = %d"),channelCount));
 
+    if (totalChannels < channelCount)
+    {
+        wxMessageBox(wxString::Format("LOR file has %d channels but xLights has only %d channels defined.", channelCount, totalChannels), "WARNING");
+        logger_base.warn("ReadLorFile - Channels in LOR file %d. Channels defined in xLights %d. Not all data will import.", channelCount, totalChannels);
+    }
+
     cnt = 0;
     context.clear();
     channelCount = 0;
-
 
     parser = new SP_XmlPullParser();
     file.Seek(0);
@@ -507,7 +516,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         unit = 1;
                     }
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
-                    ChannelName = getAttributeValueSafe(stagEvent, "name");
+                    wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
 
                     empty = rgbChannels[savedIndex].empty;
@@ -552,7 +561,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         }
                         MappedChannelCnt++;
                         ChannelNames[curchannel] = ChannelName;
-                        ChannelColor = getAttributeValueAsInt(stagEvent, "color");
+                        int ChannelColor = getAttributeValueAsInt(stagEvent, "color");
                         ChannelColors[curchannel] = ChannelColor;
                     }
                     else
@@ -564,18 +573,18 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 {
                     empty = false;
                     EffectCnt++;
-                    startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
-                    endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
-                    intensity = getAttributeValueAsInt(stagEvent, "intensity");
-                    startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
-                    endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
-                    startper = startcsec * 10 / params.sequence_interval;
-                    endper = endcsec * 10 / params.sequence_interval;
-                    perdiff=endper - startper;  // # of ticks
+                    int startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
+                    int endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
+                    int intensity = getAttributeValueAsInt(stagEvent, "intensity");
+                    int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
+                    int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
+                    int startper = startcsec * 10 / params.sequence_interval;
+                    int endper = endcsec * 10 / params.sequence_interval;
+                    int perdiff = endper - startper;  // # of ticks
 
                     if (perdiff > 0)
                     {
-                        EffectType = getAttributeValueSafe(stagEvent, "type");
+                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
                         if (EffectType != "DMX intensity")
                         {
                                 intensity=intensity * 255 / MaxIntensity;
@@ -609,7 +618,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                                 intensity=MaxIntensity;
                             }
                             twinklestate=static_cast<int>(rand01()*2.0) & 0x01;
-                            nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / params.sequence_interval;
+                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod+100) / params.sequence_interval;
                             if (intensity > 0)
                             {
                                 for (i=0; i < perdiff; i++)
@@ -708,8 +717,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
 {
     wxFile f;
     char hdr[512],filetype[10];
-    int fileversion,numch,numper,scancnt;
-    size_t readcnt;
+    int fileversion,numch,numper;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
@@ -729,7 +737,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
     }
 
     f.Read(hdr,512);
-    scancnt=sscanf(hdr,"%8s %2d %8d %8d",filetype,&fileversion,&numch,&numper);
+    int scancnt = sscanf(hdr,"%8s %2d %8d %8d",filetype,&fileversion,&numch,&numper);
     if (scancnt != 4 || strncmp(filetype,"xLights",7) != 0 || numch <= 0 || numper <= 0)
     {
         params.PlayerError(wxString("Invalid file header:\n")+params.inp_filename);
@@ -749,7 +757,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
         }
 
         for (int x = 0; x < numch; x++) {
-            readcnt = f.Read(buf, numper);
+            size_t readcnt = f.Read(buf, numper);
             if (readcnt < numper)
             {
                 params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);

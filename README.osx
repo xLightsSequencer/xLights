@@ -103,3 +103,4 @@ Feb 28, 2016 - cbb799b1ae3f309c99beb0d287e9bb3b62ea405c Update to 3.1.0 release 
 Nov 23, 2016 - b28dd88994ec144c2235721ef8e1133b3651e790 Newer version fixing various bugs, also for 10.12 sdk support
 Jun  1, 2017 - ff447038714f853a0bae1720e3e8d6f8da279c51 to be able to compile with 10.13 sdk
 Aug 30, 2017 - 4a71ba820f085a3d5a7233e9fd0e23ae4e45af58 attempt to see if fixes #884
+Sept 17, 2017 - a8b33bf08ed582a241071ff7fa876dec1911ed7a fix popup menus on dialogs

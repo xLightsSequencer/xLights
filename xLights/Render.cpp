@@ -466,12 +466,15 @@ public:
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+        
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
+        
         for (int layer = 0; layer < info.validLayers.size(); ++layer) {
             info.validLayers[layer] = false;
         }
+
         for (int layer = 0; layer < numLayers; ++layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
@@ -497,6 +500,7 @@ public:
             info.effectStates[layer] = b;
             effectsToUpdate |= info.validLayers[layer];
         }
+
         if (effectsToUpdate) {
             SetCalOutputStatus(frame, strand);
             if (blend) {
@@ -506,16 +510,20 @@ public:
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
         }
-        if (sw.Time() > 1000)
+
+        if (sw.Time() > 500)
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             RenderBuffer& b = buffer->BufferForLayer(0, -1);
-            logger_base.warn("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
+            logger_base.warn("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
+
         return effectsToUpdate;
     }
     
     virtual void Process() override {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
         SetGenericStatus("Initializing rendering thread for %s", 0);
         int maxFrameBeforeCheck = -1;
         int origChangeCount;
@@ -581,7 +589,13 @@ public:
                 }
                 //make sure we can do this frame
                 if (frame >= maxFrameBeforeCheck) {
+                    wxStopWatch sw;
                     maxFrameBeforeCheck = waitForFrame(frame);
+
+                    if (sw.Time() > 500)
+                    {
+                        logger_base.warn("Model %s rendering frame %d waited %dms waiting for other models to finish.", (const char *)mainModelInfo.element->GetName().c_str(), frame, sw.Time());
+                    }
                 }
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
@@ -639,10 +653,12 @@ public:
         } catch ( std::exception &ex) {
             printf("Caught an exception %s", ex.what());
 			renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
+            logger_base.error("Caught an exception on rendering thread: %s", ex.what());
 		} catch ( ... ) {
             printf("Caught an unknown exception");
 			renderLog.error("Caught an unknown exception on rendering thread.");
-		}
+            logger_base.error("Caught an unknown exception on rendering thread.");
+        }
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
@@ -999,10 +1015,13 @@ void xLightsFrame::RenderTree::Add(Model *el) {
 }
 
 void xLightsFrame::RenderTree::Print() {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     for (auto it = data.begin(); it != data.end(); ++it) {
         printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
+        logger_base.debug("%s:   (%d)", (const char *)(*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
         for (auto it2 = (*it)->renderOrder.begin(); it2 != (*it)->renderOrder.end(); ++it2) {
             printf("    %s     \n", (*it2)->GetName().c_str());
+            logger_base.debug("     %s", (const char *)(*it2)->GetName().c_str());
         }
     }
 }
@@ -1058,16 +1077,6 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
     std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
     
-    // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
-    if (jobs == nullptr)
-    {
-        logger_base.crit("xLightsFrame::Render jobs is nullptr ... this is going to crash.");
-    }
-    if (aggregators == nullptr)
-    {
-        logger_base.crit("xLightsFrame::Render aggregators is nullptr ... this is going to crash.");
-    }
-
     size_t row = 0;
     for (auto it = models.begin(); it != models.end(); ++it, ++row) {
         jobs[row] = nullptr;
@@ -1135,6 +1144,8 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
         }
     }
 
+    //logger_base.debug("Aggregators created.");
+
     channelMaps.clear();
     RenderProgressDialog *renderProgressDialog = nullptr;
     if (progressDialog) {
@@ -1151,6 +1162,9 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
             }
         }
     }
+
+    //logger_base.debug("Data cleared.");
+
     for (row = 0; row < numRows; ++row) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
@@ -1180,6 +1194,8 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
         }
     }
 
+    logger_base.debug("Jobs kicked off %d.", jobPool.size());
+
     if (count) {
         if (progressDialog) {
             renderProgressDialog->SetSize(250, 400);
@@ -1207,9 +1223,9 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
 }
 
 static void addModelsUpTo(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *upTo) {
-    for (auto it = toAdd.begin(); it != toAdd.end(); it++) {
+    for (auto it = toAdd.begin(); it != toAdd.end(); ++it) {
         bool add = true;
-        for (auto it2 = models.begin(); it2 != models.end() && add; it2++) {
+        for (auto it2 = models.begin(); it2 != models.end() && add; ++it2) {
             if (*it2 == *it) {
                 add = false;
             }
@@ -1225,7 +1241,7 @@ static void addModelsUpTo(std::list<Model*> &models, const std::list<Model *> &t
 
 static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *from) {
     bool found = false;
-    for (auto it = toAdd.begin(); it != toAdd.end(); it++) {
+    for (auto it = toAdd.begin(); it != toAdd.end(); ++it) {
         if (!found && from != *it) {
             continue;
         }
@@ -1264,7 +1280,7 @@ void xLightsFrame::RenderDirtyModels() {
             if (st != -1) {
                 startms = std::min(startms, st);
                 endms = std::max(endms, ed);
-                for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+                for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
                     if ((*it)->model->GetName() == el->GetModelName()) {
                         restricts.push_back((*it)->model);
                         addModelsUpTo(models, (*it)->renderOrder, (*it)->model);
@@ -1276,8 +1292,8 @@ void xLightsFrame::RenderDirtyModels() {
     if (restricts.empty()) {
         return;
     }
-    for (auto x = models.begin(); x != models.end(); x++) {
-        for (auto it = renderTree.data.begin(); it != renderTree.data.end(); it++) {
+    for (auto x = models.begin(); x != models.end(); ++x) {
+        for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
             if ((*it)->model == *x) {
                 addModelsFrom(models, (*it)->renderOrder, (*it)->model);
             }
@@ -1330,12 +1346,18 @@ bool xLightsFrame::AbortRender()
 }
 
 void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     BuildRenderTree();
     if (renderTree.data.empty()) {
         //nothing to do....
         callback();
         return;
     }
+
+    logger_base.debug("Render tree built. %d entries.", renderTree.data.size());
+
     const int numRows = mSequenceElements.GetElementCount();
     if (numRows == 0) {
         callback();
@@ -1355,6 +1377,9 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
         }
     }
     std::list<Model*> restricts;
+
+    logger_base.debug("Rendering %d models %d frames.", models.size(), SeqData.NumFrames());
+
     Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
 }
 

@@ -573,7 +573,7 @@ void ScheduleManager::CreateBrightnessArray()
 {
     for (int i = 0; i < 256; i++)
     {
-        _brightnessArray[i] = (wxByte)(((i * _brightness) / 100) & 0x00FF);
+        _brightnessArray[i] = (wxByte)(((i * _brightness) / 100) & 0xFF);
     }
 }
 

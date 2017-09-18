@@ -210,7 +210,7 @@ JobPool::~JobPool()
 {
     if ( !queue.empty() ) {
         std::deque<Job*>::iterator iter = queue.begin();
-        for (; iter != queue.end(); iter++) {
+        for (; iter != queue.end(); ++iter) {
             delete (*iter);
         }
         queue.clear();
@@ -271,7 +271,7 @@ std::string JobPool::GetThreadStatus() {
     for(size_t i=0; i<threads.size(); i++){
         JobPoolWorker *worker = threads.at(i);
         ret << worker->GetStatus();
-        ret << "\n\n";
+        ret << "\n";
     }
     return ret.str();
 }
