@@ -908,32 +908,32 @@ void CustomModelDialog::OnButton_RenumberClick(wxCommandEvent& event)
     auto min = 1;
     auto max = 1;
 
-    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -100000, 100000);
+    //Find the max value returned
+    for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
+        {
+            wxString s = GridCustom->GetCellValue(r, c);
+
+            if (s.IsEmpty() == false)
+            {
+                long val;
+
+                if (s.ToCLong(&val) == true)
+                {
+                    if (val > max)max = val;
+                    if (val < min)min = val;
+                }
+            }
+        }
+    }
+
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
     if (dlg.ShowModal() == wxID_OK)
     {
         auto scaleFactor = dlg.GetValue();
         if (scaleFactor != 0)
         {
-            //Find the max value returned
-            for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
-            {
-                for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
-                {
-                    wxString s = GridCustom->GetCellValue(r, c);
-
-                    if (s.IsEmpty() == false)
-                    {
-                        long val;
-
-                        if (s.ToCLong(&val) == true)
-                        {
-                            if (val > max)max = val;
-                            if (val < min)min = val;
-                        }
-                    }
-                }
-            }
-
             //Rewrite the grid values
             for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
             {
