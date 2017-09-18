@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+2017.28  Sep  17, 2017
    -- bug (keith)   Fix crash when change setup and then switch to layout
    -- bug (keith)   Fix crash when FPP master xschedule step finishes
    -- enh (keith)   Add creation of a phoneme track from channel data
