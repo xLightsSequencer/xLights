@@ -5,6 +5,7 @@
 #include <wx/clipbrd.h>
 #include <wx/graphics.h>
 #include <wx/file.h>
+#include <wx/numdlg.h>
 
 //(*InternalHeaders(CustomModelDialog)
 #include <wx/artprov.h>
@@ -33,6 +34,7 @@ const long CustomModelDialog::ID_BUTTON3 = wxNewId();
 const long CustomModelDialog::ID_BUTTON_Flip_Horizontal = wxNewId();
 const long CustomModelDialog::ID_BUTTON_Flip_Vertical = wxNewId();
 const long CustomModelDialog::ID_BUTTON_Reverse = wxNewId();
+const long CustomModelDialog::ID_BUTTON_RENUMBER = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
@@ -80,7 +82,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Custom Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxDLG_UNIT(parent,wxSize(450,350)));
 	SetMinSize(wxDLG_UNIT(parent,wxSize(300,200)));
 	Sizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -116,6 +118,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer9->Add(Button_Flip_Vertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reverse = new wxButton(this, ID_BUTTON_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Reverse"));
 	FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Renumber = new wxButton(this, ID_BUTTON_RENUMBER, _("Renumber"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RENUMBER"));
+	Button_Renumber->SetToolTip(_("Increase or Decrease The Node Number Values"));
+	FlexGridSizer9->Add(Button_Renumber, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
 	BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
@@ -197,6 +202,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_BUTTON_Flip_Horizontal,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_HorizonalClick);
 	Connect(ID_BUTTON_Flip_Vertical,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_Flip_VerticalClick);
 	Connect(ID_BUTTON_Reverse,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_ReverseClick);
+	Connect(ID_BUTTON_RENUMBER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnButton_RenumberClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCutClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomCopyClick);
 	Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CustomModelDialog::OnBitmapButtonCustomPasteClick);
@@ -895,4 +901,72 @@ void CustomModelDialog::OnButton_ReverseClick(wxCommandEvent& event)
 
     UpdateBackground();
     ValidateWindow();
+}
+
+void CustomModelDialog::OnButton_RenumberClick(wxCommandEvent& event)
+{
+    auto min = 1;
+    auto max = 1;
+
+    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -100000, 100000);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        auto scaleFactor = dlg.GetValue();
+        if (scaleFactor != 0)
+        {
+            //Find the max value returned
+            for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
+            {
+                for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
+                {
+                    wxString s = GridCustom->GetCellValue(r, c);
+
+                    if (s.IsEmpty() == false)
+                    {
+                        long val;
+
+                        if (s.ToCLong(&val) == true)
+                        {
+                            if (val > max)max = val;
+                            if (val < min)min = val;
+                        }
+                    }
+                }
+            }
+
+            //Rewrite the grid values
+            for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
+            {
+                std::list<wxString> vals;
+                for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
+                {
+                    wxString s = GridCustom->GetCellValue(r, c);
+
+                    if (s.IsEmpty() == false)
+                    {
+                        long val;
+
+                        if (s.ToCLong(&val) == true)
+                        {
+                            long newVal = val + scaleFactor;
+                            if (newVal > max)
+                            {
+                                newVal -= max;
+                            }
+                            else if (newVal < min)
+                            {
+                                newVal += max;
+                            }
+                            s.Printf("%d", newVal);
+
+                            GridCustom->SetCellValue(r, c, s);
+                        }
+                    }
+                }
+            }
+
+            UpdateBackground();
+            ValidateWindow();
+        }
+    }
 }
