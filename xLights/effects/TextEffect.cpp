@@ -12,6 +12,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
+#include "../FontManager.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -20,8 +21,7 @@
 #include "../../include/text-64.xpm"
 #include <log4cpp/Category.hh>
 
-
-TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64)
+TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
     //ctor
 }
@@ -333,7 +333,6 @@ static int TextCountDownIndex(const wxString &st) {
     if (st == "minutes seconds") return 7;
     return 0;
 }
-
 static int TextEffectsIndex(const wxString &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;
@@ -343,8 +342,16 @@ static int TextEffectsIndex(const wxString &st) {
     if (st == "rotate down 90") return 6;
     return 0;
 }
-
 void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+
+    // determine if we are rendering an xLights Font
+    wxString xl_font = SettingsMap["CHOICE_Text_Font"];
+    if( xl_font != "Use OS Fonts" )
+    {
+        RenderXLText(effect, SettingsMap, buffer);
+        return;
+    }
+
     xlColor c;
     buffer.GetTextDrawingContext()->Clear();
 
@@ -636,208 +643,15 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
                                 int startx, int starty, int endx, int endy,
                                 bool isPixelBased)
 {
-    long tempLong,longsecs;
-    wxString msg,tempmsg;
-    int i,days,hours,minutes,seconds;
-    wxDateTime dt;
-    wxTimeSpan ts;
-    wxString::const_iterator end;
-    wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
-    wxChar delim;
-    wxString prepend = Line_orig;   //for prepended/appended text to countdown
-    wxString append = Line_orig;   //for prepended/appended text to countdown
-    wxString timePart = Line_orig;
-    wxArrayString minSec;
-    wxString tempSeconds;
+    int i;
+    wxString Line = Line_orig;
+    wxString msg, tempmsg;
 
     if (Line.IsEmpty()) return;
 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
-    int framesPerSec = 1000 / buffer.frameTimeInMs;
-    switch(Countdown)
-    {
-        case COUNTDOWN_SECONDS:
-            // countdown seconds
-            if (state==0)
-            {
-                if (!Line.ToLong(&tempLong)) tempLong=0;
-                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
-            }
-            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
-            if(seconds < 0) seconds=0;
-            msg=wxString::Format("%i",seconds);
-            break;
-//jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-        case COUNTDOWN_MINUTES_SECONDS:
 
-            if (timePart.Find('/') != -1 )
-            {
-                timePart = timePart.AfterFirst('/').BeforeLast('/');
-                prepend = prepend.BeforeFirst('/');
-                append = append.AfterLast('/');
-            }
-            else
-            {
-                append = "";
-                prepend = "";
-            }
-           minSec = wxSplit(timePart, ':');
-           if(minSec.size()==1)
-           {
-               seconds = wxAtoi(minSec[0]);
-           }
-           else if(minSec.size()==2)
-           {
-               minutes = wxAtoi(minSec[0]);
-               seconds = (minutes * 60) + wxAtoi(minSec[1]);
-               //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
-            }
-            else //invalid format
-            {
-               msg = _T("Invalid Format");
-               break;
-            }
-            if (state == 0)
-                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+seconds*framesPerSec+framesPerSec-1;
-
-            else
-                seconds = (GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
-
-            minutes = (seconds / 60);
-            seconds = seconds - (minutes * 60);
-
-           if(seconds < 0)
-                seconds=0;
-
-           tempSeconds = wxString::Format("%i", seconds);
-
-           if (tempSeconds.Len() == 1)
-                tempSeconds = tempSeconds.Pad(1, '0', false);
-
-           msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
-
-           break;
-
-        case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
-#if 0
-
-            Aug 14,2015 <scm>
-            Sample datestrings that are valid for the countdown timer
-                Wed, 02 Oct 2015 15:00:00 +0200
-                Wed, 02 Oct 2015 15:00:00 EST
-
-                Note, dates must be in the future, any date in the past will show as "Invalid Date" when converted
-
-
-
-                clear(
-
-                )
-                wxTimeSpan format chars are described at:
-                http://docs.wxwidgets.org/trunk/classwx_time_span.html
-                The following format specifiers are allowed after %:
-                Ã¯H - Number of Hours
-                Ã¯M - Number of Minutes
-                Ã¯S - Number of Seconds
-                Ã¯l - Number of Milliseconds
-                Ã¯D - Number of Days
-                Ã¯E - Number of Weeks
-                Ã¯% - The percent character
-
-                //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
-                TIME FORMAT CHARACTERS:
-                %a Abbreviated weekday name eg. Thu
-                %A Full weekday name eg. Thursday
-                %b Abbreviated month name eg. Aug
-                %B Full month name eg. August
-                %c Date and time representation eg. Thu Aug 23 14:55:02 2001
-                %d Day of the month (01-31) eg. 23
-                %H Hour in 24h format (00-23) eg. 14
-                %I Hour in 12h format (01-12) eg. 02
-                %j Day of the year (001-366) eg. 235
-                %m Month as a decimal number (01-12) eg. 08
-                %M Minute (00-59) eg. 55
-                %p AM or PM designation eg. PM
-                %S Second (00-61) eg. 02
-                %U Week number with the first Sunday as the first day of week one (00-53) eg. 33
-                %w Weekday as a decimal number with Sunday as 0 (0-6) eg. 4
-                %W Week number with the first Monday as the first day of week one (00-53) eg. 34
-                %x Date representation eg. 08/23/01
-                %X Time representation eg. 14:55:02
-                %y Year, last two digits (00-99) eg. 01
-                %Y Year eg. 2001
-                %Z Timezone name or abbreviation CDT
-                %% A % sign eg. %
-#endif // 0
-                //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
-                if (Line.size() >= 4)
-                {
-                    delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
-                    Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
-                    //            Line.RemoveLast(); //remove delimiter
-                    fmt = Line.After(delim);
-                    Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
-                }
-                else fmt.Empty();
-            //CAUTION: fall thru here
-        case COUNTDOWN_D_H_M_S:
-        case COUNTDOWN_H_M_S:
-        case COUNTDOWN_M_or_S:
-        case COUNTDOWN_S:
-            // countdown to date
-            if (state%framesPerSec == 0)   //1x/sec
-            {
-                //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
-                if ( dt.ParseRfc822Date(Line, &end) )
-                {
-                    // dt is (at least partially) valid, so calc # of seconds until then
-                    ts=dt.Subtract(wxDateTime::Now());
-                    wxLongLong ll=ts.GetSeconds();
-                    if (ll > LONG_MAX) ll=LONG_MAX;
-                    if (ll < 0) ll=0;
-                    longsecs=ll.ToLong();
-                }
-                else
-                {
-                    // invalid date/time
-                    longsecs = 0;
-                }
-                GetCache(buffer,id)->timer_countdown=longsecs;
-            }
-            else
-            {
-                longsecs=GetCache(buffer,id)->timer_countdown;
-                ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
-            }
-            if (!longsecs)
-            {
-                msg = _T("invalid date");    //show when invalid -DJ
-                break;
-            }
-            days = longsecs / 60 / 60 / 24;
-            hours = (longsecs / 60 / 60) % 24;
-            minutes = (longsecs / 60) % 60;
-            seconds = longsecs % 60;
-            if (Countdown == COUNTDOWN_D_H_M_S)
-                msg=wxString::Format("%dd %dh %dm %ds",days,hours,minutes,seconds);
-            else if (Countdown == COUNTDOWN_H_M_S)
-                msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
-            else if (Countdown == COUNTDOWN_S)
-                msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
-            else if (Countdown == COUNTDOWN_FREEFMT)
-                //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
-                msg = ts.Format(fmt); //dt.Format(fmt)
-            else //if (Countdown == COUNTDOWN_M_or_S)
-                if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-                    msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
-                else //COUNTDOWN_M_or_S: show minutes
-                    msg = wxString::Format("%d m", 60 * hours + minutes);
-            break;
-        default:
-            msg=Line;
-            msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
-            break;
-    }
+    FormatCountdown(Countdown, state, Line, buffer, msg, Line_orig);
 
     double TextRotation=0.0;
     switch(Effect)
@@ -1034,6 +848,361 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             default:
                 dc->DrawText(msg, 0, OffsetTop, TextRotation);
                 break; // static
+        }
+    }
+}
+
+void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig)
+{
+    long tempLong,longsecs;
+    int framesPerSec = 1000 / buffer.frameTimeInMs;
+    int i,days,hours,minutes,seconds;
+
+    wxDateTime dt;
+    wxTimeSpan ts;
+    wxString::const_iterator end;
+    wxString fmt = Line_orig;
+    wxChar delim;
+    wxString prepend = Line_orig;   //for prepended/appended text to countdown
+    wxString append = Line_orig;   //for prepended/appended text to countdown
+    wxString timePart = Line_orig;
+    wxArrayString minSec;
+    wxString tempSeconds;
+
+    switch(Countdown)
+    {
+        case COUNTDOWN_SECONDS:
+            // countdown seconds
+            if (state==0)
+            {
+                if (!Line.ToLong(&tempLong)) tempLong=0;
+                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
+            }
+            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
+            if(seconds < 0) seconds=0;
+            msg=wxString::Format("%i",seconds);
+            break;
+//jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
+        case COUNTDOWN_MINUTES_SECONDS:
+
+            if (timePart.Find('/') != -1 )
+            {
+                timePart = timePart.AfterFirst('/').BeforeLast('/');
+                prepend = prepend.BeforeFirst('/');
+                append = append.AfterLast('/');
+            }
+            else
+            {
+                append = "";
+                prepend = "";
+            }
+           minSec = wxSplit(timePart, ':');
+           if(minSec.size()==1)
+           {
+               seconds = wxAtoi(minSec[0]);
+           }
+           else if(minSec.size()==2)
+           {
+               minutes = wxAtoi(minSec[0]);
+               seconds = (minutes * 60) + wxAtoi(minSec[1]);
+               //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
+            }
+            else //invalid format
+            {
+               msg = _T("Invalid Format");
+               break;
+            }
+            if (state == 0)
+                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+seconds*framesPerSec+framesPerSec-1;
+
+            else
+                seconds = (GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
+
+            minutes = (seconds / 60);
+            seconds = seconds - (minutes * 60);
+
+           if(seconds < 0)
+                seconds=0;
+
+           tempSeconds = wxString::Format("%i", seconds);
+
+           if (tempSeconds.Len() == 1)
+                tempSeconds = tempSeconds.Pad(1, '0', false);
+
+           msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
+
+           break;
+
+        case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
+#if 0
+
+            Aug 14,2015 <scm>
+            Sample datestrings that are valid for the countdown timer
+                Wed, 02 Oct 2015 15:00:00 +0200
+                Wed, 02 Oct 2015 15:00:00 EST
+
+                Note, dates must be in the future, any date in the past will show as "Invalid Date" when converted
+
+
+
+                clear(
+
+                )
+                wxTimeSpan format chars are described at:
+                http://docs.wxwidgets.org/trunk/classwx_time_span.html
+                The following format specifiers are allowed after %:
+                ïH - Number of Hours
+                ïM - Number of Minutes
+                ïS - Number of Seconds
+                ïl - Number of Milliseconds
+                ïD - Number of Days
+                ïE - Number of Weeks
+                ï% - The percent character
+
+                //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
+                TIME FORMAT CHARACTERS:
+                %a Abbreviated weekday name eg. Thu
+                %A Full weekday name eg. Thursday
+                %b Abbreviated month name eg. Aug
+                %B Full month name eg. August
+                %c Date and time representation eg. Thu Aug 23 14:55:02 2001
+                %d Day of the month (01-31) eg. 23
+                %H Hour in 24h format (00-23) eg. 14
+                %I Hour in 12h format (01-12) eg. 02
+                %j Day of the year (001-366) eg. 235
+                %m Month as a decimal number (01-12) eg. 08
+                %M Minute (00-59) eg. 55
+                %p AM or PM designation eg. PM
+                %S Second (00-61) eg. 02
+                %U Week number with the first Sunday as the first day of week one (00-53) eg. 33
+                %w Weekday as a decimal number with Sunday as 0 (0-6) eg. 4
+                %W Week number with the first Monday as the first day of week one (00-53) eg. 34
+                %x Date representation eg. 08/23/01
+                %X Time representation eg. 14:55:02
+                %y Year, last two digits (00-99) eg. 01
+                %Y Year eg. 2001
+                %Z Timezone name or abbreviation CDT
+                %% A % sign eg. %
+#endif // 0
+                //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
+                if (Line.size() >= 4)
+                {
+                    delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
+                    Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
+                    //            Line.RemoveLast(); //remove delimiter
+                    fmt = Line.After(delim);
+                    Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
+                }
+                else fmt.Empty();
+            //CAUTION: fall thru here
+        case COUNTDOWN_D_H_M_S:
+        case COUNTDOWN_H_M_S:
+        case COUNTDOWN_M_or_S:
+        case COUNTDOWN_S:
+            // countdown to date
+            if (state%framesPerSec == 0)   //1x/sec
+            {
+                //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
+                if ( dt.ParseRfc822Date(Line, &end) )
+                {
+                    // dt is (at least partially) valid, so calc # of seconds until then
+                    ts=dt.Subtract(wxDateTime::Now());
+                    wxLongLong ll=ts.GetSeconds();
+                    if (ll > LONG_MAX) ll=LONG_MAX;
+                    if (ll < 0) ll=0;
+                    longsecs=ll.ToLong();
+                }
+                else
+                {
+                    // invalid date/time
+                    longsecs = 0;
+                }
+                GetCache(buffer,id)->timer_countdown=longsecs;
+            }
+            else
+            {
+                longsecs=GetCache(buffer,id)->timer_countdown;
+                ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
+            }
+            if (!longsecs)
+            {
+                msg = _T("invalid date");    //show when invalid -DJ
+                break;
+            }
+            days = longsecs / 60 / 60 / 24;
+            hours = (longsecs / 60 / 60) % 24;
+            minutes = (longsecs / 60) % 60;
+            seconds = longsecs % 60;
+            if (Countdown == COUNTDOWN_D_H_M_S)
+                msg=wxString::Format("%dd %dh %dm %ds",days,hours,minutes,seconds);
+            else if (Countdown == COUNTDOWN_H_M_S)
+                msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
+            else if (Countdown == COUNTDOWN_S)
+                msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
+            else if (Countdown == COUNTDOWN_FREEFMT)
+                //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
+                msg = ts.Format(fmt); //dt.Format(fmt)
+            else //if (Countdown == COUNTDOWN_M_or_S)
+                if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
+                    msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
+                else //COUNTDOWN_M_or_S: show minutes
+                    msg = wxString::Format("%d m", 60 * hours + minutes);
+            break;
+        default:
+            msg=Line;
+            msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
+            break;
+    }
+}
+void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer)
+{
+    int ascii;
+    int x_start_corner;
+    int y_start_corner;
+    int x_pos, y_pos;
+    int char_width;
+    int char_height;
+    int red, green, blue;
+    bool pixelOffsets = false;
+    int startx = 0;
+    int starty = 0;
+    int endx = 0;
+    int endy = 0;
+
+    xlColor c;
+    int num_colors = buffer.palette.Size();
+    buffer.palette.GetColor(0,c);
+
+    starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
+    startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
+    endy = wxAtoi(settings.Get("SLIDER_Text_YEnd", "0"));
+    endx = wxAtoi(settings.Get("SLIDER_Text_XEnd", "0"));
+    pixelOffsets = wxAtoi(settings.Get("CHECKBOX_Text_PixelOffsets", "0"));
+
+    int OffsetLeft = startx * buffer.BufferWi / 100;
+    int OffsetTop = -starty * buffer.BufferHt / 100;
+    if (pixelOffsets) {
+        OffsetLeft = startx;
+        OffsetTop =  -starty;
+    }
+
+    font_mgr.init();  // make sure font class is initialized
+    wxString xl_font = settings["CHOICE_Text_Font"];
+    xlFont* font = font_mgr.get_font(xl_font);
+    wxBitmap* bmp = font->get_bitmap();
+    wxImage image = bmp->ConvertToImage();
+    char_width = font->GetWidth();
+    char_height = font->GetHeight();
+
+    wxString text = settings["TEXTCTRL_Text"];
+    int text_length = font_mgr.get_length(font, text);
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+
+    if( dir == TEXTDIR_VECTOR ) {
+        double position = buffer.GetEffectTimeIntervalPosition(1.0);
+        double ex = endx * buffer.BufferWi / 100;
+        double ey = -endy * buffer.BufferHt / 100;
+        if (pixelOffsets) {
+            ex = endx;
+            ey = -endy;
+        }
+        OffsetLeft += (ex - OffsetLeft) * position;
+        OffsetTop += (ey - OffsetTop) * position;
+    }
+
+    wxString msg = text;
+    int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
+    if( Countdown > 0 ) {
+        int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+        int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
+        wxString Line = text;
+        FormatCountdown(Countdown, state, Line, buffer, msg, text);
+        msg.Replace(" : ", ":");
+    }
+    text = msg;
+
+    int text_effect = TextEffectsIndex(settings["CHOICE_Text_Effect"]);
+    bool vertical = false;
+    bool rotate_90 = false;
+    bool up = false;
+    if( text_effect == 1 || text_effect == 2) {
+        vertical = true;
+        if( text_effect == 1 ) {
+            up = true;
+        }
+    } else if( text_effect == 4 || text_effect == 6) {
+        rotate_90 = true;
+        if( text_effect == 4 ) {
+            up = true;
+        }
+    }
+
+    if( rotate_90 ) {
+       OffsetLeft += buffer.BufferWi/2 - font->GetCapsHeight()/2;
+       if( up ) {
+           OffsetTop += buffer.BufferHt/2 + text_length/2;
+       } else {
+           OffsetTop += buffer.BufferHt/2 - text_length/2;
+       }
+    } else if( vertical ) {
+       OffsetLeft += buffer.BufferWi/2 - char_width/2;
+       if( up ) {
+           OffsetTop += buffer.BufferHt/2 + (char_height*text.length())/2;
+       } else {
+           OffsetTop += buffer.BufferHt/2 - (char_height*text.length())/2;
+       }
+    } else {
+        OffsetLeft += buffer.BufferWi/2 - text_length/2;
+        OffsetTop += buffer.BufferHt/2 - font->GetCapsHeight()/2;
+    }
+
+    if (text != "") {
+        int space_offset = 0;
+        for( int i = 0; i < text.length(); i++ ) {
+            buffer.palette.GetColor((i-space_offset)%num_colors,c);
+            if( text[i] == ' ' ) {
+                space_offset++;
+            }
+            ascii = (int)text[i];
+            x_start_corner = (ascii%8) * (char_width+1) + 1;
+            y_start_corner = (ascii/8) * (char_height+1) + 1;
+
+            int actual_width = font->GetCharWidth(ascii);
+            if( rotate_90 && up ) {
+                OffsetTop -= actual_width;
+            }
+            for( int w = 0; w < actual_width; w++ )
+            {
+               x_pos = x_start_corner + w;
+               for( y_pos = y_start_corner; y_pos < y_start_corner+char_height; y_pos++)
+               {
+                   red = image.GetRed(x_pos, y_pos);
+                   green = image.GetGreen(x_pos, y_pos);
+                   blue = image.GetBlue(x_pos, y_pos);
+                   if( red == 255 && green == 255 && blue == 255 ) {
+                      if( rotate_90 ) {
+                        if( up ) {
+                            buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                        } else {
+                            buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                        }
+                      } else {
+                        buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                      }
+                   }
+               }
+            }
+            if( vertical ) {
+               if( up ) {
+                    OffsetTop -= char_height + 1;
+               } else {
+                    OffsetTop += char_height + 1;
+               }
+            } else if( rotate_90 && !up ) {
+                OffsetTop += actual_width;
+            } else if( !rotate_90 ) {
+                OffsetLeft += actual_width;
+            }
         }
     }
 }

@@ -543,6 +543,8 @@
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
+		<Unit filename="FontManager.cpp" />
+		<Unit filename="FontManager.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
 		<Unit filename="GenerateCustomModelDialog.h" />
 		<Unit filename="GenerateLyricsDialog.cpp" />

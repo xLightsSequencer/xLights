@@ -35,6 +35,9 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText186;
 		wxTextCtrl* TextCtrl_Text;
 		wxPanel* Panel_Text1;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton1;
+		wxChoice* Choice_Text_Font;
 		wxSlider* Slider_Text_XStart;
 		wxStaticText* StaticText98;
 		wxChoice* Choice_Text_Effect;
@@ -55,6 +58,9 @@ class TextPanel: public wxPanel
 		static const long ID_TEXTCTRL_Text;
 		static const long ID_FONTPICKER_Text_Font;
 		static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_Text_Font;
+		static const long ID_BITMAPBUTTON1;
 		static const long ID_STATICTEXT79;
 		static const long ID_CHOICE_Text_Dir;
 		static const long ID_BITMAPBUTTON_CHOICE_Text_Dir;

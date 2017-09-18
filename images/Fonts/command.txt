@@ -1,0 +1,1 @@
+wxInclude.exe --appendtype --const --input-type=.png --output-file=xLightsFontImages.h

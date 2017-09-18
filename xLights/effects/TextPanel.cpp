@@ -1,6 +1,7 @@
 #include "TextPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "../FontManager.h"
 
 //(*InternalHeaders(TextPanel)
 #include <wx/notebook.h>
@@ -25,6 +26,9 @@ const long TextPanel::ID_STATICTEXT53 = wxNewId();
 const long TextPanel::ID_TEXTCTRL_Text = wxNewId();
 const long TextPanel::ID_FONTPICKER_Text_Font = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font = wxNewId();
+const long TextPanel::ID_STATICTEXT1 = wxNewId();
+const long TextPanel::ID_CHOICE_Text_Font = wxNewId();
+const long TextPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long TextPanel::ID_STATICTEXT79 = wxNewId();
 const long TextPanel::ID_CHOICE_Text_Dir = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir = wxNewId();
@@ -111,6 +115,13 @@ TextPanel::TextPanel(wxWindow* parent)
 	BitmapButton_TextFont = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_FONTPICKER_Text_Font, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font"));
 	BitmapButton_TextFont->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer119->Add(BitmapButton_TextFont, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText1 = new wxStaticText(Panel_Text1, ID_STATICTEXT1, _("XL Font"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer119->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Text_Font = new wxChoice(Panel_Text1, ID_CHOICE_Text_Font, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Font"));
+	FlexGridSizer119->Add(Choice_Text_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+	BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer119->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText78 = new wxStaticText(Panel_Text1, ID_STATICTEXT79, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT79"));
 	FlexGridSizer119->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer48 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -253,6 +264,7 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer46->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_TextToCenter,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(IDD_SLIDER_Text_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TextPanel::UpdateLinkedTextCtrl);
@@ -270,6 +282,15 @@ TextPanel::TextPanel(wxWindow* parent)
 	Connect(ID_SLIDER_Text_YEnd,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TextPanel::UpdateLinkedTextCtrl);
 	//*)
     SetName("ID_PANEL_TEXT");
+
+   	Choice_Text_Font->SetSelection( Choice_Text_Font->Append(_("Use OS Fonts")) );
+   	FontManager& font_mgr(FontManager::instance());
+    wxArrayString xl_font_names = font_mgr.get_font_names();
+   	font_mgr.init();
+    for( int i = 0; i < xl_font_names.size(); i++ )
+    {
+        Choice_Text_Font->Append( xl_font_names[i] );
+    }
 }
 
 TextPanel::~TextPanel()

@@ -5,6 +5,7 @@
 
 class wxString;
 class TextDrawingContext;
+class FontManager;
 
 class TextEffect : public RenderableEffect
 {
@@ -26,13 +27,15 @@ class TextEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
         void SelectTextColor(std::string& palette, int index);
+        void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig);
 
         void RenderTextLine(RenderBuffer &buffer,
                             TextDrawingContext* dc, const wxString& Line_orig, int dir,
                             bool center, int Effect, int Countdown, int tspeed,
                             int startx, int starty, int endx, int endy,
                             bool isPixelBased);
-
+        void RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        FontManager& font_mgr;
 };
 
 #endif // TEXTEFFECT_H
