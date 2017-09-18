@@ -6,7 +6,7 @@
 		<size>450,350d</size>
 		<minsize>300,200d</minsize>
 		<id_arg>0</id_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="Sizer1" member="yes">
 			<cols>2</cols>
 			<growablecols>1</growablecols>
@@ -115,6 +115,16 @@
 								<object class="wxButton" name="ID_BUTTON_Reverse" variable="Button_Reverse" member="yes">
 									<label>Reverse</label>
 									<handler function="OnButton_ReverseClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_RENUMBER" variable="Button_Renumber" member="yes">
+									<label>Renumber</label>
+									<tooltip>Increase or Decrease The Node Number Values</tooltip>
+									<handler function="OnButton_RenumberClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
