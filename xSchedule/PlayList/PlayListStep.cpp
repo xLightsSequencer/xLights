@@ -5,6 +5,7 @@
 #include "PlayListItemVideo.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemESEQ.h"
+#include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
 #include "PlayListItemFSEQVideo.h"
@@ -127,6 +128,10 @@ void PlayListStep::Load(wxXmlNode* node)
         else if (n->GetName() == "PLIFSEQ")
         {
             _items.push_back(new PlayListItemFSEQ(n));
+        }
+        else if (n->GetName() == "PLIFile")
+        {
+            _items.push_back(new PlayListItemFile(n));
         }
         else if (n->GetName() == "PLIText")
         {

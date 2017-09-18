@@ -131,6 +131,8 @@
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DDPDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -244,6 +246,8 @@
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
+    <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
+    <ClInclude Include="PlayList\PlayListItemFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
