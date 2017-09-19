@@ -2454,7 +2454,7 @@ LayoutGroup.cpp: LayoutGroup.h xLightsMain.h models/Model.h PreviewPane.h
 
 Image.cpp: Image.h Image_Loader.h
 
-LayoutPanel.cpp: LayoutPanel.h ModelPreview.h xLightsMain.h DrawGLUtils.h ChannelLayoutDialog.h models/ModelGroup.h ModelGroupPanel.h ../include/eye-16.xpm ../include/eye-16_gray.xpm PreviewPane.h models/SubModel.h
+LayoutPanel.cpp: LayoutPanel.h ModelPreview.h xLightsMain.h DrawGLUtils.h ChannelLayoutDialog.h models/ModelGroup.h ModelGroupPanel.h ../include/eye-16.xpm ../include/eye-16_gray.xpm PreviewPane.h models/SubModel.h WiringDialog.h
 
 LorConvertDialog.cpp: LorConvertDialog.h
 
@@ -2698,7 +2698,7 @@ ViewsModelsPanel.cpp: ViewsModelsPanel.h ../include/model-16.xpm ../include/timi
 
 VsaImportDialog.cpp: VsaImportDialog.h sequencer/SequenceElements.h xLightsMain.h models/Model.h VSAFile.h support/FastComboEditor.h support/GridCellChoiceRenderer.h support/EzGrid.h
 
-WiringDialog.cpp: WiringDialog.h
+WiringDialog.cpp: WiringDialog.h models/Model.h
 
 XlightsDrawable.cpp: XlightsDrawable.h DrawGLUtils.h
 
