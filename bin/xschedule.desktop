@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Version=1.0
 Type=Application
-Exec=xSchedule %f
+Exec=xLights -xschedule %f
 Comment=Lighting control and sequencing - Scheduler
 Name=xSchedule
 Terminal=false

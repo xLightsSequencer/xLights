@@ -426,9 +426,30 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
+#ifdef __LINUX__
+        { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
+#endif
         { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
     };
+
+// Add option to run xschedule via xlights on linux (for AppImage usage)
+#ifdef __LINUX__
+       int run_xschedule = FALSE;
+       wxString cmdline(wxT("xSchedule"));
+        for (int i=1; i< argc;i++) {
+            if (strncmp(argv[i],"-x",2) == 0) {
+                run_xschedule = TRUE;
+            } else {
+                cmdline += wxT(" ");
+                cmdline += wxString::FromUTF8(argv[i]);
+            }
+        }
+        if (run_xschedule) {
+            wxExecute(cmdline, wxEXEC_ASYNC,NULL,NULL);
+            exit(0);
+        }
+#endif
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
