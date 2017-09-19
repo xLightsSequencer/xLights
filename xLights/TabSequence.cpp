@@ -133,6 +133,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
         CreateDefaultEffectsXml();
     }
+    ModelsNode = EffectsNode = PalettesNode = ModelGroupsNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
 	wxXmlNode* viewsNode = nullptr;
 	wxXmlNode* colorsNode = nullptr;
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
@@ -404,8 +405,8 @@ void xLightsFrame::LoadEffectsFile()
     EffectsNode->DeleteAttribute("version");
     EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
 
-    UpdateModelsList();
     displayElementsPanel->SetSequenceElementsModelsViews(&SeqData, &mSequenceElements, ModelsNode, ModelGroupsNode, &_sequenceViewManager);
+    UpdateModelsList();
     mSequencerInitialize = false;
 
     // load the perspectives

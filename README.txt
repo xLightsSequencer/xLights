@@ -12,9 +12,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 ---------------------------------
 2017.29  Sep  19, 2017
-   -- bug (keith)   Fix regular crash due to slow rendering
+   -- bug (keith)   Fix regular crash due to slow rendering. This bug was introduced in 2017.28
    -- enh (cjd)     Add option to run xschedule via xlights on linux (for AppImage usage)
    -- bug (scottH)  Custom Model Renumber (#917)
+   -- bug (dkulp)   Fix crash when changing show directories
    -- bug (dkulp)   OSX - flipping back and forth between tabs sometimes results in hidden panels appearing and moving to a docked state.
 2017.28  Sep  18, 2017
    -- bug (dkulp)   Fix crash on startup when ViesModelsPanel is not visible
