@@ -91,7 +91,7 @@ class HousePreviewPanel;
 
 // notebook pages
 #define SETUPTAB 0
-#define PREVIEWTAB 1
+#define LAYOUTTAB 1
 #define NEWSEQUENCER 2
 
 #define PLAY_TYPE_STOPPED 0
@@ -1230,7 +1230,7 @@ private:
     int _acParm2RampUpDown;
 
     wxXmlNode* mCurrentPerpective;
-    std::vector<bool> savedPaneShown;
+    std::map<wxString, bool> savedPaneShown;
 
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;

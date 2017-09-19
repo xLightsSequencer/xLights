@@ -1874,7 +1874,7 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Setup Tab");
         msg=_("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
         break;
-    case PREVIEWTAB:
+    case LAYOUTTAB:
         caption=_("Preview Tab");
         msg=_("Create display elements by clicking on the Models button. Only models that have 'My Display' checked will be included in the Display Elements list and shown in the preview area.\n\nSelect an item in the Display Elements list and it will turn from gray to yellow (you may not see the yellow if the selected element is hidden behind another one). Once selected, you can drag your cursor across the preview area to move the element. You can also use the Element Size slider to make it bigger or smaller. You can rotate elements that have Display As set to 'Single Line'. Don't forget to click the Save button to save your preview!\n\nClick the Open button to select an xLights sequence to be previewed. Note that any xLights sequence can be previewed, not just those created on the Nutcracker tab. Click Play to start preview playback. Use the Pause button to stop play, and then the Play button to resume. You can drag the slider that appears across the top of the preview area to move playback to any spot in your sequence. The Stop Now button in the upper left will also stop playback.");
         break;
@@ -1917,7 +1917,6 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     {
         logger_base.crit("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
     }
-
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
     if (show)
@@ -1925,41 +1924,28 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
         for (size_t x = 0; x < info.size(); x++)
         {
-            if (info[x].IsOk())
-            {
-                if (x < savedPaneShown.size() && info[x].IsFloating() && !info[x].IsShown()
-                    && savedPaneShown[x])
-                {
-                    info[x].Show();
-                    savedPaneShown[x] = true;
-                    update = true;
-                }
-            }
-            else
-            {
-                savedPaneShown[x] = false;
-                logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
-            }
+            if (info[x].IsOk() && savedPaneShown[info[x].name])
+                info[x].frame->Show();
         }
+        savedPaneShown.clear();
     }
     else
     {
+        savedPaneShown.clear();
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide");
-        savedPaneShown.resize(info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
+            savedPaneShown[info[x].name] = false;
             if (info[x].IsOk())
             {
-                savedPaneShown[x] = info[x].IsShown();
                 if (info[x].IsFloating() && info[x].IsShown())
                 {
-                    info[x].Hide();
-                    update = true;
+                    savedPaneShown[info[x].name] = true;
+                    info[x].frame->Hide();
                 }
             }
             else
             {
-                savedPaneShown[x] = false;
                 logger_base.warn("Pane %d was not valid ... ShowHideAllSequencerWindows", x);
             }
         }
@@ -1970,7 +1956,6 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
-
     // show/hide Layout Previews
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
@@ -2007,15 +1992,17 @@ void xLightsFrame::RecalcModels(bool force)
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
 {
+    if (layoutPanel == nullptr) {
+        event.Veto();
+        return;
+    }
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
         ShowHideAllSequencerWindows(false);
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
-        if (layoutPanel != nullptr) {
-            layoutPanel->UnSelectAllModels();
-        }
+        layoutPanel->UnSelectAllModels();
         RecalcModels();
     }
 }
@@ -2024,7 +2011,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
-	if (pagenum == PREVIEWTAB)
+	if (pagenum == LAYOUTTAB)
     {
         // these commented out lines were already setup when rgbeffects file was loaded and it messes up multiple preview loading.
         //modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
@@ -2950,7 +2937,7 @@ void xLightsFrame::CheckUnsavedChanges()
     {
         // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
         // to the user what this prompt is for
-        Notebook1->SetSelection(PREVIEWTAB);
+        Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
             "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT))
@@ -3218,7 +3205,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
     if (fd.ShowModal() == wxID_CANCEL) return;
 
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != PREVIEWTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
@@ -3614,7 +3601,7 @@ void xLightsFrame::ExportModels(wxString filename)
     }
 
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != PREVIEWTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
@@ -3918,7 +3905,7 @@ void xLightsFrame::CheckSequence(bool display)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != PREVIEWTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
@@ -5305,7 +5292,7 @@ std::string StripPresets(const std::string& sourcefile)
 void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 {
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != PREVIEWTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
@@ -5333,7 +5320,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     if (fd.ShowModal() == wxID_CANCEL) return;
 
     // make sure everything is up to date
-    if (Notebook1->GetSelection() != PREVIEWTAB)
+    if (Notebook1->GetSelection() != LAYOUTTAB)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
