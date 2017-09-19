@@ -195,6 +195,7 @@ const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
+const long xLightsFrame::ID_MNU_CRASH = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
 const long xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
@@ -770,6 +771,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItem_PackageSequence);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
+    MenuItem_CrashXLights = new wxMenuItem(Menu1, ID_MNU_CRASH, _("Crash xLights"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_CrashXLights);
     MenuBar->Append(Menu1, _("&Tools"));
     MenuView = new wxMenu();
     MenuItem_ViewZoomIn = new wxMenuItem(MenuView, wxID_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
@@ -1085,6 +1088,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
+    Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CrashXLightsSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
@@ -1183,9 +1187,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
     #ifndef NDEBUG
+        logger_base.debug("xLights Crash Menu item not removed.");
         #ifdef _MSC_VER
             Notebook1->SetBackgroundColour(*wxGREEN);
         #endif
+    #else
+        // only keep the crash option if the EnableCrash.txt file exists
+        if (!wxFile::Exists("EnableCrash.txt"))
+        {
+            MenuItem_CrashXLights->GetMenu()->Remove(MenuItem_CrashXLights);
+            MenuItem_CrashXLights = nullptr;
+        }
+        else
+        {
+            logger_base.debug("xLights Crash Menu item not removed.");
+        }
     #endif
 
     logger_base.debug("xLightsFrame constructor UI code done.");
@@ -6553,4 +6569,12 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
     }
+}
+
+void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("^^^^^ xLights crashing on purpose ... bye bye cruel world.");
+    int *p = nullptr;
+    *p = 0xFFFFFFFF;
 }

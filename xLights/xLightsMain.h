@@ -508,6 +508,7 @@ private:
     void OnMenuItem_PlayControlsOnPreviewSelected(wxCommandEvent& event);
     void OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
+    void OnMenuItem_CrashXLightsSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -619,6 +620,7 @@ private:
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
     static const long ID_MNU_XSCHEDULE;
+    static const long ID_MNU_CRASH;
     static const long ID_MENUITEM5;
     static const long MNU_ID_ACLIGHTS;
     static const long ID_MNU_SHOWRAMPS;
@@ -792,6 +794,7 @@ private:
     wxMenuItem* MenuItem42;
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenu* MenuItem7;
+    wxMenuItem* MenuItem_CrashXLights;
     wxButton* ButtonAddDongle;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxBitmapButton* BitmapButtonMoveNetworkUp;

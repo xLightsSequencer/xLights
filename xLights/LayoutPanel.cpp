@@ -1153,7 +1153,6 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
 
         if (m->GetDisplayAs() == "SubModel")
         {
-            logger_base.warn("LayoutPanel::SelectModel pre dynamic cast subModel - KW");
             SubModel *subModel = dynamic_cast<SubModel*>(m);
             if (subModel != nullptr) {
                 // this is the only thing I can see here that could crash
@@ -1174,17 +1173,12 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             {
                 if (TreeListViewModels->GetItemData(item) != nullptr)
                 {
-                    logger_base.warn("LayoutPanel::SelectModel pre dynamic cast mitem - KW");
                     ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
                     if (mitem != nullptr && mitem->GetModel() == m) {
                         TreeListViewModels->Select(item);
                         TreeListViewModels->EnsureVisible(item);
                         break;
                     }
-                }
-                else
-                {
-                    logger_base.error("LayoutPanel::SelectModel dynamic cast mitem - KW");
                 }
             }
         }
@@ -1207,7 +1201,6 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         {
             if (TreeListViewModels->GetItemData(item) != nullptr)
             {
-                logger_base.warn("LayoutPanel::SelectModel pre dynamic cast mm - KW");
                 ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
                 Model *mm = data != nullptr ? data->GetModel() : nullptr;
                 if (mm != nullptr && mm != selectedModel) {
@@ -1226,10 +1219,6 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
                         mm->Overlapping = false;
                     }
                 }
-            }
-            else
-            {
-                logger_base.error("LayoutPanel::SelectModel dynamic cast mm - KW");
             }
         }
     }

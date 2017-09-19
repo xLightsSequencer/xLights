@@ -1117,6 +1117,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     } else {
         QuitMenuItem->Enable(true);
     }
+
+    if (MenuItem_CrashXLights != nullptr)
+    {
+        MenuItem_CrashXLights->Enable();
+    }
 }
 
 //modifed for partially random -DJ

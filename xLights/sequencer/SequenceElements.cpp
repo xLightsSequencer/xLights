@@ -1591,6 +1591,22 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
     if (dlgLyrics->ShowModal() == wxID_OK)
     {
+        int total_num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
+        int num_phrases = total_num_phrases;
+        for (int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++)
+        {
+            if (dlgLyrics->TextCtrlLyrics->GetLineText(i).length() == 0)
+            {
+                num_phrases--;
+            }
+        }
+
+        if (num_phrases == 0)
+        {
+            wxMessageBox("No phrases found.");
+            return;
+        }
+
         element->SetFixedTiming(0);
         // remove all existing layers from timing track
         int num_layers = element->GetEffectLayerCount();
@@ -1600,15 +1616,6 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int total_num_phrases = dlgLyrics->TextCtrlLyrics->GetNumberOfLines();
-        int num_phrases = total_num_phrases;
-        for( int i = 0; i < dlgLyrics->TextCtrlLyrics->GetNumberOfLines(); i++ )
-        {
-            if( dlgLyrics->TextCtrlLyrics->GetLineText(i).length() == 0)
-            {
-                num_phrases--;
-            }
-        }
         int start_time = 0;
         int end_time = mSequenceEndMS;
         int interval_ms = (end_time-start_time) / num_phrases;

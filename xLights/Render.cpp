@@ -27,16 +27,19 @@ static const std::string STR_EMPTY("");
 
 class EffectLayerInfo {
 public:
-    EffectLayerInfo() {
+    EffectLayerInfo(): element(nullptr)
+    {
         numLayers = 0;
         buffer.reset(nullptr);
         strand = -1;
     }
-    EffectLayerInfo(int l) {
+
+    EffectLayerInfo(int l) : element(nullptr) {
         resize(l);
         buffer.reset(nullptr);
         strand = -1;        
     }
+
     void resize(int l) {
         numLayers = l;
         currentEffects.resize(l);
@@ -45,6 +48,7 @@ public:
         effectStates.resize(l);
         validLayers.resize(l + 1); //extra one for the blending layer
     }
+    
     int numLayers;
     int strand;
     Element *element;
@@ -70,7 +74,6 @@ public:
     bool *ResetEffectState;
     bool returnVal = true;
 };
-
 
 class NextRenderer {
 public:
@@ -151,7 +154,8 @@ public:
         ++max;
     }
 
-    int getNumAggregated() {
+    int getNumAggregated() const
+    {
         return max;
     }
 
@@ -212,7 +216,7 @@ public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
-            supportsModelBlending(false), abort(false)
+            supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
         if (row != nullptr) {
             name = row->GetModelName();
@@ -356,6 +360,13 @@ public:
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
 
+    wxString PrintStatusMap()
+    {
+        if (statusMap == nullptr) return "";
+
+        return statusMap->AsString();
+    }
+
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int strand, int node, bool debugLog = false) {
         statusType = 2;
         statusFrame = frame;
@@ -413,19 +424,19 @@ public:
             }
         case 2:
             if (statusStrand == -1) {
-                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.", statusFrame, name, statusLayer) + statusMap->AsString();
+                return wxString::Format("Rendering layer effect for frame %d of %s, layer %d.", statusFrame, name, statusLayer) + PrintStatusMap();
             } else if (statusNode == -1) {
-                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.", statusFrame, name, statusStrand) + statusMap->AsString();
+                return wxString::Format("Rendering strand effect for frame %d of %s, strand %d.", statusFrame, name, statusStrand) + PrintStatusMap();
             } else {
-                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.", statusFrame, name, statusLayer, statusNode) + statusMap->AsString();
+                return wxString::Format("Rendering node effect for frame %d of %s, strand %d, node %d.", statusFrame, name, statusLayer, statusNode) + PrintStatusMap();
             }
         case 3:
             if (statusStrand == -1) {
-                return wxString::Format("Calculating output at frame %d for %s.", statusFrame, name);
+                return wxString::Format("Calculating output at frame %d for %s.", statusFrame, name) + PrintStatusMap();
             } else if (statusNode == -1) {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d.", statusFrame, name, statusStrand);
+                return wxString::Format("Calculating output at frame %d for %s, strand %d.", statusFrame, name, statusStrand) + PrintStatusMap();
             } else {
-                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode);
+                return wxString::Format("Calculating output at frame %d for %s, strand %d, node %d.", statusFrame, name, statusStrand, statusNode) + PrintStatusMap();
             }
         case 4:
             return wxString::Format(statusMsg, name, statusFrame);
@@ -513,9 +524,8 @@ public:
 
         if (sw.Time() > 500)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             RenderBuffer& b = buffer->BufferForLayer(0, -1);
-            logger_base.warn("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
+            renderLog.info("*** Frame #%d at %dms render on model %s (%dx%d) took more than 1/2s => %dms.", frame, frame * b.frameTimeInMs, (const char *)el->GetName().c_str(), b.BufferWi, b.BufferHt, sw.Time());
         }
 
         return effectsToUpdate;
@@ -563,10 +573,10 @@ public:
 
         try {
             for (int layer = 0; layer < numLayers; ++layer) {
-                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
+                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame);
+                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
@@ -574,7 +584,7 @@ public:
 
             for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
-                SetGenericStatus("%s: Starting frame %d", frame, true);
+                SetGenericStatus("%s: Starting frame %d " + PrintStatusMap(), frame, true);
                 
                 if (abort) {
                     break;
@@ -594,7 +604,7 @@ public:
 
                     if (sw.Time() > 500)
                     {
-                        logger_base.warn("Model %s rendering frame %d waited %dms waiting for other models to finish.", (const char *)mainModelInfo.element->GetName().c_str(), frame, sw.Time());
+                        renderLog.info("Model %s rendering frame %d waited %dms waiting for other models to finish.", (const char *)(mainModelInfo.element != nullptr) ? mainModelInfo.element->GetName().c_str() : "", frame, sw.Time());
                     }
                 }
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
@@ -1015,15 +1025,17 @@ void xLightsFrame::RenderTree::Add(Model *el) {
 }
 
 void xLightsFrame::RenderTree::Print() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
+    logger_render.debug("========== RENDER TREE");
     for (auto it = data.begin(); it != data.end(); ++it) {
-        printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
-        logger_base.debug("%s:   (%d)", (const char *)(*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
+        //printf("%s:   (%d)\n", (*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
+        logger_render.debug("   %s:   (%d)", (const char *)(*it)->model->GetName().c_str(), (int)(*it)->ranges.size());
         for (auto it2 = (*it)->renderOrder.begin(); it2 != (*it)->renderOrder.end(); ++it2) {
-            printf("    %s     \n", (*it2)->GetName().c_str());
-            logger_base.debug("     %s", (const char *)(*it2)->GetName().c_str());
+            //printf("    %s     \n", (*it2)->GetName().c_str());
+            logger_render.debug("        %s", (const char *)(*it2)->GetName().c_str());
         }
     }
+    logger_render.debug("========== END RENDER TREE");
 }
 
 void xLightsFrame::BuildRenderTree() {
@@ -1044,7 +1056,7 @@ void xLightsFrame::BuildRenderTree() {
                 }
             }
         }
-        //renderTree.Print();
+        renderTree.Print();
         renderTree.renderTreeChangeCount = curChangeCount;
     }
 }
@@ -1055,6 +1067,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
                           std::function<void()>&& callback) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
 
     if (startFrame < 0) {
         startFrame = 0;
@@ -1144,7 +1157,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
         }
     }
 
-    //logger_base.debug("Aggregators created.");
+    logger_render.debug("Aggregators created.");
 
     channelMaps.clear();
     RenderProgressDialog *renderProgressDialog = nullptr;
@@ -1163,7 +1176,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
         }
     }
 
-    //logger_base.debug("Data cleared.");
+    logger_render.debug("Data cleared.");
 
     for (row = 0; row < numRows; ++row) {
         if (jobs[row]) {
@@ -1550,6 +1563,8 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                                        bool bgThread, RenderEvent *event) {
     
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
+
     if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
     }
@@ -1612,7 +1627,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 // Log slow render frames ... this takes time but at this point it is already slow
                 if (sw.Time() > 150)
                 {
-                    logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
+                    logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
                 }
             } else {
                 event->effect = effectObj;
