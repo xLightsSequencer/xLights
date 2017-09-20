@@ -1447,7 +1447,7 @@ unsigned int Model::GetLastChannel() {
     for(size_t idx=0; idx<NodeCount; idx++) {
         if (Nodes[idx]->ActChan == (unsigned int)-1)
         {
-            return (unsigned int)-1;
+            return (unsigned int)NodeCount * Nodes[idx]->GetChanCount();
         }
         LastChan=std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
     }

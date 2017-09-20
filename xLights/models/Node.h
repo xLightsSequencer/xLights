@@ -115,6 +115,7 @@ public:
             }
         }
     }
+
     virtual void GetForChannels(unsigned char *buf) const {
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255) {
@@ -334,6 +335,7 @@ public:
         chanCnt = NODE_RGBW_CHAN_CNT;
         SetName(n);
     }
+
     virtual void SetFromChannels(const unsigned char *buf) override {
         if (buf[3] != 0) {
             c[0] = c[1] = c[2] = buf[3];

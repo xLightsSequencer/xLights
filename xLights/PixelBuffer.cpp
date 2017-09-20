@@ -1582,14 +1582,18 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::list<NodeRange
         }
     }
 }
+
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
     xlColor color;
     for (size_t n = 0; n < layers[layer]->buffer.Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
+        //wxASSERT(layers.size() > layer);
+        //wxASSERT(layers[layer]->buffer.Nodes.size() > n);
         layers[layer]->buffer.Nodes[n]->SetFromChannels(&fdata[start]);
         layers[layer]->buffer.Nodes[n]->GetColor(color);
+        
         DimmingCurve *curve = layers[layer]->buffer.Nodes[n]->model->modelDimmingCurve;
         if (curve != nullptr) {
             curve->reverse(color);
