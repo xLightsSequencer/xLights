@@ -53,6 +53,11 @@ const long WavePanel::ID_BITMAPBUTTON31 = wxNewId();
 const long WavePanel::ID_STATICTEXT59 = wxNewId();
 const long WavePanel::ID_CHOICE_Wave_Direction = wxNewId();
 const long WavePanel::ID_BITMAPBUTTON8 = wxNewId();
+const long WavePanel::ID_STATICTEXT57 = wxNewId();
+const long WavePanel::ID_SLIDER_Wave_Y_Position = wxNewId();
+const long WavePanel::ID_VALUECURVE_Wave_Y_Position = wxNewId();
+const long WavePanel::IDD_TEXTCTRL_Wave_Y_Position = wxNewId();
+const long WavePanel::ID_BITMAPBUTTON57 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(WavePanel,wxPanel)
@@ -71,7 +76,8 @@ WavePanel::WavePanel(wxWindow* parent)
 	wxTextCtrl* TextCtrl75;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxTextCtrl* TextCtrl77;
-	wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer51 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -154,22 +160,37 @@ WavePanel::WavePanel(wxWindow* parent)
 	BitmapButton_Wave_Height = new wxBitmapButton(this, ID_BITMAPBUTTON7, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
 	BitmapButton_Wave_Height->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer51->Add(BitmapButton_Wave_Height, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText189 = new wxStaticText(this, ID_STATICTEXT32, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
+    StaticText189 = new wxStaticText(this, ID_STATICTEXT32, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
 	FlexGridSizer51->Add(StaticText189, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Wave_Speed = new wxSlider(this, ID_SLIDER_Wave_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Wave_Speed"));
 	FlexGridSizer4->Add(Slider_Wave_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Wave_SpeedVC = new ValueCurveButton(this, ID_VALUECURVE_Wave_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Wave_Speed"));
 	FlexGridSizer4->Add(BitmapButton_Wave_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer51->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
-	TextCtrl78 = new wxTextCtrl(this, IDD_TEXTCTRL_Wave_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Wave_Speed"));
+    TextCtrl78 = new wxTextCtrl(this, IDD_TEXTCTRL_Wave_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Wave_Speed"));
 	TextCtrl78->SetMaxLength(3);
 	FlexGridSizer51->Add(TextCtrl78, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton13 = new wxBitmapButton(this, ID_BITMAPBUTTON31, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
+    BitmapButton13 = new wxBitmapButton(this, ID_BITMAPBUTTON31, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
 	BitmapButton13->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer51->Add(BitmapButton13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText56 = new wxStaticText(this, ID_STATICTEXT59, _("Wave Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT59"));
+	StaticText57 = new wxStaticText(this, ID_STATICTEXT57, _("Y Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT57"));
+    FlexGridSizer51->Add(StaticText57, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer5->AddGrowableCol(0);
+    Slider_Wave_Y_Position = new wxSlider(this, ID_SLIDER_Wave_Y_Position, 0, WAVE_Y_POSITION_MIN, WAVE_Y_POSITION_MAX, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Wave_Y_Position"));
+    FlexGridSizer5->Add(Slider_Wave_Y_Position, 1, wxALL|wxEXPAND, 2);
+    BitmapButton_Wave_Y_PositionVC = new ValueCurveButton(this, ID_VALUECURVE_Wave_Y_Position, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Wave_Y_Position"));
+    FlexGridSizer5->Add(BitmapButton_Wave_Y_PositionVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer51->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
+    TextCtrl_Wave_Y_Position = new wxTextCtrl(this, IDD_TEXTCTRL_Wave_Y_Position, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Wave_Y_Position"));
+    TextCtrl_Wave_Y_Position->SetMaxLength(3);
+    FlexGridSizer51->Add(TextCtrl_Wave_Y_Position, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Wave_Y_Position = new wxBitmapButton(this, ID_BITMAPBUTTON57, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON57"));
+    BitmapButton_Wave_Y_Position->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer51->Add(BitmapButton_Wave_Y_Position, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText56 = new wxStaticText(this, ID_STATICTEXT59, _("Wave Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT59"));
 	FlexGridSizer51->Add(StaticText56, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Wave_Direction = new wxChoice(this, ID_CHOICE_Wave_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Wave_Direction"));
 	Choice_Wave_Direction->SetSelection( Choice_Wave_Direction->Append(_("Right to Left")) );
@@ -179,10 +200,10 @@ WavePanel::WavePanel(wxWindow* parent)
 	BitmapButton_Wave_Direction = new wxBitmapButton(this, ID_BITMAPBUTTON8, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
 	BitmapButton_Wave_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer51->Add(BitmapButton_Wave_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	SetSizer(FlexGridSizer51);
+        SetSizer(FlexGridSizer51);
 	FlexGridSizer51->Fit(this);
 	FlexGridSizer51->SetSizeHints(this);
-
+    
 	Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnLockButtonClick);
@@ -203,6 +224,9 @@ WavePanel::WavePanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_Wave_Speed,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&WavePanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON31,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnLockButtonClick);
+    Connect(ID_SLIDER_Wave_Y_Position,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&WavePanel::UpdateLinkedTextCtrlVC);
+    Connect(ID_VALUECURVE_Wave_Y_Position,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WavePanel::OnVCButtonClick);
+    Connect(IDD_TEXTCTRL_Wave_Y_Position,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&WavePanel::UpdateLinkedSlider);
 	//*)
     SetName("ID_PANEL_WAVE");
 
@@ -212,6 +236,7 @@ WavePanel::WavePanel(wxWindow* parent)
     BitmapButton_Thickness_PercentageVC->GetValue()->SetLimits(WAVE_THICKNESS_MIN, WAVE_THICKNESS_MAX);
     BitmapButton_Wave_HeightVC->GetValue()->SetLimits(WAVE_HEIGHT_MIN, WAVE_HEIGHT_MAX);
     BitmapButton_Wave_SpeedVC->GetValue()->SetLimits(WAVE_SPEED_MIN, WAVE_SPEED_MAX);
+    BitmapButton_Wave_Y_PositionVC->GetValue()->SetLimits(WAVE_Y_POSITION_MIN, WAVE_Y_POSITION_MAX);
 
     ValidateWindow();
 }
