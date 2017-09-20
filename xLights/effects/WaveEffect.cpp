@@ -109,7 +109,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset, WAVE_SPEED_MIN, WAVE_SPEED_MAX);
     int WaveYPosition = GetValueCurveInt("Wave_Y_Position", 0, SettingsMap, oset, WAVE_Y_POSITION_MIN, WAVE_Y_POSITION_MAX);
     double WaveYOffset = (buffer.BufferHt / 2.0) * (WaveYPosition * 0.01);
-    int roundedWaveYOffset = -round(WaveYOffset * 2.5);
+    int roundedWaveYOffset = -round(WaveYOffset);
     
     bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
 
