@@ -3940,7 +3940,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
     else
     {
-        addr.Hostname(wxGetHostName());
+        addr.AnyAddress();
     }
 
     LogAndWrite(f, "");
