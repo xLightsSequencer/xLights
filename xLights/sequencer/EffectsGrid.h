@@ -80,9 +80,9 @@ public:
     void SetEffectNodeValues(bool mode) {mGridNodeValues = mode;}
     void MoveSelectedEffectUp(bool shift);
     void MoveSelectedEffectDown(bool shift);
-    void MoveSelectedEffectLeft(bool shift);
-    void MoveSelectedEffectRight(bool shift);
-    void SetEffectStatusText(Effect* eff);
+    void MoveSelectedEffectLeft(bool shift, bool control, bool alt);
+    void MoveSelectedEffectRight(bool shift, bool control, bool alt);
+    void SetEffectStatusText(Effect* eff) const;
 
     void DeleteSelectedEffects();
     void SetEffectsDescription();
@@ -171,8 +171,12 @@ private:
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
     void ResizeMoveMultipleEffectsByTime(int delta);
+    void ButtUpResizeMoveMultipleEffects(bool right);
+    void StretchMultipleEffectsByTime(int delta);
+    void ButtUpStretchMultipleEffects(bool right);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);
     void MoveAllSelectedEffects(int deltaMS, bool offset);
+    void StretchAllSelectedEffects(int deltaMS, bool offset);
     int GetRow(int y);
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();

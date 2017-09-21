@@ -612,6 +612,250 @@ void EffectLayer::MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
     }
 }
 
+void EffectLayer::ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        int length = mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS();
+
+        if (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (!right)
+            {
+                Effect* prior = GetEffectBeforeTime(mEffects[i]->GetStartTimeMS());
+
+                if (prior == nullptr)
+                {
+                    mEffects[i]->SetStartTimeMS(0);
+                }
+                else if (prior == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetStartTimeMS(prior->GetEndTimeMS());
+                }
+                mEffects[i]->SetEndTimeMS(mEffects[i]->GetStartTimeMS() + length);
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (right)
+            {
+                Effect* next = GetEffectAfterTime(mEffects[i]->GetEndTimeMS() - 1);
+                if (next == nullptr)
+                {
+                    mEffects[i]->SetEndTimeMS(lengthMS);
+                }
+                else if (next == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetEndTimeMS(next->GetStartTimeMS());
+                }
+                mEffects[i]->SetStartTimeMS(mEffects[i]->GetEndTimeMS() - length);
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (right)
+            {
+                Effect* next = GetEffectAfterTime(mEffects[i]->GetEndTimeMS() - 1);
+                if (next == nullptr)
+                {
+                    mEffects[i]->SetEndTimeMS(lengthMS);
+                }
+                else if (next == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetEndTimeMS(next->GetStartTimeMS());
+                }
+                mEffects[i]->SetStartTimeMS(mEffects[i]->GetEndTimeMS() - length);
+            }
+            else
+            {
+                Effect* prior = GetEffectBeforeTime(mEffects[i]->GetStartTimeMS());
+
+                if (prior == nullptr)
+                {
+                    mEffects[i]->SetStartTimeMS(0);
+                }
+                else if (prior == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetStartTimeMS(prior->GetEndTimeMS());
+                }
+                mEffects[i]->SetEndTimeMS(mEffects[i]->GetStartTimeMS() + length);
+            }
+        }
+        mEffects[i]->SetTagged(false);
+    }
+}
+
+void EffectLayer::StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (deltaMS < 0)
+            {
+                mEffects[i]->SetStartTimeMS(mEffects[i]->GetStartTimeMS() + deltaMS);
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (deltaMS > 0)
+            {
+                mEffects[i]->SetEndTimeMS(mEffects[i]->GetEndTimeMS() + deltaMS);
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (deltaMS < 0)
+            {
+                mEffects[i]->SetStartTimeMS(mEffects[i]->GetStartTimeMS() + deltaMS);
+            }
+            if (deltaMS > 0)
+            {
+                mEffects[i]->SetEndTimeMS(mEffects[i]->GetEndTimeMS() + deltaMS);
+            }
+        }
+        mEffects[i]->SetTagged(false);
+    }
+}
+
+void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (!right)
+            {
+                Effect* prior = GetEffectBeforeTime(mEffects[i]->GetStartTimeMS());
+
+                if (prior == nullptr)
+                {
+                    mEffects[i]->SetStartTimeMS(0);
+                }
+                else if (prior == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetStartTimeMS(prior->GetEndTimeMS());
+                }
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (right)
+            {
+                Effect* next = GetEffectAfterTime(mEffects[i]->GetEndTimeMS() - 1);
+                if (next == nullptr)
+                {
+                    mEffects[i]->SetEndTimeMS(lengthMS);
+                }
+                else if (next == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetEndTimeMS(next->GetStartTimeMS());
+                }
+            }
+        }
+        else if (mEffects[i]->GetSelected() == EFFECT_SELECTED && mEffects[i]->GetTagged())
+        {
+            if (undo_mgr.GetCaptureUndo()) {
+                undo_mgr.CaptureEffectToBeMoved(mParentElement->GetModelName(), mIndex, mEffects[i]->GetID(),
+                    mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+            if (right)
+            {
+                Effect* next = GetEffectAfterTime(mEffects[i]->GetEndTimeMS() - 1);
+                if (next == nullptr)
+                {
+                    mEffects[i]->SetEndTimeMS(lengthMS);
+                }
+                else if (next == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetEndTimeMS(next->GetStartTimeMS());
+                }
+            }
+            else
+            {
+                Effect* prior = GetEffectBeforeTime(mEffects[i]->GetStartTimeMS());
+
+                if (prior == nullptr)
+                {
+                    mEffects[i]->SetStartTimeMS(0);
+                }
+                else if (prior == mEffects[i])
+                {
+                    // do nothing
+                }
+                else
+                {
+                    mEffects[i]->SetStartTimeMS(prior->GetEndTimeMS());
+                }
+            }
+        }
+        mEffects[i]->SetTagged(false);
+    }
+}
+
 void EffectLayer::TagAllSelectedEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(lock);

@@ -534,7 +534,7 @@ void TimeLine::SetTimeLength(int ms)
     mTimeLength = ms;
 }
 
-int TimeLine::GetTimeLength()
+int TimeLine::GetTimeLength() const
 {
     return mTimeLength;
 }
@@ -575,17 +575,16 @@ int TimeLine::GetTotalViewableTimeMS()
     return (int)((majorTicks * (float)TimePerMajorTickInMS()));
 }
 
-int TimeLine::GetZoomLevelValue()
+int TimeLine::GetZoomLevelValue() const
 {
     return  ZoomLevelValues[mZoomLevel];
 }
 
 int TimeLine::GetMaxZoomLevel()
 {
-    int i;
     float width = (float)GetSize().x;
     mMaxZoomLevel = MAX_ZOOM_OUT_INDEX;
-    for(i=0;i<=MAX_ZOOM_OUT_INDEX;i++)
+    for(int i = 0; i <= MAX_ZOOM_OUT_INDEX; i++)
     {
         float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
         int timeMS =  (int)((float)ZoomLevelValues[i] * ((float)1000/(float)mFrequency) * majorTicks);
@@ -634,9 +633,9 @@ void TimeLine::render( wxPaintEvent& event )
     wxPaintDC dc(this);
     render(dc);
 }
+
 void TimeLine::render( wxDC& dc ) {
     wxCoord w,h;
-    float t;
     int labelCount=0;
     wxPen pen(wxColor(128,128,128));
     const wxPen* pen_black = wxBLACK_PEN;
@@ -684,7 +683,7 @@ void TimeLine::render( wxDC& dc ) {
         // Draw time label
         if((x+mStartPixelOffset)%PIXELS_PER_MAJOR_HASH==0)
         {
-            t = GetTimeMSfromPosition(x+mStartPixelOffset);
+            float t = GetTimeMSfromPosition(x+mStartPixelOffset);
             wxRect r(x-25,h/2-10,50,12);
             minutes = t/60000;
             seconds = (t-(minutes*60000))/1000;

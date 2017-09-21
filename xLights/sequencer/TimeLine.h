@@ -59,12 +59,12 @@ class TimeLine : public wxWindow
         int GetTimeFrequency();
 
         void SetTimeLength(int ms);
-        int GetTimeLength();
+        int GetTimeLength() const;
 
         void SetZoomLevel(int level);
         int GetZoomLevel();
 
-        int GetZoomLevelValue();
+        int GetZoomLevelValue() const;
         int GetMaxZoomLevel();
         void ZoomIn();
         void ZoomOut();

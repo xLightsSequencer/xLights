@@ -63,6 +63,9 @@ class EffectLayer
         int GetSelectedEffectCount();
         int GetTaggedEffectCount();
         void MoveAllSelectedEffects(int deltaMS, UndoManager& undo_mgr);
+        void StretchAllSelectedEffects(int deltaMS, UndoManager& undo_mgr);
+        void ButtUpMoveAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr);
+        void ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr);
         void TagAllSelectedEffects();
         void UnTagAllEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
