@@ -476,10 +476,6 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add directory="$(#wx64)/lib/gcc_dll" />
 				</Linker>
-				<ExtraCommands>
-					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
-					<Mode after="always" />
-				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
