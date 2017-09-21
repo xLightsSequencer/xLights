@@ -1826,7 +1826,9 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
     wxString hdg = wxString::Format(_("About xLights %s %s"),xlights_version_string, GetBitness());
-    wxMessageBox(XLIGHTS_LICENSE, hdg);
+    wxString ver = wxString::Format(_("xLights\nVersion: %s  -  %s\n\n"),xlights_version_string, GetBitness());
+    wxMessageDialog dlg(this, ver + XLIGHTS_LICENSE, hdg);
+    dlg.ShowModal();
 }
 
 void xLightsFrame::SetPlayMode(play_modes newmode)
