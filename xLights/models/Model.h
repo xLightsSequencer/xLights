@@ -230,6 +230,7 @@ public:
     unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetStartChannelInDisplayFormat();
+    bool IsValidStartChannelString() const;
     unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);

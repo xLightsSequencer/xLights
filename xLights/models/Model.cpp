@@ -972,6 +972,59 @@ bool Model::ModelRenamed(const std::string &oldName, const std::string &newName)
     return changed;
 }
 
+bool Model::IsValidStartChannelString() const
+{
+    wxString sc = ModelXml->GetAttribute("StartChannel");
+
+    if (sc.IsNumber() && wxAtol(sc) > 0 && ! sc.Contains('.')) return true; // absolule
+
+    if (!sc.Contains(':')) return false; // all other formats need a colon
+
+    wxArrayString parts = wxSplit(sc, ':');
+
+    if (parts.size() > 3) return false;
+
+    if (parts[0][0] == '#')
+    {
+        if (parts.size() == 2)
+        {
+            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), "");
+            if (o != nullptr &&
+                (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+            {
+                return true;
+            }
+        }
+        else if (parts.size() == 3)
+        {
+            wxString ip = parts[0].substr(1);
+            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), ip.ToStdString());
+            if (IPOutput::IsIPValid(ip.ToStdString()) && o != nullptr &&
+                (parts[2].IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.')))
+            {
+                return true;
+            }
+        }
+    }
+    else if (parts[0][0] == '>' || parts[0][0] == '@')
+    {
+        if ((parts.size() == 2) && 
+            (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
+        {
+            // dont bother checking the model name ... other processes will check for that
+            return true;
+        }
+    }
+    else if ((parts.size() == 2) &&
+             (parts[0].IsNumber() && wxAtol(parts[0]) > 0 && !parts[0].Contains('.')) &&
+             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.'))) // output:startch
+    {
+        return true;
+    }
+
+    return false;
+}
+
 bool Model::UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used)
 {
     bool valid = false;
@@ -1385,11 +1438,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
 {
     unsigned int lastChannel = GetLastChannel()+1;
 
-    if (ModelStartChannel == "")
-    {
-        return "(1)";
-    }
-    else if (ModelStartChannel[0] == '#')
+    if (ModelStartChannel[0] == '#')
     {
         // universe:channel
         long startChannel;

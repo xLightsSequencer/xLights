@@ -67,11 +67,20 @@ PluginHostAdapter::~PluginHostAdapter()
 std::vector<std::string>
 PluginHostAdapter::getPluginPath()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::vector<std::string> path;
     std::string envPath;
 
     char *cpath = getenv("VAMP_PATH");
-    if (cpath) envPath = cpath;
+    if (cpath)
+    {
+        logger_base.info("VAMP_PATH was set to '%s'", cpath);
+        envPath = cpath;
+    }
+    else
+    {
+        logger_base.info("VAMP_PATH was not set.");
+    }
 
 #ifdef _WIN32
 #define PATH_SEPARATOR ';'

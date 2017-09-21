@@ -3642,6 +3642,7 @@ void xLightsFrame::ExportModels(wxString filename)
         {
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            if (ch == 0) ch = 1;
             std::string type, description, ip, universe, inactive;
             long channeloffset;
             int output;
@@ -3682,7 +3683,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 (long)model->GetActChanCount(),
                 stch,
                 ch,
-                ch + model->GetChanCount() - 1,
+                model->GetLastChannel() + 1,
                 model->GetLayoutGroup(),
                 model->GetControllerConnection(),
                 type,

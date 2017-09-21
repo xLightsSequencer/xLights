@@ -716,7 +716,7 @@ void LayoutPanel::refreshModelList() {
                 wxString startStr = model->GetStartChannelInDisplayFormat();
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
-                    if (model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel")
+                    if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
                     {
                         TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
                     }
@@ -811,7 +811,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat();
-        if (model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel")
+        if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
         {
             TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
         }

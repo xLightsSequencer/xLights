@@ -45,7 +45,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) override;
 
     private:
-        int GetCustomMaxChannel(const std::string& customModel);
+        int GetCustomMaxChannel(const std::string& customModel) const;
         void InitCustomMatrix(const std::string& customModel);
 
         std::string custom_background;

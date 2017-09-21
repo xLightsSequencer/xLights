@@ -161,18 +161,17 @@ int CustomModel::NodesPerString()
     return GetChanCount() / GetChanCountPerNode();
 }
 
-int CustomModel::GetCustomMaxChannel(const std::string& customModel) {
-    wxString value;
-    wxArrayString cols;
-    long val,maxval=0;
-    wxString valstr;
+int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
+{
+    long maxval = 0;
 
     wxArrayString rows=wxSplit(customModel,';');
     for(size_t row=0; row < rows.size(); row++) {
-        cols=wxSplit(rows[row],',');
+        wxArrayString cols = wxSplit(rows[row],',');
         for(size_t col=0; col < cols.size(); col++) {
-            valstr=cols[col];
+            wxString valstr = cols[col];
             if (!valstr.IsEmpty() && valstr != "0") {
+                long val;
                 valstr.ToLong(&val);
                 maxval=std::max(val,maxval);
             }
@@ -180,6 +179,7 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) {
     }
     return maxval;
 }
+
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
     wxString value;
     wxArrayString cols;
