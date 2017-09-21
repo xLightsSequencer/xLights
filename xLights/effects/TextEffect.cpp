@@ -345,7 +345,7 @@ static int TextEffectsIndex(const wxString &st) {
 void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
-    wxString xl_font = SettingsMap["CHOICE_Text_Font"];
+    wxString xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
     if( xl_font != "Use OS Fonts" )
     {
         RenderXLText(effect, SettingsMap, buffer);
