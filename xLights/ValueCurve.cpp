@@ -1352,6 +1352,9 @@ bool ValueCurve::NearCustomPoint(float x, float y)
 
 wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
 {
+    if (scaleFactor < 1.0) {
+        scaleFactor = 1.0;
+    }
     float width = w * scaleFactor;
     float height = h * scaleFactor;
 
