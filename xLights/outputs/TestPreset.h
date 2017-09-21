@@ -1,7 +1,7 @@
 #ifndef TESTPRESET_H
 #define TESTPRESET_H
 
-#include <list>
+#include <vector>
 #include <string>
 
 class wxXmlNode;
@@ -12,7 +12,7 @@ protected:
 
     #pragma region Member Variables
 	std::string _name;
-	std::list<int> _channels;
+	std::vector<int> _channels;
     #pragma endregion Member Variables
 
 public:
@@ -27,7 +27,7 @@ public:
 
     #pragma region Getters and Setters
     std::string GetName() { return _name; }
-    std::list<int> GetChannels() const { return _channels; }
+    std::vector<int> GetChannels() const { return _channels; }
     void AddChannel(int ch);
     void AddChannelRange(int start, int end);
     #pragma endregion Getters and Setters

@@ -35,7 +35,7 @@ wxXmlNode* TestPreset::Save()
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "testpreset");
     node->AddAttribute("name", XmlSafe(_name));
 
-    _channels.sort();
+    std::sort(_channels.begin(), _channels.end());
 
     int start = -1;
     int last = -1;
@@ -90,6 +90,15 @@ void TestPreset::AddChannel(int ch)
 
 void TestPreset::AddChannelRange(int start, int end)
 {
+    if (_channels.empty()) {
+        _channels.reserve(end - start + 1);
+        for (int i = start; i <= end; i++)
+        {
+            _channels.push_back(i);
+        }
+        return;
+    }
+    _channels.reserve(_channels.size() + end - start + 1);
     for (int i = start; i <= end; i++)
     {
         AddChannel(i);

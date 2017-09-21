@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 ---------------------------------
+   -- enh (dkulp)   Optimize loading of test presets to make xLights start quicker
+   -- bug (dkulp)   Hopefully fix crash in CheckSequence if hostname doesn't resolve to local ip address
    -- enh (keith)   Add new Ctrl left and right arrow and Ctrl Shift left and right arrow shortcuts in sequencer to move and expand effects to timing marks or next effect
    -- bug (keith)   Fix problem with allocating too few channels if invalid start channels and not enough channels on setup tab
 2017.29  Sep  19, 2017
