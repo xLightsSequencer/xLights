@@ -3932,15 +3932,18 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     LogAndWrite(f, "Checking sequence.");
-
+    wxDatagramSocket *testSocket;
     wxIPV4address addr;
     if (mLocalIP != "")
     {
         addr.Hostname(mLocalIP);
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
     else
     {
         addr.AnyAddress();
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+        addr.Hostname(wxGetFullHostName());
     }
 
     LogAndWrite(f, "");
@@ -3948,8 +3951,6 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
-    // This does not seem to detect problems properly ...
-    auto testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     if (testSocket == nullptr || !testSocket->IsOk())
     {
         wxString msg("    ERR: Cannot create socket on IP address '");
