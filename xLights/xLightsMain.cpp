@@ -5497,7 +5497,11 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
 {
 #ifdef LINUX
-    wxExecute("xSchedule");
+    // Handle xschedule not in path
+    wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+    wxString appPath(f.GetPath());
+    wxString cmdline(appPath+wxT("/xSchedule"));
+    wxExecute(cmdline, wxEXEC_ASYNC,NULL,NULL);
 #else
     wxExecute("xSchedule.exe");
 #endif

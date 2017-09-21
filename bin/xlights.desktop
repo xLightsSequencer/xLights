@@ -8,3 +8,8 @@ Terminal=false
 Icon=xlights
 Categories=AudioVideo;
 MimeType=text/xml;
+
+[Desktop Action xScheduler]
+Name=xScheduler
+Exec=xLights -x
+Categories=AudioVideo;

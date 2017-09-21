@@ -436,7 +436,9 @@ bool xLightsApp::OnInit()
 // Add option to run xschedule via xlights on linux (for AppImage usage)
 #ifdef __LINUX__
        int run_xschedule = FALSE;
-       wxString cmdline(wxT("xSchedule"));
+       wxFileName f(wxStandardPaths::Get().GetExecutablePath());
+       wxString appPath(f.GetPath());
+       wxString cmdline(appPath+wxT("/xSchedule"));
         for (int i=1; i< argc;i++) {
             if (strncmp(argv[i],"-x",2) == 0) {
                 run_xschedule = TRUE;
