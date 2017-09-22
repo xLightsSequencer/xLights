@@ -1712,7 +1712,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         chindex = circuit - 1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex);
+                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex) - 1;
                     }
                     else if (Left(deviceType, 3) == "LOR")
                     {
@@ -1722,7 +1722,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             chindex += lorUnitSizes[network][z];
                         }
                         chindex += circuit - 1;
-                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex);
+                        curchannel = _outputManager->GetAbsoluteChannel(network, chindex) - 1;
                     }
                     else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
                         curchannel = -1;
