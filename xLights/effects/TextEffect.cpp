@@ -319,7 +319,7 @@ static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "down-left") return TEXTDIR_DOWNLEFT;
     if (st == "up-right") return TEXTDIR_UPRIGHT;
     if (st == "down-right") return TEXTDIR_DOWNRIGHT;
-    if (st == "wavey L-R/up-down") return TEXTDIR_WAVEY_LRUPDOWN;
+    if (st == "wavey") return TEXTDIR_WAVEY_LRUPDOWN;
     if (st == "vector") return TEXTDIR_VECTOR;
     return TEXTDIR_NONE;
 }
@@ -1096,19 +1096,6 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 
     wxString text = settings["TEXTCTRL_Text"];
     int text_length = font_mgr.get_length(font, text);
-    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-
-    if( dir == TEXTDIR_VECTOR ) {
-        double position = buffer.GetEffectTimeIntervalPosition(1.0);
-        double ex = endx * buffer.BufferWi / 100;
-        double ey = -endy * buffer.BufferHt / 100;
-        if (pixelOffsets) {
-            ex = endx;
-            ey = -endy;
-        }
-        OffsetLeft += (ex - OffsetLeft) * position;
-        OffsetTop += (ey - OffsetTop) * position;
-    }
 
     wxString msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
@@ -1155,6 +1142,8 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         OffsetLeft += buffer.BufferWi/2 - text_length/2;
         OffsetTop += buffer.BufferHt/2 - font->GetCapsHeight()/2;
     }
+
+    AddMotions( OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets );
 
     if (text != "") {
         int space_offset = 0;
@@ -1204,5 +1193,71 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
                 OffsetLeft += actual_width;
             }
         }
+    }
+}
+
+void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
+                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets )
+{
+    int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
+    int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
+
+    int totwidth=buffer.BufferWi+txtwidth;
+    int totheight=buffer.BufferHt+txtheight;
+
+    int xlimit=totwidth*8 + 1;
+    int ylimit=totheight*8 + 1;
+
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
+
+    switch (dir) {
+        case TEXTDIR_VECTOR:
+            {
+            double position = buffer.GetEffectTimeIntervalPosition(1.0);
+            double ex = endx * buffer.BufferWi / 100;
+            double ey = -endy * buffer.BufferHt / 100;
+            if (pixelOffsets) {
+                ex = endx;
+                ey = -endy;
+            }
+            OffsetLeft += (ex - OffsetLeft) * position;
+            OffsetTop += (ey - OffsetTop) * position;
+            }
+            break;
+        case TEXTDIR_LEFT:
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
+            break; // left
+        case TEXTDIR_RIGHT:
+            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
+            break; // right
+        case TEXTDIR_UP:
+            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            break; // up
+        case TEXTDIR_DOWN:
+            OffsetTop = state % ylimit/8 - OffsetTop;
+            break; // down
+        case TEXTDIR_UPLEFT:
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
+            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            break; // up-left
+        case TEXTDIR_DOWNLEFT:
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
+            OffsetTop = state % ylimit/8 - OffsetTop;
+            break; // down-left
+        case TEXTDIR_UPRIGHT:
+            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
+            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            break; // up-right
+        case TEXTDIR_DOWNRIGHT:
+            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
+            OffsetTop = state % ylimit/8 - OffsetTop;
+            break; // down-right
+        case TEXTDIR_WAVEY_LRUPDOWN:
+            OffsetLeft = xlimit/16 - state % xlimit/8;
+            OffsetTop = zigzag(state/4, totheight)/2 - totheight/4;
+            break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+        default:
+            break;
     }
 }

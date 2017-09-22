@@ -35,6 +35,8 @@ class TextEffect : public RenderableEffect
                             int startx, int starty, int endx, int endy,
                             bool isPixelBased);
         void RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
+        void AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings,
+                         RenderBuffer &buffer, int txtwidth, int txtheight, int endx, int endy, bool pixelOffset );
         FontManager& font_mgr;
 };
 

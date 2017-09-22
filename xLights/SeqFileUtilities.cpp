@@ -14,6 +14,7 @@
 #include "UtilFunctions.h"
 #include "models/ModelGroup.h"
 #include "HousePreviewPanel.h"
+#include "FontManager.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -1523,10 +1524,10 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                         if (NodeName != "") {
                             dlg.channelNames.push_back(NodeName);
                             unsortedChannels.push_back(NodeName);
-                            
+
                             xlColor c(chanColor, false);
                             CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
-                            
+
                             context.pop_back();
                             context.push_back("IgnoreChannelElement");
                         }
@@ -1566,7 +1567,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
                                 CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
                             }
-                            
+
                         } else if (context[1] == "EventValues") {
                             //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
                             if (carryOver.size() > 0) {
@@ -3241,11 +3242,24 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     wxString fontName = element->GetAttribute("fontName");
                     int fontSize = wxAtoi(element->GetAttribute("fontCapsHeight", "6"));
                     int fontCellWidth = wxAtoi(element->GetAttribute("fontCellWidth", "6"));
+                    int fontCellHeight = wxAtoi(element->GetAttribute("fontCellHeight", "6"));
+                    wxString colorType = element->GetAttribute("colorType", "chooseColor");
+                    int fCI = wxAtoi(element->GetAttribute("firstColorIndex", "0"));
                     wxString mask = element->GetAttribute("maskType");
+                    bool use_xl_font = true;
+                    wxString xl_font_name = wxString::Format("%d-%dx%d %s", fontSize, fontCellWidth, fontCellHeight, fontName);
+                    xl_font_name.Replace('_', ' ');
+                    xlFont* xl_font = FontManager::get_font(xl_font_name);
+                    if( xl_font == nullptr ) {
+                       xl_font_name = "Use OS Fonts";
+                       use_xl_font = false;
+                    }
 
                     // SuperStar fonts are not as wide as they are listed.  This gets us closer to reality.
                     fontCellWidth = (fontCellWidth * 2) / 3;
-                    fontSize += 4;
+                    if( !use_xl_font ) {
+                        fontSize += 4;
+                    }
 
                     int rotation = wxAtoi(element->GetAttribute("rotation", "90"));
                     if( reverse_xy ) {
@@ -3275,20 +3289,41 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     int lorWidth = text.size() * fontCellWidth;
                     int lorHeight = fontSize;
 
+                    if( use_xl_font ) {
+                        wxString xl_text(text);
+                        lorWidth = FontManager::get_length(xl_font, xl_text) - 2;
+                    }
+
                     std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize).ToStdString();
                     std::string eff = "normal";
-                    if (fontName.Contains("Vertical")) {
-                        eff = "vert text down";
-                        lorWidth = fontCellWidth;
-                        lorHeight = text.size() * fontSize;
-                    } else if (rotation == 90) {
-                        eff = "rotate down 90";
-                        lorWidth = fontSize;
-                        lorHeight = text.size() * fontCellWidth;
-                    } else if (rotation == 270 || rotation == -90) {
-                        eff = "rotate up 90";
-                        lorWidth = fontSize;
-                        lorHeight = text.size() * fontCellWidth;
+
+                    if( use_xl_font ) {
+                        if (rotation == 90) {
+                            eff = "rotate down 90";
+                            lorHeight = lorWidth;
+                            lorWidth = fontSize - 2;
+                        } else if (rotation == -90 || rotation == 270) {
+                            eff = "rotate up 90";
+                            lorHeight = lorWidth - 2;
+                            lorWidth = fontSize - 2;
+                        }
+                        if (fontName.Contains("Vertical")) {
+                            lorHeight += 4;
+                        }
+                    } else {
+                        if (fontName.Contains("Vertical")) {
+                            eff = "vert text down";
+                            lorWidth = fontCellWidth;
+                            lorHeight = text.size() * fontSize;
+                        } else if (rotation == 90) {
+                            eff = "rotate down 90";
+                            lorWidth = fontSize;
+                            lorHeight = text.size() * fontCellWidth;
+                        } else if (rotation == 270 || rotation == -90) {
+                            eff = "rotate up 90";
+                            lorWidth = fontSize;
+                            lorHeight = text.size() * fontCellWidth;
+                        }
                     }
 
                     // calculate everything off the LOR center
@@ -3308,6 +3343,27 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1"
                         + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0"
                         + ",C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
+                    if( use_xl_font ) {
+                        if( colorType == "rainbow" ) {
+                            const wxString colors[] = { wxT("#FF0000"), wxT("#FF8000"), wxT("#FFFF00"), wxT("#00FF00"), wxT("#0000FF"), wxT("#8000FF")};
+                            palette = "C_BUTTON_Palette1=" + std::string(colors[fCI].mb_str());
+                            palette += ",C_BUTTON_Palette2=" + std::string(colors[(fCI+1)%6].mb_str());
+                            palette += ",C_BUTTON_Palette3=" + std::string(colors[(fCI+2)%6].mb_str());
+                            palette += ",C_BUTTON_Palette4=" + std::string(colors[(fCI+3)%6].mb_str());
+                            palette += ",C_BUTTON_Palette5=" + std::string(colors[(fCI+4)%6].mb_str());
+                            palette += ",C_BUTTON_Palette6=" + std::string(colors[(fCI+5)%6].mb_str());
+                            palette += ",C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1";
+                            palette += ",C_CHECKBOX_Palette5=1,C_CHECKBOX_Palette6=1,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
+                        }
+                        else if( colorType == "redGreenBlue" ) {
+                            const wxString colors[] = { wxT("#FF0000"), wxT("#00FF00"), wxT("#0000FF")};
+                            palette = "C_BUTTON_Palette1=" + std::string(colors[fCI].mb_str());
+                            palette += ",C_BUTTON_Palette2=" + std::string(colors[(fCI+1)%3].mb_str());
+                            palette += ",C_BUTTON_Palette3=" + std::string(colors[(fCI+2)%3].mb_str());
+                            palette += ",C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=0";
+                            palette += ",C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
+                        }
+                    }
                     std::string settings =
                         "E_CHECKBOX_TextToCenter=0,E_TEXTCTRL_Text=" + text
                         + ",E_TEXTCTRL_Text_Speed=26,"
@@ -3315,6 +3371,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                         + "E_CHOICE_Text_Dir=vector,E_CHECKBOX_Text_PixelOffsets=0,"
                         + "E_CHOICE_Text_Effect=" + eff + ","
                         + "E_FONTPICKER_Text_Font=" + font + ","
+                        + "E_CHOICE_Text_Font=" + xl_font_name.ToStdString() + ","
                         + "E_SLIDER_Text_XStart=" + wxString::Format("%d", xStart).ToStdString() + ","
                         + "E_SLIDER_Text_YStart=" + wxString::Format("%d", yStart).ToStdString() + ","
                         + "E_SLIDER_Text_XEnd=" + wxString::Format("%d", xEnd).ToStdString() + ","
