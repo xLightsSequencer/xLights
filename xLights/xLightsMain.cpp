@@ -1808,6 +1808,12 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
+    static bool inQuit = false;
+
+    if (inQuit) return;
+
+    inQuit = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Quit");
 	wxCloseEvent evt;
@@ -1815,6 +1821,8 @@ void xLightsFrame::OnQuit(wxCommandEvent& event)
     {
         OnClose(evt);
     }
+
+    inQuit = false;
 }
 
 void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
@@ -2129,6 +2137,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         return;
     }
 
+    static bool inClose = false;
+
+    if (inClose) return;
+
+    inClose = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.info("xLights Closing");
 
@@ -2138,6 +2152,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     {
 		logger_base.info("Closing aborted.");
 		event.Veto();
+        inClose = false;
         return;
     }
     selectedEffect = nullptr;
@@ -2153,10 +2168,11 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     }
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
-    //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
 
     Destroy();
 	logger_base.info("xLights Closed.");
+
+    inClose = false;
 }
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
