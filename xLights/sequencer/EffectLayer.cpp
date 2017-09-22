@@ -423,7 +423,6 @@ void EffectLayer::UnSelectAllEffects()
 Element* EffectLayer::GetParentElement()
 {
     return mParentElement;
-
 }
 
 void EffectLayer::SetParentElement(Element* parent)

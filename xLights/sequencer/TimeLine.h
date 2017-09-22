@@ -35,7 +35,7 @@ class TimeLine : public wxWindow
         float GetStartTimeMS() const;
 
         bool SetPlayMarkerMS(int ms);
-        int GetPlayMarker();
+        int GetPlayMarker() const;
 
         void SetZoomMarkerMS(int ms);
 
@@ -48,6 +48,8 @@ class TimeLine : public wxWindow
         void LatchSelectedPositions();
         void SetMousePositionMS(int ms);
         int GetMousePosition() const { return mMousePosition; }
+        void SavePosition();
+        void RestorePosition();
 
         void ResetMarkers(int ms);
         void RecalcEndTime();
@@ -95,6 +97,7 @@ class TimeLine : public wxWindow
         int GetNewStartTimeMS() const;  // return the time where to begin playing
         int GetNewEndTimeMS() const;    // return the time where to end playing
         int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker;};
+        void GoToTag(int tag);
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
@@ -105,14 +108,20 @@ class TimeLine : public wxWindow
     private:
         DECLARE_EVENT_TABLE()
         void mouseLeftDown( wxMouseEvent& event);
+        void mouseRightDown(wxMouseEvent& event);
         void mouseLeftUp( wxMouseEvent& event);
         void mouseMoved( wxMouseEvent& event);
+        void OnPopup(wxCommandEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void triggerPlay();
+        void DrawTag(wxDC& dc, int tag, int position, int y_bottom);
         bool mIsInitialized;
         int mStartTimeMS;
         int mEndTimeMS;
         int mEndPos;
+        int _savedPosition;
+        int _tagPositions[10];
+        int _rightClickPosition;
 
         int mStartPixelOffset;
         int mFrequency;

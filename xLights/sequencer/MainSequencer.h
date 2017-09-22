@@ -103,11 +103,16 @@ class MainSequencer: public wxPanel
         void TimelineChanged( wxCommandEvent& event);
         void UpdateEffectGridHorizontalScrollBar();
 
+        void SavePosition();
+        void RestorePosition();
+        void ScrollToRow(int row);
+
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
         int mPlayType;
         bool mCanUndo;
         bool mPasteByCell;
+        std::string _savedTopModel;
 };
 
 #endif
