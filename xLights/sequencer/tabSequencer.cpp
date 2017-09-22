@@ -41,6 +41,7 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
+    mSequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
 
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());

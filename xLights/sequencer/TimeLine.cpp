@@ -5,6 +5,7 @@
 #include "../xLightsMain.h"
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(TimeLine, wxWindow)
 EVT_MOTION(TimeLine::mouseMoved)
@@ -48,22 +49,49 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
 void TimeLine::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
-    _tagPositions[id] = _rightClickPosition;
+    SetTagPosition(id, _rightClickPosition);
+}
+
+void TimeLine::SetTagPosition(int tag, int position)
+{
+    if (position > GetTimeLength())
+    {
+        position = GetTimeLength();
+    }
+
+    if (_tagPositions[tag] != position)
+    {
+        _tagPositions[tag] = position;
+        Refresh(false);
+        RaiseSequenceChange();
+    }
+}
+
+void TimeLine::ClearTags()
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        _tagPositions[i] = -1;
+    }
     Refresh(false);
 }
 
 void TimeLine::GoToTag(int tag)
 {
-    if (_tagPositions[tag] != -1)
+    int pos = GetTagPosition(tag);
+    if (pos != -1)
     {
-        if (_tagPositions[tag] > GetTimeLength())
-        {
-            _tagPositions[tag] = GetTimeLength();
-            Refresh(false);
-        }
-        SetStartTimeMS(_tagPositions[tag]);
+        SetStartTimeMS(pos);
         RaiseChangeTimeline();
     }
+}
+
+int TimeLine::GetTagPosition(int tag)
+{
+    // update it if it is outside the sequence
+    SetTagPosition(tag, _tagPositions[tag]);
+
+    return _tagPositions[tag];
 }
 
 void TimeLine::mouseLeftDown( wxMouseEvent& event)
@@ -149,10 +177,7 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mCurrentPlayMarkerMS = -1;
     timeline_initiated_play = false;
     m_dragging = false;
-    for (int i = 0; i < 10; ++i)
-    {
-        _tagPositions[i] = -1;
-    }
+    ClearTags();
 
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&TimeLine::mouseRightDown, 0, this);
 }
@@ -191,6 +216,12 @@ void TimeLine::RaiseChangeTimeline()
     eventTimeLineChanged.SetClientData((void*)tla);
     eventTimeLineChanged.SetInt(0);
     wxPostEvent(mParent, eventTimeLineChanged);
+}
+
+void TimeLine::RaiseSequenceChange()
+{
+    wxCommandEvent eventSequenceChanged(EVT_SEQUENCE_CHANGED);
+    wxPostEvent(mParent, eventSequenceChanged);
 }
 
 void TimeLine::SetSequenceEnd(int ms)

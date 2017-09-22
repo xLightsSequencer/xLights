@@ -856,7 +856,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
 {
     long tempLong,longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
-    int i,days,hours,minutes,seconds;
+    int days,hours,minutes,seconds;
 
     wxDateTime dt;
     wxTimeSpan ts;

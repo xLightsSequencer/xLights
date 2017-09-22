@@ -808,6 +808,7 @@ void xLightsXmlFile::CreateNew()
     AddChildXmlNode(root, "ColorPalettes");
     AddChildXmlNode(root, "DisplayElements");
     AddChildXmlNode(root, "ElementEffects");
+    AddChildXmlNode(root, "TimingTags");
     AddChildXmlNode(root, "nextid", "1");
 
     version_string = xlights_version_string;
@@ -1148,7 +1149,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 }
             }
        }
-       if (e->GetName() == "ElementEffects")
+       else if (e->GetName() == "ElementEffects")
        {
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
@@ -1169,7 +1170,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 }
             }
        }
-       if (e->GetName() == "DataLayers")
+       else if (e->GetName() == "DataLayers")
        {
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
@@ -2414,6 +2415,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
             e->GetName() == "DataLayers" ||
             e->GetName() == "ColorPalettes" ||
             e->GetName() == "EffectDB" ||
+            e->GetName() == "TimingTags" ||
             e->GetName() == "lastView")
         {
             wxXmlNode* node_to_delete = e;
@@ -2437,6 +2439,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     wxXmlNode* display_node = AddChildXmlNode(root, "DisplayElements");
     wxXmlNode* elements_node = AddChildXmlNode(root, "ElementEffects");
     wxXmlNode* last_view_node = AddChildXmlNode(root, "lastView");
+    wxXmlNode* timing_tags_node = AddChildXmlNode(root, "TimingTags");
 
     SetNodeContent(last_view_node, wxString::Format("%d", seq_elements.GetCurrentView()));
 
@@ -2452,6 +2455,13 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         layer_node->AddAttribute("data", layer->GetDataSource());
         layer_node->AddAttribute("source", layer->GetSource());
         layer_node->AddAttribute("name", layer->GetName());
+    }
+
+    for (int i = 0; i < 10; ++i)
+    {
+        wxXmlNode* tag_node = AddChildXmlNode(timing_tags_node, "Tag");
+        tag_node->AddAttribute("number", string_format("%d", i));
+        tag_node->AddAttribute("position", string_format("%d", seq_elements.GetTimeLine()->GetTagPosition(i)));
     }
 
     int num_elements = seq_elements.GetElementCount();

@@ -14,6 +14,7 @@
 
 class xLightsXmlFile;  // forward declaration needed due to circular dependency
 class SequenceViewManager;
+class TimeLine;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -97,6 +98,8 @@ class SequenceElements : public ChangeListener
         int GetIndexOfModelFromModelIndex(int modelIndex);
         int GetViewCount();
         void RenameModelInViews(const std::string& old_name, const std::string& new_name);
+        TimeLine* GetTimeLine() const { return _timeLine; }
+        void SetTimeLine(TimeLine* timeline) { _timeLine = timeline; }
 
         void DeleteElement(const std::string &name);
         void DeleteElementFromView(const std::string &name, int view);
@@ -162,7 +165,6 @@ class SequenceElements : public ChangeListener
 
         UndoManager& get_undo_mgr() { return undo_mgr; }
 
-
         void AddRenderDependency(const std::string &layer, const std::string &model);
         bool GetElementsToRender(std::vector<Element *> &models);
 
@@ -201,6 +203,7 @@ class SequenceElements : public ChangeListener
         std::vector<EffectRange> mSelectedRanges;
         int mSelectedTimingRow;
         SequenceViewManager* _viewsManager;
+        TimeLine* _timeLine;
         wxXmlNode* mModelsNode;
         wxXmlNode* mEffectsNode;
         xLightsFrame *xframe;

@@ -33,6 +33,7 @@ BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
     EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, MainSequencer::HorizontalScrollChanged)
     EVT_COMMAND(wxID_ANY, EVT_SCROLL_RIGHT, MainSequencer::ScrollRight)
     EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, MainSequencer::TimelineChanged)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_CHANGED, MainSequencer::SequenceChanged)
     EVT_COMMAND(wxID_ANY, EVT_WAVE_FORM_HIGHLIGHT, MainSequencer::TimeLineSelectionChanged)
 
 END_EVENT_TABLE()
@@ -1189,6 +1190,11 @@ void MainSequencer::ScrollRight(wxCommandEvent& event)
 void MainSequencer::TimeLineSelectionChanged(wxCommandEvent& event)
 {
     UpdateSelectedDisplay(event.GetInt());
+}
+
+void MainSequencer::SequenceChanged(wxCommandEvent& event)
+{
+    mSequenceElements->IncrementChangeCount(nullptr);
 }
 
 void MainSequencer::TimelineChanged( wxCommandEvent& event)

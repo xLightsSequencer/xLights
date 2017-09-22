@@ -52,6 +52,7 @@ SequenceElements::SequenceElements(xLightsFrame *f)
     mAllViews.push_back(master_view);  // first view must remain as master view that determines render order
     hasPapagayoTiming = false;
     supportsModelBlending = true;
+    _timeLine = nullptr;
 }
 
 SequenceElements::~SequenceElements()
@@ -88,6 +89,7 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
+    GetTimeLine()->ClearTags();
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -731,6 +733,22 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                     }
                 }
             }
+       }
+       else if (e->GetName() == "TimingTags")
+       {
+           for (wxXmlNode* tag = e->GetChildren(); tag != nullptr; tag = tag->GetNext())
+           {
+               if (tag->GetName() == "Tag")
+               {
+                   int number = wxAtoi(tag->GetAttribute("number", "-1"));
+                   int position = wxAtoi(tag->GetAttribute("position", "-1"));
+
+                   if (number != -1)
+                   {
+                       GetTimeLine()->SetTagPosition(number, position);
+                   }
+               }
+           }
        }
        else if (e->GetName() == "EffectDB")
        {
@@ -1707,6 +1725,7 @@ void SequenceElements::IncrementChangeCount(Element *el) {
         }
     }
 }
+
 bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
     std::unique_lock<std::mutex> locker(renderDepLock);
     if (!modelsToRender.empty()) {

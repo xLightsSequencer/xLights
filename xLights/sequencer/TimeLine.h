@@ -22,6 +22,7 @@ enum EFFECT_SCREEN_MODE{
 
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
 
 class TimeLine : public wxWindow
 {
@@ -98,6 +99,9 @@ class TimeLine : public wxWindow
         int GetNewEndTimeMS() const;    // return the time where to end playing
         int GetCurrentPlayMarkerMS() const { return mCurrentPlayMarker;};
         void GoToTag(int tag);
+        int GetTagPosition(int tag);
+        void SetTagPosition(int tag, int position);
+        void ClearTags();
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
@@ -115,6 +119,7 @@ class TimeLine : public wxWindow
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void triggerPlay();
         void DrawTag(wxDC& dc, int tag, int position, int y_bottom);
+        void RaiseSequenceChange();
         bool mIsInitialized;
         int mStartTimeMS;
         int mEndTimeMS;
