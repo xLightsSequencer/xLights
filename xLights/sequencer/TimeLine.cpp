@@ -28,6 +28,44 @@ void TimeLine::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
     m_dragging = false;
 }
 
+void TimeLine::mouseRightDown(wxMouseEvent& event)
+{
+    _rightClickPosition = GetAbsoluteTimeMSfromPosition(GetPositionFromSelection(event.GetX()));
+
+    if (_rightClickPosition > GetTimeLength()) return;
+
+    wxMenu mnuLayer;
+
+    for (int i = 0; i < 10; ++i)
+    {
+        wxMenuItem* item = mnuLayer.Append(i, wxString::Format("%i", i));
+    }
+
+    mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnPopup, nullptr, this);
+    PopupMenu(&mnuLayer);
+}
+
+void TimeLine::OnPopup(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    _tagPositions[id] = _rightClickPosition;
+    Refresh(false);
+}
+
+void TimeLine::GoToTag(int tag)
+{
+    if (_tagPositions[tag] != -1)
+    {
+        if (_tagPositions[tag] > GetTimeLength())
+        {
+            _tagPositions[tag] = GetTimeLength();
+            Refresh(false);
+        }
+        SetStartTimeMS(_tagPositions[tag]);
+        RaiseChangeTimeline();
+    }
+}
+
 void TimeLine::mouseLeftDown( wxMouseEvent& event)
 {
     mCurrentPlayMarkerStart = GetPositionFromSelection(event.GetX());
@@ -111,6 +149,12 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mCurrentPlayMarkerMS = -1;
     timeline_initiated_play = false;
     m_dragging = false;
+    for (int i = 0; i < 10; ++i)
+    {
+        _tagPositions[i] = -1;
+    }
+
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&TimeLine::mouseRightDown, 0, this);
 }
 
 TimeLine::~TimeLine()
@@ -186,7 +230,7 @@ void TimeLine::SetZoomMarkerMS(int ms)
     mZoomMarkerMS = ms;
 }
 
-int TimeLine::GetPlayMarker()
+int TimeLine::GetPlayMarker() const
 {
     return mCurrentPlayMarker;
 }
@@ -764,6 +808,33 @@ void TimeLine::render( wxDC& dc ) {
     // grey out where sequence ends
     dc.SetBrush(brush_past_end);
     dc.DrawRectangle(mSequenceEndMarker, 0, mEndPos, h);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        if (_tagPositions[i] < mStartTimeMS || _tagPositions[i] > mEndTimeMS)
+        {
+            // dont draw marks outside visibile
+        }
+        else
+        {
+            float pos = (float)(_tagPositions[i] - mStartTimeMS) / (float)(mEndTimeMS - mStartTimeMS);
+            DrawTag(dc, i, pos * mEndPos, h);
+        }
+    }
+}
+
+void TimeLine::DrawTag(wxDC& dc, int tag, int position, int y_bottom)
+{
+    const wxPen* pen_black = wxBLUE_PEN;
+
+    dc.SetPen(*pen_black);
+    dc.DrawLine(position-5, y_bottom - 1, position+5, y_bottom -1);
+    dc.DrawLine(position-5, y_bottom - 1, position-5, y_bottom - 12);
+    dc.DrawLine(position+5, y_bottom - 1, position+5, y_bottom - 12);
+    dc.DrawLine(position-5, y_bottom - 12, position, y_bottom - 15);
+    dc.DrawLine(position+5, y_bottom - 12, position, y_bottom - 15);
+    dc.FloodFill(position, y_bottom - 6, *wxLIGHT_GREY);
+    dc.DrawLabel(wxString::Format("%i", tag), wxRect(position - 4, y_bottom - 13, 10, 13), wxALIGN_CENTRE_HORIZONTAL | wxALIGN_CENTRE_VERTICAL);
 }
 
 void TimeLine::DrawTriangleMarkerFacingLeft(wxDC& dc, int& play_start_mark, const int& tri_size, int& height)

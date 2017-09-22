@@ -477,6 +477,33 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
                 RestorePosition();
             }
             break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        {
+            int number = wxAtoi(uc);
+
+            if (event.ControlDown())
+            {
+                if (event.ShiftDown())
+                {
+                    PanelTimeLine->SetStartTimeMS(number * 10 * PanelTimeLine->GetTimeLength() / 100);
+                    UpdateEffectGridHorizontalScrollBar();
+                }
+                else
+                {
+                    PanelTimeLine->GoToTag(number);
+                }
+            }
+        }
+            break;
         case WXK_PAGEUP:
             if (event.ControlDown())
             {
