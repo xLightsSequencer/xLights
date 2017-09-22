@@ -223,6 +223,8 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 			socket->Destroy();
 			break;
 		}
+    default:
+        break;
 	}
 
 #ifdef DETAILED_LOGGING

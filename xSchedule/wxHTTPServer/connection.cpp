@@ -267,6 +267,8 @@ bool HttpConnection::ParseFrame(wxMemoryBuffer &buffer)
                 SendMessage(wsm);
             }
             break;
+            default:
+            break;
             }
 
             delete _message;

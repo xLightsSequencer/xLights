@@ -108,6 +108,8 @@ void HttpResponse::MakeFromCode(HttpStatus::HttpStatusCode code /*= HttpStatus::
 	case HttpStatus::NotFound:
 		content = _connection.Server()->Context().ErrorPage404;
 		break;
+    default:
+        break;
 	}
 
 	if (!content.IsEmpty())
