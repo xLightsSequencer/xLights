@@ -48,6 +48,8 @@ class TimeLine : public wxWindow
         void LatchSelectedPositions();
         void SetMousePositionMS(int ms);
         int GetMousePosition() const { return mMousePosition; }
+        void SavePosition();
+        void RestorePosition();
 
         void ResetMarkers(int ms);
         void RecalcEndTime();
@@ -113,6 +115,7 @@ class TimeLine : public wxWindow
         int mStartTimeMS;
         int mEndTimeMS;
         int mEndPos;
+        int _savedPosition;
 
         int mStartPixelOffset;
         int mFrequency;

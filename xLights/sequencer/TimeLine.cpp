@@ -88,6 +88,7 @@ int TimeLine::GetPositionFromSelection(int position)
 TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name):
                    wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
+    _savedPosition = -1;
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
     mIsInitialized = false;
@@ -240,6 +241,20 @@ void TimeLine::SetMousePositionMS(int ms)
         mMousePosition = GetPositionFromTimeMS(ms);
     }
     Refresh(false);
+}
+
+void TimeLine::SavePosition()
+{
+    _savedPosition = mStartTimeMS;
+}
+
+void TimeLine::RestorePosition()
+{
+    if (_savedPosition >= 0 && _savedPosition <= mTimeLength)
+    {
+        SetStartTimeMS(_savedPosition);
+        RaiseChangeTimeline();
+    }
 }
 
 void TimeLine::LatchSelectedPositions()

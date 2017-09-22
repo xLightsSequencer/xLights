@@ -76,6 +76,7 @@ public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
+    // ReSharper disable once CppVirtualFunctionCallInsideCtor
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         time = "Time: 00:00:00";
         selected = "";
@@ -223,7 +224,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
 
-
+    _savedTopModel = "";
     mParent = parent;
     mPlayType = 0;
     SetHandlers(this);
@@ -461,6 +462,40 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case WXK_RIGHT:
             PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown(), event.ControlDown(), event.AltDown());
             event.StopPropagation();
+            break;
+        case '.':
+            if (event.ControlDown())
+            {
+                // save current effects grid position
+                SavePosition();
+            }
+            break;
+        case '/':
+            if (event.ControlDown())
+            {
+                //restore saved effects grid position
+                RestorePosition();
+            }
+            break;
+        case WXK_PAGEUP:
+            if (event.ControlDown())
+            {
+                ScrollToRow(0);
+            }
+            else
+            {
+                ScrollToRow(std::max(0, mSequenceElements->GetFirstVisibleModelRow() - mSequenceElements->GetMaxModelsDisplayed()));
+            }
+            break;
+        case WXK_PAGEDOWN:
+            if (event.ControlDown())
+            {
+                ScrollToRow(mSequenceElements->GetTotalNumberOfModelRows());
+            }
+            else
+            {
+                ScrollToRow(std::min(mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed(), mSequenceElements->GetFirstVisibleModelRow() + mSequenceElements->GetMaxModelsDisplayed()));
+            }
             break;
         default:
             event.Skip();
@@ -1205,4 +1240,47 @@ void MainSequencer::UnTagAllEffects()
             el->UnTagAllEffects();
         }
     }
+}
+
+void MainSequencer::RestorePosition()
+{
+    if (mSequenceElements == nullptr) return;
+
+    if (_savedTopModel != "")
+    {
+        PanelTimeLine->RestorePosition();
+        Element* elem = mSequenceElements->GetElement(_savedTopModel);
+        if (elem != nullptr)
+        {
+            for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
+            {
+                EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                if (el->GetParentElement()->GetModelName() == elem->GetName()) {
+                    ScrollToRow(row - mSequenceElements->GetNumberOfTimingRows());
+                }
+            }
+        }
+    }
+}
+
+void MainSequencer::SavePosition()
+{
+    if (mSequenceElements == nullptr || mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetNumberOfTimingRows()) == nullptr)
+    {
+        _savedTopModel = "";
+    }
+    else
+    {
+        PanelTimeLine->SavePosition();
+        Element* elem = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetNumberOfTimingRows())->GetParentElement();
+        _savedTopModel = elem->GetName();
+    }
+}
+
+void MainSequencer::ScrollToRow(int row)
+{
+    if (mSequenceElements == nullptr) return;
+
+    mSequenceElements->SetFirstVisibleModelRow(row);
+    UpdateEffectGridVerticalScrollBar();
 }
