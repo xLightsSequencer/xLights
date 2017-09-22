@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add ctrl-. and ctrl-/ save and restore position in the sequencer
+   -- enh (keith)   Add crtl-shift 0-9 which jump to 0%-90% through the song in the sequencer
+   -- enh (keith)   Add tags using right click on the timeline ... then use ctrl-0-9 to jump to the tags
    -- bug (gil)     Fix Convert for LOR files being offset by 1.  Fixes #916.
    -- enh (dkulp)   Optimize loading of test presets to make xLights start quicker
    -- bug (dkulp)   Hopefully fix crash in CheckSequence if hostname doesn't resolve to local ip address
