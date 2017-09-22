@@ -1272,6 +1272,9 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                 sendRenderEvent(el->GetParentElement()->GetModelName(), startMS, endMS);
             }
             break;
+            case SELECT:
+            case NILTYPEOVERRIDE:
+            break;
             }
 
             first = false;
