@@ -5,6 +5,9 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/html/htmlwin.h>
+#include <wx/html/htmprint.h>
+
 //(*IdInit(ChannelLayoutDialog)
 const long ChannelLayoutDialog::ID_BUTTON1 = wxNewId();
 const long ChannelLayoutDialog::ID_HTMLWINDOW1 = wxNewId();

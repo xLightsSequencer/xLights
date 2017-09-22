@@ -19,6 +19,7 @@
 #include <wx/sstream.h>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
+#include <wx/config.h>
 
 #include "ModelPreview.h"
 #include "xLightsMain.h"

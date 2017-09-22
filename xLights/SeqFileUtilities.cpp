@@ -401,7 +401,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 {
                     if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames())
                     {
-                        logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.", CurrentSeqXmlFile->GetSequenceDurationMS() / ms), SeqData.NumFrames();
+                        logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
+                                         CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
+                                         SeqData.NumFrames());
                     }
                 }
             }

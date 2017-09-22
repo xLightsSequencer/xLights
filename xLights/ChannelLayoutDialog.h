@@ -5,11 +5,10 @@
 #include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
-#include <wx/html/htmlwin.h>
 //*)
 
-#include <wx/html/htmprint.h>
-
+class wxHtmlEasyPrinting;
+class wxHtmlWindow;
 
 class ChannelLayoutDialog: public wxDialog
 {
