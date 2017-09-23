@@ -25,8 +25,10 @@ class Falcon
 {
 	wxHTTP _http;
 	std::string _ip;
-    std::string _version;
-    std::string _model;
+    std::string _firmwareVersion;
+    int _version;
+    std::string _modelString;
+    int _model;
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
@@ -45,10 +47,10 @@ class Falcon
     void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int virtualStrings);
     std::string SafeDescription(const std::string description) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
-    bool IsF16() const { return (wxString(_model).StartsWith("F16")); }
-    bool IsF4() const { return (wxString(_model).StartsWith("F4")); }
-    bool IsV3() const { return (wxString(_model).EndsWith("V3"));}
-    bool IsV2() const { return (wxString(_model).EndsWith("V2"));}
+    bool IsF16() const { return _model == 16; }
+    bool IsF4() const { return _model == 4; }
+    bool IsV3() const { return _version == 3; }
+    bool IsV2() const { return _version == 2; }
     int GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port);
     int GetDaughter1Threshold() const { if (IsF16()) { return 16; } else { return 4; } }
     int GetDaughter2Threshold() const { if (IsF16()) { return 32; } else { return 12; } }

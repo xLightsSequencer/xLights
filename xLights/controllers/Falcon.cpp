@@ -14,6 +14,10 @@ Falcon::Falcon(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
+    _firmwareVersion = "";
+    _modelString = "";
+    _version = 0;
+    _model = 0;
 
     _http.SetMethod("GET");
     _connected = _http.Connect(_ip);
@@ -34,28 +38,48 @@ Falcon::Falcon(const std::string& ip)
             static wxRegEx versionregex("(\\<v\\>)([0-9]+\\.[0-9]+)\\<\\/v\\>", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(versionxml)))
             {
-                _version = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
+                _firmwareVersion = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
             }
         }
-        else
+
+        if (_firmwareVersion == "")
         {
             //<title>F4V2            - v1.10</title>
-            static wxRegEx versionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-            if (versionregex.Matches(wxString(version)))
+            static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (firmwareversionregex.Matches(wxString(version)))
             {
-                _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
+                _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
             }
         }
-        static wxRegEx modelregex("(SW Version:.*?\\>)(F[0-9]+V[0-9]+)", wxRE_ADVANCED);
+
+        static wxRegEx modelstringregex("(SW Version:.*?\\>)(F[0-9]+V[0-9]+)", wxRE_ADVANCED);
+        if (modelstringregex.Matches(wxString(version)))
+        {
+            _modelString = modelstringregex.GetMatch(wxString(version), 2).ToStdString();
+        }
+
+        static wxRegEx versionregex("(F[0-9]+V)([0-9]+)", wxRE_ADVANCED);
+        if (versionregex.Matches(wxString(version)))
+        {
+            _version = wxAtoi(versionregex.GetMatch(wxString(version), 2).ToStdString());
+        }
+
+        static wxRegEx modelregex("(F)([0-9]+)V", wxRE_ADVANCED);
         if (modelregex.Matches(wxString(version)))
         {
-            _model = modelregex.GetMatch(wxString(version), 2).ToStdString();
+            _model = wxAtoi(modelregex.GetMatch(wxString(version), 2).ToStdString());
         }
-        logger_base.debug("Connected to falcon - Model: %s Version %s.", _model.c_str(), _version.c_str());
+
+        logger_base.debug("Connected to falcon - Model: %s Firmware Version %s. %d:%d", _modelString.c_str(), _firmwareVersion.c_str(), _model, _version);
     }
     else
     {
         logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
+    }
+
+    if (_version == 0 || _model == 0)
+    {
+        _connected = false;
     }
 }
 
@@ -273,7 +297,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         // check we dont already have this model in our list
                         if (std::find(models.begin(), models.end(), it->second) == models.end())
                         {
-                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
+                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s. %s:%d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort());
                             models.push_back(it->second);
                             if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
                             {
@@ -882,8 +906,8 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxSerialOutputs())
     {
-        logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d serial outputs. Attempt to upload to serail output %d.", (const char *)_model.c_str(), GetMaxStringOutputs(), output);
-        wxMessageBox("Falcon " + wxString(_model.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid Serial Output", wxOK, parent);
+        logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d serial outputs. Attempt to upload to serail output %d.", (const char *)_modelString.c_str(), GetMaxStringOutputs(), output);
+        wxMessageBox("Falcon " + wxString(_modelString.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid Serial Output", wxOK, parent);
         return;
     }
 
