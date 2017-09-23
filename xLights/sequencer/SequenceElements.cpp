@@ -40,6 +40,7 @@ static const std::string STR_ZERO("0");
 SequenceElements::SequenceElements(xLightsFrame *f)
 : undo_mgr(this), xframe(f)
 {
+    _viewsManager = nullptr;
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mMaxRowsDisplayed = 0;
@@ -897,6 +898,7 @@ void SequenceElements::RemoveView(int view_index)
 void SequenceElements::SetCurrentView(int view)
 {
     mCurrentView = view;
+    wxASSERT(_viewsManager != nullptr);
     _viewsManager->SetSelectedView(view);
 }
 

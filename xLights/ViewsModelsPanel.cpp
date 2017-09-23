@@ -871,6 +871,8 @@ void ViewsModelsPanel::Initialize()
         logger_base.crit("ViewsModelsPanel::Initialize _sequenceViewManager was null ... this is going to crash.");
     }
 
+    _sequenceElements->SetViewsManager(_sequenceViewManager);
+
     PopulateViews();
     PopulateModels();
 
