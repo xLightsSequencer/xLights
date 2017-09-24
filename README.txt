@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- bug (keith)   Fix xlights not opening fseq files
+   -- bug (keith)   Fix zoom value curve not converting correctly
+   -- enh (keith)   Add splash screen courtesy Kevin Pankratz
    -- enh (keith)   Add ctrl-. and ctrl-/ save and restore position in the sequencer
    -- enh (keith)   Add crtl-shift 0-9 which jump to 0%-90% through the song in the sequencer
    -- enh (keith)   Add tags using right click on the timeline ... then use ctrl-0-9 to jump to the tags

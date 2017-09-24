@@ -243,7 +243,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             wxString mf;
             ConvertParameters read_params(xlightsFilename,                              // input filename
                                           SeqData,                                      // sequence data object
-                                          &_outputManager,                                 // global network info
+                                          &_outputManager,                              // global network info
                                           ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
                                           this,                                         // xLights main frame
                                           nullptr,
@@ -413,7 +413,19 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         {
             SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
+
         displayElementsPanel->Initialize();
+
+        // if we loaded the fseq but not the xml then we need to populate views
+        if (!CurrentSeqXmlFile->IsOpen())
+        {
+            std::string new_timing = "New Timing";
+            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+            mSequenceElements.AddTimingToAllViews(new_timing);
+            AddAllModelsToSequence();
+            displayElementsPanel->SelectView("Master View");
+        }
+
         Timer1.Start(SeqData.FrameTime());
 
         if( loaded_fseq )
@@ -467,7 +479,7 @@ bool xLightsFrame::CloseSequence()
         }
         else
         {
-            if (xlightsFilename != "")
+            if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->Exists())
             {
                 // Touch the xml file to stop a prompt when xLights tries to reopen this sequence
                 CurrentSeqXmlFile->Touch();
@@ -520,12 +532,13 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 // Returns true if file exists and was read successfully
 bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
-    if( xml_file.IsOpen() )
-    {
+    // I dont this is necessary and explains why fseq open stopped workin
+    //if( xml_file.IsOpen() )
+    //{
         LoadSequencer(xml_file);
         xml_file.SetSequenceLoaded(true);
         return true;
-    }
+    //}
 
     return false;
 }
