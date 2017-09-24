@@ -108,6 +108,7 @@ public:
     int GetDivisor() const { wxASSERT(_divisor != MAXVOID); return (int)_divisor; }
     void SetRealValue() { _realValues = true; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
+    void FixScale(int scale);
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
     float GetOutputValueAtDivided(float offset);

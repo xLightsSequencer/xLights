@@ -295,19 +295,19 @@ void ValueCurveDialog::SetParameter(int p, float v)
     {
     case 1:
         _vc->SetParameter1(v);
-        Slider_Parameter1->SetValue(v);
+        Slider_Parameter1->SetValue(std::round(v));
         break;
     case 2:
         _vc->SetParameter2(v);
-        Slider_Parameter2->SetValue(v);
+        Slider_Parameter2->SetValue(std::round(v));
         break;
     case 3:
         _vc->SetParameter3(v);
-        Slider_Parameter3->SetValue(v);
+        Slider_Parameter3->SetValue(std::round(v));
         break;
     case 4:
         _vc->SetParameter4(v);
-        Slider_Parameter4->SetValue(v);
+        Slider_Parameter4->SetValue(std::round(v));
         break;
     default:
         break;

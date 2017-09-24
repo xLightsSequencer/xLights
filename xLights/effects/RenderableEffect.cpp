@@ -299,6 +299,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             vc.SetLimits(0, 30);
             vc.SetDivisor(10);
             vc.Deserialise(rzZoom.ToStdString(), false);
+            vc.FixScale(10); // This seems to be required because of some anomally in the way I stored this compared to all other value curves with divisors
             if (vc.IsActive())
             {
                 sm["B_VALUECURVE_Zoom"] = vc.Serialise();

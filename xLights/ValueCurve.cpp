@@ -413,6 +413,35 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
     }
 }
 
+// fixes curves that were saved with the wrong scale
+void ValueCurve::FixScale(int scale)
+{
+    float min, max;
+    GetRangeParm(1, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter1 *= scale;
+    }
+
+    GetRangeParm(2, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter2 *= scale;
+    }
+
+    GetRangeParm(3, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter3 *= scale;
+    }
+
+    GetRangeParm(4, _type, min, max);
+    if (min == MINVOID)
+    {
+        _parameter4 *= scale;
+    }
+}
+
 // fixes the changed scale from 0-100 to whatever it is now
 void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
 {
@@ -1018,19 +1047,19 @@ std::string ValueCurve::Serialise()
         res += "Max=" + std::string(wxString::Format("%.2f", _max).c_str()) + "|";
         if (_parameter1 != 0)
         {
-            res += "P1=" + std::string(wxString::Format("%d", (int)_parameter1).c_str()) + "|";
+            res += "P1=" + std::string(wxString::Format("%.2f", _parameter1).c_str()) + "|";
         }
         if (_parameter2 != 0)
         {
-            res += "P2=" + std::string(wxString::Format("%d", (int)_parameter2).c_str()) + "|";
+            res += "P2=" + std::string(wxString::Format("%.2f", _parameter2).c_str()) + "|";
         }
         if (_parameter3 != 0)
         {
-            res += "P3=" + std::string(wxString::Format("%d", (int)_parameter3).c_str()) + "|";
+            res += "P3=" + std::string(wxString::Format("%.2f", _parameter3).c_str()) + "|";
         }
         if (_parameter4 != 0)
         {
-            res += "P4=" + std::string(wxString::Format("%d", (int)_parameter4).c_str()) + "|";
+            res += "P4=" + std::string(wxString::Format("%.2f", _parameter4).c_str()) + "|";
         }
         if (_wrap)
         {
@@ -1086,47 +1115,47 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
         _type = s;
     }
     else if (kk == "Min")
-        {
-            _min = wxAtof(wxString(s.c_str()));
-        }
-        else if (kk == "Max")
-        {
-            _max = wxAtof(wxString(s.c_str()));
-        }
-        else if (kk == "P1")
-        {
-            _parameter1 = (float)wxAtoi(wxString(s.c_str()));
-        }
-        else if (kk == "WRAP")
-        {
-            _wrap = true;
-        }
-        else if (kk == "RV")
-        {
-            _realValues = true;
-        }
-        else if (kk == "P2")
-        {
-            _parameter2 = (float)wxAtoi(wxString(s.c_str()));
-        }
-        else if (kk == "P3")
-        {
-            _parameter3 = (float)wxAtoi(wxString(s.c_str()));
-        }
-        else if (kk == "P4")
-        {
-            _parameter4 = (float)wxAtoi(wxString(s.c_str()));
-        }
-        else if (kk == "Values")
-        {
-            wxArrayString points = wxSplit(s, ';');
+    {
+        _min = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "Max")
+    {
+        _max = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "P1")
+    {
+        _parameter1 = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "WRAP")
+    {
+        _wrap = true;
+    }
+    else if (kk == "RV")
+    {
+        _realValues = true;
+    }
+    else if (kk == "P2")
+    {
+        _parameter2 = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "P3")
+    {
+        _parameter3 = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "P4")
+    {
+        _parameter4 = wxAtof(wxString(s.c_str()));
+    }
+    else if (kk == "Values")
+    {
+        wxArrayString points = wxSplit(s, ';');
 
-            for (auto p = points.begin(); p != points.end(); p++)
-            {
-                wxArrayString xy = wxSplit(*p, ':');
-                _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
-            }
+        for (auto p = points.begin(); p != points.end(); p++)
+        {
+            wxArrayString xy = wxSplit(*p, ':');
+            _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
         }
+    }
 
     _values.sort();
     //_active = true;
