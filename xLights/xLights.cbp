@@ -641,6 +641,8 @@
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
+		<Unit filename="SplashDialog.cpp" />
+		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
 		<Unit filename="StartChannelDialog.h" />
 		<Unit filename="StrandNodeNamesDialog.cpp" />
@@ -1178,6 +1180,7 @@
 		<Unit filename="wxsmith/SnowstormPanel.wxs" />
 		<Unit filename="wxsmith/SpiralsPanel.wxs" />
 		<Unit filename="wxsmith/SpirographPanel.wxs" />
+		<Unit filename="wxsmith/SplashDialog.wxs" />
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
@@ -1351,6 +1354,7 @@
 					<wxDialog wxs="wxsmith/EffectTimingDialog.wxs" src="EffectTimingDialog.cpp" hdr="EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
