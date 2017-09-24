@@ -53,6 +53,4 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
     dc.DrawText("www.xlights.org", wxPoint(10, size.GetHeight() - 25));
     dc.DrawText("videos.xlights.org", wxPoint(170, size.GetHeight() - 25));
     dc.DrawText("https://www.facebook.com/groups/628061113896314/", wxPoint(450, size.GetHeight() - 25));
-
-    wxDialog::OnPaint(event);
 }
