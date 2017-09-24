@@ -5,7 +5,7 @@
 #include <wx/string.h>
 //*)
 
-#include <SplashImage.h>
+#include <splashimage.h>
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
 
