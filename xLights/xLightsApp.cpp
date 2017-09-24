@@ -24,6 +24,7 @@
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
+#include "SplashDialog.h"
 
 
 #ifdef LINUX
@@ -394,6 +395,10 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 
 bool xLightsApp::OnInit()
 {
+    wxImage::AddHandler(new wxPNGHandler);
+    SplashDialog splash(nullptr);
+    splash.Show();
+
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");
@@ -520,19 +525,20 @@ bool xLightsApp::OnInit()
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles);
     }
 
-    wxImage::AddHandler(new wxPNGHandler);
     #ifdef LINUX
         glutInit(&(wxApp::argc), wxApp::argv);
     #endif
 
     logger_base.info("XLightsApp OnInit Done.");
 
+    splash.Hide();
+
     return wxsOK;
 }
 
 
 void xLightsApp::OnFatalException() {
-    handleCrash(NULL);
+    handleCrash(nullptr);
 }
 
 void xLightsApp::WipeSettings()
