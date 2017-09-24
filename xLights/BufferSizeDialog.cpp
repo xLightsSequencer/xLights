@@ -96,10 +96,10 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 
     if (usevc)
     {
-        ValueCurve_Top->SetLimits(-100, 200);
-        ValueCurve_Bottom->SetLimits(-100, 200);
-        ValueCurve_Left->SetLimits(-100, 200);
-        ValueCurve_Right->SetLimits(-100, 200);
+        ValueCurve_Top->GetValue()->SetLimits(-100, 200);
+        ValueCurve_Bottom->GetValue()->SetLimits(-100, 200);
+        ValueCurve_Left->GetValue()->SetLimits(-100, 200);
+        ValueCurve_Right->GetValue()->SetLimits(-100, 200);
     }
     else
     {
@@ -130,6 +130,10 @@ void BufferSizeDialog::SetSizes(int top, int left, int bottom, int right, const 
     ValueCurve_Bottom->SetValue(bottomvc);
     ValueCurve_Left->SetValue(leftvc);
     ValueCurve_Right->SetValue(rightvc);
+    ValueCurve_Top->GetValue()->SetLimits(-100, 200);
+    ValueCurve_Bottom->GetValue()->SetLimits(-100, 200);
+    ValueCurve_Left->GetValue()->SetLimits(-100, 200);
+    ValueCurve_Right->GetValue()->SetLimits(-100, 200);
 
     ValidateWindow();
 }
