@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <sstream> 
 #include <iomanip>
+#include <algorithm>
 
 #include "JobPool.h"
 
