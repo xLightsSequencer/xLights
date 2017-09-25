@@ -338,67 +338,83 @@ void EffectsGrid::sendRenderEvent(const std::string &model, int start, int end, 
 
 void EffectsGrid::OnGridPopup(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
     if(id == ID_GRID_MNU_COPY)
     {
+        logger_base.debug("OnGridPopup - COPY");
         ((MainSequencer*)mParent)->CopySelectedEffects();
         mCanPaste = true;
     }
     else if(id == ID_GRID_MNU_PASTE)
     {
+        logger_base.debug("OnGridPopup - PASTE");
         ((MainSequencer*)mParent)->Paste();
     }
     else if(id == ID_GRID_MNU_DELETE)
     {
+        logger_base.debug("OnGridPopup - DELETE");
         DeleteSelectedEffects();
     }
     else if (id == ID_GRID_MNU_DESCRIPTION)
     {
+        logger_base.debug("OnGridPopup - DESCRIPTION");
         SetEffectsDescription();
     }
     else if (id == ID_GRID_MNU_TIMING)
     {
+        logger_base.debug("OnGridPopup - TIMING");
         SetEffectsTiming();
     }
     else if(id == ID_GRID_MNU_RANDOM_EFFECTS)
     {
+        logger_base.debug("OnGridPopup - RANDOM");
         FillRandomEffects();
     }
     else if(id == ID_GRID_MNU_UNDO)
     {
+        logger_base.debug("OnGridPopup - UNDO");
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
     }
     else if( id == ID_GRID_MNU_ALIGN_START_TIMES )
     {
+        logger_base.debug("OnGridPopup - ALIGN_START");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
     }
     else if( id == ID_GRID_MNU_ALIGN_END_TIMES )
     {
+        logger_base.debug("OnGridPopup - ALIGN_END");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
     }
     else if( id == ID_GRID_MNU_ALIGN_BOTH_TIMES )
     {
+        logger_base.debug("OnGridPopup - ALIGN_BOTH");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
     }
     else if( id == ID_GRID_MNU_ALIGN_CENTERPOINTS )
     {
+        logger_base.debug("OnGridPopup - ALIGN_CENTER");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_CENTERPOINTS);
     }
     else if( id == ID_GRID_MNU_ALIGN_MATCH_DURATION )
     {
+        logger_base.debug("OnGridPopup - MATCH_DURATION");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_MATCH_DURATION);
     }
     else if( id == ID_GRID_MNU_ALIGN_START_TIMES_SHIFT )
     {
+        logger_base.debug("OnGridPopup - ALIGN_START_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES_SHIFT);
     }
     else if( id == ID_GRID_MNU_ALIGN_END_TIMES_SHIFT )
     {
+        logger_base.debug("OnGridPopup - ALIGN_END_TIMES_SHIFT");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES_SHIFT);
     }
     else if(id == ID_GRID_MNU_PRESETS)
     {
+        logger_base.debug("OnGridPopup - PRESETS");
         if( xlights->EffectTreeDlg==nullptr )
         {
             xlights->EffectTreeDlg = new EffectTreeDialog(xlights);
@@ -408,6 +424,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_PHRASE)
     {
+        logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_PHRASE");
         Effect* phrase_effect = mSelectedEffect;
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
@@ -431,6 +448,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_WORD)
     {
+        logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_WORD");
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
@@ -453,6 +471,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_WORDS)
     {
+        logger_base.debug("OnGridPopup - ID_GRID_MNU_BREAKDOWN_WORDS");
         Effect* word_effect = mSelectedEffect;
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();

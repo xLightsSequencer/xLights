@@ -1615,7 +1615,6 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
 {
     int id = event.GetId();
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    Output* o = _outputManager.GetOutput(item);
 
     if (id == ID_NETWORK_ADDUSB)
     {
@@ -1703,7 +1702,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     }
     else if (id == ID_NETWORK_OPENCONTROLLER)
     {
-        ::wxLaunchDefaultBrowser("http://" + o->GetIP());
+        Output* o = _outputManager.GetOutput(item);
+        if (o != nullptr) {
+            ::wxLaunchDefaultBrowser("http://" + o->GetIP());
+        }
     }
 }
 

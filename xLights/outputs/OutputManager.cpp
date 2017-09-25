@@ -162,7 +162,7 @@ bool OutputManager::Discover()
 // get an output based on an output number - zero based
 Output* OutputManager::GetOutput(int outputNumber) const
 {
-    if (outputNumber >= (int)_outputs.size())
+    if (outputNumber >= (int)_outputs.size() || outputNumber < 0)
     {
         return nullptr;
     }
