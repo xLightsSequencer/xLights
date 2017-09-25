@@ -453,7 +453,7 @@ bool xLightsApp::OnInit()
             }
         }
         if (run_xschedule) {
-            wxExecute(cmdline, wxEXEC_ASYNC,NULL,NULL);
+            wxExecute(cmdline, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
 #endif
