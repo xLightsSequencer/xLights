@@ -20,27 +20,21 @@
 
 class JobPoolWorker : public wxThread
 {
-    std::mutex *lock;
-    std::condition_variable *signal;
-    volatile int &idleThreads;
-    volatile int &numThreads;
-    volatile unsigned int &inFlight;
+    JobPool *pool;
     volatile bool stopped;
-    std::deque<Job*> *queue;
-
     Job *currentJob;
-
+    enum {
+        STARTING,
+        IDLE,
+        STOPPED,
+        UNKNOWN
+    } status;
 public:
-    JobPoolWorker(std::mutex *l,
-                  std::condition_variable *signal,
-                  std::deque<Job*> *queue,
-                  volatile int &idleThreadPtr,
-                  volatile int &numThreadsPtr,
-                  volatile unsigned int &inFlightPtr);
+    JobPoolWorker(JobPool *p);
     virtual ~JobPoolWorker();
 
     void Stop();
-    void Start();
+    bool Start();
     void* Entry();
 
     Job *GetJob();
@@ -49,15 +43,15 @@ public:
     std::string GetStatus();
 };
 
-JobPoolWorker::JobPoolWorker(std::mutex *l, std::condition_variable *s, std::deque<Job*> *queue,
-                             volatile int &idleThreadPtr, volatile int &numThreadsPtr, volatile unsigned int &inFlightPtr)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr),
-    inFlight(inFlightPtr), currentJob(nullptr), stopped(false)
+JobPoolWorker::JobPoolWorker(JobPool *p)
+: wxThread(wxTHREAD_DETACHED), pool(p), currentJob(nullptr), stopped(false), status(STARTING)
 {
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
+    status = UNKNOWN;
+    pool->RemoveWorker(this);
 }
 
 std::string JobPoolWorker::GetStatus()
@@ -71,10 +65,17 @@ std::string JobPoolWorker::GetStatus()
         << std::hex << GetId()
         << "    ";
     
-    if (currentJob != nullptr) {
-        ret << currentJob->GetStatus();
-    } else {
+    Job *j = currentJob;
+    if (j != nullptr) {
+        ret << j->GetStatus();
+    } else if (status == STARTING) {
+        ret << "<starting>";
+    } else if (status == IDLE) {
         ret << "<idle>";
+    } else if (status == STOPPED) {
+        ret << "<stopped>";
+    } else {
+        ret << "<unknown>";
     }
     
     return ret.str();
@@ -82,26 +83,17 @@ std::string JobPoolWorker::GetStatus()
 
 void JobPoolWorker::Stop()
 {
+    status = STOPPED;
     stopped = true;
-    
-    if ( IsAlive() ) {
-        std::unique_lock<std::mutex> mutLock(*lock);
-        signal->notify_all();
-    }
-    
-    if ( IsAlive() ) {
-        Delete();
-    }
 
-    while ( IsAlive() ) {
-        wxThread::Sleep( 5 );
-    }
+    std::unique_lock<std::mutex> mutLock(pool->queueLock);
+    pool->signal.notify_all();
 }
 
-void JobPoolWorker::Start()
+bool JobPoolWorker::Start()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static const unsigned int stackSize = 1024*128;
+    static const unsigned int stackSize = (sizeof(size_t) == 8) ? (256 * 1024) : (128 * 1024);
     auto rc = Create(stackSize);
 
     switch(rc)
@@ -110,34 +102,34 @@ void JobPoolWorker::Start()
         break;
     case wxTHREAD_NO_RESOURCE:
         logger_base.error("Insufficient resources to create worker thread.");
-        break;
+        return false;
     case wxTHREAD_NOT_RUNNING:
         logger_base.error("The worker thread is already running.");
-        break;
+        return false;
     default:
         logger_base.error("worker thread start returned unexpected result %d.", rc);
-        break;
+        return false;
     }
 
-    Run();
+    return Run() == wxTHREAD_NO_ERROR;
 }
 
 Job *JobPoolWorker::GetJob()
 {
-    std::unique_lock<std::mutex> mutLock(*lock);
+    std::unique_lock<std::mutex> mutLock(pool->queueLock);
     Job *req = nullptr;
-    if (queue->empty()) {
-        idleThreads++;
+    if (pool->queue.empty()) {
+        pool->idleThreads++;
         long timeout = 100;
-        if (idleThreads <= 5) {
+        if (pool->idleThreads <= 12) {
             timeout = 30000;
         }
-        signal->wait_for(mutLock, std::chrono::milliseconds(timeout));
-        idleThreads--;
+        pool->signal.wait_for(mutLock, std::chrono::milliseconds(timeout));
+        pool->idleThreads--;
     }
-    if ( !queue->empty() ) {
-        req = queue->front();
-        queue->pop_front();
+    if ( !pool->queue.empty() ) {
+        req = pool->queue.front();
+        pool->queue.pop_front();
     }
     return req;
 }
@@ -157,7 +149,7 @@ void* JobPoolWorker::Entry()
             logger_jobpool.debug("JobPoolWorker::Entry requested to terminate.");
             break;
         }
-
+        status = IDLE;
         Job *job = GetJob();
         if (job != nullptr) {
             logger_jobpool.debug("JobPoolWorker::Entry processing job.");
@@ -171,18 +163,19 @@ void* JobPoolWorker::Entry()
             {
                 logger_jobpool.debug("JobPoolWorker::Entry Job done.");
             }
-            std::unique_lock<std::mutex> mutLock(*lock);
-            inFlight--;
+            std::unique_lock<std::mutex> mutLock(pool->queueLock);
+            pool->inFlight--;
         } else {
-            std::unique_lock<std::mutex> mutLock(*lock);
-            if (idleThreads > 5) {
+            std::unique_lock<std::mutex> mutLock(pool->queueLock);
+            if (pool->idleThreads > 12) {
                 break;
             }
         }
     }
     logger_jobpool.debug("JobPoolWorker::Entry exiting.");
-    std::unique_lock<std::mutex> mutLock(*lock);
-    numThreads--;
+    std::unique_lock<std::mutex> mutLock(pool->threadLock);
+    pool->numThreads--;
+    status = STOPPED;
     return nullptr;
 }
 
@@ -198,12 +191,8 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool() : lock(), signal(), queue()
+JobPool::JobPool() : queueLock(), threadLock(), signal(), queue(), idleThreads(0),  numThreads(0), inFlight(0), maxNumThreads(8)
 {
-    idleThreads = 0;
-    numThreads = 0;
-    inFlight = 0;
-    maxNumThreads = 8;
 }
 
 JobPool::~JobPool()
@@ -218,22 +207,33 @@ JobPool::~JobPool()
     Stop();
 }
 
+void JobPool::RemoveWorker(JobPoolWorker *w) {
+    std::unique_lock<std::mutex> locker(threadLock);
+    auto loc = std::find(threads.begin(), threads.end(), w);
+    if (loc != threads.end()) {
+        threads.erase(loc);
+    }
+}
+
 void JobPool::PushJob(Job *job)
 {
-	std::unique_lock<std::mutex> locker(lock);
+	std::unique_lock<std::mutex> locker(queueLock);
     queue.push_back(job);
     inFlight++;
     
+    std::unique_lock<std::mutex> tlocker(threadLock);
     int count = inFlight;
     count -= idleThreads;
     count -= numThreads;
     while (count > 0 && (numThreads < maxNumThreads)) {
         count--;
-        numThreads++;
-
-        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads, inFlight);
-        worker->Start();
-		threads.push_back(worker);
+        JobPoolWorker *worker = new JobPoolWorker(this);
+        if (worker->Start()) {
+            threads.push_back(worker);
+            numThreads++;
+        } else {
+            delete worker;
+        }
     }
     signal.notify_all();
 }
@@ -252,20 +252,25 @@ void JobPool::Start(size_t poolSize)
     maxNumThreads = poolSize;
     idleThreads = 0;
     numThreads = 0;
-    logger_jobpool.info("Background thread pool started with %d threads", maxNumThreads);
+    logger_jobpool.info("Background thread pool started with %d threads", poolSize);
 }
 
 void JobPool::Stop()
 {
+    std::unique_lock<std::mutex> locker(threadLock);
     for(size_t i=0; i<threads.size(); i++){
         JobPoolWorker *worker = threads.at(i);
         worker->Stop();
-        delete worker;
     }
-    threads.clear();
+    while (!threads.empty()) {
+        locker.unlock();
+        wxThread::Sleep(5);
+        locker.lock();
+    }
 }
 
 std::string JobPool::GetThreadStatus() {
+    std::unique_lock<std::mutex> locker(threadLock);
     std::stringstream ret;
     ret << "\n";
     for(size_t i=0; i<threads.size(); i++){

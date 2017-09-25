@@ -9,8 +9,9 @@ Videos tutorials are found at videos.xlights.org
 Forums are located at nutcracker123.com/forum
 Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
-XLIGHTS/NUTCRACKER RELEASE NOTES:
+XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Fix memory leak in JobPool that was leaking thread objects consuming resources
    -- enh (keith)   Add X and Y axis rotations to rotozoom
    -- bug (keith)   Fix xlights not opening fseq files
    -- bug (keith)   Fix zoom value curve not converting correctly

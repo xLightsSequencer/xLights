@@ -359,6 +359,7 @@
 		67D2B0481D54CC6A006D324F /* ColorCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D2B0421D54CC6A006D324F /* ColorCurve.cpp */; };
 		67D2B0491D54CC6A006D324F /* ColorCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D2B0441D54CC6A006D324F /* ColorCurveDialog.cpp */; };
 		67D2B04C1D54CCA4006D324F /* colorcurves in Resources */ = {isa = PBXBuildFile; fileRef = 67D2B04B1D54CCA4006D324F /* colorcurves */; };
+		67D5DEE81F792B19002BB5F6 /* SplashDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */; };
 		67D640E91E41168F00381DDA /* BackgroundPlaylistDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */; };
 		67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */; };
 		67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */; };
@@ -1230,6 +1231,8 @@
 		67D2B0441D54CC6A006D324F /* ColorCurveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorCurveDialog.cpp; sourceTree = "<group>"; };
 		67D2B0451D54CC6A006D324F /* colorcurvedialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = colorcurvedialog.h; sourceTree = "<group>"; };
 		67D2B04B1D54CCA4006D324F /* colorcurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = colorcurves; sourceTree = "<group>"; };
+		67D5DEE61F792B18002BB5F6 /* SplashDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SplashDialog.h; sourceTree = "<group>"; };
+		67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SplashDialog.cpp; sourceTree = "<group>"; };
 		67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BackgroundPlaylistDialog.cpp; sourceTree = "<group>"; };
 		67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackgroundPlaylistDialog.h; sourceTree = "<group>"; };
 		67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListSimpleDialog.cpp; path = PlayList/PlayListSimpleDialog.cpp; sourceTree = "<group>"; };
@@ -2080,6 +2083,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */,
+				67D5DEE61F792B18002BB5F6 /* SplashDialog.h */,
 				6755B8671F75D303005EEEF5 /* FontManager.cpp */,
 				6755B8681F75D304005EEEF5 /* FontManager.h */,
 				6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */,
@@ -2720,6 +2725,7 @@
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
+				67D5DEE81F792B19002BB5F6 /* SplashDialog.cpp in Sources */,
 				67B2CFDC1C3A186A003C17CA /* TreeEffect.cpp in Sources */,
 				67B2CF7E1C39D98A003C17CA /* PianoPanel.cpp in Sources */,
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,

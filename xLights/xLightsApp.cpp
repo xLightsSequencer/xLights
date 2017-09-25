@@ -398,7 +398,8 @@ bool xLightsApp::OnInit()
     wxImage::AddHandler(new wxPNGHandler);
     SplashDialog splash(nullptr);
     splash.Show();
-
+    wxYield();
+    
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: XLights started.");

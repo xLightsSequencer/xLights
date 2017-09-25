@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <atomic>
 #include <condition_variable>
 
 class Job {
@@ -28,14 +29,15 @@ public:
 class JobPoolWorker;
 class JobPool
 {
-    std::mutex lock;
+    std::mutex threadLock;
+    std::mutex queueLock;
     std::condition_variable signal;
     std::vector<JobPoolWorker*> threads;
     std::deque<Job*> queue;
-    int numThreads;
-    int maxNumThreads;
-    volatile int idleThreads;
-    volatile unsigned int inFlight;
+    std::atomic_int numThreads;
+    std::atomic_int maxNumThreads;
+    std::atomic_int idleThreads;
+    std::atomic_int inFlight;
     
 public:
     JobPool();
@@ -47,6 +49,10 @@ public:
     virtual void Stop();
     
     virtual std::string GetThreadStatus();
+    
+private:
+    friend class JobPoolWorker;
+    void RemoveWorker(JobPoolWorker*);
 };
 
 
