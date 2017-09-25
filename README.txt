@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Prevent crash when perspective is chosen from menu prior to flipping to the sequencer tab
    -- bug (dkulp)   Fix memory leak in JobPool that was leaking thread objects consuming resources
    -- enh (keith)   Add X and Y axis rotations to rotozoom
    -- bug (keith)   Fix xlights not opening fseq files
