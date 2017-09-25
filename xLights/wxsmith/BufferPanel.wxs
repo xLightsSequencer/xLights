@@ -261,7 +261,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
-													<label>Rotation</label>
+													<label>Z Rotation</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -320,7 +320,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
-													<label>Rotations</label>
+													<label>Z Rotations</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -379,7 +379,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="wxID_ANY" variable="StaticText8" member="no">
-													<label>Pivot Point X</label>
+													<label>Z Pivot Point X</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -438,7 +438,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="wxID_ANY" variable="StaticText9" member="no">
-													<label>Pivot Point Y</label>
+													<label>Z Pivot Point Y</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -603,6 +603,208 @@
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText10" member="yes">
+													<label>X Rotation</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_XRotation" variable="Slider_XRotation" member="yes">
+															<max>360</max>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_XRotation" subclass="ValueCurveButton" variable="BitmapButton_XRotation" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_XRotation" variable="TextCtrl_XRotation" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText13" member="yes">
+													<label>X Pivot Point</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_XPivot" variable="Slider_XPivot" member="yes">
+															<value>50</value>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_XPivot" subclass="ValueCurveButton" variable="BitmapButton_XPivot" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_XPivot" variable="TextCtrl_XPivot" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText12" member="yes">
+													<label>Y Rotation</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_YRotation" variable="Slider_YRotation" member="yes">
+															<max>360</max>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_YRotation" subclass="ValueCurveButton" variable="BitmapButton_YRotation" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_YRotation" variable="TextCtrl_YRotation" member="yes">
+															<value>0</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText14" member="yes">
+													<label>Y Pivot Point</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
+													<cols>3</cols>
+													<growablecols>0</growablecols>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_YPivot" variable="Slider_YPivot" member="yes">
+															<value>50</value>
+															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_YPivot" subclass="ValueCurveButton" variable="BitmapButton_YPivot" member="yes">
+															<bitmap code="valuecurvenotselected_24" />
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_YPivot" variable="TextCtrl_YPivot" member="yes">
+															<value>50</value>
+															<maxlength>3</maxlength>
+															<size>20,-1d</size>
+															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>

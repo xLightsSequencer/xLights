@@ -69,6 +69,7 @@ void EffectPanelUtils::UpdateLinkedSlider(wxCommandEvent& event)
         if (slider == nullptr) {
             return;
         }
+        wxASSERT(slider != nullptr);
         LINKED_CONTROLS[txt] = slider;
     }
     int value = wxAtoi(txt->GetValue());
@@ -101,6 +102,7 @@ void EffectPanelUtils::UpdateLinkedTextCtrl(wxScrollEvent& event)
             name.Replace("IDD_SLIDER_", "ID_TEXTCTRL_");
         }
         txt = (wxTextCtrl*)slider->GetParent()->FindWindowByName(name);
+        wxASSERT(txt != nullptr);
         LINKED_CONTROLS[slider] = txt;
     }
     txt->ChangeValue(wxString::Format("%d",slider->GetValue()));
