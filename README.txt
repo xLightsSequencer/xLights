@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (keith)   Add X and Y axis rotations to rotozoom
    -- bug (keith)   Fix xlights not opening fseq files
    -- bug (keith)   Fix zoom value curve not converting correctly
    -- enh (keith)   Add splash screen courtesy Kevin Pankratz

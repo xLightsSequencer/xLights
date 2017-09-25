@@ -93,10 +93,14 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->blurValueCurve = "";
         layers[x]->sparklesValueCurve = "";
         layers[x]->rotationValueCurve = "";
+        layers[x]->xrotationValueCurve = "";
+        layers[x]->yrotationValueCurve = "";
         layers[x]->zoomValueCurve = "";
         layers[x]->rotationsValueCurve = "";
         layers[x]->pivotpointxValueCurve = "";
         layers[x]->pivotpointyValueCurve = "";
+        layers[x]->xpivotValueCurve = "";
+        layers[x]->ypivotValueCurve = "";
         layers[x]->ModelBufferHt = layers[x]->BufferHt;
         layers[x]->ModelBufferWi = layers[x]->BufferWi;
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform);
@@ -1122,10 +1126,14 @@ static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 static const std::string SLIDER_Blur("SLIDER_Blur");
 static const std::string SLIDER_Zoom("SLIDER_Zoom");
 static const std::string SLIDER_Rotation("SLIDER_Rotation");
+static const std::string SLIDER_XRotation("SLIDER_XRotation");
+static const std::string SLIDER_YRotation("SLIDER_YRotation");
 static const std::string SLIDER_Rotations("SLIDER_Rotations");
 static const std::string SLIDER_ZoomQuality("SLIDER_ZoomQuality");
 static const std::string SLIDER_PivotPointX("SLIDER_PivotPointX");
 static const std::string SLIDER_PivotPointY("SLIDER_PivotPointY");
+static const std::string SLIDER_XPivot("SLIDER_XPivot");
+static const std::string SLIDER_YPivot("SLIDER_YPivot");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
@@ -1139,9 +1147,13 @@ static const std::string VALUECURVE_SaturationAdjust("VALUECURVE_Color_Saturatio
 static const std::string VALUECURVE_ValueAdjust("VALUECURVE_Color_ValueAdjust");
 static const std::string VALUECURVE_Zoom("VALUECURVE_Zoom");
 static const std::string VALUECURVE_Rotation("VALUECURVE_Rotation");
+static const std::string VALUECURVE_XRotation("VALUECURVE_XRotation");
+static const std::string VALUECURVE_YRotation("VALUECURVE_YRotation");
 static const std::string VALUECURVE_Rotations("VALUECURVE_Rotations");
 static const std::string VALUECURVE_PivotPointX("VALUECURVE_PivotPointX");
 static const std::string VALUECURVE_PivotPointY("VALUECURVE_PivotPointY");
+static const std::string VALUECURVE_XPivot("VALUECURVE_XPivot");
+static const std::string VALUECURVE_YPivot("VALUECURVE_YPivot");
 static const std::string STR_DEFAULT("Default");
 static const std::string STR_EMPTY("");
 
@@ -1392,11 +1404,15 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->blur = settingsMap.GetInt(SLIDER_Blur, 1);
     inf->rotation = settingsMap.GetInt(SLIDER_Rotation, 0);
+    inf->xrotation = settingsMap.GetInt(SLIDER_XRotation, 0);
+    inf->yrotation = settingsMap.GetInt(SLIDER_YRotation, 0);
     inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
     inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;
     inf->zoomquality = settingsMap.GetInt(SLIDER_ZoomQuality, 1);
     inf->pivotpointx = settingsMap.GetInt(SLIDER_PivotPointX, 50);
     inf->pivotpointy = settingsMap.GetInt(SLIDER_PivotPointY, 50);
+    inf->xpivot = settingsMap.GetInt(SLIDER_XPivot, 50);
+    inf->ypivot = settingsMap.GetInt(SLIDER_YPivot, 50);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
     inf->music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
@@ -1424,12 +1440,33 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &saturationAdjustValueCurve = settingsMap.Get(VALUECURVE_SaturationAdjust, STR_EMPTY);
     const std::string &valueAdjustValueCurve = settingsMap.Get(VALUECURVE_ValueAdjust, STR_EMPTY);
     const std::string &rotationValueCurve = settingsMap.Get(VALUECURVE_Rotation, STR_EMPTY);
+    const std::string &xrotationValueCurve = settingsMap.Get(VALUECURVE_XRotation, STR_EMPTY);
+    const std::string &yrotationValueCurve = settingsMap.Get(VALUECURVE_YRotation, STR_EMPTY);
     const std::string &zoomValueCurve = settingsMap.Get(VALUECURVE_Zoom, STR_EMPTY);
     const std::string &rotationsValueCurve = settingsMap.Get(VALUECURVE_Rotations, STR_EMPTY);
     const std::string &pivotpointxValueCurve = settingsMap.Get(VALUECURVE_PivotPointX, STR_EMPTY);
     const std::string &pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
+    const std::string &xpivotValueCurve = settingsMap.Get(VALUECURVE_XPivot, STR_EMPTY);
+    const std::string &ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
 
-    if (inf->bufferType != type || inf->bufferTransform != transform || inf->subBuffer != subBuffer || inf->blurValueCurve != blurValueCurve || inf->sparklesValueCurve != sparklesValueCurve || inf->zoomValueCurve != zoomValueCurve || inf->rotationValueCurve != rotationValueCurve || inf->rotationsValueCurve != rotationsValueCurve || inf->pivotpointxValueCurve != pivotpointxValueCurve || inf->pivotpointyValueCurve != pivotpointyValueCurve || inf->brightnessValueCurve != brightnessValueCurve || inf->hueAdjustValueCurve != hueAdjustValueCurve || inf->saturationAdjustValueCurve != saturationAdjustValueCurve || inf->valueAdjustValueCurve != valueAdjustValueCurve)
+    if (inf->bufferType != type || 
+        inf->bufferTransform != transform || 
+        inf->subBuffer != subBuffer || 
+        inf->blurValueCurve != blurValueCurve || 
+        inf->sparklesValueCurve != sparklesValueCurve || 
+        inf->zoomValueCurve != zoomValueCurve || 
+        inf->rotationValueCurve != rotationValueCurve || 
+        inf->xrotationValueCurve != xrotationValueCurve || 
+        inf->yrotationValueCurve != yrotationValueCurve || 
+        inf->rotationsValueCurve != rotationsValueCurve || 
+        inf->pivotpointxValueCurve != pivotpointxValueCurve || 
+        inf->pivotpointyValueCurve != pivotpointyValueCurve || 
+        inf->xpivotValueCurve != xpivotValueCurve || 
+        inf->ypivotValueCurve != ypivotValueCurve || 
+        inf->brightnessValueCurve != brightnessValueCurve || 
+        inf->hueAdjustValueCurve != hueAdjustValueCurve || 
+        inf->saturationAdjustValueCurve != saturationAdjustValueCurve || 
+        inf->valueAdjustValueCurve != valueAdjustValueCurve)
     {
         int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
@@ -1451,10 +1488,14 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         ComputeValueCurve(blurValueCurve, inf->BlurValueCurve);
         ComputeValueCurve(sparklesValueCurve, inf->SparklesValueCurve);
         ComputeValueCurve(rotationValueCurve, inf->RotationValueCurve);
+        ComputeValueCurve(xrotationValueCurve, inf->XRotationValueCurve);
+        ComputeValueCurve(yrotationValueCurve, inf->YRotationValueCurve);
         ComputeValueCurve(zoomValueCurve, inf->ZoomValueCurve, 10);
         ComputeValueCurve(rotationsValueCurve, inf->RotationsValueCurve, 10);
         ComputeValueCurve(pivotpointxValueCurve, inf->PivotPointXValueCurve);
         ComputeValueCurve(pivotpointyValueCurve, inf->PivotPointYValueCurve);
+        ComputeValueCurve(xpivotValueCurve, inf->XPivotValueCurve);
+        ComputeValueCurve(ypivotValueCurve, inf->YPivotValueCurve);
         inf->bufferType = type;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
@@ -1466,9 +1507,13 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         inf->valueAdjustValueCurve = valueAdjustValueCurve;
         inf->zoomValueCurve = zoomValueCurve;
         inf->rotationValueCurve = rotationValueCurve;
+        inf->xrotationValueCurve = xrotationValueCurve;
+        inf->yrotationValueCurve = yrotationValueCurve;
         inf->rotationsValueCurve = rotationsValueCurve;
         inf->pivotpointxValueCurve = pivotpointxValueCurve;
         inf->pivotpointyValueCurve = pivotpointyValueCurve;
+        inf->xpivotValueCurve = xpivotValueCurve;
+        inf->ypivotValueCurve = ypivotValueCurve;
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
@@ -1613,6 +1658,8 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 
     if (std::isinf(offset)) offset = 1.0;
 
+    // Do the Z axis rotate and zoom first
+
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
@@ -1691,6 +1738,88 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // Now do the rotation around a point on the x axis
+
+    float xrotation = layer->xrotation;
+    if (layer->XRotationValueCurve.IsActive())
+    {
+        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset);
+    }
+
+    if (xrotation != 0 && xrotation != 360)
+    {
+        int xpivot = layer->xpivot;
+        if (layer->XPivotValueCurve.IsActive())
+        {
+            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset);
+        }
+
+        RenderBuffer orig(layer->buffer);
+        layer->buffer.Clear();
+
+        float sine = sin((xrotation + 90) * M_PI / 180);
+        float pivot = xpivot * layer->buffer.BufferWi / 100;
+
+        for (int x = pivot; x < layer->buffer.BufferWi; ++x)
+        {
+            float tox = sine * (x - pivot) + pivot;
+            for (int y = 0; y < layer->buffer.BufferHt; ++y)
+            {
+                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            }
+        }
+
+        for (int x = pivot-1; x >= 0; --x)
+        {
+            float tox = -1 * sine * (pivot - x) + pivot;
+            for (int y = 0; y < layer->buffer.BufferHt; ++y)
+            {
+                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            }
+        }
+    }
+
+    // Now do the rotation around a point on the y axis
+
+    float yrotation = layer->yrotation;
+    if (layer->YRotationValueCurve.IsActive())
+    {
+        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset);
+    }
+
+    if (yrotation != 0 && yrotation != 360)
+    {
+        int ypivot = layer->ypivot;
+        if (layer->YPivotValueCurve.IsActive())
+        {
+            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset);
+        }
+
+        RenderBuffer orig(layer->buffer);
+        layer->buffer.Clear();
+
+        float sine = sin((yrotation + 90) * M_PI / 180);
+        float pivot = ypivot * layer->buffer.BufferHt / 100;
+
+        for (int y = pivot; y < layer->buffer.BufferHt; ++y)
+        {
+            float toy = sine * (y - pivot) + pivot;
+            for (int x = 0; x < layer->buffer.BufferWi; ++x)
+            {
+                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            }
+        }
+
+        for (int y = pivot-1; y >= 0; --y)
+        {
+            float toy = -1 * sine * (pivot - y) + pivot;
+            for (int x = 0; x < layer->buffer.BufferWi; ++x)
+            {
+                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
             }
         }
     }
