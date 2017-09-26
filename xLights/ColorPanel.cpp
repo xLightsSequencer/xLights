@@ -17,7 +17,8 @@
 #include "../include/cc_radialin.xpm"
 #include "../include/cc_radialout.xpm"
 
-class xLightsFrame;
+#include "xLightsMain.h"
+
 //(*InternalHeaders(ColorPanel)
 #include <wx/bitmap.h>
 #include <wx/settings.h>
@@ -163,7 +164,7 @@ BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : touchBar(nullptr)
+ColorPanel::ColorPanel(wxWindow* parent, xLightsFrame* frame, wxWindowID id,const wxPoint& pos,const wxSize& size) : touchBar(nullptr)
 {
     _supportslinear = false;
     _supportsradial = false;
@@ -405,7 +406,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
     for (int x = 0; x < PALETTE_SIZE; x++) {
         wxString ids = wxString::Format("ID_BUTTON_Palette%d", (x + 1));
         long id2 = wxNewId();
-        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, id2, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
+        ColorCurveButton *bb = new ColorCurveButton(ColorScrollWindow, frame, id2, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, ids);
         bb->SetDefault();
         FlexGridSizer_Palette->Add(bb, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
         buttons.push_back(bb);

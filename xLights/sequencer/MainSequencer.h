@@ -40,6 +40,7 @@ class MainSequencer: public wxPanel
         void HorizontalScrollChanged( wxCommandEvent& event);
         void TagAllSelectedEffects();
         void UnTagAllEffects();
+        Effect* GetSelectedEffect();
 
         void Cut();
         void Copy();

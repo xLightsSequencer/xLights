@@ -90,6 +90,7 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
+    Effect* GetSelectedEffect();
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();

@@ -36,6 +36,7 @@ wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 #define COLORPANEL_SATURATION_MAX 100
 
 class ColourList;
+class xLightsFrame;
 
 class ColorPanel: public wxPanel
 {
@@ -50,7 +51,7 @@ class ColorPanel: public wxPanel
 
 public:
 
-		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ColorPanel(wxWindow* parent, xLightsFrame* frame, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
         void SetColorCount(int count);

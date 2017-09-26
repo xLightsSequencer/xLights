@@ -1034,6 +1034,11 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     UpdateZoomPosition(selectedTimeMS);
 }
 
+Effect* EffectsGrid::GetSelectedEffect()
+{
+    return mSelectedEffect;
+}
+
 void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

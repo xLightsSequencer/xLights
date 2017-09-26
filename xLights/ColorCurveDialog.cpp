@@ -12,6 +12,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
 #include <wx/stdpaths.h>
+#include "SequenceCheck.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
@@ -25,9 +26,11 @@ EVT_PAINT(ColorCurvePanel::Paint)
 EVT_MOUSE_CAPTURE_LOST(ColorCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, int start, int end, wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl()
 {
+    _start = start;
+    _end = end;
     _cc = cc;
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ColorCurvePanel::mouseLeftDown, 0, this);
     Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ColorCurvePanel::mouseLeftUp, 0, this);
@@ -75,7 +78,7 @@ BEGIN_EVENT_TABLE(ColorCurveDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, int start, int end, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _cc = cc;
 
@@ -142,12 +145,14 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ColorCurveDialog::OnChar), (wxObject*)nullptr, this);
 
-    _ccp = new ColorCurvePanel(_cc, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _ccp = new ColorCurvePanel(_cc, start, end, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(500, 80));
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
     wxTopLevelWindowBase::SetMinSize(wxSize(600, 400));
+    // ReSharper disable once CppVirtualFunctionCallInsideCtor
     Layout();
+    // ReSharper disable once CppVirtualFunctionCallInsideCtor
     Fit();
 
     _backup = *_cc;
@@ -389,7 +394,13 @@ void ColorCurvePanel::mouseLeftDown(wxMouseEvent& event)
     _minGrabbedPoint = _cc->FindMinPointLessThan(_grabbedPoint);
     _maxGrabbedPoint = _cc->FindMaxPointGreaterThan(_grabbedPoint);
 
-    SetToolTip(wxString::Format("%.1f", _grabbedPoint * 100));
+    std::string time = "";
+    if (_start != -1)
+    {
+        time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
+    }
+
+    SetToolTip(wxString::Format("%s%.1f", time, _grabbedPoint * 100));
 
     CaptureMouse();
     Refresh();
@@ -533,7 +544,13 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
             _grabbedPoint = x;
 
             Refresh();
-            SetToolTip(wxString::Format("%.1f", _grabbedPoint * 100));
+
+            std::string time = "";
+            if (_start != -1)
+            {
+                time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
+            }
+            SetToolTip(wxString::Format("%s%.1f", time, _grabbedPoint * 100));
         }
     }
 }

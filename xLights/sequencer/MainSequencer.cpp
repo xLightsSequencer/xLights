@@ -939,6 +939,11 @@ void MainSequencer::Cut() {
     }
 }
 
+Effect* MainSequencer::GetSelectedEffect()
+{
+    return PanelEffectGrid->GetSelectedEffect();
+}
+
 void MainSequencer::Paste(bool row_paste) {
     wxTextDataObject data;
     wxClipboard *cbd = wxClipboard::Get();
