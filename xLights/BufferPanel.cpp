@@ -16,6 +16,7 @@
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 #include <wx/config.h>
+#include "sequencer/Effect.h"
 
 //(*IdInit(BufferPanel)
 const long BufferPanel::ID_CHECKBOX_ResetBufferPanel = wxNewId();
@@ -82,7 +83,7 @@ BEGIN_EVENT_TABLE(BufferPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+BufferPanel::BufferPanel(wxWindow* parent, xLightsFrame* frame, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     __rotation = 0;
     __rotations = 0;
@@ -474,6 +475,19 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     BitmapButton_XPivot->GetValue()->SetLimits(0, 100);
     BitmapButton_YPivot->GetValue()->SetLimits(0, 100);
 
+    BitmapButton_Blur->SetFrame(frame);
+    BitmapButton_VCRotation->SetFrame(frame);
+    BitmapButton_VCZoom->SetFrame(frame);
+    BitmapButton_VCZoom->SetFrame(frame);
+    BitmapButton_VCRotations->SetFrame(frame);
+    BitmapButton_VCRotations->SetFrame(frame);
+    BitmapButton_VCPivotPointX->SetFrame(frame);
+    BitmapButton_VCPivotPointY->SetFrame(frame);
+    BitmapButton_XRotation->SetFrame(frame);
+    BitmapButton_YRotation->SetFrame(frame);
+    BitmapButton_XPivot->SetFrame(frame);
+    BitmapButton_YPivot->SetFrame(frame);
+
     subBufferPanel = new SubBufferPanel(ScrolledWindow1, true, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     wxSize s(10,100);
     subBufferPanel->SetMinSize(s);
@@ -792,7 +806,16 @@ void BufferPanel::OnBitmapButton_BlurClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_Blur->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_Blur->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = vc->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_Blur->GetValue(), start, end);
         vcd.ShowModal();
         BitmapButton_Blur->UpdateState();
     }
@@ -804,7 +827,16 @@ void BufferPanel::OnBitmapButton_RotationClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_VCRotation->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_VCRotation->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = BitmapButton_VCRotation->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_VCRotation->GetValue(), start, end);
         vcd.ShowModal();
         BitmapButton_VCRotation->UpdateState();
     }
@@ -816,7 +848,16 @@ void BufferPanel::OnBitmapButton_ZoomClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_VCZoom->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_VCZoom->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = BitmapButton_VCZoom->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_VCZoom->GetValue(), start ,end);
         vcd.ShowModal();
         BitmapButton_VCZoom->UpdateState();
     }
@@ -828,7 +869,16 @@ void BufferPanel::OnBitmapButton_VCRotationsClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_VCRotations->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_VCRotations->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = BitmapButton_VCRotations->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_VCRotations->GetValue(), start, end);
         vcd.ShowModal();
         BitmapButton_VCRotations->UpdateState();
     }
@@ -840,7 +890,16 @@ void BufferPanel::OnBitmapButton_VCPivotPointXClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_VCPivotPointX->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_VCPivotPointX->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = BitmapButton_VCPivotPointX->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_VCPivotPointX->GetValue(), start, end);
         vcd.ShowModal();
         BitmapButton_VCPivotPointX->UpdateState();
     }
@@ -852,7 +911,16 @@ void BufferPanel::OnBitmapButton_VCPivotPointYClick(wxCommandEvent& event)
     ValidateWindow();
     if (BitmapButton_VCPivotPointY->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(this, BitmapButton_VCPivotPointY->GetValue());
+        int start = -1;
+        int end = -1;
+        Effect* eff = BitmapButton_VCPivotPointY->GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (eff != nullptr)
+        {
+            start = eff->GetStartTimeMS();
+            end = eff->GetEndTimeMS();
+        }
+
+        ValueCurveDialog vcd(this, BitmapButton_VCPivotPointY->GetValue(), start, end);
         vcd.ShowModal();
         BitmapButton_VCPivotPointY->UpdateState();
     }
