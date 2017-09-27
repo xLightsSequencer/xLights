@@ -1331,6 +1331,50 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
 }
 
+void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
+{
+    int pos = event.GetInt();
+    int current_play_time;
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
+    }
+    else
+    {
+        wxTimeSpan ts = wxDateTime::UNow() - starttime;
+        long curtime = ts.GetMilliseconds().ToLong();
+        int msec = 0;
+        if (playAnimation) {
+            msec = curtime * playSpeed;
+        }
+        else {
+            msec = curtime;
+        }
+
+        current_play_time = (playStartTime + msec - playStartMS);
+    }
+
+    long origtime = current_play_time;
+    current_play_time += (pos - current_play_time);
+    int end_ms = CurrentSeqXmlFile->GetSequenceDurationMS();
+    if (current_play_time > end_ms) current_play_time = end_ms;
+
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+        if (CurrentSeqXmlFile->GetMedia() != nullptr)
+        {
+            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        }
+    }
+    else
+    {
+        starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
+    }
+
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->UpdateTimeDisplay(current_play_time, _fps);
+}
+
 void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
 {
 	mLoopAudio = true;
