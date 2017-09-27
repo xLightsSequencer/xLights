@@ -37,6 +37,8 @@
 #include "MSWStackWalk.h"
 #endif
 
+xLightsFrame* xLightsApp::__frame = nullptr;
+
 void InitialiseLogging(bool fromMain)
 {
     static bool loggingInitialised = false;
@@ -514,6 +516,7 @@ bool xLightsApp::OnInit()
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
+        __frame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);
     }

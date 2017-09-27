@@ -69,7 +69,7 @@ void xLightsFrame::CreateSequencer()
                    Left().Layer(1).BestSize(250,250));
     sEffectAssist->Layout();
 
-    colorPanel = new ColorPanel(PanelSequencer, this);
+    colorPanel = new ColorPanel(PanelSequencer);
     timingPanel = new TimingPanel(PanelSequencer);
     bufferPanel = new BufferPanel(PanelSequencer);
 

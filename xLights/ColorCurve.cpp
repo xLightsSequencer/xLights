@@ -11,7 +11,6 @@
 #include <wx/graphics.h>
 #include "UtilFunctions.h"
 #include "ColorPanel.h"
-#include "xLightsMain.h"
 #if wxUSE_GRAPHICS_CONTEXT == 0
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
 #error You will also need to rebuild wxWidgets once the change is made.
@@ -490,7 +489,6 @@ const ccSortableColorPoint* ColorCurve::GetNextActivePoint(float x, float& durat
 wxDEFINE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
 
 ColorCurveButton::ColorCurveButton(wxWindow *parent,
-    xLightsFrame* frame,
     wxWindowID id,
     const wxBitmap& bitmap,
     const wxPoint& pos,
@@ -499,7 +497,6 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
-    _xLights = frame;
     _cc = new ColorCurve(name.ToStdString());
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveButton::LeftClick);
     Connect(id, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ColorCurveButton::RightClick);
@@ -528,16 +525,7 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
 
-    int start = -1;
-    int end = -1;
-    Effect* eff = _xLights->GetMainSequencer()->GetSelectedEffect();
-    if (eff != nullptr)
-    {
-        start = eff->GetStartTimeMS();
-        end = eff->GetEndTimeMS();
-    }
-
-    ColorCurveDialog ccd(this, w->GetValue(), start, end);
+    ColorCurveDialog ccd(this, w->GetValue());
     if (ccd.ShowModal() == wxID_OK)
     {
         w->SetActive(true);

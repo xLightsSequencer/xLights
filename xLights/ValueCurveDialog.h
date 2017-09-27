@@ -19,7 +19,7 @@
 class ValueCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
-    ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+    ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
     virtual ~ValueCurvePanel() {};
     virtual void SetValue(const std::string &val) override {};
@@ -52,6 +52,8 @@ private:
     float _maxGrabbedPoint;
     std::string _type;
     std::list<wxRealPoint> _undo;
+    int _start;
+    int _end;
 };
 
 class ValueCurveDialog: public wxDialog

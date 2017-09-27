@@ -13,6 +13,7 @@
 #include <wx/colordlg.h>
 #include <wx/stdpaths.h>
 #include "SequenceCheck.h"
+#include "xLightsApp.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
@@ -78,7 +79,7 @@ BEGIN_EVENT_TABLE(ColorCurveDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, int start, int end, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _cc = cc;
 
@@ -144,6 +145,15 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, int start, 
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ColorCurveDialog::OnChar), (wxObject*)nullptr, this);
+
+    int start = -1;
+    int end = -1;
+    Effect* eff = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+    if (eff != nullptr)
+    {
+        start = eff->GetStartTimeMS();
+        end = eff->GetEndTimeMS();
+    }
 
     _ccp = new ColorCurvePanel(_cc, start, end, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(500, 80));
