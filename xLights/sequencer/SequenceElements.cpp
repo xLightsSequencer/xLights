@@ -1641,12 +1641,15 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         int interval_ms = (end_time-start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
-            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i);
+            wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);
             // Handle common unicode characters before falling back to ascii
             line.Replace(wxT("\u2019"),"'",true);
             line.Replace(wxT("\u0218"),"'",true);
             line.Replace(wxT("\u201c"),'"',true);
             line.Replace(wxT("\u201d"),'"',true);
+            line.Replace(wxT("\""),"",true); // strip out double quotes
+            line.Replace(wxT("<"),"",true); // strip out illegal characters
+            line.Replace(wxT(">"),"",true); // strip out illegal characters
             line = line.ToStdString();
             if(line == "")
             {
