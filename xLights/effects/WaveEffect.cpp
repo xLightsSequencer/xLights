@@ -86,11 +86,13 @@ void WaveEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(wp->Slider_Thickness_Percentage, 5);
     SetSliderValue(wp->Slider_Wave_Height, 50);
     SetSliderValue(wp->Slider_Wave_Speed, 10);
+    SetSliderValue(wp->Slider_Wave_Y_Position, 0);
     SetChoiceValue(wp->Choice_Wave_Direction, "Right to Left");
     wp->BitmapButton_Number_WavesVC->SetActive(false);
     wp->BitmapButton_Thickness_PercentageVC->SetActive(false);
     wp->BitmapButton_Wave_HeightVC->SetActive(false);
     wp->BitmapButton_Wave_SpeedVC->SetActive(false);
+    wp->BitmapButton_Wave_Y_PositionVC->SetActive(false);
 }
 
 void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -105,7 +107,10 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset, WAVE_THICKNESS_MIN, WAVE_THICKNESS_MAX);
     int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset, WAVE_HEIGHT_MIN, WAVE_HEIGHT_MAX);
     int wspeed = GetValueCurveInt("Wave_Speed", 10, SettingsMap, oset, WAVE_SPEED_MIN, WAVE_SPEED_MAX);
-
+    int WaveYPosition = GetValueCurveInt("Wave_Y_Position", 0, SettingsMap, oset, WAVE_Y_POSITION_MIN, WAVE_Y_POSITION_MAX);
+    double WaveYOffset = (buffer.BufferHt / 2.0) * (WaveYPosition * 0.01);
+    int roundedWaveYOffset = -round(WaveYOffset);
+    
     bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
 
 
@@ -127,7 +132,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
      FillColors.Add("Palette");  // 2
      */
 
-    int x,y,y1,y2,y1mirror,y2mirror,ystart;
+    int x,y,y1,y2,y1mirror,y2mirror,ystart,adjustedY;
     double r,yc,deltay;
     double degree,radian,degree_per_x;
     static const double pi_180 = 0.01745329;
@@ -275,17 +280,18 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 }
             }
             for (y=y1; y<y2; y++) {
+                adjustedY = y + roundedWaveYOffset;
                 if(FillColor<=0) { //default to this if no selection -DJ
-                    buffer.SetPixel(x,y,hsv0);  // fill with color 2
+                    buffer.SetPixel(x,adjustedY,hsv0);  // fill with color 2
                     //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if(FillColor==1) {
 
                     hsv.hue=(double)(y-y1)/deltay;
-                    buffer.SetPixel(x,y,hsv); // rainbow
+                    buffer.SetPixel(x,adjustedY,hsv); // rainbow
                 } else if(FillColor==2) {
                     hsv.hue=(double)(y-y1)/deltay;
                     buffer.GetMultiColorBlend(hsv.hue,false,color);
-                    buffer.SetPixel(x,y,color); // palete fill
+                    buffer.SetPixel(x,adjustedY,color); // palete fill
                 }
             }
 
@@ -299,17 +305,18 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 }
 
                 for (y=y1; y<y2; y++) {
+                    adjustedY = y + roundedWaveYOffset;
                     if(FillColor<=0) { //default to this if no selection -DJ
-                        buffer.SetPixel(x,y,hsv0);  // fill with color 2
+                        buffer.SetPixel(x,adjustedY,hsv0);  // fill with color 2
                         //       hsv.hue=(double)(BufferHt-y)/deltay;
                     } else if(FillColor==1) {
 
                         hsv.hue=(double)(y-y1)/deltay;
-                        buffer.SetPixel(x,y,hsv); // rainbow
+                        buffer.SetPixel(x,adjustedY,hsv); // rainbow
                     } else if(FillColor==2) {
                         hsv.hue=(double)(y-y1)/deltay;
                         buffer.GetMultiColorBlend(hsv.hue,false,color);
-                        buffer.SetPixel(x,y,color); // palete fill
+                        buffer.SetPixel(x,adjustedY,color); // palete fill
                     }
                 }
             }

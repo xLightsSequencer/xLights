@@ -51,7 +51,12 @@ class WavePanel: public wxPanel
 		wxBitmapButton* BitmapButton_WaveType;
 		wxStaticText* StaticText48;
 		ValueCurveButton* BitmapButton_Wave_SpeedVC;
-		wxSlider* Slider_Wave_Height;
+    	wxSlider* Slider_Wave_Height;
+    	wxStaticText* StaticText57;
+    	wxSlider* Slider_Wave_Y_Position;
+    	wxBitmapButton* BitmapButton_Wave_Y_Position;
+    	ValueCurveButton* BitmapButton_Wave_Y_PositionVC;
+    	wxTextCtrl* TextCtrl_Wave_Y_Position;
 		//*)
 
 	protected:
@@ -88,7 +93,12 @@ class WavePanel: public wxPanel
 		static const long ID_BITMAPBUTTON31;
 		static const long ID_STATICTEXT59;
 		static const long ID_CHOICE_Wave_Direction;
-		static const long ID_BITMAPBUTTON8;
+    	static const long ID_BITMAPBUTTON8;
+    	static const long ID_STATICTEXT57;
+    	static const long ID_SLIDER_Wave_Y_Position;
+    	static const long ID_VALUECURVE_Wave_Y_Position;
+    	static const long IDD_TEXTCTRL_Wave_Y_Position;
+    	static const long ID_BITMAPBUTTON57;
 		//*)
 
 	public:
