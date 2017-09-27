@@ -15,18 +15,21 @@
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 #include "xLightsVersion.h"
+#include "SequenceCheck.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
-EVT_MOTION(ValueCurvePanel::mouseMoved)
-EVT_LEFT_DOWN(ValueCurvePanel::mouseLeftDown)
-EVT_LEFT_UP(ValueCurvePanel::mouseLeftUp)
-EVT_ENTER_WINDOW(ValueCurvePanel::mouseEnter)
-EVT_LEAVE_WINDOW(ValueCurvePanel::mouseLeave)
-EVT_PAINT(ValueCurvePanel::Paint)
-EVT_MOUSE_CAPTURE_LOST(ValueCurvePanel::mouseCaptureLost)
+    EVT_MOTION(ValueCurvePanel::mouseMoved)
+    EVT_LEFT_DOWN(ValueCurvePanel::mouseLeftDown)
+    EVT_LEFT_UP(ValueCurvePanel::mouseLeftUp)
+    EVT_ENTER_WINDOW(ValueCurvePanel::mouseEnter)
+    EVT_LEAVE_WINDOW(ValueCurvePanel::mouseLeave)
+    EVT_PAINT(ValueCurvePanel::Paint)
+    EVT_MOUSE_CAPTURE_LOST(ValueCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+ValueCurvePanel::ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl()
 {
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftDown, 0, this);
@@ -40,6 +43,8 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint 
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     // ReSharper restore CppVirtualFunctionCallInsideCtor
     _grabbedPoint = -1;
+    _start = start;
+    _end = end;
 }
 
 void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
@@ -77,8 +82,8 @@ const long ValueCurveDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ValueCurveDialog,wxDialog)
-	//(*EventTable(ValueCurveDialog)
-	//*)
+    //(*EventTable(ValueCurveDialog)
+    //*)
 END_EVENT_TABLE()
 
 ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -213,7 +218,16 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
 
-    _vcp = new ValueCurvePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    int start = -1;
+    int end = -1;
+    Effect* eff = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+    if (eff != nullptr)
+    {
+        start = eff->GetStartTimeMS();
+        end = eff->GetEndTimeMS();
+    }
+
+    _vcp = new ValueCurvePanel(this, start, end, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());
@@ -272,8 +286,8 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
 
 ValueCurveDialog::~ValueCurveDialog()
 {
-	//(*Destroy(ValueCurveDialog)
-	//*)
+    //(*Destroy(ValueCurveDialog)
+    //*)
 }
 
 
@@ -639,7 +653,13 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             Refresh();
         }
 
-        SetToolTip(wxString::Format(wxT("%.2f,%.1f"), x, _vc->GetOutputValue(y)));
+        std::string time = "";
+        if (_start != -1)
+        {
+            time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
+        }
+
+        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetOutputValue(y)));
     }
     else
     {
@@ -653,7 +673,14 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
         {
             y = 1.0f;
         }
-        SetToolTip(wxString::Format(wxT("%.2f,%.1f"), x, _vc->GetOutputValue(y)));
+
+        std::string time = "";
+        if (_start != -1)
+        {
+            time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
+        }
+
+        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetOutputValue(y)));
     }
 }
 #pragma endregion Mouse Control
@@ -1215,7 +1242,7 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             LoadXVC(&vc, fn.GetFullPath());
             long id = wxNewId();
             wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30, GetContentScaleFactor()), wxDefaultPosition,
-                wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
+                                                     wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);

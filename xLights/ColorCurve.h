@@ -9,8 +9,6 @@
 
 #include "Color.h"
 
-class xLightsFrame;
-
 class ccSortableColorPoint
 {
 public:
@@ -191,7 +189,6 @@ wxDECLARE_EVENT(EVT_CC_CHANGED, wxCommandEvent);
 class ColorCurveButton :
     public wxBitmapButton
 {
-    xLightsFrame* _xLights;
     ColorCurve* _cc;
     std::string _color;
     void NotifyChange();
@@ -199,7 +196,7 @@ class ColorCurveButton :
     void RightClick(wxContextMenuEvent& event);
 
 public:
-    ColorCurveButton(wxWindow *parent, xLightsFrame* frame,
+    ColorCurveButton(wxWindow *parent, 
         wxWindowID id,
         const wxBitmap& bitmap,
         const wxPoint& pos = wxDefaultPosition,

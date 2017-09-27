@@ -82,7 +82,7 @@ class ColorCurveDialog: public wxDialog
 
     public:
 
-		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, int start, int end, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorCurveDialog();
         void OnCCPChanged(wxCommandEvent& event);
 

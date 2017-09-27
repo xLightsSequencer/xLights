@@ -11,8 +11,18 @@
 #include <wx/bitmap.h>
 #include <map>
 #include <list>
+#include <wx/prntbase.h>
 
+class WiringDialog;
 class Model;
+
+class WiringPrintout : public wxPrintout
+{
+    WiringDialog* _wiringDialog;
+public:
+    WiringPrintout(WiringDialog* dialog);
+    virtual bool OnPrintPage(int pageNum) override;
+};
 
 class WiringDialog: public wxDialog
 {
@@ -25,12 +35,13 @@ class WiringDialog: public wxDialog
     int _rows;
     int _fontSize;
     std::map<int, std::map<int, std::list<wxPoint>>> _points;
-    void RenderMultiLight(std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height);
-    void RenderNodes(std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height);
+    void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
+    void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
     std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     static const long ID_MNU_EXPORT;
+    static const long ID_MNU_PRINT;
     static const long ID_MNU_DARK;
     static const long ID_MNU_LIGHT;
     static const long ID_MNU_FRONT;
@@ -45,6 +56,7 @@ class WiringDialog: public wxDialog
 		virtual ~WiringDialog();
         void SetData(wxGrid* grid, bool reverse);
         void SetData(Model* model);
+        void DrawBitmap(wxBitmap& bitmap, bool printer = false);
 
 		//(*Declarations(WiringDialog)
 		wxStaticBitmap* StaticBitmap_Wiring;

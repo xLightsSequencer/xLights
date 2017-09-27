@@ -19,17 +19,21 @@
 #include <wx/app.h>
 #include <wx/cmdline.h>
 
+class xLightsFrame;
+
 class xLightsApp : public wxApp
 {
     void WipeSettings();
 
 public:
     virtual bool OnInit();
+    static xLightsFrame* GetFrame() { return __frame; }
     static bool WantDebug; //debug flag from command-line -DJ
     static wxString DebugPath; //path name for debug log file -DJ
     static wxString showDir;
     static wxString mediaDir;
     static wxArrayString sequenceFiles;
+    static xLightsFrame* __frame;
 
     virtual void OnFatalException();
 };
