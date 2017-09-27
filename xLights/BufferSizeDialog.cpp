@@ -7,7 +7,6 @@
 #include <wx/image.h>
 #include <wx/string.h>
 #include "ValueCurveDialog.h"
-#include "sequencer/Effect.h"
 //*)
 
 //(*IdInit(BufferSizeDialog)
@@ -30,7 +29,7 @@ BEGIN_EVENT_TABLE(BufferSizeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc, xLightsFrame* frame, wxWindowID id,const wxPoint& pos,const wxSize& size)
+BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(BufferSizeDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -109,11 +108,6 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc, xLightsFrame* f
         ValueCurve_Left->Enable(false);
         ValueCurve_Right->Enable(false);
     }
-
-    ValueCurve_Top->SetFrame(frame);
-    ValueCurve_Bottom->SetFrame(frame);
-    ValueCurve_Left->SetFrame(frame);
-    ValueCurve_Right->SetFrame(frame);
 }
 
 BufferSizeDialog::~BufferSizeDialog()
@@ -193,16 +187,7 @@ void BufferSizeDialog::OnValueCurve_Click(wxCommandEvent& event)
     vc->ToggleActive();
     if (vc->GetValue()->IsActive())
     {
-        int start = -1;
-        int end = -1;
-        Effect* eff = vc->GetFrame()->GetMainSequencer()->GetSelectedEffect();
-        if (eff != nullptr)
-        {
-            start = eff->GetStartTimeMS();
-            end = eff->GetEndTimeMS();
-        }
-
-        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), start, end);
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
         if (vcd.ShowModal() != wxOK)
         {
             vc->SetActive(false);

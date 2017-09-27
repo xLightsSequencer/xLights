@@ -19,7 +19,7 @@
 class ValueCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
-    ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+    ValueCurvePanel(wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
     virtual ~ValueCurvePanel() {};
     virtual void SetValue(const std::string &val) override {};
@@ -50,8 +50,6 @@ private:
     float _grabbedPoint;
     float _minGrabbedPoint;
     float _maxGrabbedPoint;
-    int _start;
-    int _end;
     std::string _type;
     std::list<wxRealPoint> _undo;
 };
@@ -74,7 +72,7 @@ class ValueCurveDialog: public wxDialog
 
     public:
 
-		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, int start, int end, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
 
 		//(*Declarations(ValueCurveDialog)
@@ -132,10 +130,14 @@ class ValueCurveDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnChoice1Select(wxCommandEvent& event);
+		void OnPanel_GraphLeftDown(wxMouseEvent& event);
+		void OnPanel_GraphLeftUp(wxMouseEvent& event);
+		void OnPanel_GraphMouseMove(wxMouseEvent& event);
 		void OnTextCtrl_Parameter1Text(wxCommandEvent& event);
 		void OnTextCtrl_Parameter2Text(wxCommandEvent& event);
 		void OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event);
+		void OnPanel_GraphPaint(wxPaintEvent& event);
 		void OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Parameter3Text(wxCommandEvent& event);
 		void OnChar(wxKeyEvent& event);

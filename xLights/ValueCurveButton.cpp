@@ -1,6 +1,6 @@
 #include "ValueCurveButton.h"
 #include "../include/valuecurveselected.xpm"
-#include "xLightsMain.h"
+
 
 #include <wx/dcmemory.h>
 
@@ -15,9 +15,9 @@ ValueCurveButton::ValueCurveButton(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
-    _frame = nullptr;
     _vc = new ValueCurve(name.ToStdString());
 }
+
 
 ValueCurveButton::~ValueCurveButton()
 {
@@ -42,8 +42,6 @@ void ValueCurveButton::ToggleActive()
 wxBitmap ValueCurveButton::disabledBitmap;
 
 void ValueCurveButton::UpdateBitmap() {
-    // force this to fail so i find them when coding
-    wxASSERT(_frame != nullptr);
     if (GetValue()->IsActive())
     {
         RenderNewBitmap();

@@ -23,7 +23,6 @@
 #include "../ValueCurveButton.h"
 #include "../ValueCurveDialog.h"
 #include <wx/valnum.h>
-#include "sequencer/Effect.h"
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
@@ -434,16 +433,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     vc->ToggleActive();
     if (vc->GetValue()->IsActive())
     {
-        int start = -1;
-        int end = -1;
-        Effect* eff = vc->GetFrame()->GetMainSequencer()->GetSelectedEffect();
-        if (eff != nullptr)
-        {
-            start = eff->GetStartTimeMS();
-            end = eff->GetEndTimeMS();
-        }
-
-        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), start, end);
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
         if (vcd.ShowModal() == wxOK)
         {
             if (slider != nullptr)
