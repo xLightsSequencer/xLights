@@ -634,7 +634,15 @@ void ViewsModelsPanel::RemoveSelectedModels()
             if (IsItemSelected(ListCtrlModels, i))
             {
                 Element* e = (Element*)ListCtrlModels->GetItemData(i);
-                if (e->HasEffects())
+
+                if (e->GetType() == ELEMENT_TYPE_TIMING)
+                {
+                    if (wxMessageBox("Removing timing track '" + e->GetName() + "' from the Master View will delete the timing track. Are you sure you want to do this?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxNO)
+                    {
+                        SelectItem(ListCtrlModels, i, false);
+                    }
+                }
+                else if (e->HasEffects())
                 {
                     hasEffects = true;
                     break;
