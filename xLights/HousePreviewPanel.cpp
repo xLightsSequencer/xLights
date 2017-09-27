@@ -242,6 +242,10 @@ void HousePreviewPanel::SetPositionFrames(long frames)
 
 void HousePreviewPanel::OnSliderPositionCmdSliderUpdated(wxScrollEvent& event)
 {
+    if (_xLights->CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        _xLights->CurrentSeqXmlFile->GetMedia()->Seek(event.GetPosition() * _xLights->CurrentSeqXmlFile->GetFrameMS());
+    }
     _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(event.GetPosition() * _xLights->CurrentSeqXmlFile->GetFrameMS());
     StaticText_Time->SetLabel(FORMATTIME(event.GetPosition() * _xLights->CurrentSeqXmlFile->GetFrameMS()));
 }
