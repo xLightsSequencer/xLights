@@ -15,6 +15,7 @@
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/intl.h>
+#include <wx/button.h>
 #include <wx/image.h>
 #include <wx/string.h>
 //*)
@@ -101,6 +102,7 @@ const long MorphPanel::IDD_TEXTCTRL_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_SLIDER_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart = wxNewId();
+const long MorphPanel::ID_BUTTONSWAP = wxNewId();
 const long MorphPanel::ID_PANEL30 = wxNewId();
 const long MorphPanel::ID_NOTEBOOK_Morph = wxNewId();
 //*)
@@ -364,6 +366,8 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	BitmapButton_ShowHeadAtStart->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer105->Add(BitmapButton_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer104->Add(FlexGridSizer105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	ButtonSwap = new wxButton(MorphPanelOptions, ID_BUTTONSWAP, _("Swap Start and End Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONSWAP"));
+	FlexGridSizer104->Add(ButtonSwap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MorphPanelOptions->SetSizer(FlexGridSizer104);
 	FlexGridSizer104->Fit(MorphPanelOptions);
 	FlexGridSizer104->SetSizeHints(MorphPanelOptions);
@@ -439,6 +443,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	Connect(IDD_TEXTCTRL_Morph_Stagger,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&MorphPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_Morph_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
+	Connect(ID_BUTTONSWAP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnButtonSwapClick);
 	//*)
     SetName("ID_PANEL_MORPH");
 
@@ -581,4 +586,23 @@ void MorphPanel::OnChoice_Morph_QuickSetSelect(wxCommandEvent& event)
         TextCtrl_Morph_End_Y2->SetValue("0");
     }
     Choice_Morph_QuickSet->SetSelection(0);
+}
+
+void MorphPanel::OnButtonSwapClick(wxCommandEvent& event)
+{
+	auto tempValue = TextCtrl_Morph_Start_X1->GetValue();
+	TextCtrl_Morph_Start_X1->SetValue(TextCtrl_Morph_End_X1->GetValue());
+	TextCtrl_Morph_End_X1->SetValue(tempValue);
+
+	tempValue = TextCtrl_Morph_Start_X2->GetValue();
+	TextCtrl_Morph_Start_X2->SetValue(TextCtrl_Morph_End_X2->GetValue());
+	TextCtrl_Morph_End_X2->SetValue(tempValue);
+
+	tempValue = TextCtrl_Morph_Start_Y1->GetValue();
+	TextCtrl_Morph_Start_Y1->SetValue(TextCtrl_Morph_End_Y1->GetValue());
+	TextCtrl_Morph_End_Y1->SetValue(tempValue);
+
+	tempValue = TextCtrl_Morph_Start_Y2->GetValue();
+	TextCtrl_Morph_Start_Y2->SetValue(TextCtrl_Morph_End_Y2->GetValue());
+	TextCtrl_Morph_End_Y2->SetValue(tempValue);
 }
