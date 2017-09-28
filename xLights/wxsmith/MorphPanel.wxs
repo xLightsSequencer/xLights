@@ -899,6 +899,15 @@
 									<border>1</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTONSWAP" variable="ButtonSwap" member="yes">
+										<label>Swap Start and End Points</label>
+										<handler function="OnButtonSwapClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Options</label>

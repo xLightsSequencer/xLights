@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view
    -- enh (keith)   Add display of actual time in value curve and color curve dialogs.
    -- bug (dkulp)   Prevent crash when perspective is chosen from menu prior to flipping to the sequencer tab

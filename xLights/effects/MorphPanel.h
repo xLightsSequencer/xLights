@@ -11,6 +11,7 @@ class wxStaticText;
 class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
+class wxButton;
 class wxChoice;
 //*)
 
@@ -81,6 +82,7 @@ class MorphPanel: public wxPanel
 		wxCheckBox* CheckBox_ShowHeadAtStart;
 		wxChoice* Choice_Morph_QuickSet;
 		wxTextCtrl* TextCtrl_Morph_Start_X1;
+		wxButton* ButtonSwap;
 		ValueCurveButton* BitmapButton_Morph_End_Y1;
 		ValueCurveButton* BitmapButton_Morph_Start_X2;
 		wxBitmapButton* BitmapButton_ShowHeadAtStart;
@@ -183,6 +185,7 @@ class MorphPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Morph_Stagger;
 		static const long ID_CHECKBOX_ShowHeadAtStart;
 		static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
+		static const long ID_BUTTONSWAP;
 		static const long ID_PANEL30;
 		static const long ID_NOTEBOOK_Morph;
 		//*)
@@ -190,24 +193,24 @@ class MorphPanel: public wxPanel
 	public:
 
 		//(*Handlers(MorphPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
-    void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-    void OnVCButtonClick(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-
-    void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
-    void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
-    void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
-    void OnVCChanged(wxCommandEvent& event);
-    //*)
+		void UpdateLinkedSliderFloat(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+		void UpdateLinkedSlider360(wxCommandEvent& event);
+		void UpdateLinkedTextCtrl(wxScrollEvent& event);
+		void UpdateLinkedSlider(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
+		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+		void OnCheckBox_Morph_Start_LinkClick(wxCommandEvent& event);
+		void OnCheckBox_Morph_End_LinkClick(wxCommandEvent& event);
+		void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
+		void OnButtonSwapClick(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };
