@@ -210,7 +210,6 @@ class MorphPanel: public wxPanel
 		void OnChoice_Morph_QuickSetSelect(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnButtonSwapClick(wxCommandEvent& event);
-		void OnButtonSwapClick1(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
