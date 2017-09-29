@@ -594,15 +594,47 @@ void MorphPanel::OnButtonSwapClick(wxCommandEvent& event)
 	TextCtrl_Morph_Start_X1->SetValue(TextCtrl_Morph_End_X1->GetValue());
 	TextCtrl_Morph_End_X1->SetValue(tempValue);
 
+    if (BitmapButton_Morph_Start_X1->GetValue()->IsActive() ||
+        BitmapButton_Morph_End_X1->GetValue()->IsActive())
+    {
+        tempValue = BitmapButton_Morph_Start_X1->GetValue()->Serialise();
+        BitmapButton_Morph_Start_X1->SetValue(BitmapButton_Morph_End_X1->GetValue()->Serialise());
+        BitmapButton_Morph_End_X1->SetValue(tempValue);
+    }
+
 	tempValue = TextCtrl_Morph_Start_X2->GetValue();
 	TextCtrl_Morph_Start_X2->SetValue(TextCtrl_Morph_End_X2->GetValue());
 	TextCtrl_Morph_End_X2->SetValue(tempValue);
+
+    if (BitmapButton_Morph_Start_X2->GetValue()->IsActive() ||
+        BitmapButton_Morph_End_X2->GetValue()->IsActive())
+    {
+        tempValue = BitmapButton_Morph_Start_X2->GetValue()->Serialise();
+        BitmapButton_Morph_Start_X2->SetValue(BitmapButton_Morph_End_X2->GetValue()->Serialise());
+        BitmapButton_Morph_End_X2->SetValue(tempValue);
+    }
 
 	tempValue = TextCtrl_Morph_Start_Y1->GetValue();
 	TextCtrl_Morph_Start_Y1->SetValue(TextCtrl_Morph_End_Y1->GetValue());
 	TextCtrl_Morph_End_Y1->SetValue(tempValue);
 
+    if (BitmapButton_Morph_Start_Y1->GetValue()->IsActive() ||
+        BitmapButton_Morph_End_Y1->GetValue()->IsActive())
+    {
+        tempValue = BitmapButton_Morph_Start_Y1->GetValue()->Serialise();
+        BitmapButton_Morph_Start_Y1->SetValue(BitmapButton_Morph_End_Y1->GetValue()->Serialise());
+        BitmapButton_Morph_End_Y1->SetValue(tempValue);
+    }
+
 	tempValue = TextCtrl_Morph_Start_Y2->GetValue();
 	TextCtrl_Morph_Start_Y2->SetValue(TextCtrl_Morph_End_Y2->GetValue());
 	TextCtrl_Morph_End_Y2->SetValue(tempValue);
+    
+    if (BitmapButton_Morph_Start_Y2->GetValue()->IsActive() ||
+        BitmapButton_Morph_End_Y2->GetValue()->IsActive())
+    {
+        tempValue = BitmapButton_Morph_Start_Y2->GetValue()->Serialise();
+        BitmapButton_Morph_Start_Y2->SetValue(BitmapButton_Morph_End_Y2->GetValue()->Serialise());
+        BitmapButton_Morph_End_Y2->SetValue(tempValue);
+    }
 }
