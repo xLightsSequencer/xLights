@@ -2457,11 +2457,14 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         layer_node->AddAttribute("name", layer->GetName());
     }
 
-    for (int i = 0; i < 10; ++i)
+    if (seq_elements.GetTimeLine() != nullptr)
     {
-        wxXmlNode* tag_node = AddChildXmlNode(timing_tags_node, "Tag");
-        tag_node->AddAttribute("number", string_format("%d", i));
-        tag_node->AddAttribute("position", string_format("%d", seq_elements.GetTimeLine()->GetTagPosition(i)));
+        for (int i = 0; i < 10; ++i)
+        {
+            wxXmlNode* tag_node = AddChildXmlNode(timing_tags_node, "Tag");
+            tag_node->AddAttribute("number", string_format("%d", i));
+            tag_node->AddAttribute("position", string_format("%d", seq_elements.GetTimeLine()->GetTagPosition(i)));
+        }
     }
 
     int num_elements = seq_elements.GetElementCount();

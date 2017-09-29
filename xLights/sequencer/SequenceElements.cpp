@@ -90,7 +90,10 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
-    GetTimeLine()->ClearTags();
+    if (GetTimeLine() != nullptr)
+    {
+        GetTimeLine()->ClearTags();
+    }
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -687,6 +690,7 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
     }
 
 }
+
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString &ShowDir)
 {
     mFilename = xml_file;
@@ -744,7 +748,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                    int number = wxAtoi(tag->GetAttribute("number", "-1"));
                    int position = wxAtoi(tag->GetAttribute("position", "-1"));
 
-                   if (number != -1)
+                   if (number != -1 && GetTimeLine() != nullptr)
                    {
                        GetTimeLine()->SetTagPosition(number, position);
                    }
