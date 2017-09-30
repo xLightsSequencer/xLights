@@ -8,6 +8,7 @@
 #include <splashimage.h>
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
+#include <log4cpp/Category.hh>
 
 //(*IdInit(SplashDialog)
 //*)
@@ -28,7 +29,11 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&SplashDialog::OnPaint);
 	//*)
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Loading splash image.");
     _image = wxBITMAP_PNG_FROM_DATA(xl_xsmall);
+    logger_base.debug("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", _image.GetWidth(), _image.GetHeight());
 
     int w = 773;
     int h = 247;
@@ -43,6 +48,9 @@ SplashDialog::~SplashDialog()
 
 void SplashDialog::OnPaint(wxPaintEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Splash painting.");
+
     wxPaintDC dc(this);
 
     dc.DrawBitmap(_image, 0, 0);

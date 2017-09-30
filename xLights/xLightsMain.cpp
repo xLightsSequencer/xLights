@@ -8,6 +8,8 @@
  **************************************************************/
 
 #include "xLightsMain.h"
+#include "SplashDialog.h"
+
 #include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
@@ -432,6 +434,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
+
+    SplashDialog splash(nullptr);
+    splash.Show();
+    splash.Update();
+    wxYield();
+
     _fps = -1;
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
@@ -1726,6 +1734,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 #endif
 
     DrawingContext::Initialize(this);
+
+    splash.Hide();
 
     logger_base.debug("xLightsFrame construction complete.");
 }

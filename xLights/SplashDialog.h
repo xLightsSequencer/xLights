@@ -25,9 +25,6 @@ class SplashDialog: public wxDialog
 	private:
 
 		//(*Handlers(SplashDialog)
-		void OnHyperlinkCtrl_xLIghtsClick(wxCommandEvent& event);
-		void OnHyperlinkCtrl_VideosClick(wxCommandEvent& event);
-		void OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		//*)
 
