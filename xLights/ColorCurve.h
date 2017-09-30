@@ -5,6 +5,7 @@
 #include <wx/string.h>
 #include <wx/wx.h>
 #include <wx/colour.h>
+#include <wx/colourdata.h>
 #include <list>
 
 #include "Color.h"
@@ -191,6 +192,7 @@ class ColorCurveButton :
 {
     ColorCurve* _cc;
     std::string _color;
+    static wxColourData _colorData;
     void NotifyChange();
     void LeftClick(wxCommandEvent& event);
     void RightClick(wxContextMenuEvent& event);

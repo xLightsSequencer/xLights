@@ -27,8 +27,8 @@ EVT_PAINT(ColorCurvePanel::Paint)
 EVT_MOUSE_CAPTURE_LOST(ColorCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, int start, int end, wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
-    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl()
+ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, int start, int end, wxColourData& colorData ,wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl(), _colorData(colorData)
 {
     _start = start;
     _end = end;
@@ -79,7 +79,7 @@ BEGIN_EVENT_TABLE(ColorCurveDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourData& colorData, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _cc = cc;
 
@@ -155,7 +155,7 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxWindowID 
         end = eff->GetEndTimeMS();
     }
 
-    _ccp = new ColorCurvePanel(_cc, start, end, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    _ccp = new ColorCurvePanel(_cc, start, end, colorData, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(500, 80));
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
@@ -364,15 +364,14 @@ void ColorCurvePanel::mouseLeftDClick(wxMouseEvent& event)
     }
     ccSortableColorPoint* pt = _cc->GetPointAt(x);
 
-    wxColourData cd;
-    cd.SetColour(pt->color.asWxColor());
-    wxColourDialog cdlg(this, &cd);
+    _colorData.SetColour(pt->color.asWxColor());
+    wxColourDialog cdlg(this, &_colorData);
 
     if (cdlg.ShowModal() == wxID_OK)
     {
-        wxColourData retData = cdlg.GetColourData();
+        _colorData = cdlg.GetColourData();
         SaveUndo(*pt, true);
-        _cc->SetValueAt(x, retData.GetColour());
+        _cc->SetValueAt(x, _colorData.GetColour());
     }
     Refresh();
     SetToolTip("");

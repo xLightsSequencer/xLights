@@ -6,7 +6,6 @@
 #include "ColorCurveDialog.h"
 
 #include <wx/colour.h>
-#include <wx/colourdata.h>
 #include <wx/colordlg.h>
 #include <wx/graphics.h>
 #include "UtilFunctions.h"
@@ -15,6 +14,8 @@
 #error Please refer to README.windows to make necessary changes to wxWidgets setup.h file.
 #error You will also need to rebuild wxWidgets once the change is made.
 #endif
+
+wxColourData ColorCurveButton::_colorData;
 
 ColorCurve::ColorCurve(const std::string& id, const std::string type, xlColor c)
 {
@@ -506,14 +507,13 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
     wxColour color = w->GetBackgroundColour();
-    wxColourData colorData;
-    colorData.SetColour(color);
-    wxColourDialog dialog(this, &colorData);
+    _colorData.SetColour(color);
+    wxColourDialog dialog(this, &_colorData);
     if (dialog.ShowModal() == wxID_OK)
     {
         _cc->SetActive(false);
-        wxColourData retData = dialog.GetColourData();
-        color = retData.GetColour();
+        _colorData = dialog.GetColourData();
+        color = _colorData.GetColour();
         _color = color.GetAsString();
         _cc->SetDefault(color);
         UpdateBitmap();
@@ -525,7 +525,7 @@ void ColorCurveButton::RightClick(wxContextMenuEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
 
-    ColorCurveDialog ccd(this, w->GetValue());
+    ColorCurveDialog ccd(this, w->GetValue(), _colorData);
     if (ccd.ShowModal() == wxID_OK)
     {
         w->SetActive(true);
