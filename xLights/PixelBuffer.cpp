@@ -609,19 +609,40 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     thelayer->buffer.GetPixel(x, y, color);
                 }
 
-                // adjust for HSV adjustments
+                
+                float ha = 0.0;
+                if (thelayer->HueAdjustValueCurve.IsActive())
                 {
+                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    ha = (float)thelayer->hueadjust / 100.0;
+                }
+                float sa = 0.0;
+                if (thelayer->SaturationAdjustValueCurve.IsActive())
+                {
+                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    sa = (float)thelayer->saturationadjust / 100.0;
+                }
+                
+                float va = 0.0;
+                if (thelayer->ValueAdjustValueCurve.IsActive())
+                {
+                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    va = (float)thelayer->valueadjust / 100.0;
+                }
+                
+                // adjust for HSV adjustments
+                if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
 
-                    float ha = 0.0;
-                    if (thelayer->HueAdjustValueCurve.IsActive())
-                    {
-                        ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                    }
-                    else
-                    {
-                        ha = (float)thelayer->hueadjust / 100.0;
-                    }
                     if (ha != 0)
                     {
                         hsv.hue += ha;
@@ -635,15 +656,6 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                         }
                     }
 
-                    float sa = 0.0;
-                    if (thelayer->SaturationAdjustValueCurve.IsActive())
-                    {
-                        sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                    }
-                    else
-                    {
-                        sa = (float)thelayer->saturationadjust / 100.0;
-                    }
                     if (sa != 0)
                     {
                         hsv.saturation += sa;
@@ -657,15 +669,6 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                         }
                     }
 
-                    float va = 0.0;
-                    if (thelayer->ValueAdjustValueCurve.IsActive())
-                    {
-                        va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                    }
-                    else
-                    {
-                        va = (float)thelayer->valueadjust / 100.0;
-                    }
                     if (va != 0)
                     {
                         hsv.value += va;

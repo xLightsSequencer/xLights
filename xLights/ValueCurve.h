@@ -114,7 +114,7 @@ public:
     float GetOutputValueAtDivided(float offset);
     float GetOutputValue(float offset);
     void SetActive(bool a) { _active = a; RenderType(); }
-    bool IsActive() const { return IsOk() && _active; }
+    bool IsActive() const { return _active && IsOk(); }
     void ToggleActive() { _active = !_active; if (_active) RenderType(); }
     void SetValueAt(float offset, float value);
     void DeletePoint(float offset);
