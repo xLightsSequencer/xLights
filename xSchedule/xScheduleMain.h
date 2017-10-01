@@ -192,6 +192,7 @@ public:
         static const long ID_SPLITTERWINDOW1;
         static const long ID_PANEL1;
         static const long ID_STATICTEXT1;
+        static const long ID_STATICTEXT3;
         static const long ID_STATICTEXT2;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
@@ -267,6 +268,7 @@ public:
         wxFlexGridSizer* FlexGridSizer1;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_WebInterface;
+        wxStaticText* StaticText_IP;
         wxMenuItem* MenuItem_ImportxLights;
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_Options;

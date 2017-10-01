@@ -2495,6 +2495,39 @@ void LogAndWrite(wxFile& f, const std::string& msg)
     }
 }
 
+std::string ScheduleManager::GetOurIP() const
+{
+    std::string ip = "UNKNOWN IP";
+
+    wxDatagramSocket *testSocket;
+    wxIPV4address addr;
+    if (IPOutput::GetLocalIP() != "")
+    {
+        addr.Hostname(IPOutput::GetLocalIP());
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+    }
+    else
+    {
+        addr.AnyAddress();
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+        addr.Hostname(wxGetFullHostName());
+    }
+
+    ip = addr.IPAddress().ToStdString();
+
+    if (testSocket == nullptr || !testSocket->IsOk())
+    {
+        ip = "UNKNOWN IP";
+    }
+
+    if (testSocket != nullptr)
+    {
+        delete testSocket;
+    }
+
+    return ip;
+}
+
 void ScheduleManager::CheckScheduleIntegrity(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2520,12 +2553,44 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
 
     LogAndWrite(f, "Checking schedule.");
 
+    wxDatagramSocket *testSocket;
     wxIPV4address addr;
-    addr.Hostname(wxGetHostName());
+    if (IPOutput::GetLocalIP() != "")
+    {
+        addr.Hostname(IPOutput::GetLocalIP());
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+    }
+    else
+    {
+        addr.AnyAddress();
+        testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+        addr.Hostname(wxGetFullHostName());
+    }
+
     LogAndWrite(f, "");
     LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
-    LogAndWrite(f, "If you are experiencing this problem you may need to disable this network connection.");
+    LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
+
+    if (testSocket == nullptr || !testSocket->IsOk())
+    {
+        wxString msg("    ERR: Cannot create socket on IP address '");
+        msg += addr.IPAddress();
+        msg += "'. Is the network connected?    ";
+        if (testSocket != nullptr) {
+            msg += IPOutput::DecodeError(testSocket->LastError());
+        }
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (testSocket != nullptr)
+    {
+        delete testSocket;
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Inactive Outputs");

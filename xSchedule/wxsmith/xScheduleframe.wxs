@@ -235,13 +235,21 @@
 				<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
 					<style>wxRAISED_BORDER|wxTAB_TRAVERSAL</style>
 					<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-						<cols>2</cols>
+						<cols>3</cols>
 						<growablecols>1</growablecols>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_ShowDir" member="yes">
 								<label></label>
 							</object>
 							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+							<border>5</border>
+							<option>1</option>
+						</object>
+						<object class="sizeritem">
+							<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_IP" member="yes">
+								<label></label>
+							</object>
+							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
 							<option>1</option>
 						</object>
