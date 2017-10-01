@@ -132,6 +132,19 @@ void Xyzzy::DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size)
     }
 }
 
+void Xyzzy::DrawBlack(wxByte* buffer, size_t size)
+{
+    if (_matrixMapper == nullptr) return;
+
+    for (int x = 0; x < _matrixMapper->GetWidth(); x++)
+    {
+        for (int y = 0; y < _matrixMapper->GetHeight(); y++)
+        {
+            DrawNode(x, y, *wxBLACK, buffer, size);
+        }
+    }
+}
+
 bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
     if (_matrixMapper == nullptr) return false;

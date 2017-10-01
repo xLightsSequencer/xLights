@@ -176,6 +176,7 @@ public:
         Xyzzy();
         virtual ~Xyzzy();
         bool Frame(wxByte* buffer, size_t size, bool outputframe); 
+        void DrawBlack(wxByte* buffer, size_t size);
         void Initialise(const std::string& parameters, std::string& result, const std::string& reference);
         void Close(std::string& result, const std::string& reference);
         bool Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
