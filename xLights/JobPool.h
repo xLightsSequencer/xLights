@@ -44,7 +44,7 @@ public:
     virtual ~JobPool();
     
     virtual void PushJob(Job *job);
-    int size() const { return threads.size(); }
+    int size() const { return (int)threads.size(); }
     virtual void Start(size_t poolSize = 1);
     virtual void Stop();
     

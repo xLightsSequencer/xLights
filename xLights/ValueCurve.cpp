@@ -348,6 +348,75 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
 }
 
+void ValueCurve::Reverse()
+{
+    if (_type == "Custom")
+    {
+        for (auto it = _values.begin(); it != _values.end(); ++it)
+        {
+            it->x = 1.0 - it->x;
+        }
+    }
+    else if (_type == "Ramp")
+    {
+        float p1 = GetParameter1();
+        SetParameter1(GetParameter2());
+        SetParameter2(p1);
+    }
+    else if (_type == "Ramp Up/Down")
+    {
+        float p1 = GetParameter1();
+        SetParameter1(GetParameter3());
+        SetParameter3(p1);
+    }
+    //else if (_type == "Logarithmic Up")
+    //{
+    //    float p1 = GetParameter1();
+    //    float p2 = GetParameter2();
+    //    SetType("Logarithmic Down");
+    //    SetParameter1(100.0 - p1);
+    //    SetParameter2(p2);
+    //}
+    //else if (_type == "Logarithmic Down")
+    //{
+    //    float p1 = GetParameter1();
+    //    float p2 = GetParameter2();
+    //    SetType("Logarithmic Up");
+    //    SetParameter1(100.0 - p1);
+    //    SetParameter2(p2);
+    //}
+    //else if (_type == "Exponential Up")
+    //{
+    //    float p1 = GetParameter1();
+    //    float p2 = GetParameter2();
+    //    SetType("Exponential Down");
+    //    SetParameter1(100.0 - p1);
+    //    SetParameter2(p2);
+    //}
+    //else if (_type == "Exponential Down")
+    //{
+    //    float p1 = GetParameter1();
+    //    float p2 = GetParameter2();
+    //    SetType("Exponential Up");
+    //    SetParameter1(100.0 - p1);
+    //    SetParameter2(p2);
+    //}
+    else if (_type == "Sine")   
+    {
+        SetParameter1((int)(GetParameter1() + 25.0) % 100);
+    }
+    else if (_type == "Abs Sine")
+    {
+        SetParameter1((int)(GetParameter1() + 25.0) % 100);
+    }
+    else if (_type == "Square")
+    {
+        float p1 = GetParameter1();
+        SetParameter1(GetParameter2());
+        SetParameter2(p1);
+    }
+}
+
 float ValueCurve::Normalise(int parm, float value)
 {
     float low;
@@ -966,7 +1035,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         float oldmax = _max;
 
         wxArrayString v = wxSplit(wxString(s.c_str()), '|');
-        for (auto vs = v.begin(); vs != v.end(); vs++)
+        for (auto vs = v.begin(); vs != v.end(); ++vs)
         {
             wxArrayString v1 = wxSplit(*vs, '=');
             if (v1.size() == 2)
@@ -1150,7 +1219,7 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
     {
         wxArrayString points = wxSplit(s, ';');
 
-        for (auto p = points.begin(); p != points.end(); p++)
+        for (auto p = points.begin(); p != points.end(); ++p)
         {
             wxArrayString xy = wxSplit(*p, ':');
             _values.push_back(vcSortablePoint(wxAtof(wxString(xy.front().c_str())), wxAtof(wxString(xy.back().c_str())), false));
@@ -1254,7 +1323,7 @@ bool ValueCurve::IsSetPoint(float offset)
         {
             return true;
         }
-        it++;
+        ++it;
     }
 
     return false;
@@ -1272,7 +1341,7 @@ void ValueCurve::DeletePoint(float offset)
                 _values.remove(*it);
                 break;
             }
-            it++;
+            ++it;
         }
     }
 }
@@ -1282,9 +1351,9 @@ void ValueCurve::RemoveExcessCustomPoints()
     // go through list and remove middle points where 3 in a row have the same value
     auto it1 = _values.begin();
     auto it2 = it1;
-    it2++;
+    ++it2;
     auto it3 = it2;
-    it3++;
+    ++it3;
 
     while (it1 != _values.end() && it2 != _values.end() && it3 != _values.end())
     {
@@ -1292,15 +1361,15 @@ void ValueCurve::RemoveExcessCustomPoints()
         {
             _values.remove(*it2);
             it2 = it1;
-            it2++;
+            ++it2;
             it3 = it2;
-            it3++;
+            ++it3;
         }
         else
         {
-            it1++;
-            it2++;
-            it3++;
+            ++it1;
+            ++it2;
+            ++it3;
         }
     }
 }
@@ -1315,7 +1384,7 @@ void ValueCurve::SetValueAt(float offset, float value)
             _values.remove(*it);
             break;
         }
-        it++;
+        ++it;
     }
     _values.push_back(vcSortablePoint(offset, value, false));
     _values.sort();
@@ -1327,7 +1396,7 @@ void ValueCurve::SetWrap(bool wrap)
 
     if (!_wrap)
     {
-        for (auto it = _values.begin(); it != _values.end(); it++)
+        for (auto it = _values.begin(); it != _values.end(); ++it)
         {
             it->ClearWrap();
         }
@@ -1340,7 +1409,7 @@ float ValueCurve::FindMinPointLessThan(float point)
 {
     float res = 0.0;
 
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->x < point)
         {
@@ -1354,7 +1423,7 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
 {
     float res = 1.0;
 
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->x > point)
         {
@@ -1368,7 +1437,7 @@ float ValueCurve::FindMaxPointGreaterThan(float point)
 
 bool ValueCurve::NearCustomPoint(float x, float y)
 {
-    for (auto it = _values.begin(); it != _values.end(); it++)
+    for (auto it = _values.begin(); it != _values.end(); ++it)
     {
         if (it->IsNear(x, y))
         {

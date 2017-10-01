@@ -75,6 +75,7 @@ const long ValueCurveDialog::ID_STATICTEXT6 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER_Parameter4 = wxNewId();
 const long ValueCurveDialog::IDD_TEXTCTRL_Parameter4 = wxNewId();
 const long ValueCurveDialog::ID_CHECKBOX_WrapValues = wxNewId();
+const long ValueCurveDialog::ID_BUTTON5 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON3 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON4 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON1 = wxNewId();
@@ -176,6 +177,10 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     CheckBox_WrapValues->SetValue(false);
     FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Reverse = new wxButton(this, ID_BUTTON5, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    FlexGridSizer2->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
@@ -209,6 +214,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     Connect(ID_SLIDER_Parameter4,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated);
     Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_ReverseClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonExportClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
@@ -1104,6 +1110,24 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
+
+    if (type == "Flat" ||
+        type == "Saw Tooth" ||
+        type == "Ramp Up/Down Hold" ||
+        type == "Parabolic Down" ||
+        type == "Parabolic Up" || 
+        type == "Decaying Sine" ||
+        type == "Logarithmic Up" ||
+        type == "Logarithmic Down" ||
+        type == "Exponential Up" ||
+        type == "Exponential Down")
+    {
+        Button_Reverse->Enable(false);
+    }
+    else
+    {
+        Button_Reverse->Enable();
+    }
 }
 
 void ValueCurveDialog::OnChar(wxKeyEvent& event)
@@ -1382,5 +1406,20 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     SetParameter(4, _vc->GetParameter4());
     SetTextCtrlsFromSliders();
     _vcp->SetType(_vc->GetType());
+    ValidateWindow();
+}
+
+void ValueCurveDialog::OnButton_ReverseClick(wxCommandEvent& event)
+{
+    _vc->Reverse();
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
+    SetTextCtrlsFromSliders();
+    _vcp->Refresh();
+    _vcp->SetType(_vc->GetType());
+    _vcp->ClearUndo();
     ValidateWindow();
 }

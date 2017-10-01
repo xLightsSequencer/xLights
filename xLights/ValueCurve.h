@@ -143,6 +143,7 @@ public:
     static void GetRangeParm2(const std::string& type, float& low, float &high);
     static void GetRangeParm3(const std::string& type, float& low, float &high);
     static void GetRangeParm4(const std::string& type, float& low, float &high);
+    void Reverse();
 };
 
 #endif
