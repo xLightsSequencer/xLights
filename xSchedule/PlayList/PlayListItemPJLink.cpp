@@ -155,18 +155,29 @@ std::list<Projector*> PlayListItemPJLink::GetProjectors()
 
 bool PlayListItemPJLink::Login()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     Logout();
 
     _hash = "";
 
     ScheduleOptions* options = xScheduleFrame::GetScheduleManager()->GetOptions();
 
+    if (options->GetProjector(_projector) == nullptr)
+    {
+        logger_base.error("PJLink tried to log into non existent projector '%s'.", (const char *)_projector.c_str());
+        return false;
+    }
+
     std::string ip = options->GetProjector(_projector)->GetIP();
     std::string password = options->GetProjector(_projector)->GetPassword();
 
-    if (ip == "") return false;
+    if (ip == "")
+    {
+        logger_base.error("PJLink tried to log into projector '%s' with no IP address.", (const char *)_projector.c_str());
+        return false;
+    }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("PJLink logging into %s.", (const char*)ip.c_str());
 
     wxIPV4address address;
