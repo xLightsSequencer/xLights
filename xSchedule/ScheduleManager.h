@@ -100,6 +100,7 @@ class ScheduleManager : public wxEvtHandler
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
         int GetVolume() const;
+        void AllOff();
         int GetManualOutputToLights() const { return _manualOTL; }
         void ManualOutputToLightsClick();
         bool IsScheduleActive(Schedule* schedue);

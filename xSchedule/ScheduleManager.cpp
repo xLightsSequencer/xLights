@@ -387,6 +387,60 @@ void ScheduleManager::StopAll()
     {
         (*it)->GetPlayList()->Stop();
     }
+
+    AllOff();
+}
+
+void ScheduleManager::AllOff()
+{
+    _outputManager->StartFrame(0);
+    _outputManager->AllOff();
+
+    if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+    {
+        if (!_backgroundPlayList->IsRunning())
+        {
+            _backgroundPlayList->Start(true);
+        }
+        _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), true);
+
+        // apply any overlay data
+        for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+        {
+            (*it)->Set(_buffer, _outputManager->GetTotalChannels());
+        }
+    }
+
+    // apply any output processing
+    for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+    {
+        (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+    }
+
+    if (_brightness < 100)
+    {
+        if (_brightness != _lastBrightness)
+        {
+            _lastBrightness = _brightness;
+            CreateBrightnessArray();
+        }
+
+        wxByte* pb = _buffer;
+        for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+        {
+            *pb = _brightnessArray[*pb];
+            pb++;
+        }
+    }
+
+    auto vm = GetOptions()->GetVirtualMatrices();
+    for (auto it = vm->begin(); it != vm->end(); ++it)
+    {
+        (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+    }
+
+    _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
+    _outputManager->EndFrame();
 }
 
 int ScheduleManager::Frame(bool outputframe)
@@ -710,6 +764,12 @@ int ScheduleManager::CheckSchedule()
     {
         _activeSchedules.remove(*it);
         delete *it;
+    }
+
+    if (todelete.size() > 0 && _activeSchedules.size() == 0)
+    {
+        // Last active schedule removed ... lets blank the show
+        AllOff();
     }
 
     int framems = 50;
@@ -1762,6 +1822,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
             }
         }
     }
+    AllOff();
 }
 
 // 127.0.0.1/xScheduleStash?Command=Store&Key=<key> ... this must be posted with the data in the body of the request ... key must be filename legal
