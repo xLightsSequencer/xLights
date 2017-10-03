@@ -1042,6 +1042,22 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     BitmapButton_VCZoom->SetActive(false);
     BitmapButton_VCRotation->SetActive(false);
     BitmapButton_VCRotations->SetActive(false);
+    Slider_XPivot->SetValue(50);
+    TextCtrl_XPivot->SetValue("50");
+    Slider_YPivot->SetValue(50);
+    TextCtrl_YPivot->SetValue("50");
+    Slider_XRotation->SetValue(0);
+    TextCtrl_XRotation->SetValue("0");
+    Slider_YRotation->SetValue(0);
+    TextCtrl_YRotation->SetValue("0");
+    BitmapButton_XPivot->GetValue()->SetDefault();
+    BitmapButton_YPivot->GetValue()->SetDefault();
+    BitmapButton_XRotation->GetValue()->SetDefault();
+    BitmapButton_YRotation->GetValue()->SetDefault();
+    BitmapButton_XPivot->GetValue()->SetActive(false);
+    BitmapButton_YPivot->GetValue()->SetActive(false);
+    BitmapButton_XRotation->GetValue()->SetActive(false);
+    BitmapButton_YRotation->GetValue()->SetActive(false);
 
     if (preset == "None - Reset")
     {
@@ -1071,13 +1087,13 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     {
         BitmapButton_VCZoom->GetValue()->SetType("Ramp");
         BitmapButton_VCZoom->GetValue()->SetParameter1(0);
-        BitmapButton_VCZoom->GetValue()->SetParameter2(33);
+        BitmapButton_VCZoom->GetValue()->SetParameter2(10);
         BitmapButton_VCZoom->SetActive(true);
     }
     else if (preset == "Collapse")
     {
         BitmapButton_VCZoom->GetValue()->SetType("Ramp");
-        BitmapButton_VCZoom->GetValue()->SetParameter1(33);
+        BitmapButton_VCZoom->GetValue()->SetParameter1(10);
         BitmapButton_VCZoom->GetValue()->SetParameter2(0);
         BitmapButton_VCZoom->SetActive(true);
     }
@@ -1085,7 +1101,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
     {
         BitmapButton_VCZoom->GetValue()->SetType("Ramp");
         BitmapButton_VCZoom->GetValue()->SetParameter1(0);
-        BitmapButton_VCZoom->GetValue()->SetParameter2(33);
+        BitmapButton_VCZoom->GetValue()->SetParameter2(10);
         BitmapButton_VCZoom->SetActive(true);
         Slider_Rotations->SetValue(10);
         TextCtrl_Rotations->SetValue("1.0");
@@ -1118,7 +1134,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
         BitmapButton_VCRotation->SetActive(true);
         BitmapButton_VCRotations->GetValue()->SetType("Ramp");
         BitmapButton_VCRotations->GetValue()->SetParameter1(0);
-        BitmapButton_VCRotations->GetValue()->SetParameter2(50);
+        BitmapButton_VCRotations->GetValue()->SetParameter2(10);
         BitmapButton_VCRotations->SetActive(true);
         Slider_ZoomQuality->SetValue(2);
         TextCtrl_ZoomQuality->SetValue("2");
