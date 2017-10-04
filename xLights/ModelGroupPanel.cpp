@@ -534,7 +534,7 @@ wxDragResult MGTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
                 // scroll down
                 if (lastItem >= 0 && lastItem < _list->GetItemCount())
                 {
-                    _list->EnsureVisible(lastItem + 1);
+                    _list->EnsureVisible(lastItem);
                     lastTime = wxGetUTCTimeMillis();
                     scrollDelay = scrollDelay / 2;
                     if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
