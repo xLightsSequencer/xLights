@@ -94,7 +94,7 @@ void DumpConfig()
     int verMaj = -1;
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
-    logger_base.info("  OS: %s %d.%d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
+    logger_base.info("  OS: %s %d.%d", (const char *)DecodeOS(o).c_str(), verMaj, verMin);
     if (wxIsPlatform64Bit())
     {
         logger_base.info("      64 bit");

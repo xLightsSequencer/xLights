@@ -10,6 +10,12 @@
 #include "xLightsVersion.h"
 #include <log4cpp/Category.hh>
 
+#include "../include/xLights.xpm"
+#include "../include/xLights-16.xpm"
+#include "../include/xLights-32.xpm"
+#include "../include/xLights-64.xpm"
+#include "../include/xLights-128.xpm"
+
 //(*IdInit(SplashDialog)
 //*)
 
@@ -28,6 +34,15 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&SplashDialog::OnPaint);
 	//*)
+
+    wxIconBundle icons;
+    icons.AddIcon(wxIcon(xlights_16_xpm));
+    icons.AddIcon(wxIcon(xlights_32_xpm));
+    icons.AddIcon(wxIcon(xlights_64_xpm));
+    icons.AddIcon(wxIcon(xlights_128_xpm));
+    icons.AddIcon(wxIcon(xlights_xpm));
+
+    SetIcons(icons);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

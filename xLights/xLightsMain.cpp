@@ -1348,7 +1348,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
-
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
     icons.AddIcon(wxIcon(xlights_32_xpm));
@@ -1946,8 +1945,13 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
         for (size_t x = 0; x < info.size(); x++)
         {
-            if (info[x].IsOk() && savedPaneShown[info[x].name])
-                info[x].frame->Show();
+            if (info[x].IsOk() && 
+                savedPaneShown.find(info[x].name) != savedPaneShown.end() && 
+                savedPaneShown[info[x].name])
+            {
+                if (info[x].frame != nullptr)
+                    info[x].frame->Show();
+            }
         }
         savedPaneShown.clear();
     }

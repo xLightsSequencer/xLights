@@ -267,7 +267,8 @@ bool E131Output::Open()
         }
         else if (!_datagram->IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram ... network may not be connected: %s", (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+            logger_base.error("E131Output: Error opening datagram.");
+            logger_base.error("            Network may not be connected: %s", (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
             delete _datagram;
             _datagram = nullptr;
         }
