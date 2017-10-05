@@ -17,6 +17,19 @@ SDL __sdl;
 int __globalVolume = 100;
 int AudioData::__nextId = 0;
 
+#ifndef __WXOSX__
+#define DEFAULT_NUM_SAMPLES 1024
+#define DEFAULT_RATE 44100
+#else
+//OSX recommendation is to keep the number of samples buffered very small at 256
+//Also recommend sampling to 48000 as that's what the drivers do internally anyway
+#define DEFAULT_NUM_SAMPLES 256
+#define RESAMPLE_RATE 48000
+#define DEFAULT_RATE RESAMPLE_RATE
+#endif
+
+
+
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
@@ -73,13 +86,13 @@ SDL::SDL()
     }
 
     _state = SDLSTATE::SDLINITIALISED;
-    _initialisedRate = 44100;
+    _initialisedRate = DEFAULT_RATE;
 
     _wanted_spec.freq = _initialisedRate * _playbackrate;
     _wanted_spec.format = AUDIO_S16SYS;
     _wanted_spec.channels = 2;
     _wanted_spec.silence = 0;
-    _wanted_spec.samples = 1024;
+    _wanted_spec.samples = DEFAULT_NUM_SAMPLES;
     _wanted_spec.callback = fill_audio;
     _wanted_spec.userdata = &_audio_Lock;
 
@@ -181,7 +194,7 @@ void SDL::Reopen()
     _wanted_spec.format = AUDIO_S16SYS;
     _wanted_spec.channels = 2;
     _wanted_spec.silence = 0;
-    _wanted_spec.samples = 1024;
+    _wanted_spec.samples = DEFAULT_NUM_SAMPLES;
     _wanted_spec.callback = fill_audio;
     _wanted_spec.userdata = &_audio_Lock;
 
@@ -1527,7 +1540,11 @@ int AudioManager::OpenMediaFile()
 	}
 
 	_channels = codecContext->channels;
-	_rate = codecContext->sample_rate;
+#ifdef RESAMPLE_RATE
+    _rate = RESAMPLE_RATE;
+#else
+    _rate = codecContext->sample_rate;
+#endif
 	_bits = av_get_bytes_per_sample(codecContext->sample_fmt);
 
 	/* Get Track Size */
@@ -1642,8 +1659,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
-	struct SwrContext *au_convert_ctx = swr_alloc();
-	au_convert_ctx = swr_alloc_set_opts(au_convert_ctx, out_channel_layout, out_sample_fmt, out_sample_rate,
+	struct SwrContext *au_convert_ctx;
+	au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
 		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
 	swr_init(au_convert_ctx);
 
@@ -1669,10 +1686,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 				if (result >= 0 && gotFrame)
 				{
 					decodingPacket.size -= result;
-
+                    int outSamples;
 					try
 					{
-						swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
+						outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 					}
 					catch (...)
 					{
@@ -1682,19 +1699,19 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 						return;
 					}
 
-					if (read + frame->nb_samples > _trackSize)
+					if (read + outSamples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
-						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", frame->nb_samples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
+						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
 
                         // override the track size
-                        _trackSize = read + frame->nb_samples;
+                        _trackSize = read + outSamples;
 					}
 
 					// copy the PCM data into the PCM buffer for playing
-					memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
+					memcpy(_pcmdata + (read * out_channels * 2), out_buffer, outSamples * out_channels * 2);
 
-					for (int i = 0; i < frame->nb_samples; i++)
+					for (int i = 0; i < outSamples; i++)
 					{
 						int16_t s;
 						s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
@@ -1705,7 +1722,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 							_data[1][read + i] = ((float)s) / (float)0x8000;
 						}
 					}
-					read += frame->nb_samples;
+					read += outSamples;
                     SetLoadedData(read);
 				}
 				else
@@ -1731,9 +1748,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 			int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &readingPacket);
 			if (result >= 0 && gotFrame)
 			{
+                int outSamples;
 				try
 				{
-					swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
+					outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 				}
 				catch (...)
 				{
@@ -1744,9 +1762,9 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 				}
 
 				// copy the PCM data into the PCM buffer for playing
-				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, frame->nb_samples * out_channels * 2);
+				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, outSamples * out_channels * 2);
 
-				for (int i = 0; i < frame->nb_samples; i++)
+				for (int i = 0; i < outSamples; i++)
 				{
 					int16_t s;
 					s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
@@ -1757,14 +1775,17 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 						_data[1][read + i] = ((float)s) / (float)0x8000;
 					}
 				}
-				read += frame->nb_samples;
+				read += outSamples;
                 SetLoadedData(read);
             }
 		}
 	}
 
+#ifdef RESAMPLE_RATE
+    _trackSize = _loadedData;
+#endif
     wxASSERT(_trackSize == _loadedData);
-
+    
 	// Clean up!
 	swr_free(&au_convert_ctx);
 	av_free(out_buffer);
@@ -1851,6 +1872,14 @@ void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContex
 	av_free(frame);
 
 	_lengthMS = (long)(((Uint64)_trackSize * 1000) / ((codecContext->time_base.den)));
+#ifdef RESAMPLE_RATE
+    //if we resample, we need to estimate the new size
+    float f = _trackSize;
+    f *= RESAMPLE_RATE;
+    f /= codecContext->sample_rate;
+    _trackSize = f;
+    _extra += 2048;  //add some extra space just in case the estimate is not accurate
+#endif
 
     logger_base.info("    Track Size: %ld, Time Base Den: %d => Length %ldms", _trackSize, codecContext->time_base.den, _lengthMS);
 }

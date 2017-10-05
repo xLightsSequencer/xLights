@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)
+   -- bug (dkulp)   Fix wxAssert warnings when quitting from menu on OSX and using debug build
+
    -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view
    -- enh (keith)   Add display of actual time in value curve and color curve dialogs.
