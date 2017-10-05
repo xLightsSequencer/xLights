@@ -93,7 +93,7 @@ void IPEntryDialog::ValidateWindow()
 
         auto d = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
 
-        if (d != nullptr && d->IsOk())
+        if (d != nullptr && d->IsOk() && d->Error() == wxSOCKET_NOERROR)
         {
             Button_Ok->Enable();
         }

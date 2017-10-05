@@ -76,11 +76,16 @@ void DDPOutput::SendSync()
         {
             logger_base.error("Error initialising DDP sync datagram.");
             return;
-        }
-
-        if (!syncdatagram->IsOk())
+        } else if (!syncdatagram->IsOk())
         {
-            logger_base.error("Error initialising DDP sync datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE");
+            delete syncdatagram;
+            syncdatagram = nullptr;
+            return;
+        }
+        else if (syncdatagram->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating DDP sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -152,11 +157,17 @@ bool DDPOutput::Open()
         logger_base.error("Error initialising DDP datagram for %s.", (const char *)_ip.c_str());
         _ok = false;
         return _ok;
-    }
-
-    if (!_datagram->IsOk())
+    } else if (!_datagram->IsOk())
     {
-        logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+        logger_base.error("Error initialising DDP datagram for %s. OK: FALSE", (const char *)_ip.c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+        return _ok;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR)
+    {
+        logger_base.error("Error creating DDP datagram => %d : %s.", _datagram->LastError(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

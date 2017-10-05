@@ -3993,13 +3993,14 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
-    if (testSocket == nullptr || !testSocket->IsOk())
+    if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error() != wxSOCKET_NOERROR)
     {
         wxString msg("    ERR: Cannot create socket on IP address '");
         msg += addr.IPAddress();
         msg += "'. Is the network connected?    ";
-        if (testSocket != nullptr) {
-            msg += IPOutput::DecodeError(testSocket->LastError());
+        msg = msg + " Ok : " + (testSocket->IsOk() ? "TRUE" : "FALSE");
+        if (testSocket != nullptr && testSocket->IsOk()) {
+            msg += wxString::Format(" : Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError()); 
         }
         LogAndWrite(f, msg.ToStdString());
         errcount++;

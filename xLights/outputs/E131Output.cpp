@@ -147,7 +147,13 @@ void E131Output::SendSync(int syncUniverse)
             }
             else if (!syncdatagram->IsOk())
             {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
+                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE");
+                delete syncdatagram;
+                syncdatagram = nullptr;
+            }
+            else if (syncdatagram->Error() != wxSOCKET_NOERROR)
+            {
+                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -267,8 +273,13 @@ bool E131Output::Open()
         }
         else if (!_datagram->IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram.");
-            logger_base.error("            Network may not be connected: %s", (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
+            delete _datagram;
+            _datagram = nullptr;
+        }
+        else if (_datagram->Error() != wxSOCKET_NOERROR)
+        {
+            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
             delete _datagram;
             _datagram = nullptr;
         }

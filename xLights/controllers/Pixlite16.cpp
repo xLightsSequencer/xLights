@@ -25,17 +25,16 @@ Pixlite16::Pixlite16(const std::string& ip)
     {
         logger_base.error("Error initialising Pixlite discovery datagram.");
         return;
-    }
-
-    if (!discovery->IsOk())
+    } else if (!discovery->IsOk())
     {
-        logger_base.error("Error initialising Pixlite discovery datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(discovery->LastError()).c_str());
+        logger_base.error("Error initialising Pixlite discovery datagram ... is network connected? OK : FALSE");
+        delete discovery;
         return;
-    }
-
-    if (discovery->Error())
+    } 
+    else if (discovery->Error())
     {
-        logger_base.error("Error creating socket to broadcast from => %d.", discovery->LastError());
+        logger_base.error("Error creating socket to broadcast from => %d : %s.", discovery->LastError(), (const char *)IPOutput::DecodeError(discovery->LastError()).c_str());
+        delete discovery;
         return;
     }
 
@@ -62,7 +61,7 @@ Pixlite16::Pixlite16(const std::string& ip)
 
     if (discovery->Error())
     {
-        logger_base.debug("Pixlite error broadcasting to %s => %d.", (const char *)broadcast.c_str(), discovery->LastError());
+        logger_base.debug("Pixlite error broadcasting to %s => %d : %s.", (const char *)broadcast.c_str(), discovery->LastError(), (const char *)IPOutput::DecodeError(discovery->LastError()).c_str());
         return;
     }
 
@@ -104,7 +103,7 @@ Pixlite16::Pixlite16(const std::string& ip)
         }
         else if (discovery->Error())
         {
-            logger_base.error("Error reading broadcast response => %d.", discovery->LastError());
+            logger_base.error("Error reading broadcast response => %d : %s.", discovery->LastError(), (const char *)IPOutput::DecodeError(discovery->LastError()).c_str());
         }
     }
 
@@ -148,11 +147,16 @@ bool Pixlite16::SendConfig(bool logresult)
     {
         logger_base.error("Error initialising Pixlite config datagram.");
         return false;
-    }
-
-    if (!config->IsOk())
+    } else if (!config->IsOk())
     {
-        logger_base.error("Error initialising Pixlite config datagram ... is network connected: %s", (const char *)IPOutput::DecodeError(config->LastError()).c_str());
+        logger_base.error("Error initialising Pixlite config datagram ... is network connected? OK : FALSE");
+        delete config;
+        return false;
+    }
+    else if (config->Error())
+    {
+        logger_base.error("Error creating Pixlite config datagram => %d : %s.", config->LastError(), (const char *)IPOutput::DecodeError(config->LastError()).c_str());
+        delete config;
         return false;
     }
 
