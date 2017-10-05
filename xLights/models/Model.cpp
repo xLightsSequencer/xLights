@@ -988,7 +988,7 @@ bool Model::IsValidStartChannelString() const
     {
         if (parts.size() == 2)
         {
-            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), "");
+            Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[0].substr(1)), "");
             if (o != nullptr &&
                 (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
             {
