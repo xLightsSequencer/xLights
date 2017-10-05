@@ -1790,6 +1790,16 @@ xLightsFrame::~xLightsFrame()
     m_mgr->UnInit();
     MainAuiManager->UnInit();
 
+    for (int x = 0; x < Notebook1->GetPageCount(); x++) {
+        wxWindow *w = Notebook1->GetPage(x);
+        if (w->GetEventHandler() == m_mgr) {
+            w->RemoveEventHandler(m_mgr);
+        }
+    }
+    Notebook1->DeleteAllPages();
+    delete m_mgr;
+    delete MainAuiManager;
+    
     if( CurrentSeqXmlFile )
     {
         delete CurrentSeqXmlFile;
@@ -2176,13 +2186,13 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
-
+    
     // destroy preview windows
     for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         delete preview;
     }
-
+    
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
