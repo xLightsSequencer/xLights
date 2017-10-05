@@ -2576,7 +2576,7 @@ std::string ScheduleManager::GetOurIP() const
 
     ip = addr.IPAddress().ToStdString();
 
-    if (testSocket == nullptr || !testSocket->IsOk())
+    if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error())
     {
         ip = "UNKNOWN IP";
     }
@@ -2633,13 +2633,13 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
 
-    if (testSocket == nullptr || !testSocket->IsOk())
+    if (testSocket == nullptr || !testSocket->IsOk() || testSocket->Error())
     {
         wxString msg("    ERR: Cannot create socket on IP address '");
         msg += addr.IPAddress();
         msg += "'. Is the network connected?    ";
-        if (testSocket != nullptr) {
-            msg += IPOutput::DecodeError(testSocket->LastError());
+        if (testSocket != nullptr && testSocket->IsOk()) {
+            msg = msg + wxString::Format("Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError());
         }
         LogAndWrite(f, msg.ToStdString());
         errcount++;
@@ -2888,6 +2888,49 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                 wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with more than one FSEQ item.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // FSEQ files with wrong number of channels
+    LogAndWrite(f, "");
+    long totalChannels = _outputManager->GetTotalChannels();
+    std::string title = wxString::Format("FSEQs without %ld channels", totalChannels).ToStdString();
+    LogAndWrite(f, title);
+
+    for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
+    {
+        auto steps = (*n)->GetSteps();
+        for (auto s = steps.begin(); s != steps.end(); ++s)
+        {
+            int fseqcount = 0;
+
+            auto items = (*s)->GetItems();
+
+            for (auto i = items.begin(); i != items.end(); ++i)
+            {
+                if (wxString((*i)->GetTitle()).Contains("FSEQ"))
+                {
+                    long ch = (*i)->GetFSEQChannels();
+                    if (ch != totalChannels)
+                    {
+                        wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.", 
+                                    (const char*)(*n)->GetNameNoTime().c_str(), 
+                                    (const char*)(*s)->GetNameNoTime().c_str(),
+                                    (const char*)(*i)->GetNameNoTime().c_str(),
+                                    ch,
+                                    totalChannels);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
             }
         }
     }
@@ -3734,6 +3777,18 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     {
         logger_base.error("Error opening datagram for FPP Sync as master.");
     }
+    else if (!_fppSyncMaster->IsOk())
+    {
+        logger_base.error("Error opening datagram for FPP Sync as master. OK : FALSE");
+        delete _fppSyncMaster;
+        _fppSyncMaster = nullptr;
+    }
+    else if (_fppSyncMaster->Error())
+    {
+        logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppSyncMaster->LastError(), (const char*)IPOutput::DecodeError(_fppSyncMaster->LastError()).c_str());
+        delete _fppSyncMaster;
+        _fppSyncMaster = nullptr;
+    }
     else
     {
         logger_base.info("FPP Sync as master datagram opened successfully.");
@@ -3789,6 +3844,18 @@ void ScheduleManager::OpenFPPSyncListenSocket()
     if (_fppSyncSlave == nullptr)
     {
         logger_base.error("Error opening datagram for FPP Sync as remote.");
+    }
+    else if (!_fppSyncSlave->IsOk())
+    {
+        logger_base.error("Error opening datagram for FPP Sync as remote. OK : FALSE");
+        delete _fppSyncSlave;
+        _fppSyncSlave = nullptr;
+    }
+    else if (_fppSyncSlave->Error())
+    {
+        logger_base.error("Error opening datagram for FPP Sync as remote. %d : %s", _fppSyncSlave->LastError(), (const char*)IPOutput::DecodeError(_fppSyncSlave->LastError()).c_str());
+        delete _fppSyncSlave;
+        _fppSyncSlave = nullptr;
     }
     else
     {

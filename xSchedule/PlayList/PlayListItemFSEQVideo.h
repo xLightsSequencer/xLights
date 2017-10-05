@@ -87,6 +87,7 @@ public:
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
     virtual std::list<std::string> GetMissingFiles() const override;
+    virtual long GetFSEQChannels() const override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

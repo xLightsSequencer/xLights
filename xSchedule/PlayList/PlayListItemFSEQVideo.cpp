@@ -551,3 +551,27 @@ bool PlayListItemFSEQVideo::SetPosition(size_t frame, size_t ms)
 
     return false;
 }
+
+long PlayListItemFSEQVideo::GetFSEQChannels() const
+{
+    if (_fseqFile != nullptr)
+    {
+        return _fseqFile->GetChannels();
+    }
+    else
+    {
+        if (wxFile::Exists(_fseqFileName))
+        {
+            auto fseqFile = new FSEQFile();
+            fseqFile->Load(_fseqFileName);
+            long ch = fseqFile->GetChannels();
+            fseqFile->Close();
+            delete fseqFile;
+            return ch;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}

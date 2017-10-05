@@ -263,6 +263,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
 
     progress.Update(0, "Scanning models");
+    logger_base.info("Scanning models.");
 
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
     {
@@ -330,6 +331,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     models.sort(compare_startchannel);
 
     progress.Update(10, "Retrieving string configuration from Falcon.");
+    logger_base.info("Retrieving string configuration from Falcon.");
 
     // get the current config before I start
     std::string strings = GetURL("/strings.xml");
@@ -356,6 +358,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     progress.Update(40, "Processing current configuration data.");
+    logger_base.info("Processing current configuration data.");
 
     int currentStrings = CountStrings(stringsDoc);
     int mainPixels = GetMaxPixels();
@@ -404,6 +407,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
     progress.Update(50, "Configuring string ports.");
+    logger_base.info("Configuring string ports.");
 
     bool portdone[100];
     memset(&portdone, 0x00, sizeof(portdone)); // all false
@@ -464,11 +468,20 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
 
-                                FindPort(stringData, i + j - 1)->protocol = DecodeStringPortProtocol(*protocol);
-                                FindPort(stringData, i + j - 1)->universe = output->GetUniverse();
-                                FindPort(stringData, i + j - 1)->startChannel = startChannel + 1;
-                                FindPort(stringData, i + j - 1)->pixels = channelsperstring / 3;
-                                FindPort(stringData, i + j - 1)->description = SafeDescription(first->GetName());
+                                if (output == nullptr)
+                                {
+                                    logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring);
+                                    wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring));
+                                    success = false;
+                                }
+                                else
+                                {
+                                    FindPort(stringData, i + j - 1)->protocol = DecodeStringPortProtocol(*protocol);
+                                    FindPort(stringData, i + j - 1)->universe = output->GetUniverse();
+                                    FindPort(stringData, i + j - 1)->startChannel = startChannel + 1;
+                                    FindPort(stringData, i + j - 1)->pixels = channelsperstring / 3;
+                                    FindPort(stringData, i + j - 1)->description = SafeDescription(first->GetName());
+                                }
                             }
                         }
                     }
@@ -485,11 +498,20 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             portdone[i] = true;
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            FindPort(stringData, i - 1)->protocol = DecodeStringPortProtocol(*protocol);
-                            FindPort(stringData, i - 1)->universe = output->GetUniverse();
-                            FindPort(stringData, i - 1)->startChannel = startChannel;
-                            FindPort(stringData, i - 1)->pixels = (portend - portstart + 1) / 3;
-                            FindPort(stringData, i - 1)->description = SafeDescription(first->GetName());
+                            if (output == nullptr)
+                            {
+                                logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart);
+                                wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart));
+                                success = false;
+                            }
+                            else
+                            {
+                                FindPort(stringData, i - 1)->protocol = DecodeStringPortProtocol(*protocol);
+                                FindPort(stringData, i - 1)->universe = output->GetUniverse();
+                                FindPort(stringData, i - 1)->startChannel = startChannel;
+                                FindPort(stringData, i - 1)->pixels = (portend - portstart + 1) / 3;
+                                FindPort(stringData, i - 1)->description = SafeDescription(first->GetName());
+                            }
                         }
                     }
                 }
@@ -513,6 +535,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     progress.Update(60, "Uploading string ports.");
+    logger_base.info("Uploading string ports.");
 
     int maxMain = 0;
     int maxDaughter1 = 0;
@@ -628,6 +651,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     progress.Update(100, "Done.");
+    logger_base.info("Falcon upload done.");
 
     return success;
 }
@@ -898,6 +922,7 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol)
     if (protocol == "dmx") return 0;
     if (protocol == "pixelnet") return 1;
     if (protocol == "renard") return 2;
+
     return -1;
 }
 
