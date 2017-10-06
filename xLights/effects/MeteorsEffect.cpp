@@ -575,7 +575,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
         if (rand() % 200 < Count) {
             if (buffer.BufferHt == 1) {
                 angle=double(rand() % 2) * M_PI;
-            } else if (buffer.BufferWi==1) {
+            } else if (buffer.BufferWi == 1) {
                 angle=double(rand() % 2) * M_PI - (M_PI/2.0);
             } else {
                 angle=rand01()*2.0*M_PI;
@@ -721,7 +721,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer &buffer, int ColorScheme, 
         if (rand() % 200 < Count) {
             if (buffer.BufferHt == 1) {
                 angle=double(rand() % 2) * M_PI;
-            } else if (buffer.BufferWi==1) {
+            } else if (buffer.BufferWi == 1) {
                 angle=double(rand() % 2) * M_PI - (M_PI/2.0);
             } else {
                 angle=rand01()*2.0*M_PI;

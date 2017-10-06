@@ -1851,6 +1851,8 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
+    wxASSERT(layers[layer]->buffer.BufferWi != 0);
+    wxASSERT(layers[layer]->buffer.BufferHt != 0);
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)

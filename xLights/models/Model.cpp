@@ -1869,7 +1869,6 @@ void Model::InitRenderBufferNodes(const std::string &type,
     ApplyTransform(transform, newNodes, bufferWi, bufferHi);
 }
 
-
 std::string Model::GetNextName() {
     if (nodeNames.size() > Nodes.size()) {
         return nodeNames[Nodes.size()];

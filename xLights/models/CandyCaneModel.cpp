@@ -121,6 +121,7 @@ void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &t
         Model::GetBufferSize(type, transform, BufferWi, BufferHi);
     }
 }
+
 void CandyCaneModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
                                         std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
