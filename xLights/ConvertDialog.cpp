@@ -1045,6 +1045,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     wxString NodeName, NodeValue, Data, ChannelName;
     wxArrayString context;
     wxArrayInt map;
+    bool showChannelMap = showChannelMapping();
 
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
@@ -1216,6 +1217,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
 
     event = parser->getNext();
     done = 0;
+    int mapCount = 0;
     int nodecnt = 0;
     while (!done)
     {
@@ -1317,11 +1319,18 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                             ChannelNames[channels] = Left(ChannelName, idx);
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
-                        wxString o2 = _outputManager->GetChannelName(channels);
-                        AppendConvertStatus(string_format("Map %s -> %s (%s)\n",
-                            ChannelNames[channels].c_str(),
-                            origName.c_str(),
-                            o2.c_str()), false);
+                        if (showChannelMap) {
+                            wxString o2 = _outputManager->GetChannelName(channels);
+                            AppendConvertStatus(string_format("Map %s -> %s (%s)\n",
+                                                              ChannelNames[channels].c_str(),
+                                                              origName.c_str(),
+                                                              o2.c_str()), false);
+                        } else {
+                            mapCount++;
+                            if (mapCount % 1000 == 0) {
+                                AppendConvertStatus(string_format("Mapped %d channels", mapCount), false);
+                            }
+                        }
                         for (long newper = 0; newper < SeqData.NumFrames(); newper++)
                         {
                             long intensity;
