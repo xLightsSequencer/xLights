@@ -33,8 +33,8 @@ class HousePreviewPanel: public wxPanel
         ModelPreview* GetModelPreview() const { return _modelPreview; }
         void EnablePlayControls(const std::string& control, bool enable);
         void SetToolbar(bool toolbar) { _showToolbar = toolbar; }
-        void SetDurationFrames(long frames);
-        void SetPositionFrames(long frames);
+        void SetDurationFrames(int frames);
+        void SetPositionFrames(int frames);
 
 		//(*Declarations(HousePreviewPanel)
 		wxFlexGridSizer* ButtonSizer;

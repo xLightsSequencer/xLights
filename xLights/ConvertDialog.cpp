@@ -1042,8 +1042,8 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     long tmp;
     long universe = 0;
     long channelsInUniverse = 0;
-    wxString NodeName, NodeValue, Data, ChannelName;
-    wxArrayString context;
+    std::string NodeName;
+    std::vector<std::string> context;
     wxArrayInt map;
     bool showChannelMap = showChannelMapping();
 
@@ -1081,7 +1081,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
+                NodeName = stagEvent->getName();
                 context.push_back(NodeName);
                 cnt++;
                 break;
@@ -1092,19 +1092,18 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    NodeValue = FromAscii(stagEvent->getText());
 
-                    if (NodeName == wxString("MilliSecPerTimeUnit"))
+                    if (NodeName == "MilliSecPerTimeUnit")
                     {
-                        msPerCell = atol(NodeValue.c_str());
+                        msPerCell = atol(stagEvent->getText());
                     }
-                    if (NodeName == wxString("NumberOfTimeCells"))
+                    if (NodeName == "NumberOfTimeCells")
                     {
-                        timeCells = atol(NodeValue.c_str());
+                        timeCells = atol(stagEvent->getText());
                     }
-                    if (NodeName == wxString("AudioSourcePcmFile"))
+                    if (NodeName == "AudioSourcePcmFile")
                     {
-                        mediaFilename = NodeValue;
+                        mediaFilename = FromAscii(stagEvent->getText());;
                         if (Right(mediaFilename, 4) == ".PCM")
                         {
                             //nothing can deal with PCM files, we'll assume this came from an mp3
@@ -1112,14 +1111,14 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                             mediaFilename += ".mp3";
                         }
                     }
-                    if (NodeName == wxString("ChannelsInUniverse"))
+                    if (NodeName == "ChannelsInUniverse")
                     {
-                        channelsInUniverse = atol(NodeValue.c_str());
+                        channelsInUniverse = atol(stagEvent->getText());
                         channels += channelsInUniverse;
                     }
-                    if (NodeName == wxString("UniverseNumber"))
+                    if (NodeName == "UniverseNumber")
                     {
-                        tmp = atol(NodeValue.c_str());
+                        tmp = atol(stagEvent->getText());
                         universe = tmp;
                     }
                 }
@@ -1130,7 +1129,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    if (NodeName == wxString("Universe"))
+                    if (NodeName == "Universe")
                     {
                         map.push_back(universe);
                         map.push_back(channelsInUniverse);
@@ -1148,7 +1147,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                         }
                     }
 
-                    RemoveAt(context, cnt - 1);
+                    context.pop_back();
                 }
                 cnt = context.size();
                 break;
@@ -1192,7 +1191,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
 
     AppendConvertStatus(string_format(wxString("TimeCells = %d\n"), timeCells), false);
     AppendConvertStatus(string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
-    AppendConvertStatus(string_format(wxString("Channels = %ld\n"), channels), false);
+    AppendConvertStatus(string_format(wxString("Channels = %ld\n"), channels), true);
     if (channels == 0)
     {
         return;
@@ -1219,6 +1218,8 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
     done = 0;
     int mapCount = 0;
     int nodecnt = 0;
+    wxString Data, ChannelName;
+
     while (!done)
     {
         if (!event)
@@ -1243,7 +1244,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
+                NodeName = stagEvent->getName();
                 context.push_back(NodeName);
                 cnt++;
                 break;
@@ -1254,21 +1255,21 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    NodeValue = FromAscii(stagEvent->getText());
 
-                    if (NodeName == wxString("ChanInfo"))
+                    if (NodeName == "ChanInfo")
                     {
                         //channel name and type
-                        ChannelName = NodeValue;
+                        ChannelName = FromAscii(stagEvent->getText());
                     }
-                    if (NodeName == wxString("Block"))
+                    if (NodeName == "Block")
                     {
+                        wxString NodeValue = FromAscii(stagEvent->getText());
                         int idx = NodeValue.find("-");
                         Data.append(NodeValue.substr(idx + 1));
                     }
-                    if (NodeName == wxString("UniverseNumber"))
+                    if (NodeName == "UniverseNumber")
                     {
-                        tmp = atol(NodeValue.c_str());
+                        tmp = atol(stagEvent->getText());
                         universe = tmp;
                         for (tmp = 0; tmp < map.size(); tmp += 2)
                         {
@@ -1292,24 +1293,24 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    if (NodeName == wxString("ChannelData"))
+                    if (NodeName == "ChannelData")
                     {
 
                         //finished reading this channel, map the data
                         int idx = ChannelName.find(", ");
-                        wxString type = ChannelName.substr(idx + 2);
+                        std::string type = ChannelName.substr(idx + 2).ToStdString();
                         wxString origName = ChannelNames[channels];
-                        if (type == wxString("RGB-R"))
+                        if (type == "RGB-R")
                         {
                             ChannelNames[channels] = Left(ChannelName, idx) + wxString("-R");
                             ChannelColors[channels] = 0x000000FF;
                         }
-                        else if (type == wxString("RGB-G"))
+                        else if (type == "RGB-G")
                         {
                             ChannelNames[channels] = Left(ChannelName, idx) + wxString("-G");
                             ChannelColors[channels] = 0x0000FF00;
                         }
-                        else if (type == wxString("RGB-B"))
+                        else if (type == "RGB-B")
                         {
                             ChannelNames[channels] = Left(ChannelName, idx) + wxString("-B");
                             ChannelColors[channels] = 0x00FF0000;
@@ -1328,20 +1329,22 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                         } else {
                             mapCount++;
                             if (mapCount % 1000 == 0) {
-                                AppendConvertStatus(string_format("Mapped %d channels", mapCount), false);
+                                AppendConvertStatus(string_format("Mapped %d channels\n", mapCount), true);
                             }
                         }
+                        const char *dta = Data.c_str();
                         for (long newper = 0; newper < SeqData.NumFrames(); newper++)
                         {
                             long intensity;
-                            intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
+                            char tc[3] = { dta[newper*3], dta[newper*3 + 1], 0 };
+                            intensity = strtoul(tc, NULL, 16);
                             SeqData[newper][channels] = intensity;
                         }
                         Data.clear();
                         channels++;
                     }
 
-                    RemoveAt(context, cnt - 1);
+                    context.pop_back();
                 }
                 cnt = context.size();
                 break;

@@ -229,12 +229,12 @@ void HousePreviewPanel::EnablePlayControls(const std::string& control, bool enab
     }
 }
 
-void HousePreviewPanel::SetDurationFrames(long frames)
+void HousePreviewPanel::SetDurationFrames(int frames)
 {
     SliderPosition->SetMax(frames);
 }
 
-void HousePreviewPanel::SetPositionFrames(long frames)
+void HousePreviewPanel::SetPositionFrames(int frames)
 {
     SliderPosition->SetValue(frames);
     StaticText_Time->SetLabel(FORMATTIME(frames * _xLights->CurrentSeqXmlFile->GetFrameMS()));
