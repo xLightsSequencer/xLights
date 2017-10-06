@@ -376,8 +376,8 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
             GridNetwork->SetItem(newidx, 2, (*e)->GetCommPort());
             GridNetwork->SetItem(newidx, 3, (*e)->GetBaudRateString());
         }
-        GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%i"), (*e)->GetChannels()));
-        GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %i to %i"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));
+        GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%ld"), (*e)->GetChannels()));
+        GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %ld to %ld"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));
         if ((*e)->IsEnabled())
         {
             GridNetwork->SetItem(newidx, 6, "Yes");
@@ -431,7 +431,7 @@ void xLightsFrame::UpdateChannelNames()
         Model *model = it->second;
         NodeCount=model->GetNodeCount();
         ChanPerNode = model->GetChanCountPerNode();
-        FormatSpec = "Ch %d: "+model->name+" #%d";
+        FormatSpec = "Ch %ld: "+model->name+" #%d";
         for(n=0; n < NodeCount; n++)
         {
             ChannelNum=model->NodeStartChannel(n);

@@ -267,7 +267,7 @@ void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
     }
     else {
         msgBuffer.append(msg);
-        if (msgBuffer.size() > 10000) {
+        if (msgBuffer.size() > 15000) {
             TextCtrlConversionStatus->AppendText(msgBuffer);
             msgBuffer.Clear();
         }
@@ -405,7 +405,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", SeqData.FrameTime()));
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ud", SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", TotalTime));
@@ -498,7 +498,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     f.Write("\t<channels>\n");
     for (ch = 0; ch < SeqData.NumChannels(); ch++)
     {
-        SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
+        SetStatusText(wxString("Status: ") + string_format(" Channel %d ", ch));
 
         // KW - not sure why this was this way but now test tab is removed I need to remove it
         //		if (ch < CheckListBoxTestChannels->GetCount())
@@ -544,7 +544,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
             // default to white
             ChannelColor = 0x00ffffff;
         }
-        f.Write("\t\t<channel name=\"" + ChannelName + string_format("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n", ChannelColor, centiseconds, index));
+        f.Write("\t\t<channel name=\"" + ChannelName + string_format("\" color=\"%d\" centiseconds=\"%d\" savedIndex=\"%d\">\n", ChannelColor, centiseconds, index));
         // write intensity values for this channel
         LastIntensity = 0;
         for (p = 0, csec = 0; p < SeqData.NumFrames(); p++, csec += interval)
@@ -596,7 +596,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     }
     f.Write("\t</channels>\n");
     f.Write("\t<tracks>\n");
-    f.Write(string_format("\t\t<track totalCentiseconds=\"%ld\">\n", centiseconds));
+    f.Write(string_format("\t\t<track totalCentiseconds=\"%d\">\n", centiseconds));
     f.Write("\t\t\t<channels>\n");
     for (ii = 0; ii < savedIndexCount; ii++)
     {
@@ -808,7 +808,7 @@ void ConvertDialog::ReadGlediatorFile(const wxString& FileName)
     delete[] frameBuffer;
 
 #ifndef NDEBUG
-    AppendConvertStatus(string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"), SeqData.NumFrames(), SeqData.NumChannels()));
+    AppendConvertStatus(string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d\n"), SeqData.NumFrames(), SeqData.NumChannels()));
 #endif
 }
 
@@ -996,7 +996,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
         numChannels = 0;
     }
     AppendConvertStatus(string_format(wxString("Max Intensity=%ld\n"), MaxIntensity), false);
-    AppendConvertStatus(string_format(wxString("# of Channels=%ld\n"), numChannels), false);
+    AppendConvertStatus(string_format(wxString("# of Channels=%d\n"), numChannels), false);
     AppendConvertStatus(string_format(wxString("Vix Event Period=%ld\n"), VixEventPeriod), false);
     AppendConvertStatus(string_format(wxString("Vix data len=%ld\n"), VixDataLen), false);
     if (numChannels == 0)
@@ -1035,8 +1035,8 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
 
 void ConvertDialog::ReadHLSFile(const wxString& filename)
 {
-    long timeCells = 0;
-    long msPerCell = 50;
+    int timeCells = 0;
+    int msPerCell = 50;
     long channels = 0;
     long cnt = 0;
     long tmp;
@@ -1173,15 +1173,15 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
         int i = map[tmp + 1];
         int orig = _outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
-            AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            AppendConvertStatus(string_format(wxString("Found Universe: %d   Channels in Seq: %d   Configured: %d\n"), map[tmp], i, orig), false);
             i = orig;
         }
         else if (i > orig) {
-            AppendConvertStatus(string_format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
-            AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            AppendConvertStatus(string_format(wxString("WARNING Universe: %d contains more channels than you have configured.\n"), map[tmp]), false);
+            AppendConvertStatus(string_format(wxString("Found Universe: %d   Channels in Seq: %d   Configured: %d\n"), map[tmp], i, orig), false);
         }
         else {
-            AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
+            AppendConvertStatus(string_format(wxString("Found Universe: %d   Channels in Seq: %d    Configured: %d\n"), map[tmp], i, orig), false);
         }
 
 
@@ -1191,7 +1191,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
 
     AppendConvertStatus(string_format(wxString("TimeCells = %d\n"), timeCells), false);
     AppendConvertStatus(string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
-    AppendConvertStatus(string_format(wxString("Channels = %d\n"), channels), false);
+    AppendConvertStatus(string_format(wxString("Channels = %ld\n"), channels), false);
     if (channels == 0)
     {
         return;

@@ -229,15 +229,16 @@ long OutputManager::GetTotalChannels() const
 
 std::string OutputManager::GetChannelName(long channel)
 {
-    Output* o = GetOutput(channel);
+    long startChannel = 0;
+    Output* o = GetOutput(channel, startChannel);
 
     if (o == nullptr)
     {
-        return wxString::Format(wxT("Ch %i: invalid"), channel).ToStdString();
+        return wxString::Format(wxT("Ch %ld: invalid"), channel).ToStdString();
     }
     else
     {
-        return wxString::Format(wxT("Ch %i: Net %i #%i"), channel + 1, o->GetOutputNumber(), (long)(channel - o->GetStartChannel())).ToStdString();
+        return wxString::Format(wxT("Ch %ld: Net %i #%ld"), channel + 1, o->GetOutputNumber(), (long)(channel - o->GetStartChannel())).ToStdString();
     }
 }
 

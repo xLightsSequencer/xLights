@@ -221,7 +221,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     if (idx < nodeNames.size() && nodeNames[idx] != "") {
                         Nodes.back()->SetName(nodeNames[idx]);
                     } else {
-                        Nodes.back()->SetName(wxString::Format("Node %d", (idx + 1)).ToStdString());
+                        Nodes.back()->SetName(wxString::Format("Node %ld", (idx + 1)).ToStdString());
                     }
 
                     Nodes.back()->AddBufCoord(col,height - row - 1);
