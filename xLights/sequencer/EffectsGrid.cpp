@@ -3894,7 +3894,6 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                     int first_row = mSequenceElements->GetFirstVisibleModelRow();
                     mDropRow = mRangeStartRow - first_row;
                 }
-                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                 if (effectIndex >= 0) {
                     int end_time = mDropEndTimeMS;
@@ -3905,7 +3904,8 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                         end_time = wxAtoi(efdata[4]);
                         end_time += drop_time_offset;
                     }
-                    if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
+                    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+                    if (el != nullptr && el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
                     {
                         Effect* ef = el->AddEffect(0,
                                       efdata[0].ToStdString(),
@@ -3955,7 +3955,6 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
             }
             else
             {
-                int start_time, end_time;
                 int row1 = mRangeStartRow;
                 int row2 = mRangeEndRow;
                 if( row1 > row2 ) {
@@ -3985,7 +3984,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                                 for(int i = timingIndex1; i <= timingIndex2; i++)
                                 {
                                     Effect* eff = tel1->GetEffect(i);
-                                    if( effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS()) )
+                                    if( effectLayer != nullptr && effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS()) )
                                     {
                                         Effect* ef = effectLayer->AddEffect(0,
                                                                   efdata[0].ToStdString(),
@@ -4009,10 +4008,10 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
                     else
                     {
                         mSequenceElements->get_undo_mgr().CreateUndoStep();
-                        start_time = tel->GetEffect(col1)->GetStartTimeMS();
-                        end_time = tel->GetEffect(col2)->GetEndTimeMS();
+                        int start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                        int end_time = tel->GetEffect(col2)->GetEndTimeMS();
                         EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                        if( el->GetRangeIsClearMS(start_time, end_time) )
+                        if(el != nullptr && el->GetRangeIsClearMS(start_time, end_time) )
                         {
                             int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                             if (effectIndex >= 0) {
@@ -4343,7 +4342,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                     wxMessageBox("Cannot paste model effect into timing track.", "Paste Warning!", wxICON_WARNING | wxOK );
                     return;
                 }
-                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                 logger_base.info("mDropRow: %d   effectIndex: %d", mDropRow, effectIndex);
                 if (effectIndex >= 0 || is_timing_effect) {
@@ -4355,7 +4353,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         end_time = wxAtoi(efdata[4]);
                         end_time += drop_time_offset;
                     }
-                    if( el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
+                    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(mDropRow);
+                    if(el != nullptr && el->GetRangeIsClearMS(mDropStartTimeMS, end_time) )
                     {
                         Effect* ef = el->AddEffect(0,
                                       efdata[0].ToStdString(),
@@ -4440,7 +4439,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         end_time += drop_time_offset;
                     }
                     EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-                    if( el->GetRangeIsClearMS(start_time, end_time) )
+                    if(el != nullptr && el->GetRangeIsClearMS(start_time, end_time) )
                     {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0) {

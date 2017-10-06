@@ -335,8 +335,7 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
 
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected)
 {
-    int i;
-    for(i=0; i<mEffects.size();i++)
+    for(int i=0; i<mEffects.size(); i++)
     {
         if( ignore_selected )
         {
