@@ -168,6 +168,9 @@ class ScheduleManager : public wxEvtHandler
         std::string DecodeSchedule(const std::string& scheduleparameter);
         std::string DecodeItem(const std::string& itemparameter);
         std::string DecodeButton(const std::string& buttonlabelparameter);
+        static std::string xLightsShowDir();
+        static std::string xScheduleShowDir();
+        bool ShowDirectoriesMatch() const;
 };
 
 #endif

@@ -2589,6 +2589,19 @@ std::string ScheduleManager::GetOurIP() const
     return ip;
 }
 
+bool ScheduleManager::ShowDirectoriesMatch() const
+{
+    std::string xlsd = xLightsShowDir();
+    std::string xssd = xScheduleShowDir();
+
+    if (xlsd != "" && xssd != "" && xlsd != xssd)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 void ScheduleManager::CheckScheduleIntegrity(bool display)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2650,6 +2663,47 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         delete testSocket;
     }
 
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Missing networks file
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Missing networks file");
+
+    wxString file = GetShowDir() + "/" + _outputManager->GetNetworksFileName();
+
+    if (!wxFile::Exists(file))
+    {
+        wxString msg = wxString::Format("    ERR: %s not found. It should be here '%s'.", (const char*)_outputManager->GetNetworksFileName().c_str(), (const char *)file.c_str());
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // xlights and xschedule show directories match
+    LogAndWrite(f, "");
+    LogAndWrite(f, "xSchedule show directory matches xLights");
+
+    std::string xlsd = xLightsShowDir();
+    std::string xssd = xScheduleShowDir();
+
+    if (xlsd != "" && xssd != "" && xlsd != xssd)
+    {
+        wxString msg = wxString::Format("    ERR: xLights show directory %s does not match xSchedule show directory %s.", (const char*)xlsd.c_str(), (const char *)xssd.c_str());
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
     errcountsave = errcount;
     warncountsave = warncount;
 
@@ -3238,7 +3292,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
-    wxString file = d + "/" + _scheduleOptions->GetWWWRoot() + "/index.html";
+    file = d + "/" + _scheduleOptions->GetWWWRoot() + "/index.html";
 
     if (_scheduleOptions->GetWWWRoot() != "" && !wxFile::Exists(file))
     {
@@ -4118,3 +4172,31 @@ std::string ScheduleManager::DecodeButton(const std::string& buttonlabelparamete
     }
     return buttonlabelparameter;
 }
+
+std::string ScheduleManager::xLightsShowDir()
+{
+    wxString showDir = "";
+
+    wxConfig *xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
+    {
+        xlconfig->Read(_("LastDir"), &showDir);
+        delete xlconfig;
+    }
+
+    return showDir.ToStdString();
+}
+
+std::string ScheduleManager::xScheduleShowDir()
+{
+    wxString showDir = "";
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Read(_("SchedulerLastDir"), &showDir);
+    }
+
+    return showDir.ToStdString();
+}
+

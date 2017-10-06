@@ -617,7 +617,14 @@ void xScheduleFrame::LoadSchedule()
     if (wxFile::Exists(_showDir + "/xlights_networks.xml"))
     {
         StaticText_ShowDir->SetLabel(_showDir);
-        StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+        if (__schedule->ShowDirectoriesMatch())
+        {
+            StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+        }
+        else
+        {
+            StaticText_ShowDir->SetForegroundColour(wxColour(255,128,0));
+        }
     }
     else
     {
@@ -929,16 +936,17 @@ void xScheduleFrame::SaveShowDir() const
 void xScheduleFrame::LoadShowDir()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // get the show directory
-    wxConfigBase* config = wxConfigBase::Get();
-    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor '%s'.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*) config->GetVendorName().c_str());
 
-    wxString showDir;
-    if (!config->Read(_("SchedulerLastDir"), &showDir))
+    wxConfigBase* config = wxConfigBase::Get();
+    logger_base.debug("Config: AppName '%s' Path '%s' Entries %d Groups %d Style %ld Vendor '%s'.", (const char *)config->GetAppName().c_str(), (const char *)config->GetPath().c_str(), (int)config->GetNumberOfEntries(), (int)config->GetNumberOfGroups(), config->GetStyle(), (const char*)config->GetVendorName().c_str());
+
+    // get the show directory
+    wxString showDir = ScheduleManager::xScheduleShowDir();
+    if (showDir == "")
     {
         logger_base.debug("Could not read show folder from 'SchedulerLastDir'.");
-        wxConfig *xlconfig = new wxConfig(_("xLights"));
-        if (xlconfig == nullptr || !xlconfig->Read(_("LastDir"), &showDir))
+        showDir = ScheduleManager::xLightsShowDir();
+        if (showDir == "")
         {
             logger_base.debug("Could not read show folder from 'xLights::LastDir'.");
             DirDialog1->SetPath(_showDir);
@@ -959,10 +967,6 @@ void xScheduleFrame::LoadShowDir()
             logger_base.debug("Read show folder from 'xLights::LastDir' location %s.", (const char *)showDir.c_str());
             _showDir = showDir.ToStdString();
             SaveShowDir();
-        }
-        if (xlconfig != nullptr)
-        {
-            delete xlconfig;
         }
     }
     else

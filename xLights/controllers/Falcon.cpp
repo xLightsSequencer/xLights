@@ -362,13 +362,21 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
     int currentStrings = CountStrings(stringsDoc);
     int mainPixels = GetMaxPixels();
-    int daughter1Pixels = mainPixels / 2;
+    int daughter1Pixels = 0;
     int daughter2Pixels = 0;
     if (SupportsVariableExpansions())
     {
         mainPixels = MaxPixels(stringsDoc, 0);
         daughter1Pixels = MaxPixels(stringsDoc, 1);
         daughter2Pixels = MaxPixels(stringsDoc, 2);
+    }
+    else
+    {
+        if (currentStrings > GetDaughter1Threshold())
+        {
+            mainPixels = mainPixels / 2;
+            daughter1Pixels = mainPixels;
+        }
     }
  
     logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
@@ -535,7 +543,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     progress.Update(60, "Uploading string ports.");
-    logger_base.info("Uploading string ports.");
+    logger_base.info("Working out required pixel splits.");
 
     int maxMain = 0;
     int maxDaughter1 = 0;
@@ -636,6 +644,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
     }
 
+    logger_base.info("Uploading string ports.");
     UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, virtualStringData);
 
     // delete all our string data
