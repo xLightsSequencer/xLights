@@ -3039,7 +3039,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
                         }
                         else
                         {
-                            by = mSelectedEffect->GetStartTimeMS() - teff->GetEndTimeMS();
+                            by = teff->GetEndTimeMS() - mSelectedEffect->GetEndTimeMS();
                         }
                     }
                     else

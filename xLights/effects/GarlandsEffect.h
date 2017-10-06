@@ -16,7 +16,8 @@ class GarlandsEffect : public RenderableEffect
         virtual ~GarlandsEffect();
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-    protected:
+        virtual bool AppropriateOnNodes() const override { return false; }
+protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 
     private:

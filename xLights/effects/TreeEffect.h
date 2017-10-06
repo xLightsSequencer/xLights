@@ -13,6 +13,7 @@ class TreeEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
+        virtual bool AppropriateOnNodes() const override { return false; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

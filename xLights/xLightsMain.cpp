@@ -4760,67 +4760,38 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "Effect problems");
 
         // check all effects
-        EffectManager& em = mSequenceElements.GetEffectManager();
-        for (int i = 0; i < mSequenceElements.GetElementCount(0); i++)
+        for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                for (int j = 0; j < e->GetEffectLayerCount(); j++)
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName());
+
+                if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
-                    EffectLayer* el = e->GetEffectLayer(j);
+                    ModelElement *me = dynamic_cast<ModelElement *>(e);
 
-                    for (int k = 0; k < el->GetEffectCount(); k++)
+                    for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
-                        Effect* ef = el->GetEffect(k);
+                        StrandElement* se = me->GetStrand(j);
+                        CheckElement(se, f, errcount, warncount, wxString::Format("%sStrand %d", se->GetFullName(), j+1).ToStdString(), e->GetName());
 
-                        SettingsMap& sm = ef->GetSettings();
-                        RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
-
-                        // check excessive fadein/fadeout time
-                        float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
-                        float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
-                        float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
-
-                        if (fadein > efdur)
+                        for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
-                            wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-                        if (fadeout > efdur)
-                        {
-                            wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-                        if (fadein <= efdur && fadeout <= efdur && fadein + fadeout > efdur)
-                        {
-                            wxString msg = wxString::Format("    WARN: Transition in time %.2f + transition out time %.2f = %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, fadeout, fadein + fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), e->GetModelName(), efdur);
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-
-                        // effect that runs past end of the sequence
-                        if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
-                        {
-                            wxString msg = wxString::Format("    WARN: Effect %s ends at %s after the sequence end %s. Model: '%s' Start: %s", ef->GetEffectName(), FORMATTIME(ef->GetEndTimeMS()), FORMATTIME(CurrentSeqXmlFile->GetSequenceDurationMS()), e->GetModelName(), FORMATTIME(ef->GetStartTimeMS()));
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-
-                        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(e->GetModelName()), ef);
-                        for (auto s = warnings.begin(); s != warnings.end(); ++s)
-                        {
-                            LogAndWrite(f, *s);
-                            if (s->find("WARN:") != std::string::npos)
+                            NodeLayer* nl = se->GetNodeLayer(k);
+                            for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
-                                warncount++;
+                                Effect* ef = nl->GetEffect(l);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true);
                             }
-                            else if (s->find("ERR:")  != std::string::npos)
-                            {
-                                errcount++;
-                            }
+                        }
+                    }
+                    for (int j = 0; j < me->GetSubModelCount(); ++j)
+                    {
+                        Element* sme = me->GetSubModel(j);
+                        if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
+                        {
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName());
                         }
                     }
                 }
@@ -4862,6 +4833,83 @@ void xLightsFrame::CheckSequence(bool display)
         {
             logger_base.warn("Unable to view xLights Check Sequence results %s.", (const char *)filename.c_str());
             wxMessageBox(_("Unable to show xLights Check Sequence results."), _("Error"));
+        }
+    }
+}
+
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node)
+{
+    EffectManager& em = mSequenceElements.GetEffectManager();
+    SettingsMap& sm = ef->GetSettings();
+    RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
+
+    // check effect is appropriate for a node
+    if (node && !re->AppropriateOnNodes())
+    {
+        wxString msg = wxString::Format("    WARN: Effect %s at start time %s  on Model '%s' really shouldnt be used at the node level.",
+            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name);
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    // check excessive fadein/fadeout time
+    float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
+    float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
+    float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
+
+    if (fadein > efdur)
+    {
+        wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+    if (fadeout > efdur)
+    {
+        wxString msg = wxString::Format("    WARN: Transition out time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+    if (fadein <= efdur && fadeout <= efdur && fadein + fadeout > efdur)
+    {
+        wxString msg = wxString::Format("    WARN: Transition in time %.2f + transition out time %.2f = %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, fadeout, fadein + fadeout, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    // effect that runs past end of the sequence
+    if (ef->GetEndTimeMS() > CurrentSeqXmlFile->GetSequenceDurationMS())
+    {
+        wxString msg = wxString::Format("    WARN: Effect %s ends at %s after the sequence end %s. Model: '%s' Start: %s", ef->GetEffectName(), FORMATTIME(ef->GetEndTimeMS()), FORMATTIME(CurrentSeqXmlFile->GetSequenceDurationMS()), name, FORMATTIME(ef->GetStartTimeMS()));
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef);
+    for (auto s = warnings.begin(); s != warnings.end(); ++s)
+    {
+        LogAndWrite(f, *s);
+        if (s->find("WARN:") != std::string::npos)
+        {
+            warncount++;
+        }
+        else if (s->find("ERR:") != std::string::npos)
+        {
+            errcount++;
+        }
+    }
+}
+
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName)
+{
+    for (int j = 0; j < e->GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = e->GetEffectLayer(j);
+
+        for (int k = 0; k < el->GetEffectCount(); k++)
+        {
+            Effect* ef = el->GetEffect(k);
+
+            CheckEffect(ef, f, errcount, warncount, name, modelName);
         }
     }
 }

@@ -33,6 +33,7 @@ class GlediatorEffect : public RenderableEffect
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
+        virtual bool AppropriateOnNodes() const override { return false; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

@@ -947,8 +947,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
                 if (it2 != cache->nodeNameCache.end()) {
                     int n = it2->second;
-                    for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
-                        buffer.SetPixel(a->bufX, a->bufY, colors[t]);
+                    if (n < buffer.Nodes.size())
+                    {
+                        for (auto a = buffer.Nodes[n]->Coords.begin(); a != buffer.Nodes[n]->Coords.end(); ++a) {
+                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
+                        }
                     }
                 }
             } else if (type == 1) {

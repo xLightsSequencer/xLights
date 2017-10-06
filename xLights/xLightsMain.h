@@ -1302,6 +1302,8 @@ private:
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
     void CheckSequence(bool display);
+    void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName);
+    void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node = false);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
 
     void CheckForValidModels();

@@ -22,6 +22,7 @@ class PianoEffect : public RenderableEffect
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual int GetColorSupportedCount() const override { return 5; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual bool AppropriateOnNodes() const override { return false; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
