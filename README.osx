@@ -76,7 +76,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
   export CXXCPP="clang++ -E" 
   export CC=clang 
   export CPP="clang -E" 
-  ../configure  --prefix=/opt/local --enable-macosx_arch=x86_64 \
+  ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
