@@ -12,8 +12,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)
-   -- bug (dkulp)   Fix wxAssert warnings when quitting from menu on OSX and using debug build
-
+   -- bug     (dkulp)  Fix wxAssert warnings when quitting from menu on OSX and using debug build
+   -- enh     (keith)  Add more check sequence checks ... checks of effects on strands, submodels and nodes, checks for effects that shouldnt be on nodes
+   -- enh     (keith)  Add more check schedule checks ... FSEQ files which dont match networks
+   -- bug     (keith)  Fix a stack of crashes and bugs 
+   -- bug     (keith)  Fix #universe:start channel flagging as invalid
+   -- bug     (keith)  Fix rotozoom presets 
+   -- enh     (keith)  Add remember custom colours in colour selection dialog   
+2017.30  Sep  29, 2017
    -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view
    -- enh (keith)   Add display of actual time in value curve and color curve dialogs.

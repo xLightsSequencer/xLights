@@ -1079,7 +1079,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
     if (restrictToModels.empty()) {
         ranges.push_back(NodeRange(0, SeqData.NumChannels()));
     } else {
-        for (auto it = restrictToModels.begin(); it != restrictToModels.end(); it++) {
+        for (auto it = restrictToModels.begin(); it != restrictToModels.end(); ++it) {
             RenderTreeData data(*it);
             ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
         }

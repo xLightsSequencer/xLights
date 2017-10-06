@@ -1994,13 +1994,15 @@ int Model::GetChanCount() const {
     }
     return max - min;
 }
+
 int Model::GetChanCountPerNode() const {
-    size_t NodeCnt=GetNodeCount();
+    size_t NodeCnt = GetNodeCount();
     if (NodeCnt == 0) {
         return 0;
     }
     return Nodes[0]->GetChanCount();
 }
+
 size_t Model::GetCoordCount(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
