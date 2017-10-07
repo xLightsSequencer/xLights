@@ -920,9 +920,11 @@ std::list<std::string> EffectLayer::GetFileReferences(EffectManager& em) const
     {
         Effect* ef = GetEffect(k);
 
-        RenderableEffect *eff =  em[ef->GetEffectIndex()];
-
-        res.merge(eff->GetFileReferences(ef->GetSettings()));
+        if (ef->GetEffectIndex() >= 0)
+        {
+            RenderableEffect *eff = em[ef->GetEffectIndex()];
+            res.merge(eff->GetFileReferences(ef->GetSettings()));
+        }
     }
 
     return res;

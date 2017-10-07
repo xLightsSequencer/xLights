@@ -4841,16 +4841,6 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
-    RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
-
-    // check effect is appropriate for a node
-    if (node && !re->AppropriateOnNodes())
-    {
-        wxString msg = wxString::Format("    WARN: Effect %s at start time %s  on Model '%s' really shouldnt be used at the node level.",
-            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name);
-        LogAndWrite(f, msg.ToStdString());
-        warncount++;
-    }
 
     // check excessive fadein/fadeout time
     float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
@@ -4884,17 +4874,31 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         warncount++;
     }
 
-    std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef);
-    for (auto s = warnings.begin(); s != warnings.end(); ++s)
+    if (ef->GetEffectIndex() >= 0)
     {
-        LogAndWrite(f, *s);
-        if (s->find("WARN:") != std::string::npos)
+        RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());
+
+        // check effect is appropriate for a node
+        if (node && !re->AppropriateOnNodes())
         {
+            wxString msg = wxString::Format("    WARN: Effect %s at start time %s  on Model '%s' really shouldnt be used at the node level.",
+                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name);
+            LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
-        else if (s->find("ERR:") != std::string::npos)
+
+        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef);
+        for (auto s = warnings.begin(); s != warnings.end(); ++s)
         {
-            errcount++;
+            LogAndWrite(f, *s);
+            if (s->find("WARN:") != std::string::npos)
+            {
+                warncount++;
+            }
+            else if (s->find("ERR:") != std::string::npos)
+            {
+                errcount++;
+            }
         }
     }
 }
@@ -4992,8 +4996,25 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
     for (int k = 0; k < nl->GetEffectCount(); k++)
     {
         Effect* ef = nl->GetEffect(k);
-        RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
-        auto files = eff->GetFileReferences(ef->GetSettings());
+
+        std::string fs = "";
+        if (ef->GetEffectIndex() >= 0)
+        {
+            RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
+            auto files = eff->GetFileReferences(ef->GetSettings());
+
+            for (auto it = files.begin(); it != files.end(); ++it)
+            {
+                if (fs != "")
+                {
+                    fs += ",";
+                }
+                fs += (*it);
+            }
+
+            allfiles.splice(allfiles.end(), files);
+        }
+
         int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
         if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
         {
@@ -5005,18 +5026,6 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
             effectfrequency[ef->GetEffectName()] = 1;
             effectTotalTime[ef->GetEffectName()] = duration;
         }
-
-        std::string fs = "";
-        for(auto it = files.begin(); it != files.end(); ++it)
-        {
-            if (fs!= "" )
-            {
-                fs += ",";
-            }
-            fs += (*it);
-        }
-
-        allfiles.splice(allfiles.end(), files);
 
         SettingsMap& sm = ef->GetSettings();
         f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s,%s\n",
@@ -5082,8 +5091,23 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
             for (int k = 0; k < el->GetEffectCount(); k++)
             {
                 Effect* ef = el->GetEffect(k);
-                RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
-                auto files = eff->GetFileReferences(ef->GetSettings());
+                std::string fs = "";
+                if (ef->GetEffectIndex() >= 0)
+                {
+                    RenderableEffect *eff = effectManager[ef->GetEffectIndex()];
+                    auto files = eff->GetFileReferences(ef->GetSettings());
+
+                    for (auto it = files.begin(); it != files.end(); ++it)
+                    {
+                        if (fs != "")
+                        {
+                            fs += ",";
+                        }
+                        fs += (*it);
+                    }
+
+                    allfiles.splice(allfiles.end(), files);
+                }
 
                 int duration = ef->GetEndTimeMS() - ef->GetStartTimeMS();
                 if (effectfrequency.find(ef->GetEffectName()) != effectfrequency.end())
@@ -5096,18 +5120,6 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                     effectfrequency[ef->GetEffectName()] = 1;
                     effectTotalTime[ef->GetEffectName()] = duration;
                 }
-
-                std::string fs = "";
-                for (auto it = files.begin(); it != files.end(); ++it)
-                {
-                    if (fs != "")
-                    {
-                        fs += ",";
-                    }
-                    fs += (*it);
-                }
-
-                allfiles.splice(allfiles.end(), files);
 
                 SettingsMap& sm = ef->GetSettings();
                 f.Write(wxString::Format("\"%s\",%02d:%02d.%03d,%02d:%02d.%03d,%02d:%02d.%03d,\"%s\",\"%s\",%s,%s\n",

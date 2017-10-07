@@ -230,7 +230,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                 EffectLayer* layer = elem->GetEffectLayer(j);
                 for (int k = 0; k < layer->GetEffectCount(); k++) {
                     Effect* eff = layer->GetEffect(k);
-                    if (effects[eff->GetEffectIndex()] != nullptr) {
+                    if (eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                         effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
                     }
                 }
@@ -241,7 +241,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                     EffectLayer* layer = se->GetEffectLayer(l);
                     for (int k = 0; k < layer->GetEffectCount(); k++) {
                         Effect* eff = layer->GetEffect(k);
-                        if (effects[eff->GetEffectIndex()] != nullptr) {
+                        if (eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                             effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
                         }
                     }
@@ -252,7 +252,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                         NodeLayer* nlayer = ste->GetNodeLayer(k);
                         for (int l = 0; l < nlayer->GetEffectCount(); l++) {
                             Effect* eff = nlayer->GetEffect(l);
-                            if (effects[eff->GetEffectIndex()] != nullptr) {
+                            if (eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                                 effects[eff->GetEffectIndex()]->RenameTimingTrack(oldname, newname, eff);
                             }
                         }
