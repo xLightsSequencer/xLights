@@ -1482,6 +1482,19 @@ static void CheckForVixenRGB(const std::string &name, std::vector<std::string> &
     }
 }
 
+std::string SafeGetAttrValue(SP_XmlStartTagEvent* event, const char* name)
+{
+    const char* p = event->getAttrValue(name);
+
+    if (p == nullptr)
+    {
+        return "";
+    }
+    else
+    {
+        return std::string(p);
+    }
+}
 
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     wxStopWatch sw; // start a stopwatch timer
@@ -1535,7 +1548,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     cnt++;
                     if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
                         chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
-                        NodeName = stagEvent->getAttrValue("name");
+                        NodeName = SafeGetAttrValue(stagEvent, "name");
                         if (NodeName != "") {
                             dlg.channelNames.push_back(NodeName);
                             unsortedChannels.push_back(NodeName);
