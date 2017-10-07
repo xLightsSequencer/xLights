@@ -2103,6 +2103,7 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"volume\":\"" + wxString::Format(wxT("%i"), GetVolume()) +
 				"\",\"brightness\":\"" + wxString::Format(wxT("%i"), GetBrightness()) +
 				"\",\"ip\":\"" + ip +
+                "\",\"version\":\"" + xlights_version_string +
                 "\",\"reference\":\"" + reference +
                 "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == ""? "false" : "true") +
                 "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
