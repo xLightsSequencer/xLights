@@ -2731,7 +2731,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                     EffectLayer* layer = elem->GetEffectLayer(j);
                     for( int k = 0; k < layer->GetEffectCount(); k++ ) {
                         Effect* eff = layer->GetEffect(k);
-                        if (eff != nullptr &&  effects[eff->GetEffectIndex()] != nullptr ) {
+                        if (eff != nullptr &&  eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
                             effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                         }
                     }
@@ -2742,7 +2742,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         EffectLayer* layer = se->GetEffectLayer(j);
                         for( int k = 0; k < layer->GetEffectCount(); k++ ) {
                             Effect* eff = layer->GetEffect(k);
-                            if (eff != nullptr && effects[eff->GetEffectIndex()] != nullptr ) {
+                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                             }
                         }
@@ -2753,7 +2753,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                             NodeLayer* nlayer = ste->GetNodeLayer(k);
                             for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
                                 Effect* eff = nlayer->GetEffect(l);
-                                if (eff != nullptr && effects[eff->GetEffectIndex()] != nullptr ) {
+                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
                                     effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                                 }
                             }
