@@ -3455,12 +3455,12 @@ bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& par
     }
     else if (command == "close")
     {
+        // clear the screen
+        _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
+
         _xyzzy->Close(result, reference);
         delete _xyzzy;
         _xyzzy = nullptr;
-
-        // clear the screen
-        _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
 
         wxCommandEvent event(EVT_SCHEDULECHANGED);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
