@@ -39,15 +39,20 @@ void xLightsFrame::CreateSequencer()
 
     logger_base.debug("        Sequencer grid.");
     mainSequencer = new MainSequencer(PanelSequencer);
+
+    logger_base.debug("                Set render data sources.");
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
+    logger_base.debug("                Set timeline.");
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
     mSequenceElements.SetTimeLine(mainSequencer->PanelTimeLine);
 
+    logger_base.debug("                Set sequence elements.");
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
+    logger_base.debug("                Set dock size constraints.");
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
     logger_base.debug("        Model preview.");

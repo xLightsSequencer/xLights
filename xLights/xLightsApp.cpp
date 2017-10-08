@@ -428,6 +428,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
+        { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
@@ -462,6 +463,26 @@ bool xLightsApp::OnInit()
         // help was given
         return false;
     case 0:
+        {
+            wxString glVersion;
+            if (parser.Found("g", &glVersion))
+            {
+                wxConfigBase* config = wxConfigBase::Get();
+                if (glVersion == "" || glVersion.Lower() == "auto")
+                {
+                    config->Write("ForceOpenGLVer", 99);
+                }
+                else
+                {
+                    int gl = wxAtoi(glVersion);
+                    if (gl != 0)
+                    {
+                        config->Write("ForceOpenGLVer", gl);
+                    }
+                }
+                info += _("Forcing open GL version\n");
+            }
+        }
         if (parser.Found("w"))
         {
             logger_base.info("-w: Wiping settings");
@@ -496,11 +517,11 @@ bool xLightsApp::OnInit()
         }
         if (!parser.Found("r") && !info.empty())
         {
-            logger_base.info("Unrecognised command line parameter found.");
             wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
         }
         break;
     default:
+        logger_base.info("Unrecognised command line parameter found.");
         wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
         return false;
     }

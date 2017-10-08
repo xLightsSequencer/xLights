@@ -27,6 +27,7 @@
 #include "TimeLine.h"
 #include <wx/file.h>
 #include "../DrawGLUtils.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
@@ -48,6 +49,8 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
                    long style, const wxString &name):
                    xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm", true)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                Creating waveform");
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
     mParent = parent;

@@ -150,14 +150,17 @@ END_EVENT_TABLE()
 MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
     : touchBarSupport(), effectGridTouchbar(nullptr)
 {
-	//(*Initialize(MainSequencer)
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                Creating main sequencer");
+
+    //(*Initialize(MainSequencer)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
+    FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(1);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -171,21 +174,21 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(1);
-	PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
 	PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
 	FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND, 0);
-	PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,40)), wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
+    PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,40)), wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+    PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
 	PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
 	FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
 	PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
 	FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
-	PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
+    PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
 	FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
 	ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
 	ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
@@ -219,6 +222,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	//*)
 
+    logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
     FlexGridSizer2->Add(timeDisplay, 1, wxALL|wxEXPAND, 0);
     FlexGridSizer2->AddGrowableRow(3);
@@ -228,13 +232,19 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     _savedTopModel = "";
     mParent = parent;
     mPlayType = 0;
+
+    logger_base.debug("                Set handlers");
     SetHandlers(this);
+
+    logger_base.debug("                Load key bindings");
     keyBindings.LoadDefaults();
     mCanUndo = false;
     mPasteByCell = false;
     // ReSharper disable CppVirtualFunctionCallInsideCtor
     SetName("MainSequencer");
     // ReSharper restore CppVirtualFunctionCallInsideCtor
+
+    logger_base.debug("                Initialise touch bar");
     touchBarSupport.Init(this);
 }
 
