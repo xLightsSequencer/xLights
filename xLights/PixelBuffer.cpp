@@ -1637,8 +1637,6 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
     for (size_t n = 0; n < layers[layer]->buffer.Nodes.size(); n++)
     {
         int start = NodeStartChannel(n);
-        //wxASSERT(layers.size() > layer);
-        //wxASSERT(layers[layer]->buffer.Nodes.size() > n);
         layers[layer]->buffer.Nodes[n]->SetFromChannels(&fdata[start]);
         layers[layer]->buffer.Nodes[n]->GetColor(color);
         
@@ -1657,8 +1655,6 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
 {
-    wxASSERT(!std::isinf(offset)); // this function will hang if it is
-
     if (std::isinf(offset)) offset = 1.0;
 
     // Do the Z axis rotate and zoom first
@@ -1842,7 +1838,10 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 
     int effStartPer, effEndPer;
     layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-    float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+    float offset = 0.0;
+    if (effEndPer != effStartPer) {
+        offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+    }
     offset = std::min(offset, 1.0f);
     const std::string &type = layers[layer]->type;
     const std::string &transform = layers[layer]->transform;
@@ -1851,8 +1850,9 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
-    wxASSERT(layers[layer]->buffer.BufferWi != 0);
-    wxASSERT(layers[layer]->buffer.BufferHt != 0);
+    
+    if (layers[layer]->buffer.BufferWi == 0) layers[layer]->buffer.BufferWi = 1;
+    if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)
@@ -1866,7 +1866,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     {
         int effStartPer, effEndPer;
         layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
-        float offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+        float offset = 0.0f;
+        if (effEndPer != effStartPer) {
+            offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
+        }
         offset = std::min(offset, 1.0f);
 
         // do gausian blur
