@@ -36,6 +36,8 @@ void xLightsFrame::CreateSequencer()
     timingPanel = nullptr;
 
     logger_base.debug("CreateSequencer: Creating Panels.");
+
+    logger_base.debug("        Sequencer grid.");
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
     mainSequencer->SetSequenceElements(&mSequenceElements);
@@ -48,36 +50,49 @@ void xLightsFrame::CreateSequencer()
 
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
+    logger_base.debug("        Model preview.");
     _modelPreviewPanel = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
+
+    logger_base.debug("        House preview.");
     _housePreviewPanel = new HousePreviewPanel(PanelSequencer, this, _playControlsOnPreview, PreviewModels, LayoutGroups, false, 0, true);
     m_mgr->AddPane(_housePreviewPanel, wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
         Left().Layer(1).BestSize(250, 250));
 
+    logger_base.debug("        Effects.");
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
 
+    logger_base.debug("        Effect settings.");
     EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
     EffectsPanel1->SetSequenceElements(&mSequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
     effectsPnl->MainSizer->Fit(effectsPnl);
     effectsPnl->MainSizer->SetSizeHints(effectsPnl);
 
+    logger_base.debug("        Effect assist.");
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
                    Left().Layer(1).BestSize(250,250));
     sEffectAssist->Layout();
 
+    logger_base.debug("        Color.");
     colorPanel = new ColorPanel(PanelSequencer);
+
+    logger_base.debug("        Timing.");
     timingPanel = new TimingPanel(PanelSequencer);
+
+    logger_base.debug("        Buffer.");
     bufferPanel = new BufferPanel(PanelSequencer);
 
+    logger_base.debug("        Persepctive.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
 
     // DisplayElements Panel
+    logger_base.debug("        Display Elements.");
     displayElementsPanel = new ViewsModelsPanel(this, PanelSequencer);
     displayElementsPanel->SetViewChoice(mainSequencer->ViewChoice);
     displayElementsPanel->Fit();

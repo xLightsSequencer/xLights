@@ -6,7 +6,7 @@
 		<size>773,247</size>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
-		<style>wxSTAY_ON_TOP|wxSIMPLE_BORDER|wxSTATIC_BORDER|wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE</style>
+		<style>wxSIMPLE_BORDER|wxSTATIC_BORDER|wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE</style>
 		<handler function="OnPaint" entry="EVT_PAINT" />
 	</object>
 </wxsmith>
