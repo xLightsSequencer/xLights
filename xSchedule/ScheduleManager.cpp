@@ -393,8 +393,11 @@ void ScheduleManager::StopAll()
 
 void ScheduleManager::AllOff()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Turning all the lights off.");
+
+    memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
     _outputManager->StartFrame(0);
-    _outputManager->AllOff();
 
     if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
     {
@@ -1822,6 +1825,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
             }
         }
     }
+
     AllOff();
 }
 
