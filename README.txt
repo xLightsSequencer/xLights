@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
+   -- bug (keith)   xSchedule does not turn off lights when sequence ends
+   -- bug (keith)   Falcon upload incorrect for multi-string elements
+   -- bug (keith)   Make splash screen not topmost
+   -- bug (keith)   Fix crash importing Vixen 2.x sequences
 2017.31  Oct 06, 2017 - PRODUCTION RELEASE
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
