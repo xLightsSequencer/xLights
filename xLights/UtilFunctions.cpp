@@ -1,13 +1,10 @@
 #include "UtilFunctions.h"
-#include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
 #include <wx/config.h>
 
-bool IsFileInShowDir(const std::string filename)
+bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {
-    wxString showDir = xLightsFrame::CurrentDir;
-
     wxString fixedFile = FixFile(showDir, filename, true);
 
     return fixedFile.StartsWith(showDir);
