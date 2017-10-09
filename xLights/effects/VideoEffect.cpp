@@ -37,7 +37,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
     }
     else
     {
-        if (!IsFileInShowDir(filename.ToStdString()))
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, filename.ToStdString()))
         {
             res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
