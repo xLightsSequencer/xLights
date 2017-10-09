@@ -93,7 +93,7 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
     {
         res.push_back(wxString::Format("    ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-    else if (!IsFileInShowDir(GledFilename.ToStdString()))
+    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, GledFilename.ToStdString()))
     {
         res.push_back(wxString::Format("    WARN: Glediator effect glediator file '%s' not under show directory. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
