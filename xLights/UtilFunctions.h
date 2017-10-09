@@ -9,7 +9,7 @@
 bool IsVersionOlder(const std::string compare, const std::string version);
 std::string UnXmlSafe(const std::string& s);
 std::string XmlSafe(const std::string& s);
-bool IsFileInShowDir(const std::string filename);
+bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
