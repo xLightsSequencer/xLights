@@ -15,20 +15,20 @@ os: Visual Studio 2015
 environment:
   matrix:
     # Visual Studio 64 bit debug
-    #- platform: x64
-    #  configuration: Debug
-    #  PLATFORMTOOLSET: 140
-    #  BUILDTYPE: X64DEBUGVS
+    - platform: x64
+      configuration: Debug
+      PLATFORMTOOLSET: 140
+      BUILDTYPE: X64DEBUGVS
     # gcc 64 bit release
     #- platform: x64
     #  configuration: 64bit  MinGW_Release
     #  PLATFORMTOOLSET: 140
     #  BUILDTYPE: X64RELEASEGCC
     # gcc 32 bit release
-    - platform: x86
-      configuration: mingw_release
-      PLATFORMTOOLSET: 140
-      BUILDTYPE: X86RELEASEGCC
+    #- platform: x86
+    #  configuration: mingw_release
+    #  PLATFORMTOOLSET: 140
+    #  BUILDTYPE: X86RELEASEGCC
   
 notifications:
   - provider: Email
@@ -40,6 +40,7 @@ notifications:
     
 build_script:
   - ps: Start-FileDownload 'https://downloads.sourceforge.net/project/cbp2make/cbp2make-stl-rev147-all.tar.7z'
+  - ps: Start-FileDownload 'http://www.jrsoftware.org/download.php/is.exe?site=1'
   - appveyor.bat
   
 # fail as soon as any build fails
