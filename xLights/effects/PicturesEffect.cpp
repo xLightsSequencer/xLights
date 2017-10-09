@@ -50,7 +50,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     {
         res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-    else if (!IsFileInShowDir(PictureFilename.ToStdString()))
+    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, PictureFilename.ToStdString()))
     {
         res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
