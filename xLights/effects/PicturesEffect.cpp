@@ -7,6 +7,7 @@
 #include "assist/xlGridCanvasPictures.h"
 #include "assist/PicturesAssistPanel.h"
 #include "../xLightsXmlFile.h"
+#include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include "../SequenceCheck.h"
 #include <log4cpp/Category.hh>
