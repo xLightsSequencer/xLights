@@ -6,6 +6,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsXmlFile.h"
+#include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include <log4cpp/Category.hh>
 #include "../SequenceCheck.h"
