@@ -93,7 +93,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                     {
                         res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
-                    else if (!IsFileInShowDir(picture))
+                    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, picture))
                     {
                         res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
