@@ -32,6 +32,7 @@
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
 #include "models/ModelGroup.h"
+#include "models/SubModel.h"
 #include "models/CustomModel.h"
 #include "TestDialog.h"
 #include "ConvertDialog.h"
@@ -4549,12 +4550,16 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing non existent models");
 
+    std::list<std::string> emptyModelGroups;
+
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
         if (it->second->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
             auto models = mg->ModelNames();
+
+            int modelCount = 0;
 
             for (auto m = models.begin(); m != models.end(); ++m)
             {
@@ -4568,6 +4573,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 else
                 {
+                    modelCount++;
                     if (model->GetName() == mg->GetName())
                     {
                         wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
@@ -4576,6 +4582,57 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                 }
             }
+
+            if (modelCount == 0)
+            {
+                emptyModelGroups.push_back(it->first);
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for model groups containing no valid models
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Model Groups containing no models that exist");
+
+    for (auto it = emptyModelGroups.begin(); it != emptyModelGroups.end(); ++it)
+    {
+        wxString msg = wxString::Format("    ERR: Model group '%s' contains no models.", *it);
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for submodels with no nodes
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Submodels with no nodes");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            {
+                Model* sm = it->second->GetSubModel(i);
+                if (sm->GetNodeCount() == 0)
+                {
+                    wxString msg = wxString::Format("    ERR: Submodel '%s' contains no nodes.", sm->GetFullName());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            } 
         }
     }
 

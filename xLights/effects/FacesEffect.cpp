@@ -14,6 +14,7 @@
 #include "../../include/corofaces.xpm"
 
 #include <wx/tokenzr.h>
+#include "UtilFunctions.h"
 
 FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces)
 {
@@ -91,6 +92,10 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                     if (!wxFileExists(picture))
                     {
                         res.push_back(wxString::Format("    ERR: Face effect image file not found '%s'. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                    }
+                    else if (!IsFileInShowDir(picture))
+                    {
+                        res.push_back(wxString::Format("    WARN: Faces effect image file '%s' not under show directory. Model '%s', Start %s", picture, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
                     }
                 }
             }

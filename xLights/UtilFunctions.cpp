@@ -1,12 +1,22 @@
 #include "UtilFunctions.h"
+#include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
 #include <wx/config.h>
 
+bool IsFileInShowDir(const std::string filename)
+{
+    wxString showDir = xLightsFrame::CurrentDir;
+
+    wxString fixedFile = FixFile(showDir, filename, true);
+
+    return fixedFile.StartsWith(showDir);
+}
+
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     // This is cheating ... saves me from having every call know the showdir as long as an early one passes it in
 	static wxString RememberShowDir;
 
@@ -71,7 +81,7 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
     wxString sflc = showfolder;
     sflc.LowerCase();
     wxString newLoc = sd;
-    
+
     bool appending = false;
     for (size_t x = 0; x < fnWin.GetDirs().size(); x++) {
         if (fnWin.GetDirs()[x].Lower() == sflc) {
@@ -107,15 +117,15 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse)
         }
     }
 #endif
-    
+
 
     if (flc.Contains(sflc))
     {
         int offset = flc.Find(sflc) + showfolder.Length();
         wxString relative = file.SubString(offset, file.Length());
-        
+
         if (fnWin.GetDirs().size() > 0) {
-            
+
         }
         wxFileName sdFn =  wxFileName::DirName(sd);
 

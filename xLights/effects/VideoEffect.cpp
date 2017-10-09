@@ -31,12 +31,17 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     wxString filename = settings.Get("E_FILEPICKERCTRL_Video_Filename", "");
 
-    if (!wxFileExists(filename))
+    if (filename == "" || !wxFileExists(filename))
     {
         res.push_back(wxString::Format("    ERR: Video effect video file '%s' does not exist. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     else
     {
+        if (!IsFileInShowDir(filename.ToStdString()))
+        {
+            res.push_back(wxString::Format("    WARN: Video effect video file '%s' not under show directory. Model '%s', Start %s", filename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
         VideoReader* videoreader = new VideoReader(filename.ToStdString(), 100, 100, false);
 
         if (videoreader == nullptr || videoreader->GetLengthMS() == 0)

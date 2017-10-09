@@ -16,6 +16,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Falcon upload incorrect for multi-string elements
    -- bug (keith)   Make splash screen not topmost
    -- bug (keith)   Fix crash importing Vixen 2.x sequences
+   -- enh (keith)   Enhancements to check sequence
+						- empty model groups
+						- submodels with no nodes
+						- referenced files outside show directory
 2017.31  Oct 06, 2017 - PRODUCTION RELEASE
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
