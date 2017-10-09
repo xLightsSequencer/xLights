@@ -11,6 +11,7 @@
 #include "../UtilClasses.h"
 #include "../models/Model.h"
 #include "../xLightsXmlFile.h"
+#include "../xLightsMain.h" 
 #include "../SequenceCheck.h"
 
 #include "../../include/glediator-16.xpm"
