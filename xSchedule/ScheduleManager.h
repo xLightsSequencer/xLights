@@ -69,6 +69,7 @@ class ScheduleManager : public wxEvtHandler
     int _lastBrightness;
     wxByte _brightnessArray[255];
     wxDatagramSocket* _fppSyncMaster;
+    wxDatagramSocket* _fppSyncMasterUnicast;
     wxDatagramSocket* _fppSyncSlave;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
@@ -78,7 +79,7 @@ class ScheduleManager : public wxEvtHandler
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
-    void OpenFPPSyncSendSocket();
+    void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
     void OpenFPPSyncListenSocket();
     void CloseFPPSyncListenSocket();
@@ -105,6 +106,7 @@ class ScheduleManager : public wxEvtHandler
         void ManualOutputToLightsClick();
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        void OpenFPPSyncSendSocket();
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }

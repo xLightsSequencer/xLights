@@ -44,6 +44,10 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         {
             _virtualMatrices.push_back(new VirtualMatrix(n));
         }
+        else if (n->GetName() == "FPPRemote")
+        {
+            _fppRemotes.push_back(n->GetAttribute("IP").ToStdString());
+        }
     }
 }
 
@@ -153,6 +157,13 @@ wxXmlNode* ScheduleOptions::Save()
     for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
     {
         res->AddChild((*it)->Save());
+    }
+
+    for (auto it = _fppRemotes.begin(); it != _fppRemotes.end(); ++it)
+    {
+        wxXmlNode* n = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "FPPRemote");
+        n->AddAttribute("IP", wxString(*it));
+        res->AddChild(n);
     }
 
     return res;

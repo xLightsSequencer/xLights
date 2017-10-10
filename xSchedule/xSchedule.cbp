@@ -367,6 +367,8 @@
 		<Unit filename="DimWhiteDialog.h" />
 		<Unit filename="ESEQFile.cpp" />
 		<Unit filename="ESEQFile.h" />
+		<Unit filename="FPPRemotesDialog.cpp" />
+		<Unit filename="FPPRemotesDialog.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
 		<Unit filename="MatricesDialog.cpp" />
@@ -412,10 +414,6 @@
 		<Unit filename="PlayList/PlayListItemESEQ.h" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.h" />
-		<Unit filename="PlayList/PlayListItemFile.cpp" />
-		<Unit filename="PlayList/PlayListItemFile.h" />
-		<Unit filename="PlayList/PlayListItemFilePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemFilePanel.h" />
 		<Unit filename="PlayList/PlayListItemFSEQ.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQ.h" />
 		<Unit filename="PlayList/PlayListItemFSEQPanel.cpp" />
@@ -424,6 +422,10 @@
 		<Unit filename="PlayList/PlayListItemFSEQVideo.h" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.h" />
+		<Unit filename="PlayList/PlayListItemFile.cpp" />
+		<Unit filename="PlayList/PlayListItemFile.h" />
+		<Unit filename="PlayList/PlayListItemFilePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemFilePanel.h" />
 		<Unit filename="PlayList/PlayListItemImage.cpp" />
 		<Unit filename="PlayList/PlayListItemImage.h" />
 		<Unit filename="PlayList/PlayListItemImagePanel.cpp" />
@@ -528,6 +530,7 @@
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
+		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
 		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
@@ -538,9 +541,9 @@
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemPJLinkPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
@@ -609,6 +612,7 @@
 					<wxDialog wxs="wxsmith/VirtualMatrixDialog.wxs" src="VirtualMatrixDialog.cpp" hdr="VirtualMatrixDialog.h" fwddecl="0" i18n="1" name="VirtualMatrixDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VirtualMatricesDialog1.wxs" src="VirtualMatricesDialog.cpp" hdr="VirtualMatricesDialog.h" fwddecl="0" i18n="1" name="VirtualMatricesDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

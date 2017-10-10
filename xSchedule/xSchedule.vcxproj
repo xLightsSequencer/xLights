@@ -208,6 +208,7 @@
     <ClCompile Include="DimDialog.cpp" />
     <ClCompile Include="DimWhiteDialog.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
+    <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
@@ -329,6 +330,7 @@
     <ClInclude Include="DimDialog.h" />
     <ClInclude Include="DimWhiteDialog.h" />
     <ClInclude Include="ESEQFile.h" />
+    <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />

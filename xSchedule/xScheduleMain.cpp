@@ -34,6 +34,7 @@
 #include "BackgroundPlaylistDialog.h"
 #include "MatricesDialog.h"
 #include "VirtualMatricesDialog.h"
+#include "FPPRemotesDialog.h"
 
 #include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -140,6 +141,7 @@ const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
 const long xScheduleFrame::idMenuAbout = wxNewId();
 const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
 const long xScheduleFrame::ID_TIMER1 = wxNewId();
@@ -432,6 +434,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu4->Append(MenuItem_FPPMaster);
     MenuItem_FPPRemote = new wxMenuItem(Menu4, ID_MNU_FPPREMOTE, _("FPP Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPRemote);
+    MenuItem_EditFPPRemotes = new wxMenuItem(Menu4, ID_MNU_EDITFPPREMOTE, _("Edit FPP Remotes"), _("Edit remotes to unicast sync packets to"), wxITEM_NORMAL);
+    Menu4->Append(MenuItem_EditFPPRemotes);
     MenuBar1->Append(Menu4, _("&Modes"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
@@ -488,6 +492,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
+    Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
@@ -2296,5 +2301,18 @@ void xScheduleFrame::DoXyzzyEvent(wxCommandEvent& event)
     {
         std::string result = "{\"xyzzyevent\":\"" + event.GetString().ToStdString() + "\"}";
         _webServer->SendMessageToAllWebSockets(result);
+    }
+}
+
+void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
+{
+    FPPRemotesDialog dlg(this, __schedule->GetOptions()->GetFPPRemotes());
+
+    dlg.ShowModal();
+
+    __schedule->GetOptions()->SetFPPRemotes(dlg.GetRemotes());
+
+    if (__schedule->GetMode() == SYNCMODE::FPPMASTER) {
+        __schedule->OpenFPPSyncSendSocket();
     }
 }
