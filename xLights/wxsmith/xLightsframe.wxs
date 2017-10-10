@@ -1595,9 +1595,6 @@
 				</object>
 			</object>
 		</object>
-		<object class="wxDirDialog" variable="DirDialog1" member="yes">
-			<message>Select Show Directory</message>
-		</object>
 		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="Timer1" member="yes">
 			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
 		</object>

@@ -2122,7 +2122,7 @@ effects/VUMeterPanel.h: ValueCurveButton.h
 
 effects/VUMeterPanel.cpp: effects/VUMeterPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h xLightsMain.h effects/VUMeterEffect.h
 
-effects/VideoEffect.cpp: effects/VideoEffect.h effects/VideoPanel.h VideoReader.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsXmlFile.h models/Model.h SequenceCheck.h ../include/video-16.xpm ../include/video-24.xpm ../include/video-32.xpm ../include/video-48.xpm ../include/video-64.xpm UtilFunctions.h
+effects/VideoEffect.cpp: effects/VideoEffect.h effects/VideoPanel.h VideoReader.h sequencer/Effect.h RenderBuffer.h UtilClasses.h xLightsXmlFile.h xLightsMain.h models/Model.h SequenceCheck.h ../include/video-16.xpm ../include/video-24.xpm ../include/video-32.xpm ../include/video-48.xpm ../include/video-64.xpm UtilFunctions.h
 
 effects/VideoEffect.h: effects/RenderableEffect.h RenderBuffer.h
 
@@ -2254,7 +2254,7 @@ xLightsImportChannelMapDialog.cpp: xLightsImportChannelMapDialog.h sequencer/Seq
 
 xLightsImportChannelMapDialog.h: Color.h
 
-xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h models/CustomModel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h IPEntryDialog.h ColorManagerDialog.h HousePreviewPanel.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm osxMacUtils.h GenerateLyricsDialog.h
+xLightsMain.cpp: xLightsMain.h SplashDialog.h xLightsApp.h heartbeat.h SeqSettingsDialog.h xLightsVersion.h RenderCommandEvent.h effects/RenderableEffect.h LayoutPanel.h models/ModelGroup.h models/SubModel.h models/CustomModel.h TestDialog.h ConvertDialog.h GenerateCustomModelDialog.h SequenceCheck.h IPEntryDialog.h ColorManagerDialog.h HousePreviewPanel.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm ../include/control-pause-blue-icon.xpm ../include/control-play-blue-icon.xpm osxMacUtils.h GenerateLyricsDialog.h
 
 SeqSettingsDialog.h: xLightsMain.h xLightsXmlFile.h tmGridCell.h FlickerFreeBitmapButton.h
 
@@ -2274,7 +2274,7 @@ xLightsXmlFile.cpp: xLightsMain.h OptionChooser.h effects/EffectManager.h effect
 
 xlColorCanvas.cpp: xlColorCanvas.h DrawGLUtils.h
 
-xLightsApp.cpp: xLightsApp.h xLightsMain.h xLightsVersion.h SplashDialog.h MSWStackWalk.h
+xLightsApp.cpp: xLightsApp.h xLightsMain.h xLightsVersion.h MSWStackWalk.h
 
 xlColorPickerFields.cpp: xlColorPickerFields.h
 
@@ -2400,7 +2400,7 @@ SequenceViewManager.cpp: SequenceViewManager.h models/ModelManager.h models/Mode
 
 SevenSegmentDialog.cpp: SevenSegmentDialog.h ../include/sevensegment.xpm
 
-SplashDialog.cpp: SplashDialog.h ../include/splashimage.h xLightsVersion.h
+SplashDialog.cpp: SplashDialog.h ../include/splashimage.h xLightsVersion.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
 
 DimmingCurvePanel.cpp: DimmingCurvePanel.h DrawGLUtils.h
 
@@ -2554,7 +2554,7 @@ effects/GarlandsPanel.h: ValueCurveButton.h
 
 effects/GarlandsPanel.cpp: effects/GarlandsPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h effects/GarlandsEffect.h
 
-effects/GlediatorEffect.cpp: effects/GlediatorEffect.h effects/GlediatorPanel.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h xLightsXmlFile.h SequenceCheck.h ../include/glediator-16.xpm ../include/glediator-64.xpm UtilFunctions.h
+effects/GlediatorEffect.cpp: effects/GlediatorEffect.h effects/GlediatorPanel.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h models/Model.h xLightsXmlFile.h xLightsMain.h SequenceCheck.h ../include/glediator-16.xpm ../include/glediator-64.xpm UtilFunctions.h
 
 effects/GlediatorEffect.h: effects/RenderableEffect.h
 
@@ -2636,7 +2636,7 @@ effects/PianoPanel.h: ValueCurveButton.h
 
 effects/PianoPanel.cpp: effects/PianoPanel.h ../include/padlock16x16-blue.xpm effects/EffectPanelUtils.h sequencer/Effect.h effects/PianoEffect.h xLightsMain.h
 
-effects/PicturesEffect.cpp: effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h models/Model.h SequenceCheck.h effects/GIFImage.h ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm UtilFunctions.h
+effects/PicturesEffect.cpp: effects/PicturesEffect.h effects/PicturesPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h effects/assist/xlGridCanvasPictures.h effects/assist/PicturesAssistPanel.h xLightsXmlFile.h xLightsMain.h models/Model.h SequenceCheck.h effects/GIFImage.h ../include/pictures-16.xpm ../include/pictures-24.xpm ../include/pictures-32.xpm ../include/pictures-48.xpm ../include/pictures-64.xpm UtilFunctions.h
 
 effects/PicturesEffect.h: effects/RenderableEffect.h
 
@@ -2722,7 +2722,7 @@ XlightsDrawable.cpp: XlightsDrawable.h DrawGLUtils.h
 
 controllers/FPP.cpp: xLightsXmlFile.h models/Model.h UtilFunctions.h
 
-effects/FacesEffect.cpp: effects/FacesEffect.h effects/FacesPanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h SequenceCheck.h xLightsMain.h effects/PicturesEffect.h ../include/corofaces.xpm
+effects/FacesEffect.cpp: effects/FacesEffect.h effects/FacesPanel.h models/Model.h sequencer/SequenceElements.h sequencer/Effect.h RenderBuffer.h UtilClasses.h SequenceCheck.h xLightsMain.h effects/PicturesEffect.h ../include/corofaces.xpm UtilFunctions.h
 
 effects/FacesEffect.h: effects/RenderableEffect.h
 

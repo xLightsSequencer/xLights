@@ -256,8 +256,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         {
             logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
-        } 
-        else 
+        }
+        else
         {
             logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
         }
@@ -394,7 +394,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
             GridNetwork->SetItemTextColour(newidx, *wxLIGHT_GREY);
         }
     }
-    
+
     GridNetwork->SetColumnWidth(2, _outputManager.GetOutputCount() > 0 ? wxLIST_AUTOSIZE : 100);
 
     // try to ensure what should be visible is visible in roughly the same part of the screen
@@ -473,6 +473,8 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)
 bool xLightsFrame::PromptForShowDirectory()
 {
     wxString newdir;
+    wxDirDialog* DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
     if (DirDialog1->ShowModal() == wxID_OK)
     {
         AbortRender(); // make sure nothing is still rendering
@@ -635,7 +637,7 @@ void xLightsFrame::UpdateSelectedDescriptions()
 {
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     Output* f = _outputManager.GetOutput(item);
-    
+
     wxTextEntryDialog dlg(this, "Change controller description", "Description", f->GetDescription());
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -732,7 +734,7 @@ void xLightsFrame::DeleteSelectedNetworks()
 
     NetworkChange();
     UpdateNetworkList(true);
-    
+
     item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     while (item != -1)
     {
@@ -848,7 +850,7 @@ void xLightsFrame::OnGridNetworkMove(wxMouseEvent& event)
 
     lastitem = index;
     last = wxGetLocalTimeMillis();
-    
+
     int topitem = GridNetwork->GetTopItem();
     int bottomitem = topitem + GridNetwork->GetCountPerPage() - 1;
 
@@ -1012,7 +1014,7 @@ void xLightsFrame::SetupDongle(Output* e, int after)
     _outputManager.AddOutput(serial, after);
 
     Output* newoutput = serial->Configure(this, &_outputManager);
-    
+
     if (newoutput == nullptr)
     {
         if (e != serial)
@@ -1527,7 +1529,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                         break;
                     }
                 }
-                
+
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
             beUCOJ1SYS->Enable(valid);

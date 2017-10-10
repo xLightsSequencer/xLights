@@ -53,11 +53,11 @@
 #include "../include/control-play-blue-icon.xpm"
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
@@ -451,51 +451,51 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
+    wxMenuItem* MenuItem2;
+    wxMenuItem* MenuItem23;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxMenuItem* MenuItem31;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem8;
-    wxFlexGridSizer* FlexGridSizerSetup;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem25;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem2;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem46;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem11;
-    wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem22;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem13;
-    wxMenuItem* MenuItem10;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem12;
-    wxMenuItem* MenuItem24;
-    wxMenuItem* MenuItem27;
-    wxMenuItem* MenuItem44;
     wxFlexGridSizer* FlexGridSizerNetworks;
+    wxPanel* Panel1;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem25;
+    wxStaticText* StaticText28;
+    wxMenuItem* MenuItem19;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem28;
-    wxMenuItem* MenuItemDisplayElements;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem23;
-    wxStaticText* StaticText28;
-    wxBoxSizer* BoxSizer1;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxMenuItem* MenuItem21;
-    wxMenu* Menu2;
-    wxMenuItem* MenuItem9;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem48;
-    wxMenuItem* MenuItem19;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem24;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem17;
+    wxMenuItem* MenuItem21;
     wxButton* Button03;
+    wxMenuItem* MenuItem9;
+    wxStaticText* StaticText38;
+    wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItem22;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem44;
+    wxMenuItem* MenuItemDisplayElements;
+    wxBoxSizer* BoxSizer1;
+    wxMenuItem* MenuItem10;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem27;
+    wxGridBagSizer* GridBagSizer1;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem26;
+    wxMenuItem* MenuItem13;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItem28;
+    wxMenu* MenuHelp;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem8;
+    wxMenuItem* MenuItem14;
+    wxMenuItem* MenuItem46;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxFlexGridSizer* FlexGridSizerSetup;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -1001,7 +1001,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
-    DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
     Timer_AutoSave.SetOwner(this, ID_TIMER2);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
