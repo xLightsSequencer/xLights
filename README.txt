@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.32  Oct 09, 2017 - PRODUCTION RELEASE
    -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
    -- bug (keith)   xSchedule does not turn off lights when sequence ends
    -- bug (keith)   Falcon upload incorrect for multi-string elements
@@ -20,7 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 						- empty model groups
 						- submodels with no nodes
 						- referenced files outside show directory
-2017.31  Oct 06, 2017 - PRODUCTION RELEASE
+2017.31  Oct 06, 2017  
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
    -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)
