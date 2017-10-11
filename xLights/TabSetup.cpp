@@ -473,12 +473,12 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)
 bool xLightsFrame::PromptForShowDirectory()
 {
     wxString newdir;
-    wxDirDialog* DirDialog1 = new wxDirDialog(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
-    if (DirDialog1->ShowModal() == wxID_OK)
+    if (DirDialog1.ShowModal() == wxID_OK)
     {
         AbortRender(); // make sure nothing is still rendering
-        newdir=DirDialog1->GetPath();
+        newdir=DirDialog1.GetPath();
         if (newdir == CurrentDir) return true;
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
         return SetDir(newdir);
