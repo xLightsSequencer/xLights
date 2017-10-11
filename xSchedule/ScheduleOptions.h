@@ -29,6 +29,7 @@ class ScheduleOptions
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
     std::list<VirtualMatrix*> _virtualMatrices;
+    std::list<std::string> _fppRemotes;
 
     public:
 
@@ -57,7 +58,9 @@ class ScheduleOptions
         void ClearButtons();
         std::string GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const;
         int GetWebServerPort() const { return _port; }
+        std::list<std::string> GetFPPRemotes() const { return _fppRemotes; }
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
+        void SetFPPRemotes(std::list<std::string> remotes) { _fppRemotes = remotes; _changeCount++; } 
         std::string GetWWWRoot() const { return _wwwRoot; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }

@@ -45,6 +45,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _queuedSongs = new PlayList();
     _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
+    _fppSyncMasterUnicast = nullptr;
     _fppSyncSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
@@ -61,28 +62,6 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     wxConfigBase* config = wxConfigBase::Get();
     _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
-
-    if (_mode == SYNCMODE::FPPMASTER) {
-        logger_base.info("SyncMode: FPPMASTER");
-        OpenFPPSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::FPPSLAVE)
-    {
-        logger_base.info("SyncMode: FPPREMOTE");
-        OpenFPPSyncListenSocket();
-    }
-    else if (_mode == SYNCMODE::STANDALONE)
-    {
-        logger_base.info("SyncMode: STANDALONE");
-    }
-    else if (_mode == SYNCMODE::ARTNETMASTER)
-    {
-        logger_base.info("SyncMode: ARTNETMASTER");
-    }
-    else if (_mode == SYNCMODE::ARTNETSLAVE)
-    {
-        logger_base.info("SyncMode: ARTNETREMOTE");
-    }
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -134,6 +113,28 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     if (_scheduleOptions == nullptr)
     {
         _scheduleOptions = new ScheduleOptions();
+    }
+
+    if (_mode == SYNCMODE::FPPMASTER) {
+        logger_base.info("SyncMode: FPPMASTER");
+        OpenFPPSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::FPPSLAVE)
+    {
+        logger_base.info("SyncMode: FPPREMOTE");
+        OpenFPPSyncListenSocket();
+    }
+    else if (_mode == SYNCMODE::STANDALONE)
+    {
+        logger_base.info("SyncMode: STANDALONE");
+    }
+    else if (_mode == SYNCMODE::ARTNETMASTER)
+    {
+        logger_base.info("SyncMode: ARTNETMASTER");
+    }
+    else if (_mode == SYNCMODE::ARTNETSLAVE)
+    {
+        logger_base.info("SyncMode: ARTNETREMOTE");
     }
 
     _outputManager = new OutputManager();
@@ -3811,8 +3812,45 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         _fppSyncMaster->SendTo(remoteAddr, buffer, bufsize);
 
+        if (sp->fileType == SYNC_FILE_SEQ)
+        {
+            auto remotes = GetOptions()->GetFPPRemotes();
+            for (auto it = remotes.begin(); it != remotes.end(); ++it)
+            {
+                SendUnicastSync(*it, fn.GetFullName().ToStdString(), msec, frameMS, sp->pktType);
+            }
+        }
+
         free(buffer);
     }
+}
+
+void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action)
+{
+    wxIPV4address remoteAddr;
+    remoteAddr.Hostname(ip);
+    remoteAddr.Service(FPP_CTRL_CSV_PORT);
+
+    char buffer[1024];
+    memset(buffer, 0x00, sizeof(buffer));
+
+    switch (action)
+    {
+    case SYNC_PKT_SYNC:
+        sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
+        break;
+    case SYNC_PKT_STOP:
+        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
+        break;
+    case SYNC_PKT_START:
+        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
+        break;
+    case CTRL_PKT_BLANK:
+        sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
+        break;
+    }
+
+    _fppSyncMasterUnicast->SendTo(remoteAddr, buffer, strlen(buffer));
 }
 
 void ScheduleManager::OpenFPPSyncSendSocket()
@@ -3852,23 +3890,58 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     {
         logger_base.info("FPP Sync as master datagram opened successfully.");
     }
+
+    std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
+
+    if (remotes.size() > 0)
+    {
+        _fppSyncMasterUnicast = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+        if (_fppSyncMasterUnicast == nullptr)
+        {
+            logger_base.error("Error opening unicast datagram for FPP Sync as master.");
+        }
+        else if (!_fppSyncMasterUnicast->IsOk())
+        {
+            logger_base.error("Error opening unicast datagram for FPP Sync as master. OK : FALSE");
+            delete _fppSyncMasterUnicast;
+            _fppSyncMasterUnicast = nullptr;
+        }
+        else if (_fppSyncMasterUnicast->Error())
+        {
+            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s", _fppSyncMasterUnicast->LastError(), (const char*)IPOutput::DecodeError(_fppSyncMasterUnicast->LastError()).c_str());
+            delete _fppSyncMasterUnicast;
+            _fppSyncMasterUnicast = nullptr;
+        }
+        else
+        {
+            logger_base.info("FPP Sync as master unicast datagram opened successfully.");
+        }
+    }
 }
 
 void ScheduleManager::CloseFPPSyncSendSocket()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_fppSyncMaster != nullptr) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("FPP Sync as master datagram closed.");
         _fppSyncMaster->Close();
         delete _fppSyncMaster;
         _fppSyncMaster = nullptr;
     }
+
+    if (_fppSyncMasterUnicast != nullptr)
+    {
+        logger_base.info("FPP Sync as master unicast datagram closed.");
+        _fppSyncMasterUnicast->Close();
+        delete _fppSyncMasterUnicast;
+        _fppSyncMasterUnicast = nullptr;
+    }
 }
 
 void ScheduleManager::CloseFPPSyncListenSocket()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_fppSyncSlave != nullptr) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("FPP Sync as remote datagram closed.");
         _fppSyncSlave->Close();
         delete _fppSyncSlave;
