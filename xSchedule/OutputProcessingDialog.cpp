@@ -27,6 +27,7 @@ const long OutputProcessingDialog::ID_BUTTON7 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON8 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON9 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON10 = wxNewId();
+const long OutputProcessingDialog::ID_BUTTON11 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON5 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON4 = wxNewId();
 //*)
@@ -78,6 +79,8 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	BoxSizer2->Add(Button_ColourOrder, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reverse = new wxButton(this, ID_BUTTON10, _("Add Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
 	BoxSizer2->Add(Button_Reverse, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Gamma = new wxButton(this, ID_BUTTON11, _("Add Gamma"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	BoxSizer2->Add(Button_Gamma, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON5, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
@@ -102,6 +105,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDimWhiteClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ColourOrderClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ReverseClick);
+	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_GammaClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_CancelClick);
 	//*)
@@ -478,4 +482,8 @@ void OutputProcessingDialog::OnButton_ReverseClick(wxCommandEvent& event)
         ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
     }
     ValidateWindow();
+}
+
+void OutputProcessingDialog::OnButton_GammaClick(wxCommandEvent& event)
+{
 }

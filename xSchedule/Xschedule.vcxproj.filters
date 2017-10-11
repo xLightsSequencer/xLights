@@ -134,6 +134,7 @@
     <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
+    <ClCompile Include="GammaDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -250,6 +251,7 @@
     <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
+    <ClInclude Include="GammaDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

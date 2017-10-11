@@ -210,6 +210,7 @@
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="GammaDialog.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -332,6 +333,7 @@
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="GammaDialog.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />
     <ClInclude Include="md5.h" />
