@@ -226,7 +226,7 @@ std::string Falcon::SafeDescription(const std::string description) const
     {
         replaced = desc.Replace("  ", " ");
     }
-    return desc.ToStdString();
+    return desc.Left(25).ToStdString();
 }
 
 int Falcon::GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port)
@@ -423,6 +423,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     // for each protocol
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
     {
+        logger_base.info("Protocol %s.", (const char *)protocol->c_str());
+
         // for each port ... this is the max of any port type but it should be ok
         for (int i = 1; i <= maxport; i++)
         {
@@ -453,6 +455,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
             if (first != nullptr)
             {
+                logger_base.debug("First model on port %d: %s.", i, (const char *)first->GetName().c_str());
+
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
                 int numstrings = first->GetNumPhysicalStrings();
@@ -462,6 +466,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 {
                     if (first == last && numstrings > 1)
                     {
+                        logger_base.debug("Model has %d strings.", numstrings);
                         for (int j = 0; j < numstrings; j++)
                         {
                             if (portdone[i + j])
@@ -476,7 +481,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
 
-                                if (output == nullptr)
+                                if (output == nullptr || FindPort(stringData, i + j - 1) == nullptr)
+
                                 {
                                     logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring);
                                     wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring));
@@ -506,7 +512,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             portdone[i] = true;
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            if (output == nullptr)
+                            if (output == nullptr || FindPort(stringData, i - 1) == nullptr)
                             {
                                 logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart);
                                 wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart));

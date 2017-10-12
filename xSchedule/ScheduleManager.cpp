@@ -2632,11 +2632,11 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     }
 
     LogAndWrite(f, "Checking schedule.");
-
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     if (IPOutput::GetLocalIP() != "")
     {
+        LogAndWrite(f, "Forced local IP address." + IPOutput::GetLocalIP());
         addr.Hostname(IPOutput::GetLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
