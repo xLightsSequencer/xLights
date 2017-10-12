@@ -11,10 +11,12 @@
 #include "RemapDialog.h"
 #include "ColourOrderDialog.h"
 #include "AddReverseDialog.h"
+#include "GammaDialog.h"
 
 //(*InternalHeaders(OutputProcessingDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "OutputProcessGamma.h"
 //*)
 
 //(*IdInit(OutputProcessingDialog)
@@ -124,9 +126,16 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
     for (auto it = op->begin(); it != op->end(); ++it)
     {
         ListView_Processes->InsertItem(i, (*it)->GetType());
-        ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
-        ListView_Processes->SetItem(i, 2, wxString::Format(wxT("%i"), (*it)->GetP1()));
-        ListView_Processes->SetItem(i, 3, wxString::Format(wxT("%i"), (*it)->GetP2()));
+        ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%ld"), (long)(*it)->GetStartChannel()));
+        ListView_Processes->SetItem(i, 2, wxString::Format(wxT("%ld"), (long)(*it)->GetP1()));
+        if ((*it)->GetType() == "Gamma")
+        {
+            ListView_Processes->SetItem(i, 3, ((OutputProcessGamma*)(*it))->GetGammaSettings());
+        }
+        else
+        {
+            ListView_Processes->SetItem(i, 3, wxString::Format(wxT("%ld"), (long)(*it)->GetP2()));
+        }
         ListView_Processes->SetItem(i, 4, (*it)->GetDescription());
         i++;
     }
@@ -335,6 +344,23 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             op = new OutputProcessReverse(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
+        else if (type == "Gamma")
+        {
+            float g = 1.0;
+            float gR = 1.0;
+            float gG = 1.0;
+            float gB = 1.0;
+
+            wxArrayString floats = wxSplit(ListView_Processes->GetItemText(i, 3), ',');
+            if (floats.size() == 4)
+            {
+                g = wxAtof(floats[0]);
+                gR = wxAtof(floats[1]);
+                gG = wxAtof(floats[2]);
+                gB = wxAtof(floats[3]);
+            }
+            op = new OutputProcessGamma(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), g, gR, gG, gB, ListView_Processes->GetItemText(i, 4).ToStdString());
+        }
 
         if (op != nullptr)
         {
@@ -391,12 +417,27 @@ bool OutputProcessingDialog::EditSelectedItem()
         size_t p2 = wxAtol(ListView_Processes->GetItemText(row, 3));
         std::string d = ListView_Processes->GetItemText(row, 4).ToStdString();
 
+        float gamma = 1.0;
+        float gammaR = 1.0;
+        float gammaG = 1.0;
+        float gammaB = 1.0;
+
+        wxArrayString floats = wxSplit(ListView_Processes->GetItemText(row, 3), ',');
+        if (floats.size() == 4)
+        {
+            gamma = wxAtof(floats[0]);
+            gammaR = wxAtof(floats[1]);
+            gammaG = wxAtof(floats[2]);
+            gammaB = wxAtof(floats[3]);
+        }
+
         // this is wasteful ... but whatever
         DimDialog dlgd(this, sc, p1, p2, d);
         DimWhiteDialog dlgdw(this, sc, p1, p2, d);
         SetDialog dlgs(this, sc, p1, p2, d);
         RemapDialog dlgr(this, sc, p1, p2, d);
         AddReverseDialog dlgrv(this, sc, p1, p2, d);
+        GammaDialog dlgg(this, sc, p1, gamma, gammaR, gammaG, gammaB, d);
         ColourOrderDialog dlgc(this, sc, p1, p2, d);
         int res = wxID_CANCEL;
 
@@ -424,12 +465,23 @@ bool OutputProcessingDialog::EditSelectedItem()
         {
             res = dlgrv.ShowModal();
         }
+        else if (type == "Gamma")
+        {
+            res = dlgg.ShowModal();
+        }
 
         if (res == wxID_OK)
         {
-            ListView_Processes->SetItem(row, 1, wxString::Format(wxT("%i"), sc));
-            ListView_Processes->SetItem(row, 2, wxString::Format(wxT("%i"), p1));
-            ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%i"), p2));
+            ListView_Processes->SetItem(row, 1, wxString::Format(wxT("%ld"), (long)sc));
+            ListView_Processes->SetItem(row, 2, wxString::Format(wxT("%ld"), (long)p1));
+            if (type == "Gamma")
+            {
+                ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%.2f,%.2f,%.2f,%.2f"), gamma, gammaR, gammaG, gammaB));
+            }
+            else
+            {
+                ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%ld"), (long)p2));
+            }
             ListView_Processes->SetItem(row, 4, d);
             result = true;
         }
@@ -486,4 +538,11 @@ void OutputProcessingDialog::OnButton_ReverseClick(wxCommandEvent& event)
 
 void OutputProcessingDialog::OnButton_GammaClick(wxCommandEvent& event)
 {
+    ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Gamma");
+    ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
+    if (!EditSelectedItem())
+    {
+        ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
+    }
+    ValidateWindow();
 }

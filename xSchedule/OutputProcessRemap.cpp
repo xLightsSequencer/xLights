@@ -29,8 +29,10 @@ wxXmlNode* OutputProcessRemap::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPRemap");
 
-    res->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
-    res->AddAttribute("To", wxString::Format(wxT("%i"), _to));
+    res->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
+    res->AddAttribute("To", wxString::Format(wxT("%ld"), (long)_to));
+
+    OutputProcess::Save(res);
 
     return res;
 }

@@ -39,7 +39,7 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -80,7 +80,7 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	Button_Ok->SetDefault();
@@ -110,18 +110,18 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
     if (_gamma == 0.0)
     {
         CheckBox_Simple->SetValue(false);
-        TextCtrl_Simple->SetValue("1.0");
-        TextCtrl_R->SetValue(wxString::Format("%f", _gammaR));
-        TextCtrl_G->SetValue(wxString::Format("%f", _gammaG));
-        TextCtrl_B->SetValue(wxString::Format("%f", _gammaB));
+        TextCtrl_Simple->SetValue("1.00");
+        TextCtrl_R->SetValue(wxString::Format("%.2f", _gammaR));
+        TextCtrl_G->SetValue(wxString::Format("%.2f", _gammaG));
+        TextCtrl_B->SetValue(wxString::Format("%.2f", _gammaB));
     }
     else
     {
         CheckBox_Simple->SetValue(true);
-        TextCtrl_R->SetValue("1.0");
-        TextCtrl_G->SetValue("1.0");
-        TextCtrl_B->SetValue("1.0");
-        TextCtrl_Simple->SetValue(wxString::Format("%f", _gamma));
+        TextCtrl_R->SetValue("1.00");
+        TextCtrl_G->SetValue("1.00");
+        TextCtrl_B->SetValue("1.00");
+        TextCtrl_Simple->SetValue(wxString::Format("%.2f", _gamma));
     }
     TextCtrl_Description->SetValue(_description);
 
@@ -203,9 +203,9 @@ void GammaDialog::ValidateWindow()
     }
     else
     {
-        if (r <= 0 || r > 50 ||
-            g <= 0 || g > 50 ||
-            b <= 0 || b > 50
+        if (r <= 0.01 || r > 50 ||
+            g <= 0.01 || g > 50 ||
+            b <= 0.01 || b > 50
             )
         {
             Button_Ok->Enable(false);
@@ -223,4 +223,5 @@ void GammaDialog::ValidateWindow()
         TextCtrl_Simple->Hide();
         StaticText_Simple->Hide();
     }
+    Layout();
 }

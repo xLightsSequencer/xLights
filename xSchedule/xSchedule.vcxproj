@@ -219,6 +219,7 @@
     <ClCompile Include="OutputProcessColourOrder.cpp" />
     <ClCompile Include="OutputProcessDim.cpp" />
     <ClCompile Include="OutputProcessDimWhite.cpp" />
+    <ClCompile Include="OutputProcessGamma.cpp" />
     <ClCompile Include="OutputProcessingDialog.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
     <ClCompile Include="OutputProcessReverse.cpp" />
@@ -343,6 +344,7 @@
     <ClInclude Include="OutputProcessColourOrder.h" />
     <ClInclude Include="OutputProcessDim.h" />
     <ClInclude Include="OutputProcessDimWhite.h" />
+    <ClInclude Include="OutputProcessGamma.h" />
     <ClInclude Include="OutputProcessingDialog.h" />
     <ClInclude Include="OutputProcessRemap.h" />
     <ClInclude Include="OutputProcessReverse.h" />

@@ -29,8 +29,10 @@ wxXmlNode* OutputProcessColourOrder::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPColourOrder");
 
-    res->AddAttribute("Nodes", wxString::Format(wxT("%i"), _nodes));
-    res->AddAttribute("ColourOrder", wxString::Format(wxT("%i"), _colourOrder));
+    res->AddAttribute("Nodes", wxString::Format(wxT("%ld"), (long)_nodes));
+    res->AddAttribute("ColourOrder", wxString::Format(wxT("%ld"), (long)_colourOrder));
+
+    OutputProcess::Save(res);
 
     return res;
 }

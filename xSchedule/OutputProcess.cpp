@@ -5,6 +5,9 @@
 #include "OutputProcessDimWhite.h"
 #include "OutputProcessSet.h"
 #include "OutputProcessRemap.h"
+#include "OutputProcessReverse.h"
+#include "OutputProcessGamma.h"
+#include "OutputProcessColourOrder.h"
 
 OutputProcess::OutputProcess(wxXmlNode* node)
 {
@@ -40,7 +43,7 @@ OutputProcess::OutputProcess(size_t startChannel, const std::string& description
 
 void OutputProcess::Save(wxXmlNode* node)
 {
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
+    node->AddAttribute("StartChannel", wxString::Format(wxT("%ld"), (long)_startChannel));
     node->AddAttribute("Description", _description);
 }
 
@@ -61,6 +64,18 @@ OutputProcess* OutputProcess::CreateFromXml(wxXmlNode* node)
     else if (node->GetName() == "OPRemap")
     {
         return new OutputProcessRemap(node);
+    }
+    else if (node->GetName() == "OPReverse")
+    {
+        return new OutputProcessReverse(node);
+    }
+    else if (node->GetName() == "OPColourOrder")
+    {
+        return new OutputProcessColourOrder(node);
+    }
+    else if (node->GetName() == "OPGamma")
+    {
+        return new OutputProcessGamma(node);
     }
     return nullptr;
 }

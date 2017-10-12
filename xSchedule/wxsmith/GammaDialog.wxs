@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="GammaDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<growablecols>1</growablecols>

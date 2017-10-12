@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 						- empty model groups
 						- submodels with no nodes
 						- referenced files outside show directory
+   -- enh (keith)   Add xSchedule gama processing on output
+   -- enh (keith)   Add FPP master support for pixel sticks and Falcons
 2017.31  Oct 06, 2017  
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups

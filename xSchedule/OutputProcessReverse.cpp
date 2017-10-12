@@ -25,7 +25,9 @@ wxXmlNode* OutputProcessReverse::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPReverse");
 
-    res->AddAttribute("Nodes", wxString::Format(wxT("%i"), _nodes));
+    res->AddAttribute("Nodes", wxString::Format(wxT("%ld"), (long)_nodes));
+
+    OutputProcess::Save(res);
 
     return res;
 }
