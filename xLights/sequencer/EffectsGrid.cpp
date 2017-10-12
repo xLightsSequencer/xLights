@@ -2027,6 +2027,8 @@ bool EffectsGrid::IsACActive()
 
 bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 {
+    if (HasCapture()) return false;
+
     if (mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1 || mRangeEndCol == -1)
     {
         // nothing selected
