@@ -4201,7 +4201,7 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (ostart->GetIP() != oend->GetIP())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetIP(), oend->GetDescription());
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetDescription(), oend->GetIP());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
