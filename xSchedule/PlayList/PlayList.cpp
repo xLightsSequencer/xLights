@@ -475,6 +475,8 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
     if (_stopAtEndOfCurrentStep) return nullptr;
     if (_currentStep == nullptr) return nullptr;
 
+    if (_lastOnlyOnce && _steps.back() == _currentStep) return nullptr;
+
     // this will contain a step name if this is to be our forced next step
     if (_forceNextStep != "")
     {

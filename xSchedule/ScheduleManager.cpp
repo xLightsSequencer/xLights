@@ -2979,7 +2979,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                 if (wxString((*i)->GetTitle()).Contains("FSEQ"))
                 {
                     long ch = (*i)->GetFSEQChannels();
-                    if (ch != totalChannels)
+                    if (ch < totalChannels)
                     {
                         wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.", 
                                     (const char*)(*n)->GetNameNoTime().c_str(), 
@@ -2989,6 +2989,17 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                                     totalChannels);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
+                    }
+                    else if (ch > totalChannels)
+                    {
+                        wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when only %ld channels are configured to be sent out.",
+                            (const char*)(*n)->GetNameNoTime().c_str(),
+                            (const char*)(*s)->GetNameNoTime().c_str(),
+                            (const char*)(*i)->GetNameNoTime().c_str(),
+                            ch,
+                            totalChannels);
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
                     }
                 }
             }
