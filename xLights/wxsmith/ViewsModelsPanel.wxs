@@ -52,6 +52,7 @@
 																	<handler function="OnListCtrlNonModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 																	<handler function="OnListCtrlNonModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 																	<handler function="OnListCtrlNonModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
+																	<handler function="OnListCtrlNonModelsColumnClick" entry="EVT_LIST_COL_CLICK" />
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<option>1</option>

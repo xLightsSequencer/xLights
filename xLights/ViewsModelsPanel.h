@@ -56,9 +56,11 @@ class ViewsModelsPanel: public wxPanel
     wxImageList* _imageList;
     bool _dragRowModel;
     bool _dragRowNonModel;
+    int _sortOrder = 0;
     std::list<std::string> _undo;
 
     void PopulateViews();
+    void SortNonModels();
     void PopulateModels(const std::string& selectModels = "");
     void ValidateWindow();
     void AddSelectedModels(int pos = -1);
@@ -208,6 +210,7 @@ class ViewsModelsPanel: public wxPanel
 		void OnButton_MoveDownClick(wxCommandEvent& event);
 		void OnButton_MoveUpClick(wxCommandEvent& event);
 		void OnButton_MakeMasterClick(wxCommandEvent& event);
+		void OnListCtrlNonModelsColumnClick(wxListEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

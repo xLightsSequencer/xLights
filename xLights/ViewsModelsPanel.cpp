@@ -238,6 +238,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsKeyDown);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsColumnClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddAllClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
@@ -511,6 +512,8 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         ListCtrlModels->SetColumnWidth(1, 22);
     }
     ListCtrlModels->SetColumnWidth(2, wxLIST_AUTOSIZE);
+
+    SortNonModels();
 
     ListCtrlModels->Thaw();
     ListCtrlNonModels->Thaw();
@@ -2502,4 +2505,39 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
         ValidateWindow();
     }
+}
+
+int wxCALLBACK MyCompareFunctionVMPAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    return *(Element*)item1 == *(Element*)item2 ? 0 : ((*(Element*)item1 < *(Element*)item2) ? -1 : 1);
+}
+
+int wxCALLBACK MyCompareFunctionVMPDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    return *(Element*)item1 == *(Element*)item2 ? 0 : ((*(Element*)item1 < *(Element*)item2) ? 1 : -1);
+}
+
+void ViewsModelsPanel::SortNonModels()
+{
+    if (_sortOrder == 0)
+    {
+        ListCtrlNonModels->SortItems(MyCompareFunctionVMPAsc, (wxIntPtr)ListCtrlNonModels);
+    }
+    else
+    {
+        ListCtrlNonModels->SortItems(MyCompareFunctionVMPDesc, (wxIntPtr)ListCtrlNonModels);
+    }
+}
+
+void ViewsModelsPanel::OnListCtrlNonModelsColumnClick(wxListEvent& event)
+{
+    if (_sortOrder == 0)
+    {
+        _sortOrder = 1;
+    }
+    else
+    {
+        _sortOrder = 0;
+    }
+    SortNonModels();
 }
