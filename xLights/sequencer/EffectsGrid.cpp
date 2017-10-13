@@ -5700,7 +5700,7 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
 Element* EffectsGrid::GetActiveTimingElement()
 {
     Element* returnValue=nullptr;
-    for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+    for(int row=0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
         if(e->GetType() == ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
@@ -5717,12 +5717,12 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
     int left,right;
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+    for(int row=0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
         el->GetMaximumRangeOfMovementForSelectedEffects(left,right);
-        toLeft = toLeft<left?toLeft:left;
-        toRight = toRight<right?toRight:right;
+        toLeft = toLeft < left ? toLeft : left;
+        toRight = toRight < right ? toRight : right;
     }
 }
 
@@ -5731,8 +5731,8 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
     // Tag all selected effects so we don't move them twice
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
-    if( !offset ) {
-        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    if (!offset) {
+        for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
@@ -5740,20 +5740,20 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
     } else {
         int start_row = -1;
         int end_row = -1;
-        for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+        for(int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-            if( el->GetSelectedEffectCount() > 0 ) {
-                if( start_row == -1 ) {
+            if (el->GetSelectedEffectCount() > 0) {
+                if (start_row == -1) {
                     start_row = row;
                 } else {
                     end_row = row;
                 }
             }
         }
-        int delta_step = deltaMS / (end_row-start_row);
+        int delta_step = deltaMS / (end_row - start_row);
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
-        for(int row=start_row;row<=end_row;row++)
+        for(int row = start_row; row <= end_row; row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
@@ -5821,7 +5821,7 @@ void EffectsGrid::CopyModelEffects(int row_number)
         mRangeEndCol = -1;
         mRangeStartRow = -1;
         mRangeEndRow = -1;
-        mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number,row_number,mDropStartTimeMS,mSequenceElements->GetSequenceEnd());
+        mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number, row_number, mDropStartTimeMS, mSequenceElements->GetSequenceEnd());
         ((MainSequencer*)mParent)->CopySelectedEffects();
         mCanPaste = true;
         effectLayer->UnSelectAllEffects();
@@ -5841,4 +5841,3 @@ void EffectsGrid::PasteModelEffects(int row_number)
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
 }
-
