@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 						- referenced files outside show directory
    -- enh (keith)   Add xSchedule gama processing on output
    -- enh (keith)   Add FPP master support for pixel sticks and Falcons
+   -- bug (keith)   Fix xSchedule play last item only once plays repeatedly
+   -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
 2017.31  Oct 06, 2017  
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups

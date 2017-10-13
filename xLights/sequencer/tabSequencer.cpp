@@ -630,7 +630,7 @@ void xLightsFrame::Scroll( wxCommandEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     mainSequencer->HorizontalScrollChanged(eventScroll);
-    mainSequencer->PanelEffectGrid->ClearSelection();
+    mainSequencer->PanelEffectGrid->ClearSelection(true);
 }
 
 

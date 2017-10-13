@@ -864,7 +864,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
     return eff;
 }
 
-void EffectsGrid::ClearSelection()
+void EffectsGrid::ClearSelection(bool keepCanPaste)
 {
     mDragging = false;
     mResizing = false;
@@ -876,7 +876,10 @@ void EffectsGrid::ClearSelection()
     mDragStartRow = 0;
     mDragStartX = -1;
     mDragStartY = -1;
-    mCanPaste = false;
+    if (!keepCanPaste)
+    {
+        mCanPaste = false;
+    }
     mSelectedEffect = nullptr;
     mRangeCursorRow = mRangeStartRow;
     mRangeCursorCol = mRangeStartCol;
