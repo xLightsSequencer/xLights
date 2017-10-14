@@ -55,7 +55,7 @@ public:
     void SetVolume(int volume) { if (_volume != volume) { _volume = volume; _changeCount++; } }
     virtual bool ControlsTiming() const { return false; }
     virtual size_t GetPositionMS() const { return 0; }
-    virtual size_t GetFrameMS() const { return 0; }
+    virtual size_t GetFrameMS() const { return 50; }
     size_t GetPriority() const { return _priority; }
     void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }

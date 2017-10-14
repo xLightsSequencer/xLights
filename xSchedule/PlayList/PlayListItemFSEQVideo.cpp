@@ -352,7 +352,14 @@ size_t PlayListItemFSEQVideo::GetPositionMS() const
 {
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        return _audioManager->Tell();
+        if (_delay != 0)
+        {
+            if (_currentFrame * GetFrameMS() < _delay)
+            {
+                return _currentFrame * GetFrameMS();
+            }
+        }
+        return _delay + _audioManager->Tell();
     }
     else
     {
@@ -380,28 +387,48 @@ wxImage PlayListItemFSEQVideo::CreateImageFromFrame(AVFrame* frame)
 void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    size_t adjustedMS = ms - _delay;
 
     wxStopWatch sw;
     if (outputframe)
     {
-        if (_channels > 0)
+        if (ms < _delay)
         {
-            wxASSERT(_startChannel > 0);
-            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+            // do nothing
         }
         else
         {
-            _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+            if (ms == _delay && _delay != 0 && ControlsTiming() && _audioManager != nullptr)
+            {
+                _audioManager->Play(0, _audioManager->LengthMS());
+            }
+
+            if (_channels > 0)
+            {
+                wxASSERT(_startChannel > 0);
+                _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, _startChannel - 1, _channels);
+            }
+            else
+            {
+                _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, 0, 0);
+            }
         }
         _currentFrame++;
     }
-	
-    AVFrame* img = _videoReader->GetNextFrame(ms, framems);
-    _window->SetImage(CreateImageFromFrame(img));
 
-    if (sw.Time() > framems / 2)
+    if (ms < _delay)
     {
-        logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+        // do nothing
+    }
+    else
+    {
+        AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
+        _window->SetImage(CreateImageFromFrame(img));
+
+        if (sw.Time() > framems / 2)
+        {
+            logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+        }
     }
 }
 
@@ -410,7 +437,14 @@ void PlayListItemFSEQVideo::Restart()
     if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Stop();
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
     _currentFrame = 0;
 }
@@ -424,7 +458,14 @@ void PlayListItemFSEQVideo::Start()
     _currentFrame = 0;
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
 
     // create the window

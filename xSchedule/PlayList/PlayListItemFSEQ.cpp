@@ -330,7 +330,14 @@ size_t PlayListItemFSEQ::GetPositionMS() const
 {
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        return _audioManager->Tell();
+        if (_delay != 0)
+        {
+            if (_currentFrame * GetFrameMS() < _delay)
+            {
+                return _currentFrame * GetFrameMS();
+            }
+        }
+        return _delay + _audioManager->Tell();
     }
     else
     {
@@ -346,14 +353,27 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     {
         if (_fseqFile != nullptr)
         {
-            if (_channels > 0)
+            if (ms < _delay)
             {
-                wxASSERT(_startChannel > 0);
-                _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+                // do nothing
             }
             else
             {
-                _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+                if (ms == _delay && _delay != 0 && ControlsTiming() && _audioManager != nullptr)
+                {
+                    _audioManager->Play(0, _audioManager->LengthMS());
+                }
+
+                ms -= _delay;
+                if (_channels > 0)
+                {
+                    wxASSERT(_startChannel > 0);
+                    _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+                }
+                else
+                {
+                    _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, 0, 0);
+                }
             }
         }
         _currentFrame++;
@@ -365,7 +385,14 @@ void PlayListItemFSEQ::Restart()
     if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Stop();
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
     _currentFrame = 0;
 }
@@ -378,8 +405,16 @@ void PlayListItemFSEQ::Start()
 
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
+
     _currentFrame = 0;
 }
 
