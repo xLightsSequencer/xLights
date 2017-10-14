@@ -154,6 +154,7 @@ public:
         void OnMenuItem_MatricesSelected(wxCommandEvent& event);
         void OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event);
         void OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event);
+        void OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -212,6 +213,7 @@ public:
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_FPPREMOTE;
+        static const long ID_MNU_FPPUNICASTREMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
@@ -244,6 +246,7 @@ public:
         wxMenu* Menu3;
         wxButton* Button_Schedule;
         wxMenuItem* MenuItem_Matrices;
+        wxMenuItem* MenuItem_FPPUnicastRemote;
         xLightsTimer _timer;
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;

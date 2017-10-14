@@ -23,6 +23,7 @@ typedef enum
     STANDALONE,
     FPPMASTER,
     FPPSLAVE,
+    FPPUNICASTSLAVE,
     ARTNETMASTER,
     ARTNETSLAVE
 } SYNCMODE;
@@ -71,6 +72,7 @@ class ScheduleManager : public wxEvtHandler
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _fppSyncMasterUnicast;
     wxDatagramSocket* _fppSyncSlave;
+    wxDatagramSocket* _fppSyncUnicastSlave;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
     wxDateTime _lastXyzzyCommand;
@@ -82,7 +84,9 @@ class ScheduleManager : public wxEvtHandler
     void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
     void OpenFPPSyncListenSocket();
+    void OpenFPPSyncUnicastListenSocket();
     void CloseFPPSyncListenSocket();
+    void CloseFPPSyncUnicastListenSocket();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
