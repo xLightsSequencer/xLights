@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
 2017.32  Oct 09, 2017 - PRODUCTION RELEASE
    -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
    -- bug (keith)   xSchedule does not turn off lights when sequence ends
@@ -25,17 +26,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Add FPP master support for pixel sticks and Falcons
    -- bug (keith)   Fix xSchedule play last item only once plays repeatedly
    -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
-2017.31  Oct 06, 2017  
+2017.31  Oct 06, 2017
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
    -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)
    -- bug     (dkulp)  Fix wxAssert warnings when quitting from menu on OSX and using debug build
    -- enh     (keith)  Add more check sequence checks ... checks of effects on strands, submodels and nodes, checks for effects that shouldnt be on nodes
    -- enh     (keith)  Add more check schedule checks ... FSEQ files which dont match networks
-   -- bug     (keith)  Fix a stack of crashes and bugs 
+   -- bug     (keith)  Fix a stack of crashes and bugs
    -- bug     (keith)  Fix #universe:start channel flagging as invalid
-   -- bug     (keith)  Fix rotozoom presets 
-   -- enh     (keith)  Add remember custom colours in colour selection dialog   
+   -- bug     (keith)  Fix rotozoom presets
+   -- enh     (keith)  Add remember custom colours in colour selection dialog
 2017.30  Sep  29, 2017
    -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view

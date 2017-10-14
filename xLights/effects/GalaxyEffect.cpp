@@ -87,16 +87,11 @@ void GalaxyEffect::SetDefaultParameters(Model *cls) {
 const double PI  =3.141592653589793238463;
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
-void CalcEndpointColor(double end_angle, double start_angle, double &adj_angle, bool reverse_dir,
+void CalcEndpointColor(double end_angle, double start_angle, double &adj_angle,
                        double head_end_of_tail, double color_length, int num_colors,
                        RenderBuffer &buffer, xlColor &color)
 {
     adj_angle = end_angle + (double)start_angle;
-    if( reverse_dir )
-    {
-        adj_angle *= -1.0;
-    }
-
     double cv = (head_end_of_tail-adj_angle) / color_length;
     int ci = (int)cv;
     double cp = cv - (double)ci;
@@ -180,7 +175,7 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     // This section rounds off the head / tail
     double adj_angle;
     double end_angle = (inward ? std::min(head_end_of_tail,revs) : std::max(0.0, tail_end_of_tail));
-    CalcEndpointColor(end_angle, start_angle, adj_angle, reverse_dir, head_end_of_tail, color_length, num_colors, buffer, color);
+    CalcEndpointColor(end_angle, start_angle, adj_angle, head_end_of_tail, color_length, num_colors, buffer, color);
     double pct1 = adj_angle/revs;
     current_radius = radius2 * pct1 + radius1 * (1.0 - pct1);
     double current_width = width2 * pct1 + width1 * (1.0 - pct1);;
@@ -295,13 +290,13 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
                     {
                         buffer.SetTempPixel((int)x1,(int)y1,color);
                         temp_colors_pct[(int)x1][(int)y1] = color_pct2;
-                        pixel_age[(int)x1][(int)y1] = adj_angle;
+                        pixel_age[(int)x1][(int)y1] = abs(adj_angle);
                     }
                     if ((int)x2 >= 0 && (int)x2 < buffer.BufferWi && (int)y2 >= 0 && (int)y2 < buffer.BufferHt)
                     {
                         buffer.SetTempPixel((int)x2,(int)y2,color);
                         temp_colors_pct[(int)x2][(int)y2] = color_pct2;
-                        pixel_age[(int)x2][(int)y2] = adj_angle;
+                        pixel_age[(int)x2][(int)y2] = abs(adj_angle);
                     }
                 }
             }
@@ -317,13 +312,13 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
             if( r >= current_radius ) break;
         }
         // blend old data down into final buffer
-        if( blend_edges && ( (inward ? (last_check-adj_angle) : (adj_angle-last_check)) >= 90.0) )
+        if( blend_edges && ( (inward ? (last_check-abs(adj_angle)) : (abs(adj_angle)-last_check)) >= 90.0) )
         {
             for( int x = 0; x < buffer.BufferWi; x++ )
             {
                 for( int y = 0; y < buffer.BufferHt; y++ )
                 {
-                    if( temp_colors_pct[x][y] > 0.0 && ((inward ? (pixel_age[x][y]-adj_angle) : (adj_angle-pixel_age[x][y])) >= 180.0) )
+                    if( temp_colors_pct[x][y] > 0.0 && ((inward ? (pixel_age[x][y]-abs(adj_angle)) : (abs(adj_angle)-pixel_age[x][y])) >= 180.0) )
                     {
                         buffer.GetTempPixel(x,y,c_new);
                         buffer.GetPixel(x,y,c_old);
@@ -334,14 +329,14 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
                     }
                 }
             }
-            last_check = adj_angle;
+            last_check = abs(adj_angle);
         }
         step = GetStep(current_radius+half_width);
     }
 
     // This section rounds off the head / tail
     end_angle = inward ? std::max(0.1, tail_end_of_tail) : std::min(head_end_of_tail,revs);
-    CalcEndpointColor(end_angle, start_angle, adj_angle, reverse_dir, head_end_of_tail, color_length, num_colors, buffer, color);
+    CalcEndpointColor(end_angle, start_angle, adj_angle, head_end_of_tail, color_length, num_colors, buffer, color);
     end_angle_start = end_angle + (inward ? -step : step);
     current_delta = 0.0;
     current_distance = 0.0;
