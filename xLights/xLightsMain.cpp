@@ -4386,6 +4386,84 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Non contiguous channels on controller ports");
+
+    std::map<std::string, std::list<Model*>*> modelsByPort;
+
+    // Check for non contiguous models on the same controller connection
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            if (it->second->GetControllerConnection() != "")
+            {
+                long start = it->second->GetFirstChannel() + 1;
+                long sc;
+                Output* o = _outputManager.GetOutput(start, sc);
+
+                if (o != nullptr && o->IsIpOutput())
+                {
+                    std::string key = o->GetIP() + it->second->GetControllerConnection();
+                    if (modelsByPort.find(key) == modelsByPort.end())
+                    {
+                        modelsByPort[key] = new std::list<Model*>();
+                    }
+                    modelsByPort[key]->push_back(it->second);
+                }
+            }
+        }
+    }
+
+    for (auto it = modelsByPort.begin(); it != modelsByPort.end(); ++it)
+    {
+        if (it->second->size() == 1)
+        {
+            // we dont need to check this one
+        }
+        else
+        {
+            it->second->sort(compare_modelstartchannel);
+
+            auto it2 = it->second->begin();
+            auto it3 = it2;
+            ++it3;
+
+            while (it3 != it->second->end())
+            {
+                int m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
+                int m1end = m1start + (*it2)->GetChanCount() - 1;
+                int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
+
+                if (m1end + 1 != m2start)
+                {
+                    long sc;
+                    Output* o = _outputManager.GetOutput(m1start, sc);
+                    wxString msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                        (*it2)->GetName(),
+                        (*it3)->GetName(),
+                        o->GetIP(),
+                        (*it2)->GetControllerConnection(),
+                        m2start - m1end - 1);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+
+                ++it2;
+                ++it3;
+            }
+        }
+        delete it->second;
+        it->second = nullptr;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
     LogAndWrite(f, "Model nodes not allocated to layers correctly");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)

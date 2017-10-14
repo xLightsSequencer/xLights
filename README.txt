@@ -12,6 +12,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
+   -- enh (keith)   Add xSchedule gamma processing on output
+   -- enh (keith)   Add FPP master support for pixel sticks and Falcons
+   -- bug (keith)   Fix xSchedule play last item only once plays repeatedly
+   -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
+   -- bug (keith)   xSchedule FSEQ, Video and audio dont respect the delay setting
+   -- bug (keith)   Fix upload to falcon hang if multistring element goes past configured string ports
+   -- enh (keith)   Add chek sequence check for non contiguous models on the same controller connection
 2017.32  Oct 09, 2017 - PRODUCTION RELEASE
    -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
    -- bug (keith)   xSchedule does not turn off lights when sequence ends
@@ -22,11 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 						- empty model groups
 						- submodels with no nodes
 						- referenced files outside show directory
-   -- enh (keith)   Add xSchedule gama processing on output
-   -- enh (keith)   Add FPP master support for pixel sticks and Falcons
-   -- bug (keith)   Fix xSchedule play last item only once plays repeatedly
-   -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
-2017.31  Oct 06, 2017
+2017.31  Oct 06, 2017  
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
    -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)
