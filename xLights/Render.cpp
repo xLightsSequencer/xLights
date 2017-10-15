@@ -943,6 +943,13 @@ void xLightsFrame::RenderDone() {
 class RenderTreeData {
 public:
     RenderTreeData(Model *e): model(e) {
+
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (e == nullptr)
+        {
+            logger_base.crit("Render tree has a null model ... this is not going to end well.");
+        }
+
         size_t cn = e->GetChanCountPerNode();
         for (int node = 0; node < e->GetNodeCount(); ++node) {
             unsigned int start = e->NodeStartChannel(node);

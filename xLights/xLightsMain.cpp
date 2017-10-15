@@ -1741,6 +1741,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 xLightsFrame::~xLightsFrame()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static bool reenter = false;
+
+    if (reenter)
+    {
+        logger_base.error("~xLightsFrame re-entered ... this wont end well.");
+    }
+    reenter = true;
+
     Timer_AutoSave.Stop();
     EffectSettingsTimer.Stop();
     Timer1.Stop();
@@ -1810,6 +1819,8 @@ xLightsFrame::~xLightsFrame()
 
     //(*Destroy(xLightsFrame)
     //*)
+
+    reenter = false;
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
@@ -4639,35 +4650,37 @@ void xLightsFrame::CheckSequence(bool display)
         if (it->second->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
-            auto models = mg->ModelNames();
-
-            int modelCount = 0;
-
-            for (auto m = models.begin(); m != models.end(); ++m)
+            if (mg != nullptr) // this should never fail
             {
-                Model* model = AllModels.GetModel(*m);
+                auto models = mg->ModelNames();
 
-                if (model == nullptr)
+                int modelCount = 0;
+
+                for (auto m = models.begin(); m != models.end(); ++m)
                 {
-                    wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
-                else
-                {
-                    modelCount++;
-                    if (model->GetName() == mg->GetName())
+                    Model* model = AllModels.GetModel(*m);
+
+                    if (model == nullptr)
                     {
-                        wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
+                        wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
+                    else
+                    {
+                        modelCount++;
+                        if (model->GetName() == mg->GetName())
+                        {
+                            wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
                 }
-            }
-
-            if (modelCount == 0)
-            {
-                emptyModelGroups.push_back(it->first);
+                if (modelCount == 0)
+                {
+                    emptyModelGroups.push_back(it->first);
+                }
             }
         }
     }
@@ -4959,7 +4972,7 @@ void xLightsFrame::CheckSequence(bool display)
         f.Close();
 
         wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-        if (ft)
+        if (ft != nullptr)
         {
             wxString command = ft->GetOpenCommand(filename);
 

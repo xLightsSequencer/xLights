@@ -329,7 +329,7 @@ void handleCrash(void *data) {
 #endif
 
     int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: %X or %i\n", id, id);
+    trace += wxString::Format("\nCrashed thread id: 0x%X or %i\n", id, id);
 #ifndef LINUX
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX

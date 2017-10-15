@@ -8,7 +8,6 @@
 #include "ModelScreenLocation.h"
 #include <log4cpp/Category.hh>
 
-
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
 static const std::string VERT_PER_MODEL("Vertical Per Model");
 static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
@@ -16,13 +15,12 @@ static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
 static const std::string OVERLAY_CENTER("Overlay - Centered");
 static const std::string OVERLAY_SCALED("Overlay - Scaled");
 static const std::string SINGLE_LINE("Single Line");
-
 static const std::string PER_MODEL_DEFAULT("Per Model Default");
 static const std::string PER_MODEL_PER_PREVIEW("Per Model Per Preview");
 static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 
-
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
+
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
@@ -43,8 +41,6 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     return GROUP_BUFFER_STYLES;
 }
 
-
-
 ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : ModelWithScreenLocation(m)
 {
     ModelXml = node;
@@ -54,12 +50,20 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
 }
 
 void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
-    ModelGroup *g = dynamic_cast<ModelGroup*>(m);
-    if (g != nullptr) {
-        for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
-            LoadRenderBufferNodes(*it, type, newNodes, bufferWi, bufferHi);
+    if (m->GetDisplayAs() == "ModelGroup")
+    {
+        ModelGroup *g = dynamic_cast<ModelGroup*>(m);
+        if (g != nullptr) {
+            for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
+                LoadRenderBufferNodes(*it, type, newNodes, bufferWi, bufferHi);
+            }
         }
-    } else {
+        else {
+            m->InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+        }
+    }
+    else
+    {
         m->InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
     }
 }
@@ -396,7 +400,8 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
     if (type == "Default") {
         type = defaultBufferStyle;
     }
-    BufferWi = BufferHt = 0;
+    BufferWi = 0;
+    BufferHt = 0;
 
     if (type == HORIZ_PER_MODEL) {
         for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
@@ -560,6 +565,6 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         Model::InitRenderBufferNodes(type, transform, Nodes, BufferWi, BufferHt);
     }
 
-    wxASSERT(BufferWi != 0);
-    wxASSERT(BufferHt != 0);
+    //wxASSERT(BufferWi != 0);
+    //wxASSERT(BufferHt != 0);
 }

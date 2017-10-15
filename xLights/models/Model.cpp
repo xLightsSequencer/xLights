@@ -1716,6 +1716,13 @@ void Model::InitRenderBufferNodes(const std::string &type,
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int firstNode = newNodes.size();
+
+    // want to see if i can catch something that causes this to crash
+    if (firstNode + Nodes.size() <= 0 || firstNode + Nodes.size() > 50000)
+    {
+        logger_base.warn("XXX Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld.", (long)firstNode + Nodes.size());
+    }
+
     newNodes.reserve(firstNode + Nodes.size());
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
