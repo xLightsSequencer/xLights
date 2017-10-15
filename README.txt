@@ -18,7 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
    -- bug (keith)   xSchedule FSEQ, Video and audio dont respect the delay setting
    -- bug (keith)   Fix upload to falcon hang if multistring element goes past configured string ports
-   -- enh (keith)   Add chek sequence check for non contiguous models on the same controller connection
+   -- enh (keith)   Add check sequence check for non contiguous models on the same controller connection
+   -- enh (keith)   Add xSchedule can act as a remote using the csv sync packets (which are routable)
+   -- enh (keith)   Add cropping to the video effect
 2017.32  Oct 09, 2017 - PRODUCTION RELEASE
    -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
    -- bug (keith)   xSchedule does not turn off lights when sequence ends
