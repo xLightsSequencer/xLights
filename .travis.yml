@@ -12,5 +12,5 @@ notifications:
     recipients:
       - chris@adebenham.com
       - keithsw1111@hotmail.com
-    on_sucess: never
+    on_success: never
     on_failure: always
