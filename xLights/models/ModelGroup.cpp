@@ -294,7 +294,7 @@ void ModelGroup::CheckForChanges() const {
     }
 }
 
-void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHt) const {
     CheckForChanges();
     std::string type = tp;
     if (type.compare(0, 9, "Per Model") == 0) {
@@ -346,26 +346,29 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     }
     if (type == HORIZ_PER_MODEL) {
         BufferWi = models;
-        BufferHi = maxNodes;
+        BufferHt = maxNodes;
     } else if (type == VERT_PER_MODEL) {
-        BufferHi = models;
+        BufferHt = models;
         BufferWi = maxNodes;
     } else if (type == HORIZ_PER_MODELSTRAND) {
         BufferWi = strands;
-        BufferHi = maxStrandLen;
+        BufferHt = maxStrandLen;
     } else if (type == VERT_PER_MODELSTRAND) {
-        BufferHi = strands;
+        BufferHt = strands;
         BufferWi = maxStrandLen;
     } else if (type == SINGLE_LINE) {
-        BufferHi = 1;
+        BufferHt = 1;
         BufferWi = total;
     } else if (type == OVERLAY_CENTER || type == OVERLAY_SCALED) {
-        BufferHi = maxHi;
+        BufferHt = maxHi;
         BufferWi = maxWid;
     } else {
-        Model::GetBufferSize(type, "None", BufferWi, BufferHi);
+        Model::GetBufferSize(type, "None", BufferWi, BufferHt);
     }
-    AdjustForTransform(transform, BufferWi, BufferHi);
+    AdjustForTransform(transform, BufferWi, BufferHt);
+
+    wxASSERT(BufferWi != 0);
+    wxASSERT(BufferHt != 0);
 }
 
 static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int maxX, int maxY, int scale) {

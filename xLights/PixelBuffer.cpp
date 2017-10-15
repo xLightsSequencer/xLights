@@ -1530,6 +1530,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 int bw, bh;
                 (*it)->Nodes.clear();
                 gp->Models()[cnt]->InitRenderBufferNodes(ntype, transform, (*it)->Nodes, bw, bh);
+                if (bw == 0) bw = 1; // zero sized buffers are a problem
+                if (bh == 0) bh = 1;
                 (*it)->InitBuffer(bh, bw, bh, bw, transform);
                 (*it)->SetAllowAlphaChannel(inf->buffer.allowAlpha);
             }

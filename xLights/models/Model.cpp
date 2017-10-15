@@ -1712,7 +1712,7 @@ void Model::ApplyTransform(const std::string &type,
 
 void Model::InitRenderBufferNodes(const std::string &type,
                                   const std::string &transform,
-                                  std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) const {
+                                  std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int firstNode = newNodes.size();
@@ -1721,10 +1721,10 @@ void Model::InitRenderBufferNodes(const std::string &type,
         newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
     }
     if (type == DEFAULT) {
-        bufferHi = this->BufferHt;
+        bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
     } else if (type == SINGLE_LINE) {
-        bufferHi = 1;
+        bufferHt = 1;
         bufferWi = newNodes.size();
         int cnt = 0;
         for (int x = firstNode; x < newNodes.size(); x++) {
@@ -1739,9 +1739,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
     } else if (type == HORIZ_PER_STRAND) {
         bufferWi = GetNumStrands();
-        bufferHi = 1;
+        bufferHt = 1;
         for (int x = 0; x < bufferWi; x++) {
-            bufferHi = std::max(bufferHi, GetStrandLength(x));
+            bufferHt = std::max(bufferHt, GetStrandLength(x));
         }
         int cnt = 0;
         int strand = 0;
@@ -1757,16 +1757,16 @@ void Model::InitRenderBufferNodes(const std::string &type,
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
                 }
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                    SetCoords(*it2, strand, cnt, -1, bufferHi, strandLen);
+                    SetCoords(*it2, strand, cnt, -1, bufferHt, strandLen);
                 }
                 cnt++;
                 x++;
             }
         }
     } else if (type == VERT_PER_STRAND) {
-        bufferHi = GetNumStrands();
+        bufferHt = GetNumStrands();
         bufferWi = 1;
-        for (int x = 0; x < bufferHi; x++) {
+        for (int x = 0; x < bufferHt; x++) {
             bufferWi = std::max(bufferWi, GetStrandLength(x));
         }
         int cnt = 0;
@@ -1829,7 +1829,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
             offx = 0;
             offy = 0;
         }
-        bufferHi = bufferWi = -1;
+        bufferHt = bufferWi = -1;
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
@@ -1845,8 +1845,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 if (it2->bufX > bufferWi) {
                     bufferWi = it2->bufX;
                 }
-                if (it2->bufY > bufferHi) {
-                    bufferHi = it2->bufY;
+                if (it2->bufY > bufferHt) {
+                    bufferHt = it2->bufY;
                 }
 
                 if (noOff) {
@@ -1856,17 +1856,20 @@ void Model::InitRenderBufferNodes(const std::string &type,
             }
         }
         if (!noOff) {
-            bufferHi++;
+            bufferHt++;
             bufferWi++;
         } else {
-            bufferHi = std::round(maxY - minY + 1.0f);
+            bufferHt = std::round(maxY - minY + 1.0f);
             bufferWi = std::round(maxX - minX + 1.0f);
         }
     } else {
-        bufferHi = this->BufferHt;
+        bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
     }
-    ApplyTransform(transform, newNodes, bufferWi, bufferHi);
+    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
+
+    //wxASSERT(bufferWi != 0);
+    //wxASSERT(bufferHt != 0);
 }
 
 std::string Model::GetNextName() {
@@ -2294,8 +2297,8 @@ void Model::ExportAsCustomXModel() const {
 
 std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
-    size_t i,idx;
-    int n,x,y,s;
+    size_t i;
+    int n, s;
     wxString bgcolor;
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
@@ -2338,8 +2341,6 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
     }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
-    int Ibufx,Ibufy;
-
     if (BufferHt == 1) {
         // single line or arch or cane
         html+="<tr>";
@@ -2353,15 +2354,12 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
     } else if (BufferHt > 1) {
         // horizontal or vertical matrix or frame
         for(i=0; i<NodeCount; i++) {
-
-            Ibufx = Nodes[i]->Coords[0].bufX;
-            Ibufy = Nodes[i]->Coords[0].bufY;
-            idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
+            size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
             if (idx < chmap.size()) chmap[idx]=i + 1;
         }
-        for(y=BufferHt-1; y>=0; y--) {
+        for(int y = BufferHt-1; y>=0; y--) {
             html+="<tr>";
-            for(x=0; x<BufferWi; x++) {
+            for(int x = 0; x<BufferWi; x++) {
                 n=chmap[y*BufferWi+x];
                 if (n==0) {
                     html+="<td></td>";
