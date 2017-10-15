@@ -226,7 +226,7 @@ std::string Falcon::SafeDescription(const std::string description) const
     {
         replaced = desc.Replace("  ", " ");
     }
-    return desc.ToStdString();
+    return desc.Left(25).ToStdString();
 }
 
 int Falcon::GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port)
@@ -298,7 +298,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         // check we dont already have this model in our list
                         if (std::find(models.begin(), models.end(), it->second) == models.end())
                         {
-                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s. %s:%d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort());
+                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
                             models.push_back(it->second);
                             if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
                             {
@@ -306,7 +306,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             }
                             if (it->second->GetPort() > maxport)
                             {
-                                maxport = it->second->GetPort();
+                                maxport = it->second->GetPort() + it->second->GetNumPhysicalStrings() - 1;
                             }
                         }
                     }
@@ -423,6 +423,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     // for each protocol
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
     {
+        logger_base.info("Protocol %s.", (const char *)protocol->c_str());
+
         // for each port ... this is the max of any port type but it should be ok
         for (int i = 1; i <= maxport; i++)
         {
@@ -453,6 +455,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
             if (first != nullptr)
             {
+                logger_base.debug("First model on port %d: %s.", i, (const char *)first->GetName().c_str());
+
                 int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
                 int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
                 int numstrings = first->GetNumPhysicalStrings();
@@ -462,33 +466,45 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 {
                     if (first == last && numstrings > 1)
                     {
-                        for (int j = 0; j < numstrings; j++)
-                        {
-                            if (portdone[i + j])
-                            {
-                                logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j);
-                                wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
-                                success = false;
-                            }
-                            else
-                            {
-                                portdone[i + j] = true;
-                                long startChannel;
-                                Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
+                        logger_base.debug("Model has %d strings.", numstrings);
 
-                                if (output == nullptr)
+                        if (i + numstrings > stringData.size())
+                        {
+                            logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d with %d strings exceeds the configured number of strings on the controller %d.", (const char *)first->GetName().c_str(), i, numstrings, (int)stringData.size());
+                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d with %d strings exceeds the configured number of strings on the controller %d.", first->GetName(), i, numstrings, (int)stringData.size()));
+                            success = false;
+                        }
+                        else
+                        {
+                            for (int j = 0; j < numstrings; j++)
+                            {
+                                if (portdone[i + j])
                                 {
-                                    logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring);
-                                    wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring));
+                                    logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j);
+                                    wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i + j));
                                     success = false;
                                 }
                                 else
                                 {
-                                    FindPort(stringData, i + j - 1)->protocol = DecodeStringPortProtocol(*protocol);
-                                    FindPort(stringData, i + j - 1)->universe = output->GetUniverse();
-                                    FindPort(stringData, i + j - 1)->startChannel = startChannel;
-                                    FindPort(stringData, i + j - 1)->pixels = channelsperstring / 3;
-                                    FindPort(stringData, i + j - 1)->description = SafeDescription(first->GetName());
+                                    portdone[i + j] = true;
+                                    long startChannel;
+                                    Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
+
+                                    if (output == nullptr || FindPort(stringData, i + j - 1) == nullptr)
+
+                                    {
+                                        logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring);
+                                        wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring));
+                                        success = false;
+                                    }
+                                    else
+                                    {
+                                        FindPort(stringData, i + j - 1)->protocol = DecodeStringPortProtocol(*protocol);
+                                        FindPort(stringData, i + j - 1)->universe = output->GetUniverse();
+                                        FindPort(stringData, i + j - 1)->startChannel = startChannel;
+                                        FindPort(stringData, i + j - 1)->pixels = channelsperstring / 3;
+                                        FindPort(stringData, i + j - 1)->description = SafeDescription(first->GetName());
+                                    }
                                 }
                             }
                         }
@@ -498,7 +514,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                         if (portdone[i])
                         {
                             logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i));
                             success = false;
                         }
                         else
@@ -506,7 +522,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                             portdone[i] = true;
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
-                            if (output == nullptr)
+                            if (output == nullptr || FindPort(stringData, i - 1) == nullptr)
                             {
                                 logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart);
                                 wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart));
@@ -581,7 +597,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
                     (const char *)_ip.c_str(), maxMain, maxDaughter1);
                 wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                    (const char *)_ip.c_str(), maxMain, maxDaughter1));
+                    _ip, maxMain, maxDaughter1));
                 success = false;
             }
 
@@ -593,7 +609,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
                     (const char *)_ip.c_str());
                 wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                    (const char *)_ip.c_str()));
+                    _ip));
                 success = false;
                 maxDaughter2 = 0;
             }

@@ -47,13 +47,25 @@ class VideoPanel: public wxPanel
         void addVideoTime(std::string fn, unsigned long ms);
 
         //(*Declarations(VideoPanel)
+        wxSlider* Slider_Video_CropBottom;
         wxChoice* Choice_Video_DurationTreatment;
         wxSlider* Slider_Video_Starttime;
+        wxSlider* Slider_Video_CropRight;
+        wxStaticText* StaticText2;
         wxCheckBox* CheckBox_Video_AspectRatio;
+        wxTextCtrl* TextCtrl_Video_CropRight;
         wxStaticText* StaticText8;
         wxCheckBox* CheckBox_SynchroniseWithAudio;
+        wxStaticText* StaticText3;
         xlVideoFilePickerCtrl* FilePicker_Video_Filename;
+        wxSlider* Slider_Video_CropLeft;
+        wxSlider* Slider_Video_CropTop;
+        wxStaticText* StaticText5;
+        wxTextCtrl* TextCtrl_Video_CropTop;
+        wxTextCtrl* TextCtrl_Video_CropLeft;
+        wxTextCtrl* TextCtrl_Video_CropBottom;
         wxTextCtrl* TextCtrl_Video_Starttime;
+        wxStaticText* StaticText4;
         //*)
 
 protected:
@@ -69,6 +81,18 @@ protected:
 		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_CHECKBOX_Video_AspectRatio;
 		static const long ID_CHECKBOX_SynchroniseWithAudio;
+		static const long ID_STATICTEXT1;
+		static const long IDD_SLIDER_Video_CropLeft;
+		static const long ID_TEXTCTRL_Video_CropLeft;
+		static const long ID_STATICTEXT2;
+		static const long IDD_SLIDER_Video_CropRight;
+		static const long ID_TEXTCTRL_Video_CropRight;
+		static const long ID_STATICTEXT3;
+		static const long IDD_SLIDER_Video_CropTop;
+		static const long ID_TEXTCTRL_Video_CropTop;
+		static const long ID_STATICTEXT4;
+		static const long IDD_SLIDER_Video_CropBottom;
+		static const long ID_TEXTCTRL_Video_CropBottom;
 		//*)
 
 	public:

@@ -75,7 +75,7 @@ void KeyBindingMap::Save(wxFileName &fileName) {
     wxXmlDocument doc;
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
     doc.SetRoot(root);
-    for(std::vector<KeyBinding>::iterator it = bindings.begin(); it != bindings.end(); ++it) {
+    for (auto it = bindings.begin(); it != bindings.end(); ++it) {
         const KeyBinding &binding = *it;
         wxXmlNode *child = new wxXmlNode(wxXML_ELEMENT_NODE, "keybinding");
         child->AddAttribute("key", wxString::Format("%c", binding.GetKey()));

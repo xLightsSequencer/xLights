@@ -1344,31 +1344,26 @@
 					<label>Grid Spacing</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XSMALL" variable="MenuItem16" member="yes">
 						<label>Extra Small</label>
-						<accel>CTRL-1</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_SMALL" variable="MenuItem17" member="no">
 						<label>Small</label>
-						<accel>CTRL-2</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_MEDIUM" variable="MenuItem19" member="no">
 						<label>Medium</label>
-						<accel>CTRL-3</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_LARGE" variable="MenuItem27" member="no">
 						<label>Large</label>
-						<accel>CTRL-4</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XLARGE" variable="MenuItem28" member="no">
 						<label>Extra Large</label>
-						<accel>CTRL-5</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>

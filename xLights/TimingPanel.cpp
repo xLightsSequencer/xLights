@@ -272,11 +272,14 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         CheckBox_LayerMorph->SetValue(false);
         Choice_LayerMethod->SetSelection(0);
         Slider_EffectLayerMix->SetValue(0);
+	txtCtlEffectMix->SetValue("0");
         TextCtrl_Fadein->SetValue("0.00");
         TextCtrl_Fadeout->SetValue("0.00");
-
+        Slider_In_Adjust->SetValue(50);
+        Slider_Out_Adjust->SetValue(50);
         Choice_In_Transition_Type->SetSelection(0);
         Choice_Out_Transition_Type->SetSelection(0);
+
         CheckBox_In_Reverse->SetValue(false);
         CheckBox_In_Reverse->Enable(false);
         CheckBox_Out_Reverse->SetValue(false);

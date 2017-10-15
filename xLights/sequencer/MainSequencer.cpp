@@ -498,8 +498,20 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case '7':
         case '8':
         case '9':
+        case WXK_NUMPAD0:
+        case WXK_NUMPAD1:
+        case WXK_NUMPAD2:
+        case WXK_NUMPAD3:
+        case WXK_NUMPAD4:
+        case WXK_NUMPAD5:
+        case WXK_NUMPAD6:
+        case WXK_NUMPAD7:
+        case WXK_NUMPAD8:
+        case WXK_NUMPAD9:
         {
             int number = wxAtoi(uc);
+
+            if (number > 9) number -= WXK_NUMPAD0;
 
             if (event.ControlDown())
             {

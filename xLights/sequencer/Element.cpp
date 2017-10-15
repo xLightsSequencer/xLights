@@ -88,6 +88,28 @@ EffectLayer* Element::InsertEffectLayer(int index)
     return new_layer;
 }
 
+bool Element::operator==(const Element& e) const
+{
+    return e.GetType() == GetType() && e.GetName() == GetName();
+}
+
+bool Element::operator<(const Element& e) const
+{
+    auto myType = GetType();
+    auto theirType = e.GetType();
+
+    if (myType == theirType)
+    {
+        return GetName() < e.GetName();
+    }
+    else
+    {
+        if (myType == ELEMENT_TYPE_TIMING) return true;
+    }
+
+    return false;
+}
+
 void Element::RemoveEffectLayer(int index)
 {
     std::unique_lock<std::recursive_mutex> lock(changeLock);

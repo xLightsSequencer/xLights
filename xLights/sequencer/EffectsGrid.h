@@ -113,7 +113,7 @@ public:
         xlights = xl;
     }
 
-    void ClearSelection();
+    void ClearSelection(bool keepCanPaste = false);
 
     static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS);
 

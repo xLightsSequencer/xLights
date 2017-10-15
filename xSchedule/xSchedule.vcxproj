@@ -210,6 +210,7 @@
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="GammaDialog.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -218,6 +219,7 @@
     <ClCompile Include="OutputProcessColourOrder.cpp" />
     <ClCompile Include="OutputProcessDim.cpp" />
     <ClCompile Include="OutputProcessDimWhite.cpp" />
+    <ClCompile Include="OutputProcessGamma.cpp" />
     <ClCompile Include="OutputProcessingDialog.cpp" />
     <ClCompile Include="OutputProcessRemap.cpp" />
     <ClCompile Include="OutputProcessReverse.cpp" />
@@ -332,6 +334,7 @@
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="GammaDialog.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />
     <ClInclude Include="md5.h" />
@@ -341,6 +344,7 @@
     <ClInclude Include="OutputProcessColourOrder.h" />
     <ClInclude Include="OutputProcessDim.h" />
     <ClInclude Include="OutputProcessDimWhite.h" />
+    <ClInclude Include="OutputProcessGamma.h" />
     <ClInclude Include="OutputProcessingDialog.h" />
     <ClInclude Include="OutputProcessRemap.h" />
     <ClInclude Include="OutputProcessReverse.h" />

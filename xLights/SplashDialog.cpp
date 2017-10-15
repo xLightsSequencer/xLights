@@ -67,6 +67,7 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
     logger_base.debug("Splash painting.");
 
     wxPaintDC dc(this);
+    dc.SetFont(wxFont(wxSize(0, 12), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     dc.DrawBitmap(_image, 0, 0);
 

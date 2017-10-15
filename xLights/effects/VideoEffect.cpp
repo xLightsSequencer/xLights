@@ -133,6 +133,10 @@ void VideoEffect::SetDefaultParameters(Model *cls)
 
     vp->FilePicker_Video_Filename->SetFileName(wxFileName());
     SetSliderValue(vp->Slider_Video_Starttime, 0);
+    SetSliderValue(vp->Slider_Video_CropBottom, 0);
+    SetSliderValue(vp->Slider_Video_CropLeft, 0);
+    SetSliderValue(vp->Slider_Video_CropRight, 100);
+    SetSliderValue(vp->Slider_Video_CropTop, 100);
     SetCheckBoxValue(vp->CheckBox_Video_AspectRatio, false);
     SetChoiceValue(vp->Choice_Video_DurationTreatment, "Normal");
 }
@@ -148,7 +152,11 @@ void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
-		SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
+		std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
+        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropLeft", 0), SettingsMap.GetInt("TEXTCTRL_Video_CropRight", 100)),
+        std::max(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
+        std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
+        SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
 		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
         SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false)
 		);
@@ -200,9 +208,46 @@ bool VideoEffect::IsVideo(const std::string& file)
 }
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
-	double starttime, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
+	double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (cropLeft > cropRight)
+    {
+        auto temp = cropLeft;
+        cropLeft = cropRight;
+        cropRight = temp;
+    }
+
+    if (cropBottom > cropTop)
+    {
+        auto temp = cropBottom;
+        cropBottom = cropTop;
+        cropTop = temp;
+    }
+
+    if (cropLeft == cropRight)
+    {
+        if (cropLeft == 0)
+        {
+            cropRight++;
+        }
+        else
+        {
+            cropLeft--;
+        }
+    }
+    if (cropBottom == cropTop)
+    {
+        if (cropBottom == 0)
+        {
+            cropTop++;
+        }
+        else
+        {
+            cropBottom--;
+        }
+    }
 
     VideoRenderCache *cache = (VideoRenderCache*)buffer.infoCache[id];
 	if (cache == nullptr) {
@@ -245,7 +290,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         else if (wxFileExists(filename))
 		{
 			// have to open the file
-			_videoreader = new VideoReader(filename, buffer.BufferWi, buffer.BufferHt, aspectratio);
+            int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
+            int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+			_videoreader = new VideoReader(filename, width, height, aspectratio);
 
             if (_videoreader == nullptr)
             {
@@ -317,19 +364,26 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 			image = _videoreader->GetNextFrame(frame);
 		}
 
-		int startx = (buffer.BufferWi - _videoreader->GetWidth()) / 2;
-		int starty = (buffer.BufferHt - _videoreader->GetHeight()) / 2;
+        int xoffset = cropLeft * _videoreader->GetWidth() / 100;
+        int yoffset = cropBottom * _videoreader->GetHeight() / 100;
+        int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
+        int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
+        int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
+		int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
+
+        //wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
+        //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
 		// check it looks valid
 		if (image != nullptr)
 		{
 			// draw the image
 			xlColor c;
-			for (int y = 0; y < _videoreader->GetHeight(); y++)
+			for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
 			{
-                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y) * _videoreader->GetWidth() * 3;
+                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * 3 + xoffset * 3;
 
-				for (int x = 0; x < _videoreader->GetWidth(); x++)
+				for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
 				{
 					try
 					{

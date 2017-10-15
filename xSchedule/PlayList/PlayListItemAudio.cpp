@@ -31,6 +31,18 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     }
 }
 
+void PlayListItemAudio::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+{
+    if (outputframe)
+    {
+        if (ms == _delay && _delay != 0 && ControlsTiming() && _audioManager != nullptr)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        _currentFrame++;
+    }
+}
+
 void PlayListItemAudio::LoadFiles()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -165,9 +177,16 @@ size_t PlayListItemAudio::GetPositionMS() const
 {
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        return _audioManager->Tell();
+        if (_delay != 0)
+        {
+            if (_currentFrame * GetFrameMS() < _delay)
+            {
+                return _currentFrame * GetFrameMS();
+            }
+        }
+        return _delay + _audioManager->Tell();
     }
-    
+
     return 0;
 }
 
@@ -176,7 +195,14 @@ void PlayListItemAudio::Restart()
     if (ControlsTiming() && _audioManager != nullptr)
     {
         _audioManager->Stop();
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
 }
 
@@ -187,8 +213,16 @@ void PlayListItemAudio::Start()
 
     if (ControlsTiming() && _audioManager != nullptr)
     {
-        _audioManager->Play(0, _audioManager->LengthMS());
+        if (_delay == 0)
+        {
+            _audioManager->Play(0, _audioManager->LengthMS());
+        }
+        else
+        {
+            _audioManager->Seek(0);
+        }
     }
+    _currentFrame = 0;
 }
 
 void PlayListItemAudio::Suspend(bool suspend)

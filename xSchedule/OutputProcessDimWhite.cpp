@@ -35,8 +35,10 @@ wxXmlNode* OutputProcessDimWhite::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OPDimWhite");
 
-    res->AddAttribute("Nodes", wxString::Format(wxT("%i"), _nodes));
-    res->AddAttribute("Dim", wxString::Format(wxT("%i"), _dim));
+    res->AddAttribute("Nodes", wxString::Format(wxT("%ld"), (long)_nodes));
+    res->AddAttribute("Dim", wxString::Format(wxT("%d"), _dim));
+
+    OutputProcess::Save(res);
 
     return res;
 }

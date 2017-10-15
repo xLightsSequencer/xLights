@@ -53,11 +53,11 @@
 #include "../include/control-play-blue-icon.xpm"
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
@@ -451,51 +451,51 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
-    wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItem23;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxMenuItem* MenuItem31;
-    wxFlexGridSizer* FlexGridSizerNetworks;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem30;
-    wxMenuItem* MenuItem12;
+    wxMenu* MenuHelp;
+    wxMenuItem* MenuItem8;
+    wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
     wxMenuItem* MenuItem25;
-    wxStaticText* StaticText28;
-    wxMenuItem* MenuItem19;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem2;
+    wxGridBagSizer* GridBagSizer1;
+    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem14;
+    wxMenuItem* MenuItem11;
+    wxStaticText* StaticText38;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
+    wxPanel* Panel1;
+    wxMenuItem* MenuItem17;
+    wxMenuItem* MenuItem13;
+    wxMenuItem* MenuItem10;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem24;
+    wxMenuItem* MenuItem27;
+    wxMenuItem* MenuItem44;
+    wxFlexGridSizer* FlexGridSizerNetworks;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem48;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem24;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem21;
-    wxButton* Button03;
-    wxMenuItem* MenuItem9;
-    wxStaticText* StaticText38;
-    wxMenuItem* MenuItem11;
-    wxMenuItem* MenuItem22;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem44;
-    wxMenuItem* MenuItemDisplayElements;
-    wxBoxSizer* BoxSizer1;
-    wxMenuItem* MenuItem10;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItem27;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem13;
-    wxMenu* Menu2;
     wxMenuItem* MenuItem28;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem8;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItemDisplayElements;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem23;
+    wxStaticText* StaticText28;
+    wxBoxSizer* BoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer1;
-    wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem21;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem48;
+    wxMenuItem* MenuItem19;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -889,15 +889,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     ToolIconSizeMenu->Append(MenuItem14);
     MenuSettings->Append(ID_MENUITEM4, _("Tool Icon Size"), ToolIconSizeMenu, wxEmptyString);
     GridSpacingMenu = new wxMenu();
-    MenuItem16 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XSMALL, _("Extra Small\tCTRL-1"), wxEmptyString, wxITEM_RADIO);
+    MenuItem16 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XSMALL, _("Extra Small"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem16);
-    MenuItem17 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_SMALL, _("Small\tCTRL-2"), wxEmptyString, wxITEM_RADIO);
+    MenuItem17 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_SMALL, _("Small"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem17);
-    MenuItem19 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium\tCTRL-3"), wxEmptyString, wxITEM_RADIO);
+    MenuItem19 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_MEDIUM, _("Medium"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem19);
-    MenuItem27 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_LARGE, _("Large\tCTRL-4"), wxEmptyString, wxITEM_RADIO);
+    MenuItem27 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_LARGE, _("Large"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem27);
-    MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large\tCTRL-5"), wxEmptyString, wxITEM_RADIO);
+    MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem28);
     MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), GridSpacingMenu, wxEmptyString);
     MenuItem_Grid_Icon_Backgrounds = new wxMenu();
@@ -1741,6 +1741,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
 xLightsFrame::~xLightsFrame()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static bool reenter = false;
+
+    if (reenter)
+    {
+        logger_base.error("~xLightsFrame re-entered ... this wont end well.");
+    }
+    reenter = true;
+
     Timer_AutoSave.Stop();
     EffectSettingsTimer.Stop();
     Timer1.Stop();
@@ -1810,6 +1819,8 @@ xLightsFrame::~xLightsFrame()
 
     //(*Destroy(xLightsFrame)
     //*)
+
+    reenter = false;
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
@@ -3986,9 +3997,14 @@ void xLightsFrame::CheckSequence(bool display)
         addr.AnyAddress();
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
         addr.Hostname(wxGetFullHostName());
+        if (addr.IPAddress() == "255.255.255.255")
+        {
+            addr.Hostname(wxGetHostName());
+        }
     }
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Full host name: " + wxGetFullHostName().ToStdString());
     LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
@@ -4196,7 +4212,7 @@ void xLightsFrame::CheckSequence(bool display)
             {
                 if (ostart->GetIP() != oend->GetIP())
                 {
-                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetIP(), oend->GetDescription());
+                    wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' with IP '%s' but ends on a controller '%s' with IP '%s'.", it->first, ostart->GetDescription(), ostart->GetIP(), oend->GetDescription(), oend->GetIP());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
@@ -4381,6 +4397,84 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Non contiguous channels on controller ports");
+
+    std::map<std::string, std::list<Model*>*> modelsByPort;
+
+    // Check for non contiguous models on the same controller connection
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            if (it->second->GetControllerConnection() != "")
+            {
+                long start = it->second->GetFirstChannel() + 1;
+                long sc;
+                Output* o = _outputManager.GetOutput(start, sc);
+
+                if (o != nullptr && o->IsIpOutput())
+                {
+                    std::string key = o->GetIP() + it->second->GetControllerConnection();
+                    if (modelsByPort.find(key) == modelsByPort.end())
+                    {
+                        modelsByPort[key] = new std::list<Model*>();
+                    }
+                    modelsByPort[key]->push_back(it->second);
+                }
+            }
+        }
+    }
+
+    for (auto it = modelsByPort.begin(); it != modelsByPort.end(); ++it)
+    {
+        if (it->second->size() == 1)
+        {
+            // we dont need to check this one
+        }
+        else
+        {
+            it->second->sort(compare_modelstartchannel);
+
+            auto it2 = it->second->begin();
+            auto it3 = it2;
+            ++it3;
+
+            while (it3 != it->second->end())
+            {
+                int m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
+                int m1end = m1start + (*it2)->GetChanCount() - 1;
+                int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
+
+                if (m1end + 1 != m2start)
+                {
+                    long sc;
+                    Output* o = _outputManager.GetOutput(m1start, sc);
+                    wxString msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                        (*it2)->GetName(),
+                        (*it3)->GetName(),
+                        o->GetIP(),
+                        (*it2)->GetControllerConnection(),
+                        m2start - m1end - 1);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+
+                ++it2;
+                ++it3;
+            }
+        }
+        delete it->second;
+        it->second = nullptr;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
     LogAndWrite(f, "Model nodes not allocated to layers correctly");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
@@ -4556,35 +4650,37 @@ void xLightsFrame::CheckSequence(bool display)
         if (it->second->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
-            auto models = mg->ModelNames();
-
-            int modelCount = 0;
-
-            for (auto m = models.begin(); m != models.end(); ++m)
+            if (mg != nullptr) // this should never fail
             {
-                Model* model = AllModels.GetModel(*m);
+                auto models = mg->ModelNames();
 
-                if (model == nullptr)
+                int modelCount = 0;
+
+                for (auto m = models.begin(); m != models.end(); ++m)
                 {
-                    wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
-                else
-                {
-                    modelCount++;
-                    if (model->GetName() == mg->GetName())
+                    Model* model = AllModels.GetModel(*m);
+
+                    if (model == nullptr)
                     {
-                        wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
+                        wxString msg = wxString::Format("    ERR: Model group '%s' refers to non existent model '%s'.", mg->GetName(), model->GetName());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
+                    else
+                    {
+                        modelCount++;
+                        if (model->GetName() == mg->GetName())
+                        {
+                            wxString msg = wxString::Format("    ERR: Model group '%s' contains reference to itself.", mg->GetName());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
                 }
-            }
-
-            if (modelCount == 0)
-            {
-                emptyModelGroups.push_back(it->first);
+                if (modelCount == 0)
+                {
+                    emptyModelGroups.push_back(it->first);
+                }
             }
         }
     }
@@ -4876,7 +4972,7 @@ void xLightsFrame::CheckSequence(bool display)
         f.Close();
 
         wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-        if (ft)
+        if (ft != nullptr)
         {
             wxString command = ft->GetOpenCommand(filename);
 

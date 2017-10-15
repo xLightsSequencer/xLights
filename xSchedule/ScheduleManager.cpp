@@ -47,6 +47,7 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     _fppSyncMaster = nullptr;
     _fppSyncMasterUnicast = nullptr;
     _fppSyncSlave = nullptr;
+    _fppSyncUnicastSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -123,6 +124,11 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     {
         logger_base.info("SyncMode: FPPREMOTE");
         OpenFPPSyncListenSocket();
+    }
+    else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
+    {
+        logger_base.info("SyncMode: FPPUNICASTREMOTE");
+        OpenFPPSyncUnicastListenSocket();
     }
     else if (_mode == SYNCMODE::STANDALONE)
     {
@@ -698,7 +704,7 @@ bool compare_runningschedules(const RunningSchedule* first, const RunningSchedul
 
 int ScheduleManager::CheckSchedule()
 {
-    if (_mode == SYNCMODE::FPPSLAVE) return 50;
+    if (_mode == SYNCMODE::FPPSLAVE || _mode == SYNCMODE::FPPUNICASTSLAVE) return 50;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking the schedule ...");
@@ -2473,18 +2479,27 @@ void ScheduleManager::SetMode(SYNCMODE mode)
 
         if (_mode == SYNCMODE::FPPMASTER)
         {
-            OpenFPPSyncSendSocket();
+            CloseFPPSyncUnicastListenSocket();
             CloseFPPSyncListenSocket();
+            OpenFPPSyncSendSocket();
         }
         else if (_mode == SYNCMODE::FPPSLAVE)
         {
             CloseFPPSyncSendSocket();
+            CloseFPPSyncUnicastListenSocket();
             OpenFPPSyncListenSocket();
+        }
+        else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
+        {
+            CloseFPPSyncSendSocket();
+            CloseFPPSyncListenSocket();
+            OpenFPPSyncUnicastListenSocket();
         }
         else
         {
             CloseFPPSyncSendSocket();
             CloseFPPSyncListenSocket();
+            CloseFPPSyncUnicastListenSocket();
         }
     }
 }
@@ -2578,6 +2593,10 @@ std::string ScheduleManager::GetOurIP() const
         addr.AnyAddress();
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
         addr.Hostname(wxGetFullHostName());
+        if (addr.IPAddress() == "255.255.255.255")
+        {
+            addr.Hostname(wxGetHostName());
+        }
     }
 
     ip = addr.IPAddress().ToStdString();
@@ -2632,11 +2651,11 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     }
 
     LogAndWrite(f, "Checking schedule.");
-
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     if (IPOutput::GetLocalIP() != "")
     {
+        LogAndWrite(f, "Forced local IP address." + IPOutput::GetLocalIP());
         addr.Hostname(IPOutput::GetLocalIP());
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
     }
@@ -2645,9 +2664,14 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         addr.AnyAddress();
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
         addr.Hostname(wxGetFullHostName());
+        if (addr.IPAddress() == "255.255.255.255")
+        {
+            addr.Hostname(wxGetHostName());
+        }
     }
 
     LogAndWrite(f, "");
+    LogAndWrite(f, "Full host name: " + wxGetFullHostName().ToStdString());
     LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
@@ -2979,7 +3003,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                 if (wxString((*i)->GetTitle()).Contains("FSEQ"))
                 {
                     long ch = (*i)->GetFSEQChannels();
-                    if (ch != totalChannels)
+                    if (ch < totalChannels)
                     {
                         wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.", 
                                     (const char*)(*n)->GetNameNoTime().c_str(), 
@@ -2989,6 +3013,17 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                                     totalChannels);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
+                    }
+                    else if (ch > totalChannels)
+                    {
+                        wxString msg = wxString::Format("    WARN: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when only %ld channels are configured to be sent out.",
+                            (const char*)(*n)->GetNameNoTime().c_str(),
+                            (const char*)(*s)->GetNameNoTime().c_str(),
+                            (const char*)(*i)->GetNameNoTime().c_str(),
+                            ch,
+                            totalChannels);
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
                     }
                 }
             }
@@ -3827,6 +3862,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
 void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxIPV4address remoteAddr;
     remoteAddr.Hostname(ip);
     remoteAddr.Service(FPP_CTRL_CSV_PORT);
@@ -3838,12 +3874,15 @@ void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& 
     {
     case SYNC_PKT_SYNC:
         sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
+        logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
         break;
     case SYNC_PKT_STOP:
         sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
+        logger_base.debug("Sending remote stop unicast packet to %s.", (const char*)ip.c_str());
         break;
     case SYNC_PKT_START:
         sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
+        logger_base.debug("Sending remote start unicast packet to %s.", (const char*)ip.c_str());
         break;
     case CTRL_PKT_BLANK:
         sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
@@ -3949,6 +3988,17 @@ void ScheduleManager::CloseFPPSyncListenSocket()
     }
 }
 
+void ScheduleManager::CloseFPPSyncUnicastListenSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_fppSyncUnicastSlave != nullptr) {
+        logger_base.info("FPP Unicast Sync as remote datagram closed.");
+        _fppSyncUnicastSlave->Close();
+        delete _fppSyncUnicastSlave;
+        _fppSyncUnicastSlave = nullptr;
+    }
+}
+
 #define SERVER_ID	200
 
 BEGIN_EVENT_TABLE(ScheduleManager, wxEvtHandler)
@@ -3998,6 +4048,49 @@ void ScheduleManager::OpenFPPSyncListenSocket()
     }
 }
 
+void ScheduleManager::OpenFPPSyncUnicastListenSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    CloseFPPSyncUnicastListenSocket();
+
+    wxIPV4address localaddr;
+    if (IPOutput::GetLocalIP() == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::GetLocalIP());
+    }
+    localaddr.Service(FPP_CTRL_CSV_PORT);
+
+    _fppSyncUnicastSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_fppSyncUnicastSlave == nullptr)
+    {
+        logger_base.error("Error opening datagram for FPP Unicast Sync as remote.");
+    }
+    else if (!_fppSyncUnicastSlave->IsOk())
+    {
+        logger_base.error("Error opening datagram for FPP Uncast Sync as remote. OK : FALSE");
+        delete _fppSyncUnicastSlave;
+        _fppSyncUnicastSlave = nullptr;
+    }
+    else if (_fppSyncUnicastSlave->Error())
+    {
+        logger_base.error("Error opening datagram for FPP Unicast Sync as remote. %d : %s", _fppSyncUnicastSlave->LastError(), (const char*)IPOutput::DecodeError(_fppSyncUnicastSlave->LastError()).c_str());
+        delete _fppSyncUnicastSlave;
+        _fppSyncUnicastSlave = nullptr;
+    }
+    else
+    {
+        _fppSyncUnicastSlave->SetEventHandler(*this, SERVER_ID);
+        _fppSyncUnicastSlave->SetNotify(wxSOCKET_INPUT_FLAG);
+        _fppSyncUnicastSlave->Notify(true);
+        logger_base.info("FPP Unicast Sync as remote datagram opened successfully.");
+    }
+}
+
 void ScheduleManager::StartFSEQ(const std::string fseq)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4044,90 +4137,159 @@ void ScheduleManager::OnServerEvent(wxSocketEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    static wxString lastMessage = "";
+
     unsigned char buffer[2048];
+    memset(buffer, 0x00, sizeof(buffer));
 
     int lastcount = -1;
 
     while (lastcount != 0)
     {
+        uint8_t packetType = -1;
+        std::string fileName = "";
+        uint32_t frameNumber = 999999999;
+        float secondsElapsed = -1;
+
         wxIPV4address remoteaddr;
-        _fppSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
-        lastcount = _fppSyncSlave->LastCount();
-
-        if (lastcount >= sizeof(ControlPkt) + sizeof(SyncPkt))
+        if (_fppSyncSlave != nullptr)
         {
-            ControlPkt* cp = (ControlPkt*)&buffer[0];
-            if (strncmp(cp->fppd, "FPPD", 4) == 0)
+            _fppSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
+            lastcount = _fppSyncSlave->LastCount();
+            logger_base.debug("Broadcast sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
+
+            if (lastcount >= sizeof(ControlPkt) + sizeof(SyncPkt))
             {
-                if (cp->pktType == CTRL_PKT_SYNC)
+                ControlPkt* cp = (ControlPkt*)&buffer[0];
+                if (strncmp(cp->fppd, "FPPD", 4) == 0)
                 {
-                    SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
-
-                    if (sp->fileType == SYNC_FILE_SEQ)
+                    if (cp->pktType == CTRL_PKT_SYNC)
                     {
-                        switch (sp->pktType)
+                        SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
+
+                        if (sp->fileType == SYNC_FILE_SEQ)
                         {
-                        case SYNC_PKT_START:
-                            {
-                                logger_base.debug("Remote start %s.", (const char *)sp->filename);
-
-                                StartFSEQ(std::string(sp->filename));
-                            }
-                            break;
-                        case SYNC_PKT_STOP:
-                            {
-                                logger_base.debug("Remote stop %s.", (const char *)sp->filename);
-                                PlayList* pl = GetRunningPlayList();
-                                if (pl != nullptr)
-                                {
-                                    PlayListStep* pls = pl->GetRunningStep();
-
-                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
-                                    {
-                                        logger_base.debug("... Stopping %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
-
-                                        // if this fseq file is running stop it
-                                        StopPlayList(pl, false);
-                                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
-                                    }
-                                }
-                            }
-                            break;
-                        case SYNC_PKT_SYNC:
-                            {
-                                PlayList* pl = GetRunningPlayList();
-
-                                if (pl == nullptr)
-                                {
-                                    StartFSEQ(std::string(sp->filename));
-                                    pl = GetRunningPlayList();
-
-                                    PlayListStep* pls = pl->GetRunningStep();
-
-                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
-                                    {
-                                        pls->SetSyncPosition(sp->frameNumber, (size_t)(sp->secondsElapsed * 1000), true);
-                                    }
-                                }
-                                else
-                                {
-                                    PlayListStep* pls = pl->GetRunningStep();
-
-                                    if (pls != nullptr && pls->IsRunningFSEQ(sp->filename))
-                                    {
-                                        pls->SetSyncPosition(sp->frameNumber, (size_t)(sp->secondsElapsed * 1000));
-                                    }
-                                }
-                            }
-                            break;
+                            packetType = sp->pktType;
+                            fileName = std::string(sp->filename);
+                            frameNumber = sp->frameNumber;
+                            secondsElapsed = sp->secondsElapsed;
+                        }
+                        else
+                        {
+                            // media file ... not sure what to do with this ... so ignoring it
                         }
                     }
-                    else
+                }
+            }
+        }
+        else if (_fppSyncUnicastSlave != nullptr)
+        {
+            _fppSyncUnicastSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
+            lastcount = _fppSyncUnicastSlave->LastCount();
+
+            logger_base.debug("Unicast sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
+
+            char* cr = strchr((char*)buffer, '\n');
+            if ((size_t)cr - (size_t)&buffer[0] < sizeof(buffer))
+            {
+                *cr = 0x00;
+            }
+
+            wxString msg = wxString(buffer);
+
+            if (msg == lastMessage)
+            {
+                // we dont want to double process
+            }
+            else
+            {
+                lastMessage = msg;
+                wxArrayString components = wxSplit(msg, ',');
+
+                if (components.size() >= 5)
+                {
+                    if (components[0] == "FPP" && wxAtoi(components[1]) == CTRL_PKT_SYNC && wxAtoi(components[2]) == SYNC_FILE_SEQ)
                     {
-                        // media file ... not sure what to do with this ... so ignoring it
+                        packetType = wxAtoi(components[3]);
+                        fileName = components[4].ToStdString();
+                        if (components.size() >= 7)
+                        {
+                            secondsElapsed = ((float)wxAtoi(components[5]) * 1000 + (float)wxAtoi(components[6])) / 1000.0;
+                            PlayList* pl = GetRunningPlayList();
+                            if (pl != nullptr)
+                            {
+                                frameNumber = secondsElapsed * 1000 / pl->GetFrameMS();
+                            }
+                        }
+                        logger_base.debug("Pkt %s.", (const char *)msg.c_str());
                     }
                 }
+            }
+        }
+
+        if (packetType != -1)
+        {
+            switch (packetType)
+            {
+            case SYNC_PKT_START:
+            {
+                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
+
+                StartFSEQ(fileName);
+            }
+            break;
+            case SYNC_PKT_STOP:
+            {
+                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
+                PlayList* pl = GetRunningPlayList();
+                if (pl != nullptr)
+                {
+                    PlayListStep* pls = pl->GetRunningStep();
+
+                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
+                    {
+                        logger_base.debug("... Stopping %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                        // if this fseq file is running stop it
+                        StopPlayList(pl, false);
+                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                    }
+                }
+            }
+            break;
+            case SYNC_PKT_SYNC:
+            {
+                PlayList* pl = GetRunningPlayList();
+
+                if (pl == nullptr)
+                {
+                    StartFSEQ(fileName);
+                    pl = GetRunningPlayList();
+
+                    if (frameNumber == 999999999)
+                    {
+                        frameNumber = secondsElapsed * 1000 / pl->GetFrameMS();
+                    }
+
+                    PlayListStep* pls = pl->GetRunningStep();
+
+                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
+                    {
+                        pls->SetSyncPosition(frameNumber, (size_t)(secondsElapsed * 1000), true);
+                    }
+                }
+                else
+                {
+                    PlayListStep* pls = pl->GetRunningStep();
+
+                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
+                    {
+                        pls->SetSyncPosition(frameNumber, (size_t)(secondsElapsed * 1000));
+                    }
+                }
+            }
+            break;
             }
         }
     }

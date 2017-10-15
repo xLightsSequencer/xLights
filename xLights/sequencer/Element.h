@@ -58,7 +58,8 @@ public:
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
     EffectLayer* InsertEffectLayer(int index);
-
+    bool operator==(const Element& e) const;
+    bool operator<(const Element& e) const;
     
     bool GetCollapsed() const { return mCollapsed; }
     void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }

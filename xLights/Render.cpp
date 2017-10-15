@@ -37,7 +37,7 @@ public:
     EffectLayerInfo(int l) : element(nullptr) {
         resize(l);
         buffer.reset(nullptr);
-        strand = -1;        
+        strand = -1;
     }
 
     void resize(int l) {
@@ -48,7 +48,7 @@ public:
         effectStates.resize(l);
         validLayers.resize(l + 1); //extra one for the blending layer
     }
-    
+
     int numLayers;
     int strand;
     Element *element;
@@ -77,13 +77,13 @@ public:
 
 class NextRenderer {
 public:
-    
+
     NextRenderer() : nextLock(), nextSignal() {
         previousFrameDone = -1;
     }
 
     virtual ~NextRenderer() {}
-    
+
     bool addNext(NextRenderer *n) {
         for (auto i = next.begin(); i < next.end(); ++i) {
             if (*i == n) return false;
@@ -91,12 +91,12 @@ public:
         next.push_back(n);
         return true;
     }
-    
+
     bool HasNext() const
     {
         return !next.empty();
     }
-    
+
     void FrameDone(int frame) {
         for (auto i = next.begin(); i < next.end(); ++i) {
             (*i)->setPreviousFrameDone(frame);
@@ -108,7 +108,7 @@ public:
         previousFrameDone = i;
         nextSignal.notify_all();
     }
-    
+
     int waitForFrame(int frame) {
         std::unique_lock<std::mutex> lock(nextLock);
         while (frame > previousFrameDone) {
@@ -116,7 +116,7 @@ public:
         }
         return previousFrameDone;
     }
-    
+
     bool checkIfDone(int frame, int timeout = 5) {
         std::unique_lock<std::mutex> lock(nextLock);
         return previousFrameDone >= frame;
@@ -137,7 +137,7 @@ private:
 
 class AggregatorRenderer: public NextRenderer {
 public:
-    
+
     AggregatorRenderer(int numFrames) : NextRenderer(), finalFrame(numFrames + 19) {
         data = new int[numFrames + 20];
         for (int x = 0; x < (numFrames + 20); ++x) {
@@ -196,7 +196,7 @@ public:
         return strand > p.strand
                || (strand == p.strand && node > p.node);
     }
-    
+
     bool operator<(const SNPair &p) const {
         return strand < p.strand
                || (strand == p.strand && node < p.node);
@@ -376,7 +376,7 @@ public:
         statusMap = map;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    
+
     void SetCalOutputStatus(int frame, int strand = -1, int node = -1, bool debugLog = true) {
         statusType = 3;
         statusFrame = frame;
@@ -384,7 +384,7 @@ public:
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    
+
     void SetInializingStatus(int frame, int layer, int strand = -1, int node = -1, bool debugLog = false) {
         statusType = 1;
         statusFrame = frame;
@@ -393,23 +393,23 @@ public:
         statusNode = node;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    
+
     void SetStatus(const wxString &st, bool debugLog = false) {
         statusMsg = st;
         statusType = 0;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    
+
     void SetStatus(const char *st, bool debugLog = false) {
         statusMsgChars = st;
         statusType = 8;
         LogToLogger(debugLog ? log4cpp::Priority::DEBUG : log4cpp::Priority::INFO);
     }
-    
+
     std::string GetStatus() override {
         return GetwxStatus().ToStdString();
     }
-    
+
     wxString GetwxStatus() {
         switch (statusType) {
         case 0:
@@ -451,14 +451,14 @@ public:
         }
         return statusMsg;
     }
-    
+
     SequenceData *createExportBuffer() {
         SequenceData *sb = new SequenceData();
         sb->init(xLights->GetModel(mainBuffer->GetModelName())->GetActChanCount(), seqData->NumFrames(), seqData->FrameTime());
         seqData = sb;
         return sb;
     }
-    
+
     PixelBufferClass *getBuffer() {
         return mainBuffer;
     }
@@ -467,21 +467,21 @@ public:
         startFrame = start;
         endFrame = end;
     }
-    
+
     void SetRangeRestriction(const std::list<NodeRange> &rng) {
         rangeRestriction = rng;
     }
-    
+
     void SetModelBlending() {
         supportsModelBlending = true;
     }
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
-        
+
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
-        
+
         for (int layer = 0; layer < info.validLayers.size(); ++layer) {
             info.validLayers[layer] = false;
         }
@@ -530,7 +530,7 @@ public:
 
         return effectsToUpdate;
     }
-    
+
     virtual void Process() override {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -585,7 +585,7 @@ public:
             for (int frame = startFrame; frame <= endFrame; ++frame) {
                 currentFrame = frame;
                 SetGenericStatus("%s: Starting frame %d " + PrintStatusMap(), frame, true);
-                
+
                 if (abort) {
                     break;
                 }
@@ -630,7 +630,7 @@ public:
                             //deleted node
                             continue;
                         }
-                        
+
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
@@ -686,12 +686,12 @@ public:
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
 		renderLog.debug("Rendering thread exiting.");
 	}
-    
+
     void AbortRender() {
         std::unique_lock<std::mutex> lock(nextLock);
         abort = true;
     }
-    
+
 
 private:
 
@@ -728,11 +728,11 @@ private:
         }
         return nullptr;
     }
-    
+
     Effect *findEffectForFrame(int layer, int frame, int &lastIdx) {
         return findEffectForFrame(rowToRender->GetEffectLayer(layer), frame, lastIdx);
     }
-    
+
     void loadSettingsMap(const std::string &effectName,
                          Effect *effect,
                          SettingsMap& settingsMap) {
@@ -798,7 +798,7 @@ void xLightsFrame::RenderMainThreadEffects() {
         RenderEffectOnMainThread(evt);
         lock.lock();
     }
-    
+
 }
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
@@ -828,7 +828,7 @@ static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
         return true;
     }
-    
+
     for (int x = 0; x < me->GetSubModelCount(); ++x) {
         if (me->GetSubModel(x)->HasEffects()) {
             return true;
@@ -867,14 +867,15 @@ void xLightsFrame::UpdateRenderStatus() {
     int countModels = 0;
     int countFrames = 0;
     for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
-        
+
         bool done = true;
         RenderProgressInfo *rpi = *it;
         bool shown = rpi->renderProgressDialog == nullptr ? false : rpi->renderProgressDialog->IsShown();
 
         int frames = rpi->endFrame - rpi->startFrame + 1;
+        if( frames <= 0 ) frames = 1;
         for (size_t row = 0; row < rpi->numRows; ++row) {
-            
+
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
                 if (i != END_OF_RENDER_FRAME) {
@@ -942,6 +943,13 @@ void xLightsFrame::RenderDone() {
 class RenderTreeData {
 public:
     RenderTreeData(Model *e): model(e) {
+
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (e == nullptr)
+        {
+            logger_base.crit("Render tree has a null model ... this is not going to end well.");
+        }
+
         size_t cn = e->GetChanCountPerNode();
         for (int node = 0; node < e->GetNodeCount(); ++node) {
             unsigned int start = e->NodeStartChannel(node);
@@ -958,7 +966,7 @@ public:
         }
         ranges.push_back(NodeRange(start, end));
     }
-    
+
     bool Overlaps(RenderTreeData &e) {
         for (auto it = ranges.begin(); it != ranges.end(); ++it) {
             for (auto it2 = e.ranges.begin(); it2 != e.ranges.end(); ++it2) {
@@ -995,7 +1003,7 @@ public:
             }
         }
     }
-    
+
     void Add(Model *el) {
         renderOrder.push_back(el);
     }
@@ -1089,7 +1097,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
     RenderJob **jobs = new RenderJob*[numRows];
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
     std::vector<std::set<int>> channelMaps(SeqData.NumChannels());
-    
+
     size_t row = 0;
     for (auto it = models.begin(); it != models.end(); ++it, ++row) {
         jobs[row] = nullptr;
@@ -1216,7 +1224,7 @@ void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrict
             renderProgressDialog->scrolledWindow->FitInside();
             renderProgressDialog->scrolledWindow->SetScrollRate(5, 5);
         }
-        
+
         RenderProgressInfo *pi = new RenderProgressInfo(std::move(callback));
         pi->numRows = numRows;
         pi->startFrame = startFrame;
@@ -1398,7 +1406,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
     BuildRenderTree();
-    
+
     int startframe = startms / SeqData.FrameTime() - 1;
     if (startframe < 0) {
         startframe = 0;
@@ -1409,7 +1417,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     }
     for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
         if ((*it)->model->GetName() == model) {
-            
+
             for (auto it2 = renderProgressInfo.begin(); it2 != renderProgressInfo.end(); ++it2) {
                 //we're going to render this model, abort whatever is rendering and accumulate the frames
                 RenderProgressInfo *rpi = (*it2);
@@ -1435,11 +1443,11 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 }
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
-     
+
     std::string model = command.GetString().ToStdString();
     Model *m = GetModel(model);
 
-    bool isgroup = (m->GetDisplayAs() == "ModelGroup"); 
+    bool isgroup = (m->GetDisplayAs() == "ModelGroup");
 
     bool isboxed = false;
     if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(m) != nullptr)
@@ -1561,7 +1569,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period, SettingsMap& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread, RenderEvent *event) {
-    
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
 
@@ -1586,14 +1594,14 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     if (effectObj != nullptr) {
         eidx = effectObj->GetEffectIndex();
 
-        // color masks use the underlying model color to ensure backgrounds show what it will really look like    
+        // color masks use the underlying model color to ensure backgrounds show what it will really look like
         // need to do it every render as effects can move around
         const Model* m = buffer.GetModel();
 
         if (m == nullptr)
         {
             // this could be a strand or node
-            m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName()); 
+            m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName());
         }
 
         if (m != nullptr)
@@ -1635,13 +1643,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->period = period;
                 event->settingsMap = &SettingsMap;
                 event->ResetEffectState = &resetEffectState;
-                
+
                 std::unique_lock<std::mutex> lock(event->mutex);
-                
+
                 std::unique_lock<std::mutex> qlock(renderEventLock);
                 mainThreadRenderEvents.push(event);
                 qlock.unlock();
-                
+
                 CallAfter(&xLightsFrame::RenderMainThreadEffects);
                 if (event->signal.wait_for(lock, std::chrono::seconds(20)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;

@@ -371,6 +371,8 @@
 		<Unit filename="FPPRemotesDialog.h" />
 		<Unit filename="FSEQFile.cpp" />
 		<Unit filename="FSEQFile.h" />
+		<Unit filename="GammaDialog.cpp" />
+		<Unit filename="GammaDialog.h" />
 		<Unit filename="MatricesDialog.cpp" />
 		<Unit filename="MatricesDialog.h" />
 		<Unit filename="MatrixDialog.cpp" />
@@ -383,6 +385,8 @@
 		<Unit filename="OutputProcessColourOrder.cpp" />
 		<Unit filename="OutputProcessDim.cpp" />
 		<Unit filename="OutputProcessDimWhite.cpp" />
+		<Unit filename="OutputProcessGamma.cpp" />
+		<Unit filename="OutputProcessGamma.h" />
 		<Unit filename="OutputProcessRemap.cpp" />
 		<Unit filename="OutputProcessReverse.cpp" />
 		<Unit filename="OutputProcessSet.cpp" />
@@ -531,6 +535,7 @@
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
+		<Unit filename="wxsmith/GammaDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
 		<Unit filename="wxsmith/MatrixDialog.wxs" />
 		<Unit filename="wxsmith/OptionsDialog.wxs" />
@@ -613,6 +618,7 @@
 					<wxDialog wxs="wxsmith/VirtualMatricesDialog1.wxs" src="VirtualMatricesDialog.cpp" hdr="VirtualMatricesDialog.h" fwddecl="0" i18n="1" name="VirtualMatricesDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

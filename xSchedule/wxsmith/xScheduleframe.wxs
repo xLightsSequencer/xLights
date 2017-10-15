@@ -349,6 +349,11 @@
 					<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_FPPUnicastRemote" member="yes">
+					<label>FPP Unicast Remote</label>
+					<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_EDITFPPREMOTE" variable="MenuItem_EditFPPRemotes" member="yes">
 					<label>Edit FPP Remotes</label>
 					<help>Edit remotes to unicast sync packets to</help>

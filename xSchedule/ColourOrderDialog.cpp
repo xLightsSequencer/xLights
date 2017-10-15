@@ -98,7 +98,7 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 
     SpinCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
-    SetChoiceFromString(Choice1, wxString::Format(wxT("%i"), _colourOrder).ToStdString());
+    SetChoiceFromString(Choice1, wxString::Format(wxT("%ld"), (long)_colourOrder).ToStdString());
     TextCtrl_Description->SetValue(_description);
 
     SetEscapeId(Button_Cancel->GetId());

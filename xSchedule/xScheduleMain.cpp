@@ -141,6 +141,7 @@ const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
 const long xScheduleFrame::idMenuAbout = wxNewId();
 const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
@@ -434,6 +435,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu4->Append(MenuItem_FPPMaster);
     MenuItem_FPPRemote = new wxMenuItem(Menu4, ID_MNU_FPPREMOTE, _("FPP Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPRemote);
+    MenuItem_FPPUnicastRemote = new wxMenuItem(Menu4, ID_MNU_FPPUNICASTREMOTE, _("FPP Unicast Remote"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_FPPUnicastRemote);
     MenuItem_EditFPPRemotes = new wxMenuItem(Menu4, ID_MNU_EDITFPPREMOTE, _("Edit FPP Remotes"), _("Edit remotes to unicast sync packets to"), wxITEM_NORMAL);
     Menu4->Append(MenuItem_EditFPPRemotes);
     MenuBar1->Append(Menu4, _("&Modes"));
@@ -492,6 +495,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
+    Connect(ID_MNU_FPPUNICASTREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
@@ -1629,7 +1633,7 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
+        if (__schedule->GetMode() == SYNCMODE::FPPSLAVE || __schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
         {
             if (scheduled != 13)
                 BitmapButton_IsScheduled->SetBitmap(_falconremote);
@@ -2149,18 +2153,28 @@ void xScheduleFrame::UpdateUI()
         MenuItem_FPPMaster->Check(true);
         MenuItem_FPPRemote->Check(false);
         MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
     {
         MenuItem_FPPMaster->Check(false);
         MenuItem_FPPRemote->Check(true);
         MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(true);
     }
     else
     {
         MenuItem_FPPMaster->Check(false);
         MenuItem_FPPRemote->Check(false);
         MenuItem_Standalone->Check(true);
+        MenuItem_FPPUnicastRemote->Check(false);
     }
 
     ValidateWindow();
@@ -2315,4 +2329,10 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER) {
         __schedule->OpenFPPSyncSendSocket();
     }
+}
+
+void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
+{    
+    __schedule->SetMode(SYNCMODE::FPPUNICASTSLAVE);
+    UpdateUI();
 }

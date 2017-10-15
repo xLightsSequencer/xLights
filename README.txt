@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
+   -- enh (keith)   Add xSchedule gamma processing on output
+   -- enh (keith)   Add FPP master support for pixel sticks and Falcons
+   -- bug (keith)   Fix xSchedule play last item only once plays repeatedly
+   -- bug (keith)   Fix scrolling sideways using Shift+scroll wheel stops paste using right click menu working
+   -- bug (keith)   xSchedule FSEQ, Video and audio dont respect the delay setting
+   -- bug (keith)   Fix upload to falcon hang if multistring element goes past configured string ports
+   -- enh (keith)   Add check sequence check for non contiguous models on the same controller connection
+   -- enh (keith)   Add xSchedule can act as a remote using the csv sync packets (which are routable)
+   -- enh (keith)   Add cropping to the video effect
 2017.32  Oct 09, 2017 - PRODUCTION RELEASE
    -- bug (keith)   xSchedule crashes clearing the matrix when closing easter egg
    -- bug (keith)   xSchedule does not turn off lights when sequence ends
@@ -28,10 +38,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug     (dkulp)  Fix wxAssert warnings when quitting from menu on OSX and using debug build
    -- enh     (keith)  Add more check sequence checks ... checks of effects on strands, submodels and nodes, checks for effects that shouldnt be on nodes
    -- enh     (keith)  Add more check schedule checks ... FSEQ files which dont match networks
-   -- bug     (keith)  Fix a stack of crashes and bugs 
+   -- bug     (keith)  Fix a stack of crashes and bugs
    -- bug     (keith)  Fix #universe:start channel flagging as invalid
-   -- bug     (keith)  Fix rotozoom presets 
-   -- enh     (keith)  Add remember custom colours in colour selection dialog   
+   -- bug     (keith)  Fix rotozoom presets
+   -- enh     (keith)  Add remember custom colours in colour selection dialog
 2017.30  Sep  29, 2017
    -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view

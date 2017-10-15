@@ -164,16 +164,23 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
 
-    wxStopWatch sw;
-    AVFrame* img = _videoReader->GetNextFrame(ms, framems);
-    _window->SetImage(CreateImageFromFrame(img));
-
-    if (sw.Time() > framems / 2)
+    if (ms < _delay)
     {
-        logger_base.warn("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+        // dont display anything
     }
+    else
+    {
+        wxStopWatch sw;
+        AVFrame* img = _videoReader->GetNextFrame(ms - _delay, framems);
+        _window->SetImage(CreateImageFromFrame(img));
 
-    //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());
+        if (sw.Time() > framems / 2)
+        {
+            logger_base.warn("   Getting frame %ld from video %s took more than half a frame: %ld.", (long)ms - _delay, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
+        }
+
+        //logger_base.debug("   Done rendering frame %ld for video %s.", (long)ms - _delay, (const char *)GetNameNoTime().c_str());
+    }
 }
 
 void PlayListItemVideo::Start()
