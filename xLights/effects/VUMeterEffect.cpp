@@ -40,6 +40,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
             type == "Level Bar" ||
             type == "Note Level Bar" ||
             type == "Level Pulse" ||
+            type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Color On" ||
         type == "Note On" ||
@@ -251,6 +252,10 @@ int VUMeterEffect::DecodeType(std::string type)
     {
         return 21;
     }
+    else if (type == "Level Pulse Color")
+    {
+        return 22;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -362,6 +367,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             break;
         case 21:
             RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote);
+            break;
+        case 22:
+            RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex);
             break;
         }
 	}
@@ -881,6 +889,56 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 			}
 		}
 	}
+}
+
+void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    float f = 0.0;
+    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    if (pf != nullptr)
+    {
+        f = *pf->begin();
+    }
+
+    if (f > (float)sensitivity / 100.0)
+    {
+        if (lasttimingmark != buffer.curPeriod - 1)
+        {
+            colourindex++;
+            if (colourindex >= buffer.GetColorCount())
+            {
+                colourindex = 0;
+            }
+        }
+
+        lasttimingmark = buffer.curPeriod;
+    }
+
+    if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+    {
+        float ff = 1.0 - (((float)buffer.curPeriod - (float)lasttimingmark) / (float)fadeframes);
+        if (ff < 0)
+        {
+            ff = 0;
+        }
+
+        if (ff > 0.0)
+        {
+            xlColor color1;
+            buffer.palette.GetColor(colourindex, color1);
+            color1.alpha = ff * (float)255;
+
+            for (int x = 0; x < buffer.BufferWi; x++)
+            {
+                for (int y = 0; y < buffer.BufferHt; y++)
+                {
+                    buffer.SetPixel(x, y, color1);
+                }
+            }
+        }
+    }
 }
 
 void VUMeterEffect::DrawCircle(RenderBuffer& buffer, int centerx, int centery, float radius, xlColor& color1)

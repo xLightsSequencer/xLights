@@ -46,6 +46,7 @@ class VUMeterEffect : public RenderableEffect
         void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote);
         void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote);
         void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel);
+        void RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex);
 };
 
 #endif // VUMETEREFFECT_H

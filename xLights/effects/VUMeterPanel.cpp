@@ -107,6 +107,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Bar"));
 	Choice_VUMeter_Type->Append(_("Level Pulse"));
+	Choice_VUMeter_Type->Append(_("Level Pulse Color"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
 	Choice_VUMeter_Type->Append(_("Timing Event Bar"));
 	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
@@ -284,6 +285,7 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Level Pulse Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
