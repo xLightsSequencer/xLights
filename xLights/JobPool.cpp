@@ -23,10 +23,11 @@ class JobPoolWorker : public wxThread
 {
     JobPool *pool;
     volatile bool stopped;
-    Job *currentJob;
+    Job  * volatile currentJob;
     enum {
         STARTING,
         IDLE,
+        RUNNING_JOB,
         STOPPED,
         UNKNOWN
     } status;
@@ -73,6 +74,8 @@ std::string JobPoolWorker::GetStatus()
         ret << "<starting>";
     } else if (status == IDLE) {
         ret << "<idle>";
+    } else if (status == RUNNING_JOB) {
+        ret << "<running job>";
     } else if (status == STOPPED) {
         ret << "<stopped>";
     } else {
@@ -144,26 +147,21 @@ void* JobPoolWorker::Entry()
     XInitThreads();
 #endif
     while ( !stopped ) {
+        status = IDLE;
         // Did we get a request to terminate?
         if (TestDestroy())
         {
             logger_jobpool.debug("JobPoolWorker::Entry requested to terminate.");
             break;
         }
-        status = IDLE;
         Job *job = GetJob();
         if (job != nullptr) {
             logger_jobpool.debug("JobPoolWorker::Entry processing job.");
+            status = RUNNING_JOB;
             // Call user's implementation for processing request
             ProcessJob(job);
-            if (job->DeleteWhenComplete()) {
-                logger_jobpool.debug("JobPoolWorker::Entry Job done ... deleting job.");
-                delete job;
-            }
-            else
-            {
-                logger_jobpool.debug("JobPoolWorker::Entry Job done.");
-            }
+            logger_jobpool.debug("JobPoolWorker::Entry processed job.");
+            status = IDLE;
             std::unique_lock<std::mutex> mutLock(pool->queueLock);
             pool->inFlight--;
         } else {
@@ -188,7 +186,15 @@ void JobPoolWorker::ProcessJob(Job *job)
 		currentJob = job;
         job->Process();
         currentJob = nullptr;
-		logger_jobpool.debug("Job on background thread done.");
+        
+        if (job->DeleteWhenComplete()) {
+            logger_jobpool.debug("Job on background thread done ... deleting job.");
+            delete job;
+        }
+        else
+        {
+            logger_jobpool.debug("Job on background thread done.");
+        }
 	}
 }
 

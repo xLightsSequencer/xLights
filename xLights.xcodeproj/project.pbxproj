@@ -57,6 +57,9 @@
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
 		67229EDE1C95DDF000D34024 /* TestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67229EDD1C95DDF000D34024 /* TestDialog.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
+		6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */; };
+		6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */; };
+		6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */; };
 		67276C481CB424B300A245CA /* DrawGLUtils31.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67276C471CB424B300A245CA /* DrawGLUtils31.cpp */; };
 		67278C7E1CF74A01000DCFFB /* ValueCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C781CF74A01000DCFFB /* ValueCurve.cpp */; };
 		67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67278C7A1CF74A01000DCFFB /* ValueCurveButton.cpp */; };
@@ -666,6 +669,12 @@
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
 		67229EDC1C95DDF000D34024 /* TestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestDialog.h; sourceTree = "<group>"; };
 		67229EDD1C95DDF000D34024 /* TestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDialog.cpp; sourceTree = "<group>"; };
+		6725FAE41F943AD7007F2D7C /* GammaDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GammaDialog.h; sourceTree = "<group>"; };
+		6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPRemotesDialog.cpp; sourceTree = "<group>"; };
+		6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GammaDialog.cpp; sourceTree = "<group>"; };
+		6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FPPRemotesDialog.h; sourceTree = "<group>"; };
+		6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessGamma.cpp; sourceTree = "<group>"; };
+		6725FAEB1F943B19007F2D7C /* OutputProcessGamma.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessGamma.h; sourceTree = "<group>"; };
 		67276C471CB424B300A245CA /* DrawGLUtils31.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils31.cpp; sourceTree = "<group>"; };
 		67278C781CF74A01000DCFFB /* ValueCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ValueCurve.cpp; sourceTree = "<group>"; };
 		67278C791CF74A01000DCFFB /* ValueCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ValueCurve.h; sourceTree = "<group>"; };
@@ -2350,6 +2359,12 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */,
+				6725FAEB1F943B19007F2D7C /* OutputProcessGamma.h */,
+				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
+				6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */,
+				6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */,
+				6725FAE41F943AD7007F2D7C /* GammaDialog.h */,
 				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
 				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
 				3D585F281E7E50A200A3F84F /* jsonreader.cpp */,
@@ -3051,6 +3066,7 @@
 				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
+				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				67F2401D1E32A09E00F8B985 /* Files.cpp in Sources */,
@@ -3089,6 +3105,7 @@
 				67F240151E32A03F00F8B985 /* serial_osx.cpp in Sources */,
 				67F240161E32A03F00F8B985 /* serial.cpp in Sources */,
 				67F240171E32A03F00F8B985 /* SerialOutput.cpp in Sources */,
+				6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */,
 				67F240181E32A03F00F8B985 /* SerialPortWithRate.cpp in Sources */,
 				6763C5621F701E87006616FF /* PlayListItemFilePanel.cpp in Sources */,
 				67F240191E32A03F00F8B985 /* TestPreset.cpp in Sources */,
@@ -3111,6 +3128,7 @@
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
+				6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */,
 				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
 				67C581541E4B95A400932DFA /* OutputProcessColourOrder.cpp in Sources */,
