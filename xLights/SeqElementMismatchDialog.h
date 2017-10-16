@@ -37,6 +37,7 @@ protected:
 private:
 
     //(*Handlers(SeqElementMismatchDialog)
+    void OnChoiceModelsSelect(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

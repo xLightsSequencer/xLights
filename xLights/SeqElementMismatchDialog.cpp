@@ -53,6 +53,8 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnChoiceModelsSelect);
     //*)
 }
 
@@ -68,3 +70,8 @@ void SeqElementMismatchDialog::SetMessage(const wxString& message)
 }
 
 */
+
+void SeqElementMismatchDialog::OnChoiceModelsSelect(wxCommandEvent& event)
+{
+    RadioButtonRename->SetValue(true);
+}

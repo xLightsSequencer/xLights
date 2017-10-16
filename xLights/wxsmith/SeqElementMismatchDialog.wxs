@@ -52,6 +52,7 @@
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceModels" member="yes">
 					<style>wxCB_SORT</style>
+					<handler function="OnChoiceModelsSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
