@@ -148,11 +148,16 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
     wxString localIP;
-    config->Read(_("xLightsLocalIP"), &localIP, "");
-    if (localIP != "")
+    wxConfig *xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
     {
-        _outputManager->SetForceFromIP(localIP.ToStdString());
-        logger_base.info("Forcing output via %s.", (const char *)localIP.c_str());
+        xlconfig->Read(_("xLightsLocalIP"), &localIP, "");
+        if (localIP != "")
+        {
+            _outputManager->SetForceFromIP(localIP.ToStdString());
+            logger_base.info("Forcing output via %s.", (const char *)localIP.c_str());
+        }
+        delete xlconfig;
     }
 
     if (_scheduleOptions->IsSendOffWhenNotRunning())
