@@ -102,9 +102,9 @@ Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameve
 
 [Icons]
 Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"
-Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"
+Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
-Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
+Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
