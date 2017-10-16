@@ -90,8 +90,8 @@ Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameve
 ; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 
 [Icons] 
-Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"
-Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"
+Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
+Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
 
