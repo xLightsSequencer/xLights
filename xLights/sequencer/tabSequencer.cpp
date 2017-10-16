@@ -1897,27 +1897,47 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
 }
 
+void xLightsFrame::ApplyLast(wxCommandEvent& event)
+{
+    // Handle the EVT_APPLYLAST event
+    SettingsMap* pSettingsMap = (SettingsMap*)event.GetClientData();
+    SetEffectControlsApplyLast(*pSettingsMap);
+    delete pSettingsMap;
+}
+
+void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
+    // Now Apply those settings with APPLYLAST in their name ... last
+    for (std::map<std::string, std::string>::const_iterator it = settings.begin(); it != settings.end(); ++it) {
+        if (it->first.find("APPLYLAST") != std::string::npos)
+        {
+            ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
+        }
+    }
+}
+
 void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
-    int cnt = 0;
+    bool applylast = false;
 
 	// Apply those settings without APPLYLAST in their name first
     for (std::map<std::string,std::string>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
 		if (it->first.find("APPLYLAST") == std::string::npos)
 		{
 			ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
-			cnt++;
 		}
+        else
+        {
+            applylast = true;
+        }
     }
 
-	// Now Apply those settings with APPLYLAST in their name ... last
-	for (std::map<std::string, std::string>::const_iterator it = settings.begin(); it != settings.end(); ++it) {
-		if (it->first.find("APPLYLAST") != std::string::npos)
-		{
-			ApplySetting(wxString(it->first.c_str()), wxString(it->second.c_str()));
-			cnt++;
-		}
-	}
+    if (applylast)
+    {
+        // we do this asynchronously as we tyically need other events to process first
+        wxCommandEvent event(EVT_APPLYLAST);
+        event.SetClientData(new SettingsMap(settings));
+        wxPostEvent(this, event);
+    }
 
     MixTypeChanged=true;
     FadesChanged=true;

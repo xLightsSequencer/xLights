@@ -144,6 +144,7 @@ wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_NOTES, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_APPLYLAST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
@@ -281,7 +282,9 @@ public:
                            const SettingsMap &settings, const SettingsMap &palette,
                            bool setDefaults);
     void SetEffectControls(const SettingsMap &settings);
-	void ApplySetting(wxString name, const wxString &value);
+    void ApplyLast(wxCommandEvent& event);
+    void SetEffectControlsApplyLast(const SettingsMap &settings);
+    void ApplySetting(wxString name, const wxString &value);
     void LoadPerspectivesMenu(wxXmlNode* perspectivesNode);
     struct PerspectiveId {
         int id;
