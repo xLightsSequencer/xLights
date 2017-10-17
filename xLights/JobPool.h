@@ -53,6 +53,7 @@ public:
 private:
     friend class JobPoolWorker;
     void RemoveWorker(JobPoolWorker*);
+    Job *GetNextJob();
 };
 
 

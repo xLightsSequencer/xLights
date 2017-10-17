@@ -39,8 +39,6 @@ public:
     bool Start();
     void* Entry();
 
-    Job *GetJob();
-
     void ProcessJob(Job *job);
     std::string GetStatus();
 };
@@ -118,26 +116,6 @@ bool JobPoolWorker::Start()
     return Run() == wxTHREAD_NO_ERROR;
 }
 
-Job *JobPoolWorker::GetJob()
-{
-    std::unique_lock<std::mutex> mutLock(pool->queueLock);
-    Job *req = nullptr;
-    if (pool->queue.empty()) {
-        pool->idleThreads++;
-        long timeout = 100;
-        if (pool->idleThreads <= 12) {
-            timeout = 30000;
-        }
-        pool->signal.wait_for(mutLock, std::chrono::milliseconds(timeout));
-        pool->idleThreads--;
-    }
-    if ( !pool->queue.empty() ) {
-        req = pool->queue.front();
-        pool->queue.pop_front();
-    }
-    return req;
-}
-
 void* JobPoolWorker::Entry()
 {
     // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
@@ -154,7 +132,7 @@ void* JobPoolWorker::Entry()
             logger_jobpool.debug("JobPoolWorker::Entry requested to terminate.");
             break;
         }
-        Job *job = GetJob();
+        Job *job = pool->GetNextJob();
         if (job != nullptr) {
             logger_jobpool.debug("JobPoolWorker::Entry processing job.");
             status = RUNNING_JOB;
@@ -162,17 +140,12 @@ void* JobPoolWorker::Entry()
             ProcessJob(job);
             logger_jobpool.debug("JobPoolWorker::Entry processed job.");
             status = IDLE;
-            std::unique_lock<std::mutex> mutLock(pool->queueLock);
             pool->inFlight--;
-        } else {
-            std::unique_lock<std::mutex> mutLock(pool->queueLock);
-            if (pool->idleThreads > 12) {
-                break;
-            }
+        } else if (pool->idleThreads > 12) {
+            break;
         }
     }
     logger_jobpool.debug("JobPoolWorker::Entry exiting.");
-    std::unique_lock<std::mutex> mutLock(pool->threadLock);
     pool->numThreads--;
     status = STOPPED;
     return nullptr;
@@ -220,6 +193,25 @@ void JobPool::RemoveWorker(JobPoolWorker *w) {
     if (loc != threads.end()) {
         threads.erase(loc);
     }
+}
+
+Job *JobPool::GetNextJob() {
+    std::unique_lock<std::mutex> mutLock(queueLock);
+    Job *req = nullptr;
+    if (queue.empty()) {
+        idleThreads++;
+        long timeout = 100;
+        if (idleThreads <= 12) {
+            timeout = 30000;
+        }
+        signal.wait_for(mutLock, std::chrono::milliseconds(timeout));
+        idleThreads--;
+    }
+    if ( !queue.empty() ) {
+        req = queue.front();
+        queue.pop_front();
+    }
+    return req;
 }
 
 void JobPool::PushJob(Job *job)

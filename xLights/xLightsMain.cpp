@@ -3732,7 +3732,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
             }
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%i,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%li,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -3828,8 +3828,8 @@ void xLightsFrame::ExportModels(wxString filename)
     f.Write("\n");
 
     f.Write(wxString::Format("\"Model Count\",%d\n", AllModels.size()));
-    f.Write(wxString::Format("\"First Used Channel\",%d\n", minchannel));
-    f.Write(wxString::Format("\"Last Used Channel\",%d\n", maxchannel));
+    f.Write(wxString::Format("\"First Used Channel\",%ld\n", minchannel));
+    f.Write(wxString::Format("\"Last Used Channel\",%ld\n", maxchannel));
     f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));
     f.Write(wxString::Format("\"Bulbs\",%d\n", bulbs));
 

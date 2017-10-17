@@ -556,8 +556,8 @@ std::string E131Output::GetLongDescription() const
     {
         if (!_enabled) res += "INACTIVE ";
         res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-        res += "[1-" + std::string(wxString::Format(wxT("%i"), (long)_channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%i"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetActualEndChannel())) + ") ";
+        res += "[1-" + std::string(wxString::Format(wxT("%li"), (long)_channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetActualEndChannel())) + ") ";
         res += _description;
     }
 
@@ -582,7 +582,7 @@ std::string E131Output::GetChannelMapping(long ch) const
     }
     else
     {
-        res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
+        res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
 
         res += "Type: E1.31\n";
         int u = _universe;
@@ -594,7 +594,7 @@ std::string E131Output::GetChannelMapping(long ch) const
         }
         res += "IP: " + _ip + "\n";
         res += "Universe: " + GetUniverseString() + "\n";
-        res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
+        res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
 
         if (!_enabled) res += " INACTIVE";
     }
