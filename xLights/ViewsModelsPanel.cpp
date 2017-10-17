@@ -1522,7 +1522,7 @@ void ViewsModelsPanel::OnListCtrlModelsItemRClick(wxListEvent& event)
     mnu.Append(ID_MODELS_HIDEALL, "Hide All")->Enable(items > 0);
     mnu.Append(ID_MODELS_HIDEUNUSED, "Hide Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SHOWALL, "Show All")->Enable(items > 0);
-    mnu.Append(ID_MODELS_REMOVEUNUSED, "Remmove Unused")->Enable(items > 0);
+    mnu.Append(ID_MODELS_REMOVEUNUSED, "Remove Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTUNUSED, "Select Unused")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTUSED, "Select Used")->Enable(items > 0);
     mnu.Append(ID_MODELS_SELECTALL, "Select All")->Enable(items >0);
