@@ -298,9 +298,6 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 
-	Panel_Sizer->Fit(this);
-	Panel_Sizer->SetSizeHints(this);
-
     int w, h;
     ListBoxModelsInGroup->GetSize(&w, &h);
     ListBoxModelsInGroup->SetColumnWidth(0, wxLIST_AUTOSIZE);
