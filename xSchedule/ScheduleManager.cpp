@@ -3217,6 +3217,24 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Output processing present
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Output processing present");
+
+    if (_outputProcessing.size() > 0)
+    {
+        wxString msg = wxString::Format("    WARN: %d Output Processes present. This would explain why xSchedule output looks different to xlights output.", (int)_outputProcessing.size());
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Multiple schedules with the same priority
     LogAndWrite(f, "");
     LogAndWrite(f, "Multiple schedules with the same priority");
