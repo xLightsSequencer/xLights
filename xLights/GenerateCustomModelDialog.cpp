@@ -795,6 +795,11 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     // Remember our outputting state
     bool outputting = _outputManager->IsOutputting();
 
+    if (_outputManager->IsOutputOpenInAnotherProcess())
+    {
+        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+    }
+
     _outputManager->StartOutput();
 
     int totaltime = LEADOFF + LEADON + FLAGOFF + FLAGON + FLAGOFF + count * (NODEON + NODEOFF);

@@ -607,6 +607,12 @@ TestDialog::TestDialog(wxWindow* parent, OutputManager* outputManager, wxFileNam
 	_starttime = wxDateTime::UNow();
 
     CheckBox_OutputToLights->SetValue(true);
+
+    if (_outputManager->IsOutputOpenInAnotherProcess())
+    {
+        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+    }
+
     if (!_outputManager->StartOutput())
     {
         wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
@@ -2164,6 +2170,11 @@ void TestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 {
 	if (CheckBox_OutputToLights->IsChecked())
 	{
+        if (_outputManager->IsOutputOpenInAnotherProcess())
+        {
+            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        }
+
         if (!_outputManager->StartOutput())
         {
             wxMessageBox("At least one output could not be started. See log file for details.", "Warning");

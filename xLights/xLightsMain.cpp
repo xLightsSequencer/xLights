@@ -2099,6 +2099,11 @@ bool xLightsFrame::EnableOutputs()
 
     if (CheckBoxLightOutput->IsChecked() && !_outputManager.IsOutputting())
     {
+        if (_outputManager.IsOutputOpenInAnotherProcess())
+        {
+            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        }
+
         ok = _outputManager.StartOutput();
         if (ok)
         {

@@ -25,6 +25,8 @@ class OutputManager
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
+    bool SetGlobalOutputtingFlag(bool state, bool force = false);
+
 public:
 
     #pragma region Constructors and Destructors
@@ -114,6 +116,8 @@ public:
     bool TxEmpty();
     std::string GetChannelName(long channel);
     void SendHeartbeat();
+
+    bool IsOutputOpenInAnotherProcess();
 };
 
 #endif

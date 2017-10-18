@@ -33,7 +33,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/UtilFunctions.h"
 
-ScheduleManager::ScheduleManager(const std::string& showDir)
+ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Loading schedule from %s.", (const char *)showDir.c_str());
@@ -162,6 +162,10 @@ ScheduleManager::ScheduleManager(const std::string& showDir)
 
     if (_scheduleOptions->IsSendOffWhenNotRunning())
     {
+        if (_outputManager->IsOutputOpenInAnotherProcess())
+        {
+            wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+        }
         _outputManager->StartOutput();
         ManageBackground();
         logger_base.info("Started outputting to lights.");
@@ -1380,7 +1384,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Toggle output to lights")
             {
-                result = ToggleOutputToLights(msg);
+                result = ToggleOutputToLights(nullptr, msg, false);
             }
             else if (command == "Toggle mute")
             {
@@ -2373,7 +2377,7 @@ RunningSchedule* ScheduleManager::GetRunningSchedule(const std::string& schedule
     return nullptr;
 }
 
-void ScheduleManager::SetOutputToLights(bool otl)
+void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool interactive)
 {
     if (_outputManager != nullptr)
     {
@@ -2381,6 +2385,10 @@ void ScheduleManager::SetOutputToLights(bool otl)
         {
             if (!IsOutputToLights())
             {
+                if (_outputManager->IsOutputOpenInAnotherProcess() && interactive)
+                {
+                    wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+                }
                 _outputManager->StartOutput();
                 StartVirtualMatrices();
                 ManageBackground();
@@ -2398,12 +2406,16 @@ void ScheduleManager::SetOutputToLights(bool otl)
     }
 }
 
-void ScheduleManager::ManualOutputToLightsClick()
+void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
 {
     _manualOTL++;
     if (_manualOTL > 1) _manualOTL = -1;
     if (_manualOTL == 1)
     {
+        if (_outputManager->IsOutputOpenInAnotherProcess())
+        {
+            wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+        }
         _outputManager->StartOutput();
         StartVirtualMatrices();
         ManageBackground();
@@ -2416,17 +2428,17 @@ void ScheduleManager::ManualOutputToLightsClick()
     }
 }
 
-bool ScheduleManager::ToggleOutputToLights(std::string& msg)
+bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive)
 {
     if (_outputManager->IsOutputting())
     {
         _manualOTL = 0;
-        SetOutputToLights(false);
+        SetOutputToLights(frame, false, interactive);
     }
     else
     {
         _manualOTL = 1;
-        SetOutputToLights(true);
+        SetOutputToLights(frame, true, interactive);
     }
 
     return true;

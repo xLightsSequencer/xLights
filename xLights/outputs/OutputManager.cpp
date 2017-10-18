@@ -11,6 +11,7 @@
 #include "TestPreset.h"
 #include <wx/msgdlg.h>
 #include "../osxMacUtils.h"
+#include <wx/config.h>
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
@@ -718,6 +719,7 @@ bool OutputManager::StartOutput()
     if (_outputting)
     {
         DisableSleepModes();
+        SetGlobalOutputtingFlag(true);
     }
 
     return _outputting; // even partially started is ok
@@ -734,6 +736,7 @@ void OutputManager::StopOutput()
     }
 
     _outputting = false;
+    SetGlobalOutputtingFlag(false);
     _outputCriticalSection.Leave();
 
     EnableSleepModes();
@@ -879,3 +882,44 @@ TestPreset* OutputManager::CreateTestPreset(std::string preset)
 }
 #pragma endregion Test Presets
 
+bool OutputManager::IsOutputOpenInAnotherProcess()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxConfig *xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
+    {
+        if (xlconfig->HasEntry(_("OutputActive")))
+        {
+            bool state;
+            xlconfig->Read(_("OutputActive"), &state);
+            delete xlconfig;
+
+            if (state)
+            {
+                logger_base.warn("Output already seems to be happening. This may generate odd results.");
+            }
+
+            return state;
+        }
+    }
+
+    return false;
+}
+
+bool OutputManager::SetGlobalOutputtingFlag(bool state, bool force)
+{
+    if (state != _outputting && !force)
+    {
+        return false;
+    }
+
+    wxConfig *xlconfig = new wxConfig(_("xLights"));
+    if (xlconfig != nullptr)
+    {
+        xlconfig->Write(_("OutputActive"), state);
+        delete xlconfig;
+        return true;
+    }
+
+    return false;
+}

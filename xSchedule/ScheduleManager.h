@@ -17,6 +17,7 @@ class PlayListStep;
 class OutputProcess;
 class Xyzzy;
 class PlayListItem;
+class xScheduleFrame;
 
 typedef enum
 {
@@ -107,7 +108,7 @@ class ScheduleManager : public wxEvtHandler
         int GetVolume() const;
         void AllOff();
         int GetManualOutputToLights() const { return _manualOTL; }
-        void ManualOutputToLightsClick();
+        void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
         void OpenFPPSyncSendSocket();
@@ -126,7 +127,7 @@ class ScheduleManager : public wxEvtHandler
         void ClearDirty();
         size_t GetTotalChannels() const;
         bool IsXyzzy() const { return _xyzzy != nullptr; }
-        ScheduleManager(const std::string& showDir);
+        ScheduleManager(xScheduleFrame* frame, const std::string& showDir);
         virtual ~ScheduleManager();
         std::string GetStatus() const;
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
@@ -157,14 +158,14 @@ class ScheduleManager : public wxEvtHandler
         void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
-        bool ToggleOutputToLights(std::string& msg);
+        bool ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive);
         bool ToggleCurrentPlayListRandom(std::string& msg);
         bool ToggleCurrentPlayListPause(std::string& msg);
         bool ToggleCurrentPlayListLoop(std::string& msg);
         bool ToggleCurrentPlayListStepLoop(std::string& msg);
         bool IsOutputToLights() const;
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr && GetRunningPlayList() != _queuedSongs; }
-        void SetOutputToLights(bool otl);
+        void SetOutputToLights(xScheduleFrame* frame, bool otl, bool interactive);
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
         bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);

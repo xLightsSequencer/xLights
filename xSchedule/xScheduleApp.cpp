@@ -365,7 +365,6 @@ bool xScheduleApp::OnInit()
     _checker = new wxSingleInstanceChecker();
     if (showDir == "")
     {
-        _checker->CreateDefault();
         if (_checker->IsAnotherRunning())
         {
             logger_base.info("Another instance of xSchedule is running.");

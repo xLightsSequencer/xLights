@@ -614,7 +614,7 @@ void xScheduleFrame::LoadSchedule()
         delete __schedule;
         __schedule = nullptr;
     }
-    __schedule = new ScheduleManager(_showDir);
+    __schedule = new ScheduleManager(this, _showDir);
 
     if (_webServer != nullptr)
     {
@@ -1786,7 +1786,7 @@ void xScheduleFrame::UpdateStatus()
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
 {
-    __schedule->ManualOutputToLightsClick();
+    __schedule->ManualOutputToLightsClick(this);
     UpdateUI();
 }
 
@@ -2120,12 +2120,12 @@ void xScheduleFrame::UpdateUI()
             if (__schedule->GetRunningPlayList() == nullptr && !__schedule->IsXyzzy())
             {
                 if (__schedule->IsOutputToLights())
-                    __schedule->SetOutputToLights(false);
+                    __schedule->SetOutputToLights(this, false, false);
             }
             else
             {
                 if (!__schedule->IsOutputToLights())
-                    __schedule->SetOutputToLights(true);
+                    __schedule->SetOutputToLights(this, true, false);
             }
         }
         else
@@ -2133,19 +2133,19 @@ void xScheduleFrame::UpdateUI()
             if (__schedule->GetManualOutputToLights() == 0)
             {
                 if (__schedule->IsOutputToLights())
-                    __schedule->SetOutputToLights(false);
+                    __schedule->SetOutputToLights(this, false, false);
             }
             else if (__schedule->GetManualOutputToLights() == 1)
             {
                 if (!__schedule->IsOutputToLights())
-                    __schedule->SetOutputToLights(true);
+                    __schedule->SetOutputToLights(this, true, false);
             }
         }
     }
     else
     {
         if (__schedule->IsOutputToLights())
-            __schedule->SetOutputToLights(false);
+            __schedule->SetOutputToLights(this, false, false);
     }
 
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
@@ -2262,7 +2262,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     _suspendOTL = true;
     if (ol)
     {
-        __schedule->SetOutputToLights(false);
+        __schedule->SetOutputToLights(this, false, true);
     }
 
     auto vmatrices = __schedule->GetOptions()->GetVirtualMatrices();
@@ -2276,7 +2276,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     _suspendOTL = false;
     if (ol)
     {
-        __schedule->SetOutputToLights(true);
+        __schedule->SetOutputToLights(this, true, true);
     }
 
     UpdateUI();
