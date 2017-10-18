@@ -148,8 +148,8 @@ class ScheduleManager : public wxEvtHandler
         std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
-        void OptionsChanged() {};
-        void OutputProcessingChanged() {};
+        void OptionsChanged() { _changeCount++; };
+        void OutputProcessingChanged() { _changeCount++; };
         bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference);
