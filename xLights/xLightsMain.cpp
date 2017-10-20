@@ -4983,15 +4983,22 @@ void xLightsFrame::CheckSequence(bool display)
         {
             wxString command = ft->GetOpenCommand(filename);
 
-            logger_base.debug("Viewing xLights Check Sequence results %s.", (const char *)filename.c_str());
-
-            wxExecute(command);
+            if (command == "")
+            {
+                logger_base.error("Unable to view check sequence results due to no open command. %s", (const char *)filename.c_str());
+                wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
+            }
+            else
+            {
+                logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char *)filename.c_str(), (const char*)command.c_str());
+                wxExecute(command);
+            }
             delete ft;
         }
         else
         {
             logger_base.warn("Unable to view xLights Check Sequence results %s.", (const char *)filename.c_str());
-            wxMessageBox(_("Unable to show xLights Check Sequence results."), _("Error"));
+            wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
         }
     }
 }
