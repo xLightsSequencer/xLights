@@ -693,7 +693,12 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
     logger_base.debug("Strings.xml had %d entries.", count);
     if (count == 0) return 0;
 
+    int oldCount = stringData.size();
     stringData.resize(count);
+    for (int i = oldCount; i < count; ++i)
+    {
+        stringData[i] = nullptr;
+    }
 
     int i = 0;
     int lastString = -1;
@@ -780,6 +785,23 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
         string->port = i;
         string->index = i + virtualStrings;
         stringsData[i] = string;
+    }
+
+    // fill in any missing data
+    for (int i = 0; i < max; ++i)
+    {
+        if (stringsData[i] == nullptr)
+        {
+            FalconString* string = new FalconString();
+            string->startChannel = 1;
+            string->pixels = MINIMUMPIXELS;
+            string->protocol = 0;
+            string->universe = 1;
+            string->description = "";
+            string->port = i;
+            string->index = i + virtualStrings;
+            stringsData[i] = string;
+        }
     }
 }
 
