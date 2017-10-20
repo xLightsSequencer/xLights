@@ -76,17 +76,23 @@ void ModelPreview::render( wxPaintEvent& event )
 
 void ModelPreview::Render()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (PreviewModels != nullptr)
     {
         bool isModelSelected = false;
         for (int i = 0; i < PreviewModels->size(); ++i) {
+            if ((*PreviewModels)[i] == nullptr)
+            {
+                logger_base.crit("*PreviewModels[%d] is nullptr ... this is not going to end well.", i);
+            }
             if (((*PreviewModels)[i])->Selected || ((*PreviewModels)[i])->GroupSelected) {
                 isModelSelected = true;
                 break;
             }
         }
 
-        for (int i=0; i<PreviewModels->size(); ++i) {
+        for (int i = 0; i < PreviewModels->size(); ++i) {
 			const xlColor *color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
 			if (((*PreviewModels)[i])->Selected) {
 				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
