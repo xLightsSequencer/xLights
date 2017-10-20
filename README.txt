@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2017.32  Oct 15, 2017 
+2017.33  Oct 15, 2017 
    -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
    -- enh (keith)   Add xSchedule gamma processing on output
    -- enh (keith)   Add FPP master support for pixel sticks and Falcons
