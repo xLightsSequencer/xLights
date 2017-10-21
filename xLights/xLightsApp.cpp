@@ -244,8 +244,12 @@ void handleCrash(void *data) {
     logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
     report->SetCompressedFileDirectory(topFrame->CurrentDir);
-    report->AddAll(wxDebugReport::Context_Exception);
-    report->AddAll(wxDebugReport::Context_Current);
+
+    #ifndef __WXMSW__
+        // dont call these for windows as they dont seem to do anything.
+        report->AddAll(wxDebugReport::Context_Exception);
+        report->AddAll(wxDebugReport::Context_Current);
+    #endif
 
     wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
@@ -256,34 +260,6 @@ void handleCrash(void *data) {
     }
     if (topFrame->UnsavedRgbEffectsChanges &&  wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").Exists()) {
         report->AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
-    }
-
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
-#endif
-#ifdef __WXOSX_MAC__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
-#endif
-#ifdef __LINUX__
-    std::string filename = "/tmp/xLights_l4cpp.log";
-#endif
-
-    if (wxFile::Exists(filename))
-    {
-        report->AddFile(filename, "xLights_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
-    }
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
-    {
-        report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
 
     if (topFrame->GetSeqXmlFileName() != "") {
@@ -334,11 +310,37 @@ void handleCrash(void *data) {
     trace += topFrame->GetThreadStatusReport();
 #endif // LINUX
 
-	logger_base.crit(trace);
-
     report->AddText("backtrace.txt", trace, "Backtrace");
 
     logger_base.crit("%s", (const char *)trace.c_str());
+
+    wxString dir;
+#ifdef __WXMSW__
+    wxGetEnv("APPDATA", &dir);
+    std::string filename = std::string(dir.c_str()) + "/xLights_l4cpp.log";
+#endif
+#ifdef __WXOSX_MAC__
+    wxFileName home;
+    home.AssignHomeDir();
+    dir = home.GetFullPath();
+    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xLights_l4cpp.log";
+#endif
+#ifdef __LINUX__
+    std::string filename = "/tmp/xLights_l4cpp.log";
+#endif
+
+    if (wxFile::Exists(filename))
+    {
+        report->AddFile(filename, "xLights_l4cpp.log");
+    }
+    else if (wxFile::Exists(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath()))
+    {
+        report->AddFile(wxFileName(topFrame->CurrentDir, "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+    }
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath()))
+    {
+        report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
+    }
 
     if (!wxThread::IsMain() && topFrame != nullptr) 
     {
@@ -401,6 +403,9 @@ bool xLightsApp::OnInit()
     logger_base.info("******* OnInit: XLights started.");
 
     DumpConfig();
+
+    int id = (int)wxThread::GetCurrentId();
+    logger_base.info("Main thread id: 0x%X or %i\n", id, id);
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
