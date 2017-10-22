@@ -35,9 +35,11 @@
 				<object class="wxChoice" name="ID_CHOICE3" variable="Choice_SerialSpeed" member="yes">
 					<content>
 						<item>2400</item>
+						<item>4800</item>
+						<item>9600</item>
 						<item>19200</item>
 					</content>
-					<selection>1</selection>
+					<selection>3</selection>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

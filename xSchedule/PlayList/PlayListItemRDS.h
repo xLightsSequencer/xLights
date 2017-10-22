@@ -6,6 +6,7 @@
 
 class wxXmlNode;
 class wxWindow;
+class SerialPort;
 
 class PlayListItemRDS : public PlayListItem
 {
@@ -22,6 +23,9 @@ protected:
     int _stationDuration;
     int _lineDuration;
     #pragma endregion Member Variables
+
+    void Dump(unsigned char* buffer, int buflen);
+    void Write(SerialPort* serial, unsigned char* buffer, int buflen);
 
 public:
 

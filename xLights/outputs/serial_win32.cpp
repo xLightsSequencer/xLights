@@ -185,6 +185,12 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
         return -5;
     }
 
+    // Leaving this here as part of my EDM transmitter experiments ... if not corrected by 2019 then feel free to remove it
+    //if (flowcontrol)
+    //{
+    //    SetCommMask(_fd, EV_RXCHAR | EV_TXEMPTY);
+    //}
+
     // for a better performance with win95/98 I increased the internal
     // buffer to SERIALPORT_BUFSIZE (normal size is 1024, but this can
     // be a little bit to small, if you use a higher baudrate like 115200)
@@ -192,7 +198,6 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
 
     return 0;
 }
-
 
 bool SerialPort::IsOpen()
 {

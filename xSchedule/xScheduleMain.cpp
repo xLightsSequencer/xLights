@@ -2332,7 +2332,7 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
 }
 
 void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
-{    
+{
     __schedule->SetMode(SYNCMODE::FPPUNICASTSLAVE);
     UpdateUI();
 }

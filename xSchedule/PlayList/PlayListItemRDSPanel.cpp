@@ -68,6 +68,8 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_SerialSpeed = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	Choice_SerialSpeed->Append(_("2400"));
+	Choice_SerialSpeed->Append(_("4800"));
+	Choice_SerialSpeed->Append(_("9600"));
 	Choice_SerialSpeed->SetSelection( Choice_SerialSpeed->Append(_("19200")) );
 	FlexGridSizer1->Add(Choice_SerialSpeed, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Station Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
