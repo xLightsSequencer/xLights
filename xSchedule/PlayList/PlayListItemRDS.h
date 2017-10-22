@@ -22,6 +22,7 @@ protected:
     std::string _text;
     int _stationDuration;
     int _lineDuration;
+    bool _mrds;
     #pragma endregion Member Variables
 
     void Dump(unsigned char* buffer, int buflen);
@@ -44,6 +45,8 @@ public:
     std::string GetStationName() const { return _stationName; }
     bool GetHighSpeed() const { return _highSpeed; }
     void SetHighSpeed(bool highSpeed) { if (_highSpeed != highSpeed) { _highSpeed = highSpeed; _changeCount++; } }
+    bool GetMRDS() const { return _mrds; }
+    void SetMRDS(bool mrds) { if (_mrds != mrds) { _mrds = mrds; _changeCount++; } }
     void SetCommPort(const std::string& commPort) { if (commPort != _commPort) { _commPort = commPort; _changeCount++; } }
     std::string GetCommPort() const { return _commPort; }
     std::string GetMode() const;

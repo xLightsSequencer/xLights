@@ -42,6 +42,7 @@ class PlayListItemRDSPanel: public wxPanel
 		wxStaticText* StaticText_TextDuration;
 		wxTextCtrl* TextCtrl_StationName;
 		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox_MRDS;
 		//*)
 
 	protected:
@@ -63,6 +64,7 @@ class PlayListItemRDSPanel: public wxPanel
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL2;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX2;
 		//*)
 
 	private:

@@ -10,13 +10,16 @@
 #include "../../xLights/AudioManager.h"
 #include "PlayList.h"
 
-#define RDS_STARTBYTEWRITE (wxByte)214
+#define MRDS_STARTBYTEWRITE (wxByte)214
+#define RDS_STARTBYTEWRITE (wxByte)0xFE
+#define RDS_ENDBYTEWRITE (wxByte)0xFF
 #define RDS_STARTBYTEREAD (wxByte)215
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
     _highSpeed = false;
+    _mrds = false;
     _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
@@ -38,12 +41,14 @@ void PlayListItemRDS::Load(wxXmlNode* node)
     _commPort = node->GetAttribute("CommPort", "");
     _text = node->GetAttribute("Text", "");
     _highSpeed = (node->GetAttribute("HighSpeed", "FALSE") == "TRUE");
+    _mrds = (node->GetAttribute("MRDS", "FALSE") == "TRUE");
 }
 
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
     _started = false;
     _highSpeed = false;
+    _mrds = false;
     _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
@@ -58,6 +63,7 @@ PlayListItem* PlayListItemRDS::Copy() const
     PlayListItemRDS* res = new PlayListItemRDS();
     res->_started = false;
     res->_highSpeed = _highSpeed;
+    res->_mrds = _mrds;
     res->_stationDuration = _stationDuration;
     res->_stationName = _stationName;
     res->_commPort = _commPort;
@@ -81,6 +87,10 @@ wxXmlNode* PlayListItemRDS::Save()
     if (_highSpeed)
     {
         node->AddAttribute("HighSpeed", "TRUE");
+    }
+    if (_mrds)
+    {
+        node->AddAttribute("MRDS", "TRUE");
     }
     node->AddAttribute("StationDuration", wxString::Format(wxT("%i"), _stationDuration));
     node->AddAttribute("LineDuration", wxString::Format(wxT("%i"), _lineDuration));
@@ -128,6 +138,12 @@ void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
 void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int buflen)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_mrds)
+    {
+        buffer[buflen] = RDS_ENDBYTEWRITE;
+        buflen++;
+    }
 
     serial->Write((char*)buffer, buflen);
     Dump(buffer, buflen);
@@ -200,14 +216,20 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         unsigned char outBuffer[100];
 
         // Set station name
-        outBuffer[0] = RDS_STARTBYTEWRITE;
+        if (_mrds)
+        {
+            outBuffer[0] = MRDS_STARTBYTEWRITE;
+        }
+        else
+        {
+            outBuffer[0] = RDS_STARTBYTEWRITE;
+        }
         outBuffer[1] = (wxByte)0x02;
         strncpy((char*)&outBuffer[2], stationName.c_str(), 8);
         for (int i = stationName.length(); i < 8; i++)
         {
             outBuffer[2 + i] = ' ';
         }
-        //outBuffer[10] = (wxByte)0xFF;
         Write(serial, &outBuffer[0], 10);
 
         // Dynamic PS off
@@ -223,7 +245,6 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         // Music program
         outBuffer[1] = (wxByte)0x0C;
         outBuffer[2] = (wxByte)1;
-        //outBuffer[3] = (wxByte)0xFF;
         Write(serial, &outBuffer[0], 3);
 
         // Static PS period
@@ -252,12 +273,10 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         {
             outBuffer[2 + i] = ' ';
         }
-        outBuffer[82] = (wxByte)0xFF;
         Write(serial, &outBuffer[0], 82);
 
         //outBuffer[1] = (wxByte)0x76;
         //outBuffer[2] = (wxByte)text.length();
-        //outBuffer[3] = (wxByte)0xFF;
         //Write(serial, &outBuffer[0], 3);
 
         // Store ram in eeprom
