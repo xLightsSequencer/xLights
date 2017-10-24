@@ -256,6 +256,11 @@ void StartChannelDialog::OnButtonSelect(wxCommandEvent& event)
         ipChoice->Disable();
         universeChoice->Disable();
     }
+
+    if (ModelButton->GetValue())
+    {
+        StartChannel->SetValue(1);
+    }
 }
 
 void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
