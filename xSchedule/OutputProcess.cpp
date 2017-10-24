@@ -8,6 +8,7 @@
 #include "OutputProcessReverse.h"
 #include "OutputProcessGamma.h"
 #include "OutputProcessColourOrder.h"
+#include "OutputProcessDeadChannel.h"
 
 OutputProcess::OutputProcess(wxXmlNode* node)
 {
@@ -76,6 +77,10 @@ OutputProcess* OutputProcess::CreateFromXml(wxXmlNode* node)
     else if (node->GetName() == "OPGamma")
     {
         return new OutputProcessGamma(node);
+    }
+    else if (node->GetName() == "OPDeadChannel")
+    {
+        return new OutputProcessDeadChannel(node);
     }
     return nullptr;
 }

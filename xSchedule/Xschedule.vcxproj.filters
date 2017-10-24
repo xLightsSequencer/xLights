@@ -136,6 +136,8 @@
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="GammaDialog.cpp" />
     <ClCompile Include="OutputProcessGamma.cpp" />
+    <ClCompile Include="DeadChannelDialog.cpp" />
+    <ClCompile Include="OutputProcessDeadChannel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -254,6 +256,8 @@
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="GammaDialog.h" />
     <ClInclude Include="OutputProcessGamma.h" />
+    <ClInclude Include="DeadChannelDialog.h" />
+    <ClInclude Include="OutputProcessDeadChannel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

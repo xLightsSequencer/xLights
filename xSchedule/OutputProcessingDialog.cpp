@@ -5,6 +5,7 @@
 #include "OutputProcessDim.h"
 #include "OutputProcessSet.h"
 #include "OutputProcessRemap.h"
+#include "OutputProcessDeadChannel.h"
 #include "DimDialog.h"
 #include "DimWhiteDialog.h"
 #include "SetDialog.h"
@@ -12,11 +13,12 @@
 #include "ColourOrderDialog.h"
 #include "AddReverseDialog.h"
 #include "GammaDialog.h"
+#include "OutputProcessGamma.h"
+#include "DeadChannelDialog.h"
 
 //(*InternalHeaders(OutputProcessingDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "OutputProcessGamma.h"
 //*)
 
 //(*IdInit(OutputProcessingDialog)
@@ -25,6 +27,7 @@ const long OutputProcessingDialog::ID_BUTTON1 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON2 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON3 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON6 = wxNewId();
+const long OutputProcessingDialog::ID_BUTTON12 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON7 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON8 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON9 = wxNewId();
@@ -73,6 +76,8 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	BoxSizer2->Add(Button_AddRemap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_AddSet = new wxButton(this, ID_BUTTON6, _("Add Set"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	BoxSizer2->Add(Button_AddSet, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_AddDeadChannel = new wxButton(this, ID_BUTTON12, _("Add Dead Channel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
+	BoxSizer2->Add(Button_AddDeadChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Dim = new wxButton(this, ID_BUTTON7, _("Add Dim"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	BoxSizer2->Add(Button_Dim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_DimWhite = new wxButton(this, ID_BUTTON8, _("Add Dim White"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
@@ -103,6 +108,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_DeleteClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddRemapClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddSetClick);
+	Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDeadChannelClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDimClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_AddDimWhiteClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ColourOrderClick);
@@ -332,6 +338,10 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             op = new OutputProcessSet(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
+        else if (type == "Dead Channel")
+        {
+            op = new OutputProcessDeadChannel(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), ListView_Processes->GetItemText(i, 4).ToStdString());
+        }
         else if (type == "Remap")
         {
             op = new OutputProcessRemap(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
@@ -435,6 +445,7 @@ bool OutputProcessingDialog::EditSelectedItem()
         DimDialog dlgd(this, sc, p1, p2, d);
         DimWhiteDialog dlgdw(this, sc, p1, p2, d);
         SetDialog dlgs(this, sc, p1, p2, d);
+        DeadChannelDialog dlgdc(this, sc, p1, d);
         RemapDialog dlgr(this, sc, p1, p2, d);
         AddReverseDialog dlgrv(this, sc, p1, p2, d);
         GammaDialog dlgg(this, sc, p1, gamma, gammaR, gammaG, gammaB, d);
@@ -468,6 +479,11 @@ bool OutputProcessingDialog::EditSelectedItem()
         else if (type == "Gamma")
         {
             res = dlgg.ShowModal();
+        }
+        else if (type == "Dead Channel")
+        {
+            res = dlgdc.ShowModal();
+            p2 = 0;
         }
 
         if (res == wxID_OK)
@@ -539,6 +555,17 @@ void OutputProcessingDialog::OnButton_ReverseClick(wxCommandEvent& event)
 void OutputProcessingDialog::OnButton_GammaClick(wxCommandEvent& event)
 {
     ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Gamma");
+    ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
+    if (!EditSelectedItem())
+    {
+        ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
+    }
+    ValidateWindow();
+}
+
+void OutputProcessingDialog::OnButton_AddDeadChannelClick(wxCommandEvent& event)
+{
+    ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Dead Channel");
     ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
     if (!EditSelectedItem())
     {

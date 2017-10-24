@@ -78,6 +78,15 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON12" variable="Button_AddDeadChannel" member="yes">
+							<label>Add Dead Channel</label>
+							<handler function="OnButton_AddDeadChannelClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON7" variable="Button_Dim" member="yes">
 							<label>Add Dim</label>
 							<handler function="OnButton_AddDimClick" entry="EVT_BUTTON" />

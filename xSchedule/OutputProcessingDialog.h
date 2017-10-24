@@ -41,6 +41,7 @@ class OutputProcessingDialog: public wxDialog
 		wxButton* Button_Gamma;
 		wxButton* Button_AddSet;
 		wxButton* Button_AddRemap;
+		wxButton* Button_AddDeadChannel;
 		//*)
 
 	protected:
@@ -51,6 +52,7 @@ class OutputProcessingDialog: public wxDialog
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON6;
+		static const long ID_BUTTON12;
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON8;
 		static const long ID_BUTTON9;
@@ -79,6 +81,7 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_ColourOrderClick(wxCommandEvent& event);
 		void OnButton_ReverseClick(wxCommandEvent& event);
 		void OnButton_GammaClick(wxCommandEvent& event);
+		void OnButton_AddDeadChannelClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

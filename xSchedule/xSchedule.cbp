@@ -361,6 +361,8 @@
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
 		<Unit filename="Control.h" />
+		<Unit filename="DeadChannelDialog.cpp" />
+		<Unit filename="DeadChannelDialog.h" />
 		<Unit filename="DimDialog.cpp" />
 		<Unit filename="DimDialog.h" />
 		<Unit filename="DimWhiteDialog.cpp" />
@@ -383,6 +385,8 @@
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="OutputProcess.cpp" />
 		<Unit filename="OutputProcessColourOrder.cpp" />
+		<Unit filename="OutputProcessDeadChannel.cpp" />
+		<Unit filename="OutputProcessDeadChannel.h" />
 		<Unit filename="OutputProcessDim.cpp" />
 		<Unit filename="OutputProcessDimWhite.cpp" />
 		<Unit filename="OutputProcessGamma.cpp" />
@@ -532,6 +536,7 @@
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
+		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
@@ -619,6 +624,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/DeadChannelDialog.wxs" src="DeadChannelDialog.cpp" hdr="DeadChannelDialog.h" fwddecl="0" i18n="1" name="DeadChannelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
