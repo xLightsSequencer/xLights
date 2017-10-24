@@ -78,6 +78,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 
 void WiringDialog::SetData(Model* model)
 {
+    _multilight = false;
     int nodes = model->GetNodeCount();
 
     std::vector<NodeBaseClassPtr> nodeList;
@@ -133,6 +134,7 @@ void WiringDialog::SetData(Model* model)
             wxASSERT(x >= 0 && x < _cols);
             wxASSERT(y >= 0 && y <= _rows);
             data[stringnode].push_back(wxPoint(x, y));
+            if (!_multilight && data[stringnode].size() > 1) _multilight = true;
         }
         stringnode++;
     }
