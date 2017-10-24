@@ -135,6 +135,22 @@ void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
     logger_base.debug("%s", (const char*)debug.c_str());
 }
 
+void AddBit(bool bit, unsigned char newBuf[], int& outByte, int& outBit, unsigned char& partial)
+{
+    unsigned char b = bit ? 1 << (8 - outBit) : 0;
+
+    partial |= b;
+    outBit++;
+
+    if (outBit == 8)
+    {
+        newBuf[outByte] = partial;
+        outByte++;
+        partial = 0;
+        outBit = 1;
+    }
+}
+
 void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int buflen)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -143,10 +159,39 @@ void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int bufle
     {
         buffer[buflen] = RDS_ENDBYTEWRITE;
         buflen++;
+        serial->Write((char*)buffer, buflen);
+        Dump(buffer, buflen);
     }
+    else
+    {
+        Dump(buffer, buflen);
+        unsigned char newBuf[100];
+        int outByte = 0;
+        int outBit = 1;
+        unsigned char partial = 0;
+        for (int i = 0; i < buflen; ++i)
+        {
+            unsigned char mask = 0x80;
+            for (int b = 0; b < 8; ++b)
+            {
+                bool bit = (buffer[i] & mask) != 0 ? true : false;
 
-    serial->Write((char*)buffer, buflen);
-    Dump(buffer, buflen);
+                AddBit(bit, newBuf, outByte, outBit, partial);
+
+                mask = mask >> 1;
+            }
+            // ACK
+            AddBit(false, newBuf, outByte, outBit, partial);
+        }
+
+        // Stop bit
+        AddBit(true, newBuf, outByte, outBit, partial);
+        newBuf[outByte] = partial;
+        outByte++;
+        serial->Write((char*)newBuf, outByte);
+        logger_base.debug("Encoded:");
+        Dump(newBuf, outByte);
+    }
 
     //unsigned char read = RDS_STARTBYTEREAD;
     //serial->Write((char*)&read, 1);
