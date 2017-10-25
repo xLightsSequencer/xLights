@@ -1671,6 +1671,8 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
                 }
             }
 
+            if (colourindex < 0) colourindex = 0;
+
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
 
@@ -1854,6 +1856,8 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
                 if (lastbar > bars) lastbar = 1;
             }
 
+            if (colourindex < 0) colourindex = 0;
+
             int bar = lastbar - 1;
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
@@ -1907,6 +1911,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int 
             lastbar++;
             if (lastbar > bars) lastbar = 1;
         }
+
         int bar = lastbar - 1;
         buffer.palette.GetColor(colourindex, color1);
 
