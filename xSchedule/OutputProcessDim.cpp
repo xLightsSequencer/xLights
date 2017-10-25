@@ -57,6 +57,7 @@ wxXmlNode* OutputProcessDim::Save()
 
 void OutputProcessDim::Frame(wxByte* buffer, size_t size)
 {
+    if (!_enabled) return;
     if (_dim == 100) return;
 
     size_t chs = std::min(_channels, size - (_startChannel - 1));

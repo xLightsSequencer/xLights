@@ -81,6 +81,7 @@ void OutputProcessGamma::BuildGammaData(wxByte data[], float gamma)
 
 void OutputProcessGamma::Frame(wxByte* buffer, size_t size)
 {
+    if (!_enabled) return;
     if (_gamma == 1.0) return;
     if (_gamma == 0.00 && _gammaR == 1.0 && _gammaG == 1.0 && _gammaB == 1.0) return;
 

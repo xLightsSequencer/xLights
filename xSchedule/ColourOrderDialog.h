@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/button.h>
@@ -17,14 +18,16 @@ class ColourOrderDialog: public wxDialog
     size_t& _nodes;
     size_t& _colourOrder;
     std::string& _description;
+    bool& _enabled;
     void SetChoiceFromString(wxChoice* choice, std::string value);
 
     public:
 
-		ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColourOrderDialog();
 
 		//(*Declarations(ColourOrderDialog)
+		wxCheckBox* CheckBox_Enabled;
 		wxButton* Button_Ok;
 		wxTextCtrl* TextCtrl_Description;
 		wxStaticText* StaticText2;
@@ -48,6 +51,7 @@ class ColourOrderDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

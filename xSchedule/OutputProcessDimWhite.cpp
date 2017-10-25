@@ -56,6 +56,7 @@ void OutputProcessDimWhite::BuildDimTable()
 
 void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
 {
+    if (!_enabled) return;
     if (_dim == 100) return;
 
     size_t nodes = std::min(_nodes, (size - (_startChannel - 1)) / 3);

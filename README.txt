@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
+   -- enh (keith)   Add the ability to disable output processes
+   -- bug (keith)   Fix multilight wiring dialog not displaying correctly
+   -- enh (keith)   Set model start channel back to one when user selects the end of model model as that is the most common desired resilt
+   -- enh (keith)   Some checks to warn if xSchedule and xLights are outputting to lights at once
+   -- enh (keith)   Add level pulse colour to VU Meter ... pulses a colour when music reaches specified intensity and changes colour each time it does 
+   -- bug (keith)   Fix piano timing track setting not loading properly
+   -- bug (keith)   Fix xSchedule doesnt respect force local IP
 2017.33  Oct 15, 2017 
    -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
    -- enh (keith)   Add xSchedule gamma processing on output

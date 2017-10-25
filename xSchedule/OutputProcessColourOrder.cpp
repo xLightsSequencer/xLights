@@ -39,6 +39,7 @@ wxXmlNode* OutputProcessColourOrder::Save()
 
 void OutputProcessColourOrder::Frame(wxByte* buffer, size_t size)
 {
+    if (!_enabled) return;
     if (_colourOrder == 123) return;
 
     size_t nodes = std::min(_nodes, (size - (_startChannel - 1)) / 3);

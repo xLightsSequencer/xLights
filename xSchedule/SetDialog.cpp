@@ -16,6 +16,7 @@ const long SetDialog::ID_STATICTEXT3 = wxNewId();
 const long SetDialog::ID_SPINCTRL3 = wxNewId();
 const long SetDialog::ID_STATICTEXT4 = wxNewId();
 const long SetDialog::ID_TEXTCTRL1 = wxNewId();
+const long SetDialog::ID_CHECKBOX1 = wxNewId();
 const long SetDialog::ID_BUTTON1 = wxNewId();
 const long SetDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -25,7 +26,7 @@ BEGIN_EVENT_TABLE(SetDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-SetDialog::SetDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& value, std::string& description,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _channels(channels), _value(value), _description(description)
+SetDialog::SetDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& value, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _channels(channels), _value(value), _description(description), _enabled(enabled)
 {
 	//(*Initialize(SetDialog)
 	wxBoxSizer* BoxSizer1;
@@ -54,6 +55,10 @@ SetDialog::SetDialog(wxWindow* parent, size_t& startChannel, size_t& channels, s
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -78,6 +83,7 @@ SetDialog::SetDialog(wxWindow* parent, size_t& startChannel, size_t& channels, s
     SpinCtrl_Channels->SetValue(_channels);
     SpinCtrl_Value->SetValue(_value);
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -95,6 +101,7 @@ void SetDialog::OnButton_OkClick(wxCommandEvent& event)
     _channels = SpinCtrl_Channels->GetValue();
     _value = SpinCtrl_Value->GetValue();
     _description = TextCtrl_Description->GetValue().ToStdString();
+    _enabled = CheckBox_Enabled->IsChecked();
     EndDialog(wxID_OK);
 }
 

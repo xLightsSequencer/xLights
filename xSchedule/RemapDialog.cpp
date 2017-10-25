@@ -16,6 +16,7 @@ const long RemapDialog::ID_STATICTEXT3 = wxNewId();
 const long RemapDialog::ID_SPINCTRL3 = wxNewId();
 const long RemapDialog::ID_STATICTEXT4 = wxNewId();
 const long RemapDialog::ID_TEXTCTRL1 = wxNewId();
+const long RemapDialog::ID_CHECKBOX1 = wxNewId();
 const long RemapDialog::ID_BUTTON1 = wxNewId();
 const long RemapDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -25,7 +26,7 @@ BEGIN_EVENT_TABLE(RemapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, size_t& channels, std::string& description, wxWindowID id, const wxPoint& pos, const wxSize& size) : _from(startChannel), _to(to), _channels(channels), _description(description)
+RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, size_t& channels, std::string& description, bool& enabled, wxWindowID id, const wxPoint& pos, const wxSize& size) : _from(startChannel), _to(to), _channels(channels), _description(description), _enabled(enabled)
 {
     //(*Initialize(RemapDialog)
     wxBoxSizer* BoxSizer1;
@@ -54,6 +55,10 @@ RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, siz
     FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_Enabled->SetValue(false);
+    FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -79,6 +84,7 @@ RemapDialog::RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, siz
     SpinCtrl_ToChannel->SetValue(_to);
     SpinCtrl_Channels->SetValue(_channels);
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -97,6 +103,8 @@ void RemapDialog::OnButton_OkClick(wxCommandEvent& event)
     _to = SpinCtrl_ToChannel->GetValue();
     _channels = SpinCtrl_Channels->GetValue();
     _description = TextCtrl_Description->GetValue();
+    _enabled = CheckBox_Enabled->IsChecked();
+
     EndDialog(wxID_OK);
 }
 

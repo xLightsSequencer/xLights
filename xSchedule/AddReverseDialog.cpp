@@ -14,6 +14,7 @@ const long AddReverseDialog::ID_STATICTEXT2 = wxNewId();
 const long AddReverseDialog::ID_SPINCTRL2 = wxNewId();
 const long AddReverseDialog::ID_STATICTEXT3 = wxNewId();
 const long AddReverseDialog::ID_TEXTCTRL1 = wxNewId();
+const long AddReverseDialog::ID_CHECKBOX1 = wxNewId();
 const long AddReverseDialog::ID_BUTTON1 = wxNewId();
 const long AddReverseDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -23,12 +24,8 @@ BEGIN_EVENT_TABLE(AddReverseDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-AddReverseDialog::AddReverseDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& ignore, std::string& description,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _description(description)
+AddReverseDialog::AddReverseDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& ignore, std::string& description, bool& enabled, wxWindowID id, const wxPoint& pos, const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _description(description), _enabled(enabled)
 {
-    _startChannel = startChannel;
-    _nodes = nodes;
-    _description = description;
-
 	//(*Initialize(AddReverseDialog)
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -52,6 +49,10 @@ AddReverseDialog::AddReverseDialog(wxWindow* parent, size_t& startChannel, size_
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -75,6 +76,7 @@ AddReverseDialog::AddReverseDialog(wxWindow* parent, size_t& startChannel, size_
     SpinCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -86,12 +88,13 @@ AddReverseDialog::~AddReverseDialog()
 	//*)
 }
 
-
 void AddReverseDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _startChannel = SpinCtrl_StartChannel->GetValue();
     _nodes = SpinCtrl_Nodes->GetValue();
     _description = TextCtrl_Description->GetValue();
+    _enabled = CheckBox_Enabled->IsChecked();
+
     EndDialog(wxID_OK);
 }
 

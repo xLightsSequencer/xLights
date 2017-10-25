@@ -20,13 +20,15 @@ class GammaDialog: public wxDialog
     size_t& _startChannel;
     size_t& _nodes;
     std::string& _description;
+    bool& _enabled;
 
 	public:
 
-		GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~GammaDialog();
 
 		//(*Declarations(GammaDialog)
+		wxCheckBox* CheckBox_Enabled;
 		wxButton* Button_Ok;
 		wxStaticText* StaticText_G;
 		wxTextCtrl* TextCtrl_Description;
@@ -64,6 +66,7 @@ class GammaDialog: public wxDialog
 		static const long ID_TEXTCTRL5;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX2;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

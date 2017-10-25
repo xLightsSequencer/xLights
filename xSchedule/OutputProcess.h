@@ -14,6 +14,7 @@ class OutputProcess
         size_t _startChannel;
         int _changeCount;
         int _lastSavedChangeCount;
+        bool _enabled;
 
     void Save(wxXmlNode* node);
 
@@ -34,6 +35,11 @@ class OutputProcess
         virtual size_t GetP1() const = 0;
         virtual size_t GetP2() const = 0;
         virtual std::string GetType() const = 0;
+        bool IsEnabled() const
+        {
+            return _enabled;
+        }
+        void Enable(bool enable) { _enabled = enable; _changeCount++; }
 
         virtual void Frame(wxByte* buffer, size_t size) = 0;
 };

@@ -14,6 +14,7 @@ const long DeadChannelDialog::ID_STATICTEXT2 = wxNewId();
 const long DeadChannelDialog::ID_CHOICE1 = wxNewId();
 const long DeadChannelDialog::ID_STATICTEXT3 = wxNewId();
 const long DeadChannelDialog::ID_TEXTCTRL1 = wxNewId();
+const long DeadChannelDialog::ID_CHECKBOX1 = wxNewId();
 const long DeadChannelDialog::ID_BUTTON1 = wxNewId();
 const long DeadChannelDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -23,7 +24,7 @@ BEGIN_EVENT_TABLE(DeadChannelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-DeadChannelDialog::DeadChannelDialog(wxWindow* parent, size_t& nodeStartChannel, size_t& channel, std::string& description, wxWindowID id,const wxPoint& pos,const wxSize& size) : _nodeStartChannel(nodeStartChannel), _channel(channel), _description(description)
+DeadChannelDialog::DeadChannelDialog(wxWindow* parent, size_t& nodeStartChannel, size_t& channel, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _nodeStartChannel(nodeStartChannel), _channel(channel), _description(description), _enabled(enabled)
 {
 	//(*Initialize(DeadChannelDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -51,6 +52,10 @@ DeadChannelDialog::DeadChannelDialog(wxWindow* parent, size_t& nodeStartChannel,
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -73,6 +78,7 @@ DeadChannelDialog::DeadChannelDialog(wxWindow* parent, size_t& nodeStartChannel,
     SpinCtrl_NodeStartChannel->SetValue(_nodeStartChannel);
     Choice_Channel->SetSelection(_channel - 1);
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -97,6 +103,7 @@ void DeadChannelDialog::OnButton_OkClick(wxCommandEvent& event)
     _nodeStartChannel = SpinCtrl_NodeStartChannel->GetValue();
     _channel = wxAtoi(Choice_Channel->GetStringSelection());
     _description = TextCtrl_Description->GetValue().ToStdString();
+    _enabled = CheckBox_Enabled->IsChecked();
 
     EndDialog(wxID_OK);
 }

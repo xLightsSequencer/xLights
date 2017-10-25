@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -16,13 +17,15 @@ class DimWhiteDialog: public wxDialog
     size_t& _nodes;
     size_t& _dim;
     std::string& _description;
+    bool& _enabled;
 
 	public:
 
-		DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& dim, std::string& description,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		DimWhiteDialog(wxWindow* parent, size_t& startChannel, size_t& channels, size_t& dim, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~DimWhiteDialog();
 
 		//(*Declarations(DimWhiteDialog)
+		wxCheckBox* CheckBox_Enabled;
 		wxButton* Button_Ok;
 		wxTextCtrl* TextCtrl_Description;
 		wxStaticText* StaticText2;
@@ -46,6 +49,7 @@ class DimWhiteDialog: public wxDialog
 		static const long ID_SPINCTRL3;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

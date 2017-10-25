@@ -34,6 +34,8 @@ wxXmlNode* OutputProcessDeadChannel::Save()
 
 void OutputProcessDeadChannel::Frame(wxByte* buffer, size_t size)
 {
+    if (!_enabled) return;
+
     wxByte* p = buffer + (_startChannel - 1);
 
     // if our dead channel is not zero then blank the node

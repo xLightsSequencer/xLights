@@ -23,6 +23,7 @@ const long GammaDialog::ID_STATICTEXT6 = wxNewId();
 const long GammaDialog::ID_TEXTCTRL5 = wxNewId();
 const long GammaDialog::ID_STATICTEXT3 = wxNewId();
 const long GammaDialog::ID_TEXTCTRL1 = wxNewId();
+const long GammaDialog::ID_CHECKBOX2 = wxNewId();
 const long GammaDialog::ID_BUTTON1 = wxNewId();
 const long GammaDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -32,7 +33,7 @@ BEGIN_EVENT_TABLE(GammaDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _description(description)
+GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _description(description), _enabled(enabled)
 {
 	//(*Initialize(GammaDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -80,6 +81,10 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX2, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -124,6 +129,7 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
         TextCtrl_Simple->SetValue(wxString::Format("%.2f", _gamma));
     }
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -167,6 +173,7 @@ void GammaDialog::OnButton_OkClick(wxCommandEvent& event)
         _gammaB = wxAtof(TextCtrl_B->GetValue());
     }
     _description = TextCtrl_Description->GetValue().ToStdString();
+    _enabled = CheckBox_Enabled->IsChecked();
 
     EndDialog(wxID_OK);
 }

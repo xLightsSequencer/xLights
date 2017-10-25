@@ -103,6 +103,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&OutputProcessingDialog::OnListView_ProcessesBeginDrag);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OutputProcessingDialog::OnListView_ProcessesItemSelect);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&OutputProcessingDialog::OnListView_ProcessesItemActivated);
+	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&OutputProcessingDialog::OnListView_ProcessesItemRClick);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&OutputProcessingDialog::OnListView_ProcessesKeyDown);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_EditClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_DeleteClick);
@@ -143,6 +144,10 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
             ListView_Processes->SetItem(i, 3, wxString::Format(wxT("%ld"), (long)(*it)->GetP2()));
         }
         ListView_Processes->SetItem(i, 4, (*it)->GetDescription());
+        if (!(*it)->IsEnabled())
+        {
+            ListView_Processes->SetItemTextColour(i, *wxLIGHT_GREY);
+        }
         i++;
     }
 
@@ -227,6 +232,7 @@ void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
                 std::string p1 = ListView_Processes->GetItemText(dragitem, 2).ToStdString();
                 std::string p2 = ListView_Processes->GetItemText(dragitem, 3).ToStdString();
                 std::string d = ListView_Processes->GetItemText(dragitem, 4).ToStdString();
+                bool e = ListView_Processes->GetItemTextColour(dragitem) != *wxLIGHT_GREY;
 
                 ListView_Processes->DeleteItem(dragitem);
 
@@ -237,6 +243,7 @@ void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
                 ListView_Processes->SetItem(dropitem + 1, 2, p1);
                 ListView_Processes->SetItem(dropitem + 1, 3, p1);
                 ListView_Processes->SetItem(dropitem + 1, 4, d);
+                if (!e) ListView_Processes->SetItemTextColour(dropitem + 1 , *wxLIGHT_GREY);
 
                 ListView_Processes->EnsureVisible(dropitem + 1);
 
@@ -374,6 +381,7 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
 
         if (op != nullptr)
         {
+            op->Enable(ListView_Processes->GetItemTextColour(i) != *wxLIGHT_GREY);
             _op->push_back(op);
         }
     }
@@ -426,6 +434,7 @@ bool OutputProcessingDialog::EditSelectedItem()
         size_t p1 = wxAtol(ListView_Processes->GetItemText(row, 2));
         size_t p2 = wxAtol(ListView_Processes->GetItemText(row, 3));
         std::string d = ListView_Processes->GetItemText(row, 4).ToStdString();
+        bool e = ListView_Processes->GetItemTextColour(row) != *wxLIGHT_GREY;
 
         float gamma = 1.0;
         float gammaR = 1.0;
@@ -442,14 +451,14 @@ bool OutputProcessingDialog::EditSelectedItem()
         }
 
         // this is wasteful ... but whatever
-        DimDialog dlgd(this, sc, p1, p2, d);
-        DimWhiteDialog dlgdw(this, sc, p1, p2, d);
-        SetDialog dlgs(this, sc, p1, p2, d);
-        DeadChannelDialog dlgdc(this, sc, p1, d);
-        RemapDialog dlgr(this, sc, p1, p2, d);
-        AddReverseDialog dlgrv(this, sc, p1, p2, d);
-        GammaDialog dlgg(this, sc, p1, gamma, gammaR, gammaG, gammaB, d);
-        ColourOrderDialog dlgc(this, sc, p1, p2, d);
+        DimDialog dlgd(this, sc, p1, p2, d, e);
+        DimWhiteDialog dlgdw(this, sc, p1, p2, d, e);
+        SetDialog dlgs(this, sc, p1, p2, d, e);
+        DeadChannelDialog dlgdc(this, sc, p1, d, e);
+        RemapDialog dlgr(this, sc, p1, p2, d, e);
+        AddReverseDialog dlgrv(this, sc, p1, p2, d, e);
+        GammaDialog dlgg(this, sc, p1, gamma, gammaR, gammaG, gammaB, d, e);
+        ColourOrderDialog dlgc(this, sc, p1, p2, d, e);
         int res = wxID_CANCEL;
 
         if (type == "Dim")
@@ -499,6 +508,10 @@ bool OutputProcessingDialog::EditSelectedItem()
                 ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%ld"), (long)p2));
             }
             ListView_Processes->SetItem(row, 4, d);
+            if (!e)
+            {
+                ListView_Processes->SetItemTextColour(row, *wxLIGHT_GREY);
+            }
             result = true;
         }
     }
@@ -572,4 +585,8 @@ void OutputProcessingDialog::OnButton_AddDeadChannelClick(wxCommandEvent& event)
         ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
     }
     ValidateWindow();
+}
+
+void OutputProcessingDialog::OnListView_ProcessesItemRClick(wxListEvent& event)
+{
 }

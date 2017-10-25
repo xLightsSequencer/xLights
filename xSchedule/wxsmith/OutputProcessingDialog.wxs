@@ -20,6 +20,7 @@
 							<handler function="OnListView_ProcessesBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 							<handler function="OnListView_ProcessesItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 							<handler function="OnListView_ProcessesItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+							<handler function="OnListView_ProcessesItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
 							<handler function="OnListView_ProcessesKeyDown" entry="EVT_LIST_KEY_DOWN" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

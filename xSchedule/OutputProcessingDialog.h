@@ -82,6 +82,7 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_ReverseClick(wxCommandEvent& event);
 		void OnButton_GammaClick(wxCommandEvent& event);
 		void OnButton_AddDeadChannelClick(wxCommandEvent& event);
+		void OnListView_ProcessesItemRClick(wxListEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

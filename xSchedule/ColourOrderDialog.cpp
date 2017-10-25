@@ -16,6 +16,7 @@ const long ColourOrderDialog::ID_STATICTEXT3 = wxNewId();
 const long ColourOrderDialog::ID_CHOICE1 = wxNewId();
 const long ColourOrderDialog::ID_STATICTEXT4 = wxNewId();
 const long ColourOrderDialog::ID_TEXTCTRL1 = wxNewId();
+const long ColourOrderDialog::ID_CHECKBOX1 = wxNewId();
 const long ColourOrderDialog::ID_BUTTON1 = wxNewId();
 const long ColourOrderDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -42,7 +43,7 @@ void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
     choice->SetSelection(sel);
 }
 
-ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description,wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _colourOrder(colourOrder), _description(description)
+ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _colourOrder(colourOrder), _description(description), _enabled(enabled)
 {
 	//(*Initialize(ColourOrderDialog)
 	wxBoxSizer* BoxSizer1;
@@ -76,6 +77,10 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Enabled->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -100,6 +105,7 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
     SpinCtrl_Nodes->SetValue(_nodes);
     SetChoiceFromString(Choice1, wxString::Format(wxT("%ld"), (long)_colourOrder).ToStdString());
     TextCtrl_Description->SetValue(_description);
+    CheckBox_Enabled->SetValue(_enabled);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
@@ -117,6 +123,8 @@ void ColourOrderDialog::OnButton_OkClick(wxCommandEvent& event)
     _nodes = SpinCtrl_Nodes->GetValue();
     _colourOrder = wxAtoi(Choice1->GetStringSelection());
     _description = TextCtrl_Description->GetValue();
+    _enabled = CheckBox_Enabled->IsChecked();
+
     EndDialog(wxID_OK);
 }
 
