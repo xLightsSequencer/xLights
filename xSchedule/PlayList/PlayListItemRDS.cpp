@@ -142,7 +142,7 @@ void AddBit(bool bit, unsigned char newBuf[], int& outByte, int& outBit, unsigne
     partial |= b;
     outBit++;
 
-    if (outBit == 8)
+    if (outBit > 8)
     {
         newBuf[outByte] = partial;
         outByte++;
