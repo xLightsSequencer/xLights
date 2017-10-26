@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Add level pulse colour to VU Meter ... pulses a colour when music reaches specified intensity and changes colour each time it does 
    -- bug (keith)   Fix piano timing track setting not loading properly
    -- bug (keith)   Fix xSchedule doesnt respect force local IP
+   -- enh (keith)   Add the ability to share xSchedule button definitions
+   -- enh (keith)   Add tooltip help to button parameters
 2017.33  Oct 15, 2017 
    -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
    -- enh (keith)   Add xSchedule gamma processing on output

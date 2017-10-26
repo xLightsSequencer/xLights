@@ -73,7 +73,7 @@
 									<handler function="OnButton_AddProjectorClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -82,7 +82,7 @@
 									<handler function="OnButton_ProjectorEditClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -91,7 +91,7 @@
 									<handler function="OnButton_DeleteProjectorClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
@@ -138,7 +138,7 @@
 									<handler function="OnButton_ButtonAddClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -147,7 +147,7 @@
 									<handler function="OnButton_ButtonEditClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -156,7 +156,25 @@
 									<handler function="OnButton_ButtonDeleteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON10" variable="Button_Export" member="yes">
+									<label>Export</label>
+									<handler function="OnButton_ExportClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON9" variable="Button_Import" member="yes">
+									<label>Import</label>
+									<handler function="OnButton_ImportClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>

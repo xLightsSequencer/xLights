@@ -58,7 +58,7 @@ std::string Command::GetParametersTip() const
             tip += "<command>";
             break;
         case PARMTYPE::ANY:
-            tip += "<???>";
+            tip += "<?>";
             break;
         case PARMTYPE::ITEM:
             tip += "<playlist item name>";
