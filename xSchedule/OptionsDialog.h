@@ -46,8 +46,10 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_DeleteProjector;
 		wxListView* ListView_Projectors;
 		wxCheckBox* CheckBox_Sync;
+		wxButton* Button_Export;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxButton* Button_Import;
 		wxStaticText* StaticText5;
 		wxButton* Button_Cancel;
 		wxCheckBox* CheckBox_APIOnly;
@@ -78,6 +80,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON7;
+		static const long ID_BUTTON10;
+		static const long ID_BUTTON9;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
@@ -112,6 +116,8 @@ class OptionsDialog: public wxDialog
 		void OnListView_ProjectorsItemSelect(wxListEvent& event);
 		void OnListView_ProjectorsItemActivated(wxListEvent& event);
 		void OnListView_ProjectorsKeyDown(wxListEvent& event);
+		void OnButton_ImportClick(wxCommandEvent& event);
+		void OnButton_ExportClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

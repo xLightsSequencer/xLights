@@ -5,6 +5,9 @@
 #include "ProjectorDetailsDialog.h"
 #include "UserButton.h"
 #include "Projector.h"
+#include "../xLights/xLightsVersion.h"
+#include <wx/xml/xml.h>
+#include <wx/file.h>
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
@@ -26,6 +29,8 @@ const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
 const long OptionsDialog::ID_BUTTON6 = wxNewId();
 const long OptionsDialog::ID_BUTTON7 = wxNewId();
+const long OptionsDialog::ID_BUTTON10 = wxNewId();
+const long OptionsDialog::ID_BUTTON9 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
@@ -84,11 +89,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer3->Add(ListView_Projectors, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_AddProjector = new wxButton(this, ID_BUTTON4, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer4->Add(Button_AddProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_AddProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_ProjectorEdit = new wxButton(this, ID_BUTTON8, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-	FlexGridSizer4->Add(Button_ProjectorEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_ProjectorEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_DeleteProjector = new wxButton(this, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer4->Add(Button_DeleteProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(Button_DeleteProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -100,11 +105,15 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	FlexGridSizer5->Add(ListView_Buttons, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
 	Button_ButtonAdd = new wxButton(this, ID_BUTTON5, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer6->Add(Button_ButtonAdd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(Button_ButtonAdd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_ButtonEdit = new wxButton(this, ID_BUTTON6, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-	FlexGridSizer6->Add(Button_ButtonEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(Button_ButtonEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Button_ButtonDelete = new wxButton(this, ID_BUTTON7, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-	FlexGridSizer6->Add(Button_ButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(Button_ButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_Export = new wxButton(this, ID_BUTTON10, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	FlexGridSizer6->Add(Button_Export, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_Import = new wxButton(this, ID_BUTTON9, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	FlexGridSizer6->Add(Button_Import, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -156,6 +165,8 @@ OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindo
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonAddClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonEditClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ButtonDeleteClick);
+	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ExportClick);
+	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ImportClick);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&OptionsDialog::OnTextCtrl_wwwRootText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_CancelClick);
@@ -283,9 +294,9 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             hotkey = ListView_Buttons->GetItemText(i, 3)[0];
         }
-        _options->AddButton(ListView_Buttons->GetItemText(i, 0).ToStdString(), 
-                            ListView_Buttons->GetItemText(i, 1).ToStdString(), 
-                            ListView_Buttons->GetItemText(i, 2).ToStdString(), 
+        _options->AddButton(ListView_Buttons->GetItemText(i, 0).ToStdString(),
+                            ListView_Buttons->GetItemText(i, 1).ToStdString(),
+                            ListView_Buttons->GetItemText(i, 2).ToStdString(),
                             hotkey,
                             ListView_Buttons->GetItemText(i, 4).ToStdString());
     }
@@ -427,11 +438,13 @@ void OptionsDialog::ValidateWindow()
     {
         Button_ButtonDelete->Enable(true);
         Button_ButtonEdit->Enable(true);
+        Button_Export->Enable(true);
     }
     else
     {
         Button_ButtonDelete->Enable(false);
         Button_ButtonEdit->Enable(false);
+        Button_Export->Enable(false);
     }
 
     if (ListView_Projectors->GetSelectedItemCount() == 1)
@@ -610,4 +623,71 @@ void OptionsDialog::OnListView_ProjectorsKeyDown(wxListEvent& event)
         }
     }
     ValidateWindow();
+}
+
+void OptionsDialog::OnButton_ImportClick(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, "Load button", wxEmptyString, wxEmptyString, "xSchedule Button Files (*.xbutton)|*.xbutton|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxXmlDocument doc;
+        if (doc.Load(dlg.GetPath()))
+        {
+            wxXmlNode* n = doc.GetRoot();
+            if (n->GetName().Lower() == "xschedulebutton")
+            {
+                int row = ListView_Buttons->GetItemCount();
+                ListView_Buttons->InsertItem(row, n->GetAttribute("label"));
+                ListView_Buttons->SetItem(row, 1, n->GetAttribute("command"));
+                ListView_Buttons->SetItem(row, 2, n->GetAttribute("parameter"));
+                if (n->GetAttribute("hotkey") != "~")
+                {
+                    ListView_Buttons->SetItem(row, 3, n->GetAttribute("hotkey"));
+                }
+                ListView_Buttons->SetItem(row, 4, n->GetAttribute("colour"));
+            }
+        }
+        else
+        {
+            wxMessageBox("Error loading button file.");
+        }
+    }
+}
+
+void OptionsDialog::OnButton_ExportClick(wxCommandEvent& event)
+{
+    if (ListView_Buttons->GetSelectedItemCount() != 1) return;
+
+    int row = ListView_Buttons->GetFirstSelected();
+
+    std::string label = ListView_Buttons->GetItemText(row, 0).ToStdString();
+    std::string command = ListView_Buttons->GetItemText(row, 1).ToStdString();
+    std::string parameter = ListView_Buttons->GetItemText(row, 2).ToStdString();
+    char hotkey = '~';
+    if (ListView_Buttons->GetItemText(row, 3).Length() > 0)
+    {
+        hotkey = ListView_Buttons->GetItemText(row, 3)[0];
+    }
+    std::string color = ListView_Buttons->GetItemText(row, 4).ToStdString();
+    wxString v = xlights_version_string;
+
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, label, wxEmptyString, "xSchedule Button files (*.xbutton)|*.xbutton", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        return;
+    }
+
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xschedulebutton \n");
+    f.Write(wxString::Format("label=\"%s\" ", label));
+    f.Write(wxString::Format("command=\"%s\" ", command));
+    f.Write(wxString::Format("parameter=\"%s\" ", parameter));
+    f.Write(wxString::Format("hotkey=\"%c\" ", hotkey));
+    f.Write(wxString::Format("colour=\"%s\" ", color));
+    f.Write(wxString::Format("version=\"%s\" ", v));
+    f.Write("/>");
+    f.Close();
 }
