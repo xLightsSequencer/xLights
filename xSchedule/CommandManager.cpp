@@ -24,7 +24,52 @@ Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, 
     _uiOnly = uiOnly;
 }
 
-bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode)
+std::string Command::GetParametersTip() const
+{
+    if (_parms <= 0) return "";
+
+    std::string tip = "";
+
+    for (int i = 0; i < _parms; i++)
+    {
+        if (tip != "")
+        {
+            tip += ",";
+        }
+
+        switch (_parmtype[i])
+        {
+        case PARMTYPE::INTEGER:
+            tip += "<number>";
+            break;
+        case PARMTYPE::PLAYLIST:
+            tip += "<playlist name>";
+            break;
+        case PARMTYPE::STEP:
+            tip += "<playlist step name>";
+            break;
+        case PARMTYPE::SCHEDULE:
+            tip += "<schedule name>";
+            break;
+        case PARMTYPE::STRING:
+            tip += "<text>";
+            break;
+        case PARMTYPE::COMMAND:
+            tip += "<command>";
+            break;
+        case PARMTYPE::ANY:
+            tip += "<???>";
+            break;
+        case PARMTYPE::ITEM:
+            tip += "<playlist item name>";
+            break;
+        }
+    }
+
+    return tip;
+}
+
+bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
 
@@ -183,6 +228,18 @@ Command* CommandManager::GetCommand(std::string name) const
     }
 
     return nullptr;
+}
+
+std::string CommandManager::GetCommandParametersTip(const std::string command) const
+{
+    Command* c = GetCommand(command);
+
+    if (c != nullptr)
+    {
+        return c->GetParametersTip();
+    }
+
+    return "";
 }
 
 CommandManager::~CommandManager()

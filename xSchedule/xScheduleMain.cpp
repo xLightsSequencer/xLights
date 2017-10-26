@@ -1178,7 +1178,7 @@ void xScheduleFrame::ValidateWindow()
 
 void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 {
-    OptionsDialog dlg(this, __schedule->GetOptions());
+    OptionsDialog dlg(this, __schedule->GetCommandManager(), __schedule->GetOptions());
 
     int oldport = __schedule->GetOptions()->GetWebServerPort();
 

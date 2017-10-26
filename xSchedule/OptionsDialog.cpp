@@ -5,6 +5,7 @@
 #include "ProjectorDetailsDialog.h"
 #include "UserButton.h"
 #include "Projector.h"
+#include "CommandManager.h"
 #include "../xLights/xLightsVersion.h"
 #include <wx/xml/xml.h>
 #include <wx/file.h>
@@ -49,7 +50,7 @@ BEGIN_EVENT_TABLE(OptionsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-OptionsDialog::OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size)
+OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, ScheduleOptions* options, wxWindowID id,const wxPoint& pos,const wxSize& size) : _commandManager(commandManager)
 {
     _options = options;
     _dragging = false;
@@ -373,7 +374,7 @@ void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
     std::string color = "default";
     char hotkey = '~';
 
-    ButtonDetailsDialog dlg(this, label, command, color, parameter, hotkey);
+    ButtonDetailsDialog dlg(this, _commandManager, label, command, color, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -409,7 +410,7 @@ void OptionsDialog::EditButton(int row)
     }
     std::string color = ListView_Buttons->GetItemText(row, 4).ToStdString();
 
-    ButtonDetailsDialog dlg(this, label, command, color, parameter, hotkey);
+    ButtonDetailsDialog dlg(this, _commandManager, label, command, color, parameter, hotkey);
 
     if (dlg.ShowModal() == wxID_OK)
     {

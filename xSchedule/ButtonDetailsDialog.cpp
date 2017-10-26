@@ -1,6 +1,6 @@
 #include "ButtonDetailsDialog.h"
 #include "xScheduleMain.h"
-#include "ScheduleManager.h"
+#include "CommandManager.h"
 
 //(*InternalHeaders(ButtonDetailsDialog)
 #include <wx/intl.h>
@@ -27,7 +27,7 @@ BEGIN_EVENT_TABLE(ButtonDetailsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey), _color(color)
+ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* commandManager, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id,const wxPoint& pos,const wxSize& size) : _label(label), _command(command), _parameter(parameter), _hotkey(hotkey), _color(color), _commandManager(commandManager)
 {
 	//(*Initialize(ButtonDetailsDialog)
 	wxFlexGridSizer* FlexGridSizer2;
@@ -87,7 +87,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
     GetSize(&x, &y);
     SetSize(400, y);
 
-    auto commands = xScheduleFrame::GetScheduleManager()->GetCommands();
+    auto commands = _commandManager->GetCommands();
     for (auto it = commands.begin(); it != commands.end(); ++it)
     {
         if ((*it)->IsUserSelectable())
@@ -130,6 +130,8 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, std::string& label, s
     }
 
     Choice1->SetStringSelection(_color);
+
+    TextCtrl_Parameters->SetToolTip(_commandManager->GetCommandParametersTip(Choice_Command->GetStringSelection().ToStdString()));
 
     ValidateWindow();
 }
@@ -175,6 +177,8 @@ void ButtonDetailsDialog::OnTextCtrl_LabelText(wxCommandEvent& event)
 
 void ButtonDetailsDialog::OnChoice_CommandSelect(wxCommandEvent& event)
 {
+    TextCtrl_Parameters->SetToolTip(_commandManager->GetCommandParametersTip(Choice_Command->GetStringSelection().ToStdString()));
+
     ValidateWindow();
 }
 

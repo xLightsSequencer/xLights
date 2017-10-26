@@ -140,6 +140,7 @@ class ScheduleManager : public wxEvtHandler
         std::list<PlayList*> GetPlayLists();
         std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
         Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }
+        CommandManager* GetCommandManager() { return &_commandManager; };
         bool IsRunning() const { return GetRunningPlayList() != nullptr; }
         int GetBrightness() const { return _brightness; }
         void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }

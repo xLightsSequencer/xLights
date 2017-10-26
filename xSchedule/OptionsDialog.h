@@ -13,11 +13,13 @@
 //*)
 
 class ScheduleOptions;
+class CommandManager;
 
 class OptionsDialog: public wxDialog
 {
     ScheduleOptions* _options;
     bool _dragging;
+    CommandManager* _commandManager;
 
     void LoadProjectors();
     void LoadButtons();
@@ -28,7 +30,7 @@ class OptionsDialog: public wxDialog
 
 	public:
 
-		OptionsDialog(wxWindow* parent, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		OptionsDialog(wxWindow* parent, CommandManager* commandManager, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~OptionsDialog();
         void EditProjector(int row);
         void EditButton(int row);

@@ -10,8 +10,11 @@
 #include <wx/dialog.h>
 //*)
 
+class CommandManager;
+
 class ButtonDetailsDialog: public wxDialog
 {
+    CommandManager* _commandManager;
     void ValidateWindow();
 
 	public:
@@ -22,7 +25,7 @@ class ButtonDetailsDialog: public wxDialog
         std::string& _color;
         char& _hotkey;
 
-		ButtonDetailsDialog(wxWindow* parent, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ButtonDetailsDialog(wxWindow* parent, CommandManager* commandManager, std::string& label, std::string& command, std::string& color, std::string& parameter, char& hotkey, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ButtonDetailsDialog();
 
 		//(*Declarations(ButtonDetailsDialog)
