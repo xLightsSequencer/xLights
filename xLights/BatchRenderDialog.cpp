@@ -9,7 +9,7 @@
 //*)
 
 #include <wx/dir.h>
-#include <Wx/menu.h>
+#include <wx/menu.h>
 
 //(*IdInit(BatchRenderDialog)
 const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
