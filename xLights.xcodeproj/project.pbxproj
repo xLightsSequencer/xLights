@@ -538,6 +538,8 @@
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
 		67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */; };
+		67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */; };
+		67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1458,6 +1460,11 @@
 		67FF39901D57F5D000290DB4 /* MusicXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicXML.h; sourceTree = "<group>"; };
 		67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteImportDialog.cpp; sourceTree = "<group>"; };
 		67FF39921D57F5D000290DB4 /* NoteImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteImportDialog.h; sourceTree = "<group>"; };
+		67FFB8171FA3F65D007F9FBB /* Control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Control.h; sourceTree = "<group>"; };
+		67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessDeadChannel.cpp; sourceTree = "<group>"; };
+		67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeadChannelDialog.h; sourceTree = "<group>"; };
+		67FFB81A1FA3F65E007F9FBB /* OutputProcessDeadChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessDeadChannel.h; sourceTree = "<group>"; };
+		67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DeadChannelDialog.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2364,6 +2371,11 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67FFB8171FA3F65D007F9FBB /* Control.h */,
+				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
+				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
+				67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */,
+				67FFB81A1FA3F65E007F9FBB /* OutputProcessDeadChannel.h */,
 				6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */,
 				6725FAEB1F943B19007F2D7C /* OutputProcessGamma.h */,
 				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
@@ -3090,6 +3102,7 @@
 				67DA0AFD1E39C8EB00E2A859 /* OutputProcessingDialog.cpp in Sources */,
 				67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
+				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
@@ -3098,6 +3111,7 @@
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
 				67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */,
+				67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
 				67F2400E1E32A03F00F8B985 /* NullOutputDialog.cpp in Sources */,
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
