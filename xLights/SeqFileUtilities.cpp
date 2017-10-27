@@ -461,7 +461,7 @@ bool xLightsFrame::CloseSequence()
         logger_base.debug("Save perspective: %s", (const char *)machinePerspective.c_str());
     }
 
-    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() )
+    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() && !_renderMode)
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
         if( dlg->ShowModal() == wxID_CANCEL )

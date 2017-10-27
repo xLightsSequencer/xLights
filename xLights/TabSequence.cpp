@@ -86,7 +86,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         xx.SetExt("xbkp");
         wxString asfile = xx.GetLongPath();
 
-        if (wxFile::Exists(asfile))
+        if (!_renderMode && wxFile::Exists(asfile))
         {
             // the autosave file exists
             wxDateTime xmltime = fn.GetModificationTime();

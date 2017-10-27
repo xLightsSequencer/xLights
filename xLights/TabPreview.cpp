@@ -1,8 +1,4 @@
 #include "xLightsMain.h"
-#include "heartbeat.h"
-#include "DrawGLUtils.h"
-#include "SaveChangesDialog.h"
-#include "models/Model.h"
 #include "xLightsXmlFile.h"
 #include "HousePreviewPanel.h"
 
