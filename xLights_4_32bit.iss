@@ -50,6 +50,11 @@ Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignorevers
 Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+
+; xLightsBatchRender
+Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
+Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
+
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -94,6 +99,8 @@ Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
+Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
+Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 

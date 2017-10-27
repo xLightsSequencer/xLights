@@ -2,6 +2,7 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
+;  oct 27,2017  added xLightsBatchRender.exe to install.
 ; mar 3,2015: added new line for bin/xlights.map
 ; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -30,7 +31,7 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 AppName=xLights
-AppVersion=2017.33
+AppVersion=2017.34
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
@@ -49,6 +50,7 @@ Source: "bin64/xLights.exe"; DestDir: "{app}"
 Source: "bin64/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xlights64.ico"; DestDir: "{app}"
+
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
@@ -57,6 +59,10 @@ Source: "bin64/xSchedule.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 Source: "include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
+; xLightsBatchRender
+Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
+Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
 
 Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -105,6 +111,8 @@ Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
 Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
+Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
+Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
@@ -112,6 +120,7 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 [Registry]
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xLightsBatchRender"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{pf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
 
