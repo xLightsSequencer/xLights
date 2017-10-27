@@ -6862,7 +6862,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
         wxArrayString filesToRender;
         for (auto f = files.begin(); f != files.end(); f++) {
             wxFileName fname(this->GetShowDirectory(), *f);
-            filesToRender.push_back(fname.GetFullName());
+            filesToRender.push_back(fname.GetFullPath());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;
