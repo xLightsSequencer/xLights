@@ -485,6 +485,8 @@
 		</Compiler>
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
+		<Unit filename="BatchRenderDialog.cpp" />
+		<Unit filename="BatchRenderDialog.h" />
 		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="BufferPanel.cpp" />
 		<Unit filename="BufferPanel.h" />
@@ -1094,6 +1096,7 @@
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
+		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
@@ -1355,6 +1358,7 @@
 					<wxPanel wxs="wxsmith/HousePreviewPanel.wxs" src="HousePreviewPanel.cpp" hdr="HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

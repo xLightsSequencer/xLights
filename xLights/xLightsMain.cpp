@@ -42,6 +42,7 @@
 #include "IPEntryDialog.h"
 #include "ColorManagerDialog.h"
 #include "HousePreviewPanel.h"
+#include "BatchRenderDialog.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -197,6 +198,7 @@ const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
+const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::ID_MNU_CRASH = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
@@ -493,6 +495,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     wxMenu* Menu2;
     wxMenuItem* MenuItem9;
     wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItemBatchRender;
     wxMenuItem* MenuItem47;
     wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem48;
@@ -782,6 +785,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItem_FPP_Connect);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
+    MenuItemBatchRender = new wxMenuItem(Menu1, ID_MENU_BATCH_RENDER, _("&Batch Render"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemBatchRender);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
     MenuItem_CrashXLights = new wxMenuItem(Menu1, ID_MNU_CRASH, _("Crash xLights"), wxEmptyString, wxITEM_NORMAL);
@@ -1099,6 +1104,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
+    Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CrashXLightsSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
@@ -1810,7 +1816,7 @@ xLightsFrame::~xLightsFrame()
     Notebook1->DeleteAllPages();
     delete m_mgr;
     delete MainAuiManager;
-    
+
     if( CurrentSeqXmlFile )
     {
         delete CurrentSeqXmlFile;
@@ -1968,8 +1974,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
         for (size_t x = 0; x < info.size(); x++)
         {
-            if (info[x].IsOk() && 
-                savedPaneShown.find(info[x].name) != savedPaneShown.end() && 
+            if (info[x].IsOk() &&
+                savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name])
             {
                 if (info[x].frame != nullptr)
@@ -2204,13 +2210,13 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     CheckUnsavedChanges();
 
     ShowHideAllSequencerWindows(false);
-    
+
     // destroy preview windows
     for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         delete preview;
     }
-    
+
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
@@ -4023,7 +4029,7 @@ void xLightsFrame::CheckSequence(bool display)
         msg += "'. Is the network connected?    ";
         msg = msg + " Ok : " + (testSocket->IsOk() ? "TRUE" : "FALSE");
         if (testSocket != nullptr && testSocket->IsOk()) {
-            msg += wxString::Format(" : Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError()); 
+            msg += wxString::Format(" : Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError());
         }
         LogAndWrite(f, msg.ToStdString());
         errcount++;
@@ -4734,7 +4740,7 @@ void xLightsFrame::CheckSequence(bool display)
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
-            } 
+            }
         }
     }
 
@@ -6846,4 +6852,22 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
     logger_base.crit("^^^^^ xLights crashing on purpose ... bye bye cruel world.");
     int *p = nullptr;
     *p = 0xFFFFFFFF;
+}
+
+void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
+{
+    BatchRenderDialog dlg(this);
+    if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() && CloseSequence()) {
+        wxArrayString files = dlg.GetFileList();
+        wxArrayString filesToRender;
+        for (auto f = files.begin(); f != files.end(); f++) {
+            wxFileName fname(this->GetShowDirectory(), *f);
+            filesToRender.push_back(fname.GetFullName());
+        }
+        if (filesToRender.size() > 0) {
+            _renderMode = true;
+            OpenRenderAndSaveSequences(filesToRender, false);
+            _renderMode = false;
+        }
+    }
 }

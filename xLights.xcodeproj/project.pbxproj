@@ -121,6 +121,7 @@
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
 		675EF49C1E422B2500AA189F /* xScheduleWeb in Resources */ = {isa = PBXBuildFile; fileRef = 675EF49B1E422B2500AA189F /* xScheduleWeb */; };
 		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
+		6760D8551FA3C6AD00458894 /* BatchRenderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */; };
 		6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EB1C4EA041009780DA /* AssistPanel.cpp */; };
 		6761F5F61C4EA041009780DA /* PicturesAssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */; };
 		6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EF1C4EA041009780DA /* xlGridCanvasEmpty.cpp */; };
@@ -803,6 +804,8 @@
 		675DE2661B53381800A9BB44 /* xlSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlSlider.h; sourceTree = "<group>"; };
 		675EF49B1E422B2500AA189F /* xScheduleWeb */ = {isa = PBXFileReference; lastKnownFileType = folder; name = xScheduleWeb; path = bin/xScheduleWeb; sourceTree = SOURCE_ROOT; };
 		676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveChangesDialog.cpp; sourceTree = "<group>"; };
+		6760D8531FA3C6AD00458894 /* BatchRenderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchRenderDialog.h; sourceTree = "<group>"; };
+		6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BatchRenderDialog.cpp; sourceTree = "<group>"; };
 		6761F5EB1C4EA041009780DA /* AssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssistPanel.cpp; path = effects/assist/AssistPanel.cpp; sourceTree = "<group>"; };
 		6761F5EC1C4EA041009780DA /* AssistPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssistPanel.h; path = effects/assist/AssistPanel.h; sourceTree = "<group>"; };
 		6761F5ED1C4EA041009780DA /* PicturesAssistPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PicturesAssistPanel.cpp; path = effects/assist/PicturesAssistPanel.cpp; sourceTree = "<group>"; };
@@ -2092,6 +2095,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
+				6760D8531FA3C6AD00458894 /* BatchRenderDialog.h */,
 				67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */,
 				67D5DEE61F792B18002BB5F6 /* SplashDialog.h */,
 				6755B8671F75D303005EEEF5 /* FontManager.cpp */,
@@ -2958,6 +2963,7 @@
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
 				67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */,
+				6760D8551FA3C6AD00458894 /* BatchRenderDialog.cpp in Sources */,
 				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67B2CF791C39D98A003C17CA /* LifePanel.cpp in Sources */,

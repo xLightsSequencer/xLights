@@ -547,7 +547,7 @@ bool xLightsApp::OnInit()
     if (parser.Found("r")) {
         logger_base.info("-r: Render mode is ON");
         topFrame->_renderMode = true;
-        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles);
+        topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
     }
 
     #ifdef LINUX

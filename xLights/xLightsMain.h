@@ -512,6 +512,7 @@ private:
     void OnMenuItem_AutoShowHousePreviewSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
     void OnMenuItem_CrashXLightsSelected(wxCommandEvent& event);
+    void OnMenuItemBatchRenderSelected(wxCommandEvent& event);
     //*)
 
     void DoMenuAction(wxMenuEvent &evt);
@@ -622,6 +623,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long ID_MNU_CRASH;
     static const long ID_MENUITEM5;
@@ -1101,7 +1103,7 @@ protected:
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
     void NewSequence();
     void SaveAsSequence();
-    void OpenRenderAndSaveSequences(const wxArrayString &filenames);
+    void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);

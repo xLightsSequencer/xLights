@@ -804,12 +804,16 @@ void xLightsFrame::UpdateModelsList()
     displayElementsPanel->UpdateModelsForSelectedView();
 }
 
-void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames) {
+void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (origFilenames.IsEmpty()) {
         EnableSequenceControls(true);
         printf("Done All Files\n");
-        Destroy();
+        if (exitOnDone) {
+            Destroy();
+        } else {
+            CloseSequence();
+        }
         return;
     }
     EnableSequenceControls(false);
@@ -830,7 +834,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     logger_base.info("   iseq below effects done.");
     ProgressBar->SetValue(10);
-    RenderGridToSeqData([this, sw, fileNames] {
+    RenderGridToSeqData([this, sw, fileNames, exitOnDone] {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("   Effects done.");
         ProgressBar->SetValue(90);
@@ -852,7 +856,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         mSavedChangeCount = mSequenceElements.GetChangeCount();
         mLastAutosaveCount = mSavedChangeCount;
 
-        CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames);
+        CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames, exitOnDone);
     } );
 }
 void xLightsFrame::SaveSequence()
