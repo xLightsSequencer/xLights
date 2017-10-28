@@ -138,7 +138,7 @@ std::string Falcon::GetURL(const std::string& url, bool logresult)
     }
     else
     {
-        logger_base.error("Unable to connect to falcon '%s'.", (const char *)url.c_str());
+        logger_base.error("Unable to connect to falcon '%s' : %d.", (const char *)url.c_str(), _http.GetError());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }
@@ -169,7 +169,7 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     }
     else
     {
-        logger_base.error("Unable to connect to falcon '%s'.", (const char *)url.c_str());
+        logger_base.error("Unable to connect to falcon '%s' : %d.", (const char *)url.c_str(), _http.GetError());
         wxMessageBox(_T("Unable to connect!"));
     }
     _http.SetPostText("", "");

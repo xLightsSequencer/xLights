@@ -291,7 +291,7 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
     }
     else
     {
-        logger_base.error("Unable to connect to SanDevices %s '%s'.", (const char *)_ip.c_str(), (const char *)url.c_str());
+        logger_base.error("Unable to connect to SanDevices %s '%s' : %d.", (const char *)_ip.c_str(), (const char *)url.c_str(), _http.GetError());
         wxMessageBox(_T("Unable to connect!"));
         res = "";
     }

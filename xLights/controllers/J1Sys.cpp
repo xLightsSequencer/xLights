@@ -78,7 +78,7 @@ std::string J1Sys::GetURL(const std::string& url, bool logresult)
 
         if (logresult)
         {
-            logger_base.debug("Response from J1Sys '%s'.", (const char *)res.c_str());
+            logger_base.debug("Response from J1Sys '%s' : %d.", (const char *)res.c_str(), _http.GetError());
         }
     }
     else

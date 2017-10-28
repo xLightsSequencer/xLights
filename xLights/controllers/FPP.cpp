@@ -53,7 +53,7 @@ FPP::~FPP()
 std::string FPP::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString res;
+    wxString res = "";
     _http.SetMethod("GET");
     wxInputStream *httpStream = _http.GetInputStream(wxString(url));
     logger_base.debug("Making request to fpp '%s'.", (const char *)url.c_str());
@@ -65,7 +65,7 @@ std::string FPP::GetURL(const std::string& url, bool logresult)
 
         if (logresult)
         {
-            logger_base.debug("Response from fpp '%s'.", (const char *)res.c_str());
+            logger_base.debug("Response from fpp '%s' : %d.", (const char *)res.c_str(), _http.GetError());
         }
     }
     else
@@ -151,7 +151,7 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, wxWindow* parent)
 
 bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
 {
-    //if (_ftp.IsConnected())
+    if (_ftp.IsConnected())
     {
         // now create a universes file
         std::string file = SaveFPPUniverses("", std::list<int>(), false);
