@@ -458,7 +458,7 @@ void LayoutPanel::Reset()
     }
     ChoiceLayoutGroups->Append("<Create New Preview>");
     ChoiceLayoutGroups->SetSelection(0);
-    for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+    for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
     {
         if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
         {
@@ -1788,6 +1788,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         PreviewModelAlignVCenter();
     }
+    else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
+    {
+        PreviewModelHDistribute();
+    }
+    else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE)
+    {
+        PreviewModelVDistribute();
+    }
     else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
     {
         PreviewModelResize(true, false);
@@ -1911,9 +1919,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->InitModel();
         UpdatePreview();
     }
-
 }
-
 
 #define retmsg(msg)  \
 { \
@@ -2034,6 +2040,122 @@ void LayoutPanel::PreviewModelAlignHCenter()
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
             modelPreview->GetModels()[i]->SetHcenterOffset(center);
+        }
+    }
+    UpdatePreview();
+}
+
+bool SortModelX(const Model* first, const Model* second)
+{
+    float firstmodelX = first->GetModelScreenLocation().GetHcenterOffset();
+    float secondmodelX = second->GetModelScreenLocation().GetHcenterOffset();
+
+    return firstmodelX < secondmodelX;
+}
+
+bool SortModelY(const Model* first, const Model* second)
+{
+    float firstmodelY = first->GetModelScreenLocation().GetVcenterOffset();
+    float secondmodelY = second->GetModelScreenLocation().GetVcenterOffset();
+
+    return firstmodelY < secondmodelY;
+}
+
+void LayoutPanel::PreviewModelHDistribute()
+{
+    int count = 0;
+    float minx = 999999;
+    float maxx = -999999;
+
+    std::list<Model*> models;
+
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        Model* m = modelPreview->GetModels()[i];
+        if (m->GroupSelected)
+        {
+            count++;
+            float x = m->GetHcenterOffset();
+
+            if (x < minx) minx = x;
+            if (x > maxx) maxx = x;
+            models.push_back(m);
+        }
+    }
+
+    if (count <= 2) return;
+
+    models.sort(SortModelX);
+
+    float space = (maxx - minx) / (count - 1);
+
+    CreateUndoPoint("All", models.front()->name);
+
+    float x = -1;
+    for (auto it = models.begin(); it != models.end(); ++it)
+    {
+        if (it == models.begin())
+        {
+            x = (*it)->GetHcenterOffset() + space;
+        }
+        else if (*it == models.back())
+        {
+            // do nothing
+        }
+        else
+        {
+            (*it)->SetHcenterOffset(x);
+            x += space;
+        }
+    }
+    UpdatePreview();
+}
+
+void LayoutPanel::PreviewModelVDistribute()
+{
+    int count = 0;
+    float miny = 999999;
+    float maxy = -999999;
+
+    std::list<Model*> models;
+
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        Model* m = modelPreview->GetModels()[i];
+        if (m->GroupSelected)
+        {
+            count++;
+            float y = m->GetVcenterOffset();
+
+            if (y < miny) miny = y;
+            if (y > maxy) maxy = y;
+            models.push_back(m);
+        }
+    }
+
+    if (count <= 2) return;
+
+    models.sort(SortModelY);
+
+    float space = (maxy - miny) / (count - 1);
+
+    CreateUndoPoint("All", models.front()->name);
+
+    float y = -1;
+    for (auto it = models.begin(); it != models.end(); ++it)
+    {
+        if (it == models.begin())
+        {
+            y = (*it)->GetVcenterOffset() + space;
+        }
+        else if (*it == models.back())
+        {
+            // do nothing
+        }
+        else
+        {
+            (*it)->SetVcenterOffset(y);
+            y += space;
         }
     }
     UpdatePreview();
@@ -2737,7 +2859,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
     // see if we need to switch to this one
     const std::string& storedLayoutGroup = xlights->GetStoredLayoutGroup();
     if( storedLayoutGroup == name ) {
-        for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+        for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
         {
             if( ChoiceLayoutGroups->GetString(i) == storedLayoutGroup )
             {
@@ -2781,7 +2903,7 @@ int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     ChoiceLayoutGroups->SetSelection(0);
-    for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+    for (int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
     {
         if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
         {
@@ -2809,7 +2931,7 @@ void LayoutPanel::DeleteCurrentPreview()
         }
         xlights->MarkEffectsFileDirty(false);
         mSelectedGroup = nullptr;
-        for( int i = 0; i < ChoiceLayoutGroups->GetCount(); i++ )
+        for( int i = 0; i < (int)ChoiceLayoutGroups->GetCount(); i++ )
         {
             if( ChoiceLayoutGroups->GetString(i) == currentLayoutGroup )
             {

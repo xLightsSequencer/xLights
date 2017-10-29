@@ -197,6 +197,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelAlignRight();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
+        void PreviewModelHDistribute();
+        void PreviewModelVDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type);
 

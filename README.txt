@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)   Fix missing distribute horizontally and vertically in layout
+   -- enh (dkulp)   Add batch render to tools menu
+2017.34  Oct 27, 2017 
    -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
    -- enh (keith)   Add the ability to disable output processes
    -- bug (keith)   Fix multilight wiring dialog not displaying correctly
