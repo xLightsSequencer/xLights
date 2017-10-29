@@ -118,7 +118,7 @@ void xLightsFrame::NewSequence()
 
     unsigned int max = GetMaxNumChannels();
     if( (max > SeqData.NumChannels()) ||
-        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
+        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
     {
         SeqData.init(max, mMediaLengthMS / ms, ms);
     }
@@ -389,7 +389,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         unsigned int numChan = GetMaxNumChannels();
         if ((numChan > SeqData.NumChannels()) ||
-            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
+            (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
         {
             if (SeqData.NumChannels() > 0)
             {
@@ -399,7 +399,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 }
                 else
                 {
-                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames())
+                    if ((CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames())
                     {
                         logger_base.warn("Fseq file had %u frames but sequence has %u frames so dumping the fseq data.",
                                          CurrentSeqXmlFile->GetSequenceDurationMS() / ms,
@@ -1635,7 +1635,9 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     delete parser;
     file.Close();
 
-    int numFrames = time / frameTime;
+    // I added the ceiling command because i had an example file that ended up one calculating number of frames one less than
+    // the previous calculation because it had a partial last frame
+    int numFrames = (int)std::ceil((float)time / (float)frameTime);
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
 

@@ -2899,11 +2899,17 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                     int i2 = colors[x + len - 1].asHSV().value * 100.0;
                     std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
-                    layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
+                    if (!layer->HasEffectsInTimeRange(stime, etime))
+                    {
+                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
+                    }
                 } else {
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
                         "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
-                    layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
+                    if (!layer->HasEffectsInTimeRange(stime, etime))
+                    {
+                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
+                    }
                 }
                 for (int z = 0; z < len; z++) {
                     //clear it
@@ -2920,7 +2926,10 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
 
                 if (time != startTime) {
-                    layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
+                    if (!layer->HasEffectsInTimeRange(startTime, time))
+                    {
+                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
+                    }
                 }
             }
             startTime = time;
