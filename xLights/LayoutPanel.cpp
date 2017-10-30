@@ -808,7 +808,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
         wxString startStr = model->GetStartChannelInDisplayFormat();
-        if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
+        if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
         {
             TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
         }
