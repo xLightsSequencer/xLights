@@ -7,9 +7,39 @@
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
-			<rows>2</rows>
+			<rows>3</rows>
 			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<growablerows>1</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+							<label>Filter:</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_FILTER" variable="FilterChoice" member="yes">
+							<content>
+								<item>Recursive Search</item>
+								<item>Recursive Search - No Backups</item>
+								<item>Only Show Directory</item>
+							</content>
+							<selection>1</selection>
+							<handler function="OnFilterChoiceSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_SEQUENCES" variable="SequenceList" member="yes">
 					<minsize>150,200d</minsize>

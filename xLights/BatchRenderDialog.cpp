@@ -2,7 +2,9 @@
 
 //(*InternalHeaders(BatchRenderDialog)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/checklst.h>
+#include <wx/choice.h>
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
@@ -11,7 +13,10 @@
 #include <wx/dir.h>
 #include <wx/menu.h>
 
+#include "globals.h"
+
 //(*IdInit(BatchRenderDialog)
+const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
 const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
 //*)
 
@@ -23,13 +28,24 @@ END_EVENT_TABLE()
 BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 {
 	//(*Initialize(BatchRenderDialog)
+	wxFlexGridSizer* FlexGridSizer2;
+	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Batch Render"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(3, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
+	FlexGridSizer1->AddGrowableRow(1);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticText1 = new wxStaticText(this, wxID_ANY, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FilterChoice = new wxChoice(this, ID_CHOICE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FILTER"));
+	FilterChoice->Append(_("Recursive Search"));
+	FilterChoice->SetSelection( FilterChoice->Append(_("Recursive Search - No Backups")) );
+	FilterChoice->Append(_("Only Show Directory"));
+	FlexGridSizer2->Add(FilterChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
 	FlexGridSizer1->Add(SequenceList, 1, wxALL|wxEXPAND, 5);
@@ -42,9 +58,11 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	Center();
+
+	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
 	//*)
-    
-    
+
+
     Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&BatchRenderDialog::OnPreviewRightDown, nullptr,this);
 }
 
@@ -69,7 +87,6 @@ wxArrayString BatchRenderDialog::GetFileList() {
     for (int x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
             lst.push_back(SequenceList->GetString(x));
-            
         }
     }
     return lst;
@@ -84,10 +101,12 @@ bool BatchRenderDialog::Prepare(const wxString &showDir) {
         if (name[0] == '/' || name[0] == '\\') {
             name = name.SubString(1, name.size());
         }
-        if (!name.StartsWith("xlights_") && !name.StartsWith("Backup/") && !name.StartsWith("Backup\\")) {
-            SequenceList->Append(name);
+        if (!name.Contains("xlights_")) {
+            allFiles.push_back(name);
         }
     }
+    wxCommandEvent evt;
+    OnFilterChoiceSelect(evt);
     GetSizer()->Fit(this);
     GetSizer()->SetSizeHints(this);
     return SequenceList->GetCount() > 0;
@@ -99,3 +118,30 @@ BatchRenderDialog::~BatchRenderDialog()
 	//*)
 }
 
+
+void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
+{
+    SequenceList->Freeze();
+    SequenceList->Clear();
+    int type = FilterChoice->GetSelection();
+    for (auto a = allFiles.begin(); a != allFiles.end(); ++a) {
+        wxString name = *a;
+        switch (type) {
+        case 0:
+            SequenceList->Append(name);
+            break;
+        case 1:
+            if (!name.StartsWith("Backup/") && !name.StartsWith("Backup\\")) {
+                SequenceList->Append(name);
+            }
+            break;
+        case 2:
+            if (!name.Contains("/") && !name.Contains("\\")) {
+                SequenceList->Append(name);
+            }
+            break;
+        }
+    }
+    SequenceList->Thaw();
+
+}
