@@ -137,6 +137,7 @@ class FPPConnectDialog: public wxDialog
 		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
 		//*)
 
+        void OnComboBox_IPAddressTextUpdate(wxCommandEvent& event);
         void OnSequenceRClick(wxMouseEvent& event);
 
 		DECLARE_EVENT_TABLE()

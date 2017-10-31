@@ -152,6 +152,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     CheckListBox_Sequences->Connect(ID_CHECKLISTBOX_Sequences, wxEVT_RIGHT_UP, (wxObjectEventFunction)&FPPConnectDialog::OnSequenceRClick, nullptr, this);
 
+    Connect(ID_COMBOBOX_IPAddress, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&FPPConnectDialog::OnComboBox_IPAddressTextUpdate);
+
 #ifdef __WXMSW__
     wxArrayString drives = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
     for (auto it = drives.begin(); it != drives.end(); ++it)
@@ -454,10 +456,18 @@ bool FPPConnectDialog::IsValidIP(wxString ip)
         return true;
     }
 
-    wxIPV4address addr;
-    addr.Hostname(ip);
-    wxString ipAddr = addr.IPAddress();
-    return ipAddr != "0.0.0.0" && ipAddr != "";
+    wxRegEx regxNumbers("^[0-9\\.]*$");
+    if (regxNumbers.Matches(ip)) {
+        return false;
+    }
+
+    return true;
+
+    // This is slow to validate ... so lets not bother
+    //wxIPV4address addr;
+    //addr.Hostname(ip);
+    //wxString ipAddr = addr.IPAddress();
+    //return ipAddr != "0.0.0.0" && ipAddr != "";
 }
 
 void FPPConnectDialog::ValidateWindow()
@@ -924,7 +934,7 @@ void FPPConnectDialog::OnButton_UploadToAllClick(wxCommandEvent& event)
     wxString done = ComboBox_IPAddress->GetValue();
     cancelled = FTPUpload();
 
-    int i = 0;
+    size_t i = 0;
     while (!cancelled && i < ComboBox_IPAddress->GetCount())
     {
         ComboBox_IPAddress->SetSelection(i);
@@ -994,6 +1004,12 @@ void FPPConnectDialog::OnComboBox_IPAddressTextEnter(wxCommandEvent& event)
 {
     // remember user name and ip address
     SaveConnectionDetails();
+    ValidateWindow();
+}
+
+void FPPConnectDialog::OnComboBox_IPAddressTextUpdate(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
 
 void FPPConnectDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
