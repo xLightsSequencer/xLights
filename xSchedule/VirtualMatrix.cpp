@@ -226,6 +226,11 @@ void VirtualMatrix::Start()
         _window->SetSize(_size);
     }
 
+    if (_suppress)
+    {
+        _window->Hide();
+    }
+
     if (_image != nullptr)
     {
         delete _image;
@@ -251,5 +256,22 @@ void VirtualMatrix::Stop()
     {
         delete _window;
         _window = nullptr;
+    }
+}
+
+void VirtualMatrix::Suppress(bool suppress)
+{
+    _suppress = suppress;
+
+    if (_window != nullptr)
+    {
+        if (suppress)
+        {
+            _window->Hide();
+        }
+        else
+        {
+            _window->Show();
+        }
     }
 }

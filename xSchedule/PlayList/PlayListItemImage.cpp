@@ -5,11 +5,14 @@
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
 #include "../../xLights/effects/GIFImage.h"
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
     _gifImage = nullptr;
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _duration = 0;
     _done = false;
     _window = nullptr;
@@ -44,12 +47,14 @@ void PlayListItemImage::Load(wxXmlNode* node)
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _duration = wxAtoi(node->GetAttribute("Duration", "0"));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
+    _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
 }
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
     _gifImage = nullptr;
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _duration = 0;
     _done = false;
     _window = nullptr;
@@ -68,6 +73,7 @@ PlayListItem* PlayListItemImage::Copy() const
     res->_size= _size;
     res->_duration = _duration;
     res->_topMost = _topMost;
+    res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     PlayListItem::Copy(res);
 
     return res;
@@ -87,6 +93,11 @@ wxXmlNode* PlayListItemImage::Save()
     if (!_topMost)
     {
         node->AddAttribute("Topmost", "FALSE");
+    }
+
+    if (_suppressVirtualMatrix)
+    {
+        node->AddAttribute("SuppressVM", "TRUE");
     }
 
     PlayListItem::Save(node);
@@ -135,6 +146,11 @@ void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 
 void PlayListItemImage::Start()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(true);
+    }
+
     _done = false;
 
     // reload the image file
@@ -169,6 +185,11 @@ void PlayListItemImage::Start()
 
 void PlayListItemImage::Stop()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(false);
+    }
+
     // destroy the window
     if (_window != nullptr)
     {

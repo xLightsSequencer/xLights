@@ -21,6 +21,7 @@ protected:
     GIFImage* _gifImage;
     PlayerWindow* _window;
     bool _topMost;
+    bool _suppressVirtualMatrix;
     bool _done;
     long _duration;
     #pragma endregion Member Variables
@@ -37,6 +38,8 @@ public:
     #pragma region Getters and Setters
     bool GetTopMost() const { return _topMost; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
+    bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
+    void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
     virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     void SetImageFile(const std::string& ImageFile) { if (_ImageFile != ImageFile) { _ImageFile = ImageFile; _changeCount++; } }

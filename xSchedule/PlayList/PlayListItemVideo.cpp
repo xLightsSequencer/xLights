@@ -6,10 +6,13 @@
 #include "PlayerWindow.h"
 #include <log4cpp/Category.hh>
 #include "../xScheduleApp.h"
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -39,6 +42,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
+    _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
     OpenFiles();
     CloseFiles();
 }
@@ -46,6 +50,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -64,6 +69,7 @@ PlayListItem* PlayListItemVideo::Copy() const
     res->_videoFile = _videoFile;
     res->_durationMS = _durationMS;
     res->_topMost = _topMost;
+    res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     PlayListItem::Copy(res);
 
     return res;
@@ -82,6 +88,11 @@ wxXmlNode* PlayListItemVideo::Save()
     if (!_topMost)
     {
         node->AddAttribute("Topmost", "FALSE");
+    }
+
+    if (_suppressVirtualMatrix)
+    {
+        node->AddAttribute("SuppressVM", "TRUE");
     }
 
     PlayListItem::Save(node);
@@ -185,6 +196,11 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 
 void PlayListItemVideo::Start()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(true);
+    }
+
     OpenFiles();
 
     // create the window
@@ -201,6 +217,11 @@ void PlayListItemVideo::Start()
 
 void PlayListItemVideo::Stop()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(false);
+    }
+
     CloseFiles();
 
     // destroy the window

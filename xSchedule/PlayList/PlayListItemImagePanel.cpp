@@ -13,6 +13,7 @@ const long PlayListItemImagePanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemImagePanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemImagePanel::ID_BUTTON1 = wxNewId();
 const long PlayListItemImagePanel::ID_CHECKBOX1 = wxNewId();
+const long PlayListItemImagePanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemImagePanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemImagePanel::ID_TEXTCTRL2 = wxNewId();
 const long PlayListItemImagePanel::ID_STATICTEXT2 = wxNewId();
@@ -61,10 +62,14 @@ PlayListItemImagePanel::PlayListItemImagePanel(wxWindow* parent, PlayListItemIma
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_PositionWindow = new wxButton(this, ID_BUTTON1, _("Position Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_PositionWindow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX1, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_Topmost->SetValue(true);
 	FlexGridSizer1->Add(CheckBox_Topmost, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressVirtualMatrix = new wxCheckBox(this, ID_CHECKBOX2, _("Suppress Virtual Matrix"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_SuppressVirtualMatrix->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_SuppressVirtualMatrix, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL2, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
@@ -87,6 +92,7 @@ PlayListItemImagePanel::PlayListItemImagePanel(wxWindow* parent, PlayListItemIma
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)Image->GetDelay() / 1000.0));
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)Image->GetDuration() / 1000.0));
     CheckBox_Topmost->SetValue(Image->GetTopMost());
+    CheckBox_SuppressVirtualMatrix->SetValue(Image->GetSuppressVirtualMatrix());
 }
 
 PlayListItemImagePanel::~PlayListItemImagePanel()
@@ -97,6 +103,7 @@ PlayListItemImagePanel::~PlayListItemImagePanel()
     _Image->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _Image->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _Image->SetTopmost(CheckBox_Topmost->GetValue());
+    _Image->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
 }
 
 void PlayListItemImagePanel::OnButton_PositionWindowClick(wxCommandEvent& event)

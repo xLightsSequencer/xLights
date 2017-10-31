@@ -2444,6 +2444,16 @@ bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, std::string& m
     return true;
 }
 
+void ScheduleManager::SuppressVM(bool suppress)
+{
+    auto v = GetOptions()->GetVirtualMatrices();
+
+    for (auto it = v->begin(); it != v->end(); ++it)
+    {
+        (*it)->Suppress(suppress);
+    }
+}
+
 void ScheduleManager::SetVolume(int volume)
 {
     int cv = volume;

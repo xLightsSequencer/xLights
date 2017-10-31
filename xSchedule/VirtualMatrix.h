@@ -24,6 +24,7 @@ class VirtualMatrix
     wxImage* _image;
     wxImageResizeQuality _quality;
     PlayerWindow* _window;
+    bool _suppress;
 
 public:
 
@@ -40,6 +41,7 @@ public:
         void Frame(wxByte*buffer, size_t size);
         void Start();
         void Stop();
+        void Suppress(bool suppress);
         size_t GetStartChannel() const { return _startChannel; }
         size_t GetChannels() const { return _width * _height * 3; }
         void SetStartChannel(const size_t startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }

@@ -7,11 +7,14 @@
 #include "../../xLights/VideoReader.h"
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
+#include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
     _currentFrame = 0;
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _window = nullptr;
     _videoFile = "";
     _origin.x = 0;
@@ -43,6 +46,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
+    _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
 
     if (_fastStartAudio)
     {
@@ -145,6 +149,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 {
     _currentFrame = 0;
     _topMost = true;
+    _suppressVirtualMatrix = false;
     _fastStartAudio = false;
     _channels = 0;
     _startChannel = 1;
@@ -168,6 +173,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo();
     res->_topMost = _topMost;
+    res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
     res->_overrideAudio = _overrideAudio;
@@ -200,6 +206,11 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     if (!_topMost)
     {
         node->AddAttribute("Topmost", "FALSE");
+    }
+
+    if (_suppressVirtualMatrix)
+    {
+        node->AddAttribute("SuppressVM", "TRUE");
     }
 
     if (_fastStartAudio)
@@ -451,6 +462,11 @@ void PlayListItemFSEQVideo::Restart()
 
 void PlayListItemFSEQVideo::Start()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(true);
+    }
+
     // load the FSEQ
     // load the audio
     LoadFiles();
@@ -511,6 +527,11 @@ void PlayListItemFSEQVideo::Pause(bool pause)
 
 void PlayListItemFSEQVideo::Stop()
 {
+    if (_suppressVirtualMatrix)
+    {
+        xScheduleFrame::GetScheduleManager()->SuppressVM(false);
+    }
+
     if (_audioManager != nullptr)
     {
         _audioManager->Stop();

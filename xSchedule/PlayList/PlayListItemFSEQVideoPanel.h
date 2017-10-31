@@ -49,6 +49,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
+		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxButton* Button_PositionWindow;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_StartChannel;
@@ -64,6 +65,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_FILEPICKERCTRL3;
 		static const long ID_BUTTON1;
 		static const long ID_CHECKBOX5;
+		static const long ID_CHECKBOX6;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX3;

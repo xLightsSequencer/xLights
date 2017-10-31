@@ -17,6 +17,7 @@ const long PlayListItemFSEQVideoPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_FILEPICKERCTRL3 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_BUTTON1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX5 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_CHECKBOX6 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT5 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX3 = wxNewId();
@@ -122,10 +123,14 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_PositionWindow = new wxButton(this, ID_BUTTON1, _("Position Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_PositionWindow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX5, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_Topmost->SetValue(true);
 	FlexGridSizer1->Add(CheckBox_Topmost, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressVirtualMatrix = new wxCheckBox(this, ID_CHECKBOX6, _("Suppress Virtual Matrix"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
+	CheckBox_SuppressVirtualMatrix->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_SuppressVirtualMatrix, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Blend Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_BlendMode = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -197,6 +202,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
     CheckBox_FastStartAudio->SetValue(fseq->GetFastStartAudio());
     FilePickerCtrl_VideoFile->SetFileName(wxFileName(fseq->GetVideoFile()));
     CheckBox_Topmost->SetValue(fseq->GetTopMost());
+    CheckBox_SuppressVirtualMatrix->SetValue(fseq->GetSuppressVirtualMatrix());
 
     if (fseq->GetVolume() != -1)
     {
@@ -247,6 +253,7 @@ PlayListItemFSEQVideoPanel::~PlayListItemFSEQVideoPanel()
     _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
     _fseq->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
     _fseq->SetTopmost(CheckBox_Topmost->GetValue());
+    _fseq->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {

@@ -18,6 +18,7 @@ protected:
     std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;
+    bool _suppressVirtualMatrix;
     VideoReader* _videoReader;
     bool _topMost;
     size_t _durationMS;
@@ -40,6 +41,8 @@ public:
     #pragma region Getters and Setters
     bool GetTopMost() const { return _topMost; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
+    bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
+    void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
     virtual size_t GetDurationMS() const override;
     virtual std::string GetNameNoTime() const override;
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }

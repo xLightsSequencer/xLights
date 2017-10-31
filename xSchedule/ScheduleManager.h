@@ -160,6 +160,7 @@ class ScheduleManager : public wxEvtHandler
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
         bool ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive);
+        void SuppressVM(bool suppress);
         bool ToggleCurrentPlayListRandom(std::string& msg);
         bool ToggleCurrentPlayListPause(std::string& msg);
         bool ToggleCurrentPlayListLoop(std::string& msg);

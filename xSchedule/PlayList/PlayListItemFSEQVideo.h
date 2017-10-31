@@ -22,6 +22,7 @@ protected:
     std::string _audioFile;
     bool _overrideAudio;
     bool _topMost;
+    bool _suppressVirtualMatrix;
     FSEQFile* _fseqFile;
     AudioManager* _audioManager;
     size_t _durationMS;
@@ -56,6 +57,8 @@ public:
     AudioManager* GetAudioManager() const { return _audioManager; }
     bool GetTopMost() const { return _topMost; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
+    bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
+    void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
     std::string GetAudioFilename() const;
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
