@@ -101,6 +101,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	Choice_Shape_ObjectToDraw->Append(_("Snowflake"));
 	Choice_Shape_ObjectToDraw->Append(_("Candy Cane"));
 	Choice_Shape_ObjectToDraw->Append(_("Random"));
+	Choice_Shape_ObjectToDraw->Append(_("Crucifix"));
 	FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText72 = new wxStaticText(this, ID_STATICTEXT74, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT74"));

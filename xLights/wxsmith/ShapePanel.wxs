@@ -28,6 +28,7 @@
 						<item>Snowflake</item>
 						<item>Candy Cane</item>
 						<item>Random</item>
+						<item>Crucifix</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Shape_ObjectToDrawSelect" entry="EVT_CHOICE" />
