@@ -186,7 +186,8 @@ bool PlayListItemPJLink::Login()
     _socket = new wxSocketClient();
     if (_socket != nullptr)
     {
-        if (_socket->Connect(address, false))
+        // wait for up to 1/2 second for connection
+        if (_socket->Connect(address, false) || _socket->WaitOnConnect(0, 500))
         {
             logger_base.info("PJLink connected.");
 
