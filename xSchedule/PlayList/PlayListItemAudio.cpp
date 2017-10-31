@@ -60,6 +60,8 @@ void PlayListItemAudio::LoadFiles()
         }
     }
 
+    _durationMS = 0;
+
     if (IsInSlaveMode())
     {
         
@@ -68,15 +70,25 @@ void PlayListItemAudio::LoadFiles()
     {
         _audioManager = new AudioManager(_audioFile);
 
-        if (!_audioManager->IsOk())
+        if (_audioManager == nullptr || !_audioManager->IsOk())
         {
             logger_base.error("Audio: Audio file '%s' has a problem opening.", (const char *)_audioFile.c_str());
+            
+            if (_audioManager != nullptr)
+            {
+                delete _audioManager;
+                _audioManager = nullptr;
+            }
         }
-
-        if (_volume != -1)
-            _audioManager->SetVolume(_volume);
-        _durationMS = _audioManager->LengthMS();
-        _controlsTimingCache = true;
+        else
+        {
+            if (_volume != -1)
+            {
+                _audioManager->SetVolume(_volume);
+            }
+            _durationMS = _audioManager->LengthMS();
+            _controlsTimingCache = true;
+        }
     }
     else
     {
