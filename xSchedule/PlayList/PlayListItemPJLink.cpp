@@ -191,42 +191,47 @@ bool PlayListItemPJLink::Login()
         {
             logger_base.info("PJLink connected.");
 
-            _socket->WaitForRead(2);
-            if (_socket->IsData())
+            _socket->WaitForRead(0, 500);
+
+            wxCharBuffer buffer(100);
+            _socket->Peek(buffer.data(), buffer.length());
+
+            // wait for up to 100ms for data
+            int i = 0;
+            while (_socket->LastCount() == 0 && i < 100)
             {
-                wxCharBuffer buffer(100);
-                _socket->ReadMsg(buffer.data(), buffer.length());
-
-                wxString response(buffer);
-                logger_base.info("PJLink response %s.", (const char*)response.c_str());
-
-                if  (response.Left(8) == "PJLINK 0")
-                {
-                    // no security
-                    logger_base.info("PJLink No Security.");
-                    return true;
-                }
-                else if (response.Left(8) == "PJLINK 1")
-                {
-                    wxString random = response.SubString(9, response.size());
-                    if (random.Right(1) == '\r') random = random.Left(random.size() - 1);
-
-                    logger_base.info("PJLink random %s.", (const char*)random.c_str());
-
-                    random = random + " " + password;
-
-                    _hash = md5(random.ToStdString());
-
-                    logger_base.info("PJLink session hash %s.", (const char*)_hash.c_str());
-                }
+                wxMilliSleep(1);
+                _socket->Peek(buffer.data(), buffer.length());
+                i++;
             }
-            else
+
+            _socket->ReadMsg(buffer.data(), buffer.length());
+            int read = _socket->GetLastIOReadSize();
+
+            wxString response(buffer);
+            logger_base.info("PJLink response '%s'", (const char*)response.c_str());
+
+            if  (response.Left(8) == "PJLINK 0")
             {
-                // timeout
-                logger_base.error("PJLink no response.");
-                _socket->Close();
-                delete _socket;
-                _socket = nullptr;
+                // no security
+                logger_base.info("PJLink No Security.");
+                return true;
+            }
+            else if (response.Left(8) == "PJLINK 1")
+            {
+                wxString random = response.SubString(9, response.size());
+
+                if (random.Contains("\r"))
+                {
+                    random = random.Left(random.Find('\r'));
+                }
+                logger_base.info("PJLink random '%s'.", (const char*)random.c_str());
+
+                random = random + password;
+
+                _hash = md5(random.ToStdString());
+
+                logger_base.info("PJLink session hash '%s'.", (const char*)_hash.c_str());
             }
         }
         else
@@ -255,14 +260,24 @@ bool PlayListItemPJLink::SendCommand(const std::string& command)
 
     _socket->Write(cmd.c_str(), cmd.size());
 
-    _socket->WaitForRead(2);
-    while (_socket->IsData())
+    _socket->WaitForRead(0, 500);
+
+    wxCharBuffer buffer(100);
+    _socket->Peek(buffer.data(), buffer.length());
+
+    // wait for up to 100ms for data
+    int i = 0;
+    while (_socket->LastCount() == 0 && i < 100)
     {
-        wxCharBuffer buffer(100);
-        _socket->ReadMsg(buffer.data(), buffer.length());
-        wxString response(buffer);
-        logger_base.info("PJLink response %s.", (const char*)response.c_str());
+        wxMilliSleep(1);
+        _socket->Peek(buffer.data(), buffer.length());
+        i++;
     }
+
+    _socket->ReadMsg(buffer.data(), buffer.length());
+    int read = _socket->GetLastIOReadSize();
+    wxString response(buffer);
+    logger_base.info("PJLink response '%s' len: %d.", (const char*)response.c_str(), read);
 
     return true;
 }
