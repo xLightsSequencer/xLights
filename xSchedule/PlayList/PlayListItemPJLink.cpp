@@ -103,11 +103,11 @@ void PlayListItemPJLink::ExecutePJLinkCommand()
     Login();
     if (_command == "Power On")
     {
-        SendCommand("%1POWER 1\r");
+        SendCommand("%1POWR 1\r");
     }
     else if (_command == "Power Off")
     {
-        SendCommand("%1POWER 0\r");
+        SendCommand("%1POWR 0\r");
     }
     else if (_command == "Change Input to RGB")
     {
