@@ -117,6 +117,16 @@ void xLightsFrame::NewSequence()
     MenuItem_ImportEffects->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
+    if (max >= 999999) {
+        size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+        m *= max;
+        m /= 1024; // ->kb
+        m /= 1024; // ->mb
+        
+        wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
+                                      " a very large amount of memory used (%lu MB).", max, m), "Warning",
+                     wxICON_WARNING | wxOK | wxCENTRE, this);
+    }
     if( (max > SeqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
     {
@@ -388,6 +398,17 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
 
         unsigned int numChan = GetMaxNumChannels();
+        if (numChan >= 999999) {
+            size_t m = std::max(CurrentSeqXmlFile->GetSequenceDurationMS(),  mMediaLengthMS) / ms;
+            m *= numChan;
+            m /= 1024; // ->kb
+            m /= 1024; // ->mb
+            
+            wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
+                                          " a very large amount of memory used (%lu MB).", numChan, m), "Warning",
+                         wxICON_WARNING | wxOK | wxCENTRE, this);
+        }
+
         if ((numChan > SeqData.NumChannels()) ||
             (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
         {
@@ -407,11 +428,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                     }
                 }
             }
-            SeqData.init(GetMaxNumChannels(), mMediaLengthMS / ms, ms);
+            SeqData.init(numChan, mMediaLengthMS / ms, ms);
         }
         else if( !loaded_fseq )
         {
-            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            SeqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         displayElementsPanel->Initialize();

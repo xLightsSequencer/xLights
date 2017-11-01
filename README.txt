@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger
+   -- enh (dkulp)   Add a warning when loading/creating sequences that would result in massive amounts of memory being used
    -- bug (keith)   Fix missing distribute horizontally and vertically in layout
    -- enh (dkulp)   Add batch render to tools menu
 2017.34  Oct 27, 2017 

@@ -307,7 +307,7 @@ public:
     void SetGauge(wxGauge *g) { gauge = g;}
     int GetCurrentFrame() const { return currentFrame;}
 
-    const std::string &GetName() const {
+    const std::string GetName() const override {
         return name;
     }
 

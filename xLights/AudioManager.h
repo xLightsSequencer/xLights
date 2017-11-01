@@ -36,6 +36,7 @@ public:
 	virtual void Process() override;
 	virtual std::string GetStatus() override { return _status; }
     virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioScan"; }
 };
 
 class AudioLoadJob : Job
@@ -54,6 +55,7 @@ public:
     virtual void Process() override;
     virtual std::string GetStatus() override { return _status; }
     virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioLoad"; }
 };
 
 class xLightsVamp

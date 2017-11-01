@@ -151,13 +151,33 @@ void* JobPoolWorker::Entry()
     return nullptr;
 }
 
+#ifndef __WXMSW__
+static std::string OriginalThreadName() {
+    char buf[256];
+    pthread_getname_np(pthread_self(), buf, 256);
+    return buf;
+}
+
+static void SetThreadName(const std::string &name) {
+    pthread_setname_np(name.c_str());
+}
+#else
+//no idea how to do this on Windows or even if there is value in doing so
+static std::string OriginalThreadName() { return ""; }
+static void SetThreadName(const std::string &name) {}
+#endif
+
+
 void JobPoolWorker::ProcessJob(Job *job)
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     if (job) {
 		logger_jobpool.debug("Starting job on background thread.");
 		currentJob = job;
+        std::string origName = OriginalThreadName();
+        SetThreadName(job->GetName());
         job->Process();
+        SetThreadName(origName);
         currentJob = nullptr;
         
         if (job->DeleteWhenComplete()) {
