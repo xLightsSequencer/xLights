@@ -159,7 +159,11 @@ static std::string OriginalThreadName() {
 }
 
 static void SetThreadName(const std::string &name) {
+#ifdef __WXOSX__
     pthread_setname_np(name.c_str());
+#else
+    pthread_setname_np(pthread_self(), name.c_str());
+#endif
 }
 #else
 //no idea how to do this on Windows or even if there is value in doing so
