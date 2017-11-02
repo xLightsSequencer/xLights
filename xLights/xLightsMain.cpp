@@ -9,7 +9,7 @@
 
 #include "xLightsMain.h"
 #include "SplashDialog.h"
-
+#include "UpdaterDialog.h"
 #include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
@@ -22,6 +22,9 @@
 #include <wx/debugrpt.h>
 #include <wx/protocol/http.h>
 #include <wx/textctrl.h>
+#include <wx/sstream.h>
+#include <wx/protocol/http.h>
+#include <wx/regex.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
@@ -54,11 +57,11 @@
 #include "../include/control-play-blue-icon.xpm"
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
@@ -295,6 +298,7 @@ const long xLightsFrame::ID_MNU_HELP_RELEASE_NOTES = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_ISSUE = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FACEBOOK = wxNewId();
 const long xLightsFrame::ID_MNU_DONATE = wxNewId();
+const long xLightsFrame::ID_MNU_UPDATE = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
@@ -405,6 +409,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
     wx__DECLARE_EVT1(EVT_SELECTED_EFFECT_CHANGED, wxID_ANY, &xLightsFrame::SelectedEffectChanged)
 
+
 END_EVENT_TABLE()
 
 
@@ -453,54 +458,56 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
+    wxHTTP::Initialize();
+    Bind(wxEVT_IDLE, &xLightsFrame::OnIdle, this);
 
     //(*Initialize(xLightsFrame)
+    wxMenuItem* MenuItem2;
+    wxMenuItem* MenuItem23;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxMenuItem* MenuItem31;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem8;
-    wxFlexGridSizer* FlexGridSizerSetup;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem25;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem2;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem46;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem11;
-    wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem22;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem13;
-    wxMenuItem* MenuItem10;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem12;
-    wxMenuItem* MenuItem24;
-    wxMenuItem* MenuItem27;
-    wxMenuItem* MenuItem44;
     wxFlexGridSizer* FlexGridSizerNetworks;
+    wxPanel* Panel1;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem25;
+    wxStaticText* StaticText28;
+    wxMenuItem* MenuItem19;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem28;
-    wxMenuItem* MenuItemDisplayElements;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem23;
-    wxStaticText* StaticText28;
-    wxBoxSizer* BoxSizer1;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxMenuItem* MenuItem21;
-    wxMenu* Menu2;
-    wxMenuItem* MenuItem9;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItemBatchRender;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem48;
-    wxMenuItem* MenuItem19;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem24;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem17;
+    wxMenuItem* MenuItem21;
     wxButton* Button03;
+    wxMenuItem* MenuItem9;
+    wxStaticText* StaticText38;
+    wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItemBatchRender;
+    wxMenuItem* MenuItem22;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem44;
+    wxMenuItem* MenuItemDisplayElements;
+    wxBoxSizer* BoxSizer1;
+    wxMenuItem* MenuItem10;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem27;
+    wxGridBagSizer* GridBagSizer1;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem26;
+    wxMenuItem* MenuItem13;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItem28;
+    wxMenu* MenuHelp;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem8;
+    wxMenuItem* MenuItem14;
+    wxMenuItem* MenuItem46;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxFlexGridSizer* FlexGridSizerSetup;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -1004,6 +1011,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuHelp->Append(MenuItem_Help_Facebook);
     MenuItem_Donate = new wxMenuItem(MenuHelp, ID_MNU_DONATE, _("Donate"), _("Donate to the xLights project."), wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Donate);
+    MenuItem_Update = new wxMenuItem(MenuHelp, ID_MNU_UPDATE, _("Check for Updates"), _("Check for newer xLights updates"), wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_Update);
+    MenuItem_Update->Enable(false);
     MenuItem2 = new wxMenuItem(MenuHelp, wxID_ABOUT, _("About"), _("Show info about this application"), wxITEM_NORMAL);
     MenuHelp->Append(MenuItem2);
     MenuBar->Append(MenuHelp, _("&Help"));
@@ -1191,6 +1201,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENU_HELP_ISSUE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected);
     Connect(ID_MENU_HELP_FACEBOOK,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_FacebookSelected);
     Connect(ID_MNU_DONATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DonateSelected);
+    Connect(ID_MNU_UPDATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UpdateSelected);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
@@ -1829,6 +1840,13 @@ xLightsFrame::~xLightsFrame()
     //*)
 
     reenter = false;
+}
+
+void xLightsFrame::OnIdle(wxIdleEvent& event) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Idle event called");
+    Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
+    bool ret = CheckForUpdate(false);
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
@@ -6870,4 +6888,73 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             _renderMode = false;
         }
     }
+}
+
+void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
+{
+    bool update_found = CheckForUpdate(true);
+    if (!update_found) {
+        wxMessageBox(wxT("No update found"));
+    }
+}
+
+bool xLightsFrame::CheckForUpdate(bool force)
+{
+    bool found_update = false;
+    wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
+    #ifdef LINUX
+      wxString hostname =  wxT("www.adebenham.com");
+      wxString path = wxT("/wp-content/uploads/xlights/latest.php");
+      wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
+      MenuItem_Update->Enable(true);
+    #else
+      #ifdef  __WXOSX_MAC__
+        wxString hostname = _T("dankulp.com");
+        wxString path = _T("/xLightsLatest.php");
+        wxString downloadUrl =  wxT("https://dankulp.com/xlights/");
+        MenuItem_Update->Enable(true);
+      #else
+        MenuItem_Update->Enable(false);
+        return; // No checking on windows yet
+      #endif
+    #endif
+
+    wxHTTP get;
+    get.SetTimeout(10); // 10 seconds of timeout instead of 10 minutes ...
+
+    while (!get.Connect(hostname))  // only the server, no pages here yet ...
+        wxSleep(5);
+
+    wxInputStream *httpStream = get.GetInputStream(path);
+    if (get.GetError() == wxPROTO_NOERR) {
+        wxString res;
+        wxString configver = wxT("");
+        wxStringOutputStream out_stream(&res);
+        httpStream->Read(out_stream);
+        wxString urlVersion = wxString(out_stream.GetString());
+        size_t count = reVersion.Replace(&urlVersion,"\\1",1);
+        wxConfigBase* config = wxConfigBase::Get();
+        if (!force && (config != nullptr))
+        {
+            config->Read("SkipVersion",&configver);
+        }
+        if ((!urlVersion.Matches(configver))
+             && (!urlVersion.Matches(xlights_version_string))) {
+            found_update=true;
+            UpdaterDialog *dialog = new UpdaterDialog(this);
+            dialog->urlVersion=urlVersion;
+            dialog->force=force;
+            dialog->downloadUrl=downloadUrl;
+            dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights "
+                                                       + xlights_version_string + "\n"
+                                                       + "Whereas the most recent release is " + urlVersion));
+            dialog->Show();
+        }
+    } else {
+        wxMessageBox(_T("Unable to connect!"));
+    }
+
+    wxDELETE(httpStream);
+    get.Close();
+    return found_update;
 }

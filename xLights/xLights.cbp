@@ -667,6 +667,8 @@
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
 		<Unit filename="TopEffectsPanel.h" />
+		<Unit filename="UpdaterDialog.cpp" />
+		<Unit filename="UpdaterDialog.h" />
 		<Unit filename="UtilFunctions.cpp" />
 		<Unit filename="UtilFunctions.h" />
 		<Unit filename="VAMPPluginDialog.cpp" />
@@ -1197,6 +1199,7 @@
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/TreePanel.wxs" />
 		<Unit filename="wxsmith/TwinklePanel.wxs" />
+		<Unit filename="wxsmith/UpdaterDialog.wxs" />
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
@@ -1359,6 +1362,8 @@
 					<wxDialog wxs="wxsmith/GenerateLyricsDialog.wxs" src="GenerateLyricsDialog.cpp" hdr="GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
+
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
