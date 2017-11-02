@@ -1399,6 +1399,4 @@ public:
 
     EffectTreeDialog *EffectTreeDlg;
 };
-
 #endif // XLIGHTSMAIN_H
-    

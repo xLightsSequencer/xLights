@@ -167,10 +167,20 @@ static void SetThreadName(const std::string &name) {
 }
 #else
 //no idea how to do this on Windows or even if there is value in doing so
-static std::string OriginalThreadName() { return ""; }
-static void SetThreadName(const std::string &name) {}
+static std::map<DWORD, std::string> __threadNames;
+static std::string OriginalThreadName()
+{
+    if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end())
+    {
+        return __threadNames[::GetCurrentThreadId()];
+    }
+    return "";
+}
+static void SetThreadName(const std::string &name)
+{
+    __threadNames[::GetCurrentThreadId()] = name;
+}
 #endif
-
 
 void JobPoolWorker::ProcessJob(Job *job)
 {

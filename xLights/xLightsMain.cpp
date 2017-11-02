@@ -6914,8 +6914,11 @@ bool xLightsFrame::CheckForUpdate(bool force)
         wxString downloadUrl =  wxT("https://dankulp.com/xlights/");
         MenuItem_Update->Enable(true);
       #else
+        wxString hostname = _T("xlights.org");
+        wxString path = _T("/xLightsLatest.php");
+        wxString downloadUrl = wxT("https://xlights.org/releases/");
         MenuItem_Update->Enable(false);
-        return; // No checking on windows yet
+        return false; // No checking on windows yet
       #endif
     #endif
 

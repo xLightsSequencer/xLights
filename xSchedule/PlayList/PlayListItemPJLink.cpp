@@ -111,23 +111,23 @@ void PlayListItemPJLink::ExecutePJLinkCommand()
     }
     else if (_command == "Change Input to RGB")
     {
-        SendCommand("%1INPUT 1"+_parameter+"\r");
+        SendCommand("%1INPT 1"+_parameter+"\r");
     }
     else if (_command == "Change Input to VIDEO")
     {
-        SendCommand("%1INPUT 2" + _parameter + "\r");
+        SendCommand("%1INPT 2" + _parameter + "\r");
     }
     else if (_command == "Change Input to DIGITAL")
     {
-        SendCommand("%1INPUT 3" + _parameter + "\r");
+        SendCommand("%1INPT 3" + _parameter + "\r");
     }
     else if (_command == "Change Input to STORAGE")
     {
-        SendCommand("%1INPUT 4" + _parameter + "\r");
+        SendCommand("%1INPT 4" + _parameter + "\r");
     }
     else if (_command == "Change Input to NETWORK")
     {
-        SendCommand("%1INPUT 5" + _parameter + "\r");
+        SendCommand("%1INPT 5" + _parameter + "\r");
     }
     else if (_command == "Video Mute On")
     {
