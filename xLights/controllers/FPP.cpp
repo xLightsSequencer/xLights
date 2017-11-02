@@ -14,10 +14,12 @@
 
 FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
  	_user = user;
 	_password = password;
 	_ip = ip;
+    _version = "";
 
 	_connected = _http.Connect(_ip);
 
@@ -28,11 +30,18 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
         std::string version = GetURL("//");
         _http.SetTimeout(oldTimeout);
 
-        //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
-        static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9]+)", wxRE_ADVANCED | wxRE_NEWLINE);
-        if (versionregex.Matches(wxString(version)))
+        if (version == "")
         {
-            _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
+            logger_base.error("FPP: Unable to retrieve FPP web page. Possible they have a password on the UI.");
+        }
+        else
+        {
+            //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
+            static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9]+)", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (versionregex.Matches(wxString(version)))
+            {
+                _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
+            }
         }
 
         _ftp.Connect(ip, user, password);

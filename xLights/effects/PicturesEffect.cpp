@@ -51,11 +51,19 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     {
         res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
-    else if (!IsFileInShowDir(xLightsFrame::CurrentDir, PictureFilename.ToStdString()))
+    else
     {
-        res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
-    }
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, PictureFilename.ToStdString()))
+        {
+            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
 
+        int imageCount = wxImage::GetImageCount(PictureFilename);
+        if (imageCount <= 0)
+        {
+            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+    }
     return res;
 }
 
@@ -476,6 +484,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         scale_image = true;
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
+
+        if (cache->imageCount <= 0)
+        {
+            logger_base.error("Image %s reports %d frames which is invalid.", (const char *)NewPictureName.c_str(), cache->imageCount);
+        }
+
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
         {
             logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
