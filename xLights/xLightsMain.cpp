@@ -6923,10 +6923,15 @@ bool xLightsFrame::CheckForUpdate(bool force)
     #endif
 
     wxHTTP get;
-    get.SetTimeout(10); // 10 seconds of timeout instead of 10 minutes ...
+    get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
 
-    while (!get.Connect(hostname))  // only the server, no pages here yet ...
-        wxSleep(5);
+    if (force) {
+        while (!get.Connect(hostname))  // only the server, no pages here yet ...
+            wxSleep(5);
+    } else {
+        if (!get.Connect(hostname))
+            return true;
+    }
 
     wxInputStream *httpStream = get.GetInputStream(path);
     if (get.GetError() == wxPROTO_NOERR) {
