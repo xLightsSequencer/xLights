@@ -2104,7 +2104,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     }
 }
 
-
 void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
 {
     if (_outputManager.IsOutputting())

@@ -533,7 +533,7 @@ bool xLightsFrame::CloseSequence()
     SeqData.init(0,0,50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
-    SetStatusText(CurrentDir, 1);
+    SetStatusText(CurrentDir, true);
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
 

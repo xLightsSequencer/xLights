@@ -297,7 +297,8 @@ public:
     void SaveModelsFile();
     void MarkEffectsFileDirty(bool modelStructureChange);
     void CheckUnsavedChanges();
-    void SetStatusText(const wxString &msg, int section = 0);
+    void SetStatusText(const wxString &msg, int filename = 0);
+    void SetStatusTextColor(const wxString &msg, const wxColor& colour);
 	std::string GetChannelToControllerMapping(long channel);
     void GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output);
 

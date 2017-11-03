@@ -4763,11 +4763,11 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
     } else {
         if (xlights->GetFilename() != "")
         {
-            xlights->SetStatusText(xlights->GetFilename(), 1);
+            xlights->SetStatusText(xlights->GetFilename(), true);
         }
         else
         {
-            xlights->SetStatusText(xlights->CurrentDir, 1);
+            xlights->SetStatusText(xlights->CurrentDir, true);
         }
         SetCursor(wxCURSOR_DEFAULT);
         mResizingMode = EFFECT_RESIZE_NO;
@@ -4779,17 +4779,17 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const
     if (eff != nullptr)
     {
         wxString e = wxString::Format("start: %s end: %s duration: %s %s %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()), eff->GetEffectName(), eff->GetDescription());
-        xlights->SetStatusText(e, 1);
+        xlights->SetStatusText(e, true);
     }
     else
     {
         if (xlights->GetFilename() != "")
         {
-            xlights->SetStatusText(xlights->GetFilename(), 1);
+            xlights->SetStatusText(xlights->GetFilename(), true);
         }
         else
         {
-            xlights->SetStatusText(xlights->CurrentDir, 1);
+            xlights->SetStatusText(xlights->CurrentDir, true);
         }
     }
 }

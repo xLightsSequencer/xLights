@@ -40,11 +40,11 @@ void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffe
 
 void ConvertParameters::SetStatusText(wxString msg)
 {
-    if (xLightsFrm != NULL)
+    if (xLightsFrm != nullptr)
     {
         xLightsFrm->SetStatusText(msg);
     }
-    if (convertDialog != NULL)
+    if (convertDialog != nullptr)
     {
         convertDialog->SetStatusText(msg);
     }

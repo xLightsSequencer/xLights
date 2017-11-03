@@ -163,14 +163,33 @@ void xLightsFrame::InitSequencer()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    // check if sequence data is the right size
+    if (CurrentSeqXmlFile->GetSequenceLoaded())
+    {
+        if (SeqData.NumChannels() != GetMaxNumChannels())
+        {
+            logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
+
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+
+            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            mSequenceElements.IncrementChangeCount(nullptr);
+
+            SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+        }
+    }
+
     if(EffectsPanel1 == nullptr || timingPanel == nullptr)
     {
         return;
     }
+
     if(mSequencerInitialize)
     {
         return;
     }
+
     if(mCurrentPerpective!=nullptr)
     {
         DoLoadPerspective(mCurrentPerpective);

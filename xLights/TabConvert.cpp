@@ -32,15 +32,27 @@ void FRAMECLASS ConversionError(const wxString& msg)
 {
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
 }
-void FRAMECLASS SetStatusText(const wxString &msg, int section) {
+
+void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
     if (_renderMode) {
         printf("%s\n",msg.ToStdString().c_str());
     } else {
-        if (section) {
+        if (filename) {
             FileNameText->SetLabel(msg);
+            FileNameText->SetForegroundColour(*wxBLACK);
         } else {
             StatusText->SetLabel(msg);
+            StatusText->SetForegroundColour(*wxBLACK);
         }
+    }
+}
+
+void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
+    if (_renderMode) {
+        printf("%s\n",msg.ToStdString().c_str());
+    } else {
+        StatusText->SetLabel(msg);
+        StatusText->SetForegroundColour(color);
     }
 }
 
@@ -91,9 +103,6 @@ void FRAMECLASS ClearLastPeriod()
 
 void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
-    wxString buff;
-
-    int ch, p;
     wxFile f;
     if (!f.Create(filename, true))
     {
@@ -101,12 +110,12 @@ void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPe
         return;
     }
 
-    for (ch = 0; ch < numChans; ch++)
+    for (int ch = 0; ch < numChans; ch++)
     {
         SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
 
-        buff = "";
-        for (p = 0; p < numPeriods; p++)
+        wxString buff = "";
+        for (int p = 0; p < numPeriods; p++)
         {
             buff += string_format("%d ", (*dataBuf)[p][ch]);
         }
@@ -240,11 +249,9 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
     */
 
-    wxString ChannelName, TestName, xmlString, guiString;
-    int ch, p, channels_exported = 0;
-    int pos, bst, old_bst, ben;
+    wxString ChannelName, TestName;
+    int channels_exported = 0;
     unsigned long rgb;
-    float seconds;
     wxFile f;
     if (!f.Create(filename, true))
     {
@@ -257,7 +264,6 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
     f.Write("<ArrayOfPattern xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n");
     f.Write("\t<Pattern>\n");
     f.Write("\t<GroupName>Nutcracker</GroupName>\n");
-
 
     wxString m_Path, m_Name, m_Ext;
     wxFileName::SplitPath(filename, &m_Path, &m_Name, &m_Ext);
@@ -272,8 +278,8 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
     f.Write("\t<Tracks>\n");
 
 
-    old_bst = 999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
-    for (ch = 0; ch + (cpn - 1) < numChans; ch += cpn)   // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
+    int old_bst = 999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
+    for (int ch = 0; ch + (cpn - 1) < numChans; ch += cpn)   // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
         old_bst = 999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
 
@@ -301,7 +307,7 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
         <TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="441000" sin="-1" att="0"/>
         </Intervals>
         */
-        xmlString = string_format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
+        wxString xmlString = string_format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
         xmlString = string_format("");
 
         if (ch == 156)
@@ -309,19 +315,18 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
             rgb = 0;
         }
 
-        guiString = string_format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
+        wxString guiString = string_format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
         f.Write("\t\t<Intervals>\n");
         //  for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
 
         channels_exported += cpn;
 
-        for (p = 0; p < numPeriods; p++)
+        for (int p = 0; p < numPeriods; p++)
         {
-            seconds = (p*dataBuf->FrameTime()) / 1000.0;
+            float seconds = (p*dataBuf->FrameTime()) / 1000.0;
             //  SetStatusText(wxString("Status: " )+string_format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
-            pos = seconds * 88200;
+            int pos = seconds * 88200;
             //   SetStatusText(wxString("Status: " )+string_format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
-
 
             /*
             byte = (*dataBuf)[seqidx];
@@ -345,8 +350,8 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
                                                 //  if(rgb>0 or rgb<0)
             {
-                bst = rgb;
-                ben = rgb;
+                int bst = rgb;
+                int ben = rgb;
                 // 4410 = 1/20th of a second. 88200/20
                 if (rgb == 0)
                 {
@@ -381,14 +386,11 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
     f.Write("</ArrayOfPattern>\n");
     f.Close();
     SetStatusText(wxString("Status: Export Complete. ") + string_format(" Channels exported=%4d ", channels_exported));
-
 }
 
 void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
-    wxString ChannelName, TestName, buff;
-    int ch, p;
-    unsigned long rgb;
+    wxString ChannelName, TestName;
     int seqidx = 0;
 
     wxFile f;
@@ -398,15 +400,15 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
         return;
     }
 
-    for (ch = 0; ch + 2 < numChans; ch += 3)   // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
+    for (int ch = 0; ch + 2 < numChans; ch += 3)   // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
         SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
 
-        buff = "";
+        wxString buff = "";
 
-        for (p = 0; p < numPeriods; p++, seqidx++)
+        for (int p = 0; p < numPeriods; p++, seqidx++)
         {
-            rgb = ((*dataBuf)[p][ch] & 0xff) << 16 |
+            unsigned long rgb = ((*dataBuf)[p][ch] & 0xff) << 16 |
                 ((*dataBuf)[p][ch + 1] & 0xff) << 8 |
                 ((*dataBuf)[p][ch + 2] & 0xff); // we want a 24bit value for HLS
             if (p<numPeriods - 1)
@@ -428,8 +430,7 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
 void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName, TestName;
-    int ch, p, csec, StartCSec=0;
-    int intensity, LastIntensity;
+    int p, csec, StartCSec=0;
     wxFile f;
     if (!f.Create(filename, true))
     {
@@ -460,15 +461,15 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
     // LOR is BGR with high bits=0
     // Vix is RGB with high bits=1
     f.Write("<channels>\n");
-    for (ch = 0; ch < numChans; ch++)
+    for (int ch = 0; ch < numChans; ch++)
     {
         SetStatusText(wxString("Status: ") + string_format(" Channel %ld ", ch));
 
         f.Write("\t<channel>\n");
-        LastIntensity = 0;
+        int LastIntensity = 0;
         for (p = 0, csec = 0; p < numPeriods; p++, csec += interval)
         {
-            intensity = (*dataBuf)[p][ch] * 100 / 255;
+            int intensity = (*dataBuf)[p][ch] * 100 / 255;
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)
@@ -1069,8 +1070,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
 {
     wxFile f;
     char hdr[512], filetype[10];
-    int fileversion, numch, numper, scancnt;
-    size_t readcnt;
+    int fileversion, numch, numper;
 
     ConversionInit();
     if (!f.Open(FileName.c_str()))
@@ -1079,7 +1079,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
         return;
     }
     f.Read(hdr, 512);
-    scancnt = sscanf(hdr, "%8s %2d %8d %8d", filetype, &fileversion, &numch, &numper);
+    int scancnt = sscanf(hdr, "%8s %2d %8d %8d", filetype, &fileversion, &numch, &numper);
     if (scancnt != 4 || strncmp(filetype, "xLights", 7) != 0 || numch <= 0 || numper <= 0)
     {
         PlayerError(wxString("Invalid file header:\n") + FileName);
@@ -1096,7 +1096,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
             SetMediaFilename(filename);
         }
         for (size_t x = 0; x < numch; x++) {
-            readcnt = f.Read(buf, numper);
+            size_t readcnt = f.Read(buf, numper);
             if (readcnt < numper)
             {
                 PlayerError(wxString("Unable to read all event data from:\n") + FileName);

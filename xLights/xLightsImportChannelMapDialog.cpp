@@ -309,7 +309,7 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
 
 wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
 {
-    int count = m_children.size();
+    unsigned int count = m_children.size();
     for (unsigned int pos = 0; pos < count; pos++)
     {
         if (pos == n)
@@ -1473,7 +1473,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
     std::list<std::string> used;
 
     // go through each tree row where mapping is not blank
-    for (int i = 0; i < dataModel->GetChildCount(); ++i)
+    for (unsigned int i = 0; i < dataModel->GetChildCount(); ++i)
     {
         auto model = dataModel->GetNthChild(i);
         if (model->_mapping != "")
@@ -1484,7 +1484,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             }
         }
 
-        for (int j = 0; j < model->GetChildCount(); j++)
+        for (unsigned int j = 0; j < model->GetChildCount(); j++)
         {
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "")
@@ -1495,7 +1495,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 }
             }
 
-            for (int k = 0; k < strand->GetChildCount(); k++)
+            for (unsigned int k = 0; k < strand->GetChildCount(); k++)
             {
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "")
@@ -1509,7 +1509,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
         }
     }
 
-    for (int i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
+    for (unsigned int i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
     {
         if (std::find(used.begin(), used.end(), ListCtrl_Available->GetItemText(i)) == used.end())
         {
@@ -1528,14 +1528,14 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (dataModel == nullptr) return;
 
-    for (int i = 0; i < dataModel->GetChildCount(); ++i)
+    for (unsigned int i = 0; i < dataModel->GetChildCount(); ++i)
     {
         auto model = dataModel->GetNthChild(i);
         if (model != nullptr)
         {
             if (model->_mapping == "")
             {
-                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
+                for (unsigned int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
                 {
                     if (wxString(model->_model).Trim(true).Trim(false).Lower() == ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower())
                     {
