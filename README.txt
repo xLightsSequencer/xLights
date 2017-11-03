@@ -16,6 +16,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)   Add a warning when loading/creating sequences that would result in massive amounts of memory being used
    -- bug (keith)   Fix missing distribute horizontally and vertically in layout
    -- enh (dkulp)   Add batch render to tools menu
+   -- bug (keith)   Force recreation of the render buffer if the frame size changes ... this will then require a full render
+   -- bug (keith)   Fix PJLink
+   -- enh (keith)   Add the ability to suppress virtual matrices in a step
+   -- enh (keith)   Fix FPP connect upload button not enabling
 2017.34  Oct 27, 2017 
    -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
    -- enh (keith)   Add the ability to disable output processes
