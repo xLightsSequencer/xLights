@@ -170,6 +170,8 @@ void xLightsFrame::InitSequencer()
         {
             logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
 
+            AbortRender();
+
             wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
             int ms = wxAtoi(mss);
 
