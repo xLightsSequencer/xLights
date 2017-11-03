@@ -151,6 +151,21 @@ void AddBit(bool bit, unsigned char newBuf[], int& outByte, int& outBit, unsigne
     }
 }
 
+unsigned char ReverseByte(unsigned char b) {
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+    return b;
+}
+
+void ReverseBits(unsigned char* buffer, int buflen)
+{
+    for (int i = 0; i < buflen; i++)
+    {
+        buffer[i] = ReverseByte(buffer[i]);
+    }
+}
+
 void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int buflen)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -188,6 +203,12 @@ void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int bufle
         AddBit(true, newBuf, outByte, outBit, partial);
         newBuf[outByte] = partial;
         outByte++;
+
+        if (_mrds)
+        {
+            ReverseBits(newBuf, outByte);
+        }
+
         serial->Write((char*)newBuf, outByte);
         logger_base.debug("Encoded:");
         Dump(newBuf, outByte);
@@ -269,6 +290,7 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         {
             outBuffer[0] = RDS_STARTBYTEWRITE;
         }
+
         outBuffer[1] = (wxByte)0x02;
         strncpy((char*)&outBuffer[2], stationName.c_str(), 8);
         for (int i = stationName.length(); i < 8; i++)

@@ -49,12 +49,11 @@ bool Element::HasEffects() const {
 
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
-    for( size_t i = 0; i < mEffectLayers.size(); i++ )
+    for (size_t i = 0; i < mEffectLayers.size(); i++)
     {
-        if( mEffectLayers[i]->GetIndex() == index )
+        if ( mEffectLayers[i]->GetIndex() == index)
             return mEffectLayers[i];
     }
-    
     
     return nullptr;
 }

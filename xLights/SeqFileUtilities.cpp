@@ -2488,7 +2488,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
-        ModelElement * model = nullptr;
+        ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
             if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL
                 && modelName == mSequenceElements.GetElement(x)->GetName()) {
