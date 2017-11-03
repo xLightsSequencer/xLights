@@ -2289,6 +2289,7 @@ void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
         adjust = 1;
     }
     int actualpixels = pixels / (adjust * adjust);
+    if (actualpixels == 0) actualpixels = 1;
     float step = ((float)pixels / (adjust*adjust)) * factor;
 
     int xpixels = BufferWi / adjust;

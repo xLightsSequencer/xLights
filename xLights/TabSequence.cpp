@@ -598,11 +598,17 @@ void xLightsFrame::CreateDefaultEffectsXml()
     EffectsXml.SetRoot( root );
     UnsavedRgbEffectsChanges = true;
 }
+
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (OldName == NewName) {
         return false;
     }
+
+    logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
+
     Element* elem_to_rename = mSequenceElements.GetElement(OldName);
     if( elem_to_rename != nullptr )
     {
@@ -639,9 +645,6 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
 }
-
-
-
 
 static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> &names,
                                  const std::string &msg, const std::string curval) {
