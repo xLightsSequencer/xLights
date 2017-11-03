@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (cjd)     Update checker for Linux and OSX
    -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger
    -- enh (dkulp)   Add a warning when loading/creating sequences that would result in massive amounts of memory being used
    -- bug (keith)   Fix missing distribute horizontally and vertically in layout
