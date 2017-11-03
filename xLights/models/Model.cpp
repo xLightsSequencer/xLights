@@ -1094,7 +1094,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                 output = 1;
             }
         }
-        else if (start[0] == '#'){
+        else if (start[0] == '#') {
             wxString ss = wxString(str);
             wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
             int returnChannel = 1;
@@ -1106,7 +1106,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                 returnChannel = wxAtoi(cs[2]);
 
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
-                if (res < 0)
+                if (res <= 0)
                 {
                     res = 1;
                     valid = false;
@@ -1121,14 +1121,21 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
-                if (res < 0)
+                if (res <= 0)
                 {
                     res = 1;
                     valid = false;
                 }
                 return res;
             }
-            } else {
+            else
+            {
+                valid = false;
+                return 1;
+            }
+        }
+        else
+        {
             output = wxAtoi(start);
             if (output == 0) {
                 output = 1; // 1 based
@@ -1144,6 +1151,12 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             returnChannel = 1;
         }
     }
+    else if (returnChannel < 1)
+    {
+        valid = false;
+        returnChannel = 1;
+    }
+
     return returnChannel;
 }
 
