@@ -204,7 +204,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     int fontSize = _fontSize;
     if (printer)
     {
-        fontSize *= 2;
+        fontSize *= 6;
     }
 
     wxFont font(fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
@@ -384,7 +384,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     int fontSize = _fontSize;
     if (printer)
     {
-        fontSize *= 2;
+        fontSize *= 6;
     }
 
     wxFont font(fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
