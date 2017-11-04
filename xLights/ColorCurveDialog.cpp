@@ -521,6 +521,12 @@ void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
     else
     {
         SetCursor(wxCURSOR_CROSS);
+        std::string time = "";
+        if (_start != -1)
+        {
+            time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
+        }
+        SetToolTip(wxString::Format("%s%.1f", time, x * 100));
     }
 
     if (HasCapture())
