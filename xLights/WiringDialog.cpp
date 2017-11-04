@@ -176,10 +176,16 @@ void RenderText(const wxString& text, wxMemoryDC& dc, int x, int y, wxColor fore
     dc.DrawText(text, x, y);
 }
 
+#define ADJUSTWIDTH 40
+#define PRINTSCALE 6
+
 void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer)
 {
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
+
+    int pageWidth = bitmap.GetScaledWidth() * 0.90;
+    int pageHeight = bitmap.GetScaledHeight() * 0.90;
 
     if (_dark && !printer)
     {
@@ -193,18 +199,20 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     }
     dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
-    int r = 0.6 * std::min(bitmap.GetScaledWidth() / width / 2, bitmap.GetScaledHeight() / height / 2);
+    int r = 0.6 * std::min(pageWidth / width / 2, pageHeight / height / 2);
     if (r == 0) r = 1;
 
     if (!printer)
     {
         if (r > 5) r = 5;
     }
-
+    
+    int printScale = 1;
     int fontSize = _fontSize;
     if (printer)
     {
-        fontSize *= 6;
+        fontSize *= PRINTSCALE;
+        printScale = PRINTSCALE;
     }
 
     wxFont font(fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
@@ -237,22 +245,22 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
         {
             dc.SetBrush(*wxWHITE_BRUSH);
             dc.SetPen(*wxBLACK_PEN);
-            int x = (width - it->second.front().x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+            int x = (width - it->second.front().x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
             if (!_rear)
             {
-                x = bitmap.GetScaledWidth() - x - 40;
+                x = pageWidth - x + ADJUSTWIDTH;
             }
-            int y = 20 + it->second.front().y * (bitmap.GetScaledHeight() - 40) / height;
+            int y = ADJUSTWIDTH / 2 + it->second.front().y * (pageHeight - ADJUSTWIDTH) / height;
 
             if (it->first == last + 1)
             {
                 dc.SetPen(*pen);
-                int lastx = (width - lastpt.x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+                int lastx = (width - lastpt.x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
                 if (!_rear)
                 {
-                    lastx = bitmap.GetScaledWidth() - lastx - 40;
+                    lastx = pageWidth - lastx + ADJUSTWIDTH;
                 }
-                int lasty = 20 + lastpt.y * (bitmap.GetScaledHeight() - 40) / height;
+                int lasty = ADJUSTWIDTH / 2 + lastpt.y * (pageHeight - ADJUSTWIDTH) / height;
                 dc.DrawLine(lastx, lasty, x, y);
             }
 
@@ -266,12 +274,12 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     {
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
-            int x = (width - it->second.front().x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+            int x = (width - it->second.front().x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
             if (!_rear)
             {
-                x = bitmap.GetScaledWidth() - x - 40;
+                x = pageWidth - x + ADJUSTWIDTH;
             }
-            int y = 20 + it->second.front().y * (bitmap.GetScaledHeight() - 40) / height;
+            int y = ADJUSTWIDTH / 2 + it->second.front().y * (pageHeight - ADJUSTWIDTH) / height;
             dc.DrawCircle(x, y, r);
         }
     }
@@ -282,12 +290,12 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     {
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
-            int x = (width - it->second.front().x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+            int x = (width - it->second.front().x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
             if (!_rear)
             {
-                x = bitmap.GetScaledWidth() - x - 40;
+                x = pageWidth - x + ADJUSTWIDTH;
             }
-            int y = 20 + it->second.front().y * (bitmap.GetScaledHeight() - 40) / height;
+            int y = ADJUSTWIDTH / 2 + it->second.front().y * (pageHeight - ADJUSTWIDTH) / height;
 
             std::string label;
             if(points.size() == 1)
@@ -315,25 +323,25 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
+            RenderText("CAUTION: Reverse view", dc, ADJUSTWIDTH / 2, 20, *wxGREEN, *wxBLACK);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, 20, 20, *wxBLUE, *wxBLACK);
+            RenderText("CAUTION: Front view", dc, ADJUSTWIDTH / 2, 20, *wxBLUE, *wxBLACK);
         }
-        RenderText("Model: " + _modelname, dc, 20, 20 + fontSize + 4, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, ADJUSTWIDTH / 2, 20 + fontSize + 4 * printScale, *wxGREEN, *wxBLACK);
     }
     else
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, 20, 20, *wxBLACK, *wxWHITE);
+            RenderText("CAUTION: Reverse view", dc, ADJUSTWIDTH / 2, 20, *wxBLACK, *wxWHITE);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, 20, 20, *wxBLUE, *wxWHITE);
+            RenderText("CAUTION: Front view", dc, ADJUSTWIDTH / 2, 20, *wxBLUE, *wxWHITE);
         }
-        RenderText("Model: " + _modelname, dc, 20, 20 + fontSize + 4, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, ADJUSTWIDTH / 2, 20 + fontSize + 4 * printScale, *wxBLACK, *wxWHITE);
     }
 
     dc.SetPen(*wxBLACK_PEN);
@@ -369,6 +377,9 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
 
+    int pageWidth = bitmap.GetScaledWidth() * 0.90;
+    int pageHeight = bitmap.GetScaledHeight() * 0.90;
+
     if (_dark && !printer)
     {
         dc.SetPen(*wxBLACK_PEN);
@@ -381,10 +392,12 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     }
     dc.DrawRectangle(wxPoint(0, 0), bitmap.GetScaledSize());
 
+    int printScale = 1;
     int fontSize = _fontSize;
     if (printer)
     {
-        fontSize *= 6;
+        fontSize *= PRINTSCALE;
+        printScale = PRINTSCALE;
     }
 
     wxFont font(fontSize, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT);
@@ -392,7 +405,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
 
     int cindex = 0;
 
-    int r = 0.8 * std::min(bitmap.GetScaledWidth() / width / 2, bitmap.GetScaledHeight() / height / 2);
+    int r = 0.8 * std::min(pageWidth / width / 2, pageHeight / height / 2);
     if (r == 0) r = 1;
     
     if (!printer)
@@ -415,12 +428,12 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
 
             for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
             {
-                int x = (width - it2->x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+                int x = (width - it2->x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
                 if (!_rear)
                 {
-                    x = bitmap.GetScaledWidth() - x - 40;
+                    x = pageWidth - x + ADJUSTWIDTH;
                 }
-                int y = 20 + it2->y * (bitmap.GetScaledHeight() - 40) / height;
+                int y = ADJUSTWIDTH / 2 + it2->y * (pageHeight - ADJUSTWIDTH) / height;
                 dc.DrawCircle(x, y, r);
             }
 
@@ -436,12 +449,12 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
         {
             for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
             {
-                int x = (width - it2->x) * (bitmap.GetScaledWidth() - 40) / width - 20;
+                int x = (width - it2->x) * (pageWidth - ADJUSTWIDTH) / width - ADJUSTWIDTH * 0.75;
                 if (!_rear)
                 {
-                    x = bitmap.GetScaledWidth() - x - 40;
+                    x = pageWidth - x + ADJUSTWIDTH;
                 }
-                int y = 20 + it2->y * (bitmap.GetScaledHeight() - 40) / height;
+                int y = ADJUSTWIDTH / 2 + it2->y * (pageHeight - ADJUSTWIDTH) / height;
 
                 std::string label;
                 if (points.size() == 1)
@@ -470,25 +483,25 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, 20, 20, *wxGREEN, *wxBLACK);
+            RenderText("CAUTION: Reverse view", dc, ADJUSTWIDTH / 2, 20, *wxGREEN, *wxBLACK);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, 20, 20, *wxBLUE, *wxBLACK);
+            RenderText("CAUTION: Front view", dc, ADJUSTWIDTH / 2, 20, *wxBLUE, *wxBLACK);
         }
-        RenderText("Model: " + _modelname, dc, 20, 20 + fontSize + 4, *wxGREEN, *wxBLACK);
+        RenderText("Model: " + _modelname, dc, ADJUSTWIDTH / 2, 20 + fontSize + 4 * printScale, *wxGREEN, *wxBLACK);
     }
     else
     {
         if (_rear)
         {
-            RenderText("CAUTION: Reverse view", dc, 20, 20, *wxBLACK, *wxWHITE);
+            RenderText("CAUTION: Reverse view", dc, ADJUSTWIDTH / 2, 20, *wxBLACK, *wxWHITE);
         }
         else
         {
-            RenderText("CAUTION: Front view", dc, 20, 20, *wxBLUE, *wxWHITE);
+            RenderText("CAUTION: Front view", dc, ADJUSTWIDTH / 2, 20, *wxBLUE, *wxWHITE);
         }
-        RenderText("Model: " + _modelname, dc, 20, 20 + fontSize + 4, *wxBLACK, *wxWHITE);
+        RenderText("Model: " + _modelname, dc, ADJUSTWIDTH / 2, 20 + fontSize + 4 * printScale, *wxBLACK, *wxWHITE);
     }
 }
 
@@ -641,10 +654,6 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
 
 void WiringDialog::Render()
 {
-    //wxScreenDC sdc;
-    //wxSize s = sdc.GetSize();
-    //_bmp.CreateScaled(s.GetWidth(), s.GetHeight(), wxBITMAP_SCREEN_DEPTH, GetContentScaleFactor());
-
     int w, h;
     GetClientSize(&w, &h);
     _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, GetContentScaleFactor());
