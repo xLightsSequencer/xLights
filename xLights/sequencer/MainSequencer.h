@@ -24,7 +24,7 @@ class MainSequencer: public wxPanel
 {
 	public:
 
-		MainSequencer(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
@@ -35,7 +35,7 @@ class MainSequencer: public wxPanel
         void GetACEffectsData(wxString& copy_data);
         void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();
-        bool PasteByCellActive() { return mPasteByCell; }
+        bool PasteByCellActive() const { return mPasteByCell; }
         void SetPasteByCell(bool state) { mPasteByCell = state; }
         void HorizontalScrollChanged( wxCommandEvent& event);
         void TagAllSelectedEffects();
@@ -52,6 +52,8 @@ class MainSequencer: public wxPanel
         void DoUndo(wxCommandEvent& event);
         void DoRedo(wxCommandEvent& event);
 
+        void SetLargeWaveform();
+        void SetSmallWaveform();
 
         void TouchButtonEvent(wxCommandEvent &event);
         void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);

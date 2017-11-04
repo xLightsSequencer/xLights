@@ -405,7 +405,7 @@ bool xLightsApp::OnInit()
     DumpConfig();
 
     int id = (int)wxThread::GetCurrentId();
-    logger_base.info("Main thread id: 0x%X or %i\n", id, id);
+    logger_base.info("Main thread id: 0x%X or %i", id, id);
 
 #ifdef _MSC_VER
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);

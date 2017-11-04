@@ -79,22 +79,43 @@ public:
     : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
     // ReSharper disable once CppVirtualFunctionCallInsideCtor
         SetBackgroundStyle(wxBG_STYLE_PAINT);
-        time = "Time: 00:00:00";
-        selected = "";
-        fps = "";
+        _time = "Time: 00:00:00";
+        _selected = "";
+        _fps = "";
+        _fontSize = 14;
     }
     virtual ~TimeDisplayControl(){};
 
     virtual void SetLabels(const wxString &time, const wxString &fps) {
-        this->fps = fps; this->time = time;
+        _fps = fps; 
+        _time = time;
         renderGL();
     }
+
+    void SetGLSize(int w, int h)
+    {
+        SetMinSize(wxSize(w, h));
+        SetSize(w, h);
+        mWindowHeight = h;
+        mWindowWidth = w;
+        mWindowResized = true;
+        if (h > 50)
+        {
+            _fontSize = 14;
+        }
+        else
+        {
+            _fontSize = 10;
+        }
+    }
+
     void SetSelected(const wxString &sel)
     {
-        selected = sel;
+        _selected = sel;
         renderGL();
     }
-protected:
+
+    protected:
     DECLARE_EVENT_TABLE()
     void Paint( wxPaintEvent& event ) {
         renderGL();
@@ -127,107 +148,127 @@ protected:
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        static int fs = 14;
         DrawGLUtils::xlVertexTextAccumulator va;
-        va.AddVertex(5, 3 + fs, time);
-        va.AddVertex(5, 2 * (3 + fs), fps);
-        va.AddVertex(5, 3 * (3 + fs), selected);
-        DrawGLUtils::Draw(va, fs, GetContentScaleFactor());
+#define LINEGAP 1.2
+        int y = _fontSize * LINEGAP;
+        va.AddVertex(5, y, _time);
+        y += _fontSize * LINEGAP;
+        // only display FPS if we have room
+        if (y + _fontSize * LINEGAP <= mWindowHeight)
+        {
+            va.AddVertex(5, y, _fps);
+            y += _fontSize * LINEGAP;
+        }
+        if (y <= mWindowHeight)
+        {
+            va.AddVertex(5, y, _selected);
+        }
+        DrawGLUtils::Draw(va, _fontSize, GetContentScaleFactor());
         SwapBuffers();
     }
 
-
 private:
-    std::string time;
-    std::string fps;
-    std::string selected;
+    std::string _time;
+    std::string _fps;
+    std::string _selected;
+    int _fontSize;
 };
 
 BEGIN_EVENT_TABLE(TimeDisplayControl, xlGLCanvas)
 EVT_PAINT(TimeDisplayControl::Paint)
 END_EVENT_TABLE()
 
-MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id,const wxPoint& pos,const wxSize& size)
     : touchBarSupport(), effectGridTouchbar(nullptr)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating main sequencer");
 
     //(*Initialize(MainSequencer)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxStaticText* StaticText1;
+    wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
-	FlexGridSizer1->AddGrowableRow(1);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	StaticText1 = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
-	FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT, 5);
-	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
-	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer4->AddGrowableRow(1);
+    FlexGridSizer1->AddGrowableCol(1);
+    FlexGridSizer1->AddGrowableRow(1);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer2->AddGrowableCol(0);
+    StaticText1 = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
+    FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
+    FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
+    FlexGridSizer4->AddGrowableCol(0);
+    FlexGridSizer4->AddGrowableRow(1);
     PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
-	PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
-	FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND, 0);
+    PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
+    PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
+    FlexGridSizer4->Add(PanelTimeLine, 1, wxALL|wxEXPAND, 0);
     PanelWaveForm = new Waveform(this, ID_PANEL3, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,40)), wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
-	PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
-	FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
+    FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
     PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-	PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
-	PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
-	FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
+    PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
+    PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
+    FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
     PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
-	FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
-	ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
-	ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
-	FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
-	ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
-	FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+    FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
+    ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
+    ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
+    FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
+    ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
+    FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
+    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    SetSizer(FlexGridSizer1);
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	//*)
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+    //*)
 
     logger_base.debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
-    FlexGridSizer2->Add(timeDisplay, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer2->AddGrowableRow(3);
+    FlexGridSizer2->Add(timeDisplay, 1, wxALL |wxEXPAND, 0);
+    //FlexGridSizer2->AddGrowableRow(3);
+
     FlexGridSizer2->Fit(this);
     FlexGridSizer2->SetSizeHints(this);
+
+    if (smallWaveform)
+    {
+        SetSmallWaveform();
+    }
+    else
+    {
+        SetLargeWaveform();
+    }
 
     _savedTopModel = "";
     mParent = parent;
@@ -280,7 +321,7 @@ void MainSequencer::UpdateTimeDisplay(int time_ms, float fps)
     int seconds=time / 1000;
     int minutes=seconds / 60;
     seconds=seconds % 60;
-    wxString play_time = wxString::Format("Time: %d:%02d.%02d",minutes,seconds,msec);
+    wxString play_time = wxString::Format("Time: %d:%02d.%02d", minutes, seconds, msec);
     wxString fpsStr;
     if (fps >= 0)
     {
@@ -687,6 +728,24 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoRedo(wxCommandEvent& event) {
+}
+
+void MainSequencer::SetLargeWaveform()
+{
+    PanelWaveForm->SetGLSize(-1, Waveform::GetLargeSize());
+    timeDisplay->SetGLSize(-1, Waveform::GetLargeSize() - 22);
+    Layout();
+    PanelWaveForm->Refresh();
+    timeDisplay->Refresh();
+}
+
+void MainSequencer::SetSmallWaveform()
+{
+    PanelWaveForm->SetGLSize(-1, Waveform::GetSmallSize());
+    timeDisplay->SetGLSize(-1, Waveform::GetSmallSize() - 22);
+    Layout();
+    PanelWaveForm->Refresh();
+    timeDisplay->Refresh();
 }
 
 void MainSequencer::GetPresetData(wxString& copy_data)

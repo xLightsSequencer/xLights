@@ -38,7 +38,7 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("CreateSequencer: Creating Panels.");
 
     logger_base.debug("        Sequencer grid.");
-    mainSequencer = new MainSequencer(PanelSequencer);
+    mainSequencer = new MainSequencer(PanelSequencer, _smallWaveform);
 
     logger_base.debug("                Set render data sources.");
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
@@ -164,7 +164,7 @@ void xLightsFrame::InitSequencer()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // check if sequence data is the right size
-    if (CurrentSeqXmlFile->GetSequenceLoaded())
+    if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded())
     {
         if (SeqData.NumChannels() != GetMaxNumChannels())
         {

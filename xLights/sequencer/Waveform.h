@@ -34,15 +34,18 @@ class Waveform : public xlGLCanvas
 		int OpenfileMedia(AudioManager* media, wxString& error);
 		void CloseMedia();
 
+        static int GetLargeSize() { return 75; };
+        static int GetSmallSize() { return 37; };
         void SetZoomLevel(int level);
-        int GetZoomLevel();
+        int GetZoomLevel() const;
+        void SetGLSize(int w, int h);
 
         int SetStartPixelOffset(int startPixel);
-        int GetStartPixelOffset();
+        int GetStartPixelOffset() const;
         void SetSelectedInterval(int startMS, int endMS);
 
         void SetTimeFrequency(int frequency);
-        int GetTimeFrequency();
+        int GetTimeFrequency() const;
 
         void SetTimeline(TimeLine* timeLine);
 
@@ -69,7 +72,7 @@ class Waveform : public xlGLCanvas
     private:
       	DECLARE_EVENT_TABLE()
         //void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
-        float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
+        float GetSamplesPerLineFromZoomLevel(int ZoomLevel) const;
 		TimeLine* mTimeline;
         wxPanel* mParent;
         wxWindow* mMainWindow;
@@ -126,7 +129,7 @@ class Waveform : public xlGLCanvas
         };
 
         void DrawWaveView(const WaveView &wv);
-        void StartDrawing(wxDouble pointSize);
+        //void StartDrawing(wxDouble pointSize);
         void renderGL( wxPaintEvent& event );
         void renderGL();
         void UpdateMousePosition(int time);
@@ -137,11 +140,9 @@ class Waveform : public xlGLCanvas
       	void OnLeftDClick(wxMouseEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void mouseLeftWindow(wxMouseEvent& event);
-        void OutputText(GLfloat x, GLfloat y, char *text);
-        void drawString (void * font, char *s, float x, float y, float z);
+        //void OutputText(GLfloat x, GLfloat y, char *text);
+        //void drawString (void * font, char *s, float x, float y, float z);
         std::vector<WaveView> views;
-
-
 };
 
 #endif // WAVEFORM_H
