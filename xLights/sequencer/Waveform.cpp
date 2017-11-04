@@ -44,7 +44,6 @@ EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
 EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
 
-
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
                    xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm", true)
@@ -70,7 +69,7 @@ void Waveform::CloseMedia()
 {
     views.clear();
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-	_media = NULL;
+	_media = nullptr;
 }
 
 void Waveform::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
@@ -211,7 +210,7 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     UpdateMousePosition(mouseTimeMS);
 
     // Scrubbing
-    if (_media != NULL && event.LeftIsDown() && event.ControlDown())
+    if (_media != nullptr && event.LeftIsDown() && event.ControlDown())
     {
         int msperpixel = std::max(1000 / GetTimeFrequency(), mTimeline->TimePerMajorTickInMS() / mTimeline->PixelsPerMajorTick());
         _media->Play(mouseTimeMS, msperpixel);
@@ -264,7 +263,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 {
 	_media = media;
     views.clear();
-	if (_media != NULL)
+	if (_media != nullptr)
 	{
 		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
 		WaveView wv(mZoomLevel, samplesPerLine, media);
@@ -352,7 +351,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.Finish(GL_TRIANGLE_FAN, GL_BLEND);
     }
 
-    if(_media != NULL)
+    if(_media != nullptr)
     {
         xlColor c(130,178,207,255);
 
@@ -456,7 +455,7 @@ void Waveform::SetZoomLevel(int level)
     }
 }
 
-int Waveform::GetZoomLevel()
+int Waveform::GetZoomLevel() const
 {
     return  mZoomLevel;
 }
@@ -474,7 +473,7 @@ int Waveform::SetStartPixelOffset(int offset)
     return mStartPixelOffset;
 }
 
-int Waveform::GetStartPixelOffset()
+int Waveform::GetStartPixelOffset() const
 {
     return  mStartPixelOffset;
 }
@@ -484,17 +483,17 @@ void Waveform::SetTimeFrequency(int frequency)
     mFrequency = frequency;
 }
 
-int Waveform::GetTimeFrequency()
+int Waveform::GetTimeFrequency() const
 {
     return  mFrequency;
 }
 
-float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
+float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
 {
     // The number of periods for each Zoomlevel is held in ZoomLevelValues array
     int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
     float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
-	if (_media != NULL)
+	if (_media != nullptr)
 	{
 		return (float)timePerPixel * (float)_media->GetRate();
 	}
@@ -502,6 +501,15 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
 	{
 		return 0.0f;
 	}
+}
+
+void Waveform::SetGLSize(int w, int h)
+{
+    SetMinSize(wxSize(w, h));
+    SetSize(w, h);
+    mWindowHeight = h;
+    mWindowWidth = w;
+    mWindowResized = true;
 }
 
 void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media)
@@ -556,6 +564,3 @@ void Waveform::UpdateMousePosition(int time)
     eventMousePos.SetInt(time);
     wxPostEvent(mParent, eventMousePos);
 }
-
-
-

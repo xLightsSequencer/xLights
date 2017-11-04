@@ -20,6 +20,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix PJLink
    -- enh (keith)   Add the ability to suppress virtual matrices in a step
    -- enh (keith)   Fix FPP connect upload button not enabling
+   -- enh (keith)   Add an option to shrink the waveform display
+   -- bug (keith)   Some fixes to wiring view printing
+   -- enh (keith)   Add keyboard cut & paste to custom model dialog
+   -- bug (keith)   Colour curve does not display position tooltip unless dragging
 2017.34  Oct 27, 2017 
    -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
    -- enh (keith)   Add the ability to disable output processes

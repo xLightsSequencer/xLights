@@ -57,11 +57,11 @@
 #include "../include/control-play-blue-icon.xpm"
 
 //(*InternalHeaders(xLightsFrame)
-#include <wx/string.h>
-#include <wx/intl.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/intl.h>
+#include <wx/image.h>
+#include <wx/string.h>
 //*)
 
 #define TOOLBAR_SAVE_VERSION "0003:"
@@ -247,6 +247,7 @@ const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM4 = wxNewId();
+const long xLightsFrame::ID_MNU_SMALLWAVEFORM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_XSMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
@@ -462,52 +463,52 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Bind(wxEVT_IDLE, &xLightsFrame::OnIdle, this);
 
     //(*Initialize(xLightsFrame)
-    wxMenuItem* MenuItem2;
-    wxMenuItem* MenuItem23;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxMenuItem* MenuItem31;
-    wxFlexGridSizer* FlexGridSizerNetworks;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem30;
-    wxMenuItem* MenuItem12;
+    wxMenu* MenuHelp;
+    wxMenuItem* MenuItem8;
+    wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
     wxMenuItem* MenuItem25;
-    wxStaticText* StaticText28;
-    wxMenuItem* MenuItem19;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem2;
+    wxGridBagSizer* GridBagSizer1;
+    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem14;
+    wxMenuItem* MenuItem11;
+    wxStaticText* StaticText38;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
+    wxPanel* Panel1;
+    wxMenuItem* MenuItem17;
+    wxMenuItem* MenuItem13;
+    wxMenuItem* MenuItem10;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem24;
+    wxMenuItem* MenuItem27;
+    wxMenuItem* MenuItem44;
+    wxFlexGridSizer* FlexGridSizerNetworks;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem48;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem24;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem21;
-    wxButton* Button03;
-    wxMenuItem* MenuItem9;
-    wxStaticText* StaticText38;
-    wxMenuItem* MenuItem11;
-    wxMenuItem* MenuItemBatchRender;
-    wxMenuItem* MenuItem22;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem44;
-    wxMenuItem* MenuItemDisplayElements;
-    wxBoxSizer* BoxSizer1;
-    wxMenuItem* MenuItem10;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItem27;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem13;
-    wxMenu* Menu2;
     wxMenuItem* MenuItem28;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem8;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItemDisplayElements;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem23;
+    wxStaticText* StaticText28;
+    wxBoxSizer* BoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer1;
-    wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem21;
+    wxMenu* Menu2;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItemBatchRender;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem48;
+    wxMenuItem* MenuItem19;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -902,6 +903,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem14 = new wxMenuItem(ToolIconSizeMenu, ID_MENUITEM_ICON_XLARGE, _("Extra Large\tALT-4"), wxEmptyString, wxITEM_RADIO);
     ToolIconSizeMenu->Append(MenuItem14);
     MenuSettings->Append(ID_MENUITEM4, _("Tool Icon Size"), ToolIconSizeMenu, wxEmptyString);
+    MenuItem_SmallWaveform = new wxMenuItem(MenuSettings, ID_MNU_SMALLWAVEFORM, _("Small Waveform"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_SmallWaveform);
     GridSpacingMenu = new wxMenu();
     MenuItem16 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XSMALL, _("Extra Small"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem16);
@@ -1159,6 +1162,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
     Connect(ID_MENUITEM_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetToolIconSize);
+    Connect(ID_MNU_SMALLWAVEFORM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SmallWaveformSelected);
     Connect(ID_MENUITEM_GRID_ICON_XSMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
@@ -1345,6 +1349,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
     MenuItem_AutoShowHousePreview->Check(_autoShowHousePreview);
     logger_base.debug("Autoshow House Preview: %s.", _autoShowHousePreview ? "true" : "false");
+
+    config->Read("xLightsSmallWaveform", &_smallWaveform, false);
+    MenuItem_SmallWaveform->Check(_smallWaveform);
+    logger_base.debug("Small Waveform: %s.", _smallWaveform ? "true" : "false");
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -1555,6 +1563,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     } else if (mIconSize == 48) {
         isid = ID_MENUITEM_ICON_XLARGE;
     }
+
     wxCommandEvent event(wxEVT_NULL, isid);
     SetToolIconSize(event);
     logger_base.debug("Icon size: %d.", mIconSize);
@@ -1799,6 +1808,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
+    config->Write("xLightsSmallWaveform", _smallWaveform);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -6964,4 +6974,17 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxDELETE(httpStream);
     get.Close();
     return found_update;
+}
+
+void xLightsFrame::OnMenuItem_SmallWaveformSelected(wxCommandEvent& event)
+{
+    _smallWaveform = MenuItem_SmallWaveform->IsChecked();
+    if (_smallWaveform)
+    {
+        mainSequencer->SetSmallWaveform();
+    }
+    else
+    {
+        mainSequencer->SetLargeWaveform();
+    }
 }

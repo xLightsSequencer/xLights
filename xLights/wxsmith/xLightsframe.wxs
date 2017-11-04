@@ -1344,6 +1344,11 @@
 						<radio>1</radio>
 					</object>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SMALLWAVEFORM" variable="MenuItem_SmallWaveform" member="yes">
+					<label>Small Waveform</label>
+					<handler function="OnMenuItem_SmallWaveformSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM6" variable="GridSpacingMenu" member="yes">
 					<label>Grid Spacing</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XSMALL" variable="MenuItem16" member="yes">

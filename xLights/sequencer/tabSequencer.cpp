@@ -38,7 +38,7 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("CreateSequencer: Creating Panels.");
 
     logger_base.debug("        Sequencer grid.");
-    mainSequencer = new MainSequencer(PanelSequencer);
+    mainSequencer = new MainSequencer(PanelSequencer, _smallWaveform);
 
     logger_base.debug("                Set render data sources.");
     mainSequencer->PanelEffectGrid->SetRenderDataSources(this, &SeqData);
