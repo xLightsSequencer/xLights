@@ -164,7 +164,7 @@ void xLightsFrame::InitSequencer()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     // check if sequence data is the right size
-    if (CurrentSeqXmlFile->GetSequenceLoaded())
+    if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded())
     {
         if (SeqData.NumChannels() != GetMaxNumChannels())
         {
