@@ -335,7 +335,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
+				<object class="wxGrid" name="ID_GRID_Custom" subclass="CopyPasteGrid" variable="GridCustom" member="yes">
 					<cols>1</cols>
 					<rows>1</rows>
 					<labelrowheight>20</labelrowheight>

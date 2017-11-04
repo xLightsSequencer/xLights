@@ -552,6 +552,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             break;
     }
 }
+
 void MainSequencer::OnKeyDown(wxKeyEvent& event)
 {
     //wxChar uc = event.GetUnicodeKey();

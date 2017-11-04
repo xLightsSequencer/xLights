@@ -55,6 +55,61 @@ BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+// Subclassing wxGrid is the only way to get keyboard copy and paste working without breaking the grid behaviour
+class CopyPasteGrid : public wxGrid
+{
+    void DoOnChar(wxKeyEvent& event)
+    {
+        wxChar uc = event.GetUnicodeKey();
+
+        switch (uc)
+        {
+        case 'c':
+        case 'C':
+        case WXK_CONTROL_C:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent pasteEvent(wxEVT_TEXT_COPY);
+                wxPostEvent(this, pasteEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'x':
+        case 'X':
+        case WXK_CONTROL_X:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent pasteEvent(wxEVT_TEXT_CUT);
+                wxPostEvent(this, pasteEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'v':
+        case 'V':
+        case WXK_CONTROL_V:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent pasteEvent(wxEVT_TEXT_PASTE);
+                wxPostEvent(this, pasteEvent);
+                event.StopPropagation();
+            }
+            break;
+        default:
+            wxGrid::OnChar(event);
+            break;
+        }
+    }
+
+    public:
+    CopyPasteGrid(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) : wxGrid(parent, id, pos, size, style, name)
+    {
+        Connect(wxEVT_CHAR, (wxObjectEventFunction)&CopyPasteGrid::DoOnChar, 0, this);
+    }
+
+    virtual ~CopyPasteGrid()
+    {
+
+    }
+
+};
+
 CustomModelDialog::CustomModelDialog(wxWindow* parent)
 : background_image(""),
   bkg_image(nullptr),
@@ -180,7 +235,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer7->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
 	Sizer1->Add(Sizer2, 1, wxALL|wxEXPAND, 5);
-	GridCustom = new wxGrid(this, ID_GRID_Custom, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID_Custom"));
+	GridCustom = new CopyPasteGrid(this, ID_GRID_Custom, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID_Custom"));
 	GridCustom->CreateGrid(1,1);
 	GridCustom->EnableEditing(true);
 	GridCustom->EnableGridLines(true);
@@ -218,6 +273,10 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	Connect(ID_GRID_Custom,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellLeftClick);
 	//*)
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&CustomModelDialog::OnGridCustomCellChange);
+
+    GridCustom->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&CustomModelDialog::OnCut, 0, this);
+    GridCustom->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&CustomModelDialog::OnCopy, 0, this);
+    GridCustom->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&CustomModelDialog::OnPaste, 0, this);
 
     name = "";
 
@@ -313,12 +372,11 @@ void CustomModelDialog::Setup(CustomModel *m) {
         }
     }
 
-    wxArrayString cols;
     wxArrayString rows=wxSplit(data, ';');
     for(size_t row=0; row < rows.size(); row++)
     {
         if (row >= GridCustom->GetNumberRows()) GridCustom->AppendRows();
-        cols=wxSplit(rows[row],',');
+        wxArrayString cols = wxSplit(rows[row],',');
         for(size_t col=0; col < cols.size(); col++)
         {
             if (col >= GridCustom->GetNumberCols()) GridCustom->AppendCols();
@@ -390,7 +448,7 @@ wxString StripIllegalChars(const wxString& s)
 {
     wxString res = "";
 
-    for (auto it = s.begin(); it != s.end(); it++)
+    for (auto it = s.begin(); it != s.end(); ++it)
     {
         if (*it >= '0' && *it <= '9')
         {
@@ -404,15 +462,14 @@ wxString StripIllegalChars(const wxString& s)
 void CustomModelDialog::Save(CustomModel *m) {
     m->SetCustomHeight(HeightSpin->GetValue());
     m->SetCustomWidth(WidthSpin->GetValue());
-    std::string customChannelData;
-    wxString value;
+    std::string customChannelData = "";
     int numCols=GridCustom->GetNumberCols();
     int numRows=GridCustom->GetNumberRows();
     for(int row=0; row < numRows; row++) {
         if (row > 0) customChannelData+=";";
         for(int col=0; col<numCols; col++) {
             if (col > 0) customChannelData+=",";
-            value = StripIllegalChars(GridCustom->GetCellValue(row,col));
+            wxString value = StripIllegalChars(GridCustom->GetCellValue(row,col));
             if (value == "0" || value.StartsWith("-")) value.clear();
             customChannelData += value;
         }
@@ -490,18 +547,17 @@ void CustomModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(false);
 }
+
 void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
 
     if (IsCut && CheckBox_RearView->IsChecked()) return; // no cutting if in rear view mode
 
-    int i,k;
     wxString copy_data;
-    bool something_in_this_line;
 
-    for (i=0; i< GridCustom->GetNumberRows(); i++)        // step through all lines
+    for (int i = 0; i< GridCustom->GetNumberRows(); i++)        // step through all lines
     {
-        something_in_this_line = false;             // nothing found yet
-        for (k=0; k<GridCustom->GetNumberCols(); k++)     // step through all colums
+        bool something_in_this_line = false;             // nothing found yet
+        for (int k = 0; k<GridCustom->GetNumberCols(); k++)     // step through all colums
         {
             if (GridCustom->IsInSelection(i,k))     // this field is selected!!!
             {
@@ -523,6 +579,12 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
         }
     }
 
+    if (copy_data.IsEmpty())
+    {
+        copy_data += StripIllegalChars(GridCustom->GetCellValue(GridCustom->GetGridCursorRow(), GridCustom->GetGridCursorCol()));    // finally we need the field value
+        if (IsCut) GridCustom->SetCellValue(GridCustom->GetGridCursorRow(), GridCustom->GetGridCursorCol(), wxEmptyString);
+    }
+
     if (wxTheClipboard->Open())
     {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
@@ -538,15 +600,11 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
 
 }
 
-void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
+void CustomModelDialog::Paste()
 {
     if (CheckBox_RearView->IsChecked()) return; // no paste in rear view mode
 
-    wxString copy_data;
-    wxString cur_line;
-    wxArrayString fields;
-    int i,k,fieldnum;
-    long val;
+    wxString copy_data = "";
 
 #ifdef __WXOSX__
     //wxDF_TEXT gets a very strange formatted string from the clipboard if using Numbers
@@ -583,11 +641,11 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
         }
     }
 
-    i = GridCustom->GetGridCursorRow();
-    k = GridCustom->GetGridCursorCol();
-    int numrows=GridCustom->GetNumberRows();
-    int numcols=GridCustom->GetNumberCols();
-    bool errflag=false;
+    int i = GridCustom->GetGridCursorRow();
+    int k = GridCustom->GetGridCursorCol();
+    int numrows = GridCustom->GetNumberRows();
+    int numcols = GridCustom->GetNumberCols();
+    bool errflag = false;
     wxString errdetails; //-DJ
 
     copy_data.Replace("\r\r", "\n");
@@ -596,32 +654,38 @@ void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 
     do
     {
-        cur_line = copy_data.BeforeFirst('\n');
+        wxString cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
-        fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND)? ',': '\t'); //allow comma or tab delim -DJ
-        for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
+        wxArrayString fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND) ? ',' : '\t'); //allow comma or tab delim -DJ
+        for (int fieldnum = 0; fieldnum < fields.Count(); fieldnum++)
         {
-            if (i < numrows && k+fieldnum < numcols)
+            if (i < numrows && k + fieldnum < numcols)
             {
                 wxString field = fields[fieldnum].Trim(true).Trim(false);
+                long val;
                 if (field.IsEmpty() || field.ToLong(&val))
                 {
-                    GridCustom->SetCellValue(i, k+fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
+                    GridCustom->SetCellValue(i, k + fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
                 }
                 else
                 {
-                    errflag=true;
+                    errflag = true;
                     errdetails += wxString::Format("\n'%s' row %d/col %d of %d", fields[fieldnum].c_str(), i - GridCustom->GetGridCursorRow(), fieldnum, fields.Count()); //tell the user what was wrong; show relative row#, col# (more user friendly) -DJ
                 }
             }
         }
         i++;
-    }
-    while (copy_data.IsEmpty() == false);
+    } while (copy_data.IsEmpty() == false);
+
     if (errflag)
     {
-        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number") + errdetails,_("Paste Error")); //-DJ
+        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number") + errdetails, _("Paste Error")); //-DJ
     }
+}
+
+void CustomModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
+{
+    Paste();
 }
 
 void CustomModelDialog::UpdateBackground()
@@ -702,14 +766,13 @@ void wxModelGridCellRenderer::CreateImage()
     {
         wxImage img(*image);
 
-        unsigned char red, green, blue;
         for(int x = 0; x < img.GetWidth(); x++)
         {
             for(int y = 0; y < img.GetHeight(); y++)
             {
-                red = img.GetRed(x,y);
-                green = img.GetGreen(x,y);
-                blue = img.GetBlue(x,y);
+                unsigned char red = img.GetRed(x,y);
+                unsigned char green = img.GetGreen(x,y);
+                unsigned char blue = img.GetBlue(x,y);
                 xlColor pixel(red, green, blue);
                 HSLValue hsl(pixel);
 
@@ -969,4 +1032,19 @@ void CustomModelDialog::OnButton_RenumberClick(wxCommandEvent& event)
             ValidateWindow();
         }
     }
+}
+
+void CustomModelDialog::OnPaste(wxCommandEvent& event)
+{
+    Paste();
+}
+
+void CustomModelDialog::OnCut(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(true);
+}
+
+void CustomModelDialog::OnCopy(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(false);
 }

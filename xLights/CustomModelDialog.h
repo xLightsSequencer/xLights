@@ -21,6 +21,7 @@ class wxGridEvent;
 #include <wx/renderer.h>
 
 class CustomModel;
+class CopyPasteGrid;
 
 class wxModelGridCellRenderer : public wxGridCellStringRenderer
 {
@@ -53,6 +54,7 @@ class CustomModelDialog: public wxDialog
 
 		//(*Declarations(CustomModelDialog)
 		wxCheckBox* CheckBoxAutoNumber;
+		CopyPasteGrid* GridCustom;
 		wxButton* Button_Flip_Vertical;
 		wxButton* Button_Reverse;
 		wxButton* ButtonWiring;
@@ -61,7 +63,6 @@ class CustomModelDialog: public wxDialog
 		wxSpinCtrl* SpinCtrlNextChannel;
 		wxButton* Button_Flip_Horizonal;
 		wxButton* Button_CustomModelZoomIn;
-		wxGrid* GridCustom;
 		wxBitmapButton* BitmapButtonCustomPaste;
 		wxButton* ButtonCancel;
 		wxBitmapButton* BitmapButtonCustomCopy;
@@ -84,6 +85,7 @@ class CustomModelDialog: public wxDialog
 	protected:
         void CutOrCopyToClipboard(bool isCut);
         void UpdateBackground();
+        void Paste();
 
 		//(*Identifiers(CustomModelDialog)
 		static const long ID_SPINCTRL1;
@@ -131,7 +133,6 @@ class CustomModelDialog: public wxDialog
 		void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
 		void OnButtonCustomModelHelpClick(wxCommandEvent& event);
 		void OnGridCustomCellChange(wxGridEvent& event);
-		void OnPaint(wxPaintEvent& event);
 		void OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event);
 		void OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& event);
 		void OnCheckBoxAutoNumberClick(wxCommandEvent& event);
@@ -147,6 +148,10 @@ class CustomModelDialog: public wxDialog
 		void OnButton_ReverseClick(wxCommandEvent& event);
 		void OnButton_RenumberClick(wxCommandEvent& event);
 		//*)
+
+        void OnCut(wxCommandEvent& event);
+        void OnCopy(wxCommandEvent& event);
+        void OnPaste(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };
