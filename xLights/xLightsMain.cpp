@@ -6903,7 +6903,7 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
     bool update_found = CheckForUpdate(true);
     if (!update_found) {
-        wxMessageBox(wxT("No update found"));
+        wxMessageBox("No update found", "Update check complete");
     }
 }
 
