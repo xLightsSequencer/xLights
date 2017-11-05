@@ -7,15 +7,15 @@
 // Should be called with: 0 <= chindex <= 4095
 
 #pragma region PixelNet Constants
-#define PIXELNET_MAX_CHANNELS 4095
+#define PIXELNET_MAX_CHANNELS 4096
 #pragma endregion PixelNet Constants
 
 class PixelNetOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    wxByte _data[PIXELNET_MAX_CHANNELS + 1];
-    wxByte _serialBuffer[PIXELNET_MAX_CHANNELS + 2];
+    wxByte _data[PIXELNET_MAX_CHANNELS];
+    wxByte _serialBuffer[PIXELNET_MAX_CHANNELS + 1];
     #pragma endregion Member Variables
 
 public:
