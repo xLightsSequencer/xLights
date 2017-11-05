@@ -23,11 +23,13 @@ class JobPoolWorker : public wxThread
 {
     JobPool *pool;
     volatile bool stopped;
-    Job  * volatile currentJob;
+    std::atomic<Job  *> currentJob;
     enum {
         STARTING,
         IDLE,
         RUNNING_JOB,
+        DELETING_JOB,
+        FINISHED_JOB,
         STOPPED,
         UNKNOWN
     } status;
@@ -74,6 +76,10 @@ std::string JobPoolWorker::GetStatus()
         ret << "<idle>";
     } else if (status == RUNNING_JOB) {
         ret << "<running job>";
+    } else if (status == FINISHED_JOB) {
+        ret << "<finished job>";
+    } else if (status == DELETING_JOB) {
+        ret << "<deleting job>";
     } else if (status == STOPPED) {
         ret << "<stopped>";
     } else {
@@ -195,6 +201,7 @@ void JobPoolWorker::ProcessJob(Job *job)
         currentJob = nullptr;
         
         if (job->DeleteWhenComplete()) {
+            status = DELETING_JOB;
             logger_jobpool.debug("Job on background thread done ... deleting job.");
             delete job;
         }
@@ -202,6 +209,7 @@ void JobPoolWorker::ProcessJob(Job *job)
         {
             logger_jobpool.debug("Job on background thread done.");
         }
+        status = FINISHED_JOB;
 	}
 }
 

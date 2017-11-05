@@ -329,6 +329,7 @@
 		67BCD1551E6DAF9100F99935 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67BCD1561E6DB03E00F99935 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67BCD1571E6DB06800F99935 /* GIFImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1501E6DAF4900F99935 /* GIFImage.cpp */; };
+		67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF51F278956002F118D /* SimpleFTP.cpp */; };
 		67BF80031F278956002F118D /* SanDevices.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF71F278956002F118D /* SanDevices.cpp */; };
@@ -1178,6 +1179,8 @@
 		67BCD1511E6DAF4900F99935 /* GIFImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GIFImage.h; path = effects/GIFImage.h; sourceTree = "<group>"; };
 		67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsVersion.cpp; sourceTree = "<group>"; };
 		67BCD1541E6DAF9100F99935 /* xLightsVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsVersion.h; sourceTree = "<group>"; };
+		67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UpdaterDialog.cpp; sourceTree = "<group>"; };
+		67BD44291FAB3B3C0007E083 /* UpdaterDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UpdaterDialog.h; sourceTree = "<group>"; };
 		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67BF7FF41F278956002F118D /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleFTP.h; path = controllers/SimpleFTP.h; sourceTree = "<group>"; };
@@ -2102,6 +2105,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */,
+				67BD44291FAB3B3C0007E083 /* UpdaterDialog.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
 				6760D8531FA3C6AD00458894 /* BatchRenderDialog.h */,
 				67D5DEE71F792B18002BB5F6 /* SplashDialog.cpp */,
@@ -2761,6 +2766,7 @@
 				67B2CFDC1C3A186A003C17CA /* TreeEffect.cpp in Sources */,
 				67B2CF7E1C39D98A003C17CA /* PianoPanel.cpp in Sources */,
 				67B2CF7B1C39D98A003C17CA /* MarqueePanel.cpp in Sources */,
+				67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */,
 				67BF80051F278956002F118D /* J1Sys.cpp in Sources */,
 				67EE95B21C848A3600C62C95 /* VideoPanel.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
