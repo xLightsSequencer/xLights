@@ -294,6 +294,7 @@ void Waveform::renderGL( wxPaintEvent& event )
 {
     renderGL();
 }
+
 void Waveform::renderGL( )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
@@ -505,11 +506,32 @@ float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
 
 void Waveform::SetGLSize(int w, int h)
 {
+
     SetMinSize(wxSize(w, h));
+
+    wxSize size = GetSize();
+    if (w == -1) w = size.GetWidth();
+    if (h == -1) h = size.GetHeight();
+
     SetSize(w, h);
     mWindowHeight = h;
     mWindowWidth = w;
     mWindowResized = true;
+
+    // All of our existing views are invalid ... so erase them
+    views.clear();
+
+    if (_media != nullptr)
+    {
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        WaveView wv(0, samplesPerLine, _media);
+        views.push_back(wv);
+    }
+
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    SetZoomLevel(mZoomLevel);
+
+    Refresh(false);
 }
 
 void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media)

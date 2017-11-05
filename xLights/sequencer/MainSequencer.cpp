@@ -87,7 +87,7 @@ public:
     virtual ~TimeDisplayControl(){};
 
     virtual void SetLabels(const wxString &time, const wxString &fps) {
-        _fps = fps; 
+        _fps = fps;
         _time = time;
         renderGL();
     }
@@ -95,6 +95,11 @@ public:
     void SetGLSize(int w, int h)
     {
         SetMinSize(wxSize(w, h));
+
+        wxSize size = GetSize();
+        if (w == -1) w = size.GetWidth();
+        if (h == -1) h = size.GetHeight();
+
         SetSize(w, h);
         mWindowHeight = h;
         mWindowWidth = w;
@@ -107,6 +112,9 @@ public:
         {
             _fontSize = 10;
         }
+
+        Refresh();
+        renderGL();
     }
 
     void SetSelected(const wxString &sel)
@@ -717,7 +725,7 @@ void MainSequencer::DoPaste(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoUndo(wxCommandEvent& event) {
-    
+
     if (PanelEffectGrid == nullptr) return;
 
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
