@@ -2643,7 +2643,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = xl;
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = "Daniel Kulp";
 				TargetAttributes = {
 					67E7086C17B51AB400A22034 = {

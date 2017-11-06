@@ -214,7 +214,7 @@ public:
 class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(ModelElement *row, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
-        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe), deleteWhenComplete(false),
+        : Job(), NextRenderer(), rowToRender(row), seqData(&data), xLights(xframe),
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
@@ -312,11 +312,7 @@ public:
     }
 
     virtual bool DeleteWhenComplete() override {
-        return deleteWhenComplete;
-    }
-
-    void SetDeleteWhenComplete() {
-        deleteWhenComplete = true;
+        return false;
     }
 
     void LogToLogger(int logLevel) {
@@ -751,7 +747,6 @@ private:
     std::list<NodeRange> rangeRestriction;
     bool supportsModelBlending;
     RenderEvent renderEvent;
-    bool deleteWhenComplete;
 
     //stuff for handling the status;
     wxString statusMsg;

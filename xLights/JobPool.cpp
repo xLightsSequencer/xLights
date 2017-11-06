@@ -196,11 +196,12 @@ void JobPoolWorker::ProcessJob(Job *job)
 		currentJob = job;
         std::string origName = OriginalThreadName();
         SetThreadName(job->GetName());
+        bool deleteWhenComplete = job->DeleteWhenComplete();
         job->Process();
         SetThreadName(origName);
         currentJob = nullptr;
         
-        if (job->DeleteWhenComplete()) {
+        if (deleteWhenComplete) {
             status = DELETING_JOB;
             logger_jobpool.debug("Job on background thread done ... deleting job.");
             delete job;
