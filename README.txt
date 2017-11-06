@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.35  Nov 05, 2017
    -- enh (cjd)     Update checker for Linux and OSX
    -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger
    -- enh (dkulp)   Add a warning when loading/creating sequences that would result in massive amounts of memory being used
@@ -24,6 +25,37 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Some fixes to wiring view printing
    -- enh (keith)   Add keyboard cut & paste to custom model dialog
    -- bug (keith)   Colour curve does not display position tooltip unless dragging
+   -- ###           <<The following lines were added by Sean from reading git log>>
+   -- ###           <<There may be duplicates from list above>> 
+   -- bug (keith)   Fix pixelnet should support 4096 channels.
+   -- bug (keith)   Get waveform drawing correctly when switching between small and normal.
+   -- enh (keith)   Add an option to shrink the waveform
+   -- enh (keith)   Improve positioning in printing wiring view to avoid cutoff.
+   -- enh (keith)   Make colour curve tooltip always display ... not just when dragging.
+   -- bug (keith)   Fix font size when printing wiring diagram
+   -- bug (keith)   Make keyboard copy/cut/paste work in Custom Model Dialog
+   -- enh (keith)   Abort rendering before reallocating memory.
+   -- bug (keith)   More RDS fixes.
+   -- bug (keith)   Fix some anomalies that can lead to zero start channels on models.
+   -- bug (keith)   Fix a crash with blend transition
+   -- enh (keith)   Force sequence data recreation if sequence is open and a change on setup or layout changes the size of the buffer ... this is displays a warning in status that a render all is required. There are some down sides to this but it really should be forced.
+   -- enh (cjd)     Add update checker to readme
+   -- enh (cjd)     Handle network failure better in update checker
+   -- enh (cjd)     Initial import of Update checker dialog
+   -- enh (dkulp)   Add a warning when loading/creating sequences that would result in massive amounts of memory being used
+   -- enh (keith)   PJ Link power on and off working.
+   -- enh (keith)   Get PJLink working.
+   -- enh (keith)   Handle failure to load audio better.
+   -- enh (keith)   Add the ability to suppress virtual matrices if showing video or images.
+   -- bug (keith)   Fix FPP connect not enabling upload when IP address is entered.
+   -- bug (keith)   Fix PJLink not connecting.
+   -- enh (keith)   Add crucifix to shape effect
+   -- enh (dkulp)   Add a filter selection for the batch render
+   -- bug (keith)   Fix submodel start channels displaying incorrectly as invalid.
+   -- enh (keith)   Implement distribute horizontally and vertically to layout tab
+   -- bug (keith)   Fix #966
+   -- enh (keith)   Log connection error codes and prevent FPP connect from trying multiple times after failure
+   -- enh (dkulp)   Add a prototype Batch Render tool
 2017.34  Oct 27, 2017 
    -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
    -- enh (keith)   Add the ability to disable output processes
