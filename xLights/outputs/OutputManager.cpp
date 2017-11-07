@@ -62,7 +62,26 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
             }
             else if (e->GetName() == "testpreset")
             {
-                _testPresets.push_back(new TestPreset(e));
+                TestPreset* tp = new TestPreset(e);
+
+                bool exists = false;
+                for (auto it = _testPresets.begin(); it != _testPresets.end() && !exists; ++it)
+                {
+                    if ((*it)->GetName() == tp->GetName())
+                    {
+                        exists = true;
+                    }
+                }
+
+                if (exists)
+                {
+                    // dont load this preset ... it is a duplicate
+                    delete tp;
+                }
+                else
+                {
+                    _testPresets.push_back(tp);
+                }
             }
         }
     }
@@ -874,6 +893,7 @@ TestPreset* OutputManager::CreateTestPreset(std::string preset)
     if (apreset != nullptr)
     {
         _testPresets.remove(apreset);
+        delete apreset;
     }
 
     auto p = new TestPreset(preset);
