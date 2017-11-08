@@ -25,6 +25,11 @@ class OutputManager
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
+    static int _lastSecond;
+    static int _currentSecond;
+    static int _lastSecondCount;
+    static int _currentSecondCount;
+
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
 
 public:
@@ -36,6 +41,8 @@ public:
 
     #pragma region Static Functions
     static std::string GetNetworksFileName() { return NETWORKSFILE; }
+    int GetPacketsPerSecond() const;
+    static void RegisterSentPacket();
     #pragma endregion Static Functions
 
     #pragma region Save and Load

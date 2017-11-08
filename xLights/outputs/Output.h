@@ -124,7 +124,7 @@ public:
     virtual void StartFrame(long msec) { _timer_msec = msec; }
     virtual void EndFrame(int suppressFrames) = 0;
     virtual void ResetFrame() {}
-    void FrameOutput() { _lastOutputTime = wxGetUTCTimeMillis(); _skippedFrames = 0; _changed = false; }
+    void FrameOutput();
     void SkipFrame() { _skippedFrames++; }
     bool NeedToOutput(int suppressFrames) const { return !IsSuppressDuplicateFrames() || _skippedFrames >= suppressFrames; }
     #pragma endregion Frame Handling

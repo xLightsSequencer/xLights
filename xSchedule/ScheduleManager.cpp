@@ -189,6 +189,16 @@ std::list<PlayList*> ScheduleManager::GetPlayLists()
     return _playLists;
 }
 
+int ScheduleManager::GetPPS() const
+{
+    if (_outputManager != nullptr)
+    {
+        return _outputManager->GetPacketsPerSecond();
+    }
+
+    return 0;
+}
+
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -3032,8 +3042,8 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                     long ch = (*i)->GetFSEQChannels();
                     if (ch < totalChannels)
                     {
-                        wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.", 
-                                    (const char*)(*n)->GetNameNoTime().c_str(), 
+                        wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.",
+                                    (const char*)(*n)->GetNameNoTime().c_str(),
                                     (const char*)(*s)->GetNameNoTime().c_str(),
                                     (const char*)(*i)->GetNameNoTime().c_str(),
                                     ch,

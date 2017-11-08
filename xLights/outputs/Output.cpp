@@ -15,6 +15,7 @@
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "../UtilFunctions.h"
+#include "OutputManager.h"
 
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
@@ -264,3 +265,11 @@ void Output::SetManyChannels(long channel, unsigned char data[], long size)
     }
 }
 #pragma endregion Data Setting
+
+void Output::FrameOutput()
+{
+    _lastOutputTime = wxGetUTCTimeMillis(); 
+    _skippedFrames = 0; 
+    _changed = false; 
+    OutputManager::RegisterSentPacket();
+}

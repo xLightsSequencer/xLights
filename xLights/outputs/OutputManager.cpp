@@ -13,6 +13,11 @@
 #include "../osxMacUtils.h"
 #include <wx/config.h>
 
+int OutputManager::_lastSecond = -10;
+int OutputManager::_currentSecond = -10;
+int OutputManager::_lastSecondCount = 0;
+int OutputManager::_currentSecondCount = 0;
+
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
 {
@@ -942,4 +947,40 @@ bool OutputManager::SetGlobalOutputtingFlag(bool state, bool force)
     }
 
     return false;
+}
+
+int OutputManager::GetPacketsPerSecond() const
+{
+    if (IsOutputting())
+    {
+        return _lastSecondCount;
+    }
+
+    return 0;
+}
+
+void OutputManager::RegisterSentPacket()
+{
+    int second = wxGetLocalTime() % 60;
+
+    if (second == _currentSecond)
+    {
+        _currentSecondCount++;
+    }
+    else
+    {
+        if (second == _currentSecond + 1)
+        {
+            _lastSecond = _currentSecond;
+            _lastSecondCount = _currentSecondCount;
+        }
+        else
+        {
+            _lastSecond = second - 1;
+            if (_lastSecond < 0) _lastSecond = 59;
+            _lastSecondCount = 0;
+        }
+        _currentSecond = second;
+        _currentSecondCount = 1;
+    }
 }

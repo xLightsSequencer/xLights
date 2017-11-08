@@ -180,6 +180,7 @@ class ScheduleManager : public wxEvtHandler
         static std::string xLightsShowDir();
         static std::string xScheduleShowDir();
         bool ShowDirectoriesMatch() const;
+        int GetPPS() const;
 };
 
 #endif

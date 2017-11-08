@@ -195,6 +195,8 @@ public:
         static const long ID_PANEL1;
         static const long ID_STATICTEXT1;
         static const long ID_STATICTEXT3;
+        static const long ID_STATICTEXT4;
+        static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
@@ -232,6 +234,7 @@ public:
 
         //(*Declarations(xScheduleFrame)
         wxMenuItem* MenuItem_AddPlayList;
+        wxStaticText* StaticText_PacketsPerSec;
         wxFlexGridSizer* FlexGridSizer4;
         wxBitmapButton* BitmapButton_StepLoop;
         wxBitmapButton* BitmapButton_PLLoop;
@@ -242,6 +245,7 @@ public:
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_Unsaved;
         wxMenuItem* MenuItem_FPPMaster;
+        wxStaticText* StaticText2;
         wxPanel* Panel4;
         wxMenu* Menu3;
         wxButton* Button_Schedule;
