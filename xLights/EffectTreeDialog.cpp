@@ -426,7 +426,11 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
     e->DeleteAttribute("name");
     e->AddAttribute("name",newName);
-    newName += " [" + ParseLayers(newName, e->GetAttribute("settings")) + "]";
+    if (!itemData->IsGroup())
+    {
+        newName += " [" + ParseLayers(newName, e->GetAttribute("settings")) + "]";
+    }
+   
     TreeCtrl1->SetItemText(itemID, newName);
     EffectsFileDirty();
     ValidateWindow();
