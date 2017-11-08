@@ -3924,6 +3924,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
 
         logger_base.debug("Viewing log file %s.", (const char *)fn.c_str());
 
+        wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
         delete ft;
     }
@@ -5024,6 +5025,7 @@ void xLightsFrame::CheckSequence(bool display)
             else
             {
                 logger_base.debug("Viewing xLights Check Sequence results %s. Command: '%s'", (const char *)filename.c_str(), (const char*)command.c_str());
+                wxUnsetEnv("LD_PRELOAD");
                 wxExecute(command);
             }
             delete ft;
@@ -5172,6 +5174,7 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
     if (ft)
     {
         wxString command = ft->GetOpenCommand("README.txt");
+        wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
     }
 }
