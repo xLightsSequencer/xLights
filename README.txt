@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)     Fix motion positions for XL fonts in Text effect.
 2017.35  Nov 05, 2017
    -- enh (cjd)     Update checker for Linux and OSX
    -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger
@@ -28,18 +29,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix pixelnet should support 4096 channels.
    -- enh (keith)   Add crucifix to shape effect
    -- bug (keith)   Fix submodel start channels displaying incorrectly as invalid.
-2017.34  Oct 27, 2017 
+2017.34  Oct 27, 2017
    -- enh (keith)   Add a dead pixel colour output process to xSchedule which only blanks a pixel if the colour would be wrong
    -- enh (keith)   Add the ability to disable output processes
    -- bug (keith)   Fix multilight wiring dialog not displaying correctly
    -- enh (keith)   Set model start channel back to one when user selects the end of model model as that is the most common desired resilt
    -- enh (keith)   Some checks to warn if xSchedule and xLights are outputting to lights at once
-   -- enh (keith)   Add level pulse colour to VU Meter ... pulses a colour when music reaches specified intensity and changes colour each time it does 
+   -- enh (keith)   Add level pulse colour to VU Meter ... pulses a colour when music reaches specified intensity and changes colour each time it does
    -- bug (keith)   Fix piano timing track setting not loading properly
    -- bug (keith)   Fix xSchedule doesnt respect force local IP
    -- enh (keith)   Add the ability to share xSchedule button definitions
    -- enh (keith)   Add tooltip help to button parameters
-2017.33  Oct 15, 2017 
+2017.33  Oct 15, 2017
    -- bug (gil)     Fix Galaxy not blending when reverse is checked.  Fixes #949.
    -- enh (keith)   Add xSchedule gamma processing on output
    -- enh (keith)   Add FPP master support for pixel sticks and Falcons
@@ -60,7 +61,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 						- empty model groups
 						- submodels with no nodes
 						- referenced files outside show directory
-2017.31  Oct 06, 2017  
+2017.31  Oct 06, 2017
    -- bug     (dkulp)  For HLS convert, it was failing to map channel names properly.
    -- enh     (dkulp)  Reset OSX release mode flags for wxWidgets to disable assert popups
    -- bug/enh (dkulp)  On OSX, resample audio to 48000 and use smaller buffers to reduce audio latency (I hope)

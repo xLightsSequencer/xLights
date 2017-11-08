@@ -1124,6 +1124,9 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         }
     }
 
+    int PreOffsetLeft = OffsetLeft;
+    int PreOffsetTop = OffsetTop;
+
     if( rotate_90 ) {
        OffsetLeft += buffer.BufferWi/2 - font->GetCapsHeight()/2;
        if( up ) {
@@ -1143,7 +1146,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         OffsetTop += buffer.BufferHt/2 - font->GetCapsHeight()/2;
     }
 
-    AddMotions( OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets );
+    AddMotions( OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop );
 
     if (text != "") {
         int space_offset = 0;
@@ -1197,7 +1200,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 }
 
 void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets )
+                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop )
 {
     int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
@@ -1226,32 +1229,32 @@ void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap&
             }
             break;
         case TEXTDIR_LEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
             break; // left
         case TEXTDIR_RIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
+            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
             break; // right
         case TEXTDIR_UP:
-            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
             break; // up
         case TEXTDIR_DOWN:
-            OffsetTop = state % ylimit/8 - OffsetTop;
+            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
             break; // down
         case TEXTDIR_UPLEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
-            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
+            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
             break; // up-left
         case TEXTDIR_DOWNLEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + OffsetLeft;
-            OffsetTop = state % ylimit/8 - OffsetTop;
+            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
+            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
             break; // down-left
         case TEXTDIR_UPRIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
-            OffsetTop = totheight - state % ylimit/8 - OffsetTop;
+            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
+            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
             break; // up-right
         case TEXTDIR_DOWNRIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + OffsetLeft;
-            OffsetTop = state % ylimit/8 - OffsetTop;
+            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
+            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
             break; // down-right
         case TEXTDIR_WAVEY_LRUPDOWN:
             OffsetLeft = xlimit/16 - state % xlimit/8;
