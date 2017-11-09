@@ -969,7 +969,7 @@ void OutputManager::RegisterSentPacket()
     }
     else
     {
-        if (second == _currentSecond + 1)
+        if (second == _currentSecond + 1 || (second == 0 && _currentSecond == 59))
         {
             _lastSecond = _currentSecond;
             _lastSecondCount = _currentSecondCount;
