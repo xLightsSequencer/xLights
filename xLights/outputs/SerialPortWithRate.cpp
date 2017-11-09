@@ -138,7 +138,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     {
         ChoiceBaudRate->SetStringSelection(wxString::Format(wxT("%i"), (*_serial)->GetBaudRate()));
     }
-    TextCtrlLastChannel->SetValue(wxString::Format(wxT("%i"), (*_serial)->GetChannels()));
+    TextCtrlLastChannel->SetValue(wxString::Format(wxT("%ld"), (*_serial)->GetChannels()));
     TextCtrl_Description->SetValue((*_serial)->GetDescription());
     ProtocolChange();
 

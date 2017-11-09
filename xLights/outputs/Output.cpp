@@ -116,7 +116,7 @@ void Output::Save(wxXmlNode* node)
         node->AddAttribute("Controller", XmlSafe(_controller->GetId()));
     }
 
-    node->AddAttribute("MaxChannels", wxString::Format("%d", _channels));
+    node->AddAttribute("MaxChannels", wxString::Format("%ld", _channels));
 
     _dirty = false;
 }

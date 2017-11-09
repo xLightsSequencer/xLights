@@ -126,7 +126,9 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     if (_e131->GetIP() != "")
     {
         MultiE131CheckBox->Enable(false);
-        SpinCtrl_NumUniv->Enable(false);
+        if (!MultiE131CheckBox->GetValue()) {
+            SpinCtrl_NumUniv->Enable(false);
+        }
     }
     else
     {
