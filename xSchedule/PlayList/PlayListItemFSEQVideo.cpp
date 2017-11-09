@@ -4,7 +4,7 @@
 #include "PlayListItemFSEQVideoPanel.h"
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
-#include "../../xLights/VideoReader.h"
+#include "../VideoCache.h"
 #include "PlayerWindow.h"
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
@@ -21,7 +21,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(nod
     _origin.y = 0;
     _size.SetWidth(300);
     _size.SetHeight(300);
-    _videoReader = nullptr;    _channels = 0;
+    _channels = 0;
     _startChannel = 1;
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -140,8 +140,8 @@ void PlayListItemFSEQVideo::LoadFiles()
         _durationMS = _fseqFile->GetLengthMS();
     }
 
-	_videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
-		
+    VideoCache::GetVideoCache()->EnsureCached(_videoFile, 0, 60000, GetFrameMS(), _size, false);
+
     LoadAudio();
 }
 
@@ -167,7 +167,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
     _origin.y = 0;
     _size.SetWidth(300);
     _size.SetHeight(300);
-    _videoReader = nullptr;}
+}
 
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
@@ -380,21 +380,6 @@ size_t PlayListItemFSEQVideo::GetPositionMS() const
     return 0;
 }
 
-wxImage PlayListItemFSEQVideo::CreateImageFromFrame(AVFrame* frame)
-{
-    if (frame != nullptr)
-    {
-        wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
-        img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
-        return img;
-    }
-    else
-    {
-        wxImage img(_size.x, _size.y, true);
-        return img;
-    }
-}
-
 void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -433,8 +418,8 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
     }
     else
     {
-        AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
-        _window->SetImage(CreateImageFromFrame(img));
+        VideoCache::GetVideoCache()->EnsureCached(_videoFile, adjustedMS, adjustedMS + 60000, framems, _size, false);
+        _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, adjustedMS, framems, _size));
 
         if (sw.Time() > framems / 2)
         {
@@ -562,11 +547,7 @@ void PlayListItemFSEQVideo::CloseFiles()
         _audioManager = nullptr;
     }
 
-	if (_videoReader != nullptr)
-    {
-        delete _videoReader;
-        _videoReader = nullptr;
-    }
+    VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
 }
 
 PlayListItemFSEQVideo::~PlayListItemFSEQVideo()

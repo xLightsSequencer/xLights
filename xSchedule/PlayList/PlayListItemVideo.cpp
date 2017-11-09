@@ -2,6 +2,7 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include "PlayListItemVideoPanel.h"
+#include "../VideoCache.h"
 #include "../../xLights/VideoReader.h"
 #include "PlayerWindow.h"
 #include <log4cpp/Category.hh>
@@ -19,7 +20,6 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
     _origin.y = 0;
     _size.SetWidth(300);
     _size.SetHeight(300);
-    _videoReader = nullptr;
     _durationMS = 0;
     PlayListItemVideo::Load(node);
 }
@@ -58,7 +58,6 @@ PlayListItemVideo::PlayListItemVideo() : PlayListItem()
     _durationMS = 0;
     _size.SetWidth(300);
     _size.SetHeight(300);
-    _videoReader = nullptr;
 }
 
 PlayListItem* PlayListItemVideo::Copy() const
@@ -141,33 +140,15 @@ void PlayListItemVideo::SetVideoFile(const std::string& videoFile)
 
 void PlayListItemVideo::CloseFiles()
 {
-    if (_videoReader != nullptr)
-    {
-        delete _videoReader;
-        _videoReader = nullptr;
-    }
+    VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
 }
 
 void PlayListItemVideo::OpenFiles()
 {
     CloseFiles();
-    _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
-    _durationMS = _videoReader->GetLengthMS();
-}
+    VideoCache::GetVideoCache()->EnsureCached(_videoFile, 0, 60000, GetFrameMS(), _size, false);
 
-wxImage PlayListItemVideo::CreateImageFromFrame(AVFrame* frame)
-{
-    if (frame != NULL)
-    {
-        wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
-        img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
-        return img;
-    }
-    else
-    {
-        wxImage img(_size.x, _size.y, true);
-        return img;
-    }
+    _durationMS = VideoCache::GetVideoCache()->GetLengthMS(_videoFile, _size);
 }
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -182,8 +163,8 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     else
     {
         wxStopWatch sw;
-        AVFrame* img = _videoReader->GetNextFrame(ms - _delay, framems);
-        _window->SetImage(CreateImageFromFrame(img));
+        VideoCache::GetVideoCache()->EnsureCached(_videoFile, ms - _delay, ms - _delay + 60000, framems, _size, false);
+        _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, ms - _delay, framems, _size));
 
         if (sw.Time() > framems / 2)
         {

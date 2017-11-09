@@ -138,6 +138,7 @@
     <ClCompile Include="OutputProcessGamma.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="OutputProcessDeadChannel.cpp" />
+    <ClCompile Include="VideoCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -258,6 +259,7 @@
     <ClInclude Include="OutputProcessGamma.h" />
     <ClInclude Include="DeadChannelDialog.h" />
     <ClInclude Include="OutputProcessDeadChannel.h" />
+    <ClInclude Include="VideoCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

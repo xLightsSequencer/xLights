@@ -8,9 +8,7 @@
 class wxXmlNode;
 class wxWindow;
 class AudioManager;
-class VideoReader;
 class PlayerWindow;
-struct AVFrame;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -34,7 +32,6 @@ protected:
 	std::string _videoFile;
 	wxPoint _origin;
 	wxSize _size;
-    VideoReader* _videoReader;
 	PlayerWindow* _window;
 #pragma endregion Member Variables
 
@@ -42,7 +39,6 @@ protected:
     void CloseFiles();
     void FastSetDuration();
     void LoadAudio();
-	wxImage CreateImageFromFrame(AVFrame* frame);
 
 public:
 

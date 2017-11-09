@@ -497,6 +497,8 @@
 		<Unit filename="SetDialog.h" />
 		<Unit filename="UserButton.cpp" />
 		<Unit filename="UserButton.h" />
+		<Unit filename="VideoCache.cpp" />
+		<Unit filename="VideoCache.h" />
 		<Unit filename="VirtualMatricesDialog.cpp" />
 		<Unit filename="VirtualMatricesDialog.h" />
 		<Unit filename="VirtualMatrix.cpp" />

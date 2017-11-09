@@ -6,9 +6,7 @@
 
 class wxXmlNode;
 class wxWindow;
-class VideoReader;
 class PlayerWindow;
-struct AVFrame;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -19,7 +17,6 @@ protected:
 	wxPoint _origin;
 	wxSize _size;
     bool _suppressVirtualMatrix;
-    VideoReader* _videoReader;
     bool _topMost;
     size_t _durationMS;
     PlayerWindow* _window;
@@ -27,7 +24,6 @@ protected:
 
     void OpenFiles();
     void CloseFiles();
-    wxImage CreateImageFromFrame(AVFrame* frame);
 
 public:
 

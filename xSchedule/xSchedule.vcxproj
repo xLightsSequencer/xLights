@@ -277,6 +277,7 @@
     <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="SetDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
+    <ClCompile Include="VideoCache.cpp" />
     <ClCompile Include="VirtualMatricesDialog.cpp" />
     <ClCompile Include="VirtualMatrix.cpp" />
     <ClCompile Include="VirtualMatrixDialog.cpp" />
@@ -404,6 +405,7 @@
     <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="SetDialog.h" />
     <ClInclude Include="UserButton.h" />
+    <ClInclude Include="VideoCache.h" />
     <ClInclude Include="VirtualMatricesDialog.h" />
     <ClInclude Include="VirtualMatrix.h" />
     <ClInclude Include="VirtualMatrixDialog.h" />
