@@ -510,6 +510,18 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
         *height = size.GetHeight();
     }
 }
+void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &extents) {
+    if (gc != nullptr) {
+        gc->GetPartialTextExtents(msg, extents);
+    } else {
+        wxArrayInt sizes;
+        dc->GetPartialTextExtents(msg, sizes);
+        for (int x = 0; x < sizes.size(); x++) {
+            extents[x] = sizes[x];
+        }
+    }
+}
+
 
 RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {

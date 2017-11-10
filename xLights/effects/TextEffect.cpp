@@ -1,6 +1,7 @@
 #include "TextEffect.h"
 
 #include <mutex>
+#include <array>
 
 #include "TextPanel.h"
 #include <wx/checkbox.h>
@@ -478,34 +479,36 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
 class CachedTextInfo {
 public:
     CachedTextInfo() {}
-    CachedTextInfo(const std::string &txt, const std::string font, const xlColor &c, const wxRect &r)
+    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const wxRect &r)
     : text(txt), rect(r), color(c), fontString(font) {}
     ~CachedTextInfo() {}
     
-    bool operator<(const CachedTextInfo &i) const {
-        if (text == i.text) {
-            if (fontString == i.fontString) {
-                return rect.x < i.rect.x;
-            }
-            return fontString < i.fontString;
-        }
-        return text < i.text;
-    }
-    bool operator>(const CachedTextInfo &i) const {
-        if (text == i.text) {
-            if (fontString == i.fontString) {
-                return rect.x > i.rect.x;
-            }
-            return fontString > i.fontString;
-        }
-        return text < i.text;
+    bool operator==(const CachedTextInfo &i) const {
+        return (text == i.text)
+            && (fontString == i.fontString)
+            && (rect == i.rect)
+            && (color == i.color);
     }
     
     std::string text;
     wxRect rect;
-    xlColor color;
+    std::vector<xlColor> color;
     std::string fontString;
 };
+
+struct CachedTextInfoHasher {
+    size_t operator()(const CachedTextInfo& t) const {
+        std::size_t h1 = std::hash<std::string>{}(t.text);
+        std::size_t h2 = std::hash<std::string>{}(t.fontString);
+        h1 ^= (h2 << 1);
+        for (auto a : t.color) {
+            h1 ^= a.GetRGB() << 3;
+        }
+        h1 ^= (t.rect.x << 8) + (t.rect.y << 16);
+        return h1;
+    }
+};
+
 
 class TextRenderCache : public EffectRenderCache {
 public:
@@ -538,7 +541,7 @@ public:
         textExtentCache[key] = sz;
     }
     
-    std::map<CachedTextInfo, wxImage*> textCache;
+    std::unordered_map<CachedTextInfo, wxImage*, CachedTextInfoHasher> textCache;
     std::map<std::pair<std::string, wxString>, wxSize> textExtentCache;
 };
 
@@ -565,7 +568,10 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
 void DrawLabel(TextDrawingContext *dc,
                const wxString& text,
                const wxRect& rect,
-               int alignment)
+               int alignment,
+               TextRenderCache *cache,
+               const std::string &fontString,
+               const std::vector<xlColor> colors)
 {
     // find the text position
     wxCoord widthText, heightText, heightLine;
@@ -610,10 +616,10 @@ void DrawLabel(TextDrawingContext *dc,
     //     call DrawText() for single-line strings from here to avoid infinite
     //     recursion.
     wxString curLine;
+    int curPos = 0;
     for ( wxString::const_iterator pc = text.begin(); ; ++pc )
     {
-        if ( pc == text.end() || *pc == '\n' )
-        {
+        if ( pc == text.end() || *pc == '\n' ) {
             int xRealStart = x; // init it here to avoid compielr warnings
             if ( !curLine.empty() )
             {
@@ -634,8 +640,24 @@ void DrawLabel(TextDrawingContext *dc,
                     }
                 }
                 //else: left aligned, nothing to do
-
-                dc->DrawText(curLine, xRealStart, y);
+                if (colors.size() != 1) {
+                    wxArrayDouble d;
+                    dc->GetTextExtents(curLine, d);
+                    for (int x = 0; x < curLine.size(); x++) {
+                        wxString c = curLine[x];
+                        if (c != " ") {
+                            SetFont(dc, fontString, colors[curPos % colors.size()]);
+                            curPos++;
+                            double loc = xRealStart;
+                            if (x != 0) {
+                                loc += d[x - 1];
+                            }
+                            dc->DrawText(c, loc, y);
+                        }
+                    }
+                } else {
+                    dc->DrawText(curLine, xRealStart, y);
+                }
             }
 
             y += heightLine;
@@ -726,12 +748,6 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     wxString msg, tempmsg;
 
     if (Line.IsEmpty()) return nullptr;
-
-    
-    xlColor c;
-    buffer.palette.GetColor(0,c);
-
-    
 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
@@ -884,21 +900,32 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 rect.Offset(OffsetLeft, OffsetTop);
                 break; // static
         }
-        CachedTextInfo inf(msg.ToStdString(), fontString, c, rect);
+        int num_colors = buffer.GetColorCount();
+        std::vector<xlColor> colors;
+        for (int x = 0; x < num_colors; x++) {
+            colors.push_back(buffer.GetPalette().GetColor(x));
+        }
+        if (colors.size() == 0) {
+            colors.push_back(xlWHITE);
+        }
+        CachedTextInfo inf(msg.ToStdString(), fontString, colors, rect);
         wxImage *i = GetCache(buffer,id)->GetImage(inf);
         if (i == nullptr) {
-            buffer.GetTextDrawingContext()->Clear();
-            SetFont(buffer.GetTextDrawingContext(),fontString,c);
-            DrawLabel(dc, msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
-            wxImage *i2 = buffer.GetTextDrawingContext()->FlushAndGetImage();
-            i = new wxImage(*i2);
+            dc->Clear();
+            SetFont(dc, fontString, colors[0]);
+            DrawLabel(dc, msg, rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors);
+            wxImage *i2 = dc->FlushAndGetImage();
+            i = new wxImage(i2->GetSize());
+            *i = i2->Copy();
             GetCache(buffer,id)->PutImage(inf, i);
         }
         return i;
     }
     
-    buffer.GetTextDrawingContext()->Clear();
-    SetFont(buffer.GetTextDrawingContext(),fontString,c);
+    xlColor c;
+    buffer.palette.GetColor(0,c);
+    dc->Clear();
+    SetFont(dc,fontString,c);
     switch (dir) {
         case TEXTDIR_VECTOR: {
             double position = buffer.GetEffectTimeIntervalPosition(1.0);
