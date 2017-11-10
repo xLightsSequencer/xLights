@@ -7,6 +7,7 @@
 class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
+class VideoReader;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -18,12 +19,14 @@ protected:
 	wxSize _size;
     bool _suppressVirtualMatrix;
     bool _topMost;
+    bool _cacheVideo;
+    VideoReader* _videoReader;
     size_t _durationMS;
     PlayerWindow* _window;
     #pragma endregion Member Variables
 
     void OpenFiles();
-    void CloseFiles();
+    void CloseFiles(bool purgeCache);
 
 public:
 
@@ -36,7 +39,9 @@ public:
 
     #pragma region Getters and Setters
     bool GetTopMost() const { return _topMost; }
+    bool GetCacheVideo() const { return _cacheVideo; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
+    void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }
     bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
     void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
     virtual size_t GetDurationMS() const override;

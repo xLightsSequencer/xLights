@@ -9,6 +9,7 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 class PlayerWindow;
+class VideoReader;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -28,6 +29,8 @@ protected:
     size_t _startChannel;
     size_t _channels;
     bool _fastStartAudio;
+    bool _cacheVideo;
+    VideoReader* _videoReader;
 
 	std::string _videoFile;
 	wxPoint _origin;
@@ -36,7 +39,7 @@ protected:
 #pragma endregion Member Variables
 
     void LoadFiles();
-    void CloseFiles();
+    void CloseFiles(bool purgeCache);
     void FastSetDuration();
     void LoadAudio();
 
@@ -64,6 +67,7 @@ public:
     std::string GetAudioFile() const { return _audioFile; }
     bool GetOverrideAudio() const { return _overrideAudio; }
     bool GetFastStartAudio() const { return _fastStartAudio; }
+    bool GetCacheVideo() const { return _cacheVideo; }
     void SetFSEQFileName(const std::string& fseqFileName);
     void SetAudioFile(const std::string& audioFile);
     void SetOverrideAudio(bool overrideAudio);
@@ -79,6 +83,7 @@ public:
     void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
+    void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }
     bool SetPosition(size_t frame, size_t ms);
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     void SetVideoFile(const std::string& videoFile);

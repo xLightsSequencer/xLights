@@ -195,6 +195,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_CacheVideo" member="yes">
+					<label>Cache Video</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_OverrideVolume" member="yes">
 					<label>Override Volume</label>
 					<handler function="OnCheckBox_OverrideVolumeClick" entry="EVT_CHECKBOX" />

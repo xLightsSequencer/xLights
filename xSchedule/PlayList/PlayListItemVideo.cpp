@@ -12,6 +12,8 @@
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _cacheVideo = false;
+    _videoReader = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
     _window = nullptr;
@@ -26,7 +28,7 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 
 PlayListItemVideo::~PlayListItemVideo()
 {
-    CloseFiles();
+    CloseFiles(true);
 
     if (_window != nullptr)
     {
@@ -42,13 +44,16 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
+    _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
     OpenFiles();
-    CloseFiles();
+    CloseFiles(false);
 }
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
+    _cacheVideo = false;
+    _videoReader = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
     _window = nullptr;
@@ -68,6 +73,7 @@ PlayListItem* PlayListItemVideo::Copy() const
     res->_videoFile = _videoFile;
     res->_durationMS = _durationMS;
     res->_topMost = _topMost;
+    res->_cacheVideo = _cacheVideo;
     res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     PlayListItem::Copy(res);
 
@@ -87,6 +93,11 @@ wxXmlNode* PlayListItemVideo::Save()
     if (!_topMost)
     {
         node->AddAttribute("Topmost", "FALSE");
+    }
+
+    if (_cacheVideo)
+    {
+        node->AddAttribute("CacheVideo", "TRUE");
     }
 
     if (_suppressVirtualMatrix)
@@ -133,22 +144,31 @@ void PlayListItemVideo::SetVideoFile(const std::string& videoFile)
     {
         _videoFile = videoFile;
         OpenFiles();
-        CloseFiles();
+        CloseFiles(false);
         _changeCount++;
     }
 }
 
-void PlayListItemVideo::CloseFiles()
+void PlayListItemVideo::CloseFiles(bool purgeCache)
 {
-    VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+    if (_videoReader != nullptr)
+    {
+        delete _videoReader;
+        _videoReader = nullptr;
+    }
+
+    if (_cacheVideo && purgeCache)
+    {
+        VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+    }
 }
 
 void PlayListItemVideo::OpenFiles()
 {
-    CloseFiles();
-    VideoCache::GetVideoCache()->EnsureCached(_videoFile, 0, 60000, GetFrameMS(), _size, false);
+    CloseFiles(false);
 
-    _durationMS = VideoCache::GetVideoCache()->GetLengthMS(_videoFile, _size);
+    _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+    _durationMS = _videoReader->GetLengthMS();
 }
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -163,8 +183,16 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     else
     {
         wxStopWatch sw;
-        VideoCache::GetVideoCache()->EnsureCached(_videoFile, ms - _delay, ms - _delay + 60000, framems, _size, false);
-        _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, ms - _delay, framems, _size));
+
+        if (_cacheVideo)
+        {
+            _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, ms - _delay, framems, _size));
+        }
+        else
+        {
+            AVFrame* img = _videoReader->GetNextFrame(ms - _delay, framems);
+            _window->SetImage(VideoCache::CreateImageFromFrame(img, _size));
+        }
 
         if (sw.Time() > framems / 2)
         {
@@ -180,6 +208,12 @@ void PlayListItemVideo::Start()
     if (_suppressVirtualMatrix)
     {
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);
+    }
+
+    if (_cacheVideo)
+    {
+        VideoCache::GetVideoCache()->Cache(_videoFile, 0, 999999999, GetFrameMS(), _size, false);
+        _durationMS = VideoCache::GetVideoCache()->GetLengthMS(_videoFile);
     }
 
     OpenFiles();
@@ -203,7 +237,7 @@ void PlayListItemVideo::Stop()
         xScheduleFrame::GetScheduleManager()->SuppressVM(false);
     }
 
-    CloseFiles();
+    CloseFiles(true);
 
     // destroy the window
     if (_window != nullptr)

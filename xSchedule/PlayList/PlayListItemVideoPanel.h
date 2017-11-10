@@ -26,6 +26,7 @@ class PlayListItemVideoPanel: public wxPanel
 		//(*Declarations(PlayListItemVideoPanel)
 		wxStaticText* StaticText2;
 		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
+		wxCheckBox* CheckBox_CacheVideo;
 		wxStaticText* StaticText1;
 		wxCheckBox* CheckBox_Topmost;
 		wxTextCtrl* TextCtrl_Delay;
@@ -41,6 +42,7 @@ class PlayListItemVideoPanel: public wxPanel
 		static const long ID_BUTTON1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX3;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		//*)

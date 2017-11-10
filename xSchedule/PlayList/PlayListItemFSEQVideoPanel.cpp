@@ -29,6 +29,7 @@ const long PlayListItemFSEQVideoPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_FILEPICKERCTRL2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX4 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_CHECKBOX7 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_SLIDER1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT4 = wxNewId();
@@ -127,7 +128,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX5, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_Topmost->SetValue(true);
 	FlexGridSizer1->Add(CheckBox_Topmost, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SuppressVirtualMatrix = new wxCheckBox(this, ID_CHECKBOX6, _("Suppress Virtual Matrix"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
 	CheckBox_SuppressVirtualMatrix->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_SuppressVirtualMatrix, 1, wxALL|wxEXPAND, 5);
@@ -161,6 +162,10 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	CheckBox_FastStartAudio = new wxCheckBox(this, ID_CHECKBOX4, _("Fast start audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_FastStartAudio->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_FastStartAudio, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_CacheVideo = new wxCheckBox(this, ID_CHECKBOX7, _("Cache Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	CheckBox_CacheVideo->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_CacheVideo, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OverrideVolume = new wxCheckBox(this, ID_CHECKBOX2, _("Override Volume"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_OverrideVolume->SetValue(false);
@@ -200,6 +205,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
     Choice_BlendMode->SetSelection(fseq->GetBlendMode());
     SpinCtrl_Priority->SetValue(fseq->GetPriority());
     CheckBox_FastStartAudio->SetValue(fseq->GetFastStartAudio());
+    CheckBox_CacheVideo->SetValue(fseq->GetCacheVideo());
     FilePickerCtrl_VideoFile->SetFileName(wxFileName(fseq->GetVideoFile()));
     CheckBox_Topmost->SetValue(fseq->GetTopMost());
     CheckBox_SuppressVirtualMatrix->SetValue(fseq->GetSuppressVirtualMatrix());
@@ -251,6 +257,7 @@ PlayListItemFSEQVideoPanel::~PlayListItemFSEQVideoPanel()
     _fseq->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
     _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
+    _fseq->SetCacheVideo(CheckBox_CacheVideo->GetValue());
     _fseq->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
     _fseq->SetTopmost(CheckBox_Topmost->GetValue());
     _fseq->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());

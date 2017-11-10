@@ -14,6 +14,7 @@ const long PlayListItemVideoPanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemVideoPanel::ID_BUTTON1 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX2 = wxNewId();
+const long PlayListItemVideoPanel::ID_CHECKBOX3 = wxNewId();
 const long PlayListItemVideoPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemVideoPanel::ID_TEXTCTRL1 = wxNewId();
 //*)
@@ -64,10 +65,14 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
 	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX1, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_Topmost->SetValue(true);
 	FlexGridSizer1->Add(CheckBox_Topmost, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SuppressVirtualMatrix = new wxCheckBox(this, ID_CHECKBOX2, _("Suppress Virtual Matrix"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_SuppressVirtualMatrix->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_SuppressVirtualMatrix, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_CacheVideo = new wxCheckBox(this, ID_CHECKBOX3, _("Cache Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_CacheVideo->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_CacheVideo, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL1, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -84,6 +89,7 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
     FilePickerCtrl_VideoFile->SetFileName(wxFileName(video->GetVideoFile()));
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)video->GetDelay() / 1000.0));
     CheckBox_Topmost->SetValue(video->GetTopMost());
+    CheckBox_CacheVideo->SetValue(video->GetCacheVideo());
     CheckBox_SuppressVirtualMatrix->SetValue(video->GetSuppressVirtualMatrix());
 }
 
@@ -94,6 +100,7 @@ PlayListItemVideoPanel::~PlayListItemVideoPanel()
     _video->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
     _video->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _video->SetTopmost(CheckBox_Topmost->GetValue());
+    _video->SetCacheVideo(CheckBox_CacheVideo->GetValue());
     _video->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
 }
 

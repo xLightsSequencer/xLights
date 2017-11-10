@@ -3,6 +3,7 @@
 #include <wx/notebook.h>
 #include "PlayListItemFSEQVideoPanel.h"
 #include "../../xLights/AudioManager.h"
+#include "../../xLights/VideoReader.h"
 #include <log4cpp/Category.hh>
 #include "../VideoCache.h"
 #include "PlayerWindow.h"
@@ -12,6 +13,8 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _videoReader = nullptr;
+    _cacheVideo = false;
     _currentFrame = 0;
     _topMost = true;
     _suppressVirtualMatrix = false;
@@ -42,6 +45,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
+    _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
@@ -130,7 +134,7 @@ void PlayListItemFSEQVideo::LoadAudio()
 
 void PlayListItemFSEQVideo::LoadFiles()
 {
-    CloseFiles();
+    CloseFiles(false);
 
     if (wxFile::Exists(_fseqFileName))
     {
@@ -140,7 +144,14 @@ void PlayListItemFSEQVideo::LoadFiles()
         _durationMS = _fseqFile->GetLengthMS();
     }
 
-    VideoCache::GetVideoCache()->EnsureCached(_videoFile, 0, 60000, GetFrameMS(), _size, false);
+    if (_cacheVideo)
+    {
+        VideoCache::GetVideoCache()->Cache(_videoFile, 0, _durationMS, GetFrameMS(), _size, false);
+    }
+    else
+    {
+        _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+    }
 
     LoadAudio();
 }
@@ -151,6 +162,8 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
     _topMost = true;
     _suppressVirtualMatrix = false;
     _fastStartAudio = false;
+    _cacheVideo = false;
+    _videoReader = nullptr;
     _channels = 0;
     _startChannel = 1;
     _controlsTimingCache = false;
@@ -182,6 +195,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     res->_channels = _channels;
     res->_startChannel = _startChannel;
     res->_fastStartAudio = _fastStartAudio;
+    res->_cacheVideo = _cacheVideo;
     res->_origin = _origin;
     res->_size = _size;
     res->_videoFile = _videoFile;
@@ -216,6 +230,11 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     if (_fastStartAudio)
     {
         node->AddAttribute("FastStartAudio", "TRUE");
+    }
+
+    if (_cacheVideo)
+    {
+        node->AddAttribute("CacheVideo", "TRUE");
     }
 
     if (_overrideAudio)
@@ -418,9 +437,15 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
     }
     else
     {
-        VideoCache::GetVideoCache()->EnsureCached(_videoFile, adjustedMS, adjustedMS + 60000, framems, _size, false);
-        _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, adjustedMS, framems, _size));
-
+        if (_cacheVideo)
+        {
+            _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, adjustedMS, framems, _size));
+        }
+        else
+        {
+            AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
+            _window->SetImage(VideoCache::CreateImageFromFrame(img, _size));
+        }
         if (sw.Time() > framems / 2)
         {
             logger_base.warn("   Getting frame %ld from FSEQvideo %s took more than half a frame: %ld.", (long)adjustedMS, (const char *)GetNameNoTime().c_str(), (long)sw.Time());
@@ -521,7 +546,7 @@ void PlayListItemFSEQVideo::Stop()
     {
         _audioManager->Stop();
     }
-    CloseFiles();
+    CloseFiles(true);
 
     // destroy the window
     if (_window != nullptr)
@@ -532,7 +557,7 @@ void PlayListItemFSEQVideo::Stop()
     _currentFrame = 0;
 }
 
-void PlayListItemFSEQVideo::CloseFiles()
+void PlayListItemFSEQVideo::CloseFiles(bool purgeCache)
 {
     if (_fseqFile != nullptr)
     {
@@ -547,12 +572,21 @@ void PlayListItemFSEQVideo::CloseFiles()
         _audioManager = nullptr;
     }
 
-    VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+    if (_videoReader != nullptr)
+    {
+        delete _videoReader;
+        _videoReader = nullptr;
+    }
+
+    if (_cacheVideo && purgeCache)
+    {
+        VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+    }
 }
 
 PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
 {
-    CloseFiles();
+    CloseFiles(true);
 	
     if (_window != nullptr)
     {

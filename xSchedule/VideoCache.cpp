@@ -1,11 +1,9 @@
 #include "VideoCache.h"
 #include "../xLights/VideoReader.h"
 #include <log4cpp/Category.hh>
-
 #include "../xLights/JobPool.h"
 
 //#define VIDEO_EXTRALOGGING
-
 VideoCache* VideoCache::_videoCache = nullptr;
 
 class VideoCacheItem
@@ -14,7 +12,6 @@ public:
 
     std::string Key;
     long Timestamp;
-    wxMilliClock_t LastAccessed;
     wxImage Image;
     bool Purged;
 
@@ -22,19 +19,13 @@ public:
     {
         Key = key;
         Timestamp = timestamp;
-        Image = image;
+        Image = image.Copy();
         Purged = false;
-        LastAccessed = wxGetLocalTimeMillis();
     }
 
     wxSize GetSize() const
     {
         return Image.GetSize();
-    }
-
-    void Touch()
-    {
-        LastAccessed = wxGetLocalTimeMillis();
     }
 };
 
@@ -65,7 +56,35 @@ public:
     // read the frames … and then clear the reader flag. All access to member variables must be guarded.
     virtual void Process() override
     {
-        xxx;
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("Caching video %s (%dx%d)", (const char *)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+
+        _videoCache->Start(_videoFile, _size);
+        VideoReader videoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), _keepAspectRatio);
+
+        if (videoReader.IsValid())
+        {
+            _videoCache->SetLengthMS(_videoFile, videoReader.GetLengthMS());
+            logger_base.debug("Video length %ld.", videoReader.GetLengthMS());
+            long end = std::min(_end, (long)videoReader.GetLengthMS());
+            logger_base.debug("Caching %ld - %ld.", _start, end);
+            for (long i = _start; i < end; i+= _frameMS)
+            {
+                _videoCache->CacheImage(_videoFile, _size, i, VideoCache::CreateImageFromFrame(videoReader.GetNextFrame(i), _size));
+#ifdef VIDEO_EXTRALOGGING
+                logger_base.debug("Cached frame %ld for %s (%ldx%ld).", i, _videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
+#endif
+            }
+        }
+        else
+        {
+            logger_base.error("Error opening video file to cache the images. %s", (const char *)_videoFile.c_str());
+            _videoCache->SetLengthMS(_videoFile, 0);
+        }
+
+        _videoCache->Done(_videoFile, _size);
+        logger_base.debug("Caching video %s (%dx%d) ... DONE", (const char *)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
     }
     virtual std::string GetStatus() override { return ""; }
     virtual bool DeleteWhenComplete() override { return true; }
@@ -115,43 +134,47 @@ VideoCache::~VideoCache()
         delete *it;
     }
     _cache.clear();
-
-    for (auto it = _readers.begin(); it != _readers.end(); ++it)
-    {
-        delete it->second;
-    }
-    _readers.clear();
 }
 
 wxImage VideoCache::GetImage(const std::string& videoFile, long millisecond, int frameTime, const wxSize& size)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string key = CreateKey(videoFile, size);
+
+    millisecond = millisecond / frameTime * frameTime;
+
+    wxMilliClock_t expire = wxGetLocalTimeMillis() + frameTime / 2;
+    while (wxGetLocalTimeMillis() < expire)
     {
-        std::unique_lock<std::mutex> locker(_cacheAccess);
-        VideoCacheItem* item = GetVideoCacheItem(key, millisecond);
-        if (item != nullptr)
         {
-            item->Touch();
-            return item->Image;
+            std::unique_lock<std::mutex> locker(_cacheAccess);
+            VideoCacheItem* vci = GetVideoCacheItem(key, millisecond);
+            if (vci != nullptr)
+            {
+#ifdef VIDEO_EXTRALOGGING
+                logger_base.debug("Found image in cache %s frame %ld", (const char *)key.c_str(), millisecond);
+#endif
+                wxASSERT(vci->Image.IsOk());
+                return vci->Image.Copy();
+            }
         }
+        wxMilliSleep(2);
     }
 
-    if (!EnsureCached(videoFile, millisecond, 60000, frameTime, size, false))
-    {
-        return wxImage(size, true);
-    }
-
-    return GetImage(videoFile, millisecond, frameTime, size);
+    logger_base.warn("Timeout waiting for image %s frame %ld", (const char *)key.c_str(), millisecond);
+    return wxImage(size, true);
 }
 
-bool VideoCache::EnsureCached(const std::string& videoFile, long millisecond, long duration, int frameTime, const wxSize& size, bool keepAspectRatio)
+bool VideoCache::Cache(const std::string& videoFile, long millisecond, long duration, int frameTime, const wxSize& size, bool keepAspectRatio)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string key = CreateKey(videoFile, size);
     {
         // check if we already have a thread reading the video
         std::unique_lock<std::mutex> locker(_cacheAccess);
-        if (_readerInUse[key])
+        if (std::find(_reading.begin(), _reading.end(), key) != _reading.end())
         {
+            logger_base.debug("Asked to cache %s (%ldx%ld) but we are in the middle of caching it.", (const char *)key.c_str(), size.GetWidth(), size.GetHeight());
             VideoCacheItem* item = GetVideoCacheItem(key, millisecond);
             return (item != nullptr);
         }
@@ -165,11 +188,16 @@ bool VideoCache::EnsureCached(const std::string& videoFile, long millisecond, lo
             std::unique_lock<std::mutex> locker(_cacheAccess);
             for (long ms = millisecond; ms <= millisecond + duration; ms += frameTime)
             {
-                if (GetVideoCacheItem(key, ms) == nullptr)
+                VideoCacheItem* vci = GetVideoCacheItem(key, ms);
+                if (vci == nullptr)
                 {
                     firstFrameNotThere = ms;
                     allThere = false;
                     break;
+                }
+                else
+                {
+                    vci->Purged = false;
                 }
             }
         }
@@ -177,6 +205,7 @@ bool VideoCache::EnsureCached(const std::string& videoFile, long millisecond, lo
 
     if (allThere)
     {
+        logger_base.debug("%s (%ldx%ld) was already in the cache ... nothing to do.", (const char *)key.c_str(), size.GetWidth(), size.GetHeight());
         return true;
     }
 
@@ -203,6 +232,7 @@ bool VideoCache::EnsureCached(const std::string& videoFile, long millisecond, lo
         wxMilliSleep(2);
     }
 
+    logger_base.warn("%s (%ldx%ld) failed to get the first frame ... timed out.", (const char *)key.c_str(), size.GetWidth(), size.GetHeight());
     return false;
 }
 
@@ -211,18 +241,9 @@ void VideoCache::PurgeVideo(const std::string& videoFile, const wxSize& size)
     std::unique_lock<std::mutex> locker(_cacheAccess);
     
     std::string key = CreateKey(videoFile, size);
-    
-    auto it = _readers.find(key);
-    if (it != _readers.end())
+    if (std::find(_reading.begin(), _reading.end(), key) != _reading.end())
     {
-        delete it->second;
-        _readers.erase(it);
-    }
-
-    auto it2 = _readerInUse.find(key);
-    if (it2 != _readerInUse.end())
-    {
-        _readerInUse.erase(it2);
+        // not good we are still reading and now trying to delete ... not much i can do about that
     }
 
     for (auto it3 = _cache.begin(); it3 != _cache.end(); ++it3)
@@ -234,18 +255,58 @@ void VideoCache::PurgeVideo(const std::string& videoFile, const wxSize& size)
     }
 }
 
-long VideoCache::GetLengthMS(const std::string& videoFile, const wxSize &size)
+long VideoCache::GetLengthMS(const std::string& videoFile)
 {
     std::unique_lock<std::mutex> locker(_cacheAccess);
-    std::string key = CreateKey(videoFile, size);
-    if (_readers.find(key) == _readers.end())
+    if (_lengthMS.find(videoFile) == _lengthMS.end())
     {
         return 0;
     }
     else
     {
-        return _readers[key]->GetLengthMS();
+        return _lengthMS[videoFile];
     }
+}
+
+void VideoCache::Start(const std::string& videoFile, const wxSize& size)
+{
+    std::unique_lock<std::mutex> locker(_cacheAccess);
+    std::string key = CreateKey(videoFile, size);
+    _reading.push_back(key);
+}
+
+void VideoCache::Done(const std::string& videoFile, const wxSize& size)
+{
+    std::unique_lock<std::mutex> locker(_cacheAccess);
+    std::string key = CreateKey(videoFile, size);
+    auto it = std::find(_reading.begin(), _reading.end(), key);
+    if (it != _reading.end())
+    {
+        _reading.remove(key);
+    }
+}
+
+void VideoCache::CacheImage(const std::string& videoFile, const wxSize& size, long millisecond, const wxImage& image)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    std::string key = CreateKey(videoFile, size);
+
+    std::unique_lock<std::mutex> locker(_cacheAccess);
+    VideoCacheItem* vci = GetVideoCacheItem(key, millisecond);
+    if (vci == nullptr)
+    {
+        _cache.push_back(new VideoCacheItem(key, millisecond, image));
+    }
+    else
+    {
+        logger_base.debug("Cache already had the image.");
+    }
+}
+
+void VideoCache::SetLengthMS(const std::string& videoFile, long lengthMS)
+{
+    std::unique_lock<std::mutex> locker(_cacheAccess);
+    _lengthMS[videoFile] = lengthMS;
 }
 
 void VideoCache::FreeSpace(int frames)
@@ -291,49 +352,12 @@ void VideoCache::FreeSpace(int frames)
         }
     }
 
-    // not enough space ... so now we need to purge old stuff
-    // remove anything not touched for 2 minutes
-    wxMilliClock_t maxage = wxGetLocalTimeMillis() - 2 * 60000;
-    for (auto it = _cache.begin(); it != _cache.end(); ++it)
-    {
-        if ((*it)->LastAccessed  < maxage)
-        {
-            auto itprior = _cache.end();
-            if (it == _cache.begin())
-            {
-            }
-            else
-            {
-                itprior = it;
-                --itprior;
-            }
-
-            delete *it;
-            _cache.erase(it);
-
-            if (_cache.size() < _maxItems - frames)
-            {
-                // already enough space
-                return;
-            }
-
-            if (itprior == _cache.end())
-            {
-                it = _cache.begin();
-            }
-            else
-            {
-                it = itprior;
-            }
-        }
-    }
-
     // at this point we failed to free enough space
     // so we are going to grow the buffer
     _maxItems = _cache.size() + frames;
 }
 
-wxImage VideoCache::CreateImageFromFrame(AVFrame* frame, const wxSize& size) const
+wxImage VideoCache::CreateImageFromFrame(AVFrame* frame, const wxSize& size)
 {
     if (frame != nullptr)
     {
