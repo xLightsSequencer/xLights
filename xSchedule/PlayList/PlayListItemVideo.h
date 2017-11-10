@@ -8,6 +8,7 @@ class wxXmlNode;
 class wxWindow;
 class PlayerWindow;
 class VideoReader;
+class CachedVideoReader;
 
 class PlayListItemVideo : public PlayListItem
 {
@@ -21,12 +22,13 @@ protected:
     bool _topMost;
     bool _cacheVideo;
     VideoReader* _videoReader;
+    CachedVideoReader* _cachedVideoReader;
     size_t _durationMS;
     PlayerWindow* _window;
     #pragma endregion Member Variables
 
-    void OpenFiles();
-    void CloseFiles(bool purgeCache);
+    void OpenFiles(bool doCache);
+    void CloseFiles();
 
 public:
 

@@ -10,6 +10,7 @@ class wxWindow;
 class AudioManager;
 class PlayerWindow;
 class VideoReader;
+class CachedVideoReader;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -31,6 +32,7 @@ protected:
     bool _fastStartAudio;
     bool _cacheVideo;
     VideoReader* _videoReader;
+    CachedVideoReader* _cachedVideoReader;
 
 	std::string _videoFile;
 	wxPoint _origin;
@@ -38,8 +40,8 @@ protected:
 	PlayerWindow* _window;
 #pragma endregion Member Variables
 
-    void LoadFiles();
-    void CloseFiles(bool purgeCache);
+    void LoadFiles(bool doCache);
+    void CloseFiles();
     void FastSetDuration();
     void LoadAudio();
 

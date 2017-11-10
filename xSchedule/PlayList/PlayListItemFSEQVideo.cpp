@@ -14,6 +14,7 @@
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
     _videoReader = nullptr;
+    _cachedVideoReader = nullptr;
     _cacheVideo = false;
     _currentFrame = 0;
     _topMost = true;
@@ -132,9 +133,9 @@ void PlayListItemFSEQVideo::LoadAudio()
     }
 }
 
-void PlayListItemFSEQVideo::LoadFiles()
+void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 {
-    CloseFiles(false);
+    CloseFiles();
 
     if (wxFile::Exists(_fseqFileName))
     {
@@ -144,9 +145,9 @@ void PlayListItemFSEQVideo::LoadFiles()
         _durationMS = _fseqFile->GetLengthMS();
     }
 
-    if (_cacheVideo)
+    if (_cacheVideo && doCache)
     {
-        VideoCache::GetVideoCache()->Cache(_videoFile, 0, _durationMS, GetFrameMS(), _size, false);
+        _cachedVideoReader = new CachedVideoReader(_videoFile, 0, GetFrameMS(), _size, false);
     }
     else
     {
@@ -164,6 +165,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
     _fastStartAudio = false;
     _cacheVideo = false;
     _videoReader = nullptr;
+    _cachedVideoReader = nullptr;
     _channels = 0;
     _startChannel = 1;
     _controlsTimingCache = false;
@@ -439,12 +441,12 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
     {
         if (_cacheVideo)
         {
-            _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, adjustedMS, framems, _size));
+            _window->SetImage(_cachedVideoReader->GetNextFrame(adjustedMS));
         }
         else
         {
             AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
-            _window->SetImage(VideoCache::CreateImageFromFrame(img, _size));
+            _window->SetImage(CachedVideoReader::CreateImageFromFrame(img, _size));
         }
         if (sw.Time() > framems / 2)
         {
@@ -479,7 +481,7 @@ void PlayListItemFSEQVideo::Start()
 
     // load the FSEQ
     // load the audio
-    LoadFiles();
+    LoadFiles(true);
 
     _currentFrame = 0;
     if (ControlsTiming() && _audioManager != nullptr)
@@ -546,7 +548,8 @@ void PlayListItemFSEQVideo::Stop()
     {
         _audioManager->Stop();
     }
-    CloseFiles(true);
+
+    CloseFiles();
 
     // destroy the window
     if (_window != nullptr)
@@ -557,7 +560,7 @@ void PlayListItemFSEQVideo::Stop()
     _currentFrame = 0;
 }
 
-void PlayListItemFSEQVideo::CloseFiles(bool purgeCache)
+void PlayListItemFSEQVideo::CloseFiles()
 {
     if (_fseqFile != nullptr)
     {
@@ -578,15 +581,16 @@ void PlayListItemFSEQVideo::CloseFiles(bool purgeCache)
         _videoReader = nullptr;
     }
 
-    if (_cacheVideo && purgeCache)
+    if (_cachedVideoReader != nullptr)
     {
-        VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+        delete _cachedVideoReader;
+        _cachedVideoReader = nullptr;
     }
 }
 
 PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
 {
-    CloseFiles(true);
+    CloseFiles();
 	
     if (_window != nullptr)
     {

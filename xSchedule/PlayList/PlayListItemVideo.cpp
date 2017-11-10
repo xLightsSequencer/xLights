@@ -14,6 +14,7 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
     _cacheVideo = false;
     _videoReader = nullptr;
+    _cachedVideoReader = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
     _window = nullptr;
@@ -28,7 +29,7 @@ PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 
 PlayListItemVideo::~PlayListItemVideo()
 {
-    CloseFiles(true);
+    CloseFiles();
 
     if (_window != nullptr)
     {
@@ -46,14 +47,15 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
-    OpenFiles();
-    CloseFiles(false);
+    OpenFiles(false);
+    CloseFiles();
 }
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
     _cacheVideo = false;
     _videoReader = nullptr;
+    _cachedVideoReader = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
     _window = nullptr;
@@ -143,13 +145,13 @@ void PlayListItemVideo::SetVideoFile(const std::string& videoFile)
     if (_videoFile != videoFile)
     {
         _videoFile = videoFile;
-        OpenFiles();
-        CloseFiles(false);
+        OpenFiles(false);
+        CloseFiles();
         _changeCount++;
     }
 }
 
-void PlayListItemVideo::CloseFiles(bool purgeCache)
+void PlayListItemVideo::CloseFiles()
 {
     if (_videoReader != nullptr)
     {
@@ -157,18 +159,27 @@ void PlayListItemVideo::CloseFiles(bool purgeCache)
         _videoReader = nullptr;
     }
 
-    if (_cacheVideo && purgeCache)
+    if (_cachedVideoReader != nullptr)
     {
-        VideoCache::GetVideoCache()->PurgeVideo(_videoFile, _size);
+        delete _cachedVideoReader;
+        _cachedVideoReader = nullptr;
     }
 }
 
-void PlayListItemVideo::OpenFiles()
+void PlayListItemVideo::OpenFiles(bool doCache)
 {
-    CloseFiles(false);
+    CloseFiles();
 
-    _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
-    _durationMS = _videoReader->GetLengthMS();
+    if (_cacheVideo && doCache)
+    {
+        _cachedVideoReader = new CachedVideoReader(_videoFile, 0, GetFrameMS(), _size, false);
+        _durationMS = _cachedVideoReader->GetLengthMS();
+    }
+    else
+    {
+        _videoReader = new VideoReader(_videoFile, _size.GetWidth(), _size.GetHeight(), false);
+        _durationMS = _videoReader->GetLengthMS();
+    }
 }
 
 void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -186,12 +197,12 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 
         if (_cacheVideo)
         {
-            _window->SetImage(VideoCache::GetVideoCache()->GetImage(_videoFile, ms - _delay, framems, _size));
+            _window->SetImage(_cachedVideoReader->GetNextFrame(ms - _delay));
         }
         else
         {
             AVFrame* img = _videoReader->GetNextFrame(ms - _delay, framems);
-            _window->SetImage(VideoCache::CreateImageFromFrame(img, _size));
+            _window->SetImage(CachedVideoReader::CreateImageFromFrame(img, _size));
         }
 
         if (sw.Time() > framems / 2)
@@ -210,13 +221,7 @@ void PlayListItemVideo::Start()
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);
     }
 
-    if (_cacheVideo)
-    {
-        VideoCache::GetVideoCache()->Cache(_videoFile, 0, 999999999, GetFrameMS(), _size, false);
-        _durationMS = VideoCache::GetVideoCache()->GetLengthMS(_videoFile);
-    }
-
-    OpenFiles();
+    OpenFiles(true);
 
     // create the window
     if (_window == nullptr)
@@ -237,7 +242,7 @@ void PlayListItemVideo::Stop()
         xScheduleFrame::GetScheduleManager()->SuppressVM(false);
     }
 
-    CloseFiles(true);
+    CloseFiles();
 
     // destroy the window
     if (_window != nullptr)
