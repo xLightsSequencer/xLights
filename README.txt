@@ -12,6 +12,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (gil)     Fix motion positions for XL fonts in Text effect.
+   -- enh (keith)   Move video reading to a separate thread ... should make video performance more reliable but will use lots of memory
+   -- enh (keith)   Add packets per second display to scheduler UI
+   -- bug (keith)   Strip duplicate test presets on load ... not sure how they got there but dont load them.
 2017.35  Nov 05, 2017
    -- enh (cjd)     Update checker for Linux and OSX
    -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger

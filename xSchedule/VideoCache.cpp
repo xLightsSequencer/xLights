@@ -136,6 +136,8 @@ VideoCache::~VideoCache()
     _cache.clear();
 }
 
+#define TIMEOUT(a) a / 2
+
 wxImage VideoCache::GetImage(const std::string& videoFile, long millisecond, int frameTime, const wxSize& size)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -143,7 +145,19 @@ wxImage VideoCache::GetImage(const std::string& videoFile, long millisecond, int
 
     millisecond = millisecond / frameTime * frameTime;
 
-    wxMilliClock_t expire = wxGetLocalTimeMillis() + frameTime / 2;
+    long lengthMS = 0;
+    {
+        std::unique_lock<std::mutex> locker(_cacheAccess);
+        lengthMS = _lengthMS[videoFile];
+
+        if (millisecond > lengthMS)
+        {
+            // we are past the end of the video
+            return wxImage(size, true);
+        }
+    }
+
+    wxMilliClock_t expire = wxGetLocalTimeMillis() + TIMEOUT(frameTime);
     while (wxGetLocalTimeMillis() < expire)
     {
         {
@@ -221,7 +235,7 @@ bool VideoCache::Cache(const std::string& videoFile, long millisecond, long dura
 
     // so we have to wait for the first frame to be there
     // wait up to half a frame time
-    wxMilliClock_t expire = wxGetLocalTimeMillis() + frameTime / 2;
+    wxMilliClock_t expire = wxGetLocalTimeMillis() + TIMEOUT(frameTime);
     while (wxGetLocalTimeMillis() < expire)
     {
         {

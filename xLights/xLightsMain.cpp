@@ -5116,6 +5116,27 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
 
             CheckEffect(ef, f, errcount, warncount, name, modelName);
         }
+
+        // This assumes effects are stored in start time order per layer
+        Effect* lastEffect = nullptr;
+        for (int k = 0; k < el->GetEffectCount(); k++)
+        {
+            Effect* ef = el->GetEffect(k);
+
+            if (lastEffect != nullptr)
+            {
+                // the start time of an effect should not be before the end of the prior effect
+                if (ef->GetStartTimeMS() < lastEffect->GetEndTimeMS())
+                {
+                    wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) overlaps with Effect %s (%s-%s) on Model '%s' layer %d. This shouldn't be possible.",
+                        ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()), lastEffect->GetEffectName(), FORMATTIME(lastEffect->GetStartTimeMS()), FORMATTIME(lastEffect->GetEndTimeMS()), j + 1, name);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+
+            lastEffect = ef;
+        }
     }
 }
 
@@ -6823,7 +6844,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         Effect* lastEffect = nullptr;
         std::string lastPhenome = "";
 
-        for (int i = 0; i < SeqData.NumFrames(); ++i)
+        for (size_t i = 0; i < SeqData.NumFrames(); ++i)
         {
             bool phenomeFound = false;
             for (auto it = face.begin(); it != face.end(); ++it)
