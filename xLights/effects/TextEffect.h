@@ -6,6 +6,7 @@
 class wxString;
 class TextDrawingContext;
 class FontManager;
+class wxImage;
 
 class TextEffect : public RenderableEffect
 {
@@ -30,8 +31,11 @@ class TextEffect : public RenderableEffect
         void SelectTextColor(std::string& palette, int index);
         void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig);
 
-        void RenderTextLine(RenderBuffer &buffer,
-                            TextDrawingContext* dc, const wxString& Line_orig, int dir,
+        wxImage *RenderTextLine(RenderBuffer &buffer,
+                            TextDrawingContext* dc,
+                            const wxString& Line_orig,
+                            const std::string &fontString,
+                            int dir,
                             bool center, int Effect, int Countdown, int tspeed,
                             int startx, int starty, int endx, int endy,
                             bool isPixelBased);

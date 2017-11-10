@@ -596,7 +596,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 int y = thelayer->buffer.Nodes[node]->Coords[0].bufY;
 
                 xlColor color;
-                if (layers[layer]->isMasked(x, y)
+                if (thelayer->isMasked(x, y)
                     || x < 0
                     || y < 0
                     || x >= thelayer->BufferWi
@@ -1379,9 +1379,9 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     y2 /= 100.0;
 
     for (size_t x = 0; x < newNodes.size(); x++) {
-        for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
-            it2->bufX -= x1;
-            it2->bufY -= y1;
+        for (auto &it2 : newNodes[x]->Coords) {
+            it2.bufX -= x1;
+            it2.bufY -= y1;
         }
     }
     bufferWi = int(std::ceil(x2 - x1));
@@ -1601,8 +1601,8 @@ static inline bool IsInRange(const std::list<NodeRange> &restrictRange, size_t s
     if (restrictRange.empty()) {
         return true;
     }
-    for (auto it = restrictRange.begin(); it != restrictRange.end(); it++) {
-        if (start >= it->start && start <= it->end) {
+    for (const auto &r : restrictRange) {
+        if (start >= r.start && start <= r.end) {
             return true;
         }
     }
@@ -1614,21 +1614,22 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::list<NodeRange
 
     if (layers[0] != nullptr) // I dont like this ... it should never be null
     {
-        for (size_t n = 0; n < layers[0]->buffer.Nodes.size(); n++) {
-            size_t start = NodeStartChannel(n);
+        for (auto &n : layers[0]->buffer.Nodes) {
+            size_t start = n->ActChan;
             if (IsInRange(restrictRange, start)) {
-                if (layers[0]->buffer.Nodes[n]->model != nullptr) // nor this
+                if (n->model != nullptr) // nor this
                 {
-                    DimmingCurve *curve = layers[0]->buffer.Nodes[n]->model->modelDimmingCurve;
+                    DimmingCurve *curve = n->model->modelDimmingCurve;
                     if (curve != nullptr) {
                         xlColor color;
-                        layers[0]->buffer.Nodes[n]->GetColor(color);
+                        n->GetColor(color);
                         curve->apply(color);
-                        layers[0]->buffer.Nodes[n]->SetColor(color);
+                        n->SetColor(color);
                     }
                 }
-                layers[0]->buffer.Nodes[n]->GetForChannels(&fdata[start]);
+                n->GetForChannels(&fdata[start]);
             }
+
         }
     }
 }
@@ -1636,21 +1637,21 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::list<NodeRange
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
     xlColor color;
-    for (size_t n = 0; n < layers[layer]->buffer.Nodes.size(); n++)
-    {
-        int start = NodeStartChannel(n);
-        layers[layer]->buffer.Nodes[n]->SetFromChannels(&fdata[start]);
-        layers[layer]->buffer.Nodes[n]->GetColor(color);
+    for (auto &n : layers[0]->buffer.Nodes) {
+        size_t start = n->ActChan;
         
-        DimmingCurve *curve = layers[layer]->buffer.Nodes[n]->model->modelDimmingCurve;
+        n->SetFromChannels(&fdata[start]);
+        n->GetColor(color);
+        
+        DimmingCurve *curve = n->model->modelDimmingCurve;
         if (curve != nullptr) {
             curve->reverse(color);
         }
+        for (auto &a : n->Coords) {
+            layers[layer]->buffer.SetPixel(a.bufX,
+                                           a.bufY,
+                                           color);
 
-        for (size_t x = 0; x < layers[layer]->buffer.Nodes[n]->Coords.size(); x++)
-        {
-            layers[layer]->buffer.SetPixel(layers[layer]->buffer.Nodes[n]->Coords[x].bufX,
-                                           layers[layer]->buffer.Nodes[n]->Coords[x].bufY, color);
         }
     }
 }

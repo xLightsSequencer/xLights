@@ -305,6 +305,7 @@ void DrawingContext::Clear() {
 
         if (AllowAlphaChannel()) {
             image->SetAlpha();
+            memset(image->GetAlpha(), wxIMAGE_ALPHA_TRANSPARENT, image->GetWidth() * image->GetHeight());
             for (wxCoord x = 0; x < image->GetWidth(); x++) {
                 for (wxCoord y = 0; y < image->GetHeight(); y++) {
                     image->SetAlpha(x, y, wxIMAGE_ALPHA_TRANSPARENT);

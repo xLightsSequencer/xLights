@@ -352,15 +352,10 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         return;
     }
 
-    xlColor c;
-    buffer.GetTextDrawingContext()->Clear();
 
-    buffer.palette.GetColor(0,c);
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
     if (text != "") {
-        std::string fontString = SettingsMap["FONTPICKER_Text_Font"];
-        SetFont(buffer.GetTextDrawingContext(),fontString,c);
 
         bool pixelOffsets = false;
         int startx = 0;
@@ -374,38 +369,43 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
         pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
 
-        RenderTextLine(buffer,
+        wxImage * i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
+                       SettingsMap["FONTPICKER_Text_Font"],
                        TextEffectDirectionsIndex(SettingsMap["CHOICE_Text_Dir"]),
                        wxAtoi(SettingsMap["CHECKBOX_TextToCenter"]),
                        TextEffectsIndex(SettingsMap["CHOICE_Text_Effect"]),
                        TextCountDownIndex(SettingsMap["CHOICE_Text_Count"]),
                        wxAtoi(SettingsMap.Get("TEXTCTRL_Text_Speed", "10")),
                        startx, starty, endx, endy, pixelOffsets);
-    }
-
-    wxImage * i = buffer.GetTextDrawingContext()->FlushAndGetImage();
-
-    bool ha = i->HasAlpha();
-    for(wxCoord x=0; x<buffer.BufferWi; x++)
-    {
-        for(wxCoord y=0; y<buffer.BufferHt; y++)
+        
+        if (i == nullptr) {
+            return;
+        }
+        xlColor c;
+        bool ha = i->HasAlpha();
+        unsigned char* data = i->GetData();
+        unsigned char* alpha = ha ? i->GetAlpha() : nullptr;
+        int w = i->GetWidth();
+        int h = i->GetHeight();
+        int cur = 0;
+        int cura = 0;
+        for(int y = h - 1; y >= 0; y--)
         {
-            if (ha) {
-                c.Set(i->GetRed(x, buffer.BufferHt-y-1),
-                      i->GetGreen(x, buffer.BufferHt-y-1),
-                      i->GetBlue(x, buffer.BufferHt-y-1),
-                      i->GetAlpha(x, buffer.BufferHt-y-1));
-            } else {
-                c.Set(i->GetRed(x, buffer.BufferHt-y-1),
-                      i->GetGreen(x, buffer.BufferHt-y-1),
-                      i->GetBlue(x, buffer.BufferHt-y-1));
-                if (c == xlBLACK) {
-                    c.alpha = 0;
+            for(int x=0; x < w; x++)
+            {
+                if (ha) {
+                    c.Set(data[cur], data[cur + 1], data[cur + 2], alpha[cura++]);
+                } else {
+                    c.Set(data[cur], data[cur + 1], data[cur + 2]);
+                    if (c == xlBLACK) {
+                        c.alpha = 0;
+                    }
                 }
+                cur += 3;
+                buffer.SetPixel(x, y, c);
             }
-            buffer.SetPixel(x,y,c);
         }
     }
 }
@@ -474,11 +474,92 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
     return wxSize(widthTextMax, heightTextTotal);
 }
 
+
+class CachedTextInfo {
+public:
+    CachedTextInfo() {}
+    CachedTextInfo(const std::string &txt, const std::string font, const xlColor &c, const wxRect &r)
+    : text(txt), rect(r), color(c), fontString(font) {}
+    ~CachedTextInfo() {}
+    
+    bool operator<(const CachedTextInfo &i) const {
+        if (text == i.text) {
+            if (fontString == i.fontString) {
+                return rect.x < i.rect.x;
+            }
+            return fontString < i.fontString;
+        }
+        return text < i.text;
+    }
+    bool operator>(const CachedTextInfo &i) const {
+        if (text == i.text) {
+            if (fontString == i.fontString) {
+                return rect.x > i.rect.x;
+            }
+            return fontString > i.fontString;
+        }
+        return text < i.text;
+    }
+    
+    std::string text;
+    wxRect rect;
+    xlColor color;
+    std::string fontString;
+};
+
+class TextRenderCache : public EffectRenderCache {
+public:
+    TextRenderCache() {};
+    virtual ~TextRenderCache() {
+        for (auto it = textCache.begin(); it != textCache.end(); ++it) {
+            delete it->second;
+        }
+    };
+    int timer_countdown;
+    wxSize synced_textsize;
+    
+    wxImage *GetImage(const CachedTextInfo &inf) {
+        return textCache[inf];
+    }
+    void PutImage(const CachedTextInfo &inf, wxImage *img) {
+        textCache[inf] = img;
+    }
+    
+    wxSize GetMultiLineTextExtent(const std::string &font, const wxString &msg) {
+        std::pair<std::string, wxString> key(font, msg);
+        auto i = textExtentCache.find(key);
+        if (i == textExtentCache.end()) {
+            return wxSize(-1, -1);
+        }
+        return i->second;
+    }
+    void PutMultiLineTextExtent(const std::string &font, const wxString &msg, const wxSize &sz) {
+        std::pair<std::string, wxString> key(font, msg);
+        textExtentCache[key] = sz;
+    }
+    
+    std::map<CachedTextInfo, wxImage*> textCache;
+    std::map<std::pair<std::string, wxString>, wxSize> textExtentCache;
+};
+
 wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
-                              const wxString& text)
+                              const wxString& text,
+                              TextRenderCache *cache,
+                              const std::string &font,
+                              bool &fontSet)
 {
-    wxCoord x,y,z;
-    return GetMultiLineTextExtent(dc, text, &x, &y, &z);
+    wxSize i = cache->GetMultiLineTextExtent(font, text);
+    if (i.x == -1 && i.y == -1) {
+        if (!fontSet) {
+            dc->Clear();
+            SetFont(dc, font, xlWHITE);
+            fontSet = true;
+        }
+        wxCoord x,y,z;
+        i = GetMultiLineTextExtent(dc, text, &x, &y, &z);
+        cache->PutMultiLineTextExtent(font, text, i);
+    }
+    return i;
 }
 
 void DrawLabel(TextDrawingContext *dc,
@@ -540,7 +621,8 @@ void DrawLabel(TextDrawingContext *dc,
                 //     wxALIGN_LEFT is 0
                 if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
                 {
-                    wxCoord widthLine = GetMultiLineTextExtent(dc, curLine).x;
+                    wxCoord x1,y1,z1;
+                    wxCoord widthLine = GetMultiLineTextExtent(dc, curLine, &x1, &y1, &z1).x;
 
                     if ( alignment & wxALIGN_RIGHT )
                     {
@@ -619,13 +701,6 @@ static wxString StripRight(wxString str, wxString pattern)
     return str;
 }
 
-class TextRenderCache : public EffectRenderCache {
-public:
-    TextRenderCache() {};
-    virtual ~TextRenderCache() {};
-    int timer_countdown;
-    wxSize synced_textsize;
-};
 
 TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
     TextRenderCache *cache = (TextRenderCache*)buffer.infoCache[id];
@@ -637,17 +712,26 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 }
 
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-void TextEffect::RenderTextLine(RenderBuffer &buffer,
-                                TextDrawingContext* dc, const wxString& Line_orig, int dir,
-                                bool center, int Effect, int Countdown, int tspeed,
-                                int startx, int starty, int endx, int endy,
-                                bool isPixelBased)
+wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
+                                    TextDrawingContext* dc,
+                                    const wxString& Line_orig,
+                                    const std::string &fontString,
+                                    int dir,
+                                    bool center, int Effect, int Countdown, int tspeed,
+                                    int startx, int starty, int endx, int endy,
+                                    bool isPixelBased)
 {
     int i;
     wxString Line = Line_orig;
     wxString msg, tempmsg;
 
-    if (Line.IsEmpty()) return;
+    if (Line.IsEmpty()) return nullptr;
+
+    
+    xlColor c;
+    buffer.palette.GetColor(0,c);
+
+    
 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
@@ -676,13 +760,18 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
             break;
     }
 
-    wxSize textsize = GetMultiLineTextExtent(dc, msg);
-    int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false)).x: 0; //CAUTION: trim() alters object, so make a copy first
-    int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true)).x: 0;
-    int extra_down = IsGoingDown(dir)? textsize.y - GetMultiLineTextExtent(dc, StripRight(msg, "\n")).y: 0;
-    int extra_up = IsGoingUp(dir)? textsize.y - GetMultiLineTextExtent(dc, StripLeft(msg, "\n")).y: 0;
+    
+    
+    TextRenderCache *cache = GetCache(buffer, id);
+    bool fontSet = false;
+    
+    wxSize textsize = GetMultiLineTextExtent(dc, msg, cache, fontString, fontSet);
+    int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false), cache, fontString, fontSet).x: 0; //CAUTION: trim() alters object, so make a copy first
+    int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true), cache, fontString, fontSet).x: 0;
+    int extra_down = IsGoingDown(dir)? textsize.y - GetMultiLineTextExtent(dc, StripRight(msg, "\n"), cache, fontString, fontSet).y: 0;
+    int extra_up = IsGoingUp(dir)? textsize.y - GetMultiLineTextExtent(dc, StripLeft(msg, "\n"), cache, fontString, fontSet).y: 0;
     //    debug(1, "size %d lstrip %d, rstrip %d, = %d, %d, text %s", dc.GetMultiLineTextExtent(msg).y, dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y, dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y, extra_down, extra_up, (const char*)StripLeft(msg, "\n"));
-    int lineh = GetMultiLineTextExtent(dc, "X").y;
+    int lineh = GetMultiLineTextExtent(dc, "X", cache, fontString, fontSet).y;
     //    wxString debmsg = msg; debmsg.Replace("\n","\\n", true);
     int xoffset=0;
     int yoffset=0;
@@ -795,61 +884,72 @@ void TextEffect::RenderTextLine(RenderBuffer &buffer,
                 rect.Offset(OffsetLeft, OffsetTop);
                 break; // static
         }
-        DrawLabel(dc, msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
-    }
-    else
-    {
-        switch (dir) {
-            case TEXTDIR_VECTOR: {
-                double position = buffer.GetEffectTimeIntervalPosition(1.0);
-                double ex = endx * buffer.BufferWi / 100;
-                double ey = -endy * buffer.BufferHt / 100;
-                if (isPixelBased) {
-                    ex = endx;
-                    ey = -endy;
-                }
-                ex = OffsetLeft + (ex - OffsetLeft) * position;
-                ey = OffsetTop + (ey - OffsetTop) * position;
-                if (TextRotation > 50) {
-                    dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2, buffer.BufferHt / 2 + ey + textsize.GetHeight() / 2, TextRotation);
-                } else if (TextRotation > 0) {
-                    dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2, buffer.BufferHt / 2 + ey + yoffset * 2, TextRotation);
-                } else if (TextRotation < -50) {
-                    dc->DrawText(msg, buffer.BufferWi / 2 + ex + txtwidth / 2, buffer.BufferHt / 2 + ey - textsize.GetHeight() / 2, TextRotation);
-                } else {
-                    dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2 + xoffset, buffer.BufferHt / 2 + ey - textsize.GetHeight() / 2, TextRotation);
-                }
-            }
-                break;
-            case TEXTDIR_LEFT:
-                dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
-                break; // left
-            case TEXTDIR_RIGHT:
-                dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation);
-                break; // right
-            case TEXTDIR_UP:
-                dc->DrawText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation);
-                break; // up
-            case TEXTDIR_DOWN:
-                dc->DrawText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation);
-                break; // down
-            case TEXTDIR_UPLEFT:
-                dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
-                break; // up-left
-            case TEXTDIR_DOWNLEFT:
-                dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation);
-                break; // down-left
-            case TEXTDIR_UPRIGHT:
-                dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
-                break; // up-right
-            case TEXTDIR_DOWNRIGHT:
-                dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation);
-                break; // down-right
-            default:
-                dc->DrawText(msg, 0, OffsetTop, TextRotation);
-                break; // static
+        CachedTextInfo inf(msg.ToStdString(), fontString, c, rect);
+        wxImage *i = GetCache(buffer,id)->GetImage(inf);
+        if (i == nullptr) {
+            buffer.GetTextDrawingContext()->Clear();
+            SetFont(buffer.GetTextDrawingContext(),fontString,c);
+            DrawLabel(dc, msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+            wxImage *i2 = buffer.GetTextDrawingContext()->FlushAndGetImage();
+            i = new wxImage(*i2);
+            GetCache(buffer,id)->PutImage(inf, i);
         }
+        return i;
     }
+    
+    buffer.GetTextDrawingContext()->Clear();
+    SetFont(buffer.GetTextDrawingContext(),fontString,c);
+    switch (dir) {
+        case TEXTDIR_VECTOR: {
+            double position = buffer.GetEffectTimeIntervalPosition(1.0);
+            double ex = endx * buffer.BufferWi / 100;
+            double ey = -endy * buffer.BufferHt / 100;
+            if (isPixelBased) {
+                ex = endx;
+                ey = -endy;
+            }
+            ex = OffsetLeft + (ex - OffsetLeft) * position;
+            ey = OffsetTop + (ey - OffsetTop) * position;
+            if (TextRotation > 50) {
+                dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2, buffer.BufferHt / 2 + ey + textsize.GetHeight() / 2, TextRotation);
+            } else if (TextRotation > 0) {
+                dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2, buffer.BufferHt / 2 + ey + yoffset * 2, TextRotation);
+            } else if (TextRotation < -50) {
+                dc->DrawText(msg, buffer.BufferWi / 2 + ex + txtwidth / 2, buffer.BufferHt / 2 + ey - textsize.GetHeight() / 2, TextRotation);
+            } else {
+                dc->DrawText(msg, buffer.BufferWi / 2 + ex - txtwidth / 2 + xoffset, buffer.BufferHt / 2 + ey - textsize.GetHeight() / 2, TextRotation);
+            }
+        }
+            break;
+        case TEXTDIR_LEFT:
+            dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
+            break; // left
+        case TEXTDIR_RIGHT:
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation);
+            break; // right
+        case TEXTDIR_UP:
+            dc->DrawText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up
+        case TEXTDIR_DOWN:
+            dc->DrawText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation);
+            break; // down
+        case TEXTDIR_UPLEFT:
+            dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up-left
+        case TEXTDIR_DOWNLEFT:
+            dc->DrawText(msg, buffer.BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            break; // down-left
+        case TEXTDIR_UPRIGHT:
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up-right
+        case TEXTDIR_DOWNRIGHT:
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            break; // down-right
+        default:
+            dc->DrawText(msg, 0, OffsetTop, TextRotation);
+            break; // static
+    }
+    return buffer.GetTextDrawingContext()->FlushAndGetImage();
 }
 
 void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig)
