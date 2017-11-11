@@ -193,7 +193,6 @@ void handleCrash(void *data) {
 
     if (xScheduleFrame::GetScheduleManager() != nullptr)
     {
-        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
         wxFileName fn(xScheduleFrame::GetScheduleManager()->GetShowDir(), OutputManager::GetNetworksFileName());
         if (fn.Exists()) {
             report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
@@ -203,6 +202,28 @@ void handleCrash(void *data) {
             report->AddFile(wxFileName(xScheduleFrame::GetScheduleManager()->GetShowDir(), ScheduleManager::GetScheduleFile()).GetFullPath(), ScheduleManager::GetScheduleFile());
         }
     }
+
+    wxString trace = wxString::Format("xSchedule version %s %s\n\n", xlights_version_string, GetBitness());
+
+#ifndef __WXMSW__
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    for (i = 0; i < frames; ++i) {
+        trace += strs[i];
+        trace += "\n";
+    }
+    free(strs);
+#else
+    trace += windows_get_stacktrace(data);
+#endif
+
+    int id = (int)wxThread::GetCurrentId();
+    trace += wxString::Format("\nCrashed thread id: %X\n", id);
+
+    logger_base.crit(trace);
+
+    report->AddText("backtrace.txt", trace, "Backtrace");
 
     wxString dir;
 #ifdef __WXMSW__
@@ -232,27 +253,11 @@ void handleCrash(void *data) {
         report->AddFile(wxFileName(wxGetCwd(), "xSchedule_l4cpp.log").GetFullPath(), "xSchedule_l4cpp.log");
     }
 
-    wxString trace = wxString::Format("xSchedule version %s %s\n\n", xlights_version_string, GetBitness());
-
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    for (i = 0; i < frames; ++i) {
-        trace += strs[i];
-        trace += "\n";
+    if (xScheduleFrame::GetScheduleManager() != nullptr)
+    {
+        xScheduleFrame::GetScheduleManager()->CheckScheduleIntegrity(false);
     }
-    free(strs);
-#else
-    trace += windows_get_stacktrace(data);
-#endif
 
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: %X\n", id);
-
-    logger_base.crit(trace);
-
-    report->AddText("backtrace.txt", trace, "Backtrace");
     if (!wxThread::IsMain() && topFrame != nullptr) {
         topFrame->CallAfter(&xScheduleFrame::CreateDebugReport, report);
         wxSleep(600000);

@@ -289,6 +289,15 @@ long AudioData::Tell()
 
 void AudioData::Seek(long ms)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if ((((Uint64)ms * _rate * 2 * 2) / 1000) > (Uint64)_original_len)
+    {
+        // I am not super sure about this
+        logger_base.warn("Attempt to seek past the end of the loaded audio. Seeking to 0ms instead. Seek to %ldms. Length %ldms.", ms, (long)(((Uint64)_original_len * 1000) / ((Uint64)_rate * 2 * 2)));
+        ms = 0;
+    }
+
     _audio_len = (long)((Uint64)_original_len - (((Uint64)ms * _rate * 2 * 2) / 1000));
     _audio_len -= _audio_len % 4;
 
@@ -296,7 +305,6 @@ void AudioData::Seek(long ms)
 
     _audio_pos = _original_pos + (_original_len - _audio_len);
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Seeking to %ldMS ... calculated audio_len: %ld", ms, _audio_len);
 }
 
