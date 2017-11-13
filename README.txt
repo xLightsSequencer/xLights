@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.36  Nov 13, 2017
    -- enh (dkulp)   Add multicolor suppport for non-rotated text
    -- enh (dkulp)   Allow user to change number of universes in an e131 multi universe output
    -- bug (scotth)  Remove layer count from group lines in preset list
