@@ -11,10 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Add multicolor suppport for non-rotated text
+   -- enh (dkulp)   Allow user to change number of universes in an e131 multi universe output
+   -- bug (scotth)  Remove layer count from group lines in preset list
    -- bug (gil)     Fix motion positions for XL fonts in Text effect.
-   -- enh (keith)   Move video reading to a separate thread ... should make video performance more reliable but will use lots of memory
+   -- enh (keith)   Move xSchedule video reading to a separate thread ... should make video performance more reliable but will use 
+                    more of memory
    -- enh (keith)   Add packets per second display to scheduler UI
    -- bug (keith)   Strip duplicate test presets on load ... not sure how they got there but dont load them.
+   -- enh (keith)   Add to check sequence check for overlapping effects ... these should not be possible but I have seen some sequences
+                    where is has happened.
 2017.35  Nov 05, 2017
    -- enh (cjd)     Update checker for Linux and OSX
    -- enh (dkulp)   Set the thread name to the Model name it is rendering, makes it easier to find the right thread in the debugger
