@@ -1446,26 +1446,25 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette;
     std::string effectText = GetEffectTextFromWindows(palette);
-    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
-    {
+    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-        for(int j=0;j< el->GetEffectCount();j++)
-        {
-            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
-            {
+        
+        int startms = 99999999;
+        int endms = -1;
+        for(int j=0;j< el->GetEffectCount();j++) {
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 el->GetEffect(j)->SetPalette(palette);
-
-                if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
-                {
-                    playType = PLAY_TYPE_EFFECT;
-                    playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
-                    playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
-                    playStartMS = -1;
-                    RenderEffectForModel(element->GetModelName(),playStartTime,playEndTime);
-                }
+                startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
+                endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
             }
         }
+        if(startms <= endms) {
+            playType = PLAY_TYPE_EFFECT;
+            playStartMS = -1;
+            RenderEffectForModel(element->GetModelName(),startms,endms);
+        }
+
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
@@ -1477,28 +1476,29 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
-    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++)
-    {
+    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-        for(int j=0;j< el->GetEffectCount();j++)
-        {
-            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
-            {
+        
+        int startms = 99999999;
+        int endms = -1;
+
+        for(int j=0;j< el->GetEffectCount();j++) {
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
                 el->GetEffect(j)->SetSettings(effectText, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
                 el->GetEffect(j)->SetEffectName(effectName);
                 el->GetEffect(j)->SetPalette(palette);
-
-                if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
-                {
-                    playType = PLAY_TYPE_EFFECT;
-                    playStartTime = (int)(el->GetEffect(j)->GetStartTimeMS());
-                    playEndTime = (int)(el->GetEffect(j)->GetEndTimeMS());
-                    playStartMS = -1;
-                    RenderEffectForModel(element->GetModelName(),playStartTime,playEndTime);
-                }
+                
+                startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
+                endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
             }
+        }
+        
+        if(startms <= endms) {
+            playType = PLAY_TYPE_EFFECT;
+            playStartMS = -1;
+            RenderEffectForModel(element->GetModelName(),startms,endms);
         }
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();

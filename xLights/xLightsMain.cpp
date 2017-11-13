@@ -6944,7 +6944,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
       #ifdef  __WXOSX_MAC__
         wxString hostname = _T("dankulp.com");
         wxString path = _T("/xLightsLatest.php");
-        wxString downloadUrl =  wxT("https://dankulp.com/xlights/");
+        wxString downloadUrl =  wxT("http://dankulp.com/xlights/");
         MenuItem_Update->Enable(true);
       #else
         wxString hostname = _T("xlights.org");
