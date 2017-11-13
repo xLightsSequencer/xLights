@@ -354,6 +354,7 @@
 		67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */; };
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
+		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -1228,6 +1229,8 @@
 		67C581571E4B95CA00932DFA /* PlayListItemText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemText.h; path = PlayList/PlayListItemText.h; sourceTree = "<group>"; };
 		67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTextPanel.cpp; path = PlayList/PlayListItemTextPanel.cpp; sourceTree = "<group>"; };
 		67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTextPanel.h; path = PlayList/PlayListItemTextPanel.h; sourceTree = "<group>"; };
+		67C78D091FBA2A4900B82E48 /* VideoCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoCache.cpp; sourceTree = "<group>"; };
+		67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoCache.h; sourceTree = "<group>"; };
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
@@ -2376,6 +2379,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67C78D091FBA2A4900B82E48 /* VideoCache.cpp */,
+				67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */,
 				67FFB8171FA3F65D007F9FBB /* Control.h */,
 				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
 				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
@@ -3087,6 +3092,7 @@
 				67DA0AFB1E39C8EB00E2A859 /* OutputProcessDim.cpp in Sources */,
 				67F2402B1E32A0C900F8B985 /* kfc.c in Sources */,
 				67F2402C1E32A0C900F8B985 /* kiss_fft.c in Sources */,
+				67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */,
 				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
