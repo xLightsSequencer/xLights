@@ -44,11 +44,19 @@ public:
             if (Run() != wxTHREAD_NO_ERROR)
             {
                 logger_base.error("Failed to start video reading thread for %s (%dx%d)", (const char *)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
+                delete _videoReader;
+                _videoReader = nullptr;
             }
         }
         else
         {
             logger_base.error("Video reading thread not started for %s (%dx%d) because video could not be opened.", (const char *)_videoFile.c_str(), size.GetWidth(), size.GetHeight());
+
+            if (_videoReader != nullptr)
+            {
+                delete _videoReader;
+                _videoReader = nullptr;
+            }
         }
     }
     virtual ~CVRThread()
@@ -77,6 +85,10 @@ public:
             _videoReader = nullptr;
         }
     }
+    bool IsOk()
+    {
+        return _videoReader != nullptr;
+    }
     void Stop()
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -85,6 +97,7 @@ public:
         std::unique_lock<std::mutex> mutLock(_access);
         _signal.notify_all();
     }
+
     virtual void* Entry() override
     {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -128,6 +141,12 @@ public:
             }
         }
 
+        if (_videoReader != nullptr)
+        {
+            delete _videoReader;
+            _videoReader = nullptr;
+        }
+
         _running = false;
 
         logger_base.debug("Video reading thread %s (%dx%d) stopped", (const char *)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
@@ -144,7 +163,13 @@ public:
 
 CachedVideoReader::~CachedVideoReader()
 {
-    _thread->Stop();
+    if (_thread != nullptr)
+    {
+        _thread->Stop();
+        // threads delete themselves when stopped
+        //delete _thread;
+        //_thread = nullptr;
+    }
 
     std::unique_lock<std::mutex> locker(_cacheAccess);
     _cache.clear();
@@ -254,4 +279,9 @@ CachedVideoReader::CachedVideoReader(const std::string& videoFile, long startMil
     _size = size;
     _lengthMS = 0;
     _thread = new CVRThread(this, _maxItems, _videoFile, startMillisecond, _frameTime, _size, keepAspectRatio);
+    if (!_thread->IsOk())
+    {
+        delete _thread;
+        _thread = nullptr;
+    }
 }

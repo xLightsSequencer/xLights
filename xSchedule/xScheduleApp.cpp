@@ -219,7 +219,7 @@ void handleCrash(void *data) {
 #endif
 
     int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: %X\n", id);
+    trace += wxString::Format("\nCrashed thread id: 0x%X or %d\n", id, id);
 
     logger_base.crit(trace);
 
