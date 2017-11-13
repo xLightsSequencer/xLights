@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <array>
+#include <unordered_map>
 
 #include "TextPanel.h"
 #include <wx/checkbox.h>
