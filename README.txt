@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.37  Nov 14, 2017
+   -- enh (dkulp) If dimming curve would map to identity, remove it to avoid the extra processing it entails
+   -- enh (keith) Add ESCAPE key abort generate custom model scanning.
+   -- enh (keith) Prevent corruption of face info in rgbeffects
+   -- enh (keith) Add artnet to fpp connect upload
+   -- enh (dkulp) Fix Text effect crash on Windows only if mulitple colors are selected.  Fixes #982
+   -- enh (dkulp) If updating the palette of settings of a LOT of effects, aggregate the render events.  
+                  Speeds it up a lot.
 2017.36  Nov 13, 2017
    -- enh (dkulp)   Add multicolor suppport for non-rotated text
    -- enh (dkulp)   Allow user to change number of universes in an e131 multi universe output
