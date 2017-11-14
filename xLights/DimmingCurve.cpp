@@ -17,6 +17,15 @@ public:
         }
     }
     virtual ~BaseDimmingCurve() {}
+    
+    bool isIdentity() {
+        for (int x = 0; x < 256; x++) {
+            if (data[x] != x) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     void fixupReverseData(std::vector<bool> &done) {
         int lastIdx = 0;
@@ -110,15 +119,25 @@ public:
     virtual ~BasicDimmingCurve() {}
 
     void init(int brightness, float gamma) {
+        float maxB = brightness + 100;
+        maxB /= 100.0;
+        maxB *= 255.0;
+        
         std::vector<bool> done(256);
         for (int x = 128; x < 256; x++) {
             float i = x;
-            i = i * float(brightness + 100) / 100.0;
-            i = 255 * pow(i / 255.0, gamma);
+            if (maxB == 0.0f) {
+                i = 0;
+            } else {
+                i = maxB * pow(i / 255.0f, gamma);
+            }
             if (i > 255) {
                 i = 255;
             }
             if (i < 0) {
+                i = 0;
+            }
+            if (i == NAN) {
                 i = 0;
             }
             data[x] = i;
@@ -127,8 +146,11 @@ public:
         }
         for (int x = 127; x >= 0; x--) {
             float i = x;
-            i = i * float(brightness + 100) / 100.0;
-            i = 255 * pow(i / 255.0, gamma);
+            if (maxB == 0.0f) {
+                i = 0;
+            } else {
+                i = maxB * pow(i / 255.0f, gamma);
+            }
             if (i > 255) {
                 i = 255;
             }
@@ -226,17 +248,28 @@ static const std::string &validate(const std::string &in, const std::string &def
     }
     return in;
 }
-DimmingCurve *createCurve(wxXmlNode *dc, int channel = -1) {
-    if (dc->HasAttribute("filename")) {
-        wxString fn = dc->GetAttribute("filename");
+DimmingCurve *createCurve(wxXmlNode *dcn, int channel = -1) {
+    DimmingCurve *dc = nullptr;
+    if (dcn->HasAttribute("filename")) {
+        wxString fn = dcn->GetAttribute("filename");
         if (wxFile::Exists(fn)) {
-            return new FileDimmingCurve(fn);
+            FileDimmingCurve *fdc = new FileDimmingCurve(fn);
+            if (fdc->isIdentity()) {
+                delete fdc;
+            } else {
+                dc = fdc;
+            }
         }
     } else {
-        return new BasicDimmingCurve(stoi(validate(dc->GetAttribute("brightness", "0").ToStdString(), "0")),
-                                     stod(validate(dc->GetAttribute("gamma", "1.0").ToStdString(), "1.0")));
+        BasicDimmingCurve *bdc = new BasicDimmingCurve(stoi(validate(dcn->GetAttribute("brightness", "0").ToStdString(), "0")),
+                                                       stod(validate(dcn->GetAttribute("gamma", "1.0").ToStdString(), "1.0")));
+        if (bdc->isIdentity()) {
+            delete bdc;
+        } else {
+            dc = bdc;
+        }
     }
-    return nullptr;
+    return dc;
 }
 
 DimmingCurve *DimmingCurve::createFromXML(wxXmlNode *node) {

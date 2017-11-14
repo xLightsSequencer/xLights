@@ -1302,6 +1302,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     wxXmlNode *f = ModelNode->GetChildren();
     faceInfo.clear();
     stateInfo.clear();
+    wxXmlNode * dimmingCurveNode = nullptr;
     while (f != nullptr) {
         if ("faceInfo" == f->GetName()) {
             ParseFaceInfo(f, faceInfo);
@@ -1310,6 +1311,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
             ParseStateInfo(f, stateInfo);
         }
         else if ("dimmingCurve" == f->GetName()) {
+            dimmingCurveNode = f;
             modelDimmingCurve = DimmingCurve::createFromXML(f);
         }
         else if ("subModel" == f->GetName()) {
@@ -1323,6 +1325,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
         if (b != 0) {
             modelDimmingCurve = DimmingCurve::createBrightnessGamma(b, 1.0);
         }
+    }
+    if (modelDimmingCurve == nullptr && dimmingCurveNode != nullptr) {
+        ModelNode->RemoveChild(dimmingCurveNode);
     }
     IncrementChangeCount();
 }
