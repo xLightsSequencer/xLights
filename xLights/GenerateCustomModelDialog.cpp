@@ -1178,7 +1178,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     // scan first STARTSCANSECS seconds of video build a list of average frame brightnesses
     _overallaveragebrightness = 0.0;
     int samples = 0;
-    for (int ms = start; ms < STARTSCANSECS * 1000; ms+=FRAMEMS)
+    for (int ms = start; ms < STARTSCANSECS * 1000 && !wxGetKeyState(WXK_ESCAPE); ms+=FRAMEMS)
     {
         wxImage img1 = CreateImageFromFrame(vr->GetNextFrame(ms)).Copy();
         ShowImage(img1);
@@ -1634,7 +1634,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             wxImage frame;
 
             int sincefound = 0;
-            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT)
+            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT && !wxGetKeyState(WXK_ESCAPE))
             {
                 Gauge_Progress->SetValue((currentTime * 100) / _vr->GetLengthMS());
                 logger_gcm.info("   Looking for frame at %d for node %d.", currentTime, n);
