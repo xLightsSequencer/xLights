@@ -516,6 +516,7 @@ void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &exte
     } else {
         wxArrayInt sizes;
         dc->GetPartialTextExtents(msg, sizes);
+        extents.resize(sizes.size());
         for (int x = 0; x < sizes.size(); x++) {
             extents[x] = sizes[x];
         }
