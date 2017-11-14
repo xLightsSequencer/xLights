@@ -258,15 +258,14 @@ std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int
 
         for (auto it = outputs.begin(); it != outputs.end(); ++it)
         {
+            int c = (*it)->GetStartChannel();
+            if (onebased)
+            {
+                c = onebasedcount;
+            }
+
             if ((*it)->GetType() == OUTPUT_E131)
             {
-                int c = (*it)->GetStartChannel();
-
-                if (onebased)
-                {
-                    c = onebasedcount;
-                }
-
                 if ((*it)->GetIP() == "MULTICAST")
                 {
                     universes.Write("1," + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%i"), (*it)->GetChannels()).ToStdString() + ",0,,\r\n");
@@ -275,6 +274,11 @@ std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int
                 {
                     universes.Write("1," + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%i"), (*it)->GetChannels()).ToStdString() + ",1," + (*it)->GetIP() + ",\r\n");
                 }
+                onebasedcount += (*it)->GetChannels();
+            }
+            else if ((*it)->GetType() == OUTPUT_ARTNET)
+            {
+                universes.Write("1," + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%i"), (*it)->GetChannels()).ToStdString() + ",3," + (*it)->GetIP() + ",\r\n");
                 onebasedcount += (*it)->GetChannels();
             }
         }
