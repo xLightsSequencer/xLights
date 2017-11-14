@@ -933,9 +933,16 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             e = "Closed";
         }
         std::string key = "Mouth-" + phoneme + "-Eyes";
-        std::string picture = model_info->faceInfo[definition][key + e];
+        std::string picture = "";
+        if (model_info->faceInfo[definition].find(key + e) != model_info->faceInfo[definition].end())
+        {
+            picture = model_info->faceInfo[definition][key + e];
+        }
         if (picture == "" && e == "Closed") {
-            picture = model_info->faceInfo[definition][key + "Open"];
+            if (model_info->faceInfo[definition].find(key + "Open") != model_info->faceInfo[definition].end())
+            {
+                picture = model_info->faceInfo[definition][key + "Open"];
+            }
         }
         std::string i = "none"; /*RENDER_PICTURE_NONE*/
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
