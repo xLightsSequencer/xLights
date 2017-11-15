@@ -817,7 +817,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     UpdateProgress(pd, totaltime);
 
     // then in turn each node on for 0.5 seconds ... all off for 0.2 seconds
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < count && !wxGetKeyState(WXK_ESCAPE); i++)
     {
         SetBulbs(nodes, count, startch, i, NODEON, intensity);
         UpdateProgress(pd, totaltime);
