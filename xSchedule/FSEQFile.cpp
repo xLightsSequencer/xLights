@@ -25,7 +25,7 @@ FSEQFile::FSEQFile(const std::string& filename)
 {
     _audiofilename = "";
     _channelsPerFrame = 0;
-    _filename = filename;
+    _filename = FixFile("", filename);
     _frameMS = 0;
     _frames = 0;
     _fh = nullptr;
@@ -99,8 +99,8 @@ void FSEQFile::Load(const std::string& filename)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     Close();
 
-    _filename = filename;
-    _fh = new wxFile(filename);
+    _filename = FixFile("", filename);
+    _fh = new wxFile(FixFile("", _filename));
 
     if (_fh->IsOpened())
     {
@@ -138,18 +138,18 @@ void FSEQFile::Load(const std::string& filename)
             }
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
-            logger_base.info("FSEQ file %s opened.", (const char *)filename.c_str());
+            logger_base.info("FSEQ file %s opened.", (const char *)_filename.c_str());
             _ok = true;
         }
         else
         {
-            logger_base.error("FSEQ file %s format does not look valid.", (const char *)filename.c_str());
+            logger_base.error("FSEQ file %s format does not look valid.", (const char *)_filename.c_str());
             Close();
         }
     }
     else
     {
-        logger_base.error("FSEQ file %s could not be opened.", (const char *)filename.c_str());
+        logger_base.error("FSEQ file %s could not be opened.", (const char *)_filename.c_str());
         Close();
     }
 }

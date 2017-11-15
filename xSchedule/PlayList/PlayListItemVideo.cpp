@@ -9,6 +9,7 @@
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -42,6 +43,7 @@ void PlayListItemVideo::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _videoFile = node->GetAttribute("VideoFile", "");
+    _videoFile = FixFile("", _videoFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");

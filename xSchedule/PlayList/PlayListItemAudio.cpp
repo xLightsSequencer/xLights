@@ -4,6 +4,7 @@
 #include "PlayListItemAudioPanel.h"
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemAudio::PlayListItemAudio(wxXmlNode* node) : PlayListItem(node)
 {
@@ -20,6 +21,7 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     PlayListItem::Load(node);
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _audioFile = node->GetAttribute("AudioFile", "");
+    _audioFile = FixFile("", _audioFile);
 
     if (_fastStartAudio)
     {

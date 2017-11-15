@@ -10,6 +10,7 @@
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
@@ -135,6 +136,7 @@ void PlayListItemFSEQVideo::LoadAudio()
 
 void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFiles();
 
     if (wxFile::Exists(_fseqFileName))
@@ -143,6 +145,10 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
         _fseqFile->Load(_fseqFileName);
         _msPerFrame = _fseqFile->GetFrameMS();
         _durationMS = _fseqFile->GetLengthMS();
+    }
+    else
+    {
+        logger_base.error("FSEQ: File does not exist. %s", (const char *)_fseqFileName.c_str());
     }
 
     if (_cacheVideo && doCache)
@@ -212,8 +218,10 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIFSEQVideo");
 
     node->AddAttribute("FSEQFile", _fseqFileName);
+    _fseqFileName = FixFile("", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
     node->AddAttribute("VideoFile", _videoFile);
+    _videoFile = FixFile("", _videoFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
@@ -420,14 +428,17 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
                 _audioManager->Play(0, _audioManager->LengthMS());
             }
 
-            if (_channels > 0)
+            if (_fseqFile != nullptr)
             {
-                wxASSERT(_startChannel > 0);
-                _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, _startChannel - 1, _channels);
-            }
-            else
-            {
-                _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, 0, 0);
+                if (_channels > 0)
+                {
+                    wxASSERT(_startChannel > 0);
+                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, _startChannel - 1, _channels);
+                }
+                else
+                {
+                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, 0, 0);
+                }
             }
         }
         _currentFrame++;

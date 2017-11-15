@@ -2,6 +2,7 @@
 #include "wx/xml/xml.h"
 #include <wx/notebook.h>
 #include "PlayListItemESEQPanel.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemESEQ::PlayListItemESEQ(wxXmlNode* node) : PlayListItem(node)
 {
@@ -50,6 +51,7 @@ wxXmlNode* PlayListItemESEQ::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIESEQ");
 
     node->AddAttribute("ESEQFile", _ESEQFileName);
+    _ESEQFileName = FixFile("", _ESEQFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
 
     PlayListItem::Save(node);

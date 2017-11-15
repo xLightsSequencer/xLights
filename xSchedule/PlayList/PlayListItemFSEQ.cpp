@@ -4,6 +4,7 @@
 #include "PlayListItemFSEQPanel.h"
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
 {
@@ -25,7 +26,9 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _fseqFileName = node->GetAttribute("FSEQFile", "");
+    _fseqFileName = FixFile("", _fseqFileName);
     _audioFile = node->GetAttribute("AudioFile", "");
+    _audioFile = FixFile("", _audioFile);
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");

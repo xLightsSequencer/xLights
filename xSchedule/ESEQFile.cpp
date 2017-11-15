@@ -2,6 +2,7 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <log4cpp/Category.hh>
+#include "../xLights/UtilFunctions.h"
 
 ESEQFile::ESEQFile()
 {
@@ -19,13 +20,13 @@ ESEQFile::ESEQFile(const std::string& filename)
 {
     _offset = 0;
     _channelsPerFrame = 0;
-    _filename = filename;
+    _filename = FixFile("", filename);
     _frames = 0;
     _fh = nullptr;
     _frameBuffer = nullptr;
     _frame0Offset = 0;
     _ok = true;
-    Load(filename);
+    Load(_filename);
 }
 
 ESEQFile::~ESEQFile()
@@ -97,8 +98,8 @@ void ESEQFile::Load(const std::string& filename)
 
     Close();
 
-    _filename = filename;
-    _fh = new wxFile(filename);
+    _filename = FixFile("", filename);
+    _fh = new wxFile(_filename);
 
     if (_fh->IsOpened())
     {
@@ -115,20 +116,20 @@ void ESEQFile::Load(const std::string& filename)
             //_frames = ReadInt32(_fh);
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
-            wxFileName fn(filename);
+            wxFileName fn(_filename);
             _frames = (size_t)(fn.GetSize().ToULong() - _frame0Offset) / _channelsPerFrame;
 
-            logger_base.info("ESEQ file %s opened.", (const char *)filename.c_str());
+            logger_base.info("ESEQ file %s opened.", (const char *)_filename.c_str());
         }
         else
         {
-            logger_base.error("ESEQ file %s format does not look valid.", (const char *)filename.c_str());
+            logger_base.error("ESEQ file %s format does not look valid.", (const char *)_filename.c_str());
             Close();
         }
     }
     else
     {
-        logger_base.error("ESEQ file %s could not be opened.", (const char *)filename.c_str());
+        logger_base.error("ESEQ file %s could not be opened.", (const char *)_filename.c_str());
         Close();
     }
 }

@@ -1,6 +1,7 @@
 #include "VideoCache.h"
 #include "../xLights/VideoReader.h"
 #include <log4cpp/Category.hh>
+#include "../xLights/UtilFunctions.h"
 
 //#define VIDEO_EXTRALOGGING
 
@@ -205,7 +206,7 @@ wxImage CachedVideoReader::GetNextFrame(long ms)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (ms > _lengthMS)
+    if (_thread == nullptr || ms > _lengthMS)
     {
         return wxImage(_size);
     }
@@ -275,7 +276,7 @@ CachedVideoReader::CachedVideoReader(const std::string& videoFile, long startMil
 {
     _maxItems = CALCCACHESIZE(frameTime);
     _frameTime = frameTime;
-    _videoFile = videoFile;
+    _videoFile = FixFile("", videoFile);
     _size = size;
     _lengthMS = 0;
     _thread = new CVRThread(this, _maxItems, _videoFile, startMillisecond, _frameTime, _size, keepAspectRatio);
