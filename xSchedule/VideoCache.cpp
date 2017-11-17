@@ -101,10 +101,10 @@ public:
 
     virtual void* Entry() override
     {
+        _running = true;
+
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.debug("Video reading thread %s (%dx%d) started", (const char *)_videoFile.c_str(), _size.GetWidth(), _size.GetHeight());
-
-        _running = true;
 
         int lastStart = -1;
 
