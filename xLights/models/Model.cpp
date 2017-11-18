@@ -381,6 +381,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("4 Channel RGBW");
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
+        NODE_TYPES.push_back("Single Color Intensity");
     }
 
     LAYOUT_GROUPS.clear();
@@ -466,10 +467,10 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     p->GetCell(0).SetFgCol(*wxBLACK);
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
-        i = NODE_TYPES.size() - 1;
+        i = NODE_TYPES.size() - 2;
     }
     grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
-    if (i == NODE_TYPES.size() - 1)  {
+    if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2)  {
         //get the color
         wxColor v;
         if (StringType=="Single Color Red") {
@@ -480,7 +481,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
             v = *wxBLUE;
         } else if (StringType=="Single Color White" || StringType == "W") {
             v = *wxWHITE;
-        } else if (StringType=="Single Color Custom") {
+        } else if (StringType=="Single Color Custom" || StringType=="Single Color Intensity") {
             v = customColor.asWxColor();
         } else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
@@ -620,12 +621,15 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
-        if (i == NODE_TYPES.size() - 1) {
+        if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2) {
             wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
             wxString tp = GetColorString(p, c);
+			if (NODE_TYPES[i] == "Single Color Intensity") {
+				tp = "Single Color Intensity";
+			}
             p->Enable();
-            if (tp == "Single Color Custom") {
+            if (tp == "Single Color Custom" || tp == "Single Color Intensity") {
                 ModelXml->DeleteAttribute("CustomColor");
                 xlColor xc = c;
                 ModelXml->AddAttribute("CustomColor", xc);
@@ -1008,7 +1012,7 @@ bool Model::IsValidStartChannelString() const
     }
     else if (parts[0][0] == '>' || parts[0][0] == '@')
     {
-        if ((parts.size() == 2) && 
+        if ((parts.size() == 2) &&
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             // dont bother checking the model name ... other processes will check for that
@@ -1461,7 +1465,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
         // universe:channel
         long startChannel;
         Output* output = outputManager->GetOutput(lastChannel, startChannel);
-        
+
         if (output == nullptr) {
             return wxString::Format("%u", lastChannel).ToStdString();
         }
@@ -1936,6 +1940,11 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
         } else if (StringType=="Single Color Custom") {
             for(n=0; n<NumStrings; n++) {
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n,NodesPerString, customColor, GetNextName())));
+                Nodes.back()->model = this;
+            }
+        } else if (StringType=="Single Color Intensity") {
+            for(n=0; n<NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassIntensity(n,NodesPerString, customColor, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="4 Channel RGBW") {

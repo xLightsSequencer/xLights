@@ -37,7 +37,7 @@ public:
         unsigned short bufX, bufY;
         float screenX, screenY;
     };
-    
+
     unsigned int ActChan = 0;   // 0 is the first channel
     unsigned short sparkle;
     unsigned short StringNum; // node is part of this string (0 is the first string)
@@ -88,7 +88,7 @@ public:
             name = nullptr;
         }
     }
-    
+
     virtual NodeBaseClass *clone() const {
         return new NodeBaseClass(*this);
     }
@@ -124,7 +124,7 @@ public:
         }
     }
     virtual const std::string &GetNodeType() const;
-    
+
     unsigned int GetChanCount() const {
         return chanCnt;
     }
@@ -179,7 +179,7 @@ public:
     static const std::string GRB;
     static const std::string BRG;
     static const std::string BGR;
-    
+
     static const std::string EMPTY_STR;
 };
 
@@ -262,7 +262,7 @@ public:
         _maskColor = c;
     }
     NodeClassCustom(const NodeClassCustom &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
-    
+
     void SetCustomColor(xlColor& c)
     {
         hsv = c.asHSV();
@@ -279,7 +279,7 @@ public:
     virtual const std::string &GetNodeType() const override {
         return type;
     }
-    
+
     virtual void SetColor(const xlColor& color) override {
         HSVValue hsv2 = color.asHSV();
 
@@ -295,6 +295,50 @@ public:
     }
     virtual NodeBaseClass *clone() const override {
         return new NodeClassCustom(*this);
+    }
+private:
+    HSVValue hsv;
+    std::string type;
+};
+
+class NodeClassIntensity : public NodeBaseClass
+{
+public:
+    NodeClassIntensity(int StringNumber, size_t NodesPerString, const xlColor &c, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    {
+        chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+        offsets[0] = 0;
+        offsets[1] = offsets[2] = 255;
+        SetName(n);
+        hsv = c.asHSV();
+        type = c;
+        _maskColor = c;
+    }
+    NodeClassIntensity(const NodeClassIntensity &c) : NodeBaseClass(c), hsv(c.hsv), type(c.type) {}
+
+    void SetCustomColor(xlColor& c)
+    {
+        hsv = c.asHSV();
+        type = c;
+    }
+
+    virtual void GetColor(xlColor& color) const override {
+        HSVValue hsv2 = hsv;
+        hsv2.value=c[0];
+        hsv2.value /= 255.0;
+        color = hsv2;
+    }
+
+    virtual const std::string &GetNodeType() const override {
+        return type;
+    }
+
+    virtual void SetColor(const xlColor& color) override {
+        HSVValue hsv2 = color.asHSV();
+        c[0]=hsv2.value * 255.0;
+    }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassIntensity(*this);
     }
 private:
     HSVValue hsv;
