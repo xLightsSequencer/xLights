@@ -61,9 +61,9 @@ public:
     virtual bool Done() const { return false; }
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     virtual std::string GetSyncItemFSEQ() const { return ""; }
-    virtual std::string GetSyncItemMedia() const { return ""; }
+    virtual std::string GetSyncItemMedia() { return ""; }
     virtual std::string GetTitle() const = 0;
-    virtual std::list<std::string> GetMissingFiles() const { return std::list<std::string>(); }
+    virtual std::list<std::string> GetMissingFiles() { return std::list<std::string>(); }
     virtual long GetFSEQChannels() const { return 0; }
     #pragma endregion Getters and Setters
 

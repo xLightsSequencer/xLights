@@ -14,15 +14,15 @@ wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = f
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
 wxString base64_encode(SequenceData& SeqData);
-inline int rountTo4(int i) {
-    int remainder = i % 4;
+inline long roundTo4(long i) {
+    long remainder = i % 4;
     if (remainder == 0) {
         return i;
     }
     return i + 4 - remainder;
 }
 
-inline int rountTo16(int i) {
+inline int roundTo16(int i) {
     int remainder = i % 16;
     if (remainder == 0) {
         return i;

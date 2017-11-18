@@ -23,11 +23,11 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     _audioFile = node->GetAttribute("AudioFile", "");
     _audioFile = FixFile("", _audioFile);
 
-    if (_fastStartAudio)
-    {
-        LoadFiles();
-    }
-    else
+    //if (_fastStartAudio)
+    //{
+    //    LoadFiles();
+    //}
+    //else
     {
         FastSetDuration();
     }
@@ -110,6 +110,17 @@ PlayListItemAudio::PlayListItemAudio() : PlayListItem()
     _audioManager = nullptr;
 }
 
+PlayListItemAudio::~PlayListItemAudio()
+{
+    CloseFiles();
+
+    if (_audioManager != nullptr)
+    {
+        delete _audioManager;
+        _audioManager = nullptr;
+    }
+}
+
 PlayListItem* PlayListItemAudio::Copy() const
 {
     PlayListItemAudio* res = new PlayListItemAudio();
@@ -118,6 +129,11 @@ PlayListItem* PlayListItemAudio::Copy() const
     res->_controlsTimingCache = _controlsTimingCache;
     res->SetAudioFile(_audioFile); // we set this way to trigger file loading
     PlayListItem::Copy(res);
+
+    if (_fastStartAudio)
+    {
+        res->LoadFiles();
+    }
 
     return res;
 }
@@ -272,8 +288,15 @@ void PlayListItemAudio::CloseFiles()
 {
     if (_audioManager != nullptr)
     {
-        delete _audioManager;
-        _audioManager = nullptr;
+        if (!_fastStartAudio)
+        {
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+        else
+        {
+            _audioManager->AbsoluteStop();
+        }
     }
 }
 
@@ -312,7 +335,7 @@ void PlayListItemAudio::SetFastStartAudio(bool fastStartAudio)
     }
 }
 
-std::list<std::string> PlayListItemAudio::GetMissingFiles() const
+std::list<std::string> PlayListItemAudio::GetMissingFiles() 
 {
     std::list<std::string> res;
     if (!wxFile::Exists(GetAudioFile()))

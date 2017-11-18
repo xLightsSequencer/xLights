@@ -210,7 +210,7 @@ void PlayListItemImage::Suspend(bool suspend)
     }
 }
 
-std::list<std::string> PlayListItemImage::GetMissingFiles() const
+std::list<std::string> PlayListItemImage::GetMissingFiles()
 {
     std::list<std::string> res;
     if (!wxFile::Exists(GetImageFile()))

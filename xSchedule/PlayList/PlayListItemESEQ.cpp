@@ -135,7 +135,7 @@ void PlayListItemESEQ::CloseFiles()
     }
 }
 
-std::list<std::string> PlayListItemESEQ::GetMissingFiles() const
+std::list<std::string> PlayListItemESEQ::GetMissingFiles() 
 {
     std::list<std::string> res;
     if (!wxFile::Exists(GetESEQFileName()))

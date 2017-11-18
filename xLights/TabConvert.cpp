@@ -524,7 +524,7 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     SeqDataType *dataBuf, int startAddr, int modelSize)
 {
     wxUint16 fixedHeaderLength = 20;
-    wxUint32 stepSize = rountTo4(numChans);
+    wxUint32 stepSize = roundTo4(numChans);
     wxFile f;
 
     if (!f.Create(filename, true))
@@ -1119,7 +1119,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = rountTo4(SeqData.NumChannels());
+    wxUint32 stepSize = roundTo4(SeqData.NumChannels());
 
     wxUint16 stepTime = SeqData.FrameTime();
     // Ignored by Pi Player
@@ -1189,7 +1189,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
         buf[31] = 'f';
         strcpy((char *)&buf[32], mediaFilename.c_str());
         fixedHeaderLength += len;
-        fixedHeaderLength = rountTo4(fixedHeaderLength);
+        fixedHeaderLength = roundTo4(fixedHeaderLength);
     }
     // Data offset
     buf[4] = (wxUint8)(fixedHeaderLength % 256);

@@ -166,6 +166,7 @@ public:
     int GetGlobalVolume() const;
     void SeekAndLimitPlayLength(int id, long pos, long len);
     void Pause(int id, bool pause);
+    bool HasAudio(int id);
 };
 
 class AudioManager
@@ -227,6 +228,7 @@ public:
 	void Play();
     void Play(long posms, long lenms);
     void Stop();
+    void AbsoluteStop();
     long GetLoadedData();
     bool IsDataLoaded(long pos = -1);
     static void SetPlaybackRate(float rate);

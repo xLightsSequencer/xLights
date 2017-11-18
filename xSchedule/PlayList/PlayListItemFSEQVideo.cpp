@@ -14,6 +14,8 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _fastStartAudio = false;
+    _cachedAudioFilename = "";
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
     _cacheVideo = false;
@@ -54,17 +56,17 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
 
-    if (_fastStartAudio)
-    {
-        LoadAudio();
-    }
-    else
+    //if (_fastStartAudio)
+    //{
+    //    LoadAudio();
+    //}
+    //else
     {
         FastSetDuration();
     }
 }
 
-std::string PlayListItemFSEQVideo::GetAudioFilename() const
+std::string PlayListItemFSEQVideo::GetAudioFilename() 
 {
     if (_overrideAudio)
     {
@@ -78,9 +80,15 @@ std::string PlayListItemFSEQVideo::GetAudioFilename() const
         }
         else
         {
+            if (_cachedAudioFilename != "")
+            {
+                return _cachedAudioFilename;
+            }
+
             FSEQFile f(_fseqFileName);
             if (f.IsOk())
             {
+                _cachedAudioFilename = f.GetAudioFileName();
                 return f.GetAudioFileName();
             }
         }
@@ -165,6 +173,7 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 {
+    _cachedAudioFilename = "";
     _currentFrame = 0;
     _topMost = true;
     _suppressVirtualMatrix = false;
@@ -193,6 +202,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo();
+    res->_cachedAudioFilename = _cachedAudioFilename;
     res->_topMost = _topMost;
     res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     res->_fseqFileName = _fseqFileName;
@@ -209,6 +219,11 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     res->_videoFile = _videoFile;
     res->SetAudioFile(_audioFile); // this will trigger file loading
     PlayListItem::Copy(res);
+
+    if (_fastStartAudio)
+    {
+        res->LoadAudio();
+    }
 
     return res;
 }
@@ -582,8 +597,15 @@ void PlayListItemFSEQVideo::CloseFiles()
 
     if (_audioManager != nullptr)
     {
-        delete _audioManager;
-        _audioManager = nullptr;
+        if (!_fastStartAudio)
+        {
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+        else
+        {
+            _audioManager->AbsoluteStop();
+        }
     }
 
     if (_videoReader != nullptr)
@@ -603,6 +625,12 @@ PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
 {
     CloseFiles();
 	
+    if (_audioManager != nullptr)
+    {
+        delete _audioManager;
+        _audioManager = nullptr;
+    }
+
     if (_window != nullptr)
     {
         delete _window;
@@ -610,7 +638,7 @@ PlayListItemFSEQVideo::~PlayListItemFSEQVideo()
     }
 }
 
-std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles() const
+std::list<std::string> PlayListItemFSEQVideo::GetMissingFiles()
 {
     std::list<std::string> res;
     if (!wxFile::Exists(GetFSEQFileName()))

@@ -289,10 +289,11 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
 
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //MatrixMapper::Test();
 
-    _statusSetAt = wxDateTime::Now();
     __schedule = nullptr;
+    _statusSetAt = wxDateTime::Now();
     _webServer = nullptr;
     _timerOutputFrame = false;
     _suspendOTL = false;
@@ -586,8 +587,13 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
-    __schedule = nullptr;
     LoadSchedule();
+
+    if (__schedule == nullptr)
+    {
+        logger_base.error("Error loading schedule.");
+        Close();
+    }
 
     wxFrame::SendSizeEvent();
     size_t rate = 50;
@@ -621,6 +627,8 @@ void xScheduleFrame::LoadSchedule()
         __schedule = nullptr;
     }
     __schedule = new ScheduleManager(this, _showDir);
+
+    if (__schedule == nullptr) return;
 
     if (_webServer != nullptr)
     {

@@ -1689,7 +1689,7 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
 	wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
-    size_t stepSize = rountTo4(params.seq_data.NumChannels());
+    size_t stepSize = roundTo4(params.seq_data.NumChannels());
 
     wxUint16 stepTime = params.seq_data.FrameTime();
     // Ignored by Pi Player
@@ -1761,7 +1761,7 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
             buf[31] = 'f';
             strcpy((char *)&buf[32],(*params.media_filename).c_str());
             fixedHeaderLength += len;
-            fixedHeaderLength = rountTo4(fixedHeaderLength);
+            fixedHeaderLength = roundTo4(fixedHeaderLength);
         }
     }
     // Data offset

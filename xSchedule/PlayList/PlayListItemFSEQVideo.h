@@ -33,6 +33,7 @@ protected:
     bool _cacheVideo;
     VideoReader* _videoReader;
     CachedVideoReader* _cachedVideoReader;
+    std::string _cachedAudioFilename;
 
 	std::string _videoFile;
 	wxPoint _origin;
@@ -60,7 +61,7 @@ public:
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
     void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
-    std::string GetAudioFilename() const;
+    std::string GetAudioFilename();
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
@@ -79,7 +80,7 @@ public:
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
     virtual std::string GetSyncItemFSEQ() const override { return GetFSEQFileName(); }
-    virtual std::string GetSyncItemMedia() const override { return GetAudioFilename(); }
+    virtual std::string GetSyncItemMedia() override { return GetAudioFilename(); }
     virtual std::string GetTitle() const override;
     long GetStartChannel() const { return _startChannel; }
     void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
@@ -92,7 +93,7 @@ public:
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
-    virtual std::list<std::string> GetMissingFiles() const override;
+    virtual std::list<std::string> GetMissingFiles() override;
     virtual long GetFSEQChannels() const override;
     #pragma endregion Getters and Setters
 

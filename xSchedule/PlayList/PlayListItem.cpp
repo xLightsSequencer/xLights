@@ -93,5 +93,7 @@ bool PlayListItem::IsInSlaveMode() const
 
     if (sm == nullptr) return false;
 
-    return (sm->GetMode() == SYNCMODE::FPPSLAVE || sm->GetMode() == SYNCMODE::ARTNETSLAVE || sm->GetMode() == SYNCMODE::FPPUNICASTSLAVE);
+    SYNCMODE m = sm->GetMode();
+
+    return (m == SYNCMODE::FPPSLAVE || m == SYNCMODE::ARTNETSLAVE || m == SYNCMODE::FPPUNICASTSLAVE);
 }

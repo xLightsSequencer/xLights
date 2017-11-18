@@ -31,7 +31,7 @@ public:
     #pragma region Constructors and Destructors
     PlayListItemAudio(wxXmlNode* node);
     PlayListItemAudio();
-    virtual ~PlayListItemAudio() { CloseFiles(); };
+    virtual ~PlayListItemAudio();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
@@ -44,12 +44,12 @@ public:
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
-    virtual std::string GetSyncItemMedia() const override { return GetAudioFile(); }
+    virtual std::string GetSyncItemMedia() override { return GetAudioFile(); }
     static bool IsAudio(const std::string& ext);
     virtual std::string GetTitle() const override;
     bool GetFastStartAudio() const { return _fastStartAudio; }
     void SetFastStartAudio(bool fastStartAudio);
-    virtual std::list<std::string> GetMissingFiles() const override;
+    virtual std::list<std::string> GetMissingFiles() override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

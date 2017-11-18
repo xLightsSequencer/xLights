@@ -29,7 +29,7 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
 	if (res != 0)
 	{
-        logger_base.error("Error opening the file" + filename);
+        logger_base.error("Error opening the file " + filename);
 		return;
 	}
 

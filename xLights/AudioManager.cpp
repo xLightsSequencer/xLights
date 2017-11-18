@@ -157,6 +157,11 @@ void SDL::Seek(int id, long pos)
     d->Seek(pos);
 }
 
+bool SDL::HasAudio(int id)
+{
+    return GetData(id) != nullptr;
+}
+
 void SDL::SeekAndLimitPlayLength(int id, long pos, long len)
 {
     std::unique_lock<std::mutex> locker(_audio_Lock);
@@ -294,7 +299,7 @@ void AudioData::Seek(long ms)
     if ((((Uint64)ms * _rate * 2 * 2) / 1000) > (Uint64)_original_len)
     {
         // I am not super sure about this
-        logger_base.warn("Attempt to seek past the end of the loaded audio. Seeking to 0ms instead. Seek to %ldms. Length %ldms.", ms, (long)(((Uint64)_original_len * 1000) / ((Uint64)_rate * 2 * 2)));
+        logger_base.warn("ID %d Attempt to seek past the end of the loaded audio. Seeking to 0ms instead. Seek to %ldms. Length %ldms.", _id, ms, (long)(((Uint64)_original_len * 1000) / ((Uint64)_rate * 2 * 2)));
         ms = 0;
     }
 
@@ -305,7 +310,7 @@ void AudioData::Seek(long ms)
 
     _audio_pos = _original_pos + (_original_len - _audio_len);
 
-    logger_base.debug("Seeking to %ldMS ... calculated audio_len: %ld", ms, _audio_len);
+    logger_base.debug("ID %d Seeking to %ldMS ... calculated audio_len: %ld", _id, ms, _audio_len);
 }
 
 void AudioData::SeekAndLimitPlayLength(long ms, long len)
@@ -315,7 +320,7 @@ void AudioData::SeekAndLimitPlayLength(long ms, long len)
     _audio_pos = _original_pos + (((Uint64)ms * _rate * 2 * 2) / 1000);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Seeking to %ldMS Length %ldMS ... calculated audio_len: %ld.", ms, len, _audio_len);
+    logger_base.debug("ID %d Seeking to %ldMS Length %ldMS ... calculated audio_len: %ld.", _id, ms, len, _audio_len);
 }
 
 void AudioData::SavePos()
@@ -491,6 +496,11 @@ void AudioManager::Play(long posms, long lenms)
         return;
     }
 
+    if (!__sdl.HasAudio(_sdlid))
+    {
+        _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
     __sdl.SeekAndLimitPlayLength(_sdlid, posms, lenms);
     __sdl.Play();
     __sdl.Pause(_sdlid, false);
@@ -499,6 +509,11 @@ void AudioManager::Play(long posms, long lenms)
 
 void AudioManager::Play()
 {
+    if (!__sdl.HasAudio(_sdlid))
+    {
+        _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
     __sdl.Pause(_sdlid, false);
     __sdl.Play();
 	_media_state = MEDIAPLAYINGSTATE::PLAYING;
@@ -508,6 +523,13 @@ void AudioManager::Stop()
 {
     __sdl.Stop();
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
+}
+
+void AudioManager::AbsoluteStop()
+{
+    __sdl.Stop();
+    __sdl.RemoveAudio(_sdlid);
+    _media_state = MEDIAPLAYINGSTATE::STOPPED;
 }
 
 void AudioManager::SetPlaybackRate(float rate)

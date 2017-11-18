@@ -285,7 +285,7 @@ bool PlayListItemVideo::IsVideo(const std::string& ext)
     return false;
 }
 
-std::list<std::string> PlayListItemVideo::GetMissingFiles() const
+std::list<std::string> PlayListItemVideo::GetMissingFiles() 
 {
     std::list<std::string> res;
     if (!wxFile::Exists(GetVideoFile()))

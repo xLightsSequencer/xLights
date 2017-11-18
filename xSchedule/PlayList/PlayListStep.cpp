@@ -458,6 +458,7 @@ size_t PlayListStep::GetLengthMS() const
     PlayListItem* timesource = GetTimeSource(msPerFrame);
     if (timesource != nullptr)
     {
+        wxASSERT(timesource->GetDurationMS() != 0);
         return timesource->GetDurationMS();
     }
     else
@@ -478,6 +479,7 @@ size_t PlayListStep::GetLengthMS() const
             if (len == 0) len = msPerFrame;
         }
 
+        wxASSERT(len != 0);
         return len;
     }
 }

@@ -26,8 +26,7 @@ class CachedVideoReader
     std::string _videoFile;
     wxSize _size;
     long _lengthMS;
-
-    void PurgeCachePriorTo(long start);
+    bool _done;
 
 public:
     CachedVideoReader(const std::string& videoFile, long startMillisecond, int frameTime, const wxSize& size, bool keepAspectRatio);
@@ -38,6 +37,8 @@ public:
     bool HasFrame(long millisecond);
     void CacheImage(long millisecond, const wxImage& image);
     void SetLengthMS(long lengthMS);
+    void Done();
+    void PurgeCachePriorTo(long start);
 
     long GetLengthMS() const { return _lengthMS; };
     wxImage GetNextFrame(long ms);

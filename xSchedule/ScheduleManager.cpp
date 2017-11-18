@@ -3025,6 +3025,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     long totalChannels = _outputManager->GetTotalChannels();
     std::string title = wxString::Format("FSEQs without %ld channels", totalChannels).ToStdString();
     LogAndWrite(f, title);
+    totalChannels = roundTo4(totalChannels);
 
     for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
     {
@@ -3039,7 +3040,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
             {
                 if (wxString((*i)->GetTitle()).Contains("FSEQ"))
                 {
-                    long ch = (*i)->GetFSEQChannels();
+                    long ch = roundTo4((*i)->GetFSEQChannels());
                     if (ch < totalChannels)
                     {
                         wxString msg = wxString::Format("    ERR: Playlist '%s' has step '%s' with FSEQ item %s with %ld channels when it should be %ld channels.",

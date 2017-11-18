@@ -53,10 +53,10 @@ public:
     std::string GetVideoFile() const { return _videoFile; }
     wxPoint GetPosition() const { return _origin; }
     wxSize GetSize() const { return _size; }
-    virtual std::string GetSyncItemMedia() const override { return GetVideoFile(); }
+    virtual std::string GetSyncItemMedia() override { return GetVideoFile(); }
     static bool IsVideo(const std::string& ext);
     virtual std::string GetTitle() const override;
-    virtual std::list<std::string> GetMissingFiles() const override;
+    virtual std::list<std::string> GetMissingFiles() override;
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;

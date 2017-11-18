@@ -44,7 +44,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
     this->numChannels = numChannels;
     this->numFrames = numFrames;
     this->frameTime = frameTime;
-    this->bytesPerFrame = rountTo4(numChannels);
+    this->bytesPerFrame = roundTo4(numChannels);
 
     if (numFrames > 0 && numChannels > 0) {
         //unsigned long tmp = bytesPerFrame;
