@@ -58,7 +58,7 @@ Model::~Model() {
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
     }
-    for (auto it = subModels.begin(); it != subModels.end(); it++) {
+    for (auto it = subModels.begin(); it != subModels.end(); ++it) {
         Model *m = *it;
         delete m;
     }
@@ -182,9 +182,9 @@ public:
                 }
             }
             f1 = new wxXmlNode(m_model->GetModelXml(), wxXML_ELEMENT_NODE , "dimmingCurve");
-            for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); it++) {
+            for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); ++it) {
                 wxXmlNode *dc = new wxXmlNode(f1, wxXML_ELEMENT_NODE , it->first);
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                     dc->AddAttribute(it2->first, it2->second);
                 }
             }
@@ -784,11 +784,11 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
 }
 void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
     if (!faceInfo.empty()) {
-        for (auto it = faceInfo.begin(); it != faceInfo.end(); it++) {
+        for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {
             wxXmlNode *f = new wxXmlNode(rootXml, wxXML_ELEMENT_NODE , "faceInfo");
             std::string name = it->first;
             f->AddAttribute("Name", name);
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                 f->AddAttribute(it2->first, it2->second);
             }
         }
@@ -825,9 +825,9 @@ wxString Model::SerialiseFace() const
     wxString res = "";
 
     if (!faceInfo.empty()) {
-        for (auto it = faceInfo.begin(); it != faceInfo.end(); it++) {
+        for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {
             res += "    <faceInfo Name=\"" + it->first + "\" ";
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                 res += it2->first + "=\"" + it2->second + "\" ";
             }
             res += "/>\n";
@@ -1337,7 +1337,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 }
 
 void Model::RemoveSubModel(const std::string &name) {
-    for (auto a = subModels.begin(); a != subModels.end(); a++) {
+    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
         Model *m = *a;
         if (m->GetName() == name) {
             delete m;
@@ -1347,7 +1347,7 @@ void Model::RemoveSubModel(const std::string &name) {
 }
 
 Model *Model::GetSubModel(const std::string &name) {
-    for (auto a = subModels.begin(); a != subModels.end(); a++) {
+    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
         if ((*a)->GetName() == name) {
             return *a;
         }
@@ -1389,27 +1389,31 @@ void Model::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int Star
 void Model::InitModel() {
 }
 
-
 void Model::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
     Nodes[nodenum]->GetForChannels(buf);
 }
+
 void Model::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
     Nodes[nodenum]->SetFromChannels(buf);
 }
+
 xlColor Model::GetNodeColor(size_t nodenum) const {
     xlColor color;
     Nodes[nodenum]->GetColor(color);
     return color;
 }
+
 xlColor Model::GetNodeMaskColor(size_t nodenum) const {
-    if (Nodes.size() == 0) return xlWHITE; // this shouldnt happen but it does if you have a custom model with no nodes in it
+    if (nodenum >= Nodes.size()) return xlWHITE; // this shouldnt happen but it does if you have a custom model with no nodes in it
     xlColor color;
     Nodes[nodenum]->GetMaskColor(color);
     return color;
 }
+
 void Model::SetNodeColor(size_t nodenum, const xlColor &c) {
     Nodes[nodenum]->SetColor(c);
 }
+
 bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2) {
     if (nodeNum < Nodes.size()) {
         for (auto a = Nodes[nodeNum]->Coords.begin(); a != Nodes[nodeNum]->Coords.end(); ++a) {
@@ -1421,7 +1425,6 @@ bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2) 
     }
     return false;
 }
-
 
 // only valid for rgb nodes and dumb strings (not traditional strings)
 wxChar Model::GetChannelColorLetter(wxByte chidx) {
@@ -1588,8 +1591,6 @@ void Model::SetLineCoord() {
     }
 }
 
-
-
 void Model::SetBufferSize(int NewHt, int NewWi) {
     BufferHt = NewHt;
     BufferWi = NewWi;
@@ -1632,7 +1633,6 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
     return ret;
 }
 
-
 void Model::GetBufferSize(const std::string &type, const std::string &transform, int &bufferWi, int &bufferHi) const {
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
@@ -1660,6 +1660,7 @@ void Model::GetBufferSize(const std::string &type, const std::string &transform,
     }
     AdjustForTransform(transform, bufferWi, bufferHi);
 }
+
 void Model::AdjustForTransform(const std::string &transform,
                                int &bufferWi, int &bufferHi) const {
     if (transform == "Rotate CC 90" || transform == "Rotate CW 90") {
@@ -1695,25 +1696,25 @@ void Model::ApplyTransform(const std::string &type,
         return;
     } else if (type == "Rotate 180") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Vertical") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, it2->bufX, bufferHi - it2->bufY - 1);
             }
         }
     } else if (type == "Flip Horizontal") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, bufferWi - it2->bufX - 1, it2->bufY);
             }
         }
     } else if (type == "Rotate CW 90") {
         for (size_t x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, bufferHi - it2->bufY - 1, it2->bufX);
             }
         }
@@ -1722,7 +1723,7 @@ void Model::ApplyTransform(const std::string &type,
         bufferWi = tmp;
     } else if (type == "Rotate CC 90") {
         for (int x = 0; x < newNodes.size(); x++) {
-            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); it2++) {
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, it2->bufY, bufferWi - it2->bufX - 1);
             }
         }
@@ -2677,7 +2678,7 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
         int vcount = 0;
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             vcount += it->get()->Coords.size();
         }
         if (vcount > maxVertexCount) {

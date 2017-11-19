@@ -85,6 +85,7 @@ const std::vector<std::string> &SingleLineModel::GetBufferStyles() const {
             }
         }
     };
+    
     static Initializer ListInitializationGuard;
     return LINE_BUFFER_STYLES;
 }
@@ -94,7 +95,7 @@ void SingleLineModel::InitModel() {
     InitLine();
 
 
-    for (auto node = Nodes.begin(); node != Nodes.end(); node++) {
+    for (auto node = Nodes.begin(); node != Nodes.end(); ++node) {
         int count = 0;
         int num = node->get()->Coords.size();
         float offset = 0.0;
@@ -103,7 +104,7 @@ void SingleLineModel::InitModel() {
         } else {
             offset = (float)1 / (float)num / 2.0;
         }
-        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); coord++) {
+        for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
             coord->screenY = 0;
             if (num > 1) {
                 coord->screenX = coord->bufX + (float)count / (float)num + offset ;
@@ -125,11 +126,11 @@ void SingleLineModel::InitLine() {
     SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(1,SingleNode?parm1:numLights);
     int LastStringNum=-1;
-    int chan = 0,idx;
+    int chan = 0;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
 
-    idx = 0;
+    int idx = 0;
     for(size_t n=0; n<NodeCount; n++) {
         if (Nodes[n]->StringNum != LastStringNum) {
             LastStringNum=Nodes[n]->StringNum;
@@ -176,7 +177,7 @@ void SingleLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetEditor("SpinCtrl");
     }
 
-    p = grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+    grid->Append(new wxEnumProperty("Starting Location", "SingleLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 }
 int SingleLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SingleLineCount" == event.GetPropertyName()) {

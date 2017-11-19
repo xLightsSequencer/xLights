@@ -160,7 +160,7 @@ void PixelBufferClass::Clear(int which)
     {
         layers[which]->buffer.Clear(); //just clear this one
         if (layers[which]->usingModelBuffers) {
-            for (auto it = layers[which]->modelBuffers.begin();  it != layers[which]->modelBuffers.end(); it++) {
+            for (auto it = layers[which]->modelBuffers.begin();  it != layers[which]->modelBuffers.end(); ++it) {
                 (*it)->Clear();
             }
         }
@@ -172,7 +172,7 @@ void PixelBufferClass::Clear(int which)
         {
             layers[i]->buffer.Clear();
             if (layers[i]->usingModelBuffers) {
-                for (auto it = layers[i]->modelBuffers.begin();  it != layers[i]->modelBuffers.end(); it++) {
+                for (auto it = layers[i]->modelBuffers.begin();  it != layers[i]->modelBuffers.end(); ++it) {
                     (*it)->Clear();
                 }
             }

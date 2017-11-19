@@ -1,14 +1,16 @@
-
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
-#include "StarModel.h"
-#include <xLightsVersion.h>
 #include <wx/filedlg.h>
 #include <wx/file.h>
 #include <wx/log.h>
 #include <wx/msgdlg.h>
+
+#include "StarModel.h"
+#include <xLightsVersion.h>
 #include "../xLightsMain.h"
+
+std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
 StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -19,9 +21,6 @@ StarModel::~StarModel()
 {
     //dtor
 }
-
-
-std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
 const std::vector<std::string> &StarModel::GetBufferStyles() const {
     struct Initializer {
@@ -49,6 +48,7 @@ void StarModel::GetBufferSize(const std::string &type, const std::string &transf
         Model::GetBufferSize(type, transform, BufferWi, BufferHi);
     }
 }
+
 void StarModel::InitRenderBufferNodes(const std::string &type,
                                       const std::string &transform,
                                       std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
@@ -67,7 +67,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
 
             }
         }
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
         }
 
@@ -88,7 +88,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
                         n = Nodes.size() - 1;
                     }
                 }
-                for (auto it = newNodes[n]->Coords.begin(); it != newNodes[n]->Coords.end(); it++) {
+                for (auto it = newNodes[n]->Coords.begin(); it != newNodes[n]->Coords.end(); ++it) {
                     it->bufY = cur;
                     it->bufX = cnt * BufferWi / numlights;
                 }
@@ -101,11 +101,10 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
     }
 }
 
-
-
 int StarModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetStarSize(strand);
 }
+
 int StarModel::MapToNodeIndex(int strand, int node) const {
     int idx = 0;
     for (int x = 0; x < strand; x++) {
@@ -114,6 +113,7 @@ int StarModel::MapToNodeIndex(int strand, int node) const {
     idx += node;
     return idx;
 }
+
 int StarModel::GetNumStrands() const {
     return starSizes.size();
 }
@@ -151,12 +151,22 @@ void StarModel::InitModel() {
         }
     }
 
-
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2,rgbOrder);
 
+    // Found a problem where a user had multiple layer sizes but just 1 string and set to RGB dumb string type.
+    // I think the commented out code would fix this but I am not sure it would work in all situations.
+    // It needs more testing and late november is not a good time to be doing it. So throwing an assertion in
+    // If this fires for us a lot when there is nothing wrong with our models then we will know the code is bad and we wont implement it.
+    // Maybe you can help fix the condition at that time ... rather than just commenting out the assert.
+    wxASSERT(starSizes.size() <= Nodes.size());
+    //if (starSizes.size() > Nodes.size())
+    //{
+    //    starSizes.resize(Nodes.size());
+    //}
+
     int maxLights = 0;
-    int numlights=parm1*parm2;
+    int numlights = parm1 * parm2;
     int cnt = 0;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
@@ -173,9 +183,8 @@ void StarModel::InitModel() {
     }
     SetBufferSize(maxLights+1,maxLights+1);
 
-
     int LastStringNum=-1;
-    int chan = 0,cursegment,nextsegment,x,y;
+    int chan = 0;
     int start = 0;
 
     for (int cur = 0; cur < starSizes.size(); cur++) {
@@ -187,18 +196,8 @@ void StarModel::InitModel() {
         int offset=numlights/2;
 
         int coffset = (maxLights - numlights) / 2;
-        /*
-         if (cur > 0) {
-         for (int f = cur; f > 0; f--) {
-         int i = starSizes[f];
-         int i2 = starSizes[f - 1];
-         coffset += (i2 - i) / 2;
-         }
-         }
-         */
 
         int numsegments=parm3*2;
-        double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
         double dpct=1.0/(double)numsegments;
         double OuterRadius=offset;
         double InnerRadius=OuterRadius/2.618034;    // divide by golden ratio squared
@@ -206,10 +205,10 @@ void StarModel::InitModel() {
         double pctIncr=1.0 / (double)numlights;     // this is cw
         if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
         int ChanIncr=SingleChannel ?  1 : 3;
-        for(size_t cnt=0; cnt<numlights; cnt++) {
+        for (size_t cnt2 = 0; cnt2 < numlights; cnt2++) {
             int n = cur;
             if (!SingleNode) {
-                n = start + cnt;
+                n = start + cnt2;
             } else {
                 n = cur;
                 if (n >= Nodes.size()) {
@@ -231,26 +230,26 @@ void StarModel::InitModel() {
                     Nodes[n]->Coords[c].bufX=lastx;
                     Nodes[n]->Coords[c].bufY=lasty;
                 } else {
-                    cursegment=(int)((double)numsegments*pct) % numsegments;
-                    nextsegment=(cursegment+1) % numsegments;
-                    segstart_pct=(double)cursegment / numsegments;
-                    segend_pct=(double)nextsegment / numsegments;
-                    dseg=pct - segstart_pct;
-                    segpct=dseg / dpct;
-                    r=cursegment%2==0 ? OuterRadius : InnerRadius;
-                    segstart_x=r*sin(segstart_pct*2.0*M_PI);
-                    segstart_y=r*cos(segstart_pct*2.0*M_PI);
+                    int cursegment = (int)((double)numsegments*pct) % numsegments;
+                    int nextsegment = (cursegment+1) % numsegments;
+                    double segstart_pct = (double)cursegment / numsegments;
+                    double segend_pct = (double)nextsegment / numsegments;
+                    double dseg = pct - segstart_pct;
+                    double segpct = dseg / dpct;
+                    double r = cursegment%2==0 ? OuterRadius : InnerRadius;
+                    double segstart_x = r*sin(segstart_pct*2.0*M_PI);
+                    double segstart_y = r*cos(segstart_pct*2.0*M_PI);
                     r=nextsegment%2==0 ? OuterRadius : InnerRadius;
-                    segend_x=r*sin(segend_pct*2.0*M_PI);
-                    segend_y=r*cos(segend_pct*2.0*M_PI);
+                    double segend_x = r*sin(segend_pct*2.0*M_PI);
+                    double segend_y = r*cos(segend_pct*2.0*M_PI);
                     // now interpolate between segstart and segend
-                    x=(segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
-                    y=(segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
-                    Nodes[n]->Coords[c].bufX=x;
-                    Nodes[n]->Coords[c].bufY=y;
+                    int x = (segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
+                    int y = (segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
+                    Nodes[n]->Coords[c].bufX = x;
+                    Nodes[n]->Coords[c].bufY = y;
                     lastx = x;
                     lasty = y;
-                    pct+=pctIncr;
+                    pct += pctIncr;
                     if (pct >= 1.0) pct-=1.0;
                     if (pct < 0.0) pct+=1.0;
                 }
@@ -261,8 +260,6 @@ void StarModel::InitModel() {
 
     CopyBufCoord2ScreenCoord();
 }
-
-
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
 
@@ -295,9 +292,10 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 250);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
-    p = grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
+    grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
 }
+
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("StarStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
