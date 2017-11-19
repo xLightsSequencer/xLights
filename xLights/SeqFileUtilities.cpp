@@ -386,7 +386,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                 RenderAll();
             }
 
-			if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+			if (CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
 			{
 				CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
 			}
