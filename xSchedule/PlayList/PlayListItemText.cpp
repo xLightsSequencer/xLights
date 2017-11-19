@@ -146,8 +146,8 @@ wxXmlNode* PlayListItemText::Save()
     node->AddAttribute("Orientation", _orientation);
     node->AddAttribute("Type", _type);
     node->AddAttribute("Speed", wxString::Format(wxT("%i"), _speed));
-    node->AddAttribute("X", wxString::Format(wxT("%i"), _y));
-    node->AddAttribute("Y", wxString::Format(wxT("%i"), _x));
+    node->AddAttribute("X", wxString::Format(wxT("%i"), _x));
+    node->AddAttribute("Y", wxString::Format(wxT("%i"), _y));
 
     PlayListItem::Save(node);
 
