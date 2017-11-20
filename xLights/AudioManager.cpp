@@ -1732,6 +1732,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					if (read + outSamples > _trackSize)
 					{
 						// I dont understand why this happens ... add logging when i can
+                        // I have seen this happen with a wma file ... but i dont know why
 						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
 
                         // override the track size
