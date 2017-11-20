@@ -47,7 +47,6 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
     ChoiceFormat->Append(_("LSP, Light Show Pro "));
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
-    ChoiceFormat->Append(_("xLights, *.xseq"));
     ChoiceFormat->Append(_("Falcon, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.avi"));
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
@@ -100,7 +99,7 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
-    ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
+    //ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Falcon, *.fseq")));
     ChoiceFormat->Append(_("Falcon Pi Sub sequence. *.eseq"));
 
@@ -161,10 +160,10 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
     {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
-    else if (fmt == "xLights, *.xseq")
-    {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "xLights (*.xseq)|*.xseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
-    }
+    //else if (fmt == "xLights, *.xseq")
+    //{
+    //    TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "xLights (*.xseq)|*.xseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
+    //}
     else if (fmt == "Falcon Pi Sub sequence. *.eseq")
     {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));

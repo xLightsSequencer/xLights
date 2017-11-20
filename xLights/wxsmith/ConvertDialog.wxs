@@ -72,7 +72,6 @@
 										<object class="wxChoice" name="ID_CHOICE_OUTPUT_FORMAT" variable="ChoiceOutputFormat" member="yes">
 											<content>
 												<item>Falcon Pi Player, *.fseq</item>
-												<item>xLights Sequence, *.xseq</item>
 												<item>Lynx Conductor, *.seq</item>
 												<item>Vix,Vixen 2.1 *.vix sequence file</item>
 												<item>Vir, Vixen 2.1 *.vir routine file</item>

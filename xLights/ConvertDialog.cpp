@@ -96,7 +96,6 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 	FlexGridSizer4->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	ChoiceOutputFormat = new wxChoice(this, ID_CHOICE_OUTPUT_FORMAT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_OUTPUT_FORMAT"));
 	ChoiceOutputFormat->SetSelection( ChoiceOutputFormat->Append(_("Falcon Pi Player, *.fseq")) );
-	ChoiceOutputFormat->Append(_("xLights Sequence, *.xseq"));
 	ChoiceOutputFormat->Append(_("Lynx Conductor, *.seq"));
 	ChoiceOutputFormat->Append(_("Vix,Vixen 2.1 *.vix sequence file"));
 	ChoiceOutputFormat->Append(_("Vir, Vixen 2.1 *.vir routine file"));
