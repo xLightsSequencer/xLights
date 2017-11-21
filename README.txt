@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp) Add left/right starting locations for candy canes
    -- enh (gil)   Add new Single Color Intensity string type that will react to any color.
 2017.37  Nov 14, 2017
    -- enh (dkulp) If dimming curve would map to identity, remove it to avoid the extra processing it entails

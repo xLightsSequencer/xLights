@@ -16,8 +16,13 @@ CandyCaneModel::~CandyCaneModel()
 {
 }
 
-
+static wxPGChoices LEFT_RIGHT;
 void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
+    if (LEFT_RIGHT.GetCount() == 0) {
+        LEFT_RIGHT.Add("Left");
+        LEFT_RIGHT.Add("Right");
+    }
+
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Canes", "CandyCaneCount", parm1));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 20);
@@ -56,6 +61,8 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
+    
+    p = grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
     
 }
 
@@ -97,6 +104,11 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
 		SetFromXml(ModelXml, zeroBased);
         grid->GetPropertyByName("CandyCaneReverse")->Enable(!event.GetPropertyValue().GetBool());
 		return 3;
+    } else if ("CandyCaneStart" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Dir");
+        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     } else if (event.GetPropertyName() == "ModelStringType") {
         int i = Model::OnPropertyGridChange(grid, event);
         wxPGProperty *p = grid->GetPropertyByName("CandyCaneLights");
@@ -175,6 +187,14 @@ void CandyCaneModel::InitModel() {
         }
     }
     SetBufferSize(SegmentsPerCane, NumCanes);
+    
+    if (!IsLtoR) {
+        for (int y = 0; y < (NumCanes / 2); y++) {
+            int i = stringStartChan[y];
+            stringStartChan[y] = stringStartChan[NumCanes - 1 - y];
+            stringStartChan[NumCanes - 1 - y] = i;
+        }
+    }
     
     for (int y=0; y < NumCanes; y++) {
         for(int x=0; x<SegmentsPerCane; x++) {
