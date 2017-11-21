@@ -981,6 +981,7 @@ private:
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
+    void DeactivateUnusedNetworks();
     void ChangeSelectedNetwork();
     bool AllSelectedSupportIP();
     bool AllSelectedSupportChannels();
@@ -1369,6 +1370,7 @@ private:
     static const long ID_NETWORK_DELETE;
     static const long ID_NETWORK_ACTIVATE;
     static const long ID_NETWORK_DEACTIVATE;
+    static const long ID_NETWORK_DEACTIVATEUNUSED;
     static const long ID_NETWORK_OPENCONTROLLER;
     static const long ID_NETWORK_UPLOADCONTROLLER;
     static const long ID_NETWORK_UCOUTPUT;

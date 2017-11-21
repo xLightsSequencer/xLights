@@ -52,6 +52,7 @@ const long xLightsFrame::ID_NETWORK_BULKEDIT = wxNewId();
 const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_NETWORK_ACTIVATE = wxNewId();
 const long xLightsFrame::ID_NETWORK_DEACTIVATE = wxNewId();
+const long xLightsFrame::ID_NETWORK_DEACTIVATEUNUSED = wxNewId();
 const long xLightsFrame::ID_NETWORK_OPENCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UPLOADCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOUTPUT = wxNewId();
@@ -687,6 +688,51 @@ void xLightsFrame::UpdateSelectedChannels()
         UpdateNetworkList(true);
 
         item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        while (item != -1)
+        {
+            GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+            item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        }
+    }
+}
+
+void xLightsFrame::DeactivateUnusedNetworks()
+{
+    bool changed = false;
+
+    for (int i = 0; i < GridNetwork->GetItemCount(); i++)
+    {
+        Output* o = _outputManager.GetOutput(i);
+        long st = o->GetStartChannel();
+        long en = o->GetEndChannel();
+        bool used = false;
+        for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
+        {
+            if (m->second->GetDisplayAs() != "ModelGroup")
+            {
+                long mst = m->second->GetFirstChannel() + 1;
+                long men = m->second->GetLastChannel() + 1;
+                if (mst <= en && men >= st)
+                {
+                    used = true;
+                    break;
+                }
+            }
+        }
+        if (!used)
+        {
+            changed = true;
+            o->Enable(false);
+        }
+    }
+
+    if (changed)
+    {
+        NetworkChange();
+        UpdateNetworkList(false);
+
+        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         while (item != -1)
         {
             GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
@@ -1578,6 +1624,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mid = mnu.Append(ID_NETWORK_DELETE, "Delete");
     wxMenuItem* mia = mnu.Append(ID_NETWORK_ACTIVATE, "Activate");
     wxMenuItem* mide = mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate");
+    wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
 
     mid->Enable(selcnt > 0);
@@ -1701,6 +1748,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_DEACTIVATE)
     {
         ActivateSelectedNetworks(false);
+    }
+    else if (id == ID_NETWORK_DEACTIVATEUNUSED)
+    {
+        DeactivateUnusedNetworks();
     }
     else if (id == ID_NETWORK_OPENCONTROLLER)
     {
