@@ -617,7 +617,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
         ModelElement *me = dynamic_cast<ModelElement *>(element);
         if (me == nullptr) {
-            StrandElement *se = dynamic_cast<StrandElement *>(element);
+            SubModelElement *se = dynamic_cast<SubModelElement *>(element);
             me = se->GetModelElement();
         }
         if (me != nullptr)
