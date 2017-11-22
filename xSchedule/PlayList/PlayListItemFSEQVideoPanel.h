@@ -30,7 +30,10 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		virtual ~PlayListItemFSEQVideoPanel();
 
 		//(*Declarations(PlayListItemFSEQVideoPanel)
+		wxStaticText* StaticText10;
 		wxSlider* Slider1;
+		wxStaticText* StaticText9;
+		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
@@ -54,6 +57,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxButton* Button_PositionWindow;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_StartChannel;
+		wxSpinCtrl* SpinCtrl_FadeIn;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
 
@@ -83,6 +87,10 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_SLIDER1;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT10;
+		static const long ID_SPINCTRL4;
+		static const long ID_STATICTEXT9;
+		static const long ID_SPINCTRL5;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL1;
 		//*)

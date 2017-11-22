@@ -336,6 +336,38 @@ wxImage CachedVideoReader::CreateImageFromFrame(AVFrame* frame, const wxSize& si
     }
 }
 
+wxImage CachedVideoReader::FadeImage(const wxImage& image, int brightness)
+{
+    unsigned char btable[256];
+
+    wxImage faded;
+
+    if (brightness == 0)
+    {
+        faded.Create(image.GetWidth(), image.GetHeight());
+    }
+    else
+    {
+        faded = image.Copy();
+        if (brightness != 100)
+        {
+            for (int i = 0; i < 256; i++)
+            {
+                btable[i] = i * brightness / 100;
+            }
+
+            unsigned char * pdata = faded.GetData();
+
+            for (int i = 0; i < faded.GetWidth() * faded.GetHeight() * 3; i++)
+            {
+                *(pdata + i) = btable[*(pdata + i)];
+            }
+        }
+    }
+
+    return faded;
+}
+
 bool CachedVideoReader::HasFrame(long millisecond)
 {
     std::unique_lock<std::mutex> locker(_cacheAccess);

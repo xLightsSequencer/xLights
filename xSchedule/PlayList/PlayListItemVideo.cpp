@@ -13,6 +13,8 @@
 
 PlayListItemVideo::PlayListItemVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _fadeInMS = 0;
+    _fadeOutMS = 0;
     _cacheVideo = false;
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
@@ -46,6 +48,8 @@ void PlayListItemVideo::Load(wxXmlNode* node)
     _videoFile = FixFile("", _videoFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
+    _fadeInMS = wxAtoi(node->GetAttribute("FadeInMS", "0"));
+    _fadeOutMS = wxAtoi(node->GetAttribute("FadeOutMS", "0"));
     _topMost = (node->GetAttribute("Topmost", "TRUE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _suppressVirtualMatrix = (node->GetAttribute("SuppressVM", "FALSE") == "TRUE");
@@ -55,6 +59,8 @@ void PlayListItemVideo::Load(wxXmlNode* node)
 
 PlayListItemVideo::PlayListItemVideo() : PlayListItem()
 {
+    _fadeInMS = 0;
+    _fadeOutMS = 0;
     _cacheVideo = false;
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
@@ -73,6 +79,8 @@ PlayListItem* PlayListItemVideo::Copy() const
 {
     PlayListItemVideo* res = new PlayListItemVideo();
     res->_origin = _origin;
+    res->_fadeInMS = _fadeInMS;
+    res->_fadeOutMS = _fadeOutMS;
     res->_size = _size;
     res->_videoFile = _videoFile;
     res->_durationMS = _durationMS;
@@ -93,6 +101,8 @@ wxXmlNode* PlayListItemVideo::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
+    node->AddAttribute("FadeInMS", wxString::Format(wxT("%i"), _fadeInMS));
+    node->AddAttribute("FadeOutMS", wxString::Format(wxT("%i"), _fadeOutMS));
 
     if (!_topMost)
     {
@@ -197,14 +207,24 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     {
         wxStopWatch sw;
 
+        int brightness = 100;
+        if (_fadeInMS != 0 && ms - _delay < _fadeInMS)
+        {
+            brightness = (float)(ms - _delay) * 100.0 / (float)_fadeInMS;
+        }
+        else if (_fadeOutMS != 0 && GetDurationMS() - (ms - _delay) < _fadeOutMS)
+        {
+            brightness = (float)(GetDurationMS() - (ms - _delay)) * 100.0 / (float)_fadeOutMS;
+        }
+
         if (_cacheVideo)
         {
-            _window->SetImage(_cachedVideoReader->GetNextFrame(ms - _delay));
+            _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(ms - _delay), brightness));
         }
         else
         {
             AVFrame* img = _videoReader->GetNextFrame(ms - _delay, framems);
-            _window->SetImage(CachedVideoReader::CreateImageFromFrame(img, _size));
+            _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
         }
 
         if (sw.Time() > framems / 2)

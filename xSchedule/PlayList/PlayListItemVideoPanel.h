@@ -7,6 +7,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/filepicker.h>
+#include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/button.h>
 //*)
@@ -24,14 +25,18 @@ class PlayListItemVideoPanel: public wxPanel
 		virtual ~PlayListItemVideoPanel();
 
 		//(*Declarations(PlayListItemVideoPanel)
+		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxStaticText* StaticText2;
 		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
 		wxCheckBox* CheckBox_CacheVideo;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
 		wxCheckBox* CheckBox_Topmost;
 		wxTextCtrl* TextCtrl_Delay;
 		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxButton* Button_PositionWindow;
+		wxStaticText* StaticText4;
+		wxSpinCtrl* SpinCtrl_FadeIn;
 		//*)
 
 	protected:
@@ -43,6 +48,10 @@ class PlayListItemVideoPanel: public wxPanel
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT4;
+		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		//*)

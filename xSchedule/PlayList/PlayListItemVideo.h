@@ -26,6 +26,8 @@ protected:
     size_t _durationMS;
     PlayerWindow* _window;
     #pragma endregion Member Variables
+    int _fadeInMS;
+    int _fadeOutMS;
 
     void OpenFiles(bool doCache);
     void CloseFiles();
@@ -57,7 +59,11 @@ public:
     static bool IsVideo(const std::string& ext);
     virtual std::string GetTitle() const override;
     virtual std::list<std::string> GetMissingFiles() override;
-    #pragma endregion Getters and Setters
+    int GetFadeInMS() const { return _fadeInMS; }
+    void SetFadeInMS(const int fadeInMS) { if (_fadeInMS != fadeInMS) { _fadeInMS = fadeInMS; _changeCount++; } }
+    int GetFadeOutMS() const { return _fadeOutMS; }
+    void SetFadeOutMS(const int fadeOutMS) { if (_fadeOutMS != fadeOutMS) { _fadeOutMS = fadeOutMS; _changeCount++; } }
+#pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
     void Load(wxXmlNode* node) override;

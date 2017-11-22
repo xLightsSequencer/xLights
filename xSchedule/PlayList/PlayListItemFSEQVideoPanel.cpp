@@ -34,6 +34,10 @@ const long PlayListItemFSEQVideoPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_SLIDER1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_SPINCTRL1 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_STATICTEXT10 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_SPINCTRL4 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_STATICTEXT9 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_SPINCTRL5 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_TEXTCTRL1 = wxNewId();
 //*)
@@ -162,7 +166,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	CheckBox_FastStartAudio = new wxCheckBox(this, ID_CHECKBOX4, _("Fast start audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_FastStartAudio->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_FastStartAudio, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_CacheVideo = new wxCheckBox(this, ID_CHECKBOX7, _("Cache Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_CacheVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_CacheVideo, 1, wxALL|wxEXPAND, 5);
@@ -178,6 +182,16 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL1, _T("5"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 5, _T("ID_SPINCTRL1"));
 	SpinCtrl_Priority->SetValue(_T("5"));
 	FlexGridSizer1->Add(SpinCtrl_Priority, 1, wxALL|wxEXPAND, 5);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Fade In MS:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer1->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_FadeIn = new wxSpinCtrl(this, ID_SPINCTRL4, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL4"));
+	SpinCtrl_FadeIn->SetValue(_T("0"));
+	FlexGridSizer1->Add(SpinCtrl_FadeIn, 1, wxALL|wxEXPAND, 5);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Fade Out MS:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_FadeOut = new wxSpinCtrl(this, ID_SPINCTRL5, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL5"));
+	SpinCtrl_FadeOut->SetValue(_T("0"));
+	FlexGridSizer1->Add(SpinCtrl_FadeOut, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL1, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -209,6 +223,8 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
     FilePickerCtrl_VideoFile->SetFileName(wxFileName(fseq->GetVideoFile()));
     CheckBox_Topmost->SetValue(fseq->GetTopMost());
     CheckBox_SuppressVirtualMatrix->SetValue(fseq->GetSuppressVirtualMatrix());
+    SpinCtrl_FadeIn->SetValue(fseq->GetFadeInMS());
+    SpinCtrl_FadeOut->SetValue(fseq->GetFadeOutMS());
 
     if (fseq->GetVolume() != -1)
     {
@@ -261,6 +277,8 @@ PlayListItemFSEQVideoPanel::~PlayListItemFSEQVideoPanel()
     _fseq->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
     _fseq->SetTopmost(CheckBox_Topmost->GetValue());
     _fseq->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
+    _fseq->SetFadeInMS(SpinCtrl_FadeIn->GetValue());
+    _fseq->SetFadeOutMS(SpinCtrl_FadeOut->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {

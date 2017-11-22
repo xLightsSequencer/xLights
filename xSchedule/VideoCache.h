@@ -33,6 +33,7 @@ public:
     virtual ~CachedVideoReader();
 
     static wxImage CreateImageFromFrame(AVFrame* frame, const wxSize& size);
+    static wxImage FadeImage(const wxImage& image, int brightness);
 
     bool HasFrame(long millisecond);
     void CacheImage(long millisecond, const wxImage& image);

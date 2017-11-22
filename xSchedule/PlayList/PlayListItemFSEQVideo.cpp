@@ -14,6 +14,8 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _fadeInMS = 0;
+    _fadeOutMS = 0;
     _fastStartAudio = false;
     _cachedAudioFilename = "";
     _videoReader = nullptr;
@@ -48,6 +50,8 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _audioFile = node->GetAttribute("AudioFile", "");
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
+    _fadeInMS = wxAtoi(node->GetAttribute("FadeInMS", "0"));
+    _fadeOutMS = wxAtoi(node->GetAttribute("FadeOutMS", "0"));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
@@ -173,6 +177,8 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 {
+    _fadeInMS = 0;
+    _fadeOutMS = 0;
     _cachedAudioFilename = "";
     _currentFrame = 0;
     _topMost = true;
@@ -204,6 +210,8 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo();
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_topMost = _topMost;
+    res->_fadeInMS = _fadeInMS;
+    res->_fadeOutMS = _fadeOutMS;
     res->_suppressVirtualMatrix = _suppressVirtualMatrix;
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
@@ -241,6 +249,8 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _origin.y));
     node->AddAttribute("W", wxString::Format(wxT("%i"), _size.GetWidth()));
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
+    node->AddAttribute("FadeInMS", wxString::Format(wxT("%i"), _fadeInMS));
+    node->AddAttribute("FadeOutMS", wxString::Format(wxT("%i"), _fadeOutMS));
 
     if (!_topMost)
     {
@@ -465,14 +475,24 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
     }
     else
     {
+        int brightness = 100;
+        if (_fadeInMS != 0 && _fadeInMS < framems)
+        {
+            brightness = (float)framems * 100.0 / (float)_fadeInMS;
+        }
+        else if (_fadeOutMS != 0 && GetDurationMS() - framems < _fadeOutMS)
+        {
+            brightness = (float)(GetDurationMS() - framems) * 100.0 / (float)_fadeOutMS;
+        }
+
         if (_cacheVideo)
         {
-            _window->SetImage(_cachedVideoReader->GetNextFrame(adjustedMS));
+            _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
         }
         else
         {
             AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
-            _window->SetImage(CachedVideoReader::CreateImageFromFrame(img, _size));
+            _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
         }
         if (sw.Time() > framems / 2)
         {

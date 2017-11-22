@@ -34,6 +34,8 @@ protected:
     VideoReader* _videoReader;
     CachedVideoReader* _cachedVideoReader;
     std::string _cachedAudioFilename;
+    long _fadeInMS;
+    long _fadeOutMS;
 
 	std::string _videoFile;
 	wxPoint _origin;
@@ -64,6 +66,10 @@ public:
     std::string GetAudioFilename();
     int GetBlendMode() const { return _applyMethod; }
     void SetBlendMode(const std::string& blendMode) { if (_applyMethod != EncodeBlendMode(blendMode)) { _applyMethod = EncodeBlendMode(blendMode); _changeCount++; } }
+    int GetFadeInMS() const { return _fadeInMS; }
+    void SetFadeInMS(const int fadeInMS) { if (_fadeInMS != fadeInMS) { _fadeInMS = fadeInMS; _changeCount++; } }
+    int GetFadeOutMS() const { return _fadeOutMS; }
+    void SetFadeOutMS(const int fadeOutMS) { if (_fadeOutMS != fadeOutMS) { _fadeOutMS = fadeOutMS; _changeCount++; } }
     virtual size_t GetDurationMS() const override { return _delay + _durationMS; }
     virtual std::string GetNameNoTime() const override;
     std::string GetFSEQFileName() const { return _fseqFileName; }
