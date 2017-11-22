@@ -15,6 +15,7 @@ const long PlayListItemVideoPanel::ID_BUTTON1 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX2 = wxNewId();
 const long PlayListItemVideoPanel::ID_CHECKBOX3 = wxNewId();
+const long PlayListItemVideoPanel::ID_CHECKBOX4 = wxNewId();
 const long PlayListItemVideoPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemVideoPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemVideoPanel::ID_STATICTEXT4 = wxNewId();
@@ -77,6 +78,10 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
 	CheckBox_CacheVideo = new wxCheckBox(this, ID_CHECKBOX3, _("Cache Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_CacheVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_CacheVideo, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_LoopVideo = new wxCheckBox(this, ID_CHECKBOX4, _("Loop Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
+	CheckBox_LoopVideo->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_LoopVideo, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Fade In MS:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_FadeIn = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL1"));
@@ -104,6 +109,7 @@ PlayListItemVideoPanel::PlayListItemVideoPanel(wxWindow* parent, PlayListItemVid
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)video->GetDelay() / 1000.0));
     CheckBox_Topmost->SetValue(video->GetTopMost());
     CheckBox_CacheVideo->SetValue(video->GetCacheVideo());
+    CheckBox_LoopVideo->SetValue(video->GetLoopVideo());
     CheckBox_SuppressVirtualMatrix->SetValue(video->GetSuppressVirtualMatrix());
     SpinCtrl_FadeIn->SetValue(video->GetFadeInMS());
     SpinCtrl_FadeOut->SetValue(video->GetFadeOutMS());
@@ -117,6 +123,7 @@ PlayListItemVideoPanel::~PlayListItemVideoPanel()
     _video->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _video->SetTopmost(CheckBox_Topmost->GetValue());
     _video->SetCacheVideo(CheckBox_CacheVideo->GetValue());
+    _video->SetLoopVideo(CheckBox_LoopVideo->GetValue());
     _video->SetSuppressVirtualMatrix(CheckBox_SuppressVirtualMatrix->GetValue());
     _video->SetFadeInMS(SpinCtrl_FadeIn->GetValue());
     _video->SetFadeOutMS(SpinCtrl_FadeOut->GetValue());

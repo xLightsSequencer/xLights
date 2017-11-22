@@ -33,6 +33,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxStaticText* StaticText10;
 		wxSlider* Slider1;
 		wxStaticText* StaticText9;
+		wxCheckBox* CheckBox_LoopVideo;
 		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_Channels;
@@ -83,6 +84,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_FILEPICKERCTRL2;
 		static const long ID_CHECKBOX4;
 		static const long ID_CHECKBOX7;
+		static const long ID_CHECKBOX8;
 		static const long ID_CHECKBOX2;
 		static const long ID_SLIDER1;
 		static const long ID_STATICTEXT4;

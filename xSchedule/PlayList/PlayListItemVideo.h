@@ -21,6 +21,7 @@ protected:
     bool _suppressVirtualMatrix;
     bool _topMost;
     bool _cacheVideo;
+    bool _loopVideo;
     VideoReader* _videoReader;
     CachedVideoReader* _cachedVideoReader;
     size_t _durationMS;
@@ -44,8 +45,10 @@ public:
     #pragma region Getters and Setters
     bool GetTopMost() const { return _topMost; }
     bool GetCacheVideo() const { return _cacheVideo; }
+    bool GetLoopVideo() const { return _loopVideo; }
     void SetTopmost(bool topmost) { if (_topMost != topmost) { _topMost = topmost; _changeCount++; } }
     void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }
+    void SetLoopVideo(bool loopVideo) { if (_loopVideo != loopVideo) { _loopVideo = loopVideo; _changeCount++; } }
     bool GetSuppressVirtualMatrix() const { return _suppressVirtualMatrix; }
     void SetSuppressVirtualMatrix(bool suppressVirtualMatrix) { if (_suppressVirtualMatrix != suppressVirtualMatrix) { _suppressVirtualMatrix = suppressVirtualMatrix; _changeCount++; } }
     virtual size_t GetDurationMS() const override;

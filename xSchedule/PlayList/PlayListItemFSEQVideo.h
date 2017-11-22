@@ -36,6 +36,7 @@ protected:
     std::string _cachedAudioFilename;
     long _fadeInMS;
     long _fadeOutMS;
+    bool _loopVideo;
 
 	std::string _videoFile;
 	wxPoint _origin;
@@ -77,6 +78,7 @@ public:
     bool GetOverrideAudio() const { return _overrideAudio; }
     bool GetFastStartAudio() const { return _fastStartAudio; }
     bool GetCacheVideo() const { return _cacheVideo; }
+    bool GetLoopVideo() const { return _loopVideo; }
     void SetFSEQFileName(const std::string& fseqFileName);
     void SetAudioFile(const std::string& audioFile);
     void SetOverrideAudio(bool overrideAudio);
@@ -93,6 +95,7 @@ public:
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
     void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }
+    void SetLoopVideo(bool loopVideo) { if (_loopVideo != loopVideo) { _loopVideo = loopVideo; _changeCount++; } }
     bool SetPosition(size_t frame, size_t ms);
     void SetLocation(wxPoint pt, wxSize size) { if (_origin != pt || _size != size) { _origin = pt; _size = size; _changeCount++; } }
     void SetVideoFile(const std::string& videoFile);

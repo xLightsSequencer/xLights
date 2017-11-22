@@ -14,6 +14,7 @@
 
 PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
 {
+    _loopVideo = false;
     _fadeInMS = 0;
     _fadeOutMS = 0;
     _fastStartAudio = false;
@@ -54,6 +55,7 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _fadeOutMS = wxAtoi(node->GetAttribute("FadeOutMS", "0"));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
+    _loopVideo = (node->GetAttribute("LoopVideo", "FALSE") == "TRUE");
     _videoFile = node->GetAttribute("VideoFile", "");
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
@@ -185,6 +187,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
     _suppressVirtualMatrix = false;
     _fastStartAudio = false;
     _cacheVideo = false;
+    _loopVideo = false;
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
     _channels = 0;
@@ -222,6 +225,7 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     res->_startChannel = _startChannel;
     res->_fastStartAudio = _fastStartAudio;
     res->_cacheVideo = _cacheVideo;
+    res->_loopVideo = _loopVideo;
     res->_origin = _origin;
     res->_size = _size;
     res->_videoFile = _videoFile;
@@ -270,6 +274,11 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     if (_cacheVideo)
     {
         node->AddAttribute("CacheVideo", "TRUE");
+    }
+
+    if (_loopVideo)
+    {
+        node->AddAttribute("LoopVideo", "TRUE");
     }
 
     if (_overrideAudio)
@@ -487,10 +496,20 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
 
         if (_cacheVideo)
         {
+            while (_loopVideo && adjustedMS > _cachedVideoReader->GetLengthMS())
+            {
+                adjustedMS -= _cachedVideoReader->GetLengthMS();
+            }
+
             _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
         }
         else
         {
+            while (_loopVideo && adjustedMS > _videoReader->GetLengthMS())
+            {
+                adjustedMS -= _videoReader->GetLengthMS();
+            }
+
             AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
             _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
         }
