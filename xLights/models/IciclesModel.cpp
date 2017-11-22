@@ -84,8 +84,8 @@ void IciclesModel::InitModel() {
 static wxPGChoices LEFT_RIGHT;
 void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (LEFT_RIGHT.GetCount() == 0) {
-        LEFT_RIGHT.Add("Left");
-        LEFT_RIGHT.Add("Right");
+        LEFT_RIGHT.Add("Green Square");
+        LEFT_RIGHT.Add("Blue Square");
     }
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "IciclesStrings", parm1));
