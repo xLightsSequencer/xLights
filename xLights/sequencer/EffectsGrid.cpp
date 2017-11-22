@@ -2725,6 +2725,7 @@ void EffectsGrid::Resize(int position, bool offset)
     {
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
     }
+    sendRenderDirtyEvent();
 }
 
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
