@@ -489,9 +489,9 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         {
             brightness = (float)framems * 100.0 / (float)_fadeInMS;
         }
-        else if (_fadeOutMS != 0 && GetDurationMS() - framems < _fadeOutMS)
+        else if (_fadeOutMS != 0 && _stepLengthMS - framems < _fadeOutMS)
         {
-            brightness = (float)(GetDurationMS() - framems) * 100.0 / (float)_fadeOutMS;
+            brightness = (float)(_stepLengthMS - framems) * 100.0 / (float)_fadeOutMS;
         }
 
         if (_cacheVideo)
@@ -537,8 +537,10 @@ void PlayListItemFSEQVideo::Restart()
     _currentFrame = 0;
 }
 
-void PlayListItemFSEQVideo::Start()
+void PlayListItemFSEQVideo::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     if (_suppressVirtualMatrix)
     {
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);

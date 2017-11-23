@@ -189,8 +189,10 @@ size_t PlayListItemText::GetDurationMS() const
     return _delay + _durationMS;
 }
 
-void PlayListItemText::Start()
+void PlayListItemText::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _maxSize = wxSize(0, 0);
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)

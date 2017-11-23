@@ -168,7 +168,9 @@ void PlayListItemFile::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemFile::Start()
+void PlayListItemFile::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _started = false;
 }

@@ -82,7 +82,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Start() override;
+    virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
     virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     #pragma endregion Playing

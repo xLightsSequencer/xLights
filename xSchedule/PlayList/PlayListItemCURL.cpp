@@ -187,7 +187,9 @@ void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemCURL::Start()
+void PlayListItemCURL::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _started = false;
 }

@@ -219,13 +219,13 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
         long adjustedMS = ms - _delay;
 
         int brightness = 100;
-        if (_fadeInMS != 0 && ms - _delay < _fadeInMS)
+        if (_fadeInMS != 0 && adjustedMS < _fadeInMS)
         {
             brightness = (float)adjustedMS * 100.0 / (float)_fadeInMS;
         }
-        else if (_fadeOutMS != 0 && GetDurationMS() - adjustedMS < _fadeOutMS)
+        else if (_fadeOutMS != 0 && _stepLengthMS - adjustedMS < _fadeOutMS)
         {
-            brightness = (float)(GetDurationMS() - adjustedMS) * 100.0 / (float)_fadeOutMS;
+            brightness = (float)(_stepLengthMS - adjustedMS) * 100.0 / (float)_fadeOutMS;
         }
 
         if (_cacheVideo)
@@ -257,8 +257,10 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     }
 }
 
-void PlayListItemVideo::Start()
+void PlayListItemVideo::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     if (_suppressVirtualMatrix)
     {
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);

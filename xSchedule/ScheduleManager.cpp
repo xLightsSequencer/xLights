@@ -1161,7 +1161,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     {
                         if (pli->GetTitle() == "Run Process")
                         {
-                            pli->Start();
+                            pli->Start(pli->GetDurationMS());
                             pli->Frame(nullptr, 0, 50, 50, true);
                             pli->Stop();
                             run = true;
@@ -1183,7 +1183,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             {
                                 if (pli->GetTitle() == "Run Process")
                                 {
-                                    pli->Start();
+                                    pli->Start(pli->GetDurationMS());
                                     pli->Frame(nullptr, 0, 50, 50, true);
                                     pli->Stop();
                                     run = true;

@@ -114,7 +114,9 @@ std::list<std::string> PlayListItemRunCommand::GetCommands() const
     return res;
 }
 
-void PlayListItemRunCommand::Start()
+void PlayListItemRunCommand::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _started = false;
 }

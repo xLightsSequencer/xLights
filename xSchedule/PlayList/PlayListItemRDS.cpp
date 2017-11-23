@@ -357,8 +357,10 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
     }
 }
 
-void PlayListItemRDS::Start()
+void PlayListItemRDS::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _started = false;
 }
 

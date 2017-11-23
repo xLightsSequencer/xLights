@@ -102,8 +102,10 @@ void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemESEQ::Start()
+void PlayListItemESEQ::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     // load the FSEQ
     LoadFiles();
 }

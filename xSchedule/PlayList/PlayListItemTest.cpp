@@ -221,8 +221,9 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemTest::Start()
+void PlayListItemTest::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
     _state = 0;
 }
 

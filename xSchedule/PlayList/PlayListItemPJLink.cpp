@@ -93,8 +93,10 @@ void PlayListItemPJLink::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
     }
 }
 
-void PlayListItemPJLink::Start()
+void PlayListItemPJLink::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     _started = false;
 }
 

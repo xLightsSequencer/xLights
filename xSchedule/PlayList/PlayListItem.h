@@ -23,6 +23,7 @@ protected:
     size_t _priority;
     int _volume;
     int _currentFrame;
+    long _stepLengthMS;
     #pragma endregion Member Variables
 
     void Save(wxXmlNode* node);
@@ -71,7 +72,7 @@ public:
     virtual void Load(wxXmlNode* node);
 
     #pragma region Playing
-    virtual void Start() {}
+    virtual void Start(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
     virtual void Stop() {}
     virtual void Restart() {}
     virtual void Pause(bool pause) {}

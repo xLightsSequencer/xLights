@@ -347,7 +347,7 @@ void PlayListStep::Start(int loops)
     _startTime = wxGetUTCTimeMillis().GetLo();
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Start();
+        (*it)->Start(GetLengthMS());
     }
 }
 

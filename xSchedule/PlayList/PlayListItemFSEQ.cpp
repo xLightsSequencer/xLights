@@ -415,8 +415,10 @@ void PlayListItemFSEQ::Restart()
     _currentFrame = 0;
 }
 
-void PlayListItemFSEQ::Start()
+void PlayListItemFSEQ::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     // load the FSEQ
     // load the audio
     LoadFiles();

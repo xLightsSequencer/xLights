@@ -144,8 +144,10 @@ void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
     }
 }
 
-void PlayListItemImage::Start()
+void PlayListItemImage::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     if (_suppressVirtualMatrix)
     {
         xScheduleFrame::GetScheduleManager()->SuppressVM(true);

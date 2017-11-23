@@ -236,8 +236,10 @@ void PlayListItemAudio::Restart()
     }
 }
 
-void PlayListItemAudio::Start()
+void PlayListItemAudio::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
+
     // load the audio
     LoadFiles();
 

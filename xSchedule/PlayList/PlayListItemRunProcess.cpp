@@ -169,7 +169,8 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
     }
 }
 
-void PlayListItemRunProcess::Start()
+void PlayListItemRunProcess::Start(long stepLengthMS)
 {
+    PlayListItem::Start(stepLengthMS);
     _started = false;
 }
