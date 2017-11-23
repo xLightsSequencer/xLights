@@ -3079,7 +3079,6 @@ unsigned int xLightsFrame::GetMaxNumChannels() {
     return std::max(_outputManager.GetTotalChannels(), (long)AllModels.GetLastChannel() + 1);
 }
 
-
 void xLightsFrame::UpdateSequenceLength()
 {
     if( CurrentSeqXmlFile->GetSequenceLoaded() )

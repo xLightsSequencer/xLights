@@ -661,7 +661,7 @@ int ScheduleManager::Frame(bool outputframe)
 
 void ScheduleManager::CreateBrightnessArray()
 {
-    for (int i = 0; i < 256; i++)
+    for (size_t i = 0; i < 256; i++)
     {
         _brightnessArray[i] = (wxByte)(((i * _brightness) / 100) & 0xFF);
     }

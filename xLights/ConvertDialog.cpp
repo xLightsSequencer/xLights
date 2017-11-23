@@ -753,8 +753,7 @@ void ConvertDialog::ReadGlediatorFile(const wxString& FileName)
 {
     wxFile f;
 
-    size_t fileLength;
-    int j, period, x_width = 32, y_height = 32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    int x_width = 32, y_height = 32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     wxString filename = string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
@@ -765,7 +764,7 @@ void ConvertDialog::ReadGlediatorFile(const wxString& FileName)
         return;
     }
 
-    fileLength = f.Length();
+    size_t fileLength = f.Length();
     int numChannels = (x_width * 3 * y_height); // 3072 = 32*32*3
     char *frameBuffer = new char[SeqData.NumChannels()];
 
@@ -774,10 +773,10 @@ void ConvertDialog::ReadGlediatorFile(const wxString& FileName)
     SeqData.init(numChannels, numFrames, 50);
 
     wxYield();
-    period = 0;
+    int period = 0;
     while ((readcnt = f.Read(frameBuffer, SeqData.NumChannels())))   // Read one period of channels
     {
-        for (j = 0; j<readcnt; j++)   // Loop thru all channel.s
+        for (int j = 0; j<readcnt; j++)   // Loop thru all channel.s
         {
             SeqData[period][j] = frameBuffer[j];
         }
@@ -843,7 +842,6 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     wxArrayString context;
     long VixEventPeriod = -1;
     long MaxIntensity = 255;
-    int OutputChannel;
 
     _parent->ConversionInit();
     AppendConvertStatus(wxString("Reading Vixen sequence\n"));
@@ -1010,19 +1008,16 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     }
     SeqData.init(numChannels, VixNumPeriods, VixEventPeriod);
 
-    // reorder channels according to output number, scale so that max intensity is 255
-    int newper, intensity;
-    size_t ch;
-    for (ch = 0; ch < SeqData.NumChannels(); ch++)
+    for (size_t ch = 0; ch < SeqData.NumChannels(); ch++)
     {
-        OutputChannel = VixChannels[ch] - min;
+        int OutputChannel = VixChannels[ch] - min;
         if (ch < VixChannelNames.size())
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
-        for (newper = 0; newper < SeqData.NumFrames(); newper++)
+        for (int newper = 0; newper < SeqData.NumFrames(); newper++)
         {
-            intensity = VixSeqData[ch*VixNumPeriods + newper];
+            int intensity = VixSeqData[ch*VixNumPeriods + newper];
             if (MaxIntensity != 255)
             {
                 intensity = intensity * 255 / MaxIntensity;

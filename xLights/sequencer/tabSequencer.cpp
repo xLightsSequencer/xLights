@@ -166,7 +166,7 @@ void xLightsFrame::InitSequencer()
     // check if sequence data is the right size
     if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetSequenceLoaded())
     {
-        if (SeqData.NumChannels() != GetMaxNumChannels())
+        if (SeqData.NumChannels() != roundTo4(GetMaxNumChannels()))
         {
             logger_base.info("Number of channels has changed ... reallocating sequence data memory.");
 

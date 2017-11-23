@@ -127,8 +127,8 @@ void xLightsFrame::NewSequence()
                                       " a very large amount of memory used (%lu MB).", max, m), "Warning",
                      wxICON_WARNING | wxOK | wxCENTRE, this);
     }
-    if( (max > SeqData.NumChannels()) ||
-        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames() )
+    if ((max > SeqData.NumChannels()) ||
+        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames())
     {
         SeqData.init(max, mMediaLengthMS / ms, ms);
     }
