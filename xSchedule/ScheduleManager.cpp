@@ -162,13 +162,16 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     if (_scheduleOptions->IsSendOffWhenNotRunning())
     {
-        if (_outputManager->IsOutputOpenInAnotherProcess())
+        if (!_outputManager->IsOutputting())
         {
-            wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+            if (_outputManager->IsOutputOpenInAnotherProcess())
+            {
+                logger_base.warn("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
+            }
+            _outputManager->StartOutput();
         }
-        _outputManager->StartOutput();
         ManageBackground();
-        logger_base.info("Started outputting to lights.");
+        logger_base.info("Started outputting to lights ... even though nothing is running.");
         StartVirtualMatrices();
     }
 
@@ -2600,6 +2603,7 @@ void ScheduleManager::ManageBackground()
         else
         {
             _backgroundPlayList->Stop();
+            AllOff();
         }
     }
 }
