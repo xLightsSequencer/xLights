@@ -224,14 +224,26 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::str
         int armsperstring = parm3;
         int cur = 0;
         for (size_t y = 0; y < stringcount*armsperstring; y++) {
-            for (int x = 0; x<nodesperarm; x++) {
-                int idx = y * nodesperarm + x;
-                newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
+            if (SingleNode)
+            {
+                newNodes.push_back(NodeBaseClassPtr(Nodes[y]->clone()));
                 for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
                     newNodes[cur]->Coords[c].bufX = cur;
                     newNodes[cur]->Coords[c].bufY = 0;
                 }
                 cur++;
+            }
+            else
+            {
+                for (int x = 0; x < nodesperarm; x++) {
+                    int idx = y * nodesperarm + x;
+                    newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
+                    for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
+                        newNodes[cur]->Coords[c].bufX = cur;
+                        newNodes[cur]->Coords[c].bufY = 0;
+                    }
+                    cur++;
+                }
             }
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
