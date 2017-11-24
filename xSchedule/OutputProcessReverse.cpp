@@ -45,9 +45,9 @@ void OutputProcessReverse::Frame(wxByte* buffer, size_t size)
 		
 	for (int i = 0; i < nodes; i++)
 	{
-		memcpy(from, rgb, 3);
-		memcpy(to, from, 3);
-		memcpy(rgb, to, 3);
+		memcpy(rgb, from, 3);
+		memcpy(from, to, 3);
+		memcpy(to, rgb, 3);
 
 		from += 3;
 		to -= 3;

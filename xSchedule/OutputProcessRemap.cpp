@@ -45,5 +45,5 @@ void OutputProcessRemap::Frame(wxByte* buffer, size_t size)
     size_t chs2 = std::min(_channels, size - (_to - 1));
     size_t chs = std::min(chs1, chs2);
 
-    memcpy(buffer + _startChannel - 1, buffer + _to - 1, chs);
+    memcpy(buffer + _to - 1, buffer + _startChannel - 1, chs);
 }
