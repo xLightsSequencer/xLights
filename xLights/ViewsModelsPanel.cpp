@@ -289,6 +289,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
+    Panel_Sizer->SetMinSize(wxSize(600, 400));
+    MainSizer->SetMinSize(600, 400);
+    SetMinSize(wxSize(600, 400));
+
     ValidateWindow();
 }
 
@@ -1415,6 +1419,7 @@ void ViewsModelsPanel::OnResize(wxSizeEvent& event)
     ScrolledWindowViewsModels->FitInside();
     ScrolledWindowViewsModels->SetScrollRate(5, 5);
     ScrolledWindowViewsModels->Refresh();
+
 }
 
 void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)

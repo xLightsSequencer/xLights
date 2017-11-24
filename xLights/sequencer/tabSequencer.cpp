@@ -106,8 +106,9 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements"))
                    .Float());
     // Hide the panel on start.
-    m_mgr->GetPane("DisplayElements").Hide();
-
+    wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
+    info.BestSize(displayElementsPanel->GetMinSize());
+    info.Hide();
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
@@ -2136,6 +2137,7 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
+    info.BestSize(displayElementsPanel->GetMinSize());
     info.Show();
     m_mgr->Update();
 }
