@@ -124,6 +124,7 @@ class ScheduleManager : public wxEvtHandler
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         std::list<OutputProcess*>* GetOutputProcessing() { return &_outputProcessing; }
         bool IsDirty();
+        void SetDirty();
         void ClearDirty();
         size_t GetTotalChannels() const;
         bool IsXyzzy() const { return _xyzzy != nullptr; }

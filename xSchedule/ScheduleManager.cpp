@@ -305,6 +305,11 @@ bool ScheduleManager::IsDirty()
     return res;
 }
 
+void ScheduleManager::SetDirty()
+{
+    _changeCount++;
+}
+
 void ScheduleManager::Save()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

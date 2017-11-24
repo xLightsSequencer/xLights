@@ -2254,6 +2254,7 @@ void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
     if (dlg.ShowModal() == wxID_OK)
     {
         // it is updated directly
+        __schedule->SetDirty();
     }
 
     UpdateUI();
@@ -2287,6 +2288,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     if (dlg.ShowModal() == wxID_OK)
     {
         // it is updated directly
+        __schedule->SetDirty();
     }
 
     _suspendOTL = false;
