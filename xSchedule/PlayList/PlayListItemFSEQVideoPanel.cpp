@@ -16,6 +16,7 @@ const long PlayListItemFSEQVideoPanel::ID_FILEPICKERCTRL1 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_FILEPICKERCTRL3 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_BUTTON1 = wxNewId();
+const long PlayListItemFSEQVideoPanel::ID_STATICTEXT11 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX5 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_CHECKBOX6 = wxNewId();
 const long PlayListItemFSEQVideoPanel::ID_STATICTEXT5 = wxNewId();
@@ -129,6 +130,9 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_PositionWindow = new wxButton(this, ID_BUTTON1, _("Position Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer1->Add(Button_PositionWindow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Position = new wxStaticText(this, ID_STATICTEXT11, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer1->Add(StaticText_Position, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Topmost = new wxCheckBox(this, ID_CHECKBOX5, _("Topmost Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
 	CheckBox_Topmost->SetValue(true);
@@ -171,7 +175,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
 	CheckBox_CacheVideo = new wxCheckBox(this, ID_CHECKBOX7, _("Cache Video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_CacheVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_CacheVideo, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_LoopVideo = new wxCheckBox(this, ID_CHECKBOX8, _("Loop video"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_LoopVideo->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LoopVideo, 1, wxALL|wxEXPAND, 5);
@@ -263,6 +267,8 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, PlayLis
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }
+
+    SetWindowPositionText();
 
     ValidateWindow();
 }
@@ -410,4 +416,11 @@ void PlayListItemFSEQVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& ev
     {
         _fseq->SetLocation(dlg.GetPosition(), dlg.GetSize());
     }
+
+    SetWindowPositionText();
+}
+
+void PlayListItemFSEQVideoPanel::SetWindowPositionText()
+{
+    StaticText_Position->SetLabel(wxString::Format("X: %d, Y: %d, W: %d, H: %d", _fseq->GetPosition().x, _fseq->GetPosition().y, _fseq->GetSize().GetWidth(), _fseq->GetSize().GetHeight()));
 }

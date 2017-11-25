@@ -19,6 +19,8 @@ class PlayListItemVideoPanel: public wxPanel
 {
     PlayListItemVideo* _video;
 
+    void SetWindowPositionText();
+
 	public:
 
 		PlayListItemVideoPanel(wxWindow* parent, PlayListItemVideo* video,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -30,6 +32,7 @@ class PlayListItemVideoPanel: public wxPanel
 		wxStaticText* StaticText2;
 		VideoFilePickerCtrl* FilePickerCtrl_VideoFile;
 		wxCheckBox* CheckBox_CacheVideo;
+		wxStaticText* StaticText_Position;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxCheckBox* CheckBox_Topmost;
@@ -46,6 +49,7 @@ class PlayListItemVideoPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT5;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX3;

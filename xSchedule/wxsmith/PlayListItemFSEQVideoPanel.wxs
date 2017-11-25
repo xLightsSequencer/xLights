@@ -62,6 +62,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText_Position" member="yes">
+					<label></label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_Topmost" member="yes">
 					<label>Topmost Window</label>
 					<checked>1</checked>

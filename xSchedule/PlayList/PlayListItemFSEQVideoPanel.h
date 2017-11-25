@@ -23,6 +23,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 {
     PlayListItemFSEQVideo* _fseq;
     void ValidateWindow();
+    void SetWindowPositionText();
 
 	public:
 
@@ -43,6 +44,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxCheckBox* CheckBox_FastStartAudio;
 		wxStaticText* StaticText8;
 		wxCheckBox* CheckBox_CacheVideo;
+		wxStaticText* StaticText_Position;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxCheckBox* CheckBox_LimitChannels;
@@ -70,6 +72,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_STATICTEXT8;
 		static const long ID_FILEPICKERCTRL3;
 		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT11;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
 		static const long ID_STATICTEXT5;

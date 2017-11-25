@@ -16,9 +16,10 @@ class ImageFilePickerCtrl;
 
 class PlayListItemImagePanel: public wxPanel
 {
-    PlayListItemImage* _Image;
+    PlayListItemImage* _image;
 
     void ValidateWindow();
+    void SetWindowPositionText();
 
 	public:
 
@@ -27,6 +28,7 @@ class PlayListItemImagePanel: public wxPanel
 
 		//(*Declarations(PlayListItemImagePanel)
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText_Position;
 		wxStaticText* StaticText1;
 		ImageFilePickerCtrl* FilePickerCtrl_ImageFile;
 		wxStaticText* StaticText3;
@@ -43,6 +45,7 @@ class PlayListItemImagePanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT4;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
 		static const long ID_STATICTEXT3;
@@ -58,7 +61,6 @@ class PlayListItemImagePanel: public wxPanel
 		void OnFilePickerCtrl_ImageFileFileChanged(wxFileDirPickerEvent& event);
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
 		void OnTextCtrl_DurationText(wxCommandEvent& event);
-		void OnTextCtrl_DurationText1(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
