@@ -2998,7 +2998,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        Model *model = data != nullptr ? data->GetModel() : nullptr;
+        Model* model = data != nullptr ? data->GetModel() : nullptr;
         if( model != nullptr ) {
             if( model->GetDisplayAs() == "ModelGroup" ) {
                 mSelectedGroup = item;
@@ -3010,7 +3010,8 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     } else {
         return;
     }
-    if( selectedModel != nullptr ) {
+
+    if (selectedModel != nullptr && selectedModel->GetDisplayAs() != "SubModel") {
         mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
         mnuContext.AppendSeparator();
     }
