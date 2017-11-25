@@ -14,6 +14,27 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp) Send render event for effect moves, previously not always sent
    -- enh (dkulp) Add left/right starting locations for candy canes
    -- enh (gil)   Add new Single Color Intensity string type that will react to any color.
+   -- bug (keith) F4V3 with expansion board should not limit pixels on any port
+   -- enh (keith) Add present shape effect
+   -- bug (keith) xSchedule should take duration of a step from the highest priority FSEQ over any audio or video item
+   -- bug (keith) xSchedule fpp master was sending too many media sync packets for audio/video only steps
+   -- enh (keith) Add timing event bars to vu meter ... like timing event bar but all bars are displayed and colours cycle
+   -- bug (keith) Erase background before rendering xyzzy so when playing on top of your show you can see the game
+   -- bug (keith) Prevent right click delete of submodels in model list on layout tab
+   -- bug (keith) Fix bug with remap and reverse in xSchedule output processors
+   -- bug (keith) Flag schedule as dirty if matrices/virtual matrices are edited
+   -- bug (keith) Fix crash with single colour spinners and the single line render style
+   -- bug (keith) Fix display elements window gets really small and hard to find
+   -- bug (keith) Fix problem where FSEQ data is dumped on load due to mismatch in size ... roundto4 problem
+   -- bug (keith) Attempt to fix lights not going off when background sequence stops
+   -- enh (keith) Allow video in scheduler to fade in and fade out
+   -- enh (keith) Allow video looping in scheduler
+   -- enh (keith) Add right click on setup to deactivate all unused outputs
+   -- enh (keith) Remove xseq as a target for conversions ... there is no obvious reason why people would still be creating them
+   -- bug (keith) Fix x/y text location mixed up when it is saved
+   -- bug (keith) Fix crash when loading xLight v3.x.x animation sequences
+   -- bug (keith) Fix audio preload in xSchedule
+   -- enh (keith) Add the ability to abort Generate Custom Model processes by holding down ESC key
 2017.37  Nov 14, 2017
    -- enh (dkulp) If dimming curve would map to identity, remove it to avoid the extra processing it entails
    -- enh (keith) Add ESCAPE key abort generate custom model scanning.
