@@ -244,8 +244,41 @@ std::string PlayListStep::GetNameNoTime() const
 
 PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
 {
-    PlayListItem* timesource = nullptr;
     ms = 9999;
+    PlayListItem* timesource = nullptr;
+
+    // Prioritise the highest priotity FSEQ for timing
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        if ((*it)->GetTitle() == "FSEQ" || (*it)->GetTitle() == "FSEQ & Video")
+        {
+            size_t msec = (*it)->GetFrameMS();
+            if (timesource == nullptr)
+            {
+                timesource = *it;
+                ms = msec;
+            }
+            else
+            {
+                if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                {
+                    timesource = *it;
+                    ms = msec;
+                }
+            }
+        }
+    }
+
+    if (timesource != nullptr)
+    {
+        if (ms == 9999)
+        {
+            ms = 50;
+        }
+
+        return timesource;
+    }
+
     for (auto it = _items.begin(); it != _items.end(); ++it)
     {
         size_t msec = (*it)->GetFrameMS();
