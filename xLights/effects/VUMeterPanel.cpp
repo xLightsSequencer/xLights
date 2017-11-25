@@ -110,6 +110,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Level Pulse Color"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
 	Choice_VUMeter_Type->Append(_("Timing Event Bar"));
+	Choice_VUMeter_Type->Append(_("Timing Event Bars"));
 	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
 	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
 	Choice_VUMeter_Type->Append(_("Timing Event Color"));
@@ -274,6 +275,7 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bar" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bars" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump 100" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
     {

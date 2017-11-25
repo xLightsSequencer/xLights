@@ -38,7 +38,7 @@ class VUMeterEffect : public RenderableEffect
         void RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote);
         void RenderLevelShapeFrame(RenderBuffer &buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars);
         void RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, float& lastsize);
-        void RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex);
+        void RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all);
         void DrawBox(RenderBuffer& buffer, int startx, int endx, int starty, int endy, xlColor& color1);
         void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
         void DrawStar(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1, int points);

@@ -56,6 +56,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         (type == "Timing Event Spike" ||
          type == "Timing Event Sweep" ||
             type == "Timing Event Bar" ||
+            type == "Timing Event Bars" ||
             type == "Timing Event Color" ||
             type == "Timing Event Pulse" ||
             type == "Timing Event Jump 100" ||
@@ -256,6 +257,10 @@ int VUMeterEffect::DecodeType(std::string type)
     {
         return 22;
     }
+    else if (type == "Timing Event Bars")
+    {
+        return 23;
+    }
 
 	// default type is volume bars
 	return 2;
@@ -360,7 +365,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false);
             break;
         case 19:
-            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex);
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false);
             break;
         case 20:
             RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex);
@@ -370,6 +375,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             break;
         case 22:
             RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex);
+            break;
+        case 23:
+            RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true);
             break;
         }
 	}
@@ -1812,7 +1820,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
     }
 }
 
-void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex)
+void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all)
 {
     if (timingtrack != "")
     {
@@ -1861,18 +1869,43 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
             int bar = lastbar - 1;
             xlColor color;
             buffer.palette.GetColor(colourindex, color);
+            int ci = colourindex;
 
-            int startx = buffer.BufferWi / bars * bar;
-            int endx = buffer.BufferWi / bars * (bar + 1);
-            if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
-
-            if (bar >= 0)
+            if (all)
             {
-                for (int x = startx; x <= endx; x++)
+                for (int i = 0; i < bars ;i++)
                 {
-                    for (int y = 0; y < buffer.BufferHt; y++)
+                    int startx = buffer.BufferWi / bars * i;
+                    int endx = buffer.BufferWi / bars * (i + 1);
+                    if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+
+                    for (int x = startx; x <= endx; x++)
                     {
-                        buffer.SetPixel(x, y, color);
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                        {
+                            buffer.SetPixel(x, y, color);
+                        }
+                    }
+
+                    ci++;
+                    if (ci == buffer.GetColorCount()) ci = 0;
+                    buffer.palette.GetColor(ci, color);
+                }
+            }
+            else
+            {
+                int startx = buffer.BufferWi / bars * bar;
+                int endx = buffer.BufferWi / bars * (bar + 1);
+                if (endx > buffer.BufferWi - 1) endx = buffer.BufferWi - 1;
+
+                if (bar >= 0)
+                {
+                    for (int x = startx; x <= endx; x++)
+                    {
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                        {
+                            buffer.SetPixel(x, y, color);
+                        }
                     }
                 }
             }
