@@ -634,6 +634,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             maxDaughter1 = 1;
         }
 
+        if (IsF4() && IsV3())
+        {
+            // v3 supports 1024 on all outputs
+            maxMain = maxPixels;
+            maxDaughter1 = 0;
+            maxDaughter2 = 0;
+        }
+
         logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
 
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
