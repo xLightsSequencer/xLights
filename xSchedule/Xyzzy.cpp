@@ -161,6 +161,15 @@ bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
             colour = *wxRED;
         }
 
+        // Erase the board background
+        for (int x = _sideBorder; x < _sideBorder + BOARDWIDTH * _colsPerSquare; x++)
+        {
+            for (int y = _bottomBorder; y < _bottomBorder + BOARDHEIGHT * _rowsPerSquare; y++)
+            {
+                DrawNode(x, y, *wxBLACK, buffer, size);
+            }
+        }
+
         // draw borders
         // left
         for (int x = 0; x < _sideBorder; x++)
