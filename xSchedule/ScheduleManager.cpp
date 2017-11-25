@@ -514,7 +514,10 @@ int ScheduleManager::Frame(bool outputframe)
 
             if (outputframe && _mode == SYNCMODE::FPPMASTER && running->GetRunningStep() != nullptr)
             {
-                SendFPPSync(running->GetActiveSyncItemFSEQ(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+                if (running->GetActiveSyncItemFSEQ() != "")
+                {
+                    SendFPPSync(running->GetActiveSyncItemFSEQ(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+                }
                 if (running->GetActiveSyncItemMedia() != "")
                 {
                     SendFPPSync(running->GetActiveSyncItemMedia(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
