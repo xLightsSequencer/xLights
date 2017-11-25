@@ -51,6 +51,7 @@ protected:
         void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
 };
 
 #endif // SHAPEEFFECT_H

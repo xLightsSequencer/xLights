@@ -103,6 +103,7 @@ wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_CANDYCANE  9
 #define RENDER_SHAPE_SNOWFLAKE  10
 #define RENDER_SHAPE_CRUCIFIX   11
+#define RENDER_SHAPE_PRESENT    12
 
 void ShapeEffect::SetDefaultParameters(Model *cls) {
     ShapePanel *sp = (ShapePanel*)panel;
@@ -251,8 +252,12 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     {
         return RENDER_SHAPE_CRUCIFIX;
     }
+    else if (shape == "Present")
+    {
+        return RENDER_SHAPE_PRESENT;
+    }
 
-    return rand01() * 12;
+    return rand01() * 13;
 }
 
 void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -518,6 +523,9 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             break;
         case RENDER_SHAPE_CRUCIFIX:
             Drawcrucifix(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
+            break;
+        case RENDER_SHAPE_PRESENT:
+            Drawpresent(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
         case RENDER_SHAPE_CANDYCANE:
             Drawcandycane(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
@@ -804,6 +812,56 @@ void ShapeEffect::Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radi
                 int y1 = std::round(((double)points[j].start.y - 6.5) / 10.0 * radius);
                 int x2 = std::round(((double)points[j].end.x - 2.5) / 7.0 * radius);
                 int y2 = std::round(((double)points[j].end.y - 6.5) / 10.0 * radius);
+                buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
+            }
+        }
+        else
+        {
+            break;
+        }
+        radius -= interpolation;
+    }
+}
+
+void ShapeEffect::Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
+{
+    struct line
+    {
+        wxPoint start;
+        wxPoint end;
+
+        line(const wxPoint s, const wxPoint e)
+        {
+            start = s;
+            end = e;
+        }
+    };
+
+    const line points[] = {line(wxPoint(0,0), wxPoint(0,9)),
+                           line(wxPoint(0,9), wxPoint(10,9)),
+                           line(wxPoint(10,9), wxPoint(10,0)),
+                           line(wxPoint(10,0), wxPoint(0,0)),
+                           line(wxPoint(5,0), wxPoint(5,9)),
+                           line(wxPoint(5,9), wxPoint(2,11)),
+                           line(wxPoint(2,11), wxPoint(2,9)),
+                           line(wxPoint(5,9), wxPoint(8,11)),
+                           line(wxPoint(8,11), wxPoint(8,9))
+    };
+    int count = sizeof(points) / sizeof(line);
+
+    double interpolation = 0.75;
+    double t = (double)thickness - 1.0 + interpolation;
+
+    for (double i = 0; i < t; i += interpolation)
+    {
+        if (radius >= 0)
+        {
+            for (int j = 0; j < count; ++j)
+            {
+                int x1 = std::round(((double)points[j].start.x - 5) / 7.0 * radius);
+                int y1 = std::round(((double)points[j].start.y - 5.5) / 10.0 * radius);
+                int x2 = std::round(((double)points[j].end.x - 5) / 7.0 * radius);
+                int y2 = std::round(((double)points[j].end.y - 5.5) / 10.0 * radius);
                 buffer.DrawLine(xc + x1, yc + y1, xc + x2, yc + y2, color);
             }
         }
