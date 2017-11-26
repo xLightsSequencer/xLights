@@ -218,7 +218,7 @@ void MatricesDialog::DoEdit()
     int stringLength = wxAtoi(ListView1->GetItemText(item, 3));
     int strandsPerString = wxAtoi(ListView1->GetItemText(item, 4));
     std::string startLocation = ListView1->GetItemText(item, 5).ToStdString();
-    std::string startChannel = ListView1->GetItemText(item, 6);
+    std::string startChannel = ListView1->GetItemText(item, 6).ToStdString();
 
     MatrixDialog dlg(this, _outputManager, name, orientation, startLocation, stringLength, strings, strandsPerString, startChannel);
 
