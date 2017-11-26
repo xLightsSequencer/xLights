@@ -79,6 +79,7 @@ public:
     //both outputNumber and startChannel are 0 based
     long GetAbsoluteChannel(int outputNumber, int startChannel) const;
     long GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const;
+    long DecodeStartChannel(const std::string& startChannelString);
     #pragma endregion Channel Mapping
 
     #pragma region Start and Stop

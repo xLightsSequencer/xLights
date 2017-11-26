@@ -6,11 +6,13 @@
 #include "PlayList/PlayerWindow.h"
 
 class wxXmlNode;
+class OutputManager;
 
 typedef enum {VM_NORMAL, VM_90, VM_270 } VMROTATION;
 
 class VirtualMatrix 
 {
+    OutputManager* _outputManager;
     int _changeCount;
     int _lastSavedChangeCount;
     std::string _name;
@@ -20,7 +22,7 @@ class VirtualMatrix
     wxSize _size;
     wxPoint _location;
     VMROTATION _rotation;
-    size_t _startChannel;
+    std::string _startChannel;
     wxImage* _image;
     wxImageResizeQuality _quality;
     PlayerWindow* _window;
@@ -33,18 +35,19 @@ public:
         static wxImageResizeQuality EncodeScalingQuality(const std::string quality);
         static std::string DecodeScalingQuality(wxImageResizeQuality quality);
 
-        VirtualMatrix(wxXmlNode*n);
-        VirtualMatrix(int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, size_t startChannel, const std::string& name, wxSize size, wxPoint loc);
-        VirtualMatrix(int width, int height, bool topMost, const std::string& rotation, const std::string& quality, size_t startChannel, const std::string& name, wxSize size, wxPoint loc);
-        VirtualMatrix();
+        VirtualMatrix(OutputManager* outputManager, wxXmlNode* n);
+        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc);
+        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc);
+        VirtualMatrix(OutputManager* outputManager);
         virtual ~VirtualMatrix() {}
         void Frame(wxByte*buffer, size_t size);
         void Start();
         void Stop();
         void Suppress(bool suppress);
-        size_t GetStartChannel() const { return _startChannel; }
+        std::string GetStartChannel() const { return _startChannel; }
+        long GetStartChannelAsNumber() const;
         size_t GetChannels() const { return _width * _height * 3; }
-        void SetStartChannel(const size_t startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }
+        void SetStartChannel(const std::string& startChannel) { if (startChannel != _startChannel) { _startChannel = startChannel; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (name != _name) { _name = name; _changeCount++; } }
         size_t GetWidth() const { return _width; }

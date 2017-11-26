@@ -11,6 +11,7 @@ class CommandManager;
 class wxXmlNode;
 class UserButton;
 class Projector;
+class OutputManager;
 
 class ScheduleOptions
 {
@@ -35,7 +36,7 @@ class ScheduleOptions
 
         bool IsDirty() const;
         void ClearDirty();
-        ScheduleOptions(wxXmlNode* node);
+        ScheduleOptions(OutputManager* outputManager, wxXmlNode* node);
         ScheduleOptions();
         virtual ~ScheduleOptions();
         wxXmlNode* Save();

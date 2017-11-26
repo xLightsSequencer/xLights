@@ -1,6 +1,7 @@
 #include "VirtualMatricesDialog.h"
 #include "VirtualMatrix.h"
 #include "VirtualMatrixDialog.h"
+#include "../xLights/outputs/OutputManager.h"
 
 //(*InternalHeaders(VirtualMatricesDialog)
 #include <wx/intl.h>
@@ -21,8 +22,10 @@ BEGIN_EVENT_TABLE(VirtualMatricesDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, std::list<VirtualMatrix*>* vmatrices,wxWindowID id,const wxPoint& pos,const wxSize& size) : _vmatrices(vmatrices)
+VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices,wxWindowID id,const wxPoint& pos,const wxSize& size) : _vmatrices(vmatrices)
 {
+    _outputManager = outputManager;
+
 	//(*Initialize(VirtualMatricesDialog)
 	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
@@ -150,10 +153,10 @@ void VirtualMatricesDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             location = wxPoint(wxAtoi(l[0]), wxAtoi(l[1]));
         }
-        long startChannel = wxAtol(ListView1->GetItemText(i, 7));
+        std::string startChannel = ListView1->GetItemText(i, 7).ToStdString();
         std::string quality = ListView1->GetItemText(i, 8).ToStdString();
 
-        _vmatrices->push_back(new VirtualMatrix(width, height, topMost, rotation, quality, startChannel, name, size, location));
+        _vmatrices->push_back(new VirtualMatrix(_outputManager, width, height, topMost, rotation, quality, startChannel, name, size, location));
     }
 
     EndDialog(wxID_OK);
@@ -187,10 +190,10 @@ void VirtualMatricesDialog::DoAdd()
     std::string rotation = "";
     wxSize size(300, 300);
     wxPoint location(0, 0);
-    long startChannel = 1;
+    std::string startChannel = "1";
     std::string quality = "";
 
-    VirtualMatrixDialog dlg(this, name, rotation, quality, size, location, width, height, topMost, startChannel);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -202,7 +205,7 @@ void VirtualMatricesDialog::DoAdd()
         ListView1->SetItem(row, 4, rotation);
         ListView1->SetItem(row, 5, wxString::Format(wxT("%i,%i"), size.GetWidth(), size.GetHeight()));
         ListView1->SetItem(row, 6, wxString::Format(wxT("%i,%i"), location.x, location.y));
-        ListView1->SetItem(row, 7, wxString::Format(wxT("%i"), startChannel));
+        ListView1->SetItem(row, 7, startChannel);
         ListView1->SetItem(row, 8, quality);
     }
 
@@ -243,10 +246,10 @@ void VirtualMatricesDialog::DoEdit()
     {
         location = wxPoint(wxAtoi(l[0]), wxAtoi(l[1]));
     }
-    long startChannel = wxAtol(ListView1->GetItemText(item, 7));
+    std::string startChannel = ListView1->GetItemText(item, 7).ToStdString();
     std::string quality = ListView1->GetItemText(item, 8).ToStdString();
 
-    VirtualMatrixDialog dlg(this, name, rotation, quality, size, location, width, height, topMost, startChannel);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -257,7 +260,7 @@ void VirtualMatricesDialog::DoEdit()
         ListView1->SetItem(item, 4, rotation);
         ListView1->SetItem(item, 5, wxString::Format(wxT("%i,%i"), size.GetWidth(), size.GetHeight()));
         ListView1->SetItem(item, 6, wxString::Format(wxT("%i,%i"), location.x, location.y));
-        ListView1->SetItem(item, 7, wxString::Format(wxT("%i"), startChannel));
+        ListView1->SetItem(item, 7, startChannel);
         ListView1->SetItem(item, 8, quality);
     }
 
@@ -270,13 +273,13 @@ void VirtualMatricesDialog::PopulateList()
     {
         int row = ListView1->GetItemCount();
         ListView1->InsertItem(row, (*it)->GetName());
-        ListView1->SetItem(row, 1, wxString::Format(wxT("%i"), (*it)->GetWidth()));
-        ListView1->SetItem(row, 2, wxString::Format(wxT("%i"), (*it)->GetHeight()));
+        ListView1->SetItem(row, 1, wxString::Format(wxT("%ld"), (long)(*it)->GetWidth()));
+        ListView1->SetItem(row, 2, wxString::Format(wxT("%ld"), (long)(*it)->GetHeight()));
         ListView1->SetItem(row, 3, (*it)->GetTopMost() ? "Yes" : "No");
         ListView1->SetItem(row, 4, (*it)->GetRotation());
-        ListView1->SetItem(row, 5, wxString::Format(wxT("%i,%i"), (*it)->GetSize().GetWidth(), (*it)->GetSize().GetHeight()));
-        ListView1->SetItem(row, 6, wxString::Format(wxT("%i,%i"), (*it)->GetLocation().x, (*it)->GetLocation().y));
-        ListView1->SetItem(row, 7, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
+        ListView1->SetItem(row, 5, wxString::Format(wxT("%d,%d"), (*it)->GetSize().GetWidth(), (*it)->GetSize().GetHeight()));
+        ListView1->SetItem(row, 6, wxString::Format(wxT("%d,%d"), (*it)->GetLocation().x, (*it)->GetLocation().y));
+        ListView1->SetItem(row, 7, (*it)->GetStartChannel());
         ListView1->SetItem(row, 8, (*it)->GetScalingQuality());
     }
 }

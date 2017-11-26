@@ -2,9 +2,11 @@
 #include <wx/string.h>
 #include <wx/xml/xml.h>
 #include <wx/wx.h>
+#include "../xLights/outputs/OutputManager.h"
 
-MatrixMapper::MatrixMapper(int strings, int strandsPerString, int stringLength, MMORIENTATION orientation, MMSTARTLOCATION startLocation, size_t startChannel, const std::string& name)
+MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, MMORIENTATION orientation, MMSTARTLOCATION startLocation, const std::string& startChannel, const std::string& name)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = name;
@@ -16,8 +18,9 @@ MatrixMapper::MatrixMapper(int strings, int strandsPerString, int stringLength, 
     _startChannel = startChannel;
 }
 
-MatrixMapper::MatrixMapper(int strings, int strandsPerString, int stringLength, const std::string& orientation, const std::string& startLocation, size_t startChannel, const std::string& name)
+MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, const std::string& orientation, const std::string& startLocation, const std::string& startChannel, const std::string& name)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = name;
@@ -29,8 +32,9 @@ MatrixMapper::MatrixMapper(int strings, int strandsPerString, int stringLength, 
     _startChannel = startChannel;
 }
 
-MatrixMapper::MatrixMapper(wxXmlNode* n)
+MatrixMapper::MatrixMapper(OutputManager* outputManager, wxXmlNode* n)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
     _name = n->GetAttribute("Name", "");
@@ -39,7 +43,7 @@ MatrixMapper::MatrixMapper(wxXmlNode* n)
     _stringLength = wxAtoi(n->GetAttribute("StringLength", "50"));
     _orientation = (MMORIENTATION)wxAtoi(n->GetAttribute("Orientation", "0"));
     _startLocation = (MMSTARTLOCATION)wxAtoi(n->GetAttribute("StartLocation", "0"));
-    _startChannel = wxAtoi(n->GetAttribute("StartChannel", "1"));
+    _startChannel = n->GetAttribute("StartChannel", "1").ToStdString();
 }
 
 wxXmlNode* MatrixMapper::Save()
@@ -52,7 +56,7 @@ wxXmlNode* MatrixMapper::Save()
     res->AddAttribute("StringLength", wxString::Format(wxT("%i"), _stringLength));
     res->AddAttribute("Orientation", wxString::Format(wxT("%i"), (int)_orientation));
     res->AddAttribute("StartLocation", wxString::Format(wxT("%i"), (int)_startLocation));
-    res->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (int)_startChannel));
+    res->AddAttribute("StartChannel", _startChannel);
 
     return res;
 }
@@ -62,7 +66,8 @@ size_t MatrixMapper::Map(int x, int y) const
     wxASSERT(x >= 0 && x < GetWidth());
     wxASSERT(y >= 0 && y < GetHeight());
 
-    size_t loc = _startChannel;
+    long startChannel = GetStartChannelAsNumber();
+    size_t loc = startChannel;
 
     if (_orientation == MMORIENTATION::VERTICAL)
     {
@@ -278,11 +283,11 @@ size_t MatrixMapper::Map(int x, int y) const
     }
 
     // make sure the value is within the range expected ... until i know my code is right
-    if (loc < _startChannel || loc >= _startChannel + GetChannels())
+    if (loc < startChannel || loc >= startChannel + GetChannels())
     {
         // location out of range ... this can happen if the user tampers with the matrix while it is in use
         // force it to a valid value
-        loc = _startChannel;
+        loc = startChannel;
         wxASSERT(false);
     }
 
@@ -316,6 +321,11 @@ int MatrixMapper::GetHeight() const
     {
         return _strings * _strandsPerString;
     }
+}
+
+long MatrixMapper::GetStartChannelAsNumber() const
+{
+    return _outputManager->DecodeStartChannel(_startChannel);
 }
 
 MMORIENTATION MatrixMapper::EncodeOrientation(const std::string orientation)
@@ -381,36 +391,37 @@ std::string MatrixMapper::DecodeStartLocation(MMSTARTLOCATION startLocation)
     return "Top Right";
 }
 
-void MatrixMapper::Test()
+void MatrixMapper::Test(OutputManager* outputManager)
 {
-    MatrixMapper h_bl_e(2, 4, 200, "Horizontal", "Bottom Left", 1, "Test");
+    MatrixMapper h_bl_e(outputManager, 2, 4, 200, "Horizontal", "Bottom Left", "1", "Test");
     wxASSERT(h_bl_e.Map(0, 0) == 1);
     wxASSERT(h_bl_e.Map(49, 0) == 148);
     wxASSERT(h_bl_e.Map(0, 3) == 598);
 
-    MatrixMapper h_br_e(2, 4, 200, "Horizontal", "Bottom Right", 1, "Test");
+    MatrixMapper h_br_e(outputManager, 2, 4, 200, "Horizontal", "Bottom Right", "1", "Test");
     wxASSERT(h_br_e.Map(0, 0) == 148);
     wxASSERT(h_br_e.Map(49, 0) == 1);
     wxASSERT(h_br_e.Map(0, 3) == 451);
 
-    MatrixMapper h_bl_o(2, 3, 150, "Horizontal", "Bottom Left", 1, "Test");
+    MatrixMapper h_bl_o(outputManager, 2, 3, 150, "Horizontal", "Bottom Left", "1", "Test");
     wxASSERT(h_bl_o.Map(0, 0) == 1);
     wxASSERT(h_bl_o.Map(49, 0) == 148);
     wxASSERT(h_bl_o.Map(0, 3) == 451);
 
-    MatrixMapper h_br_o(2, 3, 150, "Horizontal", "Bottom Right", 1, "Test");
+    MatrixMapper h_br_o(outputManager, 2, 3, 150, "Horizontal", "Bottom Right", "1", "Test");
     wxASSERT(h_br_o.Map(0, 0) == 148);
     wxASSERT(h_br_o.Map(49, 0) == 1);
     wxASSERT(h_br_o.Map(0, 3) == 598);
 
-    MatrixMapper h_tl_o(40, 1, 150, "Horizontal", "Top Left", 1, "Test");
+    MatrixMapper h_tl_o(outputManager, 40, 1, 150, "Horizontal", "Top Left", "1", "Test");
     wxASSERT(h_tl_o.Map(0, 0) == 17551);
     wxASSERT(h_tl_o.Map(149, 0) == 17998);
     wxASSERT(h_tl_o.Map(0, 3) == 16201);
 }
 
-MatrixMapper::MatrixMapper()
+MatrixMapper::MatrixMapper(OutputManager* outputManager)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = "";

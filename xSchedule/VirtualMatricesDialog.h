@@ -11,10 +11,12 @@
 #include <list>
 
 class VirtualMatrix;
+class OutputManager;
 
 class VirtualMatricesDialog: public wxDialog
 {
     std::list<VirtualMatrix*>* _vmatrices;
+    OutputManager* _outputManager;
     void ValidateWindow();
     void DoAdd();
     void DoDelete();
@@ -23,7 +25,7 @@ class VirtualMatricesDialog: public wxDialog
 
 	public:
 
-		VirtualMatricesDialog(wxWindow* parent, std::list<VirtualMatrix*>* vmatrices, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VirtualMatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<VirtualMatrix*>* vmatrices, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VirtualMatricesDialog();
 
 		//(*Declarations(VirtualMatricesDialog)

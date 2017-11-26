@@ -11,9 +11,11 @@
 #include <list>
 
 class MatrixMapper;
+class OutputManager;
 
 class MatricesDialog: public wxDialog
 {
+    OutputManager* _outputManager;
     std::list<MatrixMapper*>* _matrices;
     void ValidateWindow();
     void DoAdd();
@@ -23,7 +25,7 @@ class MatricesDialog: public wxDialog
 
 	public:
 
-		MatricesDialog(wxWindow* parent, std::list<MatrixMapper*>* matrices, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		MatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<MatrixMapper*>* matrices, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~MatricesDialog();
 
 		//(*Declarations(MatricesDialog)

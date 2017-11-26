@@ -118,6 +118,7 @@ class ScheduleManager : public wxEvtHandler
         PlayList* GetPlayList(int  id) const;
         PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }
         void SetBackgroundPlayList(PlayList* playlist);
+        OutputManager* GetOutputManager() const { return _outputManager; }
         RunningSchedule* GetRunningSchedule() const;
         RunningSchedule* GetRunningSchedule(const std::string& schedulename) const;
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;

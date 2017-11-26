@@ -12,17 +12,20 @@
 #include <wx/dialog.h>
 //*)
 
+class OutputManager;
+
 class VirtualMatrixDialog: public wxDialog
 {
     std::string& _name;
     int& _width;
     int& _height;
     bool& _topMost;
-    long& _startChannel;
+    std::string& _startChannel;
     wxSize& _size;
     wxPoint& _location;
     std::string& _rotation;
     std::string& _quality;
+    OutputManager* _outputManager;
 
     wxSize _tempSize;
     wxPoint _tempLocation;
@@ -31,13 +34,14 @@ class VirtualMatrixDialog: public wxDialog
 
 	public:
 
-		VirtualMatrixDialog(wxWindow* parent, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, long& _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& _startChannel, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VirtualMatrixDialog();
 
 		//(*Declarations(VirtualMatrixDialog)
 		wxButton* Button_Ok;
 		wxTextCtrl* TextCtrl_Name;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxSpinCtrl* SpinCtrl_Height;
@@ -46,9 +50,9 @@ class VirtualMatrixDialog: public wxDialog
 		wxStaticText* StaticText7;
 		wxButton* Button_Cancel;
 		wxChoice* Choice_Quality;
+		wxTextCtrl* TextCtrl_StartChannel;
 		wxStaticText* StaticText4;
 		wxButton* Button_Position;
-		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxChoice* Choice_Rotation;
 		wxSpinCtrl* SpinCtrl_Width;
 		//*)
@@ -67,7 +71,8 @@ class VirtualMatrixDialog: public wxDialog
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT3;
-		static const long ID_SPINCTRL4;
+		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT6;
 		static const long ID_BUTTON3;
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
@@ -80,7 +85,10 @@ class VirtualMatrixDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnButton_PositionClick(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		//*)
+
+        void ValidateWindow();
 
 		DECLARE_EVENT_TABLE()
 };

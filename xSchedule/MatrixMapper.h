@@ -4,12 +4,14 @@
 #include <string>
 
 class wxXmlNode;
+class OutputManager;
 
 typedef enum {HORIZONTAL, VERTICAL} MMORIENTATION;
 typedef enum {BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT} MMSTARTLOCATION;
 
 class MatrixMapper 
 {
+    OutputManager* _outputManager;
     int _changeCount;
     int _lastSavedChangeCount;
     std::string _name;
@@ -18,7 +20,7 @@ class MatrixMapper
 	int _stringLength;
 	MMORIENTATION _orientation;
 	MMSTARTLOCATION _startLocation;
-    size_t _startChannel;
+    std::string _startChannel;
 
 public:
 
@@ -27,16 +29,17 @@ public:
 		static MMSTARTLOCATION EncodeStartLocation(const std::string startLocation);
 		static std::string DecodeStartLocation(MMSTARTLOCATION startLocation);
 
-        MatrixMapper(wxXmlNode*n);
-        MatrixMapper(int strings, int strandsPerString, int stringLength, MMORIENTATION orientation, MMSTARTLOCATION startLocation, size_t startChannel, const std::string& name);
-        MatrixMapper(int strings, int strandsPerString, int stringLength, const std::string& orientation, const std::string& startLocation, size_t startChannel, const std::string& name);
-        MatrixMapper();
+        MatrixMapper(OutputManager* outputManager, wxXmlNode*n);
+        MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, MMORIENTATION orientation, MMSTARTLOCATION startLocation, const std::string& startChannel, const std::string& name);
+        MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, const std::string& orientation, const std::string& startLocation, const std::string& startChannel, const std::string& name);
+        MatrixMapper(OutputManager* outputManager);
         virtual ~MatrixMapper() {}
 		size_t Map(int x, int y) const;
 		size_t GetChannels() const;
 		int GetWidth() const;
 		int GetHeight() const;
-        size_t GetStartChannel() const { return _startChannel; }
+        std::string GetStartChannel() const { return _startChannel; }
+        long GetStartChannelAsNumber() const;
         std::string GetName() const { return _name; }
         int GetStrings() const { return _strings; }
         int GetStringLength() const { return _stringLength; }
@@ -50,7 +53,7 @@ public:
         void SetStrings(const int strings) { if (strings != _strings) { _strings = strings; _changeCount++; } }
         void SetStringLength(const int stringLength) { if (stringLength != _stringLength) { _stringLength = stringLength; _changeCount++; } }
         void SetStrandsPerString(const int strandsPerString) { if (strandsPerString != _strandsPerString) { _strandsPerString = strandsPerString; _changeCount++; } }
-        static void Test();
+        static void Test(OutputManager* outputManager);
 };
 
 #endif

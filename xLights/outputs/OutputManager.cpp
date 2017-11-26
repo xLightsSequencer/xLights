@@ -303,6 +303,61 @@ long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int 
     return (*it)->GetStartChannel() + startChannel;
 }
 
+long OutputManager::DecodeStartChannel(const std::string& startChannelString)
+{
+    // Decodes Absolute, Output:StartChannel, #Universe:StartChannel, and #IP:Universe:StartChannel
+    // If there is an error 0 is returned
+
+    if (startChannelString == "") return 0;
+
+    if (startChannelString.find(':') != std::string::npos)
+    {
+        if (startChannelString[0] == '#')
+        {
+            auto parts = wxSplit(&startChannelString[1], ':');
+            if (parts.size() > 3) return 0;
+            if (parts.size() == 2)
+            {
+                int uni = wxAtoi(parts[0]);
+                long sc = wxAtol(parts[1]);
+                if (uni < 1) return 0;
+                if (sc < 1) return 0;
+                Output* o = GetOutput(uni, "");
+                if (o == nullptr) return 0;
+                return o->GetStartChannel() + sc - 1;
+            }
+            else
+            {
+                std::string ip = parts[0].ToStdString();
+                int uni = wxAtoi(parts[1]);
+                long sc = wxAtol(parts[2]);
+                if (ip == "") return 0;
+                if (uni < 1) return 0;
+                if (sc < 1) return 0;
+                Output* o = GetOutput(uni, ip);
+                if (o == nullptr) return 0;
+                return o->GetStartChannel() + sc - 1;
+            }
+        }
+        else
+        {
+            auto parts = wxSplit(startChannelString, ':');
+            if (parts.size() > 2) return 0;
+            int output = wxAtoi(parts[0]);
+            long sc = wxAtol(parts[1]);
+            if (output < 1) return 0;
+            if (sc < 1) return 0;
+            Output* o = GetOutput(output-1);
+            if (o == nullptr) return 0;
+            return o->GetStartChannel() + sc - 1;
+        }
+    }
+    else
+    {
+        return wxAtol(startChannelString);
+    }
+}
+
 bool OutputManager::IsDirty() const
 {
     if (_dirty) return _dirty;

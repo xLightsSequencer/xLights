@@ -4,9 +4,11 @@
 #include <wx/wx.h>
 #include <log4cpp/Category.hh>
 #include "xScheduleApp.h"
+#include "../xLights/outputs/OutputManager.h"
 
-VirtualMatrix::VirtualMatrix(int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, size_t startChannel, const std::string& name, wxSize size, wxPoint loc)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = name;
@@ -22,8 +24,9 @@ VirtualMatrix::VirtualMatrix(int width, int height, bool topMost, VMROTATION rot
     _window = nullptr;
 }
 
-VirtualMatrix::VirtualMatrix()
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = "";
@@ -34,13 +37,14 @@ VirtualMatrix::VirtualMatrix()
     _quality = wxIMAGE_QUALITY_HIGH;
     _size = wxSize(300, 300);
     _location = wxPoint(0,0);
-    _startChannel = 1;
+    _startChannel = "1";
     _image = nullptr;
     _window = nullptr;
 }
 
-VirtualMatrix::VirtualMatrix(int width, int height, bool topMost, const std::string& rotation, const std::string& quality, size_t startChannel, const std::string& name, wxSize size, wxPoint loc)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
 {
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _name = name;
@@ -56,8 +60,9 @@ VirtualMatrix::VirtualMatrix(int width, int height, bool topMost, const std::str
     _window = nullptr;
 }
 
-VirtualMatrix::VirtualMatrix(wxXmlNode* n)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
 {
+    _outputManager = outputManager,
     _lastSavedChangeCount = 0;
     _changeCount = 0;
     _name = n->GetAttribute("Name", "");
@@ -68,7 +73,7 @@ VirtualMatrix::VirtualMatrix(wxXmlNode* n)
     _quality = EncodeScalingQuality(n->GetAttribute("Quality", "High").ToStdString());
     _size = wxSize(wxAtoi(n->GetAttribute("WW", "300")), wxAtoi(n->GetAttribute("WH", "300")));
     _location = wxPoint(wxAtoi(n->GetAttribute("X", "0")), wxAtoi(n->GetAttribute("Y", "0")));
-    _startChannel = wxAtoi(n->GetAttribute("StartChannel", "1"));
+    _startChannel = n->GetAttribute("StartChannel", "1");
     _image = nullptr;
     _window = nullptr;
 }
@@ -90,7 +95,7 @@ wxXmlNode* VirtualMatrix::Save()
     res->AddAttribute("WH", wxString::Format(wxT("%i"), (long)_size.GetHeight()));
     res->AddAttribute("X", wxString::Format(wxT("%i"), (long)_location.x));
     res->AddAttribute("Y", wxString::Format(wxT("%i"), (long)_location.y));
-    res->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (int)_startChannel));
+    res->AddAttribute("StartChannel", _startChannel);
 
     return res;
 }
@@ -175,11 +180,13 @@ void VirtualMatrix::Frame(wxByte*buffer, size_t size)
 {
     if (_image == nullptr) return;
 
-    size_t end = _width * _height * 3 < size - (_startChannel - 1) ? _width * _height * 3 : size - (_startChannel - 1);
+    long sc = _outputManager->DecodeStartChannel(_startChannel);
+
+    size_t end = _width * _height * 3 < size - (sc - 1) ? _width * _height * 3 : size - (sc - 1);
 
     for (size_t i = 0; i < end; i += 3)
     {
-        wxByte* pb = buffer + (_startChannel - 1) + i;
+        wxByte* pb = buffer + (sc - 1) + i;
         wxByte r = *pb;
         wxByte g = 0;
         if (i + 1 < end)
@@ -274,4 +281,9 @@ void VirtualMatrix::Suppress(bool suppress)
             _window->Show();
         }
     }
+}
+
+long VirtualMatrix::GetStartChannelAsNumber() const
+{
+    return _outputManager->DecodeStartChannel(_startChannel);
 }

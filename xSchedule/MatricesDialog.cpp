@@ -1,6 +1,7 @@
 #include "MatricesDialog.h"
 #include "MatrixMapper.h"
 #include "MatrixDialog.h"
+#include "../xLights/outputs/OutputManager.h"
 
 //(*InternalHeaders(MatricesDialog)
 #include <wx/intl.h>
@@ -21,8 +22,10 @@ BEGIN_EVENT_TABLE(MatricesDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-MatricesDialog::MatricesDialog(wxWindow* parent, std::list<MatrixMapper*>* matrices,wxWindowID id,const wxPoint& pos,const wxSize& size) : _matrices(matrices)
+MatricesDialog::MatricesDialog(wxWindow* parent, OutputManager* outputManager, std::list<MatrixMapper*>* matrices,wxWindowID id,const wxPoint& pos,const wxSize& size) : _matrices(matrices)
 {
+    _outputManager = outputManager;
+
 	//(*Initialize(MatricesDialog)
 	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
@@ -138,9 +141,9 @@ void MatricesDialog::OnButton_OkClick(wxCommandEvent& event)
         int stringLength = wxAtoi(ListView1->GetItemText(i, 3));
         int strandsPerString = wxAtoi(ListView1->GetItemText(i, 4));
         std::string startLocation = ListView1->GetItemText(i, 5).ToStdString();
-        long startChannel = wxAtol(ListView1->GetItemText(i, 6));
+        std::string startChannel = ListView1->GetItemText(i, 6);
 
-        _matrices->push_back(new MatrixMapper(strings, strandsPerString, stringLength, orientation, startLocation, startChannel, name));
+        _matrices->push_back(new MatrixMapper(_outputManager, strings, strandsPerString, stringLength, orientation, startLocation, startChannel, name));
     }
 
     EndDialog(wxID_OK);
@@ -173,9 +176,9 @@ void MatricesDialog::DoAdd()
     int strings = 1;
     int strandsPerString = 1;
     std::string startLocation = "";
-    long startChannel = 1;
+    std::string startChannel = "1";
 
-    MatrixDialog dlg(this, name, orientation, startLocation, stringLength, strings, strandsPerString, startChannel);
+    MatrixDialog dlg(this, _outputManager, name, orientation, startLocation, stringLength, strings, strandsPerString, startChannel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -186,7 +189,7 @@ void MatricesDialog::DoAdd()
         ListView1->SetItem(row, 3, wxString::Format(wxT("%i"), stringLength));
         ListView1->SetItem(row, 4, wxString::Format(wxT("%i"), strandsPerString));
         ListView1->SetItem(row, 5, startLocation);
-        ListView1->SetItem(row, 6, wxString::Format(wxT("%i"), startChannel));
+        ListView1->SetItem(row, 6, startChannel);
     }
 
     ValidateWindow();
@@ -215,9 +218,9 @@ void MatricesDialog::DoEdit()
     int stringLength = wxAtoi(ListView1->GetItemText(item, 3));
     int strandsPerString = wxAtoi(ListView1->GetItemText(item, 4));
     std::string startLocation = ListView1->GetItemText(item, 5).ToStdString();
-    long startChannel = wxAtol(ListView1->GetItemText(item, 6));
+    std::string startChannel = ListView1->GetItemText(item, 6);
 
-    MatrixDialog dlg(this, name, orientation, startLocation, stringLength, strings, strandsPerString, startChannel);
+    MatrixDialog dlg(this, _outputManager, name, orientation, startLocation, stringLength, strings, strandsPerString, startChannel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -227,7 +230,7 @@ void MatricesDialog::DoEdit()
         ListView1->SetItem(item, 3, wxString::Format(wxT("%i"), stringLength));
         ListView1->SetItem(item, 4, wxString::Format(wxT("%i"), strandsPerString));
         ListView1->SetItem(item, 5, startLocation);
-        ListView1->SetItem(item, 6, wxString::Format(wxT("%i"), startChannel));
+        ListView1->SetItem(item, 6, startChannel);
     }
 
     ValidateWindow();
@@ -244,6 +247,6 @@ void MatricesDialog::PopulateList()
         ListView1->SetItem(row, 3, wxString::Format(wxT("%i"), (*it)->GetStringLength()));
         ListView1->SetItem(row, 4, wxString::Format(wxT("%i"), (*it)->GetStrandsPerString()));
         ListView1->SetItem(row, 5, (*it)->GetStartLocation());
-        ListView1->SetItem(row, 6, wxString::Format(wxT("%i"), (long)(*it)->GetStartChannel()));
+        ListView1->SetItem(row, 6, (*it)->GetStartChannel());
     }
 }

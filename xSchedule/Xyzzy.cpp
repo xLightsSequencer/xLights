@@ -102,7 +102,7 @@ void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size)
 
     if (bl > size) return; // outside bounds ... this would crash
 
-    if (bl >= _matrixMapper->GetChannels() + _matrixMapper->GetStartChannel())
+    if (bl >= _matrixMapper->GetChannels() + _matrixMapper->GetStartChannelAsNumber())
     {
         // off the top
     }

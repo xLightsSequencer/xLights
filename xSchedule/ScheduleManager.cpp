@@ -82,7 +82,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             }
             else if (n->GetName() == "Options")
             {
-                _scheduleOptions = new ScheduleOptions(n);
+                _scheduleOptions = new ScheduleOptions(_outputManager, n);
             }
             else if (n->GetName() == "OutputProcesses")
             {
@@ -3198,9 +3198,9 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     m = GetOptions()->GetMatrices();
     for (auto n = m->begin(); n != m->end(); ++n)
     {
-        if ((*n)->GetStartChannel() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
+        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
         {
-            wxString msg = wxString::Format("    ERR: Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannel() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
+            wxString msg = wxString::Format("    ERR: Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannelAsNumber() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
             LogAndWrite(f, msg.ToStdString());
             errcount++;
         }
@@ -3220,9 +3220,9 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     auto vm = GetOptions()->GetVirtualMatrices();
     for (auto n = vm->begin(); n != vm->end(); ++n)
     {
-        if ((*n)->GetStartChannel() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
+        if ((*n)->GetStartChannelAsNumber() + (*n)->GetChannels() >= _outputManager->GetTotalChannels())
         {
-            wxString msg = wxString::Format("    ERR: Virtual Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannel() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
+            wxString msg = wxString::Format("    ERR: Virtual Matrix '%s' is meant to finish at channel %ld but last available channel is %ld.", (const char*)(*n)->GetName().c_str(), (long)((*n)->GetStartChannelAsNumber() + (*n)->GetChannels()), (long)_outputManager->GetTotalChannels());
             LogAndWrite(f, msg.ToStdString());
             errcount++;
         }

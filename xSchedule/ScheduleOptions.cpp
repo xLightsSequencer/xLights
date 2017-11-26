@@ -8,7 +8,7 @@
 #include "CommandManager.h"
 #include "Projector.h"
 
-ScheduleOptions::ScheduleOptions(wxXmlNode* node)
+ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 {
     _changeCount = 0;
     _lastSavedChangeCount = 0;
@@ -38,11 +38,11 @@ ScheduleOptions::ScheduleOptions(wxXmlNode* node)
         }
         else if (n->GetName() == "Matrix")
         {
-            _matrices.push_back(new MatrixMapper(n));
+            _matrices.push_back(new MatrixMapper(outputManager, n));
         }
         else if (n->GetName() == "VMatrix")
         {
-            _virtualMatrices.push_back(new VirtualMatrix(n));
+            _virtualMatrices.push_back(new VirtualMatrix(outputManager, n));
         }
         else if (n->GetName() == "FPPRemote")
         {

@@ -2249,7 +2249,7 @@ void xScheduleFrame::AddSchedule()
 void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
 {
     auto matrices = __schedule->GetOptions()->GetMatrices();
-    MatricesDialog dlg(this, matrices);
+    MatricesDialog dlg(this, __schedule->GetOutputManager(), matrices);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -2283,7 +2283,7 @@ void xScheduleFrame::OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event)
     }
 
     auto vmatrices = __schedule->GetOptions()->GetVirtualMatrices();
-    VirtualMatricesDialog dlg(this, vmatrices);
+    VirtualMatricesDialog dlg(this, __schedule->GetOutputManager(), vmatrices);
 
     if (dlg.ShowModal() == wxID_OK)
     {
