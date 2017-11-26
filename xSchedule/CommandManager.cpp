@@ -85,7 +85,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
         return false;
     }
 
-    if (!_worksInSlaveMode && scheduleManager->GetMode() == SYNCMODE::FPPSLAVE || scheduleManager->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
+    if (!_worksInSlaveMode && (scheduleManager->GetMode() == SYNCMODE::FPPSLAVE || scheduleManager->GetMode() == SYNCMODE::FPPUNICASTSLAVE))
     {
         msg = "Command not valid when running in FPP Remote mode.";
         return false;
