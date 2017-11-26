@@ -141,7 +141,7 @@ void MatricesDialog::OnButton_OkClick(wxCommandEvent& event)
         int stringLength = wxAtoi(ListView1->GetItemText(i, 3));
         int strandsPerString = wxAtoi(ListView1->GetItemText(i, 4));
         std::string startLocation = ListView1->GetItemText(i, 5).ToStdString();
-        std::string startChannel = ListView1->GetItemText(i, 6);
+        std::string startChannel = ListView1->GetItemText(i, 6).ToStdString();
 
         _matrices->push_back(new MatrixMapper(_outputManager, strings, strandsPerString, stringLength, orientation, startLocation, startChannel, name));
     }
