@@ -65,7 +65,7 @@ void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
     {
         wxByte* p = buffer + (_startChannel - 1) + (i * 3);
 
-        if (*p == *(p+1) == *(p+2))
+        if (*p == *(p+1) && *p == *(p+2))
         {
             *p = _dimTable[*p];
             *(p + 1) = *p;
