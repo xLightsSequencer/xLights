@@ -5,15 +5,16 @@
 		<size_arg>1</size_arg>
 		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<handler function="OnResize" entry="EVT_SIZE" />
-		<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText_Message" member="yes">
+		<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 			<label>Position and size window where you want the content displayed.</label>
-			<pos>8,16</pos>
 		</object>
 		<object class="wxButton" name="ID_BUTTON1" variable="Button_ok" member="yes">
 			<label>Ok</label>
-			<default>1</default>
-			<pos>144,40</pos>
+			<pos>48,40</pos>
 			<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+		</object>
+		<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Position" member="yes">
+			<label></label>
 		</object>
 	</object>
 </wxsmith>

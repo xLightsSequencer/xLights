@@ -15,8 +15,9 @@ class VideoWindowPositionDialog: public wxDialog
 		virtual ~VideoWindowPositionDialog();
 
 		//(*Declarations(VideoWindowPositionDialog)
+		wxStaticText* StaticText_Position;
 		wxButton* Button_ok;
-		wxStaticText* StaticText_Message;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:
@@ -24,6 +25,7 @@ class VideoWindowPositionDialog: public wxDialog
 		//(*Identifiers(VideoWindowPositionDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_BUTTON1;
+		static const long ID_STATICTEXT2;
 		//*)
 
 	private:
@@ -32,6 +34,9 @@ class VideoWindowPositionDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		//*)
+
+        void OnMove(wxMoveEvent& event);
+        void SetWindowPositionText();
 
 		DECLARE_EVENT_TABLE()
 };
