@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp) Import Superstar files onto a submodel
 2017.38  Nov 25, 2017
    -- bug (dkulp) Send render event for effect moves, previously not always sent
    -- enh (dkulp) Add left/right starting locations for candy canes

@@ -1957,9 +1957,18 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
 {
     SuperStarImportDialog dlg(this);
 
-    for(size_t i=0;i<mSequenceElements.GetElementCount();i++) {
-        if(mSequenceElements.GetElement(i)->GetType()== ELEMENT_TYPE_MODEL) {
+    for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
+        if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
+            
+            ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+            for (int x = 0; x < model->GetSubModelCount(); x++) {
+                std::string fname = model->GetSubModel(x)->GetFullName();
+                const std::string &name = model->GetSubModel(x)->GetName();
+                if (name != "") {
+                    dlg.ChoiceSuperStarImportModel->Append(fname);
+                }
+            }
         }
     }
 
@@ -2000,6 +2009,18 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
             if( model->GetName() == model_name ) {
                 model_found = true;
                 break;
+            } else {
+                ModelElement *modelEl = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
+                for (int x = 0; x < modelEl->GetSubModelCount(); x++) {
+                    std::string name = modelEl->GetSubModel(x)->GetFullName();
+                    if (name == model_name) {
+                        model = modelEl->GetSubModel(x);
+                        model_found = true;
+                    }
+                }
+                if (model_found) {
+                    break;
+                }
             }
         }
     }
@@ -2009,7 +2030,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
         int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
         bool average_colors = dlg.CheckBox_AverageColors->GetValue();
-        Model *cls = GetModel(model->GetName());
+        Model *cls = GetModel(model->GetFullName());
         int bw, bh;
         cls->GetBufferSize("Default", "None", bw, bh);
         wxSize modelSize(bw, bh);
