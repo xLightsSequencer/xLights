@@ -1627,6 +1627,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
 
+    mideu->Enable(true);
     mid->Enable(selcnt > 0);
     mia->Enable(selcnt > 0);
     mide->Enable(selcnt > 0);

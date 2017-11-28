@@ -78,7 +78,6 @@ void WindowFrameModel::InitFrame() {
     int yoffset=BufferHt/2;
 
     float screenx = x - xoffset;
-    float new_screenx = x;
 
     size_t NodeCount=GetNodeCount();
     for(size_t n=0; n<NodeCount; n++) {
@@ -90,7 +89,7 @@ void WindowFrameModel::InitFrame() {
             Nodes[n]->Coords[c].bufY=y;
             Nodes[n]->Coords[c].screenX=screenx;
             Nodes[n]->Coords[c].screenY=y-yoffset;
-            new_screenx=screenx+(screenxincr[side]*(float)dir);
+            float new_screenx=screenx+(screenxincr[side]*(float)dir);
             newx=x+xincr[side]*dir;
             newy=y+yincr[side]*dir;
             if (newx < 0 || newx >= FrameWidth || newy < 0 || newy >= parm2) {
@@ -132,7 +131,7 @@ void WindowFrameModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 1000);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    grid->Append(new wxEnumProperty("Starting Location", "WFStartLocation", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
 }
 int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("WFTopCount" == event.GetPropertyName()) {

@@ -478,6 +478,7 @@ public:
         LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             singleColorProgram.SetRenderType(0);
+            LOG_GL_ERRORV(glPointSize(ps));
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }

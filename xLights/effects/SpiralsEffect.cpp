@@ -95,7 +95,6 @@ void SpiralsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     }
     SpiralState = position*buffer.BufferWi*10*Direction;
     
-    spiralGap += (spiralGap==0);
     SpiralThickness += ThicknessState;
     
     for(int ns=0; ns < SpiralCount; ns++)

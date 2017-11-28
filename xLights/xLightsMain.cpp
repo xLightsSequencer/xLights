@@ -1856,7 +1856,7 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Idle event called");
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
-    bool ret = CheckForUpdate(false);
+    CheckForUpdate(false);
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
@@ -6972,7 +6972,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
         wxString urlVersion = wxString(out_stream.GetString());
-        size_t count = reVersion.Replace(&urlVersion,"\\1",1);
+        reVersion.Replace(&urlVersion,"\\1",1);
         wxConfigBase* config = wxConfigBase::Get();
         if (!force && (config != nullptr))
         {

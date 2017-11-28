@@ -29,6 +29,9 @@ E131Output::E131Output() : IPOutput()
 E131Output::~E131Output()
 {
     if (_datagram != nullptr) delete _datagram;
+    for (auto i : _outputs) {
+        delete i;
+    }
 }
 #pragma endregion Constructors and Destructors
 
@@ -48,6 +51,11 @@ wxXmlNode* E131Output::Save()
 void E131Output::CreateMultiUniverses(int num)
 {
     _numUniverses = num;
+    
+    for (auto i : _outputs) {
+        delete i;
+    }
+    
     _outputs.clear();
 
     for (int i = 0; i < _numUniverses; i++)

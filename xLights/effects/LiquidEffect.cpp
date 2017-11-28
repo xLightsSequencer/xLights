@@ -368,6 +368,9 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
         }
     }
 
+    if (count == 0) {
+        return xlBLACK;
+    }
     return xlColor(red / count, green / count, blue / count);
 }
 

@@ -170,7 +170,6 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
     }
     degree_per_x = NumberWaves/buffer.BufferWi;
-    degree = 1+ state%NumberWaves;
     hsv.saturation=1.0;
     hsv.value=1.0;
     hsv.hue=1.0;

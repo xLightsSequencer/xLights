@@ -1096,7 +1096,7 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     propertyEditor->Freeze();
     clearPropGrid();
 
-    wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
+    propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
 
     model->AddProperties(propertyEditor);
 
@@ -1109,13 +1109,13 @@ void LayoutPanel::SetupPropGrid(Model *model) {
             propertyEditor->Collapse(p2);
         }
         if (!appearanceVisible) {
-            prop = propertyEditor->GetPropertyByName("ModelAppearance");
+            wxPGProperty *prop = propertyEditor->GetPropertyByName("ModelAppearance");
             if (prop != nullptr) {
                 propertyEditor->Collapse(prop);
             }
         }
         if (!stringPropsVisible) {
-            prop = propertyEditor->GetPropertyByName("ModelStringProperties");
+            wxPGProperty *prop = propertyEditor->GetPropertyByName("ModelStringProperties");
             if (prop != nullptr) {
                 propertyEditor->Collapse(prop);
             }
@@ -2511,7 +2511,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     }
 
                     Model *newModel = xlights->AllModels.CreateModel(nd);
-                    int cnt = 1;
                     std::string name = xlights->AllModels.GenerateModelName(newModel->name);
                     newModel->name = name;
                     newModel->GetModelXml()->DeleteAttribute("name");

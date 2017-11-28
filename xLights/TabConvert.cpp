@@ -310,11 +310,6 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
         wxString xmlString = string_format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
         xmlString = string_format("");
 
-        if (ch == 156)
-        {
-            rgb = 0;
-        }
-
         wxString guiString = string_format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
         f.Write("\t\t<Intervals>\n");
         //  for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)

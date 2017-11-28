@@ -463,6 +463,8 @@ void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int
             toRight = r1<r2?r1:r2;
             break;
         default:
+            toLeft = NO_MAX;
+            toRight = NO_MAX;
             break;
     }
 }

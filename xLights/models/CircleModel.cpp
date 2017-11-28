@@ -154,9 +154,6 @@ void CircleModel::SetCircleCoord() {
     for (int c2 = 0; c2 < circleSizes.size(); c2++) {
         int circle = c2;
         int loop_count = std::min(nodesToMap, circleSizes[circle]);
-        double midpt=loop_count;
-        midpt -= 1.0;
-        midpt /= 2.0;
         if (insideOut) {
             circle = circleSizes.size() - circle - 1;
         }
@@ -216,7 +213,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxStringProperty("Layer Sizes", "CircleLayerSizes", ModelXml->GetAttribute("circleSizes")));
+    grid->Append(new wxStringProperty("Layer Sizes", "CircleLayerSizes", ModelXml->GetAttribute("circleSizes")));
     
     int start = IsLtoR ? 1 : 0;
     if (insideOut) {
@@ -225,7 +222,7 @@ void CircleModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (isBotToTop) {
         start += 4;
     }
-    p = grid->Append(new wxEnumProperty("Starting Location", "CircleStart", CIRCLE_START_LOCATION, start));
+    grid->Append(new wxEnumProperty("Starting Location", "CircleStart", CIRCLE_START_LOCATION, start));
 }
 int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CircleStringCount" == event.GetPropertyName()) {

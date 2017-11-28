@@ -79,7 +79,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
             }
 
             for(size_t cnt=0; cnt<numlights; cnt++) {
-                int n = cur;
+                int n;
                 if (!SingleNode) {
                     n = cnt + start;
                 } else {
@@ -206,7 +206,7 @@ void StarModel::InitModel() {
         if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
         int ChanIncr=SingleChannel ?  1 : 3;
         for (size_t cnt2 = 0; cnt2 < numlights; cnt2++) {
-            int n = cur;
+            int n;
             if (!SingleNode) {
                 n = start + cnt2;
             } else {

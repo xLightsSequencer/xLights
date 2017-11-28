@@ -165,7 +165,7 @@ std::list<std::string> MusicXML::GetTracks()
     return res;
 }
 
-MusicXmlNote::MusicXmlNote(wxXmlNode* node, int s)
+MusicXmlNote::MusicXmlNote(wxXmlNode* node, int s) : duration(0), durationMS(0), midi(0), start(0), startMS(0)
 {
     start = s;
     for (wxXmlNode* n1 = node->GetChildren(); n1 != nullptr; n1 = n1->GetNext())

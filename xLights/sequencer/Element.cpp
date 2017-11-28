@@ -239,6 +239,10 @@ ModelElement::~ModelElement()
         delete mStrands[x];
     }
     mStrands.clear();
+    for (size_t x = 0; x < mSubModels.size(); x++) {
+        delete mSubModels[x];
+    }
+    mSubModels.clear();
 }
 
 

@@ -170,14 +170,13 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     buffer.ClearTempBuf();
 
     double last_check = (inward ? std::min(head_end_of_tail,revs) : std::max(0.0, tail_end_of_tail) ) + (double)start_angle;
-    double current_radius = radius1;
 
     // This section rounds off the head / tail
     double adj_angle;
     double end_angle = (inward ? std::min(head_end_of_tail,revs) : std::max(0.0, tail_end_of_tail));
     CalcEndpointColor(end_angle, start_angle, adj_angle, head_end_of_tail, color_length, num_colors, buffer, color);
     double pct1 = adj_angle/revs;
-    current_radius = radius2 * pct1 + radius1 * (1.0 - pct1);
+    double current_radius = radius2 * pct1 + radius1 * (1.0 - pct1);
     double current_width = width2 * pct1 + width1 * (1.0 - pct1);;
     double current_delta = 0.0;
     double current_distance = 0.0;
@@ -338,7 +337,6 @@ void GalaxyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     end_angle = inward ? std::max(0.1, tail_end_of_tail) : std::min(head_end_of_tail,revs);
     CalcEndpointColor(end_angle, start_angle, adj_angle, head_end_of_tail, color_length, num_colors, buffer, color);
     end_angle_start = end_angle + (inward ? -step : step);
-    current_delta = 0.0;
     current_distance = 0.0;
     if( current_radius >= half_width && half_width > 0.0) {
         for( double i = end_angle_start; current_distance <= half_width; (inward ? i -= step : i += step) )

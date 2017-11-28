@@ -98,8 +98,6 @@ wxArrayString FontManager::get_font_names()
 {
     if( names.size() == 0 )
     {
-        int height = 0;
-
         names.Add("6-5x6 Thin");
         names.Add("6-5x6 Thin Vertical");
         names.Add("6-6x6 Thin");

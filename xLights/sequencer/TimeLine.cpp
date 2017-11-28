@@ -39,7 +39,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
 
     for (int i = 0; i < 10; ++i)
     {
-        wxMenuItem* item = mnuLayer.Append(i+1, wxString::Format("%i", i));
+        mnuLayer.Append(i+1, wxString::Format("%i", i));
     }
 
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnPopup, nullptr, this);

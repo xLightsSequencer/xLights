@@ -181,9 +181,11 @@ public:
                     f1 = f1->GetNext();
                 }
             }
-            f1 = new wxXmlNode(m_model->GetModelXml(), wxXML_ELEMENT_NODE , "dimmingCurve");
+            f1 = new wxXmlNode(wxXML_ELEMENT_NODE , "dimmingCurve");
+            m_model->GetModelXml()->AddChild(f1);
             for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); ++it) {
-                wxXmlNode *dc = new wxXmlNode(f1, wxXML_ELEMENT_NODE , it->first);
+                wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE , it->first);
+                f1->AddChild(dc);
                 for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
                     dc->AddAttribute(it2->first, it2->second);
                 }
@@ -411,7 +413,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     AddTypeProperties(grid);
 
     if (HasOneString(DisplayAs)) {
-        p = grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
+        grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
@@ -461,7 +463,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(this, "Sub-Models", "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
+    grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     p->GetCell(0).SetFgCol(*wxBLACK);
@@ -486,7 +488,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         } else if (StringType[0] == '#') {
             v = xlColor(StringType).asWxColor();
         }
-        sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
+        grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", v));
     } else {
         sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
@@ -2497,7 +2499,6 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     va.PreAlloc(maxVertexCount);
 
-    bool started = false;
     int first = 0; int last = NodeCount;
     int buffFirst = -1; int buffLast = -1;
     bool left = true;
@@ -2545,7 +2546,6 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             GetModelScreenLocation().TranslatePoint(sx, sy);
 
             if (pixelStyle < 2) {
-                started = true;
                 if (splitRGB) {
                     if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
                         xlColor c3(color);

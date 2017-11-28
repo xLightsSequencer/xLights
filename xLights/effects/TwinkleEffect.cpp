@@ -224,7 +224,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         int i7 = strobe[x].duration;
         HSVValue hsv;
         buffer.palette.GetHSV(strobe[x].colorindex, hsv);
-        double v = hsv.value;
+        double v;
         if(i7<=max_modulo2)
         {
             if(max_modulo2>0) v = (1.0*i7)/max_modulo2;

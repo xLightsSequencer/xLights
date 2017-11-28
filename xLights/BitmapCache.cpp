@@ -187,7 +187,7 @@ public:
                         const char **data48,
                         const char **data64) {
 
-        std::map<wxString, wxBitmap> *data = &size16;
+        std::map<wxString, wxBitmap> *data;
         const char ** dc = data16;
         if (size <= 16) {
             data = &size16;

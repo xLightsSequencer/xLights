@@ -462,11 +462,14 @@ void PolyLineModel::InitModel() {
     }
     screenLocation.SetRenderSize(1.0, 1.0);
 
-    // cleanup curves
+    // cleanup curves and matrices
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].has_curve ) {
             delete pPos[i].curve;
             pPos[i].curve = nullptr;
+        }
+        if (pPos[i].matrix != nullptr) {
+            delete pPos[i].matrix;
         }
     }
 }
@@ -537,12 +540,11 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetEditor("SpinCtrl");
     }
 
-    p = grid->Append(new wxEnumProperty("Starting Location", "PolyLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+    grid->Append(new wxEnumProperty("Starting Location", "PolyLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 
     p = grid->Append(new wxBoolProperty("Indiv Segments", "ModelIndividualSegments", hasIndivSeg));
     p->SetAttribute("UseCheckbox", true);
     p->Enable(num_segments > 1);
-    wxPGProperty *sp;
     if (hasIndivSeg) {
         for (int x = 0; x < num_segments; x++) {
             std::string val = ModelXml->GetAttribute(SegAttrName(x)).ToStdString();
@@ -552,7 +554,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
                 ModelXml->AddAttribute(SegAttrName(x), val);
             }
             wxString nm = wxString::Format("Segment %d", x+1);
-            sp = grid->AppendIn(p, new wxUIntProperty(nm, SegAttrName(x), wxAtoi(ModelXml->GetAttribute(SegAttrName(x),""))));
+            grid->AppendIn(p, new wxUIntProperty(nm, SegAttrName(x), wxAtoi(ModelXml->GetAttribute(SegAttrName(x),""))));
         }
         if( segs_collapsed ) {
             grid->Collapse(p);
@@ -582,8 +584,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
             segs_collapsed = false;
             ModelXml->AddAttribute("IndivSegs", "1");
             int count = polyLineSizes.size();
-            for (int x = 0; x < num_segments; x++) {
-                count = polyLineSizes[x];
+            for (int x = 0; x < count; x++) {
                 if (ModelXml->GetAttribute(SegAttrName(x)) == "") {
                     ModelXml->DeleteAttribute(SegAttrName(x));
                     ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", polyLineSizes[x]));

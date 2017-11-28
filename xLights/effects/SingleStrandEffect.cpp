@@ -401,7 +401,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer &buffer,
             direction = -1;
         }
         if (firstX < 0 || firstX >= width) {
-            int dif = - firstX;
+            int dif;
             if (firstX < 0) {
                 firstX = -firstX - 1;
                 direction = -1;

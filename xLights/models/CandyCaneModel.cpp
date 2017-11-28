@@ -62,7 +62,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
     
-    p = grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
+    grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
     
 }
 

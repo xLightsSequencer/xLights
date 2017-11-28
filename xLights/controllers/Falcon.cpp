@@ -956,8 +956,6 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
 
 std::string Falcon::BuildStringPort(FalconString* string) const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s", 
         string->index, string->port, 
         string->index, string->protocol,

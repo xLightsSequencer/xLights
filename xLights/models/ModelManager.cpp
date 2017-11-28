@@ -102,7 +102,6 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
 }
 
 void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     clear();
     previewWidth = previewW;
     previewHeight = previewH;
