@@ -1637,7 +1637,7 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::list<NodeRange
 void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
 {
     xlColor color;
-    for (auto &n : layers[0]->buffer.Nodes) {
+    for (auto &n : layers[layer]->buffer.Nodes) {
         size_t start = n->ActChan;
         
         n->SetFromChannels(&fdata[start]);
