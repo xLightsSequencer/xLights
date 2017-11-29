@@ -143,20 +143,17 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
             for (int i = 0; i < toset; i++)
             {
-                if (i % 4 == state)
+                if (state == 3)
+                {
+                    *(buffer + _startChannel - 1 + i) = 255;
+                }
+                else if (i % 3 == state)
                 {
                     *(buffer + _startChannel - 1 + i) = 255;
                 }
                 else
                 {
-                    if (state == 3)
-                    {
-                        *(buffer + _startChannel - 1 + i) = 255;
-                    }
-                    else
-                    {
-                        *(buffer + _startChannel - 1 + i) = 0;
-                    }
+                    *(buffer + _startChannel - 1 + i) = 0;
                 }
             }
         }
@@ -166,50 +163,41 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
             for (int i = 0; i < toset; i++)
             {
-                if (i % 4 == state)
+                if (state == 0)
                 {
-                    if (state == 0)
-                    {
-                        *(buffer + _startChannel - 1 + i) = 0;
-                    }
-                    else
-                    {
-                        *(buffer + _startChannel - 1 + i) = 255;
-                    }
+                    *(buffer + _startChannel - 1 + i) = 0;
+                }
+                else if(i%3 == state - 1)
+                {
+                    *(buffer + _startChannel - 1 + i) = 255;
                 }
                 else
                 {
-                        *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + _startChannel - 1 + i) = 0;
                 }
             }
         }
-        else if (_mode == "Node-A-B-C-All")
+        else if (_mode == "None-A-B-C-All")
         {
             int state = _state % 5;
 
             for (int i = 0; i < toset; i++)
             {
-                if (i % 5 == state)
+                if (state == 0)
                 {
-                    if (state == 0)
-                    {
-                        *(buffer + _startChannel - 1 + i) = 0;
-                    }
-                    else
-                    {
-                        *(buffer + _startChannel - 1 + i) = 255;
-                    }
+                    *(buffer + _startChannel - 1 + i) = 0;
+                }
+                else if (state == 4)
+                {
+                    *(buffer + _startChannel - 1 + i) = 255;
+                }
+                if (i % 3 == state - 1)
+                {
+                    *(buffer + _startChannel - 1 + i) = 255;
                 }
                 else
                 {
-                    if (state == 4)
-                    {
-                        *(buffer + _startChannel - 1 + i) = 255;
-                    }
-                    else
-                    {
-                        *(buffer + _startChannel - 1 + i) = 0;
-                    }
+                    *(buffer + _startChannel - 1 + i) = 0;
                 }
             }
         }
