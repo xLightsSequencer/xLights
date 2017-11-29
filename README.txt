@@ -11,10 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2017.38  Nov 28, 2017
+2017.39  Nov 28, 2017
    -- bug (dkulp) Fix some memory leaks when open/close sequences as well as switching show directories
    -- enh (dkulp) Import Superstar files onto a submodel
-   -- bug (dkulp) Fix a render bug which could leave artefacts on models
+   -- bug (dkulp) Fix a render bug which could leave artifacts on models
    -- enh (keith) Begin to introduce output:startchannel and #universe:startchannel addressing into xSchedule. 
                   Initially in Matrices and Virtual matrices.
    -- enh (keith) Display window position details to xSchedule for video and image display. Allows simple 
