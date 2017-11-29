@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.38  Nov 28, 2017
    -- bug (dkulp) Fix some memory leaks when open/close sequences as well as switching show directories
    -- enh (dkulp) Import Superstar files onto a submodel
    -- bug (dkulp) Fix a render bug which could leave artefacts on models
