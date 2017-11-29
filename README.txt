@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (dkulp) Fix some memory leaks when open/close sequences as well as switching show directories
    -- enh (dkulp) Import Superstar files onto a submodel
+   -- bug (dkulp) Fix a render bug which could leave artefacts on models
+   -- enh (keith) Begin to introduce output:startchannel and #universe:startchannel addressing into xSchedule. 
+                  Initially in Matrices and Virtual matrices.
+   -- enh (keith) Display window position details to xSchedule for video and image display. Allows simple 
+                  comparison of values without opening the positioning window.
 2017.38  Nov 25, 2017
    -- bug (dkulp) Send render event for effect moves, previously not always sent
    -- enh (dkulp) Add left/right starting locations for candy canes
