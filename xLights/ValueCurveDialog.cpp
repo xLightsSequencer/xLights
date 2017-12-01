@@ -29,7 +29,7 @@ BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
     EVT_MOUSE_CAPTURE_LOST(ValueCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ValueCurvePanel::ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+ValueCurvePanel::ValueCurvePanel(wxWindow* parent, Element* timingElement, int start, int end, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl()
 {
     Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ValueCurvePanel::mouseLeftDown, 0, this);
@@ -45,6 +45,7 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowI
     _grabbedPoint = -1;
     _start = start;
     _end = end;
+    _timingElement = timingElement;
 }
 
 void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
@@ -233,7 +234,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
         end = eff->GetEndTimeMS();
     }
 
-    _vcp = new ValueCurvePanel(this, start, end, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    Element* timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
+
+    _vcp = new ValueCurvePanel(this, timingElement, start, end, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _vcp->SetMinSize(wxSize(200, 100));
     _vcp->SetValue(_vc);
     _vcp->SetType(_vc->GetType());
@@ -852,6 +855,37 @@ void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
 
 #pragma endregion Sliders and TextCtrls
 
+void ValueCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS)
+{
+    wxSize s = GetSize();
+    long interval = _end - _start;
+    float pos = (float)(timeMS - _start) / (float)interval;
+    int x = pos * s.GetWidth();
+
+    pdc.SetPen(*wxBLUE);
+    pdc.DrawLine(x, 0, x, s.GetHeight());
+}
+
+void ValueCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc)
+{
+    if (_timingElement == nullptr) return;
+
+    EffectLayer* el = _timingElement->GetEffectLayer(0);
+
+    for (int i = 0; i < el->GetEffectCount(); i++)
+    {
+        Effect* e = el->GetEffect(i);
+        if (e->GetStartTimeMS() >= _start || e->GetStartTimeMS() <= _end)
+        {
+            DrawTiming(pdc, e->GetStartTimeMS());
+        }
+        if (e->GetEndTimeMS() >= _start || e->GetEndTimeMS() <= _end)
+        {
+            DrawTiming(pdc, e->GetEndTimeMS());
+        }
+    }
+}
+
 void ValueCurvePanel::Paint(wxPaintEvent& event)
 {
     //wxPaintDC pdc(this);
@@ -862,6 +896,8 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
     float w = size.GetWidth();
     float h = size.GetHeight();
     pdc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+
+    DrawTiming(pdc);
 
     pdc.SetBrush(*wxTRANSPARENT_BRUSH);
     if (_vc != nullptr)

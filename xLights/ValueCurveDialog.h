@@ -16,10 +16,13 @@
 #include "ValueCurve.h"
 #include <wx/dir.h>
 
+class Element;
+class wxAutoBufferedPaintDC;
+
 class ValueCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
-    ValueCurvePanel(wxWindow* parent, int start, int end, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+    ValueCurvePanel(wxWindow* parent, Element* timingElement, int start, int end, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
     virtual ~ValueCurvePanel() {};
     virtual void SetValue(const std::string &val) override {};
@@ -45,6 +48,8 @@ protected:
     void mouseCaptureLost(wxMouseCaptureLostEvent& event);
 private:
     void Convert(float &x, float &y, wxMouseEvent& event);
+    void DrawTiming(wxAutoBufferedPaintDC& pdc);
+    void DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS);
     ValueCurve *_vc;
     float _originalGrabbedPoint;
     float _grabbedPoint;
@@ -54,6 +59,7 @@ private:
     std::list<wxRealPoint> _undo;
     int _start;
     int _end;
+    Element* _timingElement;
 };
 
 class ValueCurveDialog: public wxDialog

@@ -27,8 +27,8 @@ EVT_PAINT(ColorCurvePanel::Paint)
 EVT_MOUSE_CAPTURE_LOST(ColorCurvePanel::mouseCaptureLost)
 END_EVENT_TABLE()
 
-ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, int start, int end, wxColourData& colorData ,wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
-    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl(), _colorData(colorData)
+ColorCurvePanel::ColorCurvePanel(ColorCurve* cc, Element* timingElement, int start, int end, wxColourData& colorData ,wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : wxWindow(parent, id, pos, size, style, "ID_VCP"), xlCustomControl(), _colorData(colorData), _timingElement(timingElement)
 {
     _start = start;
     _end = end;
@@ -155,7 +155,9 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourDat
         end = eff->GetEndTimeMS();
     }
 
-    _ccp = new ColorCurvePanel(_cc, start, end, colorData, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
+    Element* timingElement = xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
+
+    _ccp = new ColorCurvePanel(_cc, timingElement, start, end, colorData, this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER);
     _ccp->SetMinSize(wxSize(500, 80));
     _ccp->SetType(_cc->GetType());
     FlexGridSizer6->Add(_ccp, 1, wxALL | wxEXPAND, 2);
@@ -644,6 +646,37 @@ void ColorCurvePanel::DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc)
     }
 }
 
+void ColorCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS)
+{
+    wxSize s = GetSize();
+    long interval = _end - _start;
+    float pos = (float)(timeMS - _start) / (float)interval;
+    int x = pos * s.GetWidth();
+
+    pdc.SetPen(*wxBLUE);
+    pdc.DrawLine(x, 0, x, s.GetHeight());
+}
+
+void ColorCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc)
+{
+    if (_timingElement == nullptr) return;
+
+    EffectLayer* el = _timingElement->GetEffectLayer(0);
+
+    for (int i = 0; i < el->GetEffectCount(); i++)
+    {
+        Effect* e = el->GetEffect(i);
+        if (e->GetStartTimeMS() >= _start || e->GetStartTimeMS() <= _end)
+        {
+            DrawTiming(pdc, e->GetStartTimeMS());
+        }
+        if (e->GetEndTimeMS() >= _start || e->GetEndTimeMS() <= _end)
+        {
+            DrawTiming(pdc, e->GetEndTimeMS());
+        }
+    }
+}
+
 void ColorCurvePanel::DrawStopsAsLines(wxAutoBufferedPaintDC& pdc)
 {
     wxSize s = GetSize();
@@ -698,6 +731,8 @@ void ColorCurvePanel::Paint(wxPaintEvent& event)
         //DrawStopsAsLines(pdc);
         DrawStopsAsHouses(pdc);
     }
+
+    DrawTiming(pdc);
 }
 
 void ColorCurveDialog::ValidateWindow()

@@ -107,6 +107,7 @@ public:
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col);
+    Element* GetActiveTimingElement();
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -165,7 +166,6 @@ private:
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true);
     void RaiseEffectDropped(int x, int y);
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
-    Element* GetActiveTimingElement();
     bool MultipleEffectsSelected();
     std::list<Effect*> GetSelectedEffects();
     bool PapagayoEffectsSelected();

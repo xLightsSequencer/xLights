@@ -16,13 +16,14 @@
 
 class wxDir;
 class wxAutoBufferedPaintDC;
+class Element;
 
 wxDECLARE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 
 class ColorCurvePanel : public wxWindow, public xlCustomControl
 {
 public:
-    ColorCurvePanel(ColorCurve* cc, int start, int end , wxColourData &colorData, wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
+    ColorCurvePanel(ColorCurve* cc, Element* timingElement, int start, int end , wxColourData &colorData, wxWindow* parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition,
         const wxSize &size = wxDefaultSize, long style = 0);
     virtual ~ColorCurvePanel() {};
     virtual void SetValue(const std::string &val) override {};
@@ -59,6 +60,8 @@ private:
     void DrawStopsAsLines(wxAutoBufferedPaintDC& pdc);
     void DrawStopsAsHouses(wxAutoBufferedPaintDC& pdc);
     void DrawHouse(wxAutoBufferedPaintDC& pdc, int x, int height, bool selected, const wxColor& c, wxPointList& pl);
+    void DrawTiming(wxAutoBufferedPaintDC& pdc);
+    void DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS);
     ColorCurve *_cc;
     //float _originalGrabbedPoint;
     float _grabbedPoint;
@@ -70,6 +73,7 @@ private:
     int _start;
     int _end;
     wxColourData& _colorData;
+    Element* _timingElement;
 };
 
 class ColorCurveDialog: public wxDialog
