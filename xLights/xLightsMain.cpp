@@ -4901,52 +4901,56 @@ void xLightsFrame::CheckSequence(bool display)
             LogAndWrite(f, "    Test skipped as sequence has never been saved.");
         }
 
-        LogAndWrite(f, "");
-        LogAndWrite(f, "Models hidden by effects on groups");
-
-        // Check for groups that contain models that have appeared before the group at the bottom of the master view
-        wxString models = mSequenceElements.GetViewModels(mSequenceElements.GetViewName(0));
-        wxArrayString modelnames = wxSplit(models, ',');
-
-        std::list<std::string> seenmodels;
-        for (auto it = modelnames.begin(); it != modelnames.end(); ++it)
+        // Only warn about model hiding if model blending is turned off.
+        if (!CurrentSeqXmlFile->supportsModelBlending())
         {
-            Model* m = AllModels.GetModel(it->ToStdString());
-            if (m == nullptr)
+            LogAndWrite(f, "");
+            LogAndWrite(f, "Models hidden by effects on groups");
+
+            // Check for groups that contain models that have appeared before the group at the bottom of the master view
+            wxString models = mSequenceElements.GetViewModels(mSequenceElements.GetViewName(0));
+            wxArrayString modelnames = wxSplit(models, ',');
+
+            std::list<std::string> seenmodels;
+            for (auto it = modelnames.begin(); it != modelnames.end(); ++it)
             {
-                wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it->ToStdString());
-                LogAndWrite(f, msg.ToStdString());
-                errcount++;
-            }
-            else
-            {
-                if (m->GetDisplayAs() == "ModelGroup")
+                Model* m = AllModels.GetModel(it->ToStdString());
+                if (m == nullptr)
                 {
-                    ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
-                    auto cm = mg->Models();
-                    for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
-                    {
-                        if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
-                        {
-                            wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-                    }
+                    wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it->ToStdString());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
                 }
                 else
                 {
-                    seenmodels.push_back(m->GetName());
+                    if (m->GetDisplayAs() == "ModelGroup")
+                    {
+                        ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                        auto cm = mg->Models();
+                        for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
+                        {
+                            if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
+                            {
+                                wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
+                                LogAndWrite(f, msg.ToStdString());
+                                warncount++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        seenmodels.push_back(m->GetName());
+                    }
                 }
             }
-        }
 
-        if (errcount + warncount == errcountsave + warncountsave)
-        {
-            LogAndWrite(f, "    No problems found");
+            if (errcount + warncount == errcountsave + warncountsave)
+            {
+                LogAndWrite(f, "    No problems found");
+            }
+            errcountsave = errcount;
+            warncountsave = warncount;
         }
-        errcountsave = errcount;
-        warncountsave = warncount;
 
         LogAndWrite(f, "");
         LogAndWrite(f, "Effect problems");
