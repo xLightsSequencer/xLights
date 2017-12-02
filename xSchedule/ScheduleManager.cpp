@@ -206,6 +206,7 @@ ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
+    AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
     ManageBackground();
