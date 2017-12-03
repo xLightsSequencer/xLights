@@ -6910,19 +6910,25 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     BatchRenderDialog dlg(this);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
         for (auto f = files.begin(); f != files.end(); f++) {
-            wxFileName fname(this->GetShowDirectory(), *f);
-            filesToRender.push_back(fname.GetFullPath());
+            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + *f);
+            if(fname.FileExists())
+                filesToRender.push_back(fname.GetFullPath());
+            else
+                logger_base.info("BatchRender: Sequence File not Found: %s.", fname.GetFullPath());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;
             OpenRenderAndSaveSequences(filesToRender, false);
             _renderMode = false;
         }
+        else
+            logger_base.info("BatchRender: No Sequences Selected.");
     }
 }
 
