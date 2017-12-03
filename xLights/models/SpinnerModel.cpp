@@ -369,5 +369,5 @@ int SpinnerModel::CalcCannelsPerString() {
     if (SingleNode) {
         return GetNodeChannelCount(StringType);
     }
-    return GetNodeChannelCount(StringType) * parm2;
+    return GetNodeChannelCount(StringType) * parm2 * parm3;
 }
