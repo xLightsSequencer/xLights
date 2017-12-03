@@ -95,7 +95,7 @@ However, if you have the XCode command line tools installed, you should just be 
 
 Other library notes:
 ffmpeg:   currently using 3.4
-./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.7"  --disable-indev=avfoundation --disable-indev=lavfi  --disable-avfoundation  --disable-audiotoolbox
+./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.7"  --disable-indev=avfoundation --disable-indev=lavfi  --disable-avfoundation --disable-coreimage --disable-audiotoolbox
 
 SDL2:  currently using 2.0.7
 
