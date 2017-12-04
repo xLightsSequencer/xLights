@@ -60,6 +60,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _xyzzy = nullptr;
     _timerAdjustment = 0;
     _lastXyzzyCommand = wxDateTime::Now();
+    _outputManager = new OutputManager();
 
     wxConfigBase* config = wxConfigBase::Get();
     _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
@@ -143,7 +144,6 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         logger_base.info("SyncMode: ARTNETREMOTE");
     }
 
-    _outputManager = new OutputManager();
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
