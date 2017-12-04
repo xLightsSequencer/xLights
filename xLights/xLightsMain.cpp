@@ -6920,7 +6920,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             if(fname.FileExists())
                 filesToRender.push_back(fname.GetFullPath());
             else
-                logger_base.info("BatchRender: Sequence File not Found: %s.", fname.GetFullPath());
+                logger_base.info("BatchRender: Sequence File not Found: %s.", fname.GetFullPath().ToStdString().c_str());
         }
         if (filesToRender.size() > 0) {
             _renderMode = true;

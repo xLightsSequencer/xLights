@@ -1447,6 +1447,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     std::string palette;
     std::string effectText = GetEffectTextFromWindows(palette);
+    mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
@@ -1455,9 +1456,13 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
         int endms = -1;
         for(int j=0;j< el->GetEffectCount();j++) {
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
-                el->GetEffect(j)->SetPalette(palette);
-                startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
-                endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
+                Effect *ef = el->GetEffect(j);
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                                                                       el->GetIndex(),
+                                                                       ef);
+                ef->SetPalette(palette);
+                startms = std::min(startms, ef->GetStartTimeMS());
+                endms = std::max(endms, ef->GetEndTimeMS());
             }
         }
         if(startms <= endms) {
@@ -1477,6 +1482,8 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
     std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
+    mSequenceElements.get_undo_mgr().CreateUndoStep();
+
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
@@ -1486,6 +1493,11 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
         for(int j=0;j< el->GetEffectCount();j++) {
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
+                Effect *ef = el->GetEffect(j);
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                                                                       el->GetIndex(),
+                                                                       ef);
+                
                 el->GetEffect(j)->SetSettings(effectText, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
                 el->GetEffect(j)->SetEffectName(effectName);

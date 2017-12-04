@@ -21,7 +21,14 @@ MovedEffectInfo::MovedEffectInfo( const std::string &element_name_, int layer_in
 }
 
 ModifiedEffectInfo::ModifiedEffectInfo( const std::string &element_name_, int layer_index_, int id_, const std::string &settings_, const std::string &palette_ )
-: element_name(element_name_), layer_index(layer_index_), id(id_), settings(settings_), palette(palette_)
+: element_name(element_name_), layer_index(layer_index_), id(id_), settings(settings_), palette(palette_), effectName(""), effectType(-1)
+{
+}
+
+
+ModifiedEffectInfo::ModifiedEffectInfo( const std::string &element_name_, int layer_index_, Effect *ef)
+: element_name(element_name_), layer_index(layer_index_), id(ef->GetID()),
+    settings(ef->GetSettingsAsString()), palette(ef->GetPaletteAsString()), effectName(ef->GetEffectName()), effectType(ef->GetEffectIndex())
 {
 }
 
@@ -147,7 +154,12 @@ void UndoManager::CaptureModifiedEffect( const std::string &element_name, int la
     UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
     mUndoSteps.push_back(action);
 }
-
+void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef )
+{
+    ModifiedEffectInfo* effect_undo_action = new ModifiedEffectInfo( element_name, layer_index, ef );
+    UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
+    mUndoSteps.push_back(action);
+}
 void UndoManager::UndoLastStep()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -230,6 +242,10 @@ void UndoManager::UndoLastStep()
                     Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
                     if (eff != nullptr)
                     {
+                        if (next_action->modified_effect_info[0]->effectType >= 0) {
+                            eff->SetEffectName(next_action->modified_effect_info[0]->effectName);
+                            eff->SetEffectIndex(next_action->modified_effect_info[0]->effectType);
+                        }
                         eff->SetSettings(next_action->modified_effect_info[0]->settings, false);
                         eff->SetPalette(next_action->modified_effect_info[0]->palette);
                     }

@@ -5,6 +5,7 @@
 #include <vector>
 
 class SequenceElements;
+class Effect;
 
 enum UNDO_ACTIONS
 {
@@ -59,7 +60,11 @@ public:
     int id;
     std::string settings;
     std::string palette;
+    std::string effectName;
+    int effectType;
+    
     ModifiedEffectInfo( const std::string &element_name_, int layer_index_, int id_, const std::string &settings_, const std::string &palette_ );
+    ModifiedEffectInfo( const std::string &element_name_, int layer_index_, Effect *ef);
 };
 
 class UndoStep
@@ -101,7 +106,7 @@ class UndoManager
 
         void CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
         void CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette );
-
+        void CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef);
     protected:
 
     private:
