@@ -1,7 +1,7 @@
 #include "OutputProcessDeadChannel.h"
 #include <wx/xml/xml.h>
 
-OutputProcessDeadChannel::OutputProcessDeadChannel(wxXmlNode* node) : OutputProcess(node)
+OutputProcessDeadChannel::OutputProcessDeadChannel(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _channel = wxAtol(node->GetAttribute("Channel", "1"));
 }
@@ -11,12 +11,12 @@ OutputProcessDeadChannel::OutputProcessDeadChannel(const OutputProcessDeadChanne
     _channel = op._channel;
 }
 
-OutputProcessDeadChannel::OutputProcessDeadChannel() : OutputProcess()
+OutputProcessDeadChannel::OutputProcessDeadChannel(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _channel = 1;
 }
 
-OutputProcessDeadChannel::OutputProcessDeadChannel(size_t _startChannel, size_t p1, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessDeadChannel::OutputProcessDeadChannel(OutputManager* outputManager, std::string startChannel, size_t p1, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _channel = p1;
 }
@@ -36,7 +36,9 @@ void OutputProcessDeadChannel::Frame(wxByte* buffer, size_t size)
 {
     if (!_enabled) return;
 
-    wxByte* p = buffer + (_startChannel - 1);
+    size_t sc = GetStartChannelAsNumber();
+
+    wxByte* p = buffer + (sc - 1);
 
     // if our dead channel is not zero then blank the node
     // this ensures the pixel never looks the wrong colour

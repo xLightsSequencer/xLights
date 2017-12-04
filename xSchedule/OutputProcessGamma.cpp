@@ -1,7 +1,7 @@
 #include "OutputProcessGamma.h"
 #include <wx/xml/xml.h>
 
-OutputProcessGamma::OutputProcessGamma(wxXmlNode* node) : OutputProcess(node)
+OutputProcessGamma::OutputProcessGamma(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _nodes = wxAtol(node->GetAttribute("Nodes", "1"));
     _gamma = wxAtof(node->GetAttribute("Gamma", "1.0"));
@@ -21,7 +21,7 @@ OutputProcessGamma::OutputProcessGamma(const OutputProcessGamma& op) : OutputPro
     BuildGammaData();
 }
 
-OutputProcessGamma::OutputProcessGamma() : OutputProcess()
+OutputProcessGamma::OutputProcessGamma(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _nodes = 1;
     _gamma = 1.0;
@@ -31,7 +31,7 @@ OutputProcessGamma::OutputProcessGamma() : OutputProcess()
     BuildGammaData();
 }
 
-OutputProcessGamma::OutputProcessGamma(size_t _startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessGamma::OutputProcessGamma(OutputManager* outputManager, std::string startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _nodes = p1;
     _gamma = gamma;
@@ -85,11 +85,13 @@ void OutputProcessGamma::Frame(wxByte* buffer, size_t size)
     if (_gamma == 1.0) return;
     if (_gamma == 0.00 && _gammaR == 1.0 && _gammaG == 1.0 && _gammaB == 1.0) return;
 
-    size_t nodes = std::min(_nodes, (size - (_startChannel - 1)) / 3);
+    size_t sc = GetStartChannelAsNumber();
+
+    size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
 
     for (int i = 0; i < nodes; i++)
     {
-        wxByte* p = buffer + (_startChannel - 1) + (i * 3);
+        wxByte* p = buffer + (sc - 1) + (i * 3);
 
         if (_gamma != 0.0)
         {

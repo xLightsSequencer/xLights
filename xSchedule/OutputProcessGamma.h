@@ -21,10 +21,10 @@ class OutputProcessGamma : public OutputProcess
 
 public:
 
-    OutputProcessGamma(wxXmlNode* node);
-    OutputProcessGamma();
+    OutputProcessGamma(OutputManager* outputManager, wxXmlNode* node);
+    OutputProcessGamma(OutputManager* outputManager);
     OutputProcessGamma(const OutputProcessGamma& op);
-    OutputProcessGamma(size_t _startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description);
+    OutputProcessGamma(OutputManager* outputManager, std::string _startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description);
     virtual ~OutputProcessGamma() {}
     virtual wxXmlNode* Save() override;
     virtual void Frame(wxByte* buffer, size_t size) override;

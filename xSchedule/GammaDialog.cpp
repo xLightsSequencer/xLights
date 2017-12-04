@@ -1,6 +1,7 @@
 #include "GammaDialog.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
+#include "../xLights/outputs/OutputManager.h"
 
 //(*InternalHeaders(GammaDialog)
 #include <wx/intl.h>
@@ -9,7 +10,8 @@
 
 //(*IdInit(GammaDialog)
 const long GammaDialog::ID_STATICTEXT1 = wxNewId();
-const long GammaDialog::ID_SPINCTRL1 = wxNewId();
+const long GammaDialog::ID_TEXTCTRL6 = wxNewId();
+const long GammaDialog::ID_STATICTEXT8 = wxNewId();
 const long GammaDialog::ID_STATICTEXT2 = wxNewId();
 const long GammaDialog::ID_SPINCTRL2 = wxNewId();
 const long GammaDialog::ID_CHECKBOX1 = wxNewId();
@@ -33,9 +35,12 @@ BEGIN_EVENT_TABLE(GammaDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _description(description), _enabled(enabled)
+GammaDialog::GammaDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _description(description), _enabled(enabled)
 {
+    _outputManager = outputManager;
+
 	//(*Initialize(GammaDialog)
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -47,9 +52,13 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	FlexGridSizer1->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Start Channel:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL1"));
-	SpinCtrl_StartChannel->SetValue(_T("1"));
-	FlexGridSizer1->Add(SpinCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	TextCtrl_StartChannel = new wxTextCtrl(this, ID_TEXTCTRL6, _("1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL6"));
+	FlexGridSizer3->Add(TextCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	StaticText_StartChannel = new wxStaticText(this, ID_STATICTEXT8, _("1"), wxDefaultPosition, wxSize(60,-1), 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer3->Add(StaticText_StartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Nodes:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Nodes = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL2"));
@@ -81,7 +90,7 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX2, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Enabled->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
@@ -97,6 +106,7 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL6,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GammaDialog::OnTextCtrl_StartChannelText);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&GammaDialog::OnCheckBox_SimpleClick);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GammaDialog::OnTextCtrl_ValidateNumbers);
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&GammaDialog::OnTextCtrl_ValidateNumbers);
@@ -107,10 +117,9 @@ GammaDialog::GammaDialog(wxWindow* parent, size_t& startChannel, size_t& channel
 	//*)
 
     long chs = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
-    SpinCtrl_StartChannel->SetRange(1, chs);
     SpinCtrl_Nodes->SetRange(1, chs / 3);
 
-    SpinCtrl_StartChannel->SetValue(_startChannel);
+    TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
     if (_gamma == 0.0)
     {
@@ -156,7 +165,7 @@ void GammaDialog::OnTextCtrl_ValidateNumbers(wxCommandEvent& event)
 
 void GammaDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    _startChannel = SpinCtrl_StartChannel->GetValue();
+    _startChannel = TextCtrl_StartChannel->GetValue();
     _nodes = SpinCtrl_Nodes->GetValue();
     if (CheckBox_Simple->GetValue())
     {
@@ -185,13 +194,15 @@ void GammaDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void GammaDialog::ValidateWindow()
 {
+    size_t sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
+    StaticText_StartChannel->SetLabel(wxString::Format("%ld", sc));
     float simple = wxAtof(TextCtrl_Simple->GetValue());
     float r = wxAtof(TextCtrl_R->GetValue());
     float g = wxAtof(TextCtrl_G->GetValue());
     float b = wxAtof(TextCtrl_B->GetValue());
     if (CheckBox_Simple->GetValue())
     {
-        if (simple <= 0 || simple > 50)
+        if (simple <= 0 || simple > 50 || sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels())
         {
             Button_Ok->Enable(false);
         }
@@ -212,7 +223,7 @@ void GammaDialog::ValidateWindow()
     {
         if (r <= 0.01 || r > 50 ||
             g <= 0.01 || g > 50 ||
-            b <= 0.01 || b > 50
+            b <= 0.01 || b > 50 || sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels()
             )
         {
             Button_Ok->Enable(false);
@@ -231,4 +242,9 @@ void GammaDialog::ValidateWindow()
         StaticText_Simple->Hide();
     }
     Layout();
+}
+
+void GammaDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

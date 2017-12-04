@@ -9,18 +9,23 @@
 #include "OutputProcessGamma.h"
 #include "OutputProcessColourOrder.h"
 #include "OutputProcessDeadChannel.h"
+#include "../xLights/outputs/OutputManager.h"
 
-OutputProcess::OutputProcess(wxXmlNode* node)
+OutputProcess::OutputProcess(OutputManager* outputManager, wxXmlNode* node)
 {
+    _sc = 0;
+    _outputManager = outputManager;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
-    _startChannel = wxAtol(node->GetAttribute("StartChannel", "1"));
+    _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
     _description = node->GetAttribute("Description", "").ToStdString();
     _enabled = node->GetAttribute("Enabled", "TRUE") == "TRUE";
 }
 
 OutputProcess::OutputProcess(const OutputProcess& op)
 {
+    _sc = 0;
+    _outputManager = op._outputManager;
     _description = op._description;
     _changeCount = op._changeCount;
     _enabled = op._enabled;
@@ -28,8 +33,10 @@ OutputProcess::OutputProcess(const OutputProcess& op)
     _startChannel = op._startChannel;
 }
 
-OutputProcess::OutputProcess()
+OutputProcess::OutputProcess(OutputManager* outputManager)
 {
+    _sc = 0;
+    _outputManager = outputManager;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
     _startChannel = 1;
@@ -37,8 +44,10 @@ OutputProcess::OutputProcess()
     _enabled = true;
 }
 
-OutputProcess::OutputProcess(size_t startChannel, const std::string& description)
+OutputProcess::OutputProcess(OutputManager* outputManager, std::string startChannel, const std::string& description)
 {
+    _sc = 0;
+    _outputManager = outputManager;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
     _startChannel = startChannel;
@@ -46,9 +55,19 @@ OutputProcess::OutputProcess(size_t startChannel, const std::string& description
     _enabled = true;
 }
 
+size_t OutputProcess::GetStartChannelAsNumber()
+{
+    if (_sc == 0)
+    {
+        _sc = _outputManager->DecodeStartChannel(_startChannel);
+    }
+
+    return _sc;
+}
+
 void OutputProcess::Save(wxXmlNode* node)
 {
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%ld"), (long)_startChannel));
+    node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Description", _description);
     if (!_enabled)
     {
@@ -56,39 +75,39 @@ void OutputProcess::Save(wxXmlNode* node)
     }
 }
 
-OutputProcess* OutputProcess::CreateFromXml(wxXmlNode* node)
+OutputProcess* OutputProcess::CreateFromXml(OutputManager* outputManager, wxXmlNode* node)
 {
     if (node->GetName() == "OPDim")
     {
-        return new OutputProcessDim(node);
+        return new OutputProcessDim(outputManager, node);
     }
     else if (node->GetName() == "OPDimWhite")
     {
-        return new OutputProcessDimWhite(node);
+        return new OutputProcessDimWhite(outputManager, node);
     }
     else if (node->GetName() == "OPSet")
     {
-        return new OutputProcessSet(node);
+        return new OutputProcessSet(outputManager, node);
     }
     else if (node->GetName() == "OPRemap")
     {
-        return new OutputProcessRemap(node);
+        return new OutputProcessRemap(outputManager, node);
     }
     else if (node->GetName() == "OPReverse")
     {
-        return new OutputProcessReverse(node);
+        return new OutputProcessReverse(outputManager, node);
     }
     else if (node->GetName() == "OPColourOrder")
     {
-        return new OutputProcessColourOrder(node);
+        return new OutputProcessColourOrder(outputManager, node);
     }
     else if (node->GetName() == "OPGamma")
     {
-        return new OutputProcessGamma(node);
+        return new OutputProcessGamma(outputManager, node);
     }
     else if (node->GetName() == "OPDeadChannel")
     {
-        return new OutputProcessDeadChannel(node);
+        return new OutputProcessDeadChannel(outputManager, node);
     }
     return nullptr;
 }

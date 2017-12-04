@@ -14,10 +14,10 @@ class OutputProcessDimWhite : public OutputProcess
 
     public:
 
-        OutputProcessDimWhite(wxXmlNode* node);
-        OutputProcessDimWhite();
+        OutputProcessDimWhite(OutputManager* outputManager, wxXmlNode* node);
+        OutputProcessDimWhite(OutputManager* outputManager);
         OutputProcessDimWhite(const OutputProcessDimWhite& op);
-        OutputProcessDimWhite(size_t _startChannel, size_t p1, size_t p2, const std::string& description);
+        OutputProcessDimWhite(OutputManager* outputManager, std::string _startChannel, size_t p1, size_t p2, const std::string& description);
         virtual ~OutputProcessDimWhite() {}
         virtual wxXmlNode* Save() override;
         virtual void Frame(wxByte* buffer, size_t size) override;

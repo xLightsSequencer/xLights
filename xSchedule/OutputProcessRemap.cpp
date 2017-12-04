@@ -1,7 +1,7 @@
 #include "OutputProcessRemap.h"
 #include <wx/xml/xml.h>
 
-OutputProcessRemap::OutputProcessRemap(wxXmlNode* node) : OutputProcess(node)
+OutputProcessRemap::OutputProcessRemap(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _channels = wxAtol(node->GetAttribute("Channels", "1"));
     _to = wxAtol(node->GetAttribute("To", "1"));
@@ -13,13 +13,13 @@ OutputProcessRemap::OutputProcessRemap(const OutputProcessRemap& op) : OutputPro
     _to = op._to;
 }
 
-OutputProcessRemap::OutputProcessRemap(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessRemap::OutputProcessRemap(OutputManager* outputManager, std::string startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _to = p1;
     _channels = p2;
 }
 
-OutputProcessRemap::OutputProcessRemap() : OutputProcess()
+OutputProcessRemap::OutputProcessRemap(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _channels = 1;
     _to = 1;
@@ -39,11 +39,13 @@ wxXmlNode* OutputProcessRemap::Save()
 
 void OutputProcessRemap::Frame(wxByte* buffer, size_t size)
 {
-    if (_startChannel == _to) return;
+    size_t sc = GetStartChannelAsNumber();
 
-    size_t chs1 = std::min(_channels, size - (_startChannel - 1));
+    if (sc == _to) return;
+
+    size_t chs1 = std::min(_channels, size - (sc - 1));
     size_t chs2 = std::min(_channels, size - (_to - 1));
     size_t chs = std::min(chs1, chs2);
 
-    memcpy(buffer + _to - 1, buffer + _startChannel - 1, chs);
+    memcpy(buffer + _to - 1, buffer + sc - 1, chs);
 }

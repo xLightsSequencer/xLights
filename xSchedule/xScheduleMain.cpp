@@ -2100,7 +2100,7 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
 
 void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
 {
-    OutputProcessingDialog dlg(this, __schedule->GetOutputProcessing());
+    OutputProcessingDialog dlg(this, __schedule->GetOutputManager(), __schedule->GetOutputProcessing());
 
     if (dlg.ShowModal() == wxID_OK)
     {

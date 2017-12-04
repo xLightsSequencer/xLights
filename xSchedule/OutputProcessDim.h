@@ -14,10 +14,10 @@ class OutputProcessDim : public OutputProcess
 
 public:
 
-    OutputProcessDim(wxXmlNode* node);
-    OutputProcessDim();
+    OutputProcessDim(OutputManager* outputManager, wxXmlNode* node);
+    OutputProcessDim(OutputManager* outputManager);
     OutputProcessDim(const OutputProcessDim& op);
-    OutputProcessDim(size_t _startChannel, size_t p1, size_t p2, const std::string& description);
+    OutputProcessDim(OutputManager* outputManager, std::string _startChannel, size_t p1, size_t p2, const std::string& description);
     virtual ~OutputProcessDim() {}
     virtual wxXmlNode* Save() override;
     virtual void Frame(wxByte* buffer, size_t size) override;

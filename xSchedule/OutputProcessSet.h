@@ -10,10 +10,10 @@ class OutputProcessSet : public OutputProcess
 
     public:
 
-        OutputProcessSet(wxXmlNode* node);
-        OutputProcessSet();
+        OutputProcessSet(OutputManager* outputManager, wxXmlNode* node);
+        OutputProcessSet(OutputManager* outputManager);
         OutputProcessSet(const OutputProcessSet& op);
-        OutputProcessSet(size_t _startChannel, size_t p1, size_t p2, const std::string& description);
+        OutputProcessSet(OutputManager* outputManager, std::string _startChannel, size_t p1, size_t p2, const std::string& description);
         virtual ~OutputProcessSet() {}
         virtual wxXmlNode* Save() override;
         virtual void Frame(wxByte* buffer, size_t size) override;

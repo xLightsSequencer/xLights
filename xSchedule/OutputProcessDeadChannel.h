@@ -9,10 +9,10 @@ class OutputProcessDeadChannel : public OutputProcess
 
     public:
 
-        OutputProcessDeadChannel(wxXmlNode* node);
-        OutputProcessDeadChannel();
+        OutputProcessDeadChannel(OutputManager* outputManager, wxXmlNode* node);
+        OutputProcessDeadChannel(OutputManager* outputManager);
         OutputProcessDeadChannel(const OutputProcessDeadChannel& op);
-        OutputProcessDeadChannel(size_t _startChannel, size_t p1, const std::string& description);
+        OutputProcessDeadChannel(OutputManager* outputManager, std::string _startChannel, size_t p1, const std::string& description);
         virtual ~OutputProcessDeadChannel() {}
         virtual wxXmlNode* Save() override;
         virtual void Frame(wxByte* buffer, size_t size) override;

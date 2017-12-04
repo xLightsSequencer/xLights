@@ -1,6 +1,7 @@
 #include "ColourOrderDialog.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
+#include "../xLights/outputs/OutputManager.h"
 
 //(*InternalHeaders(ColourOrderDialog)
 #include <wx/intl.h>
@@ -9,7 +10,8 @@
 
 //(*IdInit(ColourOrderDialog)
 const long ColourOrderDialog::ID_STATICTEXT1 = wxNewId();
-const long ColourOrderDialog::ID_SPINCTRL1 = wxNewId();
+const long ColourOrderDialog::ID_TEXTCTRL2 = wxNewId();
+const long ColourOrderDialog::ID_STATICTEXT5 = wxNewId();
 const long ColourOrderDialog::ID_STATICTEXT2 = wxNewId();
 const long ColourOrderDialog::ID_SPINCTRL2 = wxNewId();
 const long ColourOrderDialog::ID_STATICTEXT3 = wxNewId();
@@ -43,9 +45,26 @@ void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
     choice->SetSelection(sel);
 }
 
-ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, size_t& nodes, size_t& colourOrder, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _colourOrder(colourOrder), _description(description), _enabled(enabled)
+void ColourOrderDialog::ValidateWindow()
 {
+    long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
+    StaticText_StartChannel->SetLabel(wxString::Format("%ld", sc));
+    if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels())
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable(true);
+    }
+}
+
+ColourOrderDialog::ColourOrderDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& nodes, size_t& colourOrder, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(nodes), _colourOrder(colourOrder), _description(description), _enabled(enabled)
+{
+    _outputManager = outputManager;
+
 	//(*Initialize(ColourOrderDialog)
+	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
 
@@ -56,9 +75,13 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 	FlexGridSizer1->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Start Channel:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL1"));
-	SpinCtrl_StartChannel->SetValue(_T("1"));
-	FlexGridSizer1->Add(SpinCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	TextCtrl_StartChannel = new wxTextCtrl(this, ID_TEXTCTRL2, _("1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	FlexGridSizer2->Add(TextCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	StaticText_StartChannel = new wxStaticText(this, ID_STATICTEXT5, _("1"), wxDefaultPosition, wxSize(60,-1), 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer2->Add(StaticText_StartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Nodes:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Nodes = new wxSpinCtrl(this, ID_SPINCTRL2, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL2"));
@@ -77,7 +100,7 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Description = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_Description, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Enabled = new wxCheckBox(this, ID_CHECKBOX1, _("Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_Enabled->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_Enabled, 1, wxALL|wxEXPAND, 5);
@@ -93,15 +116,15 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColourOrderDialog::OnTextCtrl_StartChannelText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColourOrderDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColourOrderDialog::OnButton_CancelClick);
 	//*)
 
     long chs = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
-    SpinCtrl_StartChannel->SetRange(1, chs);
     SpinCtrl_Nodes->SetRange(1, chs / 3);
 
-    SpinCtrl_StartChannel->SetValue(_startChannel);
+    TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
     SetChoiceFromString(Choice1, wxString::Format(wxT("%ld"), (long)_colourOrder).ToStdString());
     TextCtrl_Description->SetValue(_description);
@@ -109,6 +132,7 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, size_t& startChannel, siz
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
+    ValidateWindow();
 }
 
 ColourOrderDialog::~ColourOrderDialog()
@@ -119,7 +143,7 @@ ColourOrderDialog::~ColourOrderDialog()
 
 void ColourOrderDialog::OnButton_OkClick(wxCommandEvent& event)
 {
-    _startChannel = SpinCtrl_StartChannel->GetValue();
+    _startChannel = TextCtrl_StartChannel->GetValue();
     _nodes = SpinCtrl_Nodes->GetValue();
     _colourOrder = wxAtoi(Choice1->GetStringSelection());
     _description = TextCtrl_Description->GetValue();
@@ -131,4 +155,9 @@ void ColourOrderDialog::OnButton_OkClick(wxCommandEvent& event)
 void ColourOrderDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
+}
+
+void ColourOrderDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

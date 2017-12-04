@@ -1,7 +1,7 @@
 #include "OutputProcessReverse.h"
 #include <wx/xml/xml.h>
 
-OutputProcessReverse::OutputProcessReverse(wxXmlNode* node) : OutputProcess(node)
+OutputProcessReverse::OutputProcessReverse(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _nodes = wxAtol(node->GetAttribute("Nodes", "1"));
 }
@@ -11,12 +11,12 @@ OutputProcessReverse::OutputProcessReverse(const OutputProcessReverse& op) : Out
     _nodes = op._nodes;
 }
 
-OutputProcessReverse::OutputProcessReverse() : OutputProcess()
+OutputProcessReverse::OutputProcessReverse(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _nodes = 1;
 }
 
-OutputProcessReverse::OutputProcessReverse(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessReverse::OutputProcessReverse(OutputManager* outputManager, std::string startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _nodes = p1;
 }
@@ -36,8 +36,10 @@ void OutputProcessReverse::Frame(wxByte* buffer, size_t size)
 {
     if (_nodes < 2) return;
 
-    size_t nodes = std::min(_nodes, (size - (_startChannel - 1)) / 3);
-    wxByte* p = buffer + (_startChannel - 1);
+    size_t sc = GetStartChannelAsNumber();
+
+    size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
+    wxByte* p = buffer + (sc - 1);
 
 	wxByte rgb[3];
 	wxByte* from = p;

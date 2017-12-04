@@ -11,9 +11,11 @@
 #include <list>
 
 class OutputProcess;
+class OutputManager;
 
 class OutputProcessingDialog: public wxDialog
 {
+    OutputManager* _outputManager;
     std::list<OutputProcess*>* _op;
     void ValidateWindow();
     void DeleteSelectedItem();
@@ -25,7 +27,7 @@ class OutputProcessingDialog: public wxDialog
 
 	public:
 
-		OutputProcessingDialog(wxWindow* parent, std::list<OutputProcess*>* op, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		OutputProcessingDialog(wxWindow* parent, OutputManager* outputManager, std::list<OutputProcess*>* op, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~OutputProcessingDialog();
 
 		//(*Declarations(OutputProcessingDialog)

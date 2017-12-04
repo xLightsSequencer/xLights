@@ -11,40 +11,49 @@
 #include <wx/dialog.h>
 //*)
 
+class OutputManager;
+
 class RemapDialog: public wxDialog
 {
-    size_t& _from;
-    size_t& _to;
+    std::string& _from;
+    std::string& _to;
     size_t& _channels;
     std::string& _description;
     bool& _enabled;
+    OutputManager* _outputManager;
 
-	public:
+    void ValidateWindow();
 
-		RemapDialog(wxWindow* parent, size_t& startChannel, size_t& to, size_t& channels, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+    public:
+
+		RemapDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, std::string& to, size_t& channels, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~RemapDialog();
 
 		//(*Declarations(RemapDialog)
 		wxCheckBox* CheckBox_Enabled;
 		wxButton* Button_Ok;
-		wxSpinCtrl* SpinCtrl_ToChannel;
 		wxTextCtrl* TextCtrl_Description;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText_From;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
+		wxTextCtrl* TextCtrl_FromChannel;
 		wxButton* Button_Cancel;
 		wxStaticText* StaticText4;
-		wxSpinCtrl* SpinCtrl_FromChannel;
+		wxTextCtrl* TextCtrl_ToChannel;
+		wxStaticText* StaticText_To;
 		//*)
 
 	protected:
 
 		//(*Identifiers(RemapDialog)
 		static const long ID_STATICTEXT1;
-		static const long ID_SPINCTRL1;
+		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT5;
 		static const long ID_STATICTEXT2;
-		static const long ID_SPINCTRL2;
+		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT6;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL3;
 		static const long ID_STATICTEXT4;
@@ -59,6 +68,8 @@ class RemapDialog: public wxDialog
 		//(*Handlers(RemapDialog)
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnTextCtrl_FromChannelText(wxCommandEvent& event);
+		void OnTextCtrl_ToChannelText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

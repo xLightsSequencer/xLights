@@ -89,7 +89,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             {
                 for (wxXmlNode* n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext())
                 {
-                    OutputProcess* op = OutputProcess::CreateFromXml(n1);
+                    OutputProcess* op = OutputProcess::CreateFromXml(_outputManager, n1);
                     if (op != nullptr)
                     {
                         _outputProcessing.push_back(op);

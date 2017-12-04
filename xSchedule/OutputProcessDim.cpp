@@ -1,7 +1,7 @@
 #include "OutputProcessDim.h"
 #include <wx/xml/xml.h>
 
-OutputProcessDim::OutputProcessDim(wxXmlNode* node) : OutputProcess(node)
+OutputProcessDim::OutputProcessDim(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _lastDim = -1;
     _channels = wxAtol(node->GetAttribute("Channels", "1"));
@@ -27,7 +27,7 @@ void OutputProcessDim::BuildDimTable()
     }
 }
 
-OutputProcessDim::OutputProcessDim() : OutputProcess()
+OutputProcessDim::OutputProcessDim(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _lastDim = -1;
     _channels = 1;
@@ -35,7 +35,7 @@ OutputProcessDim::OutputProcessDim() : OutputProcess()
     BuildDimTable();
 }
 
-OutputProcessDim::OutputProcessDim(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessDim::OutputProcessDim(OutputManager* outputManager, std::string startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _lastDim = -1;
     _channels = p1;
@@ -60,16 +60,18 @@ void OutputProcessDim::Frame(wxByte* buffer, size_t size)
     if (!_enabled) return;
     if (_dim == 100) return;
 
-    size_t chs = std::min(_channels, size - (_startChannel - 1));
+    size_t sc = GetStartChannelAsNumber();
+
+    size_t chs = std::min(_channels, size - (sc - 1));
 
     if (_dim == 0)
     {
-        memset(buffer + _startChannel - 1, 0x00, chs);
+        memset(buffer + sc - 1, 0x00, chs);
         return;
     }
 
     for (int i = 0; i < chs; i++)
     {
-        *(buffer + i + _startChannel - 1) = _dimTable[*(buffer + i + _startChannel - 1)];
+        *(buffer + i + sc - 1) = _dimTable[*(buffer + i + sc - 1)];
     }
 }

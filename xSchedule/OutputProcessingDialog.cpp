@@ -42,8 +42,9 @@ BEGIN_EVENT_TABLE(OutputProcessingDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<OutputProcess*>* op,wxWindowID id,const wxPoint& pos,const wxSize& size) : _op(op)
+OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, OutputManager* outputManager, std::list<OutputProcess*>* op,wxWindowID id,const wxPoint& pos,const wxSize& size) : _op(op)
 {
+    _outputManager = outputManager;
     _dragging = false;
 
 	//(*Initialize(OutputProcessingDialog)
@@ -133,7 +134,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, std::list<Outpu
     for (auto it = op->begin(); it != op->end(); ++it)
     {
         ListView_Processes->InsertItem(i, (*it)->GetType());
-        ListView_Processes->SetItem(i, 1, wxString::Format(wxT("%ld"), (long)(*it)->GetStartChannel()));
+        ListView_Processes->SetItem(i, 1, (*it)->GetStartChannel());
         ListView_Processes->SetItem(i, 2, wxString::Format(wxT("%ld"), (long)(*it)->GetP1()));
         if ((*it)->GetType() == "Gamma")
         {
@@ -335,31 +336,31 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         OutputProcess* op = nullptr;
         if (type == "Dim")
         {
-            op = new OutputProcessDim(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i,4).ToStdString());
+            op = new OutputProcessDim(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i,4).ToStdString());
         }
         else if (type == "Dim White")
         {
-            op = new OutputProcessDimWhite(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessDimWhite(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Set")
         {
-            op = new OutputProcessSet(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessSet(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Dead Channel")
         {
-            op = new OutputProcessDeadChannel(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessDeadChannel(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Remap")
         {
-            op = new OutputProcessRemap(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessRemap(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Color Order")
         {
-            op = new OutputProcessColourOrder(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessColourOrder(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Reverse")
         {
-            op = new OutputProcessReverse(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessReverse(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Gamma")
         {
@@ -376,7 +377,7 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
                 gG = wxAtof(floats[2]);
                 gB = wxAtof(floats[3]);
             }
-            op = new OutputProcessGamma(wxAtol(ListView_Processes->GetItemText(i, 1)), wxAtol(ListView_Processes->GetItemText(i, 2)), g, gR, gG, gB, ListView_Processes->GetItemText(i, 4).ToStdString());
+            op = new OutputProcessGamma(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), g, gR, gG, gB, ListView_Processes->GetItemText(i, 4).ToStdString());
         }
 
         if (op != nullptr)
@@ -430,8 +431,9 @@ bool OutputProcessingDialog::EditSelectedItem()
         int row = ListView_Processes->GetFirstSelected();
 
         std::string type = ListView_Processes->GetItemText(row, 0).ToStdString();
-        size_t sc = wxAtol(ListView_Processes->GetItemText(row, 1));
+        std::string sc = ListView_Processes->GetItemText(row, 1).ToStdString();
         size_t p1 = wxAtol(ListView_Processes->GetItemText(row, 2));
+        std::string p1s = ListView_Processes->GetItemText(row, 2).ToStdString();
         size_t p2 = wxAtol(ListView_Processes->GetItemText(row, 3));
         std::string d = ListView_Processes->GetItemText(row, 4).ToStdString();
         bool e = ListView_Processes->GetItemTextColour(row) != *wxLIGHT_GREY;
@@ -451,14 +453,14 @@ bool OutputProcessingDialog::EditSelectedItem()
         }
 
         // this is wasteful ... but whatever
-        DimDialog dlgd(this, sc, p1, p2, d, e);
-        DimWhiteDialog dlgdw(this, sc, p1, p2, d, e);
-        SetDialog dlgs(this, sc, p1, p2, d, e);
-        DeadChannelDialog dlgdc(this, sc, p1, d, e);
-        RemapDialog dlgr(this, sc, p1, p2, d, e);
-        AddReverseDialog dlgrv(this, sc, p1, p2, d, e);
-        GammaDialog dlgg(this, sc, p1, gamma, gammaR, gammaG, gammaB, d, e);
-        ColourOrderDialog dlgc(this, sc, p1, p2, d, e);
+        DimDialog dlgd(this, _outputManager, sc, p1, p2, d, e);
+        DimWhiteDialog dlgdw(this, _outputManager, sc, p1, p2, d, e);
+        SetDialog dlgs(this, _outputManager, sc, p1, p2, d, e);
+        DeadChannelDialog dlgdc(this, _outputManager, sc, p1, d, e);
+        RemapDialog dlgr(this, _outputManager, sc, p1s, p2, d, e);
+        AddReverseDialog dlgrv(this, _outputManager, sc, p1, p2, d, e);
+        GammaDialog dlgg(this, _outputManager, sc, p1, gamma, gammaR, gammaG, gammaB, d, e);
+        ColourOrderDialog dlgc(this, _outputManager, sc, p1, p2, d, e);
         int res = wxID_CANCEL;
 
         if (type == "Dim")
@@ -497,8 +499,15 @@ bool OutputProcessingDialog::EditSelectedItem()
 
         if (res == wxID_OK)
         {
-            ListView_Processes->SetItem(row, 1, wxString::Format(wxT("%ld"), (long)sc));
-            ListView_Processes->SetItem(row, 2, wxString::Format(wxT("%ld"), (long)p1));
+            ListView_Processes->SetItem(row, 1, sc);
+            if (type == "Remap")
+            {
+                ListView_Processes->SetItem(row, 2, p1s);
+            }
+            else
+            {
+                ListView_Processes->SetItem(row, 2, wxString::Format(wxT("%ld"), (long)p1));
+            }
             if (type == "Gamma")
             {
                 ListView_Processes->SetItem(row, 3, wxString::Format(wxT("%.2f,%.2f,%.2f,%.2f"), gamma, gammaR, gammaG, gammaB));

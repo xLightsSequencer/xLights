@@ -1,7 +1,7 @@
 #include "OutputProcessColourOrder.h"
 #include <wx/xml/xml.h>
 
-OutputProcessColourOrder::OutputProcessColourOrder(wxXmlNode* node) : OutputProcess(node)
+OutputProcessColourOrder::OutputProcessColourOrder(OutputManager* outputManager, wxXmlNode* node) : OutputProcess(outputManager, node)
 {
     _nodes = wxAtol(node->GetAttribute("Nodes", "1"));
     _colourOrder = wxAtol(node->GetAttribute("ColourOrder", "312"));
@@ -13,13 +13,13 @@ OutputProcessColourOrder::OutputProcessColourOrder(const OutputProcessColourOrde
     _colourOrder = op._colourOrder;
 }
 
-OutputProcessColourOrder::OutputProcessColourOrder() : OutputProcess()
+OutputProcessColourOrder::OutputProcessColourOrder(OutputManager* outputManager) : OutputProcess(outputManager)
 {
     _nodes = 1;
     _colourOrder = 312;
 }
 
-OutputProcessColourOrder::OutputProcessColourOrder(size_t _startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(_startChannel, description)
+OutputProcessColourOrder::OutputProcessColourOrder(OutputManager* outputManager, std::string startChannel, size_t p1, size_t p2, const std::string& description) : OutputProcess(outputManager, startChannel, description)
 {
     _nodes = p1;
     _colourOrder = p2;
@@ -42,11 +42,13 @@ void OutputProcessColourOrder::Frame(wxByte* buffer, size_t size)
     if (!_enabled) return;
     if (_colourOrder == 123) return;
 
-    size_t nodes = std::min(_nodes, (size - (_startChannel - 1)) / 3);
+    size_t sc = GetStartChannelAsNumber();
+
+    size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
 
     for (int i = 0; i < nodes; i++)
     {
-        wxByte* p = buffer + (_startChannel - 1) + (i * 3);
+        wxByte* p = buffer + (sc - 1) + (i * 3);
 		wxByte r = *p;
 		wxByte g = *(p+1);
 		wxByte b = *(p+2);

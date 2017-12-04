@@ -14,9 +14,27 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_FromChannel" member="yes">
-					<value>1</value>
-					<min>1</min>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_FromChannel" member="yes">
+							<value>1</value>
+							<handler function="OnTextCtrl_FromChannelText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_From" member="yes">
+							<label>1</label>
+							<size>60,-1</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -31,9 +49,27 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_ToChannel" member="yes">
-					<value>1</value>
-					<min>1</min>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_ToChannel" member="yes">
+							<value>1</value>
+							<handler function="OnTextCtrl_ToChannelText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText_To" member="yes">
+							<label>1</label>
+							<size>60,-1</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
