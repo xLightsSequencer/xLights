@@ -1099,9 +1099,9 @@ std::list<std::string> TestDialog::GetModelsOnChannels(int start, int end)
 		Model* m = it->second;
         if (m->GetDisplayAs() != "ModelGroup")
         {
-            int st = m->GetFirstChannel();
-            int en = m->GetLastChannel();
-            if (start <= en + 1 && end >= st)
+            int st = m->GetFirstChannel() + 1;
+            int en = m->GetLastChannel() + 1;
+            if (start <= en && end >= st)
             {
                 res.push_back(it->first);
             }

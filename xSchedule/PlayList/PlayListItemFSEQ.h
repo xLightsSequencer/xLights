@@ -29,7 +29,7 @@ protected:
     size_t _channels;
     bool _fastStartAudio;
     std::string _cachedAudioFilename;
-#pragma endregion Member Variables
+    #pragma endregion Member Variables
 
     void LoadFiles();
     void CloseFiles();
