@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add support for #universe:startchannel and output:startchannel to all xSchedule fields that define a start channel
+   -- bug (keith)  Fix test dialog tooltips dont display correct models
+   -- bug (keith)  Remove Master View from the new sequence default views
+   -- enh (dkulp)  Add undo to update effect and update palette actions
+   -- enh (rich)   Fix xSchedule web doesnt like spaces in some url parameters #1000
+   -- bug (scotth) Fix spinner calculate incorrect number of nodes #1008
+   -- bug (scotth) Fix bulk render doesnt like xml files in subdirectories
+   -- bug (keith)  Ensure all lights are off when xSchedule closes
+   -- enh (keith)  Add active timing marks to Value Curve and Colour Curve dialogs so you can line things up easier
+   -- bug (keith)  Fix xSchedule test mode does not display A-B-C-ALL and some other patterns correctly
 2017.39  Nov 28, 2017
    -- bug (dkulp) Fix some memory leaks when open/close sequences as well as switching show directories
    -- enh (dkulp) Import Superstar files onto a submodel
