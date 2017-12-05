@@ -547,7 +547,11 @@ void SeqSettingsDialog::WizardPage3()
 	auto views = xLightsParent->GetViewsManager()->GetViews();
     for(auto it = views.begin(); it != views.end(); ++it)
     {
-        ModelsChoice->Append((*it)->GetName());
+        // dont add the master view
+        if ((*it)->GetName() != "Master View")
+        {
+            ModelsChoice->Append((*it)->GetName());
+        }
     }
 	ModelsChoice->SetSelection(0);
 	GridSizerWizButtons->Add(ModelsChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
