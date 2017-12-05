@@ -11,9 +11,11 @@
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/outputs/OutputManager.h"
 
-PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(node)
+PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {
+    _outputManager = outputManager;
     _loopVideo = false;
     _fadeInMS = 0;
     _fadeOutMS = 0;
@@ -31,8 +33,9 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(wxXmlNode* node) : PlayListItem(nod
     _origin.y = 0;
     _size.SetWidth(300);
     _size.SetHeight(300);
+    _sc = 0;
     _channels = 0;
-    _startChannel = 1;
+    _startChannel = "1";
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -53,6 +56,8 @@ void PlayListItemFSEQVideo::Load(wxXmlNode* node)
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
     _fadeInMS = wxAtoi(node->GetAttribute("FadeInMS", "0"));
     _fadeOutMS = wxAtoi(node->GetAttribute("FadeOutMS", "0"));
+    _channels = wxAtol(node->GetAttribute("Channels", "0"));
+    _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _cacheVideo = (node->GetAttribute("CacheVideo", "FALSE") == "TRUE");
     _loopVideo = (node->GetAttribute("LoopVideo", "FALSE") == "TRUE");
@@ -177,8 +182,9 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
     LoadAudio();
 }
 
-PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
+PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : PlayListItem()
 {
+    _outputManager = outputManager;
     _fadeInMS = 0;
     _fadeOutMS = 0;
     _cachedAudioFilename = "";
@@ -190,8 +196,9 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
     _loopVideo = false;
     _videoReader = nullptr;
     _cachedVideoReader = nullptr;
+    _sc = 0;
     _channels = 0;
-    _startChannel = 1;
+    _startChannel = "1";
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -210,8 +217,9 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo() : PlayListItem()
 
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
-    PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo();
+    PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo(_outputManager);
     res->_cachedAudioFilename = _cachedAudioFilename;
+    res->_outputManager = _outputManager;
     res->_topMost = _topMost;
     res->_fadeInMS = _fadeInMS;
     res->_fadeOutMS = _fadeOutMS;
@@ -255,6 +263,8 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
     node->AddAttribute("FadeInMS", wxString::Format(wxT("%i"), _fadeInMS));
     node->AddAttribute("FadeOutMS", wxString::Format(wxT("%i"), _fadeOutMS));
+    node->AddAttribute("Channels", wxString::Format(wxT("%ld"), _channels));
+    node->AddAttribute("StartChannel", _startChannel);
 
     if (!_topMost)
     {
@@ -296,9 +306,19 @@ std::string PlayListItemFSEQVideo::GetTitle() const
     return "FSEQ & Video";
 }
 
+size_t PlayListItemFSEQVideo::GetStartChannelAsNumber()
+{
+    if (_sc == 0)
+    {
+        _sc = _outputManager->DecodeStartChannel(_startChannel);
+    }
+
+    return _sc;
+}
+
 void PlayListItemFSEQVideo::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemFSEQVideoPanel(notebook, this), GetTitle(), true);
+    notebook->AddPage(new PlayListItemFSEQVideoPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
 std::string PlayListItemFSEQVideo::GetNameNoTime() const
@@ -466,8 +486,9 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
             {
                 if (_channels > 0)
                 {
-                    wxASSERT(_startChannel > 0);
-                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, _startChannel - 1, _channels);
+                    long sc = GetStartChannelAsNumber();
+                    wxASSERT(sc > 0);
+                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, sc - 1, _channels);
                 }
                 else
                 {

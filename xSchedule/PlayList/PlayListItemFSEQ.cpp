@@ -5,14 +5,17 @@
 #include "../../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
 #include "../../xLights/UtilFunctions.h"
+#include "../../xLights/outputs/OutputManager.h"
 
-PlayListItemFSEQ::PlayListItemFSEQ(wxXmlNode* node) : PlayListItem(node)
+PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {
+    _outputManager = outputManager;
     _fastStartAudio = false;
     _cachedAudioFilename = "";
     _currentFrame = 0;
     _channels = 0;
-    _startChannel = 1;
+    _sc = 0;
+    _startChannel = "1";
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -30,9 +33,11 @@ void PlayListItemFSEQ::Load(wxXmlNode* node)
     _fseqFileName = node->GetAttribute("FSEQFile", "");
     _fseqFileName = FixFile("", _fseqFileName);
     _audioFile = node->GetAttribute("AudioFile", "");
+    _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
     _audioFile = FixFile("", _audioFile);
     _overrideAudio = (_audioFile != "");
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
+    _channels = wxAtol(node->GetAttribute("Channels", "0"));
     _fastStartAudio = (node->GetAttribute("FastStartAudio", "FALSE") == "TRUE");
     _currentFrame = 0;
 
@@ -161,12 +166,14 @@ long PlayListItemFSEQ::GetFSEQChannels() const
     }
 }
 
-PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
+PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem()
 {
+    _outputManager = outputManager;
     _cachedAudioFilename = "";
     _fastStartAudio = false;
     _channels = 0;
-    _startChannel = 1;
+    _sc = 0;
+    _startChannel = "1";
     _controlsTimingCache = false;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     _fseqFileName = "";
@@ -180,7 +187,8 @@ PlayListItemFSEQ::PlayListItemFSEQ() : PlayListItem()
 
 PlayListItem* PlayListItemFSEQ::Copy() const
 {
-    PlayListItemFSEQ* res = new PlayListItemFSEQ();
+    PlayListItemFSEQ* res = new PlayListItemFSEQ(_outputManager);
+    res->_outputManager = _outputManager;
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_fseqFileName = _fseqFileName;
     res->_applyMethod = _applyMethod;
@@ -207,6 +215,8 @@ wxXmlNode* PlayListItemFSEQ::Save()
 
     node->AddAttribute("FSEQFile", _fseqFileName);
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
+    node->AddAttribute("StartChannel", _startChannel);
+    node->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
     if (_fastStartAudio)
     {
         node->AddAttribute("FastStartAudio", "TRUE");
@@ -227,9 +237,19 @@ std::string PlayListItemFSEQ::GetTitle() const
     return "FSEQ";
 }
 
+size_t PlayListItemFSEQ::GetStartChannelAsNumber()
+{
+    if (_sc == 0)
+    {
+        _sc = _outputManager->DecodeStartChannel(_startChannel);
+    }
+
+    return _sc;
+}
+
 void PlayListItemFSEQ::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemFSEQPanel(notebook, this), GetTitle(), true);
+    notebook->AddPage(new PlayListItemFSEQPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
 std::string PlayListItemFSEQ::GetNameNoTime() const
@@ -385,8 +405,9 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
                 ms -= _delay;
                 if (_channels > 0)
                 {
-                    wxASSERT(_startChannel > 0);
-                    _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, _startChannel - 1, _channels);
+                    long sc = GetStartChannelAsNumber();
+                    wxASSERT(sc > 0);
+                    _fseqFile->ReadData(buffer, size, ms / framems, _applyMethod, sc - 1, _channels);
                 }
                 else
                 {

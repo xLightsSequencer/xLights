@@ -2041,7 +2041,7 @@ void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 void xScheduleFrame::AddPlayList(bool forceadvanced)
 {
     PlayList* playlist = new PlayList();
-    if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
+    if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) == nullptr)
     {
         delete playlist;
     }
@@ -2081,7 +2081,7 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
     if (IsPlayList(treeitem))
     {
         PlayList* playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-        if (playlist->Configure(this, forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
+        if (playlist->Configure(this, __schedule->GetOutputManager(), forceadvanced || __schedule->GetOptions()->IsAdvancedMode()) != nullptr)
         {
             TreeCtrl_PlayListsSchedules->SetItemText(treeitem, playlist->GetName());
         }

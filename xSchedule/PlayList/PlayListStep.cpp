@@ -24,7 +24,7 @@
 
 int __playliststepid = 0;
 
-PlayListStep::PlayListStep(wxXmlNode* node)
+PlayListStep::PlayListStep(OutputManager* outputManager, wxXmlNode* node)
 {
     _loops = -1;
     _pause = 0;
@@ -35,7 +35,7 @@ PlayListStep::PlayListStep(wxXmlNode* node)
     _excludeFromRandom = false;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
-    Load(node);
+    Load(outputManager, node);
 }
 
 bool compare_priority(const PlayListItem* first, const PlayListItem* second)
@@ -114,7 +114,7 @@ wxXmlNode* PlayListStep::Save()
     return res;
 }
 
-void PlayListStep::Load(wxXmlNode* node)
+void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
 {
     _name = node->GetAttribute("Name", "");
     _excludeFromRandom = node->GetAttribute("ExcludeRandom", "FALSE") == "TRUE";
@@ -127,7 +127,7 @@ void PlayListStep::Load(wxXmlNode* node)
         }
         else if (n->GetName() == "PLIFSEQ")
         {
-            _items.push_back(new PlayListItemFSEQ(n));
+            _items.push_back(new PlayListItemFSEQ(outputManager, n));
         }
         else if (n->GetName() == "PLIFile")
         {
@@ -143,11 +143,11 @@ void PlayListStep::Load(wxXmlNode* node)
         }
         else if (n->GetName() == "PLIFSEQVideo")
         {
-            _items.push_back(new PlayListItemFSEQVideo(n));
+            _items.push_back(new PlayListItemFSEQVideo(outputManager, n));
         }
         else if (n->GetName() == "PLITest")
         {
-            _items.push_back(new PlayListItemTest(n));
+            _items.push_back(new PlayListItemTest(outputManager, n));
         }
         else if (n->GetName() == "PLIRDS")
         {
@@ -167,7 +167,7 @@ void PlayListStep::Load(wxXmlNode* node)
         }
         else if (n->GetName() == "PLIAllSet")
         {
-            _items.push_back(new PlayListItemAllOff(n));
+            _items.push_back(new PlayListItemAllOff(outputManager, n));
         }
         else if (n->GetName() == "PLIDelay")
         {

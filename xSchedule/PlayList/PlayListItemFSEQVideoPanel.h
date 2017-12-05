@@ -14,6 +14,7 @@
 #include <wx/button.h>
 //*)
 
+class OutputManager;
 class PlayListItemFSEQVideo;
 class FSEQFilePickerCtrl;
 class AudioFilePickerCtrl;
@@ -21,13 +22,14 @@ class VideoFilePickerCtrl;
 
 class PlayListItemFSEQVideoPanel: public wxPanel
 {
+    OutputManager* _outputManager;
     PlayListItemFSEQVideo* _fseq;
     void ValidateWindow();
     void SetWindowPositionText();
 
 	public:
 
-		PlayListItemFSEQVideoPanel(wxWindow* parent, PlayListItemFSEQVideo* fseq, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListItemFSEQVideoPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemFSEQVideo* fseq, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemFSEQVideoPanel();
 
 		//(*Declarations(PlayListItemFSEQVideoPanel)
@@ -35,6 +37,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxSlider* Slider1;
 		wxStaticText* StaticText9;
 		wxCheckBox* CheckBox_LoopVideo;
+		wxStaticText* StaticText_StartChannel;
 		wxSpinCtrl* SpinCtrl_FadeOut;
 		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_Channels;
@@ -56,10 +59,10 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
+		wxTextCtrl* TextCtrl_StartChannel;
 		wxCheckBox* CheckBox_SuppressVirtualMatrix;
 		wxButton* Button_PositionWindow;
 		wxStaticText* StaticText4;
-		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxSpinCtrl* SpinCtrl_FadeIn;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
@@ -79,7 +82,8 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX3;
 		static const long ID_STATICTEXT6;
-		static const long ID_SPINCTRL2;
+		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT12;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
@@ -111,6 +115,7 @@ class PlayListItemFSEQVideoPanel: public wxPanel
 		void OnCheckBox_LimitChannelsClick(wxCommandEvent& event);
 		void OnFilePickerCtrl_VideoFileFileChanged(wxFileDirPickerEvent& event);
 		void OnButton_PositionWindowClick(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

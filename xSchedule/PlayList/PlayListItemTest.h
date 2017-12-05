@@ -5,6 +5,7 @@
 #include <string>
 
 class wxXmlNode;
+class OutputManager;
 
 class PlayListItemTest : public PlayListItem
 {
@@ -15,7 +16,9 @@ protected:
     std::string _mode;
     wxByte _value1;
     wxByte _value2;
-    size_t _startChannel;
+    size_t _sc;
+    std::string _startChannel;
+    OutputManager* _outputManager;
     size_t _channels;
     size_t _duration;
     int _state;
@@ -25,8 +28,8 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    PlayListItemTest(wxXmlNode* node);
-    PlayListItemTest();
+    PlayListItemTest(OutputManager* outputManager, wxXmlNode* node);
+    PlayListItemTest(OutputManager* outputManager);
     virtual ~PlayListItemTest();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
@@ -39,13 +42,14 @@ public:
     void SetMode(const std::string& mode) { if (_mode != mode) { _mode = mode; _changeCount++; } };
     void SetValue1(const size_t value1) { if (_value1 != value1) { _value1 = value1; _changeCount++; } };
     void SetValue2(const size_t value2) { if (_value2 != value2) { _value2 = value2; _changeCount++; } };
-    void SetStartChannel(const size_t startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } };
+    void SetStartChannel(const std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } };
     void SetChannels(const size_t channels) { if (_channels != channels) { _channels = channels; _changeCount++; } };
     std::string GetRawName() const { return _name; }
     size_t GetFrameDuration() const { return _frameDuration; }
     size_t GetValue1() const { return _value1; }
     size_t GetValue2() const { return _value2; }
-    size_t GetStartChannel() const { return _startChannel; }
+    std::string GetStartChannel() const { return _startChannel; }
+    size_t GetStartChannelAsNumber();
     size_t GetChannels() const { return _channels; }
     std::string GetMode() const { return _mode; }
     virtual std::string GetTitle() const override;

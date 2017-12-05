@@ -12,6 +12,7 @@
 #include <wx/dialog.h>
 //*)
 
+class OutputManager;
 class PlayList;
 class wxXmlNode;
 class PlayListStep;
@@ -19,6 +20,7 @@ class PlayListItem;
 
 class PlayListSimpleDialog: public wxDialog
 {
+    OutputManager* _outputManager;
     PlayList* _playlist;
     PlayList* _savedState;
     bool _dragging;
@@ -33,7 +35,7 @@ class PlayListSimpleDialog: public wxDialog
 
     public:
 
-		PlayListSimpleDialog(wxWindow* parent, PlayList* playlist, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListSimpleDialog();
         void UpdateTree();
         void OnTreeDragEnd(wxMouseEvent& event);

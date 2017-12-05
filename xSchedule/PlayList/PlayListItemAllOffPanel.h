@@ -11,19 +11,22 @@
 #include <wx/choice.h>
 //*)
 
+class OutputManager;
 class PlayListItemAllOff;
 
 class PlayListItemAllOffPanel: public wxPanel
 {
+    OutputManager* _outputManager;
     PlayListItemAllOff* _alloff;
 
 	public:
 
-		PlayListItemAllOffPanel(wxWindow* parent, PlayListItemAllOff* alloff, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListItemAllOffPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemAllOff* alloff, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemAllOffPanel();
         void ValidateWindow();
 
 		//(*Declarations(PlayListItemAllOffPanel)
+		wxStaticText* StaticText_StartChannel;
 		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
@@ -36,9 +39,9 @@ class PlayListItemAllOffPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_Priority;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
+		wxTextCtrl* TextCtrl_StartChannel;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_AllSet;
-		wxSpinCtrl* SpinCtrl_StartChannel;
 		//*)
 
 	protected:
@@ -50,7 +53,8 @@ class PlayListItemAllOffPanel: public wxPanel
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT6;
-		static const long ID_SPINCTRL3;
+		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT8;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT4;
@@ -66,6 +70,7 @@ class PlayListItemAllOffPanel: public wxPanel
 		//(*Handlers(PlayListItemAllOffPanel)
 		void OnTextCtrl_AllOffDurationText(wxCommandEvent& event);
 		void OnCheckBox_LimitChannelsClick(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

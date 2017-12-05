@@ -4,6 +4,7 @@
 #include <string>
 #include <wx/wx.h>
 
+class OutputManager;
 class PlayListItemText;
 class wxXmlNode;
 class PlayListItem;
@@ -34,7 +35,7 @@ protected:
 public:
 
 #pragma region Constructors and Destructors
-    PlayListStep(wxXmlNode* node);
+    PlayListStep(OutputManager* outputManager, wxXmlNode* node);
     PlayListStep();
     virtual ~PlayListStep();
     PlayListStep(const PlayListStep& step);
@@ -86,6 +87,6 @@ public:
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();
-    void Load(wxXmlNode * node);
+    void Load(OutputManager* outputManager, wxXmlNode * node);
 };
 #endif

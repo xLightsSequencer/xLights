@@ -2,10 +2,13 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include "PlayListItemTestPanel.h"
+#include "../../xLights/outputs/OutputManager.h"
 
-PlayListItemTest::PlayListItemTest(wxXmlNode* node) : PlayListItem(node)
+PlayListItemTest::PlayListItemTest(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {
-    _startChannel = 1;
+    _outputManager = outputManager;
+    _sc = 0;
+    _startChannel = "1";
     _channels = 100;
     _duration = 60000;
     _frameDuration = 500;
@@ -20,12 +23,11 @@ PlayListItemTest::~PlayListItemTest()
 {
 }
 
-
 void PlayListItemTest::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _mode = node->GetAttribute("Mode", "");
-    _startChannel = wxAtoi(node->GetAttribute("StartChannel", "1"));
+    _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
     _channels = wxAtoi(node->GetAttribute("Channels", "1000"));
     _value1 = wxAtoi(node->GetAttribute("Value1", "0"));
     _value2 = wxAtoi(node->GetAttribute("Value2", "255"));
@@ -33,9 +35,11 @@ void PlayListItemTest::Load(wxXmlNode* node)
     _frameDuration = wxAtol(node->GetAttribute("FrameDuration", "500"));
 }
 
-PlayListItemTest::PlayListItemTest() : PlayListItem()
+PlayListItemTest::PlayListItemTest(OutputManager* outputManager) : PlayListItem()
 {
-    _startChannel = 1;
+    _outputManager = outputManager;
+    _sc = 0;
+    _startChannel = "1";
     _channels = 100;
     _duration = 60000;
     _frameDuration = 500;
@@ -47,7 +51,8 @@ PlayListItemTest::PlayListItemTest() : PlayListItem()
 
 PlayListItem* PlayListItemTest::Copy() const
 {
-    PlayListItemTest* res = new PlayListItemTest();
+    PlayListItemTest* res = new PlayListItemTest(_outputManager);
+    res->_outputManager = _outputManager;
     res->_startChannel = _startChannel;
     res->_channels = _channels;
     res->_duration = _duration;
@@ -65,7 +70,7 @@ wxXmlNode* PlayListItemTest::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLITest");
 
     node->AddAttribute("Mode", _mode);
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
+    node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
     node->AddAttribute("Value1", wxString::Format(wxT("%i"), _value1));
     node->AddAttribute("Value2", wxString::Format(wxT("%i"), _value2));
@@ -79,7 +84,17 @@ wxXmlNode* PlayListItemTest::Save()
 
 void PlayListItemTest::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemTestPanel(notebook, this), GetTitle(), true);
+    notebook->AddPage(new PlayListItemTestPanel(notebook, _outputManager, this), GetTitle(), true);
+}
+
+size_t PlayListItemTest::GetStartChannelAsNumber()
+{
+    if (_sc == 0)
+    {
+        _sc = _outputManager->DecodeStartChannel(_startChannel);
+    }
+
+    return _sc;
 }
 
 std::string PlayListItemTest::GetTitle() const
@@ -98,15 +113,17 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 {
     if (outputframe)
     {
-        int toset = std::min(_channels, size - (_startChannel - 1));
+        long sc = GetStartChannelAsNumber();
+
+        int toset = std::min(_channels, size - ((size_t)sc - 1));
 
         if (_mode == "Value1")
         {
-            memset(buffer + _startChannel - 1, _value1, toset);
+            memset(buffer + sc - 1, _value1, toset);
         }
         else if (_mode == "Value2")
         {
-            memset(buffer + _startChannel - 1, _value2, toset);
+            memset(buffer + sc - 1, _value2, toset);
         }
         else if (_mode == "Alternate")
         {
@@ -114,11 +131,11 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             {
                 if ((_state + i) % 2 == 0)
                 {
-                    *(buffer + _startChannel - 1 + i) = _value1;
+                    *(buffer + sc - 1 + i) = _value1;
                 }
                 else
                 {
-                    *(buffer + _startChannel - 1 + i) = _value2;
+                    *(buffer + sc - 1 + i) = _value2;
                 }
             }
         }
@@ -129,11 +146,11 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             {
                 if (i % 3 == state)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 else
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
             }
         }
@@ -145,15 +162,15 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             {
                 if (state == 3)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 else if (i % 3 == state)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 else
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
             }
         }
@@ -165,15 +182,15 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             {
                 if (state == 0)
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
                 else if(i%3 == state - 1)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 else
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
             }
         }
@@ -185,19 +202,19 @@ void PlayListItemTest::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             {
                 if (state == 0)
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
                 else if (state == 4)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 if (i % 3 == state - 1)
                 {
-                    *(buffer + _startChannel - 1 + i) = 255;
+                    *(buffer + sc - 1 + i) = 255;
                 }
                 else
                 {
-                    *(buffer + _startChannel - 1 + i) = 0;
+                    *(buffer + sc - 1 + i) = 0;
                 }
             }
         }

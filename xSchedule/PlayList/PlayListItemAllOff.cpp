@@ -2,11 +2,14 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include "PlayListItemAllOffPanel.h"
+#include "../../xLights/outputs/OutputManager.h"
 
-PlayListItemAllOff::PlayListItemAllOff(wxXmlNode* node) : PlayListItem(node)
+PlayListItemAllOff::PlayListItemAllOff(OutputManager* outputManager, wxXmlNode* node) : PlayListItem(node)
 {
+    _outputManager = outputManager;
+    _sc = 0;
     _channels = 0;
-    _startChannel = 1;
+    _startChannel = "1";
     _duration = 50;
     _value = 0;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -19,14 +22,16 @@ void PlayListItemAllOff::Load(wxXmlNode* node)
     _duration = wxAtoi(node->GetAttribute("Duration", "50"));
     _value = wxAtoi(node->GetAttribute("Value", "0"));
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
-    _startChannel = wxAtoi(node->GetAttribute("StartChannel", "1"));
-    _channels = wxAtoi(node->GetAttribute("Channels", "0"));
+    _startChannel = node->GetAttribute("StartChannel", "1").ToStdString();
+    _channels = wxAtol(node->GetAttribute("Channels", "0"));
 }
 
-PlayListItemAllOff::PlayListItemAllOff() : PlayListItem()
+PlayListItemAllOff::PlayListItemAllOff(OutputManager* outputManager) : PlayListItem()
 {
+    _outputManager = outputManager;
+    _sc = 0;
     _channels = 0;
-    _startChannel = 1;
+    _startChannel = "1";
     _duration = 50;
     _value = 0;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -35,8 +40,9 @@ PlayListItemAllOff::PlayListItemAllOff() : PlayListItem()
 
 PlayListItem* PlayListItemAllOff::Copy() const
 {
-    PlayListItemAllOff* res = new PlayListItemAllOff();
+    PlayListItemAllOff* res = new PlayListItemAllOff(_outputManager);
     res->_duration = _duration;
+    res->_outputManager = _outputManager;
     res->_applyMethod = _applyMethod;
     res->_value = _value;
     res->_channels = _channels;
@@ -46,6 +52,16 @@ PlayListItem* PlayListItemAllOff::Copy() const
     return res;
 }
 
+size_t PlayListItemAllOff::GetStartChannelAsNumber()
+{
+    if (_sc == 0)
+    {
+        _sc = _outputManager->DecodeStartChannel(_startChannel);
+    }
+
+    return _sc;
+}
+
 wxXmlNode* PlayListItemAllOff::Save()
 {
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAllSet");
@@ -53,8 +69,8 @@ wxXmlNode* PlayListItemAllOff::Save()
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", wxString::Format(wxT("%i"), _value));
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
-    node->AddAttribute("StartChannel", wxString::Format(wxT("%i"), (long)_startChannel));
-    node->AddAttribute("Channels", wxString::Format(wxT("%i"), (long)_channels));
+    node->AddAttribute("StartChannel", _startChannel);
+    node->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
 
     PlayListItem::Save(node);
 
@@ -68,7 +84,7 @@ std::string PlayListItemAllOff::GetTitle() const
 
 void PlayListItemAllOff::Configure(wxNotebook* notebook)
 {
-    notebook->AddPage(new PlayListItemAllOffPanel(notebook, this), GetTitle(), true);
+    notebook->AddPage(new PlayListItemAllOffPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
 void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -77,9 +93,11 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
     {
         if (ms >= _delay && ms <= _delay + _duration)
         {
-            if (_startChannel > size) return;
+            long sc = GetStartChannelAsNumber();
 
-            size_t toset = _channels + _startChannel - 1 < size ? _channels : size - _startChannel + 1;
+            if (sc > size) return;
+
+            size_t toset = _channels + sc - 1 < size ? _channels : size - sc + 1;
             if (_channels == 0)
             {
                 toset = size;
@@ -91,7 +109,7 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
                 if (values != nullptr)
                 {
                     memset(values, _value, toset);
-                    Blend(buffer, size, values, toset, _applyMethod, _startChannel - 1);
+                    Blend(buffer, size, values, toset, _applyMethod, sc - 1);
                     free(values);
                 }
             }

@@ -3,6 +3,7 @@
 #include "PlayListDialog.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/outputs/OutputManager.h"
 
 //(*InternalHeaders(PlayListItemTestPanel)
 #include <wx/intl.h>
@@ -19,7 +20,8 @@ const long PlayListItemTestPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemTestPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemTestPanel::ID_SPINCTRL2 = wxNewId();
 const long PlayListItemTestPanel::ID_STATICTEXT5 = wxNewId();
-const long PlayListItemTestPanel::ID_SPINCTRL3 = wxNewId();
+const long PlayListItemTestPanel::ID_TEXTCTRL4 = wxNewId();
+const long PlayListItemTestPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemTestPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemTestPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemTestPanel::ID_STATICTEXT7 = wxNewId();
@@ -50,11 +52,13 @@ void PlayListItemTestPanel::SetChoiceFromString(wxChoice* choice, std::string va
     choice->SetSelection(sel);
 }
 
-PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, PlayListItemTest* test, wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemTest* test, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _outputManager = outputManager;
     _test = test;
 
 	//(*Initialize(PlayListItemTestPanel)
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
@@ -87,9 +91,13 @@ PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, PlayListItemTest*
 	FlexGridSizer1->Add(SpinCtrl_Value2, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Start Channel:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 1, _T("ID_SPINCTRL3"));
-	SpinCtrl_StartChannel->SetValue(_T("1"));
-	FlexGridSizer1->Add(SpinCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
+	TextCtrl_StartChannel = new wxTextCtrl(this, ID_TEXTCTRL4, _("1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+	FlexGridSizer2->Add(TextCtrl_StartChannel, 1, wxALL|wxEXPAND, 5);
+	StaticText_StartChannel = new wxStaticText(this, ID_STATICTEXT9, _("1"), wxDefaultPosition, wxSize(60,-1), 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer2->Add(StaticText_StartChannel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Channels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Channels = new wxSpinCtrl(this, ID_SPINCTRL4, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 100, 100, _T("ID_SPINCTRL4"));
@@ -109,17 +117,17 @@ PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, PlayListItemTest*
 
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemTestPanel::OnTextCtrl_NameText);
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemTestPanel::OnChoice_ModeSelect);
+	Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemTestPanel::OnTextCtrl_StartChannelText);
 	//*)
 
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
-    SpinCtrl_StartChannel->SetRange(1, channels);
     SpinCtrl_Channels->SetRange(1, channels);
 
     TextCtrl_Name->SetValue(test->GetRawName());
     SetChoiceFromString(Choice_Mode, test->GetMode());
     SpinCtrl_Value1->SetValue(test->GetValue1());
     SpinCtrl_Value2->SetValue(test->GetValue2());
-    SpinCtrl_StartChannel->SetValue(test->GetStartChannel());
+    TextCtrl_StartChannel->SetValue(test->GetStartChannel());
     SpinCtrl_Channels->SetValue(test->GetChannels());
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)test->GetDurationMS() / 1000));
     TextCtrl_FrameDuration->SetValue(wxString::Format(wxT("%.3f"), (float)test->GetFrameDuration() / 1000));
@@ -135,7 +143,7 @@ PlayListItemTestPanel::~PlayListItemTestPanel()
     _test->SetMode(Choice_Mode->GetStringSelection().ToStdString());
     _test->SetValue1(SpinCtrl_Value1->GetValue());
     _test->SetValue2(SpinCtrl_Value2->GetValue());
-    _test->SetStartChannel(SpinCtrl_StartChannel->GetValue());
+    _test->SetStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
     _test->SetChannels(SpinCtrl_Channels->GetValue());
     _test->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _test->SetFrameDuration(wxAtof(TextCtrl_FrameDuration->GetValue()) * 1000);
@@ -176,4 +184,10 @@ void PlayListItemTestPanel::ValidateWindow()
         SpinCtrl_Value1->Enable(false);
         SpinCtrl_Value2->Enable(false);
     }
+    StaticText_StartChannel->SetLabel(wxString::Format("%ld", _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString())));
+}
+
+void PlayListItemTestPanel::OnTextCtrl_StartChannelText(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

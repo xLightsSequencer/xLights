@@ -5,7 +5,6 @@
 #include "PlayListItem.h"
 #include "../MyTreeItemData.h"
 #include "PlayListPanel.h"
-#include "PlayListStepPanel.h"
 #include "PlayListItemVideo.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemFSEQVideo.h"
@@ -45,8 +44,9 @@ BEGIN_EVENT_TABLE(PlayListSimpleDialog,wxDialog)
 END_EVENT_TABLE()
 
 
-PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayListSimpleDialog::PlayListSimpleDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _outputManager = outputManager;
     _playlist = playlist;
 
 	//(*Initialize(PlayListSimpleDialog)
@@ -576,7 +576,7 @@ void PlayListSimpleDialog::OnDropFiles(wxDropFilesEvent& event)
             wxFileName fn(*it);
             if (fn.GetExt().Lower() == "fseq")
             {
-                PlayListItemFSEQ* fseq = new PlayListItemFSEQ();
+                PlayListItemFSEQ* fseq = new PlayListItemFSEQ(_outputManager);
                 fseq->SetFSEQFileName(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(fseq);
@@ -584,7 +584,7 @@ void PlayListSimpleDialog::OnDropFiles(wxDropFilesEvent& event)
             }
             else if (PlayListItemVideo::IsVideo(fn.GetExt().Lower().ToStdString()))
             {
-                PlayListItemFSEQVideo* video = new PlayListItemFSEQVideo();
+                PlayListItemFSEQVideo* video = new PlayListItemFSEQVideo(_outputManager);
                 video->SetVideoFile(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(video);
@@ -633,7 +633,7 @@ void PlayListSimpleDialog::OnButton_AddFSEQClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+            PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);
@@ -669,7 +669,7 @@ void PlayListSimpleDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo();
+            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);

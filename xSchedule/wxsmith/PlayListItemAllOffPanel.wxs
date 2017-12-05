@@ -64,9 +64,27 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_StartChannel" member="yes">
-					<value>1</value>
-					<min>1</min>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_StartChannel" member="yes">
+							<value>1</value>
+							<handler function="OnTextCtrl_StartChannelText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText_StartChannel" member="yes">
+							<label>1</label>
+							<size>60,-1</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

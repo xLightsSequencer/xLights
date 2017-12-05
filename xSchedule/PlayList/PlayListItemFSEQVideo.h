@@ -11,6 +11,7 @@ class AudioManager;
 class PlayerWindow;
 class VideoReader;
 class CachedVideoReader;
+class OutputManager;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -27,7 +28,9 @@ protected:
     AudioManager* _audioManager;
     size_t _durationMS;
     bool _controlsTimingCache;
-    size_t _startChannel;
+    size_t _sc;
+    std::string _startChannel;
+    OutputManager* _outputManager;
     size_t _channels;
     bool _fastStartAudio;
     bool _cacheVideo;
@@ -52,8 +55,8 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    PlayListItemFSEQVideo(wxXmlNode* node);
-    PlayListItemFSEQVideo();
+    PlayListItemFSEQVideo(OutputManager* outputManager, wxXmlNode* node);
+    PlayListItemFSEQVideo(OutputManager* outputManager);
     virtual ~PlayListItemFSEQVideo();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
@@ -90,8 +93,9 @@ public:
     virtual std::string GetSyncItemFSEQ() const override { return GetFSEQFileName(); }
     virtual std::string GetSyncItemMedia() override { return GetAudioFilename(); }
     virtual std::string GetTitle() const override;
-    long GetStartChannel() const { return _startChannel; }
-    void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
+    std::string GetStartChannel() const { return _startChannel; }
+    size_t GetStartChannelAsNumber();
+    void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } }
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
     void SetCacheVideo(bool cacheVideo) { if (_cacheVideo != cacheVideo) { _cacheVideo = cacheVideo; _changeCount++; } }

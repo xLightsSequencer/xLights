@@ -9,6 +9,7 @@
 class wxXmlNode;
 class wxWindow;
 class AudioManager;
+class OutputManager;
 
 #define FSEQFILES "FSEQ files|*.fseq|All files (*.*)|*.*"
 
@@ -25,7 +26,9 @@ protected:
     AudioManager* _audioManager;
     size_t _durationMS;
     bool _controlsTimingCache;
-    size_t _startChannel;
+    size_t _sc;
+    std::string _startChannel;
+    OutputManager* _outputManager;
     size_t _channels;
     bool _fastStartAudio;
     std::string _cachedAudioFilename;
@@ -39,8 +42,8 @@ protected:
 public:
 
     #pragma region Constructors and Destructors
-    PlayListItemFSEQ(wxXmlNode* node);
-    PlayListItemFSEQ();
+    PlayListItemFSEQ(OutputManager* outputManager, wxXmlNode* node);
+    PlayListItemFSEQ(OutputManager* outputManager);
     virtual ~PlayListItemFSEQ();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
@@ -67,8 +70,9 @@ public:
     virtual std::string GetSyncItemFSEQ() const override { return GetFSEQFileName(); }
     virtual std::string GetSyncItemMedia() override { return GetAudioFilename(); }
     virtual std::string GetTitle() const override;
-    long GetStartChannel() const { return _startChannel; }
-    void SetStartChannel(long startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _changeCount++; } }
+    std::string GetStartChannel() const { return _startChannel; }
+    size_t GetStartChannelAsNumber();
+    void SetStartChannel(std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } }
     long GetChannels() const { return _channels; }
     void SetChannels(long channels) { if (_channels != channels) { _channels = channels; _changeCount++; } }
     virtual std::list<std::string> GetMissingFiles() override;

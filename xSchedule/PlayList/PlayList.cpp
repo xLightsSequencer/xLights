@@ -16,7 +16,7 @@ bool compare_sched(const Schedule* first, const Schedule* second)
     return first->GetPriority() > second->GetPriority();
 }
 
-PlayList::PlayList(wxXmlNode* node)
+PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
 {
     _commandAtEndOfCurrentStep = "";
     _commandParametersAtEndOfCurrentStep = "";
@@ -34,7 +34,7 @@ PlayList::PlayList(wxXmlNode* node)
     _lastSavedChangeCount = 0;
     _changeCount = 0;
     _currentStep = nullptr;
-    Load(node);
+    Load(outputManager, node);
 
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.info("Playlist created from XML %s 0x%lx.", (const char*)GetName().c_str(), this);
@@ -200,7 +200,7 @@ wxXmlNode* PlayList::Save()
     return res;
 }
 
-void PlayList::Load(wxXmlNode* node)
+void PlayList::Load(OutputManager* outputManager, wxXmlNode* node)
 {
     _steps.clear();
     _schedules.clear();
@@ -212,7 +212,7 @@ void PlayList::Load(wxXmlNode* node)
     {
         if (n->GetName() == "PlayListStep")
         {
-            _steps.push_back(new PlayListStep(n));
+            _steps.push_back(new PlayListStep(outputManager, n));
         }
         else if (n->GetName() == "Schedule")
         {
@@ -223,11 +223,11 @@ void PlayList::Load(wxXmlNode* node)
     _schedules.sort(compare_sched);
 }
 
-PlayList* PlayList::Configure(wxWindow* parent, bool advanced)
+PlayList* PlayList::Configure(wxWindow* parent, OutputManager* outputManager, bool advanced)
 {
     if (advanced || !IsSimple())
     {
-        PlayListDialog dlg(parent, this);
+        PlayListDialog dlg(parent, outputManager, this);
 
         if (dlg.ShowModal() == wxID_CANCEL)
         {
@@ -236,7 +236,7 @@ PlayList* PlayList::Configure(wxWindow* parent, bool advanced)
     }
     else
     {
-        PlayListSimpleDialog dlg(parent, this);
+        PlayListSimpleDialog dlg(parent, outputManager, this);
 
         if (dlg.ShowModal() == wxID_CANCEL)
         {

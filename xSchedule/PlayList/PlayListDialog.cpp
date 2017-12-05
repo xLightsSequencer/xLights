@@ -78,8 +78,9 @@ BEGIN_EVENT_TABLE(PlayListDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-PlayListDialog::PlayListDialog(wxWindow* parent, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
+PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, PlayList* playlist, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _outputManager = outputManager;
     _playlist = playlist;
 
 	//(*Initialize(PlayListDialog)
@@ -537,7 +538,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     wxMenu mnu;
     wxMenuItem* mi = mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
     mi = mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
-    mi = mnu.Append(ID_MNU_ADDVIDEO, "Add FSEQ & Video");
+    mi = mnu.Append(ID_MNU_ADDFSEQVIDEO, "Add FSEQ & Video");
     mi = mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
     mi = mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
     mi = mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
@@ -606,7 +607,7 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_ADDALLOFF)
     {
-        PlayListItemAllOff* pli = new PlayListItemAllOff();
+        PlayListItemAllOff* pli = new PlayListItemAllOff(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDDELAY)
@@ -641,17 +642,17 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_ADDFSEQ)
     {
-        PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+        PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDFSEQVIDEO)
     {
-        PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo();
+        PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDTEST)
     {
-        PlayListItemTest* pli = new PlayListItemTest();
+        PlayListItemTest* pli = new PlayListItemTest(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDRDS)
@@ -853,7 +854,7 @@ void PlayListDialog::OnDropFiles(wxDropFilesEvent& event)
             wxFileName fn(*it);
             if (fn.GetExt().Lower() == "fseq")
             {
-                PlayListItemFSEQ* fseq = new PlayListItemFSEQ();
+                PlayListItemFSEQ* fseq = new PlayListItemFSEQ(_outputManager);
                 fseq->SetFSEQFileName(fn.GetFullPath().ToStdString());
                 PlayListStep* step = new PlayListStep();
                 step->AddItem(fseq);
@@ -911,7 +912,7 @@ void PlayListDialog::OnButton_AddFSEQClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+            PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);
@@ -947,7 +948,7 @@ void PlayListDialog::OnButton_FSEQVideoClick(wxCommandEvent& event)
 
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo();
+            PlayListItemFSEQVideo* pli = new PlayListItemFSEQVideo(_outputManager);
             pli->SetFSEQFileName(it->ToStdString());
             PlayListStep* pls = new PlayListStep();
             pls->AddItem(pli);

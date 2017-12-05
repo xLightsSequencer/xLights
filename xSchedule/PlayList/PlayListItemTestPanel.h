@@ -10,20 +10,23 @@
 #include <wx/choice.h>
 //*)
 
+class OutputManager;
 class PlayListItemTest;
 
 class PlayListItemTestPanel: public wxPanel
 {
+    OutputManager* _outputManager;
     PlayListItemTest* _test;
     void ValidateWindow();
     void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 
-		PlayListItemTestPanel(wxWindow* parent, PlayListItemTest* test, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListItemTestPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemTest* test, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemTestPanel();
 
 		//(*Declarations(PlayListItemTestPanel)
+		wxStaticText* StaticText_StartChannel;
 		wxTextCtrl* TextCtrl_Name;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
@@ -37,9 +40,9 @@ class PlayListItemTestPanel: public wxPanel
 		wxSpinCtrl* SpinCtrl_Value2;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
+		wxTextCtrl* TextCtrl_StartChannel;
 		wxTextCtrl* TextCtrl_Duration;
 		wxStaticText* StaticText4;
-		wxSpinCtrl* SpinCtrl_StartChannel;
 		//*)
 
 	protected:
@@ -54,7 +57,8 @@ class PlayListItemTestPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT5;
-		static const long ID_SPINCTRL3;
+		static const long ID_TEXTCTRL4;
+		static const long ID_STATICTEXT9;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT7;
@@ -68,6 +72,7 @@ class PlayListItemTestPanel: public wxPanel
 		//(*Handlers(PlayListItemTestPanel)
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		void OnChoice_ModeSelect(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

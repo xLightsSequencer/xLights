@@ -13,22 +13,25 @@
 #include <wx/choice.h>
 //*)
 
+class OutputManager;
 class PlayListItemFSEQ;
 class FSEQFilePickerCtrl;
 class AudioFilePickerCtrl;
 
 class PlayListItemFSEQPanel: public wxPanel
 {
+    OutputManager* _outputManager;
     PlayListItemFSEQ* _fseq;
     void ValidateWindow();
 
 	public:
 
-		PlayListItemFSEQPanel(wxWindow* parent, PlayListItemFSEQ* fseq, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PlayListItemFSEQPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemFSEQ* fseq, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemFSEQPanel();
 
 		//(*Declarations(PlayListItemFSEQPanel)
 		wxSlider* Slider1;
+		wxStaticText* StaticText_StartChannel;
 		wxChoice* Choice_BlendMode;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
@@ -44,8 +47,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
+		wxTextCtrl* TextCtrl_StartChannel;
 		wxStaticText* StaticText4;
-		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxCheckBox* CheckBox_OverrideVolume;
 		//*)
 
@@ -58,7 +61,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX3;
 		static const long ID_STATICTEXT6;
-		static const long ID_SPINCTRL2;
+		static const long ID_TEXTCTRL2;
+		static const long ID_STATICTEXT8;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX1;
@@ -82,6 +86,8 @@ class PlayListItemFSEQPanel: public wxPanel
 		void OnCheckBox_OverrideAudioClick(wxCommandEvent& event);
 		void OnCheckBox_OverrideVolumeClick(wxCommandEvent& event);
 		void OnCheckBox_LimitChannelsClick(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
+		void OnTextCtrl_StartChannelText1(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

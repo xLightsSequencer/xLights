@@ -79,7 +79,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         {
             if (n->GetName() == "PlayList")
             {
-                _playLists.push_back(new PlayList(n));
+                _playLists.push_back(new PlayList(_outputManager, n));
             }
             else if (n->GetName() == "Options")
             {
@@ -3522,7 +3522,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
                                 }
                                 else if (ext == "fseq")
                                 {
-                                    PlayListItemFSEQ* pli = new PlayListItemFSEQ();
+                                    PlayListItemFSEQ* pli = new PlayListItemFSEQ(_outputManager);
                                     pli->SetFSEQFileName(base + "/" + itemname);
                                     pli->SetDelay(delay * 1000);
                                     step->AddItem(pli);

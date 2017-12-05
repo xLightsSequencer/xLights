@@ -115,7 +115,7 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 	CheckBox_HighSpeed = new wxCheckBox(this, ID_CHECKBOX1, _("High speed scrolling"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_HighSpeed->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_HighSpeed, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_MRDS = new wxCheckBox(this, ID_CHECKBOX2, _("MRDS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_MRDS->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_MRDS, 1, wxALL|wxEXPAND, 5);
