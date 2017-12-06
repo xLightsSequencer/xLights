@@ -873,6 +873,9 @@ void xLightsFrame::UpdateRenderStatus() {
 
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
+                if (i > rpi->endFrame) {
+                    i = END_OF_RENDER_FRAME;
+                }
                 if (i != END_OF_RENDER_FRAME) {
                     done = false;
                 }
