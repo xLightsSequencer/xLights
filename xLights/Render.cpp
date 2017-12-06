@@ -859,9 +859,9 @@ void xLightsFrame::UpdateRenderStatus() {
 
     RenderMainThreadEffects();
 
-    int countModels = 0;
-    int countFrames = 0;
     for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end();) {
+        int countModels = 0;
+        int countFrames = 0;
 
         bool done = true;
         RenderProgressInfo *rpi = *it;
