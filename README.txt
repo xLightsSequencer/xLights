@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.40  Dec 05, 2017
    -- enh (keith)  Add support for #universe:startchannel and output:startchannel to all xSchedule fields that define a start channel
    -- bug (keith)  Fix test dialog tooltips dont display correct models
    -- bug (keith)  Remove Master View from the new sequence default views
