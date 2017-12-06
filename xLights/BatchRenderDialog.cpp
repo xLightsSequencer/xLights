@@ -12,6 +12,7 @@
 
 #include <wx/dir.h>
 #include <wx/menu.h>
+#include <wx/config.h>
 
 #include "globals.h"
 
@@ -62,7 +63,6 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
 	//*)
 
-
     Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&BatchRenderDialog::OnPreviewRightDown, nullptr,this);
 }
 
@@ -81,14 +81,26 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event) {
     }
 }
 
-
 wxArrayString BatchRenderDialog::GetFileList() {
     wxArrayString lst;
+    wxString selected = "";
     for (int x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
             lst.push_back(SequenceList->GetString(x));
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += SequenceList->GetString(x);
         }
     }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Write("BatchRendererItemList", selected);
+    }
+
     return lst;
 }
 
@@ -109,6 +121,28 @@ bool BatchRenderDialog::Prepare(const wxString &showDir) {
     OnFilterChoiceSelect(evt);
     GetSizer()->Fit(this);
     GetSizer()->SetSizeHints(this);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        wxString itcsv = "";
+        config->Read("BatchRendererItemList", &itcsv);
+
+        if (itcsv != "")
+        {
+            wxArrayString items = wxSplit(itcsv, ',');
+
+            for (auto it = items.begin(); it != items.end(); ++it)
+            {
+                int index = SequenceList->FindString(*it);
+                if (index != wxNOT_FOUND)
+                {
+                    SequenceList->Check(index, true);
+                }
+            }
+        }
+    }
+
     return SequenceList->GetCount() > 0;
 }
 
@@ -118,11 +152,13 @@ BatchRenderDialog::~BatchRenderDialog()
 	//*)
 }
 
-
 void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
 {
+    wxArrayString filelist = GetFileList();
+
     SequenceList->Freeze();
     SequenceList->Clear();
+
     int type = FilterChoice->GetSelection();
     for (auto a = allFiles.begin(); a != allFiles.end(); ++a) {
         wxString name = *a;
@@ -142,6 +178,15 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
             break;
         }
     }
-    SequenceList->Thaw();
 
+    for (auto it = filelist.begin(); it != filelist.end(); ++it)
+    {
+        int index = SequenceList->FindString(*it);
+        if (index != wxNOT_FOUND)
+        {
+            SequenceList->Check(index, true);
+        }
+    }
+
+    SequenceList->Thaw();
 }

@@ -6912,7 +6912,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     BatchRenderDialog dlg(this);
-    if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() && CloseSequence()) {
+    if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
         for (auto f = files.begin(); f != files.end(); f++) {
