@@ -1315,6 +1315,7 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     else if (IsSchedule(treeitem))
     {
         schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
     }
 
     size_t rate = _timer.GetInterval();
@@ -1774,6 +1775,7 @@ void xScheduleFrame::UpdateStatus()
             else if (IsSchedule(treeitem))
             {
                 schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
             }
 
             Command* c = __schedule->GetCommand(command);

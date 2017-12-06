@@ -8,6 +8,7 @@
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
 {
+    _suppress = false;
     _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
@@ -20,12 +21,12 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _size = size;
     _location = loc;
     _startChannel = startChannel;
-    _image = nullptr;
     _window = nullptr;
 }
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
 {
+    _suppress = false;
     _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
@@ -38,12 +39,12 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
     _size = wxSize(300, 300);
     _location = wxPoint(0,0);
     _startChannel = "1";
-    _image = nullptr;
     _window = nullptr;
 }
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
 {
+    _suppress = false;
     _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 1;
@@ -56,12 +57,12 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _size = size;
     _location = loc;
     _startChannel = startChannel;
-    _image = nullptr;
     _window = nullptr;
 }
 
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
 {
+    _suppress = false;
     _outputManager = outputManager,
     _lastSavedChangeCount = 0;
     _changeCount = 0;
@@ -74,7 +75,6 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
     _size = wxSize(wxAtoi(n->GetAttribute("WW", "300")), wxAtoi(n->GetAttribute("WH", "300")));
     _location = wxPoint(wxAtoi(n->GetAttribute("X", "0")), wxAtoi(n->GetAttribute("Y", "0")));
     _startChannel = n->GetAttribute("StartChannel", "1");
-    _image = nullptr;
     _window = nullptr;
 }
 
@@ -178,7 +178,8 @@ std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality)
 
 void VirtualMatrix::Frame(wxByte*buffer, size_t size)
 {
-    if (_image == nullptr) return;
+    if (!_image.IsOk()) return;
+    if (_window == nullptr) return;
 
     long sc = _outputManager->DecodeStartChannel(_startChannel);
 
@@ -198,21 +199,21 @@ void VirtualMatrix::Frame(wxByte*buffer, size_t size)
         {
             b = *(pb + 2);
         }
-        _image->SetRGB((i / 3) % _width, i / 3 / _width, r, g, b);
+        _image.SetRGB((i / 3) % _width, i / 3 / _width, r, g, b);
     }
 
     if (_rotation == VMROTATION::VM_NORMAL)
     {
-        _window->SetImage(*_image);
+        _window->SetImage(_image.Copy());
     }
     else if (_rotation == VMROTATION::VM_90)
     {
-        wxImage rot = _image->Rotate90();
+        wxImage rot = _image.Rotate90();
         _window->SetImage(rot);
     }
     else
     {
-        wxImage rot = _image->Rotate90(false);
+        wxImage rot = _image.Rotate90(false);
         _window->SetImage(rot);
     }
 }
@@ -238,13 +239,7 @@ void VirtualMatrix::Start()
         _window->Hide();
     }
 
-    if (_image != nullptr)
-    {
-        delete _image;
-        _image = nullptr;
-    }
-
-    _image = new wxImage(_width, _height);
+    _image = wxImage(_width, _height);
 }
 
 void VirtualMatrix::Stop()
@@ -252,15 +247,10 @@ void VirtualMatrix::Stop()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Virtual matrix stopped %s.", (const char *)_name.c_str());
 
-    if (_image != nullptr)
-    {
-        delete _image;
-        _image = nullptr;
-    }
-
     // destroy the window
     if (_window != nullptr)
     {
+        _window->Close();
         delete _window;
         _window = nullptr;
     }

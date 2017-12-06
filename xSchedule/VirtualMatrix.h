@@ -23,7 +23,7 @@ class VirtualMatrix
     wxPoint _location;
     VMROTATION _rotation;
     std::string _startChannel;
-    wxImage* _image;
+    wxImage _image;
     wxImageResizeQuality _quality;
     PlayerWindow* _window;
     bool _suppress;
