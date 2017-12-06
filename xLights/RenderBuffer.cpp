@@ -517,14 +517,30 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
     }
 }
 void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &extents) {
-#ifndef LINUX
-    //GetPartialTextExtents on the GraphicsContext is broken on Linux (crashes) so we have to use the one on the
-    //normal drawing context
     if (gc != nullptr) {
+#ifdef LINUX
+        //GetPartialTextExtents on the GraphicsContext is broken on Linux (crashes) so we have to use the one on the
+        //normal drawing context and then try to scale it to roughly what would be drawn on the context
+        wxArrayInt sizes;
+        dc->GetPartialTextExtents(msg, sizes);
+        extents.resize(sizes.size());
+        if (sizes.size() == 0) {
+            return;
+        }
+        
+        double w,h;
+        gc->GetTextExtent(msg, &w, &h);
+        double max = sizes[sizes.size() - 1];
+        for (int x = 0; x < sizes.size(); x++) {
+            extents[x] = (double)sizes[x];
+            extents[x] *= w;
+            extents[x] /= max;
+        }
+#else
         gc->GetPartialTextExtents(msg, extents);
+#endif
         return;
     }
-#endif
     wxArrayInt sizes;
     dc->GetPartialTextExtents(msg, sizes);
     extents.resize(sizes.size());
