@@ -266,8 +266,11 @@ PathDrawingContext::~PathDrawingContext() {
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
     : DrawingContext(BufferWi, BufferHt, allowShared, false)
-#else
+#elif defined(__WXOSX__)
     : DrawingContext(BufferWi, BufferHt, allowShared, true)
+#elif defined(LINUX)
+    // Linux does text rendering on main thread so using the shared stuff is fine
+    : DrawingContext(BufferWi, BufferHt, true, true)
 #endif
 {
 }
@@ -454,6 +457,9 @@ void TextDrawingContext::SetFont(wxFontInfo &font, const xlColor &color) {
             fontColor = color;
         }
         gc->SetFont(this->font);
+#ifdef LINUX
+        dc->SetFont(font);
+#endif
     } else {
         wxFont f(font);
     #ifdef __WXMSW__
@@ -511,15 +517,19 @@ void TextDrawingContext::GetTextExtent(const wxString &msg, double *width, doubl
     }
 }
 void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &extents) {
+#ifndef LINUX
+    //GetPartialTextExtents on the GraphicsContext is broken on Linux (crashes) so we have to use the one on the
+    //normal drawing context
     if (gc != nullptr) {
         gc->GetPartialTextExtents(msg, extents);
-    } else {
-        wxArrayInt sizes;
-        dc->GetPartialTextExtents(msg, sizes);
-        extents.resize(sizes.size());
-        for (int x = 0; x < sizes.size(); x++) {
-            extents[x] = sizes[x];
-        }
+        return;
+    }
+#endif
+    wxArrayInt sizes;
+    dc->GetPartialTextExtents(msg, sizes);
+    extents.resize(sizes.size());
+    for (int x = 0; x < sizes.size(); x++) {
+        extents[x] = sizes[x];
     }
 }
 

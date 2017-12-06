@@ -877,20 +877,23 @@ void xLightsFrame::UpdateRenderStatus() {
                     done = false;
                 }
                 ++countModels;
-                i -= rpi->startFrame;
-                if (shown) {
-                    int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
-                    wxGauge *g = rpi->jobs[row]->GetGauge();
-                    if (g != nullptr && g->GetValue() != val) {
-                        g->SetValue(val);
-                    }
-                }
-                if (i == END_OF_RENDER_FRAME)
-                {
+                if (i == END_OF_RENDER_FRAME) {
                     countFrames += rpi->endFrame - rpi->startFrame + 1;
-                }
-                else
-                {
+                    if (shown) {
+                        wxGauge *g = rpi->jobs[row]->GetGauge();
+                        if (g != nullptr && g->GetValue() != 100) {
+                            g->SetValue(100);
+                        }
+                    }
+                } else {
+                    i -= rpi->startFrame;
+                    if (shown) {
+                        int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
+                        wxGauge *g = rpi->jobs[row]->GetGauge();
+                        if (g != nullptr && g->GetValue() != val) {
+                            g->SetValue(val);
+                        }
+                    }
                     countFrames += i;
                 }
             }
