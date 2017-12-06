@@ -19,6 +19,8 @@
 //(*IdInit(BatchRenderDialog)
 const long BatchRenderDialog::ID_CHOICE_FILTER = wxNewId();
 const long BatchRenderDialog::ID_CHECKLISTBOX_SEQUENCES = wxNewId();
+const long BatchRenderDialog::ID_BUTTON1 = wxNewId();
+const long BatchRenderDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(BatchRenderDialog,wxDialog)
@@ -29,10 +31,10 @@ END_EVENT_TABLE()
 BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 {
 	//(*Initialize(BatchRenderDialog)
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticText* StaticText1;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Batch Render"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 1, 0, 0);
@@ -50,20 +52,26 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 	SequenceList = new wxCheckListBox(this, ID_CHECKLISTBOX_SEQUENCES, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_SEQUENCES"));
 	SequenceList->SetMinSize(wxDLG_UNIT(this,wxSize(150,200)));
 	FlexGridSizer1->Add(SequenceList, 1, wxALL|wxEXPAND, 5);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	Center();
 
 	Connect(ID_CHOICE_FILTER,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&BatchRenderDialog::OnFilterChoiceSelect);
+	Connect(ID_CHECKLISTBOX_SEQUENCES,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&BatchRenderDialog::OnSequenceListToggled);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_OkClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&BatchRenderDialog::OnButton_CancelClick);
 	//*)
 
-    Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&BatchRenderDialog::OnPreviewRightDown, nullptr,this);
+    Connect(ID_CHECKLISTBOX_SEQUENCES, wxEVT_CONTEXT_MENU,(wxObjectEventFunction)&BatchRenderDialog::OnPreviewRightDown);
+    
+    ValidateWindow();
 }
 
 void BatchRenderDialog::OnPreviewRightDown(wxMouseEvent& event) {
@@ -79,26 +87,15 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent &event) {
     for (int x = 0; x < SequenceList->GetCount(); x++) {
         SequenceList->Check(x, event.GetId() == 1);
     }
+    ValidateWindow();
 }
 
 wxArrayString BatchRenderDialog::GetFileList() {
     wxArrayString lst;
-    wxString selected = "";
     for (int x = 0; x < SequenceList->GetCount(); x++) {
         if (SequenceList->IsChecked(x)) {
             lst.push_back(SequenceList->GetString(x));
-            if (selected != "")
-            {
-                selected += ",";
-            }
-            selected += SequenceList->GetString(x);
         }
-    }
-
-    wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
-        config->Write("BatchRendererItemList", selected);
     }
 
     return lst;
@@ -126,7 +123,7 @@ bool BatchRenderDialog::Prepare(const wxString &showDir) {
     if (config != nullptr)
     {
         wxString itcsv = "";
-        config->Read("BatchRendererItemList", &itcsv);
+        config->Read("BatchRendererItemList", &itcsv, "");
 
         if (itcsv != "")
         {
@@ -142,6 +139,8 @@ bool BatchRenderDialog::Prepare(const wxString &showDir) {
             }
         }
     }
+
+    ValidateWindow();
 
     return SequenceList->GetCount() > 0;
 }
@@ -189,4 +188,52 @@ void BatchRenderDialog::OnFilterChoiceSelect(wxCommandEvent& event)
     }
 
     SequenceList->Thaw();
+
+    ValidateWindow();
+}
+
+void BatchRenderDialog::ValidateWindow()
+{
+    wxArrayInt sel;
+    SequenceList->GetCheckedItems(sel);
+    if (sel.size() == 0)
+    {
+        Button_Ok->Enable(false);
+    }
+    else
+    {
+        Button_Ok->Enable(true);
+    }
+}
+
+void BatchRenderDialog::OnButton_OkClick(wxCommandEvent& event)
+{
+    wxString selected = "";
+    for (int x = 0; x < SequenceList->GetCount(); x++) {
+        if (SequenceList->IsChecked(x)) {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += SequenceList->GetString(x);
+        }
+    }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        config->Write("BatchRendererItemList", selected);
+    }
+
+    EndDialog(wxID_OK);
+}
+
+void BatchRenderDialog::OnButton_CancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
+}
+
+void BatchRenderDialog::OnSequenceListToggled(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

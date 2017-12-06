@@ -3,9 +3,9 @@
 
 //(*Headers(BatchRenderDialog)
 #include <wx/dialog.h>
-class wxStdDialogButtonSizer;
 class wxStaticText;
 class wxFlexGridSizer;
+class wxButton;
 class wxCheckListBox;
 class wxChoice;
 //*)
@@ -21,7 +21,9 @@ class BatchRenderDialog: public wxDialog
 		virtual ~BatchRenderDialog();
 
 		//(*Declarations(BatchRenderDialog)
+		wxButton* Button_Ok;
 		wxChoice* FilterChoice;
+		wxButton* Button_Cancel;
 		wxCheckListBox* SequenceList;
 		//*)
 
@@ -36,15 +38,22 @@ class BatchRenderDialog: public wxDialog
 		//(*Identifiers(BatchRenderDialog)
 		static const long ID_CHOICE_FILTER;
 		static const long ID_CHECKLISTBOX_SEQUENCES;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	public:
 
 		//(*Handlers(BatchRenderDialog)
 		void OnFilterChoiceSelect(wxCommandEvent& event);
+		void OnButton_OkClick(wxCommandEvent& event);
+		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnSequenceListToggled(wxCommandEvent& event);
 		//*)
 
-		DECLARE_EVENT_TABLE()
+        void ValidateWindow();
+            
+        DECLARE_EVENT_TABLE()
 };
 
 #endif
