@@ -3858,7 +3858,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
     if (buffer != nullptr)
     {
         ControlPkt* cp = (ControlPkt*)buffer;
-        strcpy(cp->fppd, "FPPD");
+        strncpy(cp->fppd, "FPPD", 4);
         cp->pktType = CTRL_PKT_SYNC;
         cp->extraDataLen = bufsize - sizeof(ControlPkt);
 
