@@ -1764,6 +1764,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     splash.Hide();
 
+    check32AppOn64Machine();
+
     logger_base.debug("xLightsFrame construction complete.");
 }
 
@@ -7007,6 +7009,18 @@ bool xLightsFrame::CheckForUpdate(bool force)
     wxDELETE(httpStream);
     get.Close();
     return found_update;
+}
+
+void xLightsFrame::check32AppOn64Machine()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    bool alreadyRun = config->ReadBool("xLights32bitCheck", false);
+
+    if (!alreadyRun && wxIsPlatform64Bit() && sizeof(size_t) == 4)
+    {
+        config->Write("xLights32bitCheck", true);
+        wxMessageBox("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights", "Update to 64bit");
+    }
 }
 
 void xLightsFrame::OnMenuItem_SmallWaveformSelected(wxCommandEvent& event)
