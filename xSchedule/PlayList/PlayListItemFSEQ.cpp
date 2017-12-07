@@ -188,6 +188,7 @@ PlayListItemFSEQ::PlayListItemFSEQ(OutputManager* outputManager) : PlayListItem(
 PlayListItem* PlayListItemFSEQ::Copy() const
 {
     PlayListItemFSEQ* res = new PlayListItemFSEQ(_outputManager);
+    PlayListItem::Copy(res);
     res->_outputManager = _outputManager;
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_fseqFileName = _fseqFileName;
@@ -199,7 +200,6 @@ PlayListItem* PlayListItemFSEQ::Copy() const
     res->_startChannel = _startChannel;
     res->_fastStartAudio = _fastStartAudio;
     res->SetAudioFile(_audioFile); // this will trigger file loading
-    PlayListItem::Copy(res);
 
     if (_fastStartAudio)
     {

@@ -105,10 +105,8 @@ PlayListItemAudioPanel::~PlayListItemAudioPanel()
 {
 	//(*Destroy(PlayListItemAudioPanel)
 	//*)
-    _audio->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
     _audio->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _audio->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
-
     if (CheckBox_OverrideVolume->GetValue())
     {
         _audio->SetVolume(Slider1->GetValue());
@@ -117,6 +115,7 @@ PlayListItemAudioPanel::~PlayListItemAudioPanel()
     {
         _audio->SetVolume(-1);
     }
+    _audio->SetAudioFile(FilePickerCtrl_AudioFile->GetFileName().GetFullPath().ToStdString());
 }
 
 

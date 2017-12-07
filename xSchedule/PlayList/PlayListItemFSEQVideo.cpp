@@ -218,6 +218,7 @@ PlayListItemFSEQVideo::PlayListItemFSEQVideo(OutputManager* outputManager) : Pla
 PlayListItem* PlayListItemFSEQVideo::Copy() const
 {
     PlayListItemFSEQVideo* res = new PlayListItemFSEQVideo(_outputManager);
+    PlayListItem::Copy(res);
     res->_cachedAudioFilename = _cachedAudioFilename;
     res->_outputManager = _outputManager;
     res->_topMost = _topMost;
@@ -238,7 +239,6 @@ PlayListItem* PlayListItemFSEQVideo::Copy() const
     res->_size = _size;
     res->_videoFile = _videoFile;
     res->SetAudioFile(_audioFile); // this will trigger file loading
-    PlayListItem::Copy(res);
 
     if (_fastStartAudio)
     {

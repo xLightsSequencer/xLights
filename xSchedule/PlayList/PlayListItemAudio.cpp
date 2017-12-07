@@ -124,11 +124,11 @@ PlayListItemAudio::~PlayListItemAudio()
 PlayListItem* PlayListItemAudio::Copy() const
 {
     PlayListItemAudio* res = new PlayListItemAudio();
+    PlayListItem::Copy(res);
     res->_fastStartAudio = _fastStartAudio;
     res->_durationMS = _durationMS;
     res->_controlsTimingCache = _controlsTimingCache;
     res->SetAudioFile(_audioFile); // we set this way to trigger file loading
-    PlayListItem::Copy(res);
 
     if (_fastStartAudio)
     {

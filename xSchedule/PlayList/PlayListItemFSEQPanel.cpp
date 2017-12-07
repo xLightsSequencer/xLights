@@ -210,7 +210,6 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     _fseq->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
     _fseq->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
-    _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
 
     if (CheckBox_OverrideVolume->GetValue())
     {
@@ -220,6 +219,7 @@ PlayListItemFSEQPanel::~PlayListItemFSEQPanel()
     {
         _fseq->SetVolume(-1);
     }
+    _fseq->SetFastStartAudio(CheckBox_FastStartAudio->GetValue());
     if (CheckBox_LimitChannels->GetValue())
     {
         _fseq->SetStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
@@ -247,6 +247,7 @@ void PlayListItemFSEQPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& e
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }
+    ValidateWindow();
 }
 
 void PlayListItemFSEQPanel::OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event)
@@ -300,10 +301,13 @@ void PlayListItemFSEQPanel::ValidateWindow()
     {
         CheckBox_FastStartAudio->Enable(false);
         CheckBox_FastStartAudio->SetValue(false);
+        CheckBox_OverrideVolume->Enable(false);
+        CheckBox_OverrideVolume->SetValue(false);
     }
     else
     {
         CheckBox_FastStartAudio->Enable();
+        CheckBox_OverrideVolume->Enable();
     }
     StaticText_StartChannel->SetLabel(wxString::Format("%ld", _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString())));
 }
