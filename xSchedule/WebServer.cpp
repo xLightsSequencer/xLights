@@ -130,9 +130,26 @@ std::map<std::string, std::string> ParseURI(std::string uri)
         for (auto it = p.begin(); it != p.end(); ++it)
         {
             wxArrayString x = wxSplit(*it, '=');
-            if (x.Count() == 2)
+            if (x.Count() >= 2)
             {
-                res[x[0].ToStdString()] = x[1].ToStdString();
+                std::string key = x[0].ToStdString();
+
+                res[key] = "";
+                for (auto it2 = x.begin(); it2 != x.end(); ++it2)
+                {
+                    if (it2 == x.begin())
+                    {
+                        // ignore the key
+                    }
+                    else
+                    {
+                        if (res[key] != "")
+                        {
+                            res[key] += "=";
+                        }
+                        res[key] += it2->ToStdString();
+                    }
+                }
             }
         }
     }

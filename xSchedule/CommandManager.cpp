@@ -75,7 +75,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
 
     if (_parms != -1 && components.Count() != _parms)
     {
-        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", components.Count(), _parms).ToStdString();
+        msg = wxString::Format("Invalid number of parameters. Found %d when there should be %d.", (int)components.Count(), _parms).ToStdString();
         return false;
     }
 
