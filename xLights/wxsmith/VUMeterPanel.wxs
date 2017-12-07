@@ -219,6 +219,16 @@
 								<item>Filled Diamond</item>
 								<item>Star</item>
 								<item>Filled Star</item>
+								<item>Tree</item>
+								<item>Filled Tree</item>
+								<item>Crucifix</item>
+								<item>Filled Crucifix</item>
+								<item>Present</item>
+								<item>Filled Present</item>
+								<item>Candy Cane</item>
+								<item>Snowflake</item>
+								<item>Heart</item>
+								<item>Filled Heart</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />

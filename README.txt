@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scotth) Added Tree, Crucifix, Present, Candy Cane, Snowflake, and Heart Shapes to the VU Effect
    -- bug (dkulp)  Fix dimming curves that are different for R/G/B
    -- bug (dkulp)  Fix debug build popups on rendering on Linux
    -- bug (dkulp)  Fix crash on text effect on Linux (fonts still look crappy)
