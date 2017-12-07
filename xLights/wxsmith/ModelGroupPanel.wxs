@@ -50,6 +50,8 @@
 										<item>Single Line</item>
 										<item>Overlay - Centered</item>
 										<item>Overlay - Scaled</item>
+										<item>Single Line Model As A Pixel</item>
+										<item>Default Model As A Pixel</item>
 									</content>
 									<selection>0</selection>
 									<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />

@@ -127,6 +127,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	ChoiceModelLayoutType->Append(_("Single Line"));
 	ChoiceModelLayoutType->Append(_("Overlay - Centered"));
 	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
+	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
+	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
