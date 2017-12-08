@@ -230,22 +230,28 @@ void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t fra
 
         if (_cacheVideo)
         {
-            while (_loopVideo && adjustedMS > _cachedVideoReader->GetLengthMS())
+            if (_cachedVideoReader != nullptr)
             {
-                adjustedMS -= _cachedVideoReader->GetLengthMS();
-            }
+                while (_loopVideo && adjustedMS > _cachedVideoReader->GetLengthMS())
+                {
+                    adjustedMS -= _cachedVideoReader->GetLengthMS();
+                }
 
-            _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
+                _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
+            }
         }
         else
         {
-            while (_loopVideo && adjustedMS > _videoReader->GetLengthMS())
+            if (_videoReader != nullptr)
             {
-                adjustedMS -= _videoReader->GetLengthMS();
-            }
+                while (_loopVideo && adjustedMS > _videoReader->GetLengthMS())
+                {
+                    adjustedMS -= _videoReader->GetLengthMS();
+                }
 
-            AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
-            _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
+                AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
+                _window->SetImage(CachedVideoReader::FadeImage(CachedVideoReader::CreateImageFromFrame(img, _size), brightness));
+            }
         }
 
         if (sw.Time() > framems / 2)

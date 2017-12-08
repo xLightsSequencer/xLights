@@ -4930,6 +4930,7 @@ void xLightsFrame::CheckSequence(bool display)
                     if (m->GetDisplayAs() == "ModelGroup")
                     {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
+                        if (mg == nullptr) logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
                         auto cm = mg->Models();
                         for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
                         {

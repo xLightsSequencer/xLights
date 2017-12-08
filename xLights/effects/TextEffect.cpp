@@ -984,36 +984,35 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
 {
     long tempLong,longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
-    int days,hours,minutes,seconds;
+    int minutes,seconds;
 
     wxDateTime dt;
     wxTimeSpan ts;
     wxString::const_iterator end;
     wxString fmt = Line_orig;
-    wxChar delim;
     wxString prepend = Line_orig;   //for prepended/appended text to countdown
     wxString append = Line_orig;   //for prepended/appended text to countdown
     wxString timePart = Line_orig;
-    wxArrayString minSec;
-    wxString tempSeconds;
 
-    switch(Countdown)
+    switch (Countdown)
     {
-        case COUNTDOWN_SECONDS:
-            // countdown seconds
-            if (state==0)
+    case COUNTDOWN_SECONDS:
             {
-                if (!Line.ToLong(&tempLong)) tempLong=0;
-                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+tempLong*framesPerSec+framesPerSec-1;  // capture 0 period
+                // countdown seconds
+                if (state == 0)
+                {
+                    if (!Line.ToLong(&tempLong)) tempLong = 0;
+                    GetCache(buffer, id)->timer_countdown = buffer.curPeriod + tempLong*framesPerSec + framesPerSec - 1;  // capture 0 period
+                }
+                seconds = (GetCache(buffer, id)->timer_countdown - buffer.curPeriod) / framesPerSec;
+                if (seconds < 0) seconds = 0;
+                msg = wxString::Format("%i", seconds);
             }
-            seconds=(GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
-            if(seconds < 0) seconds=0;
-            msg=wxString::Format("%i",seconds);
             break;
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
         case COUNTDOWN_MINUTES_SECONDS:
-
-            if (timePart.Find('/') != -1 )
+        {
+            if (timePart.Find('/') != -1)
             {
                 timePart = timePart.AfterFirst('/').BeforeLast('/');
                 prepend = prepend.BeforeFirst('/');
@@ -1024,41 +1023,41 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 append = "";
                 prepend = "";
             }
-           minSec = wxSplit(timePart, ':');
-           if(minSec.size()==1)
-           {
-               seconds = wxAtoi(minSec[0]);
-           }
-           else if(minSec.size()==2)
-           {
-               minutes = wxAtoi(minSec[0]);
-               seconds = (minutes * 60) + wxAtoi(minSec[1]);
-               //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
+            wxArrayString minSec = wxSplit(timePart, ':');
+            if (minSec.size() == 1)
+            {
+                seconds = wxAtoi(minSec[0]);
+            }
+            else if (minSec.size() == 2)
+            {
+                minutes = wxAtoi(minSec[0]);
+                seconds = (minutes * 60) + wxAtoi(minSec[1]);
+                //MessageBoxA(NULL, "total seconds: " + wxString::Format("%i", seconds), "message", MB_ICONINFORMATION | MB_OK | MB_DEFBUTTON2);
             }
             else //invalid format
             {
-               msg = _T("Invalid Format");
-               break;
+                msg = _T("Invalid Format");
+                break;
             }
             if (state == 0)
-                GetCache(buffer,id)->timer_countdown = buffer.curPeriod+seconds*framesPerSec+framesPerSec-1;
+                GetCache(buffer, id)->timer_countdown = buffer.curPeriod + seconds*framesPerSec + framesPerSec - 1;
 
             else
-                seconds = (GetCache(buffer,id)->timer_countdown-buffer.curPeriod)/framesPerSec;
+                seconds = (GetCache(buffer, id)->timer_countdown - buffer.curPeriod) / framesPerSec;
 
             minutes = (seconds / 60);
             seconds = seconds - (minutes * 60);
 
-           if(seconds < 0)
-                seconds=0;
+            if (seconds < 0)
+                seconds = 0;
 
-           tempSeconds = wxString::Format("%i", seconds);
+            wxString tempSeconds = wxString::Format("%i", seconds);
 
-           if (tempSeconds.Len() == 1)
+            if (tempSeconds.Len() == 1)
                 tempSeconds = tempSeconds.Pad(1, '0', false);
 
-           msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
-
+            msg = prepend + ' ' + wxString::Format("%i", minutes) + " : " + tempSeconds + append;
+            }
            break;
 
         case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
@@ -1115,7 +1114,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
                 if (Line.size() >= 4)
                 {
-                    delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
+                    wxChar delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
                     Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
                     //            Line.RemoveLast(); //remove delimiter
                     fmt = Line.After(delim);
@@ -1127,29 +1126,30 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
         case COUNTDOWN_H_M_S:
         case COUNTDOWN_M_or_S:
         case COUNTDOWN_S:
+        {
             // countdown to date
             if (state%framesPerSec == 0)   //1x/sec
             {
                 //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
-                if ( dt.ParseRfc822Date(Line, &end) )
+                if (dt.ParseRfc822Date(Line, &end))
                 {
                     // dt is (at least partially) valid, so calc # of seconds until then
-                    ts=dt.Subtract(wxDateTime::Now());
-                    wxLongLong ll=ts.GetSeconds();
-                    if (ll > LONG_MAX) ll=LONG_MAX;
-                    if (ll < 0) ll=0;
-                    longsecs=ll.ToLong();
+                    ts = dt.Subtract(wxDateTime::Now());
+                    wxLongLong ll = ts.GetSeconds();
+                    if (ll > LONG_MAX) ll = LONG_MAX;
+                    if (ll < 0) ll = 0;
+                    longsecs = ll.ToLong();
                 }
                 else
                 {
                     // invalid date/time
                     longsecs = 0;
                 }
-                GetCache(buffer,id)->timer_countdown=longsecs;
+                GetCache(buffer, id)->timer_countdown = longsecs;
             }
             else
             {
-                longsecs=GetCache(buffer,id)->timer_countdown;
+                longsecs = GetCache(buffer, id)->timer_countdown;
                 ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
             }
             if (!longsecs)
@@ -1157,24 +1157,25 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 msg = _T("invalid date");    //show when invalid -DJ
                 break;
             }
-            days = longsecs / 60 / 60 / 24;
-            hours = (longsecs / 60 / 60) % 24;
+            int days = longsecs / 60 / 60 / 24;
+            int hours = (longsecs / 60 / 60) % 24;
             minutes = (longsecs / 60) % 60;
             seconds = longsecs % 60;
             if (Countdown == COUNTDOWN_D_H_M_S)
-                msg=wxString::Format("%dd %dh %dm %ds",days,hours,minutes,seconds);
+                msg = wxString::Format("%dd %dh %dm %ds", days, hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_H_M_S)
                 msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
             else if (Countdown == COUNTDOWN_S)
-                msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
+                msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
             else if (Countdown == COUNTDOWN_FREEFMT)
                 //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
                 msg = ts.Format(fmt); //dt.Format(fmt)
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-                    msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
+                    msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
                 else //COUNTDOWN_M_or_S: show minutes
                     msg = wxString::Format("%d m", 60 * hours + minutes);
+        }
             break;
         default:
             msg=Line;
@@ -1184,28 +1185,15 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
 }
 void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer)
 {
-    int ascii;
-    int x_start_corner;
-    int y_start_corner;
-    int x_pos, y_pos;
-    int char_width;
-    int char_height;
-    int red, green, blue;
-    bool pixelOffsets = false;
-    int startx = 0;
-    int starty = 0;
-    int endx = 0;
-    int endy = 0;
-
     xlColor c;
     int num_colors = buffer.palette.Size();
     buffer.palette.GetColor(0,c);
 
-    starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
-    startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
-    endy = wxAtoi(settings.Get("SLIDER_Text_YEnd", "0"));
-    endx = wxAtoi(settings.Get("SLIDER_Text_XEnd", "0"));
-    pixelOffsets = wxAtoi(settings.Get("CHECKBOX_Text_PixelOffsets", "0"));
+    int starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
+    int startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
+    int endy = wxAtoi(settings.Get("SLIDER_Text_YEnd", "0"));
+    int endx = wxAtoi(settings.Get("SLIDER_Text_XEnd", "0"));
+    bool pixelOffsets = wxAtoi(settings.Get("CHECKBOX_Text_PixelOffsets", "0"));
 
     int OffsetLeft = startx * buffer.BufferWi / 100;
     int OffsetTop = -starty * buffer.BufferHt / 100;
@@ -1219,8 +1207,8 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     xlFont* font = font_mgr.get_font(xl_font);
     wxBitmap* bmp = font->get_bitmap();
     wxImage image = bmp->ConvertToImage();
-    char_width = font->GetWidth();
-    char_height = font->GetHeight();
+    int char_width = font->GetWidth();
+    int char_height = font->GetHeight();
 
     wxString text = settings["TEXTCTRL_Text"];
     int text_length = font_mgr.get_length(font, text);
@@ -1283,9 +1271,9 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
             if( text[i] == ' ' ) {
                 space_offset++;
             }
-            ascii = (int)text[i];
-            x_start_corner = (ascii%8) * (char_width+1) + 1;
-            y_start_corner = (ascii/8) * (char_height+1) + 1;
+            int ascii = (int)text[i];
+            int x_start_corner = (ascii%8) * (char_width+1) + 1;
+            int y_start_corner = (ascii/8) * (char_height+1) + 1;
 
             int actual_width = font->GetCharWidth(ascii);
             if( rotate_90 && up ) {
@@ -1293,12 +1281,12 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
             }
             for( int w = 0; w < actual_width; w++ )
             {
-               x_pos = x_start_corner + w;
-               for( y_pos = y_start_corner; y_pos < y_start_corner+char_height; y_pos++)
+               int x_pos = x_start_corner + w;
+               for( int y_pos = y_start_corner; y_pos < y_start_corner+char_height; y_pos++)
                {
-                   red = image.GetRed(x_pos, y_pos);
-                   green = image.GetGreen(x_pos, y_pos);
-                   blue = image.GetBlue(x_pos, y_pos);
+                   int red = image.GetRed(x_pos, y_pos);
+                   int green = image.GetGreen(x_pos, y_pos);
+                   int blue = image.GetBlue(x_pos, y_pos);
                    if( red == 255 && green == 255 && blue == 255 ) {
                       if( rotate_90 ) {
                         if( up ) {
