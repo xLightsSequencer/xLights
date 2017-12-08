@@ -392,15 +392,15 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
         if (file != "xlights_rgbeffects.xml" && file != OutputManager::GetNetworksFileName() && file != "xlights_keybindings.xml")
         {
             // this could be a sequence file ... lets open it and check
-            wxXmlDocument doc(xLightsFrame::CurrentDir + "/" + file);
+            wxXmlDocument doc(dir + wxFileName::GetPathSeparator() + file);
             if (doc.IsOk())
             {
                 wxXmlNode* root = doc.GetRoot();
                 if (root->GetName() == "xsequence")
                 {
                     // now check the fseq file exists
-                    wxFileName fn(dir + "/" + file);
-                    wxString fseq = dir + "/" + fn.GetName() + ".fseq";
+                    wxFileName fn(dir + wxFileName::GetPathSeparator() + file);
+                    wxString fseq = dir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
                     if (wxFile::Exists(fseq))
                     {
@@ -419,7 +419,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
     {
         if (file != "Backup")
         {
-            LoadSequencesFromFolder(dir + "/" + file);
+            LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file);
         }
         fcont = directory.GetNext(&file);
     }
