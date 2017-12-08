@@ -31,6 +31,7 @@ class ScheduleOptions
     std::list<MatrixMapper*> _matrices;
     std::list<VirtualMatrix*> _virtualMatrices;
     std::list<std::string> _fppRemotes;
+    std::string _audioDevice;
 
     public:
 
@@ -63,8 +64,10 @@ class ScheduleOptions
         void SetWebServerPort(int port) { if (_port != port) { _port = port; _changeCount++; } }
         void SetFPPRemotes(std::list<std::string> remotes) { _fppRemotes = remotes; _changeCount++; } 
         std::string GetWWWRoot() const { return _wwwRoot; }
+        std::string GetAudioDevice() const { return _audioDevice; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
+        void SetAudioDevice(const std::string& audioDevice) { if (_audioDevice != audioDevice) { _audioDevice = audioDevice; _changeCount++; } }
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
         void AddProjector(const std::string& name, const std::string& ip, const std::string& password);
         bool GetAPIOnly() const { return _webAPIOnly; }

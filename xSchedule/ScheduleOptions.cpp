@@ -7,6 +7,7 @@
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "Projector.h"
+#include "../xLights/AudioManager.h"
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 {
@@ -24,6 +25,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 #endif
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
+    _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
+    AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
@@ -76,6 +79,7 @@ ScheduleOptions::ScheduleOptions()
     _password = "";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
+    _audioDevice = "";
 #ifdef __WXMSW__
     _port = 80;
 #else
@@ -109,6 +113,7 @@ wxXmlNode* ScheduleOptions::Save()
 {
     wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Options");
 
+    res->AddAttribute("AudioDevice", _audioDevice);
     res->AddAttribute("WWWRoot", _wwwRoot);
     res->AddAttribute("Password", _password);
     if (IsSync())

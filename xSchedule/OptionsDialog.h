@@ -8,6 +8,7 @@
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
+#include <wx/choice.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -52,7 +53,9 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxButton* Button_Import;
+		wxChoice* Choice_AudioDevice;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText7;
 		wxButton* Button_Cancel;
 		wxCheckBox* CheckBox_APIOnly;
 		wxButton* Button_ProjectorEdit;
@@ -84,6 +87,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON9;
+		static const long ID_STATICTEXT7;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;

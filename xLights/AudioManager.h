@@ -142,12 +142,13 @@ class SDL
     float _playbackrate;
     SDL_AudioSpec _wanted_spec;
     int _initialisedRate;
+    std::string _device;
 
     void Reopen();
     AudioData* GetData(int id);
 
 public:
-    SDL();
+    SDL(const std::string& device = "");
     virtual ~SDL();
     std::list<AudioData*> GetAudio() const { return _audioData; }
     long Tell(int id);
@@ -167,6 +168,9 @@ public:
     void SeekAndLimitPlayLength(int id, long pos, long len);
     void Pause(int id, bool pause);
     bool HasAudio(int id);
+    std::list<std::string> GetAudioDevices() const;
+    bool OpenAudioDevice(const std::string device);
+    void SetAudioDevice(const std::string device);
 };
 
 class AudioManager
@@ -241,6 +245,8 @@ public:
     int GetVolume();
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
+    static void SetAudioDevice(const std::string device);
+    static std::list<std::string> GetAudioDevices();
     long GetTrackSize() const { return _trackSize; };
 	long GetRate() const { return _rate; };
 	int GetChannels() const { return _channels; };

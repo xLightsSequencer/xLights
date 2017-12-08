@@ -13,6 +13,7 @@
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "../xLights/AudioManager.h"
 //*)
 
 //(*IdInit(OptionsDialog)
@@ -32,6 +33,8 @@ const long OptionsDialog::ID_BUTTON6 = wxNewId();
 const long OptionsDialog::ID_BUTTON7 = wxNewId();
 const long OptionsDialog::ID_BUTTON10 = wxNewId();
 const long OptionsDialog::ID_BUTTON9 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT7 = wxNewId();
+const long OptionsDialog::ID_CHOICE1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
@@ -119,6 +122,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
+	FlexGridSizer8->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Web Server Port:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_WebServerPort = new wxSpinCtrl(this, ID_SPINCTRL1, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 80, _T("ID_SPINCTRL1"));
@@ -173,6 +181,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_CancelClick);
 	//*)
 
+    auto audioDevices = AudioManager::GetAudioDevices();
+    for (auto it = audioDevices.begin(); it != audioDevices.end(); ++it)
+    {
+        Choice_AudioDevice->Append(*it);
+    }
+
     ListView_Projectors->AppendColumn("Name");
     ListView_Projectors->AppendColumn("IP");
     ListView_Projectors->AppendColumn("Password");
@@ -195,6 +209,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     TextCtrl_wwwRoot->SetValue(options->GetWWWRoot());
     StaticText4->SetToolTip("Root Directory: " + options->GetDefaultRoot());
     TextCtrl_Password->SetValue(options->GetPassword());
+    Choice_AudioDevice->SetStringSelection(options->GetAudioDevice());
+    if (Choice_AudioDevice->GetSelection() == -1)
+    {
+        Choice_AudioDevice->SetStringSelection("(Default)");
+    }
 
     LoadProjectors();
 
@@ -279,6 +298,16 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
 
+    if (Choice_AudioDevice->GetStringSelection() == "(Default)")
+    {
+        _options->SetAudioDevice("");
+        AudioManager::SetAudioDevice("");
+    }
+    else
+    {
+        _options->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+        AudioManager::SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
+    }
     _options->ClearProjectors();
     for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)
     {

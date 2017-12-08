@@ -28,8 +28,6 @@ int AudioData::__nextId = 0;
 #define DEFAULT_RATE RESAMPLE_RATE
 #endif
 
-
-
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
@@ -72,7 +70,7 @@ int SDL::GetGlobalVolume() const
     return __globalVolume;
 }
 
-SDL::SDL()
+SDL::SDL(const std::string& device)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -85,6 +83,7 @@ SDL::SDL()
         return;
     }
 
+    _device = device;
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
 
@@ -96,7 +95,7 @@ SDL::SDL()
     _wanted_spec.callback = fill_audio;
     _wanted_spec.userdata = &_audio_Lock;
 
-    if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+    if (!OpenAudioDevice(device))
     {
         logger_base.error("Could not open SDL audio");
         return;
@@ -162,6 +161,49 @@ bool SDL::HasAudio(int id)
     return GetData(id) != nullptr;
 }
 
+std::list<std::string> SDL::GetAudioDevices() const
+{
+    std::list<std::string> devices;
+    int count = SDL_GetNumAudioDevices(0);
+
+    for (int i = 0; i < count; i++)
+    {
+        devices.push_back(SDL_GetAudioDeviceName(i, 0));
+    }
+
+    return devices;
+}
+
+bool SDL::OpenAudioDevice(const std::string device)
+{
+    if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        Stop();
+    }
+
+    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        SDL_CloseAudio();
+    }
+
+    if (device == "")
+    {
+        if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if (SDL_OpenAudioDevice(device.c_str(), 0, &_wanted_spec, nullptr, 0) <= 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void SDL::SeekAndLimitPlayLength(int id, long pos, long len)
 {
     std::unique_lock<std::mutex> locker(_audio_Lock);
@@ -205,7 +247,7 @@ void SDL::Reopen()
 
     logger_base.info("Starting audio with frequency %d.", _wanted_spec.freq);
 
-    if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+    if (!OpenAudioDevice(_device))
     {
         // a problem
     }
@@ -2212,3 +2254,17 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 	return p;
 }
 
+void SDL::SetAudioDevice(const std::string device)
+{
+    _device = device;
+}
+
+void AudioManager::SetAudioDevice(const std::string device)
+{
+    __sdl.SetAudioDevice(device);
+}
+
+std::list<std::string> AudioManager::GetAudioDevices()
+{
+    return __sdl.GetAudioDevices();
+}
