@@ -23,7 +23,8 @@ class VUMeterEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-		int DecodeType(std::string type);
+		int DecodeType(const std::string&  type);
+		int DecodeShape(const std::string& shape);
 		void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, bool slowdownfalls, int startnote, int endnote, int xoffset);
 		void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars);
 		void RenderWaveformFrame(RenderBuffer &buffer, int bars, int yoffset);
@@ -43,6 +44,14 @@ class VUMeterEffect : public RenderableEffect
         void DrawCircle(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1);
         void DrawStar(RenderBuffer& buffer, int x, int y, float radius, xlColor& color1, int points);
         void DrawDiamond(RenderBuffer& buffer, int centerx, int centery, int size, xlColor& color1);
+
+		void DrawSnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation = 0);
+		void DrawHeart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
+		void DrawTree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
+		void DrawCandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
+		void DrawCrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
+		void DrawPresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
+
         void RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote);
         void RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote);
         void RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastval, bool useAudioLevel);

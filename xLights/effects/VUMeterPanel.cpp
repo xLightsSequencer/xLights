@@ -159,6 +159,16 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Shape->Append(_("Filled Diamond"));
 	Choice_VUMeter_Shape->Append(_("Star"));
 	Choice_VUMeter_Shape->Append(_("Filled Star"));
+	Choice_VUMeter_Shape->Append(_("Tree"));
+	Choice_VUMeter_Shape->Append(_("Filled Tree"));
+	Choice_VUMeter_Shape->Append(_("Crucifix"));
+	Choice_VUMeter_Shape->Append(_("Filled Crucifix"));
+	Choice_VUMeter_Shape->Append(_("Present"));
+	Choice_VUMeter_Shape->Append(_("Filled Present"));
+	Choice_VUMeter_Shape->Append(_("Candy Cane"));
+	Choice_VUMeter_Shape->Append(_("Snowflake"));
+	Choice_VUMeter_Shape->Append(_("Heart"));
+	Choice_VUMeter_Shape->Append(_("Filled Heart"));
 	FlexGridSizer31->Add(Choice_VUMeter_Shape, 1, wxALL|wxEXPAND, 2);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer31->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -315,7 +325,8 @@ void VUMeterPanel::ValidateWindow()
     if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
     {
         Choice_VUMeter_Shape->Enable();
-        if (Choice_VUMeter_Shape->GetStringSelection() == "Star" || Choice_VUMeter_Shape->GetStringSelection() == "Filled Star")
+        if (Choice_VUMeter_Shape->GetStringSelection() == "Star" || Choice_VUMeter_Shape->GetStringSelection() == "Filled Star" || 
+			Choice_VUMeter_Shape->GetStringSelection() == "Snowflake")
         {
             // we use bars to set number of points
             Slider_VUMeter_Bars->Enable();
