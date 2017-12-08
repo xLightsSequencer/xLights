@@ -514,16 +514,11 @@ void xLightsFrame::SaveModelsFile()
     bool first = true;
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
-        if (!first)
-        {
-            modelsJSON.Write(",");
-            first = false;
-        }
-
         Model* model = m->second;
         if (model->GetDisplayAs() == "ModelGroup")
         {
             // Dont export model groups ... they arent useful
+            // if this is added then move the first check
 
             //ModelGroup* mg = static_cast<ModelGroup*>(model);
             //modelsJSON.Write("{\"name\":\"" + mg->name +
@@ -534,6 +529,13 @@ void xLightsFrame::SaveModelsFile()
         }
         else
         {
+            // move this if model groups are added
+            if (!first)
+            {
+                modelsJSON.Write(",");
+            }
+            first = false;
+            // end move
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             modelsJSON.Write("{\"name\":\""+model->name+
                               "\",\"type\":\""+model->GetDisplayAs()+

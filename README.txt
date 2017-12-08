@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (craig)  Fix the output of the xScheduleData/GetModels.dat file format as json
    -- enh (scotth) Added Tree, Crucifix, Present, Candy Cane, Snowflake, and Heart Shapes to the VU Effect
    -- bug (dkulp)  Fix dimming curves that are different for R/G/B
    -- bug (dkulp)  Fix debug build popups on rendering on Linux
