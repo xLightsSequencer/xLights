@@ -1764,7 +1764,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     splash.Hide();
 
+#ifdef __WXMSW__
     check32AppOn64Machine();
+#endif
 
     logger_base.debug("xLightsFrame construction complete.");
 }
