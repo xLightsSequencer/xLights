@@ -1308,6 +1308,7 @@ private:
     void DoDonate();
     void AutoShowHouse();
     bool CheckForUpdate(bool force);
+    void check32AppOn64Machine();
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
