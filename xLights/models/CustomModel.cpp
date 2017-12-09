@@ -112,12 +112,12 @@ void CustomModel::InitModel() {
 
 void CustomModel::SetCustomWidth(long w) {
     ModelXml->DeleteAttribute("parm1");
-    ModelXml->AddAttribute("parm1", wxString::Format("%d", w));
+    ModelXml->AddAttribute("parm1", wxString::Format("%ld", w));
     SetFromXml(ModelXml, zeroBased);
 }
 void CustomModel::SetCustomHeight(long h) {
     ModelXml->DeleteAttribute("parm2");
-    ModelXml->AddAttribute("parm2", wxString::Format("%d", h));
+    ModelXml->AddAttribute("parm2", wxString::Format("%ld", h));
     SetFromXml(ModelXml, zeroBased);
 }
 
@@ -140,7 +140,7 @@ long CustomModel::GetCustomLightness() const
 void CustomModel::SetCustomLightness(long lightness)
 {
     ModelXml->DeleteAttribute("CustomBkgLightness");
-    ModelXml->AddAttribute("CustomBkgLightness", wxString::Format("%d", lightness));
+    ModelXml->AddAttribute("CustomBkgLightness", wxString::Format("%ld", lightness));
     SetFromXml(ModelXml, zeroBased);
 }
 
