@@ -3488,8 +3488,8 @@ void xLightsFrame::SaveWorking()
 void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    // dont save if currently playing
-    if (playType != PLAY_TYPE_MODEL) {
+    // dont save if currently playing or in render mode
+    if (playType != PLAY_TYPE_MODEL && !_renderMode) {
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         if (mSavedChangeCount != mSequenceElements.GetChangeCount())
@@ -3518,7 +3518,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     }
     else
     {
-        logger_base.debug("AutoSave skipped because sequence is playing.");
+        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering.");
     }
 
     if (AutoSaveInterval > 0) {

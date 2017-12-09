@@ -195,12 +195,15 @@ bool SDL::OpenAudioDevice(const std::string device)
         SDL_CloseAudio();
     }
 
+#ifdef __WXMSW__
     if (device == "")
     {
+#endif
         if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
         {
             return false;
         }
+#ifdef __WXMSW__
     }
     else
     {
@@ -209,6 +212,7 @@ bool SDL::OpenAudioDevice(const std::string device)
             return false;
         }
     }
+#endif
 
     return true;
 }
