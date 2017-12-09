@@ -358,10 +358,11 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     } else if (type == VERT_PER_MODEL) {
         BufferHt = models;
         BufferWi = maxNodes;
-    }
-    else if (type == SINGLELINE_AS_PIXEL) {
+    } else if (type == SINGLELINE_AS_PIXEL) {
         BufferHt = 1;
         BufferWi = models;
+    } else if (type == DEFAULT_AS_PIXEL) {
+        Model::GetBufferSize("Per Preview", "None", BufferWi, BufferHt);
     } else if (type == HORIZ_PER_MODELSTRAND) {
         BufferWi = strands;
         BufferHt = maxStrandLen;
@@ -457,8 +458,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
-    }
-    else if (type == SINGLELINE_AS_PIXEL) {
+    } else if (type == SINGLELINE_AS_PIXEL) {
         int outx = 0;
         BufferHt = 1;
         for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
@@ -480,44 +480,37 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         }
         BufferWi = outx;
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
-    }
-    else if (type == DEFAULT_AS_PIXEL) {
-        //for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
-        //    Model* m = modelManager[*it];
-        //    if (m != nullptr) {
-        //        int start = Nodes.size();
-        //        int startSave = start;
-        //        m->InitRenderBufferNodes("Default", transform, Nodes, BufferWi, BufferHt);
-
-        //        // find the centre node
-        //        int cx = -1;
-        //        int cy = -1;
-        //        int min = 999999;
-        //        while (start < Nodes.size()) {
-        //            for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
-
-        //                if (abs(it2->bufX - BufferWi / 2) + abs(it2->bufY - BufferHt / 2) < min)
-        //                {
-        //                    min = abs(it2->bufX - BufferWi / 2) + abs(it2->bufY - BufferHt / 2);
-        //                    cx = it2->bufX;
-        //                    cy = it2->bufY;
-        //                }
-        //            }
-        //            start++;
-        //        }
-        //        start = startSave;
-        //        while (start < Nodes.size()) {
-        //            for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
-        //                it2->bufX = cx;
-        //                it2->bufY = cy;
-        //            }
-        //            start++;
-        //        }
-        //    }
-        //}
-        //BufferHt = this->BufferHt;
-        //BufferWi = this->BufferWi;
-        //ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (type == DEFAULT_AS_PIXEL) {
+        int start = Nodes.size();
+        Model::InitRenderBufferNodes("Per Preview", "None", Nodes, BufferWi, BufferHt);
+        for (auto modelName : modelNames) {
+            Model *c = modelManager.GetModel(modelName);
+            if (c != nullptr) {
+                int cx = 0;
+                int cy = 0;
+                int cnt = 0;
+                //find the middle
+                for (int x = 0; x < c->GetNodeCount(); x++) {
+                    for (auto &coord : Nodes[start + x]->Coords) {
+                        cx += coord.bufX;
+                        cy += coord.bufY;
+                        cnt++;
+                    }
+                }
+                if (cnt != 0) {
+                    cx /= cnt;
+                    cy /= cnt;
+                    for (int x = 0; x < c->GetNodeCount(); x++) {
+                        for (auto &coord : Nodes[start + x]->Coords) {
+                            coord.bufX = cx;
+                            coord.bufY = cy;
+                        }
+                    }
+                }
+                start += c->GetNodeCount();
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else if (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND) {
         GetBufferSize(type, "None", BufferWi, BufferHt);
         bool horiz = type == HORIZ_PER_MODELSTRAND;

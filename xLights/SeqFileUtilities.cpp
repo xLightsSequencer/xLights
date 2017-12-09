@@ -225,8 +225,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
                     {
                         if (wxFile::Exists(fn.GetFullPath()))
                         {
-                            // Touch the xml file to stop this prompt occuring again
-                            fn.Touch();
+                            //set the backup to be older than the XML files to avoid re-promting
+                            xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                            asfn.SetTimes(&xmltime, &xmltime, &xmltime);
                         }
                     }
                 }
