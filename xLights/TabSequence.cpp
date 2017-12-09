@@ -861,10 +861,6 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         mSavedChangeCount = mSequenceElements.GetChangeCount();
         mLastAutosaveCount = mSavedChangeCount;
 
-        // Touch the xml file so we dont get prompted that the autosave file is newer
-        // There is still a small chance we will but this should at least minimise that
-        CurrentSeqXmlFile->Touch();
-
         CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames, exitOnDone);
     } );
 }
