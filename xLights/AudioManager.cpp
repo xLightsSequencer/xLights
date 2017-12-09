@@ -83,7 +83,12 @@ SDL::SDL(const std::string& device)
         return;
     }
 
+#ifndef __WXMSW__
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    _device = "";
+#else
     _device = device;
+#endif
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
 
@@ -165,28 +170,21 @@ std::list<std::string> SDL::GetAudioDevices() const
 {
     std::list<std::string> devices;
 
-#ifndef __WXMSW__
+#ifdef __WXMSW__
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
-    return devices;
-#endif
-
     int count = SDL_GetNumAudioDevices(0);
 
     for (int i = 0; i < count; i++)
     {
         devices.push_back(SDL_GetAudioDeviceName(i, 0));
     }
+#endif
 
     return devices;
 }
 
 bool SDL::OpenAudioDevice(const std::string device)
 {
-#ifndef __WXMSW__
-    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
-    device = "";
-#endif
-
     if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
         Stop();
@@ -2267,7 +2265,12 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 
 void SDL::SetAudioDevice(const std::string device)
 {
+#ifndef __WXMSW__
+    // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
+    _device = "";
+#else
     _device = device;
+#endif
 }
 
 void AudioManager::SetAudioDevice(const std::string device)
