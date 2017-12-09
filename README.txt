@@ -11,11 +11,23 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith/dkulp) Add model as a pixel render style for model groups ... treats models within the group as a single pixel
+   -- bug (keith)  Prevent warnings about autosave newer than sequence after batch render
+   -- enh (keith)  Save selected batch render items between runs of batch render
+   -- enh (keith)  Add selectable audio devices on windows for xSchedule
    -- bug (craig)  Fix the output of the xScheduleData/GetModels.dat file format as json
    -- enh (scotth) Added Tree, Crucifix, Present, Candy Cane, Snowflake, and Heart Shapes to the VU Effect
    -- bug (dkulp)  Fix dimming curves that are different for R/G/B
    -- bug (dkulp)  Fix debug build popups on rendering on Linux
    -- bug (dkulp)  Fix crash on text effect on Linux (fonts still look crappy)
+   -- enh (scott)  Warn windows 64 bit computer users using 32 bit that they should move to 64 bit
+   -- bug (scott)  Fix FPP connect wont upload sequences in subdirectories
+   -- enh (scott)  Add all the shape effect shapes to the VU Meter shape modes
+   -- bug (keith)  Fix xSchedule text properties not working in API
+   -- bug (keith)  Fix a number of problems with xSchedule channel constraints not saving
+   -- bug (keith)  Fix xSchedule fast start audio does not respect per song volume setting
+   -- bug (keith)  Fix virtual matrices not working reliably or correctly in xschedule
+   -- enh (keith)  Allow play list buttons like play schedule to work even if a schedule for that playlist is selected 
 2017.40  Dec 05, 2017
    -- enh (keith)  Add support for #universe:startchannel and output:startchannel to all xSchedule fields that define a start channel
    -- bug (keith)  Fix test dialog tooltips dont display correct models

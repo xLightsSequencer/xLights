@@ -10,6 +10,8 @@
 
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
 static const std::string VERT_PER_MODEL("Vertical Per Model");
+static const std::string SINGLELINE_AS_PIXEL("Single Line Model As A Pixel");
+static const std::string DEFAULT_AS_PIXEL("Default Model As A Pixel");
 static const std::string HORIZ_PER_MODELSTRAND("Horizontal Per Model/Strand");
 static const std::string VERT_PER_MODELSTRAND("Vertical Per Model/Strand");
 static const std::string OVERLAY_CENTER("Overlay - Centered");
@@ -31,6 +33,8 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
             GROUP_BUFFER_STYLES.push_back(VERT_PER_MODELSTRAND);
             GROUP_BUFFER_STYLES.push_back(OVERLAY_CENTER);
             GROUP_BUFFER_STYLES.push_back(OVERLAY_SCALED);
+            GROUP_BUFFER_STYLES.push_back(SINGLELINE_AS_PIXEL);
+            GROUP_BUFFER_STYLES.push_back(DEFAULT_AS_PIXEL);
 
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_DEFAULT);
             GROUP_BUFFER_STYLES.push_back(PER_MODEL_PER_PREVIEW);
@@ -354,6 +358,11 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     } else if (type == VERT_PER_MODEL) {
         BufferHt = models;
         BufferWi = maxNodes;
+    } else if (type == SINGLELINE_AS_PIXEL) {
+        BufferHt = 1;
+        BufferWi = models;
+    } else if (type == DEFAULT_AS_PIXEL) {
+        Model::GetBufferSize("Per Preview", "None", BufferWi, BufferHt);
     } else if (type == HORIZ_PER_MODELSTRAND) {
         BufferWi = strands;
         BufferHt = maxStrandLen;
@@ -446,6 +455,59 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     BufferWi = y;
                 }
                 BufferHt++;
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (type == SINGLELINE_AS_PIXEL) {
+        int outx = 0;
+        BufferHt = 1;
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
+            Model* m = modelManager[*it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x = 0;
+                int y = 0;
+                m->InitRenderBufferNodes("As Pixel", "None", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufY = 0;
+                        it2->bufX = outx;
+                    }
+                    start++;
+                }
+                outx++;
+            }
+        }
+        BufferWi = outx;
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (type == DEFAULT_AS_PIXEL) {
+        int start = Nodes.size();
+        Model::InitRenderBufferNodes("Per Preview", "None", Nodes, BufferWi, BufferHt);
+        for (auto modelName : modelNames) {
+            Model *c = modelManager.GetModel(modelName);
+            if (c != nullptr) {
+                int cx = 0;
+                int cy = 0;
+                int cnt = 0;
+                //find the middle
+                for (int x = 0; x < c->GetNodeCount(); x++) {
+                    for (auto &coord : Nodes[start + x]->Coords) {
+                        cx += coord.bufX;
+                        cy += coord.bufY;
+                        cnt++;
+                    }
+                }
+                if (cnt != 0) {
+                    cx /= cnt;
+                    cy /= cnt;
+                    for (int x = 0; x < c->GetNodeCount(); x++) {
+                        for (auto &coord : Nodes[start + x]->Coords) {
+                            coord.bufX = cx;
+                            coord.bufY = cy;
+                        }
+                    }
+                }
+                start += c->GetNodeCount();
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);

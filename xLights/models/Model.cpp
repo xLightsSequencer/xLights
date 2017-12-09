@@ -34,6 +34,7 @@
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
 static const std::string SINGLE_LINE("Single Line");
+static const std::string AS_PIXEL("As Pixel");
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 
@@ -45,7 +46,7 @@ wxMessageBox(msg, _("Export Error")); \
 return; \
 }
 
-const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE};
+const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE, AS_PIXEL};
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
@@ -1642,6 +1643,9 @@ void Model::GetBufferSize(const std::string &type, const std::string &transform,
     } else if (type == SINGLE_LINE) {
         bufferHi = 1;
         bufferWi = Nodes.size();
+    } else if (type == AS_PIXEL) {
+        bufferHi = 1;
+        bufferWi = 1;
     } else if (type == VERT_PER_STRAND) {
         bufferHi = GetNumStrands();
         bufferWi = 1;
@@ -1768,6 +1772,18 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 SetCoords(*it2, cnt, 0);
             }
             cnt++;
+        }
+    } else if (type == AS_PIXEL) {
+        bufferHt = 1;
+        bufferWi = 1;
+        for (int x = firstNode; x < newNodes.size(); x++) {
+            if (newNodes[x] == nullptr)
+            {
+                logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+            }
+            for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
+                SetCoords(*it2, 0, 0);
+            }
         }
     } else if (type == HORIZ_PER_STRAND) {
         bufferWi = GetNumStrands();
