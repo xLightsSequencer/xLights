@@ -78,7 +78,7 @@ public:
 
 	xLightsVamp();
 	~xLightsVamp();
-	void ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels);
+    static void ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels);
 	std::list<std::string> GetAvailablePlugins(AudioManager* paudio);
 	std::list<std::string> GetAllAvailablePlugins(AudioManager* paudio);
 	Vamp::Plugin* GetPlugin(std::string name);
@@ -126,7 +126,7 @@ class AudioData
         bool _paused;
         AudioData();
         ~AudioData() {}
-        long Tell();
+        long Tell() const;
         void Seek(long ms);
         void SavePos();
         void RestorePos();
@@ -163,12 +163,12 @@ public:
     void Stop();
     void SetVolume(int id, int volume);
     int GetVolume(int id);
-    void SetGlobalVolume(int volume);
-    int GetGlobalVolume() const;
+    static void SetGlobalVolume(int volume);
+    static int GetGlobalVolume();
     void SeekAndLimitPlayLength(int id, long pos, long len);
     void Pause(int id, bool pause);
     bool HasAudio(int id);
-    std::list<std::string> GetAudioDevices() const;
+    static std::list<std::string> GetAudioDevices();
     bool OpenAudioDevice(const std::string device);
     void SetAudioDevice(const std::string device);
 };
@@ -214,20 +214,20 @@ class AudioManager
 	void ExtractMP3Tags(AVFormatContext* formatContext);
 	long CalcLengthMS() const;
 	void SplitTrackDataAndNormalize(signed short* trackData, long trackSize, float* leftData, float* rightData) const;
-	void NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData);
+    static void NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData);
 	int OpenMediaFile();
 	void PrepareFrameData(bool separateThread);
-	int decodebitrateindex(int bitrateindex, int version, int layertype);
-	int decodesamplerateindex(int samplerateindex, int version);
-	int decodesideinfosize(int version, int mono) const;
-	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id);
+    static int decodebitrateindex(int bitrateindex, int version, int layertype);
+	int decodesamplerateindex(int samplerateindex, int version) const;
+    static int decodesideinfosize(int version, int mono);
+	std::list<float> CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const;
     void LoadAudioData(bool separateThread, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     void SetLoadedData(long pos);
 
 public:
     bool IsOk() const { return _ok; }
     static size_t GetAudioFileLength(std::string filename);
-	void Seek(long pos);
+	void Seek(long pos) const;
 	void Pause();
 	void Play();
     void Play(long posms, long lenms);
@@ -236,13 +236,13 @@ public:
     long GetLoadedData();
     bool IsDataLoaded(long pos = -1);
     static void SetPlaybackRate(float rate);
-	MEDIAPLAYINGSTATE GetPlayingState();
-	long Tell();
+	MEDIAPLAYINGSTATE GetPlayingState() const;
+	long Tell() const;
 	xLightsVamp* GetVamp() { return &_vamp; };
 	AudioManager(const std::string& audio_file, int step = 4096, int block = 32768);
 	~AudioManager();
-	void SetVolume(int volume);
-    int GetVolume();
+	void SetVolume(int volume) const;
+    int GetVolume() const;
     static void SetGlobalVolume(int volume);
     static int GetGlobalVolume();
     static void SetAudioDevice(const std::string device);

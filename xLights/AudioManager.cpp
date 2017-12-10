@@ -65,7 +65,7 @@ void SDL::SetGlobalVolume(int volume)
     __globalVolume = volume;
 }
 
-int SDL::GetGlobalVolume() const
+int SDL::GetGlobalVolume()
 {
     return __globalVolume;
 }
@@ -166,7 +166,7 @@ bool SDL::HasAudio(int id)
     return GetData(id) != nullptr;
 }
 
-std::list<std::string> SDL::GetAudioDevices() const
+std::list<std::string> SDL::GetAudioDevices()
 {
     std::list<std::string> devices;
 
@@ -341,7 +341,7 @@ AudioData::AudioData()
     _paused = false;
 }
 
-long AudioData::Tell()
+long AudioData::Tell() const
 {
     long pos = (long)(((((Uint64)(_original_len - _audio_len) / 4) * _lengthMS)) / _trackSize);
     return pos;
@@ -507,12 +507,12 @@ void SDL::Stop()
 
 // Audio Manager Functions
 
-void AudioManager::SetVolume(int volume)
+void AudioManager::SetVolume(int volume) const
 {
     __sdl.SetVolume(_sdlid, volume);
 }
 
-int AudioManager::GetVolume()
+int AudioManager::GetVolume() const
 {
     return __sdl.GetVolume(_sdlid);
 }
@@ -527,7 +527,7 @@ void AudioManager::SetGlobalVolume(int volume)
     __sdl.SetGlobalVolume(volume);
 }
 
-void AudioManager::Seek(long pos)
+void AudioManager::Seek(long pos) const
 {
 	if (pos < 0 || pos > _lengthMS)
 	{
@@ -540,7 +540,6 @@ void AudioManager::Seek(long pos)
 void AudioManager::Pause()
 {
     __sdl.Pause(_sdlid, true);
-    //__sdl.Pause();
 	_media_state = MEDIAPLAYINGSTATE::PAUSED;
 }
 
@@ -592,13 +591,13 @@ void AudioManager::SetPlaybackRate(float rate)
     __sdl.SetRate(rate);
 }
 
-MEDIAPLAYINGSTATE AudioManager::GetPlayingState()
+MEDIAPLAYINGSTATE AudioManager::GetPlayingState() const
 {
     return _media_state;
 }
 
 // return where in the file we are up to playing
-long AudioManager::Tell()
+long AudioManager::Tell() const
 {
     return __sdl.Tell(_sdlid);
 }
@@ -750,7 +749,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     }
 }
 
-std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id)
+std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const
 {
 	std::list<float> res;
 	int outcount = n / 2 + 1;
@@ -832,7 +831,6 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
     // Initialise Polyphonic Transcription
     _vamp.GetAllAvailablePlugins(this); // this initialises Vamp
     Vamp::Plugin* pt = _vamp.GetPlugin("Polyphonic Transcription");
-    size_t pref_step;
 
     if (pt == nullptr)
     {
@@ -847,7 +845,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
             frames++;
         }
 
-        pref_step = pt->getPreferredStepSize();
+        size_t pref_step = pt->getPreferredStepSize();
         size_t pref_block = pt->getPreferredBlockSize();
 
         int channels = GetChannels();
@@ -874,9 +872,7 @@ void AudioManager::DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManager
                 lastProgress = progress;
             }
             pdata[0] = GetLeftDataPtr(start);
-            //pdata[0] = GetRightDataPtr(start);
             pdata[1] = GetRightDataPtr(start);
-            //pdata[1] = GetLeftDataPtr(start);
 
             Vamp::RealTime timestamp = Vamp::RealTime::frame2RealTime(start, GetRate());
             Vamp::Plugin::FeatureSet features = pt->process(pdata, timestamp);
@@ -1393,7 +1389,7 @@ int AudioManager::decodebitrateindex(int bitrateindex, int version, int layertyp
 }
 
 // Decode samplerate
-int AudioManager::decodesamplerateindex(int samplerateindex, int version)
+int AudioManager::decodesamplerateindex(int samplerateindex, int version) const
 {
 	switch (version)
 	{
@@ -1444,7 +1440,7 @@ int AudioManager::decodesamplerateindex(int samplerateindex, int version)
 }
 
 // Decode side info
-int AudioManager::decodesideinfosize(int version, int mono) const
+int AudioManager::decodesideinfosize(int version, int mono)
 {
 	if (version == 3) // v1
 	{
@@ -1551,10 +1547,9 @@ void AudioManager::SplitTrackDataAndNormalize(signed short* trackData, long trac
 // NOrmalise mono track data
 void AudioManager::NormalizeMonoTrackData(signed short* trackData, long trackSize, float* leftData)
 {
-    signed short lSample;
     for(size_t i=0; i<trackSize; i++)
     {
-        lSample = trackData[i];
+        signed short lSample = trackData[i];
         leftData[i] = (float)lSample/(float)32768;
     }
 }
@@ -1744,8 +1739,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
-	struct SwrContext *au_convert_ctx;
-	au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
+	struct SwrContext *au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
 		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
 	swr_init(au_convert_ctx);
 
@@ -1788,7 +1782,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 					{
 						// I dont understand why this happens ... add logging when i can
                         // I have seen this happen with a wma file ... but i dont know why
-						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%i", (long)_trackSize) +"] .");
+						logger_base.warn("DoLoadAudioData: This shouldnt happen ... read ["+ wxString::Format("%i", (long)read) +"] + nb_samples ["+ wxString::Format("%i", outSamples) +"] > _tracksize ["+ wxString::Format("%ld", (long)_trackSize) +"] .");
 
                         // override the track size
                         _trackSize = read + outSamples;
@@ -1799,8 +1793,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
 					for (int i = 0; i < outSamples; i++)
 					{
-						int16_t s;
-						s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+						int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
 						_data[0][read + i] = ((float)s) / (float)0x8000;
 						if (_channels > 1)
 						{
@@ -1852,8 +1845,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 
 				for (int i = 0; i < outSamples; i++)
 				{
-					int16_t s;
-					s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
+					int16_t s = *(int16_t*)(out_buffer + i * sizeof(int16_t) * out_channels);
 					_data[0][read + i] = ((float)s) / (float)0x8000;
 					if (_channels > 1)
 					{
@@ -2036,7 +2028,7 @@ float* AudioManager::GetLeftDataPtr(long offset)
     wxASSERT(_data[0] != nullptr);
 	if (offset > _trackSize)
 	{
-		return 0;
+		return nullptr;
 	}
 	return &_data[0][offset];
 }
@@ -2054,7 +2046,7 @@ float* AudioManager::GetRightDataPtr(long offset)
     wxASSERT(_data[1] != nullptr);
 	if (offset > _trackSize)
 	{
-		return 0;
+		return nullptr;
 	}
 	return &_data[1][offset];
 }

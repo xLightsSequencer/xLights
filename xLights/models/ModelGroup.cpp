@@ -54,11 +54,14 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
 }
 
 void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+
+    if (m == nullptr) return;
+
     if (m->GetDisplayAs() == "ModelGroup")
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
-            for (auto it = g->Models().begin(); it != g->Models().end(); it++) {
+            for (auto it = g->Models().begin(); it != g->Models().end(); ++it) {
                 LoadRenderBufferNodes(*it, type, newNodes, bufferWi, bufferHi);
             }
         }
@@ -228,9 +231,8 @@ bool ModelGroup::Reset(bool zeroBased) {
     return true;
 }
 
-ModelGroup::~ModelGroup()
-{
-}
+ModelGroup::~ModelGroup() {}
+
 void ModelGroup::AddModel(const std::string &name) {
     wxString newVal = ModelXml->GetAttribute("models", "");
     if (newVal.size() > 0) {
@@ -241,6 +243,7 @@ void ModelGroup::AddModel(const std::string &name) {
     ModelXml->AddAttribute("models", newVal);
     Reset();
 }
+
 void ModelGroup::ModelRemoved(const std::string &oldName) {
     bool changed = false;
     wxString newVal;
@@ -260,6 +263,7 @@ void ModelGroup::ModelRemoved(const std::string &oldName) {
         Reset();
     }
 }
+
 bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &newName) {
     bool changed = false;
     wxString newVal;

@@ -16,7 +16,7 @@
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/gifdecod.h>
-#include <wx/wfstream.h>
+//#include <wx/wfstream.h>
 #include <wx/image.h>
 
 #include "../../include/pictures-16.xpm"
@@ -279,9 +279,9 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->PixelsByFrame.clear();
     if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
 
-    //read channel values from Vixen grid or routine:
-    //    std::vector<std::vector<std::pair<int, byte>>> ChannelsByFrame; //list of channel#s by frame and their associated value
-    int numch = 0, chbase = 0, nodesize = 1;
+    int numch = 0;
+    //int chbase = 0; - doesnt seem to be used - KW
+    int nodesize = 1;
     for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
     {
         std::string::size_type ofs;
@@ -292,7 +292,7 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
         static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
         if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
         {
-            chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1));
+            //chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1)); - doesnt seem to be used - KW
             continue;
         }
         static wxRegEx nodesize_re("^\\s*ChannelsPerNode\\s*=\\s*([13])\\s*$", wxRE_ICASE);
