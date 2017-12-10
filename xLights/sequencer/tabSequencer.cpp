@@ -1530,7 +1530,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         return;
     }
 
-    if (selectedEffect != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+    // grab a copy of the pointer in case user clicks off the effect
+    Effect* eff = selectedEffect;
+
+    if (eff != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
@@ -1538,12 +1541,12 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
 
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
-            if (name !=  selectedEffect->GetEffectName()) {
-                selectedEffect->SetEffectName(name.ToStdString());
-                selectedEffect->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
+            if (name !=  eff->GetEffectName()) {
+                eff->SetEffectName(name.ToStdString());
+                eff->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
             }
 
-            EffectLayer* el = selectedEffect->GetParentEffectLayer();
+            EffectLayer* el = eff->GetParentEffectLayer();
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
             if (el == nullptr)
@@ -1560,21 +1563,21 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             }
 
             //check for undo capture
-            if( selectedEffectName != selectedEffect->GetEffectName() )
+            if( selectedEffectName != eff->GetEffectName() )
             {
                 mSequenceElements.get_undo_mgr().CreateUndoStep();
-                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), selectedEffect->GetID(), selectedEffectString, selectedEffectPalette );
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
             }
 
-            selectedEffect->SetSettings(effectText, true);
-            selectedEffect->SetPalette(palette);
+            eff->SetSettings(effectText, true);
+            eff->SetPalette(palette);
 
-            selectedEffectName = selectedEffect->GetEffectName();
+            selectedEffectName = eff->GetEffectName();
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
 
-            playStartTime = selectedEffect->GetStartTimeMS();
-            playEndTime = selectedEffect->GetEndTimeMS();
+            playStartTime = eff->GetStartTimeMS();
+            playEndTime = eff->GetEndTimeMS();
             playStartMS = -1;
 
             // Update if effect has been modified
@@ -1590,7 +1593,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             RenderableEffect *ef = GetEffectManager().GetEffect(selectedEffectName);
             if (ef != nullptr)
             {
-                colorPanel->SetSupports(ef->SupportsLinearColorCurves(selectedEffect->GetSettings()), ef->SupportsRadialColorCurves(selectedEffect->GetSettings()));
+                colorPanel->SetSupports(ef->SupportsLinearColorCurves(eff->GetSettings()), ef->SupportsRadialColorCurves(eff->GetSettings()));
             }
 
             return;
