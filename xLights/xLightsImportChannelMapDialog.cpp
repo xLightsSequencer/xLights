@@ -60,6 +60,7 @@ class ColorRenderer : public wxDataViewCustomRenderer
 public:
     ColorRenderer() : wxDataViewCustomRenderer(GetDefaultType(), wxDATAVIEW_CELL_ACTIVATABLE)
     {
+        _color = *wxWHITE;
     }
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
@@ -102,8 +103,12 @@ public:
 
     virtual bool SetValue(const wxVariant &value) override
     {
-        _color = wxColor(value.GetString());
-        return true;
+        if (value.GetString() != "")
+        {
+            _color = wxColor(value.GetString());
+            return true;
+        }
+        return false;
     }
 };
 
@@ -942,23 +947,20 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     if (mni != nullptr)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        mni->_mapping = mapping;
-                        mni->_color = color;
-                        dataModel->ValueChanged(item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
                     }
                     else if (msi != nullptr)
                     {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                        msi->_mapping = mapping;
-                        msi->_color = color;
-                        dataModel->ValueChanged(item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
                     }
                     else
                     {
                         wxDataViewItem item = FindItem(model.ToStdString());
-                        mi->_mapping = mapping;
-                        mi->_color = color;
-                        dataModel->ValueChanged(item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
                     }
                 }
             }
@@ -994,6 +996,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
         }
     }
     MarkUsed();
+    TreeListCtrl_Mapping->Refresh();
 }
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
