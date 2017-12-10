@@ -108,7 +108,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
 }
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, int timing) {
-    for (auto it = model.Models().begin(); it != model.Models().end(); it++) {
+    for (auto it = model.Models().begin(); it != model.Models().end(); ++it) {
 
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);

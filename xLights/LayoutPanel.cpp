@@ -2745,7 +2745,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                     CallAfter(&LayoutPanel::UpdateModelList, true);
                 }
 
-//                xlights->AllModels.Rename(sel.ToStdString(), name.ToStdString());
                 xlights->UpdateModelsList();
                 xlights->MarkEffectsFileDirty(true);
                 model_grp_panel->UpdatePanel(name.ToStdString());

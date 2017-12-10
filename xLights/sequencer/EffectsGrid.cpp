@@ -2689,18 +2689,16 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
                 if (!el->HitTestEffectByTime(startTime, effectIndex)) {
                     Effect* eff = tel->GetEffect(mRangeStartCol);
 
-                    if (eff == nullptr)
+                    if (eff != nullptr)
                     {
-                        logger_base.crit("EffectsGrid::CheckForPartialCell eff is nullptr ... this is going to crash.");
-                    }
-
-                    mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
-                    mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
-                    mDropStartTimeMS = eff->GetStartTimeMS();
-                    mDropEndTimeMS = eff->GetEndTimeMS();
-                    mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
-                    if (AdjustDropLocations(x_pos, el)) {
-                        mPartialCellSelected = true;
+                        mDropStartX = mTimeline->GetPositionFromTimeMS(eff->GetStartTimeMS());
+                        mDropEndX = mTimeline->GetPositionFromTimeMS(eff->GetEndTimeMS());
+                        mDropStartTimeMS = eff->GetStartTimeMS();
+                        mDropEndTimeMS = eff->GetEndTimeMS();
+                        mDropRow = mRangeStartRow - mSequenceElements->GetFirstVisibleModelRow();
+                        if (AdjustDropLocations(x_pos, el)) {
+                            mPartialCellSelected = true;
+                        }
                     }
                 }
             }
@@ -5612,10 +5610,10 @@ void EffectsGrid::magnify(wxMouseEvent& event) {
 void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
 {
     magSinceLast = 0;
-    if(event.CmdDown())
+    if (event.CmdDown())
     {
         int i = event.GetWheelRotation();
-        if(i<0)
+        if (i < 0)
         {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_OUT);
@@ -5701,27 +5699,31 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
 Element* EffectsGrid::GetActiveTimingElement()
 {
     Element* returnValue=nullptr;
-    for(int row=0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
+    
+    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;
-        if(e->GetType() == ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
+        if (e->GetType() == ELEMENT_TYPE_TIMING && dynamic_cast<TimingElement*>(e)->GetActive())
         {
             returnValue = e;
             break;
         }
     }
+
     return returnValue;
 }
 
 void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight)
 {
-    int left,right;
+    int left;
+    int right;
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for(int row=0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
+
+    for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
-        el->GetMaximumRangeOfMovementForSelectedEffects(left,right);
+        el->GetMaximumRangeOfMovementForSelectedEffects(left, right);
         toLeft = toLeft < left ? toLeft : left;
         toRight = toRight < right ? toRight : right;
     }
@@ -5729,6 +5731,8 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight
 
 void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     // Tag all selected effects so we don't move them twice
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
@@ -5736,6 +5740,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
         for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer A was NULL ... this is going to crash.");
             el->MoveAllSelectedEffects(deltaMS, mSequenceElements->get_undo_mgr());
         }
     } else {
@@ -5744,6 +5749,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
         for(int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer B was NULL ... this is going to crash.");
             if (el->GetSelectedEffectCount() > 0) {
                 if (start_row == -1) {
                     start_row = row;
@@ -5757,6 +5763,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
         for(int row = start_row; row <= end_row; row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer C was NULL ... this is going to crash.");
             if( mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_MOVE) {
                 el->MoveAllSelectedEffects(delta_step*(row-start_row), mSequenceElements->get_undo_mgr());
             } else {

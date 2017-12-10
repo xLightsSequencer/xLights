@@ -291,11 +291,13 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
     }
     return changed;
 }
+
 void ModelGroup::CheckForChanges() const {
     unsigned long l = 0;
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         l += (*it)->GetChangeCount();
     }
+
     if (l != changeCount) {
         ModelGroup *group = (ModelGroup*)this;
         group->Reset();

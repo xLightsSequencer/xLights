@@ -482,21 +482,28 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     {
         buffer.needToInit = false;
         scale_image = true;
+
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
-
         if (cache->imageCount <= 0)
         {
             logger_base.error("Image %s reports %d frames which is invalid.", (const char *)NewPictureName.c_str(), cache->imageCount);
-        }
 
-        if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
-        {
-            logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
+            // override it to 1 and create a default black image
+            cache->imageCount = 1;
             image.Create(5, 5, true);
         }
+        else
+        {
+            if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0))
+            {
+                logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
+                image.Create(5, 5, true);
+            }
+        }
+
         rawimage = image;
-        cache->PictureName=NewPictureName;
+        cache->PictureName = NewPictureName;
 
         if (cache->imageCount > 1)
         {
@@ -525,7 +532,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
             return;
     }
 
-    if(cache->imageCount > 1) {
+    if (cache->imageCount > 1) {
 
         //animated Gif,
         scale_image = true;
@@ -805,9 +812,9 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     {
         c = xlBLACK;
         xlColor color;
-        for(int x=0; x<BufferWi; x++)
+        for (int x = 0; x<BufferWi; x++)
         {
-            for(int y=0; y<BufferHt; y++)
+            for (int y = 0; y<BufferHt; y++)
             {
                 if(rand01() > 0.5)
                 {
