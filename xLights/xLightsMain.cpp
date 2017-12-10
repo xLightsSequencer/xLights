@@ -3586,7 +3586,7 @@ void xLightsFrame::RemovePreviewOption(LayoutGroup* grp)
 void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 {
     wxMenuItem* item = MenuItemPreviews->FindItem(event.GetId());
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             if( grp->GetMenuItem() == item ) {
@@ -3599,7 +3599,7 @@ void xLightsFrame::ShowHidePreviewWindow(wxCommandEvent& event)
 void xLightsFrame::ShowHideAllPreviewWindows(wxCommandEvent& event)
 {
     wxMenuItem* first_item = MenuItemPreviews->GetMenuItems().GetFirst()->GetData();
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             grp->ShowPreview(first_item->IsChecked());

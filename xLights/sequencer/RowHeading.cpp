@@ -39,6 +39,8 @@ const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -260,6 +262,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (!mCanPaste) {
             menu_paste->Enable(false);
         }
+        mnuLayer.Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Row Effects");
+        mnuLayer.Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Model Effects");
     }
     else
     {
@@ -606,6 +610,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
+        if (layer_index < element->GetEffectLayerCount())
+        {
+            element->GetEffectLayer(layer_index)->RemoveAllEffects();
+        }
+    } else if (id == ID_ROW_MNU_DELETE_MODEL_EFFECTS) {
+        for (int i = 0; i < element->GetEffectLayerCount(); ++i)
+        {
+            while (element->GetEffectLayer(i)->GetEffectCount() > 0)
+            {
+                element->GetEffectLayer(i)->RemoveAllEffects();
+            }
+        }
     } else if (id == ID_ROW_MNU_PASTE_ROW) {
         wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
         pasteRowEvent.SetInt(mSelectedRow);
