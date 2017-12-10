@@ -5674,7 +5674,15 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool up
     }
     // Place effect pointer in client data
     SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
-    wxPostEvent(GetParent(), eventEffectChanged);
+
+    //Mouse events and custom events do not always occur in the correct order, which causes crashes in AC mode.
+    if(IsACActive()){
+        //Therefore perform the actions synchronously
+        GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
+    }
+    else{
+        wxPostEvent(GetParent(), eventEffectChanged);
+    }
 }
 
 void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect)
@@ -5685,7 +5693,15 @@ void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool ren
     playArgs->effect = effect;
     playArgs->renderEffect = renderEffect;
     eventPlayModelEffect.SetClientData(playArgs);
-    wxPostEvent(GetParent(), eventPlayModelEffect);
+
+    //Mouse events and custom events do not always occur in the correct order, which causes crashes in AC mode.
+    if(IsACActive()){
+        //Therefore perform the actions synchronously
+        GetParent()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
+    }
+    else{
+        wxPostEvent(GetParent(), eventPlayModelEffect);
+    }
 }
 
 void EffectsGrid::RaiseEffectDropped(int x, int y)
