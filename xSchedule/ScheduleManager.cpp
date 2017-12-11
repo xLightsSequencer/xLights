@@ -547,7 +547,7 @@ int ScheduleManager::Frame(bool outputframe)
             if (!_backgroundPlayList->IsRunning())
             {
                 _backgroundPlayList->Start(true);
-                logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             }
             _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
         }
@@ -625,7 +625,7 @@ int ScheduleManager::Frame(bool outputframe)
                     if (!_backgroundPlayList->IsRunning())
                     {
                         _backgroundPlayList->Start(true);
-                        logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                        logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                     }
                     _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
