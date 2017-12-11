@@ -110,6 +110,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     if (backgroundPlayList != "" && GetPlayList(backgroundPlayList) != nullptr)
     {
         _backgroundPlayList = new PlayList(*GetPlayList(backgroundPlayList));
+        logger_base.debug("Background playlist loaded. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
     }
 
     if (_scheduleOptions == nullptr)
@@ -240,6 +241,7 @@ ScheduleManager::~ScheduleManager()
 
     if (_backgroundPlayList != nullptr)
     {
+        logger_base.debug("Background playlist stopped and deleted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
         _backgroundPlayList->Stop();
         delete _backgroundPlayList;
         _backgroundPlayList = nullptr;
@@ -439,6 +441,7 @@ void ScheduleManager::AllOff()
         if (!_backgroundPlayList->IsRunning())
         {
             _backgroundPlayList->Start(true);
+            logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
         }
         _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), true);
 
@@ -544,6 +547,7 @@ int ScheduleManager::Frame(bool outputframe)
             if (!_backgroundPlayList->IsRunning())
             {
                 _backgroundPlayList->Start(true);
+                logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             }
             _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
         }
@@ -621,6 +625,7 @@ int ScheduleManager::Frame(bool outputframe)
                     if (!_backgroundPlayList->IsRunning())
                     {
                         _backgroundPlayList->Start(true);
+                        logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                     }
                     _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
@@ -2565,8 +2570,11 @@ PlayList* ScheduleManager::GetPlayList(int id) const
 
 void ScheduleManager::SetBackgroundPlayList(PlayList* playlist)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (playlist == nullptr && _backgroundPlayList != nullptr)
     {
+        logger_base.debug("Background playlist stopped and deleted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
         _backgroundPlayList->Stop();
         delete _backgroundPlayList;
         _backgroundPlayList = nullptr;
@@ -2577,15 +2585,18 @@ void ScheduleManager::SetBackgroundPlayList(PlayList* playlist)
         if (_backgroundPlayList == nullptr)
         {
             _backgroundPlayList = new PlayList(*playlist);
+            logger_base.debug("Background playlist loaded. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             _changeCount++;
         }
         else
         {
             if (playlist->GetId() != _backgroundPlayList->GetId())
             {
+                logger_base.debug("Background playlist stopped and deleted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                 _backgroundPlayList->Stop();
                 delete _backgroundPlayList;
                 _backgroundPlayList = new PlayList(*playlist);
+                logger_base.debug("Background playlist loaded. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                 _changeCount++;
             }
         }
@@ -2594,10 +2605,13 @@ void ScheduleManager::SetBackgroundPlayList(PlayList* playlist)
 
 void ScheduleManager::ManageBackground()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_backgroundPlayList != nullptr)
     {
         if (IsOutputToLights())
         {
+            logger_base.debug("Background playlist stopped and deleted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             _backgroundPlayList->Stop();
             int id = _backgroundPlayList->GetId();
             delete _backgroundPlayList;
@@ -2607,10 +2621,12 @@ void ScheduleManager::ManageBackground()
             {
                 _backgroundPlayList = new PlayList(*pl);
                 _backgroundPlayList->Start(true);
+                logger_base.debug("Background playlist loaded and started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             }
         }
         else
         {
+            logger_base.debug("Background playlist stopped. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             _backgroundPlayList->Stop();
             AllOff();
         }
@@ -3045,8 +3061,6 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         auto steps = (*n)->GetSteps();
         for (auto s = steps.begin(); s != steps.end(); ++s)
         {
-            int fseqcount = 0;
-
             auto items = (*s)->GetItems();
 
             for (auto i = items.begin(); i != items.end(); ++i)

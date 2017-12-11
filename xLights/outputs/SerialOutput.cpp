@@ -291,6 +291,8 @@ bool SerialOutput::Open()
     {
         _serial = new SerialPort();
 
+        logger_base.debug("Opening serial port %s. Baud rate = %d. Config = %s.", (const char *)_commPort.c_str(), _baudRate, (const char *)_serialConfig);
+
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0)
         {
@@ -318,6 +320,10 @@ bool SerialOutput::Open()
                 errcode);
             wxMessageBox(msg, _("Communication Error"), wxOK);
         }
+        else
+        {
+            logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+        }
     }
 
     return _ok;
@@ -325,6 +331,7 @@ bool SerialOutput::Open()
 
 void SerialOutput::Close()
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_serial != nullptr)
     {
         // throw away any pending data
@@ -339,6 +346,7 @@ void SerialOutput::Close()
         _serial->Close();
         delete _serial;
         _serial = nullptr;
+        logger_base.debug("    Serial port %s closed.", (const char *)_commPort.c_str());
     }
 }
 #pragma endregion Start and Stop
