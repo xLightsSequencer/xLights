@@ -104,11 +104,11 @@ size_t MatrixMapper::Map(int x, int y) const
             {
                 if (x % 2 == 0)
                 {
-                    loc += y * 3;
+                    loc += (GetHeight() - y - 1) * 3;
                 }
                 else
                 {
-                    loc += (GetHeight() - y - 1) * 3;
+                    loc += y * 3;
                 }
             }
             else
@@ -154,11 +154,11 @@ size_t MatrixMapper::Map(int x, int y) const
             {
                 if (x % 2 == 1)
                 {
-                    loc += y * 3;
+                    loc += (GetHeight() - y - 1) * 3;
                 }
                 else
                 {
-                    loc += (GetHeight() - y - 1) * 3;
+                    loc += y * 3;
                 }
             }
             else
@@ -417,6 +417,46 @@ void MatrixMapper::Test(OutputManager* outputManager)
     wxASSERT(h_tl_o.Map(0, 0) == 17551);
     wxASSERT(h_tl_o.Map(149, 0) == 17998);
     wxASSERT(h_tl_o.Map(0, 3) == 16201);
+
+    MatrixMapper v_tr_e(outputManager, 4, 4, 600, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_e.Map(0, 0) == 6751);
+    wxASSERT(v_tr_e.Map(15, 149) == 1);
+    wxASSERT(v_tr_e.Map(0, 3) == 6760);
+
+    MatrixMapper v_tl_e(outputManager, 4, 4, 600, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_e.Map(0, 0) == 448);
+    wxASSERT(v_tl_e.Map(15, 149) == 7198);
+    wxASSERT(v_tl_e.Map(0, 3) == 439);
+
+    MatrixMapper v_tr_o(outputManager, 4, 3, 450, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_o.Map(0, 0) == 5398);
+    wxASSERT(v_tr_o.Map(11, 149) == 1);
+    wxASSERT(v_tr_o.Map(0, 3) == 5389);
+
+    MatrixMapper v_tl_o(outputManager, 4, 3, 450, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_o.Map(0, 0) == 448);
+    wxASSERT(v_tl_o.Map(11, 149) == 4951);
+    wxASSERT(v_tl_o.Map(0, 3) == 439);
+
+    MatrixMapper v_bl_e(outputManager, 4, 4, 600, "Vertical", "Bottom Left", "1", "Test");
+    wxASSERT(v_bl_e.Map(0, 0) == 1);
+    wxASSERT(v_bl_e.Map(15, 149) == 6751);
+    wxASSERT(v_bl_e.Map(0, 3) == 10);
+
+    MatrixMapper v_bl_o(outputManager, 4, 3, 450, "Vertical", "Bottom Left", "1", "Test");
+    wxASSERT(v_bl_o.Map(0, 0) == 1);
+    wxASSERT(v_bl_o.Map(11, 149) == 5398);
+    wxASSERT(v_bl_o.Map(0, 3) == 10);
+
+    MatrixMapper v_br_e(outputManager, 4, 4, 600, "Vertical", "Bottom Right", "1", "Test");
+    wxASSERT(v_br_e.Map(0, 0) == 7198);
+    wxASSERT(v_br_e.Map(15, 149) == 448);
+    wxASSERT(v_br_e.Map(0, 3) == 7189);
+
+    MatrixMapper v_br_o(outputManager, 4, 3, 450, "Vertical", "Bottom Right", "1", "Test");
+    wxASSERT(v_br_o.Map(0, 0) == 4951);
+    wxASSERT(v_br_o.Map(11, 149) == 448);
+    wxASSERT(v_br_o.Map(0, 3) == 4960);
 }
 
 MatrixMapper::MatrixMapper(OutputManager* outputManager)

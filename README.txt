@@ -29,6 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix virtual matrices not working reliably or correctly in xschedule
    -- enh (keith)  Allow play list buttons like play schedule to work even if a schedule for that playlist is selected 
    -- enh (keith)  Add delete all effects on a layer or a model
+   -- bug (keith)  Fix some bugs in calculating pixels for some vertical matrices in xSchedule
 2017.40  Dec 05, 2017
    -- enh (keith)  Add support for #universe:startchannel and output:startchannel to all xSchedule fields that define a start channel
    -- bug (keith)  Fix test dialog tooltips dont display correct models

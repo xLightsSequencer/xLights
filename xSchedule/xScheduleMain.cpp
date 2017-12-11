@@ -290,7 +290,6 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    //MatrixMapper::Test();
 
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
@@ -594,6 +593,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         logger_base.error("Error loading schedule.");
         Close();
     }
+
+    // Uncomment this to run the MatrixMapper tests
+    //MatrixMapper::Test(__schedule->GetOutputManager());
 
     wxFrame::SendSizeEvent();
     size_t rate = 50;
