@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.41  Dec 11, 2017
+   -- bug (dkulp)  Delay actually deleting effects and layers until the end of render to avoid potential crashes.
+   -- bug (dkulp)  Work on making sure selections are cleared bbefore effects are deleted
+   -- enh (dkulp)  Add undo to Delete Row Effects
+   -- bug (keith)  Fix some problems with vertical matrices in xSchedule
+   -- enh (keith)  Add some fast deleting of effects on a layer/model
+   -- bug (keith)  Fix a possible race condition when updating effect settings
    -- enh (keith/dkulp) Add model as a pixel render style for model groups ... treats models within the group as a single pixel
    -- bug (keith)  Prevent warnings about autosave newer than sequence after batch render
    -- enh (keith)  Save selected batch render items between runs of batch render
