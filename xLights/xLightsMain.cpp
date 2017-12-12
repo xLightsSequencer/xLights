@@ -5485,7 +5485,11 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                 if( start_ms+milliseconds < 0 ) {
                     if( end_ms+milliseconds < 0 ) {
                         // effect shifted off screen - delete
+                        
                         el->RemoveEffect(ef);
+                        if (eff == selectedEffect) {
+                            UnselectEffect();
+                        }
                         continue;
                     } else {
                         // truncate start of effect

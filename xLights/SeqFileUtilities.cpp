@@ -499,14 +499,6 @@ bool xLightsFrame::CloseSequence()
                 wxYield();
             }
         }
-        else
-        {
-            if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->Exists())
-            {
-                // Touch the xml file to stop a prompt when xLights tries to reopen this sequence
-                CurrentSeqXmlFile->Touch();
-            }
-        }
     }
 
     // just in case there is still rendering going on
@@ -1226,7 +1218,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
 
     if (clearSrc) {
         for (auto it = mapped.begin(); it != mapped.end(); ++it) {
-            (*it)->RemoveAllEffects();
+            (*it)->RemoveAllEffects(nullptr);
         }
     }
 }

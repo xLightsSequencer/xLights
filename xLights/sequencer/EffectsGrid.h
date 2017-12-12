@@ -120,6 +120,7 @@ public:
 
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void sendRenderDirtyEvent();
+    void UnselectEffect(bool force = false);
 protected:
     virtual void InitializeGLCanvas();
 

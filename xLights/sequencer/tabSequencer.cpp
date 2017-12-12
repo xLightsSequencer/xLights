@@ -753,7 +753,11 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
+
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
+    UnselectEffect();
+}
+void xLightsFrame::UnselectEffect(){
     if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
         playType = PLAY_TYPE_STOPPED;
         playStartTime = -1;
@@ -766,6 +770,7 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
     selectedEffectPalette = "";
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
+    mainSequencer->PanelEffectGrid->UnselectEffect(false);
 }
 
 void xLightsFrame::EffectChanged(wxCommandEvent& event)

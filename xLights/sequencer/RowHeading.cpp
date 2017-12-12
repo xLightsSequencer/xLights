@@ -611,16 +611,22 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
+        wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+        m_parent->ProcessWindowEvent(eventUnSelected);
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < element->GetEffectLayerCount())
         {
-            element->GetEffectLayer(layer_index)->RemoveAllEffects();
+            element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
         }
     } else if (id == ID_ROW_MNU_DELETE_MODEL_EFFECTS) {
+        wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+        m_parent->ProcessWindowEvent(eventUnSelected);
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
         for (int i = 0; i < element->GetEffectLayerCount(); ++i)
         {
             while (element->GetEffectLayer(i)->GetEffectCount() > 0)
             {
-                element->GetEffectLayer(i)->RemoveAllEffects();
+                element->GetEffectLayer(i)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
             }
         }
     } else if (id == ID_ROW_MNU_PASTE_ROW) {

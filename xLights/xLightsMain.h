@@ -1232,6 +1232,8 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
+    
+    void UnselectEffect();
 
 private:
 

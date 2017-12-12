@@ -112,11 +112,17 @@ void EffectLayer::DeleteEffect(int id)
     wxASSERT(false);
 }
 
-void EffectLayer::RemoveAllEffects()
+void EffectLayer::RemoveAllEffects(UndoManager *undo_mgr)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);
     for (int x = 0; x < mEffects.size(); x++) {
         IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
+        if (undo_mgr) {
+            undo_mgr->CaptureEffectToBeDeleted( mParentElement->GetModelName(), mIndex, mEffects[x]->GetEffectName(),
+                                               mEffects[x]->GetSettingsAsString(), mEffects[x]->GetPaletteAsString(),
+                                               mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS(),
+                                               mEffects[x]->GetSelected(), mEffects[x]->GetProtected() );
+        }
         mEffectsToDelete.push_back(mEffects[x]);
     }
     mEffects.clear();

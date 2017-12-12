@@ -104,6 +104,15 @@ EffectsGrid::~EffectsGrid()
 {
 }
 
+
+void EffectsGrid::UnselectEffect(bool force) {
+    if (mSelectedEffect != nullptr || force) {
+        mSelectedEffect = nullptr;
+        wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+        mParent->ProcessWindowEvent(eventUnSelected);
+    }
+}
+
 EffectLayer* EffectsGrid::FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS)
 {
     EffectLayer* layer;
@@ -1109,6 +1118,9 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                     {
                         mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
                         el->RemoveEffect(i);
+                        if (eff == mSelectedEffect) {
+                            mSelectedEffect = nullptr;
+                        }
                         --i;
                     }
                 }
@@ -1134,6 +1146,9 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                             // remove the effect we are about to replace
                             mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
                             el->RemoveEffect(i);
+                            if (eff == mSelectedEffect) {
+                                mSelectedEffect = nullptr;
+                            }
 
                             if (style == ACSTYLE::RAMPUPDOWN)
                             {
@@ -2610,10 +2625,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             if( mPartialCellSelected )
             {
                 mSelectedRow = -1;
-                mSelectedEffect = nullptr;
                 mSequenceElements->UnSelectAllEffects();
-                wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
-                wxPostEvent(mParent, eventUnSelected);
+                UnselectEffect(true);
             }
             else if( !mCellRangeSelected )
             {
@@ -2627,8 +2640,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     mPartialCellSelected = true;
                     mDropRow = row;
                     mSequenceElements->UnSelectAllEffects();
-                    wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
-                    wxPostEvent(mParent, eventUnSelected);
+                    UnselectEffect(true);
                 }
             }
         }
@@ -2648,8 +2660,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     mPartialCellSelected = true;
                     mDropRow = row;
                     mSequenceElements->UnSelectAllEffects();
-                    wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
-                    wxPostEvent(mParent, eventUnSelected);
+                    UnselectEffect(true);
                 }
             }
         }
@@ -3723,6 +3734,9 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                                                                                 ef->GetStartTimeMS(), ef->GetEndTimeMS(),
                                                                                 ef->GetSelected(), ef->GetProtected() );
                     el->DeleteEffect(ef->GetID());
+                    if (ef == mSelectedEffect) {
+                        mSelectedEffect = nullptr;
+                    }
                     EffectLayer* new_el = EffectsGrid::FindOpenLayer(element, align_start, align_end);
                     element->SetCollapsed(false);
                     Effect* new_ef = new_el->AddEffect(0,
@@ -4934,8 +4948,7 @@ void EffectsGrid::UpdateSelectedEffects()
             int num_selected = mSequenceElements->SelectEffectsInRowAndColumnRange(adjusted_start_row, end_row, start_col, end_col);
             if( num_selected != 1 )  // we don't know what to preview unless only 1 effect is selected
             {
-                wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
-                wxPostEvent(mParent, eventUnSelected);
+                UnselectEffect(true);
             }
             else
             {
