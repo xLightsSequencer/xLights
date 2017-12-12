@@ -101,6 +101,7 @@ public:
     void ClearDirtyFlags() {
         dirtyStart = dirtyEnd = -1;
     }
+    virtual void CleanupAfterRender();
     
 protected:
     EffectLayer* AddEffectLayerInternal();
@@ -113,6 +114,7 @@ protected:
     bool mCollapsed;
 
     std::vector<EffectLayer*> mEffectLayers;
+    std::list<EffectLayer *> mLayersToDelete;
     ChangeListener *listener;
     volatile int changeCount = 0;
     volatile int dirtyStart = -1;
@@ -185,6 +187,9 @@ public:
     int GetNodeLayerCount() const {
         return mNodeLayers.size();
     }
+    
+    virtual void CleanupAfterRender() override;
+
 private:
     int mStrand;
 
@@ -224,6 +229,9 @@ class ModelElement : public Element
 
         StrandElement *GetStrand(int strand, bool create = false);
         int GetStrandCount() const { return mStrands.size(); }
+    
+        virtual void CleanupAfterRender() override;
+
     protected:
     private:
         bool mStrandsVisible = false;

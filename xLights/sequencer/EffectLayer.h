@@ -3,6 +3,7 @@
 #include "wx/wx.h"
 #include <atomic>
 #include <string>
+#include <list>
 #include <mutex>
 #include "Effect.h"
 #include "UndoManager.h"
@@ -78,6 +79,8 @@ class EffectLayer
         void IncrementChangeCount(int startMS, int endMS);
 
         std::recursive_mutex &GetLock() {return lock;}
+    
+        void CleanupAfterRender();
     protected:
     private:
         void SortEffects();
@@ -90,6 +93,7 @@ class EffectLayer
         void GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &toRight);
         void GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight);
         std::vector<Effect*> mEffects;
+        std::list<Effect*> mEffectsToDelete;
         int mIndex;
         Element* mParentElement;
         std::recursive_mutex lock;

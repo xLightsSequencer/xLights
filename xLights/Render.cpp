@@ -678,6 +678,7 @@ public:
         } else {
             xLights->CallAfter(&xLightsFrame::RenderDone);
         }
+        rowToRender->CleanupAfterRender();
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
 		renderLog.debug("Rendering thread exiting.");

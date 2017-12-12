@@ -26,6 +26,19 @@ EffectLayer::~EffectLayer()
     for (int x = 0; x < mEffects.size(); x++) {
         delete mEffects[x];
     }
+    while (!mEffectsToDelete.empty()) {
+        delete *mEffectsToDelete.begin();
+        mEffectsToDelete.pop_front();
+    }
+}
+
+
+void EffectLayer::CleanupAfterRender() {
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    while (!mEffectsToDelete.empty()) {
+        delete *mEffectsToDelete.begin();
+        mEffectsToDelete.pop_front();
+    }
 }
 
 int EffectLayer::GetIndex()
@@ -77,7 +90,7 @@ void EffectLayer::RemoveEffect(int index)
         Effect *e = mEffects[index];
         mEffects.erase(mEffects.begin()+index);
         IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
-        delete e;
+        mEffectsToDelete.push_back(e);
         SortEffects();
     }
 }
@@ -90,6 +103,7 @@ void EffectLayer::DeleteEffect(int id)
         if (mEffects[i]->GetID() == id)
         {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
             SortEffects();
             return;
@@ -103,7 +117,7 @@ void EffectLayer::RemoveAllEffects()
     std::unique_lock<std::recursive_mutex> locker(lock);
     for (int x = 0; x < mEffects.size(); x++) {
         IncrementChangeCount(mEffects[x]->GetStartTimeMS(), mEffects[x]->GetEndTimeMS());
-        delete mEffects[x];
+        mEffectsToDelete.push_back(mEffects[x]);
     }
     mEffects.clear();
 }
@@ -889,6 +903,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
                                                (*it)->GetSettingsAsString(), (*it)->GetPaletteAsString(),
                                                (*it)->GetStartTimeMS(), (*it)->GetEndTimeMS(),
                                                (*it)->GetSelected(), (*it)->GetProtected() );
+            mEffectsToDelete.push_back(*it);
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
@@ -896,6 +911,7 @@ void EffectLayer::DeleteSelectedEffects(UndoManager& undo_mgr)
 void EffectLayer::DeleteEffectByIndex(int idx) {
     std::unique_lock<std::recursive_mutex> locker(lock);
     IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
+    mEffectsToDelete.push_back(mEffects[idx]);
     mEffects.erase(mEffects.begin()+idx);
 }
 

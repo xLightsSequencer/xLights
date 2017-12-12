@@ -16,8 +16,24 @@ Element::~Element() {
     for (size_t x = 0; x < mEffectLayers.size(); x++) {
         delete mEffectLayers[x];
     }
+    while (!mLayersToDelete.empty()) {
+        delete *mLayersToDelete.begin();
+        mLayersToDelete.pop_front();
+    }
     mEffectLayers.clear();
 }
+
+void Element::CleanupAfterRender() {
+    for (auto &a : mEffectLayers) {
+        a->CleanupAfterRender();
+    }
+    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    while (!mLayersToDelete.empty()) {
+        delete *mLayersToDelete.begin();
+        mLayersToDelete.pop_front();
+    }
+}
+
 std::string Element::GetFullName() const {
     return mName;
 }
@@ -114,7 +130,7 @@ void Element::RemoveEffectLayer(int index)
     std::unique_lock<std::recursive_mutex> lock(changeLock);
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
-    delete l;
+    mLayersToDelete.push_back(l);
     IncrementChangeCount(-1, -1);
 }
 
@@ -177,6 +193,14 @@ StrandElement::~StrandElement() {
     }
     mNodeLayers.clear();
 }
+
+void StrandElement::CleanupAfterRender() {
+    for (auto &a : mNodeLayers) {
+        a->CleanupAfterRender();
+    }
+    Element::CleanupAfterRender();
+}
+
 NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
     while (create && n >= mNodeLayers.size()) {
         mNodeLayers.push_back(new NodeLayer(this));
@@ -244,7 +268,15 @@ ModelElement::~ModelElement()
     }
     mSubModels.clear();
 }
-
+void ModelElement::CleanupAfterRender() {
+    for (auto &a : mStrands) {
+        a->CleanupAfterRender();
+    }
+    for (auto &a : mSubModels) {
+        a->CleanupAfterRender();
+    }
+    Element::CleanupAfterRender();
+}
 
 int ModelElement::GetWaitCount() {
     return waitCount;
