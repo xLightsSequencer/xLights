@@ -1,0 +1,36 @@
+diff --git a/src/generic/graphicc.cpp b/src/generic/graphicc.cpp
+index e5583801ce..fea430182e 100644
+--- a/src/generic/graphicc.cpp
++++ b/src/generic/graphicc.cpp
+@@ -1008,6 +1008,10 @@ wxCairoFontData::wxCairoFontData(wxGraphicsRenderer* renderer,
+                                  int flags,
+                                  const wxColour& col) :
+     wxGraphicsObjectRefData(renderer)
++#ifdef __WXGTK__
++    , m_wxfont(wxFontInfo(wxSize(sizeInPixels, sizeInPixels))
++                .AllFlags(flags).FaceName(facename))
++#endif
+ {
+     InitColour(col);
+ 
+diff --git a/src/gtk/button.cpp b/src/gtk/button.cpp
+index 7329f8a3d4..718d149fda 100644
+--- a/src/gtk/button.cpp
++++ b/src/gtk/button.cpp
+@@ -124,8 +124,15 @@ bool wxButton::Create(wxWindow *parent,
+     if ( useLabel )
+         SetLabel(label);
+ 
+-    if (style & wxNO_BORDER)
++    if (style & wxNO_BORDER) {
+        gtk_button_set_relief( GTK_BUTTON(m_widget), GTK_RELIEF_NONE );
++       GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(m_widget));
++       //style->bg[GTK_STATE_PRELIGHT] = style->bg[GTK_STATE_NORMAL];
++       style->xthickness=0;
++       style->ythickness=0;
++       gtk_container_set_border_width(GTK_CONTAINER(m_widget),0);
++       gtk_widget_set_style(GTK_WIDGET(m_widget), style);
++    }
+ 
+     g_signal_connect_after (m_widget, "clicked",
+                             G_CALLBACK (wxgtk_button_clicked_callback),
