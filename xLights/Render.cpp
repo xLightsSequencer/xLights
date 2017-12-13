@@ -306,6 +306,8 @@ public:
     wxGauge *GetGauge() const { return gauge;}
     void SetGauge(wxGauge *g) { gauge = g;}
     int GetCurrentFrame() const { return currentFrame;}
+    int GetEndFrame() const { return endFrame;}
+    int GetStartFrame() const { return startFrame;}
 
     const std::string GetName() const override {
         return name;
@@ -820,6 +822,33 @@ public:
     std::list<Model *> restriction;
 };
 
+void xLightsFrame::LogRenderStatus() 
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Logging render status ***************");
+    logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
+    logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it)
+    {
+        int frames = (*it)->endFrame - (*it)->startFrame + 1;
+        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", (*it)->numRows, (*it)->startFrame, (*it)->endFrame, frames);
+        for (int i = 0; i < (*it)->numRows; i++)
+        {
+            if ((*it)->jobs[i] != nullptr)
+            {
+                int curFrame = (*it)->jobs[i]->GetCurrentFrame();
+                if (curFrame >(*it)->endFrame || curFrame == END_OF_RENDER_FRAME)
+                {
+                    curFrame = (*it)->endFrame;
+                }
+
+                logger_base.debug("    Progress %s - %ld%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), (long)(curFrame - (*it)->startFrame + 1) * 100 / frames);
+            }
+        }
+    }
+    logger_base.debug("*************************************");
+}
+
 static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
         return true;
@@ -874,15 +903,21 @@ void xLightsFrame::UpdateRenderStatus() {
 
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
-                if (i > rpi->endFrame) {
+                if (i > rpi->jobs[row]->GetEndFrame()) {
                     i = END_OF_RENDER_FRAME;
                 }
                 if (i != END_OF_RENDER_FRAME) {
                     done = false;
                 }
+                if (rpi->jobs[row]->GetEndFrame() > rpi->endFrame) {
+                    frames += rpi->jobs[row]->GetEndFrame() - rpi->endFrame;
+                }
+                if (rpi->jobs[row]->GetStartFrame() < rpi->startFrame) {
+                    frames += rpi->startFrame - rpi->jobs[row]->GetStartFrame();
+                }
                 ++countModels;
                 if (i == END_OF_RENDER_FRAME) {
-                    countFrames += rpi->endFrame - rpi->startFrame + 1;
+                    countFrames += rpi->jobs[row]->GetEndFrame() - rpi->jobs[row]->GetStartFrame() + 1;
                     if (shown) {
                         wxGauge *g = rpi->jobs[row]->GetGauge();
                         if (g != nullptr && g->GetValue() != 100) {
@@ -890,7 +925,7 @@ void xLightsFrame::UpdateRenderStatus() {
                         }
                     }
                 } else {
-                    i -= rpi->startFrame;
+                    i -= rpi->jobs[row]->GetStartFrame();
                     if (shown) {
                         int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
                         wxGauge *g = rpi->jobs[row]->GetGauge();

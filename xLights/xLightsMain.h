@@ -516,6 +516,7 @@ private:
     void OnMenuItemBatchRenderSelected(wxCommandEvent& event);
     void OnMenuItem_UpdateSelected(wxCommandEvent& event);
     void OnMenuItem_SmallWaveformSelected(wxCommandEvent& event);
+    void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
     //*)
 
     void OnIdle(wxIdleEvent& event);
@@ -630,6 +631,7 @@ private:
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long ID_MNU_CRASH;
+    static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENUITEM5;
     static const long MNU_ID_ACLIGHTS;
     static const long ID_MNU_SHOWRAMPS;
@@ -887,6 +889,7 @@ private:
     xlAuiToolBar* EditToolBar;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
+    wxMenuItem* MenuItem_LogRenderState;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
     xlAuiToolBar* ACToolbar;
     //*)
@@ -1058,6 +1061,7 @@ public:
     void RenderGridToSeqData(std::function<void()>&& callback);
     bool AbortRender();
     void UpdateRenderStatus();
+    void LogRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, SettingsMap& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false, RenderEvent *event = nullptr);

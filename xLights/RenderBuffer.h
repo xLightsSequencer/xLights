@@ -28,6 +28,7 @@
 #include <map>
 #include <list>
 #include <vector>
+#include <atomic>
 #include <wx/colour.h>
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
@@ -409,6 +410,8 @@ public:
     void GetPixel(int x, int y, xlColor &color);
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
+    void SetNodePixel(int nodeNum, const xlColor &color);
+    
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x);
 
@@ -487,9 +490,9 @@ public:
     int tempInt;
     int tempInt2;
 
-    std::vector<NodeBaseClassPtr> Nodes;
-
 private:
+    friend class PixelBufferClass;
+    std::vector<NodeBaseClassPtr> Nodes;
     PathDrawingContext *_pathDrawingContext;
     TextDrawingContext *_textDrawingContext;
 };

@@ -1134,6 +1134,10 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     {
         MenuItem_CrashXLights->Enable();
     }
+    if (MenuItem_LogRenderState != nullptr)
+    {
+        MenuItem_LogRenderState->Enable();
+    }
 }
 
 //modifed for partially random -DJ

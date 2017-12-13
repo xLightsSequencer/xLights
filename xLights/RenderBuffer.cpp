@@ -560,7 +560,7 @@ RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 }
 
 RenderBuffer::~RenderBuffer()
-{
+{    
     //dtor
     if (_textDrawingContext != nullptr) {
         TextDrawingContext::ReleaseContext(_textDrawingContext);
@@ -826,6 +826,13 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         pixels[y*BufferWi+x] = hsv;
+    }
+}
+void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color) {
+    if (nodeNum < Nodes.size()) {
+        for (auto &a : Nodes[nodeNum]->Coords) {
+            SetPixel(a.bufX, a.bufY, color);
+        }
     }
 }
 
