@@ -169,7 +169,7 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
 
     if (channels > 0)
     {
-        Blend(buffer, buffersize, _frameBuffer, std::min(_channelsPerFrame, channels), applyMethod, offset);
+        Blend(buffer, buffersize, _frameBuffer + offset, std::min(_channelsPerFrame, channels), applyMethod, offset);
     }
     else
     {
