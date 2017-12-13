@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix crash when actions generate a ton of render events for the same models (like mouse resize of effect)
 2017.41  Dec 11, 2017
    -- bug (dkulp)  Delay actually deleting effects and layers until the end of render to avoid potential crashes.
    -- bug (dkulp)  Work on making sure selections are cleared bbefore effects are deleted

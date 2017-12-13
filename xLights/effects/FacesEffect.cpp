@@ -959,12 +959,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 auto it2 = cache->nodeNameCache.find(valstr.ToStdString());
                 if (it2 != cache->nodeNameCache.end()) {
                     int n = it2->second;
-                    if (n < buffer.Nodes.size())
-                    {
-                        for (auto a = buffer.Nodes[n]->Coords.begin(); a != buffer.Nodes[n]->Coords.end(); ++a) {
-                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
-                        }
-                    }
+                    buffer.SetNodePixel(n, colors[t]);
                 }
             } else if (type == 1) {
                 int start, end;
@@ -981,11 +976,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 start--;
                 end--;
                 for (int n = start; n <= end; n++) {
-                    if (n < buffer.Nodes.size()) {
-                        for (auto a = buffer.Nodes[n]->Coords.begin() ; a != buffer.Nodes[n]->Coords.end(); a++) {
-                            buffer.SetPixel(a->bufX, a->bufY, colors[t]);
-                        }
-                    }
+                    buffer.SetNodePixel(n, colors[t]);
                 }
             }
         }

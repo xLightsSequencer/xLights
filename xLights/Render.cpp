@@ -306,6 +306,8 @@ public:
     wxGauge *GetGauge() const { return gauge;}
     void SetGauge(wxGauge *g) { gauge = g;}
     int GetCurrentFrame() const { return currentFrame;}
+    int GetEndFrame() const { return endFrame;}
+    int GetStartFrame() const { return startFrame;}
 
     const std::string GetName() const override {
         return name;
@@ -901,15 +903,21 @@ void xLightsFrame::UpdateRenderStatus() {
 
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
-                if (i > rpi->endFrame) {
+                if (i > rpi->jobs[row]->GetEndFrame()) {
                     i = END_OF_RENDER_FRAME;
                 }
                 if (i != END_OF_RENDER_FRAME) {
                     done = false;
                 }
+                if (rpi->jobs[row]->GetEndFrame() > rpi->endFrame) {
+                    frames += rpi->jobs[row]->GetEndFrame() - rpi->endFrame;
+                }
+                if (rpi->jobs[row]->GetStartFrame() < rpi->startFrame) {
+                    frames += rpi->startFrame - rpi->jobs[row]->GetStartFrame();
+                }
                 ++countModels;
                 if (i == END_OF_RENDER_FRAME) {
-                    countFrames += rpi->endFrame - rpi->startFrame + 1;
+                    countFrames += rpi->jobs[row]->GetEndFrame() - rpi->jobs[row]->GetStartFrame() + 1;
                     if (shown) {
                         wxGauge *g = rpi->jobs[row]->GetGauge();
                         if (g != nullptr && g->GetValue() != 100) {
@@ -917,7 +925,7 @@ void xLightsFrame::UpdateRenderStatus() {
                         }
                     }
                 } else {
-                    i -= rpi->startFrame;
+                    i -= rpi->jobs[row]->GetStartFrame();
                     if (shown) {
                         int val = (i > rpi->endFrame) ? 100 : (100 * i)/frames;
                         wxGauge *g = rpi->jobs[row]->GetGauge();
