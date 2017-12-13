@@ -128,19 +128,3 @@ cbp2make -in xLights.cbp -cfg ../cbp2make.cfg -out xLights.cbp.mak --with-deps -
 
 This will be run automatically at compile time if cbp2make is installed.
 
-==============================================================================
-
-== Patch required for wxWidgets 3.1 due to http://trac.wxwidgets.org/ticket/17683 ==
-127c127
-<     if (style & wxNO_BORDER)
----
->     if (style & wxNO_BORDER) {
-128a129,135
->        GtkStyle *style = gtk_widget_get_style(GTK_WIDGET(m_widget));
->        style->xthickness=0;
->        style->ythickness=0;
->        gtk_widget_set_style(GTK_WIDGET(m_widget), style);
->        gtk_widget_set_can_default(GTK_WIDGET(m_widget), false);
->        gtk_widget_set_can_focus(GTK_WIDGET(m_widget), false);
->     }
-== End of patch ==

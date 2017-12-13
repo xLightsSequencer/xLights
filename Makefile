@@ -50,8 +50,8 @@ wxwidgets31: FORCE
 			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
 			tar xfj wxWidgets-3.1.0.tar.bz2; \
 		fi; \
-		sed '/^== Patch/,$!d' README.linux |grep -v '^==' | patch wxWidgets-3.1.0/src/gtk/button.cpp;\
 		cd wxWidgets-3.1.0;\
+		    patch -p1 < ../lib/linux/wxwidgets-31.patch;\
 			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff; \
 			echo Building wxwidgets; \
 			${MAKE} -s; \
