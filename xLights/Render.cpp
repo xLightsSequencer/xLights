@@ -820,6 +820,27 @@ public:
     std::list<Model *> restriction;
 };
 
+void xLightsFrame::LogRenderStatus() 
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Logging render status ***************");
+    logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
+    logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
+    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it)
+    {
+        int frames = (*it)->endFrame - (*it)->startFrame + 1;
+        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", (*it)->numRows, (*it)->startFrame, (*it)->endFrame, frames);
+        for (int i = 0; i < (*it)->numRows; i++)
+        {
+            if ((*it)->jobs[i] != nullptr)
+            {
+                logger_base.debug("    Progress %s - %d%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), ((*it)->jobs[i]->GetCurrentFrame() - (*it)->startFrame) * 100 / frames);
+            }
+        }
+    }
+    logger_base.debug("*************************************");
+}
+
 static bool HasEffects(ModelElement *me) {
     if (me->HasEffects()) {
         return true;

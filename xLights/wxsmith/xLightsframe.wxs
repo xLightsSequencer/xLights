@@ -1121,6 +1121,10 @@
 					<label>Crash xLights</label>
 					<handler function="OnMenuItem_CrashXLightsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_DUMPRENDERSTATE" variable="MenuItem_LogRenderState" member="yes">
+					<label>Log Render State</label>
+					<handler function="OnMenuItem_LogRenderStateSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuView" member="yes">
 				<label>&amp;View</label>
