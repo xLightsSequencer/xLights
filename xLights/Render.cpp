@@ -834,7 +834,13 @@ void xLightsFrame::LogRenderStatus()
         {
             if ((*it)->jobs[i] != nullptr)
             {
-                logger_base.debug("    Progress %s - %d%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), ((*it)->jobs[i]->GetCurrentFrame() - (*it)->startFrame) * 100 / frames);
+                int curFrame = (*it)->jobs[i]->GetCurrentFrame();
+                if (curFrame >(*it)->endFrame || curFrame == END_OF_RENDER_FRAME)
+                {
+                    curFrame = (*it)->endFrame;
+                }
+
+                logger_base.debug("    Progress %s - %ld%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), (long)(curFrame - (*it)->startFrame + 1) * 100 / frames);
             }
         }
     }
