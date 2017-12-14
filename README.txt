@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (dkulp)  Fix crash when actions generate a ton of render events for the same models (like mouse resize of effect)
+   -- bug (keith)  Reverse a change which may have broken some picture effects
+   -- bug (keith)  Fix reopen audio device when it changes
+   -- bug (keith)  Fix restricted read from FSEQ doesnt work for offsets
+   -- enh (keith)  Add a way to manually force log render state
 2017.41  Dec 11, 2017
    -- bug (dkulp)  Delay actually deleting effects and layers until the end of render to avoid potential crashes.
    -- bug (dkulp)  Work on making sure selections are cleared bbefore effects are deleted
