@@ -218,6 +218,7 @@ public:
             gauge(nullptr), currentFrame(0), renderLog(log4cpp::Category::getInstance(std::string("log_render"))),
             supportsModelBlending(false), abort(false), statusMap(nullptr)
     {
+        name = "";
         if (row != nullptr) {
             name = row->GetModelName();
             mainBuffer = new PixelBufferClass(xframe);
@@ -287,7 +288,6 @@ public:
             }
         } else {
             mainBuffer = nullptr;
-            name = "";
         }
         startFrame = 0;
         renderEvent.buffer = mainBuffer;
@@ -616,6 +616,12 @@ public:
                     for (std::map<SNPair, PixelBufferClassPtr>::iterator it = nodeBuffers.begin(); it != nodeBuffers.end(); ++it) {
                         SNPair node = it->first;
                         PixelBufferClass *buffer = it->second.get();
+
+                        if (buffer == nullptr)
+                        {
+                            logger_base.crit("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
+                        }
+
                         int strand = node.strand;
                         int inode = node.node;
                         StrandElement *slayer = rowToRender->GetStrand(strand);
