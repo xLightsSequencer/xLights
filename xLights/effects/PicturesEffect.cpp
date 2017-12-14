@@ -489,17 +489,14 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         {
             logger_base.error("Image %s reports %d frames which is invalid.", (const char *)NewPictureName.c_str(), cache->imageCount);
 
-            // override it to 1 and create a default black image
+            // override it to 1
             cache->imageCount = 1;
-            image.Create(5, 5, true);
         }
-        else
+
+        if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0))
         {
-            if (!image.LoadFile(NewPictureName, wxBITMAP_TYPE_ANY, 0))
-            {
-                logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
-                image.Create(5, 5, true);
-            }
+            logger_base.error("Error loading image file: %s.", (const char *)NewPictureName.c_str());
+            image.Create(5, 5, true);
         }
 
         rawimage = image;
