@@ -2266,6 +2266,7 @@ void SDL::SetAudioDevice(const std::string device)
     _device = "";
 #else
     _device = device;
+    Reopen();
 #endif
 }
 
