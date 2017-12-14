@@ -1456,7 +1456,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-        
+
         int startms = 99999999;
         int endms = -1;
         for(int j=0;j< el->GetEffectCount();j++) {
@@ -1492,7 +1492,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
         EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
-        
+
         int startms = 99999999;
         int endms = -1;
 
@@ -1502,17 +1502,17 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        ef);
-                
+
                 el->GetEffect(j)->SetSettings(effectText, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
                 el->GetEffect(j)->SetEffectName(effectName);
                 el->GetEffect(j)->SetPalette(palette);
-                
+
                 startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
                 endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
             }
         }
-        
+
         if(startms <= endms) {
             playType = PLAY_TYPE_EFFECT;
             playStartMS = -1;
@@ -1520,6 +1520,57 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         }
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
+}
+
+void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
+{
+    mSequenceElements.get_undo_mgr().CreateUndoStep();
+
+    for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
+        Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
+        EffectLayer* el = mSequenceElements.GetVisibleEffectLayer(i);
+
+        int startms = 99999999;
+        int endms = -1;
+
+        for(int j=0;j< el->GetEffectCount();j++) {
+            if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
+                std::string effectName = el->GetEffect(j)->GetEffectName();
+                int effectIndex = el->GetEffect(j)->GetEffectIndex();
+                std::string settings, palette;
+
+                settings = EffectsPanel1->GetRandomEffectString(effectIndex);
+                palette = colorPanel->GetRandomColorString();
+
+                mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
+                                                                       el->GetIndex(),
+                                                                       el->GetEffect(j));
+
+                el->GetEffect(j)->SetSettings(settings, true);
+                el->GetEffect(j)->SetEffectIndex(effectIndex);
+                el->GetEffect(j)->SetEffectName(effectName);
+                el->GetEffect(j)->SetPalette(palette);
+
+                SetEffectControls(el->GetEffect(j)->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                                  el->GetEffect(j)->GetEffectName(),
+                                  el->GetEffect(j)->GetSettings(),
+                                  el->GetEffect(j)->GetPaletteMap(),
+                                  true);
+                selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
+                selectedEffect = el->GetEffect(j);
+                startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
+                endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
+            }
+        }
+
+        if(startms <= endms) {
+            playType = PLAY_TYPE_EFFECT;
+            playStartMS = -1;
+            RenderEffectForModel(element->GetModelName(),startms,endms);
+        }
+    }
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    sEffectAssist->ForceRefresh();
 }
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)

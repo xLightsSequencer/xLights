@@ -12,6 +12,7 @@
 
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_RANDOMIZE, wxCommandEvent);
 
 
 class TopEffectsPanel: public wxPanel
@@ -25,6 +26,7 @@ class TopEffectsPanel: public wxPanel
 
 		//(*Declarations(TopEffectsPanel)
 		wxFlexGridSizer* EffectSizer;
+		wxBitmapButton* BitmapButtonRandomize;
 		wxFlexGridSizer* MainSizer;
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;
 		wxButton* ButtonUpdateEffect;
@@ -34,6 +36,7 @@ class TopEffectsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(TopEffectsPanel)
+		static const long ID_BITMAPBUTTON_RANDOMIZE;
 		static const long ID_BUTTON_UpdateEffect;
 		static const long ID_BITMAPBUTTON_SelectedEffect;
 		//*)
@@ -45,6 +48,7 @@ class TopEffectsPanel: public wxPanel
 		void OnBitmapButtonSelectedEffectClick(wxCommandEvent& event);
 		void OnLeftDown(wxMouseEvent& event);
 		void OnButtonUpdateEffectClick(wxCommandEvent& event);
+		void OnButtonRandomizeEffectClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

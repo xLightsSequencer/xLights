@@ -25,6 +25,7 @@
 #include "../include/padlock16x16-blue.xpm" //-DJ
 
 #include "effects/EffectPanelUtils.h"
+#include <log4cpp/Category.hh>
 
 //(*IdInit(EffectsPanel)
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
@@ -134,9 +135,23 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
     return slider->GetValue();
 }
 
+wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) {
+    wxWindowList &ChildList = w->GetChildren();
+    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    {
+        wxWindow *ChildWin = *it;
+        wxString ChildName = ChildWin->GetName();
+        if (ChildName.StartsWith("ID_PANEL")) {
+            return ChildWin;
+        }
+    }
+    return w;
+}
+
 wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxString &prefix) {
     wxWindowList &ChildList = w->GetChildren();
     wxString s;
+
     for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
     {
         wxWindow *ChildWin = *it;
@@ -174,6 +189,9 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 			s += AttrName + wxString::Format(wxT("%i"), v);
 		} else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
+            if (ctrl->GetCount() <= 0) {
+                continue;
+            }
             s += AttrName + ctrl->GetString(isRandom(ctrl)? rand()%ctrl->GetCount(): ctrl->GetSelection()); //-DJ
         } else if (ChildName.StartsWith("ID_CHECKBOX")) {
             if(ChildName.Contains("Spirograph_Animate")) {
@@ -190,6 +208,12 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
             int i = rand() % notebook->GetPageCount();
             s += AttrName+notebook->GetPageText(i);
             s += GetRandomEffectStringFromWindow(notebook->GetPage(i), prefix);
+        } else if (ChildName.StartsWith("ID_VALUECURVE")) {
+//            if (rand()%2 == 1) { // choose to do a valuecurve or not
+//                wxWindow *valuveCurveWin = GetWindowPanel(ChildWin);
+//                // TODO(craig) need to build the value curve settings
+//                s += GetRandomValueCurveFromWindow(valuveCurveWin, prefix);
+//            }
         }
     }
     return s;
@@ -210,7 +234,8 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
 
     // get effect controls
     wxWindow *window = EffectChoicebook->GetPage(effidx);
-    s += GetRandomEffectStringFromWindow(window, prefix);
+    wxWindow *wPanel = GetWindowPanel(window);
+    s += GetRandomEffectStringFromWindow(wPanel, prefix);
 
     return s;
 }

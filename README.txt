@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (craig)  Added a randomize current selected effect button
+   -- bug (craig)  Fixed the create random effects to generate random settings
 2017.44  Dec 19, 2017
    -- bug (dkulp)  Fix keyboard handling of numbers
    -- enh (keith)  Add visual clue that xSchedule is serving web requests

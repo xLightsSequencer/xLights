@@ -29,3 +29,4 @@ wxWidgets*
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
 *.opensdf
+.vscode/
