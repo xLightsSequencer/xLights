@@ -773,6 +773,8 @@ bool OutputManager::StartOutput()
     if (_outputting) return false;
     if (!_outputCriticalSection.TryEnter()) return false;
 
+    logger_base.debug("Starting light output.");
+
     int started = 0;
     bool ok = true;
     bool err = false;
@@ -810,8 +812,12 @@ bool OutputManager::StartOutput()
 
 void OutputManager::StopOutput()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
+
+    logger_base.debug("Stopping light output.");
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
@@ -845,7 +851,10 @@ void OutputManager::SetOneChannel(long channel, unsigned char data)
     Output* output = GetOutput(channel + 1, sc);
     if (output != nullptr)
     {
-        output->SetOneChannel(sc-1, data);
+        if (output->IsEnabled())
+        {
+            output->SetOneChannel(sc - 1, data);
+        }
     }
 }
 
@@ -867,7 +876,10 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 #else
         long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
 #endif
-        o->SetManyChannels(stch - 1, &data[size - left], send);
+        if (o->IsEnabled())
+        {
+            o->SetManyChannels(stch - 1, &data[size - left], send);
+        }
         stch = 1;
         left -= send;
         o = GetOutput(o->GetOutputNumber()); // get the next output
