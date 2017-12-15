@@ -11,7 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.42  Dec 14, 2017
+   -- enh (chris)   Enable automatic application of patch for wxwidgets on linux
+   -- bug (chris)   Separate patches for wxwidgets on linux so can handle fixes for http://trac.wxwidgets.org/ticket/17683
+					and https://trac.wxwidgets.org/ticket/18021
    -- bug (dkulp)  Fix crash when actions generate a ton of render events for the same models (like mouse resize of effect)
+					This fixes #1024 
    -- bug (keith)  Reverse a change which may have broken some picture effects
    -- bug (keith)  Fix reopen audio device when it changes
    -- bug (keith)  Fix restricted read from FSEQ doesnt work for offsets
