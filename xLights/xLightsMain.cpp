@@ -4102,6 +4102,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Checking sequence.");
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
+    wxString fullhostname = wxGetFullHostName();
     if (mLocalIP != "")
     {
         addr.Hostname(mLocalIP);
@@ -4111,7 +4112,7 @@ void xLightsFrame::CheckSequence(bool display)
     {
         addr.AnyAddress();
         testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
-        addr.Hostname(wxGetFullHostName());
+        addr.Hostname(fullhostname);
         if (addr.IPAddress() == "255.255.255.255")
         {
             addr.Hostname(wxGetHostName());
@@ -4119,7 +4120,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Full host name: " + wxGetFullHostName().ToStdString());
+    LogAndWrite(f, "Full host name: " + fullhostname.ToStdString());
     LogAndWrite(f, "IP Address we are outputing data from: " + addr.IPAddress().ToStdString());
     LogAndWrite(f, "If your PC has multiple network connections (such as wired and wireless) this should be the IP Address of the adapter your controllers are connected to. If it isnt your controllers may not receive output data.");
     LogAndWrite(f, "If you are experiencing this problem you may need to set the local IP address to use.");
