@@ -438,6 +438,18 @@ void MatrixMapper::Test(OutputManager* outputManager)
     wxASSERT(v_tl_o.Map(11, 149) == 4951);
     wxASSERT(v_tl_o.Map(0, 3) == 439);
 
+    MatrixMapper v_tl_o2(outputManager, 1, 30, 210, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_o2.Map(0, 0) == 19);
+    wxASSERT(v_tl_o2.Map(29, 6) == 517 * 3 + 1);
+    wxASSERT(v_tl_o2.Map(0, 3) == 10);
+    wxASSERT(v_tl_o2.Map(10, 3) == 220);
+
+    MatrixMapper v_tr_o2(outputManager, 1, 75, 525, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_o2.Map(0, 0) == 524*3+1);
+    wxASSERT(v_tr_o2.Map(74, 6) == 1);
+    wxASSERT(v_tr_o2.Map(0, 3) == 520*3+1);
+    wxASSERT(v_tr_o2.Map(65, 4) == 196);
+
     MatrixMapper v_bl_e(outputManager, 4, 4, 600, "Vertical", "Bottom Left", "1", "Test");
     wxASSERT(v_bl_e.Map(0, 0) == 1);
     wxASSERT(v_bl_e.Map(15, 149) == 6751);
