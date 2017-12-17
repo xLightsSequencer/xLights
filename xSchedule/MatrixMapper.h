@@ -54,6 +54,7 @@ public:
         void SetStringLength(const int stringLength) { if (stringLength != _stringLength) { _stringLength = stringLength; _changeCount++; } }
         void SetStrandsPerString(const int strandsPerString) { if (strandsPerString != _strandsPerString) { _strandsPerString = strandsPerString; _changeCount++; } }
         static void Test(OutputManager* outputManager);
+        std::string GetConfigDescription() const;
 };
 
 #endif

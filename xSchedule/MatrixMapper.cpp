@@ -3,6 +3,7 @@
 #include <wx/xml/xml.h>
 #include <wx/wx.h>
 #include "../xLights/outputs/OutputManager.h"
+#include <log4cpp/Category.hh>
 
 MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, MMORIENTATION orientation, MMSTARTLOCATION startLocation, const std::string& startChannel, const std::string& name)
 {
@@ -113,7 +114,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if (_strandsPerString != 1 && (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0))
+                if (_strandsPerString == 1 || (((GetWidth() - x - 1) - (((GetWidth() - x - 1) / _strandsPerString) * _strandsPerString)) % 2 == 0))
                 {
                     loc += y * 3;
                 }
@@ -138,7 +139,7 @@ size_t MatrixMapper::Map(int x, int y) const
             }
             else
             {
-                if (_strandsPerString == 1 || (x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 1)
+                if (_strandsPerString != 1 && (x - ((x / _strandsPerString) * _strandsPerString)) % 2 == 1)
                 {
                     loc += y * 3;
                 }
@@ -330,14 +331,21 @@ long MatrixMapper::GetStartChannelAsNumber() const
 
 MMORIENTATION MatrixMapper::EncodeOrientation(const std::string orientation)
 {
-    if (wxString(orientation).Lower() == "horizontal")
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxString o = wxString(orientation).Lower();
+
+    if (o == "horizontal")
     {
         return MMORIENTATION::HORIZONTAL;
     }
-    else
+    else if (o == "vertical")
     {
         return MMORIENTATION::VERTICAL;
     }
+
+    logger_base.error("Unknown orientation %s", (const char *)o.c_str());
+    return MMORIENTATION::VERTICAL;
 }
 
 std::string MatrixMapper::DecodeOrientation(MMORIENTATION orientation)
@@ -354,6 +362,8 @@ std::string MatrixMapper::DecodeOrientation(MMORIENTATION orientation)
 
 MMSTARTLOCATION MatrixMapper::EncodeStartLocation(const std::string startLocation)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxString sl = wxString(startLocation).Lower();
 
     if (sl == "bottom left")
@@ -368,10 +378,14 @@ MMSTARTLOCATION MatrixMapper::EncodeStartLocation(const std::string startLocatio
     {
         return MMSTARTLOCATION::TOP_LEFT;
     }
-    else
+    else if (sl == "top right")
     {
         return MMSTARTLOCATION::TOP_RIGHT;
     }
+
+    logger_base.error("Unknown start location %s", (const char *)sl.c_str());
+
+    return MMSTARTLOCATION::TOP_LEFT;
 }
 
 std::string MatrixMapper::DecodeStartLocation(MMSTARTLOCATION startLocation)
@@ -418,11 +432,6 @@ void MatrixMapper::Test(OutputManager* outputManager)
     wxASSERT(h_tl_o.Map(149, 0) == 17998);
     wxASSERT(h_tl_o.Map(0, 3) == 16201);
 
-    MatrixMapper v_tr_e(outputManager, 4, 4, 600, "Vertical", "Top Right", "1", "Test");
-    wxASSERT(v_tr_e.Map(0, 0) == 6751);
-    wxASSERT(v_tr_e.Map(15, 149) == 1);
-    wxASSERT(v_tr_e.Map(0, 3) == 6760);
-
     MatrixMapper v_tl_e(outputManager, 4, 4, 600, "Vertical", "Top Left", "1", "Test");
     wxASSERT(v_tl_e.Map(0, 0) == 448);
     wxASSERT(v_tl_e.Map(15, 149) == 7198);
@@ -440,15 +449,27 @@ void MatrixMapper::Test(OutputManager* outputManager)
 
     MatrixMapper v_tl_o2(outputManager, 1, 30, 210, "Vertical", "Top Left", "1", "Test");
     wxASSERT(v_tl_o2.Map(0, 0) == 19);
-    wxASSERT(v_tl_o2.Map(29, 6) == 517 * 3 + 1);
+    wxASSERT(v_tl_o2.Map(29, 6) == 209 * 3 + 1);
     wxASSERT(v_tl_o2.Map(0, 3) == 10);
     wxASSERT(v_tl_o2.Map(10, 3) == 220);
 
+    MatrixMapper v_tl_o3(outputManager, 30, 1, 7, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_o3.Map(0, 0) == 19);
+    wxASSERT(v_tl_o3.Map(29, 6) == 610);
+    wxASSERT(v_tl_o3.Map(0, 3) == 10);
+    wxASSERT(v_tl_o3.Map(10, 3) == 220);
+
     MatrixMapper v_tr_o2(outputManager, 1, 75, 525, "Vertical", "Top Right", "1", "Test");
-    wxASSERT(v_tr_o2.Map(0, 0) == 524*3+1);
+    wxASSERT(v_tr_o2.Map(0, 0) == 1573);
     wxASSERT(v_tr_o2.Map(74, 6) == 1);
-    wxASSERT(v_tr_o2.Map(0, 3) == 520*3+1);
-    wxASSERT(v_tr_o2.Map(65, 4) == 196);
+    wxASSERT(v_tr_o2.Map(0, 3) == 1564);
+    wxASSERT(v_tr_o2.Map(65, 4) == 202);
+
+    MatrixMapper v_tr_o3(outputManager, 75, 1, 7, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_o3.Map(0, 0) == 1573);
+    wxASSERT(v_tr_o3.Map(74, 6) == 1);
+    wxASSERT(v_tr_o3.Map(0, 3) == 1564);
+    wxASSERT(v_tr_o3.Map(65, 4) == 196);
 
     MatrixMapper v_bl_e(outputManager, 4, 4, 600, "Vertical", "Bottom Left", "1", "Test");
     wxASSERT(v_bl_e.Map(0, 0) == 1);
@@ -465,10 +486,67 @@ void MatrixMapper::Test(OutputManager* outputManager)
     wxASSERT(v_br_e.Map(15, 149) == 448);
     wxASSERT(v_br_e.Map(0, 3) == 7189);
 
+    MatrixMapper v_tr_e(outputManager, 4, 4, 600, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_e.Map(0, 0) == 6751);
+    wxASSERT(v_tr_e.Map(15, 149) == 1);
+    wxASSERT(v_tr_e.Map(0, 3) == 6760);
+
     MatrixMapper v_br_o(outputManager, 4, 3, 450, "Vertical", "Bottom Right", "1", "Test");
     wxASSERT(v_br_o.Map(0, 0) == 4951);
     wxASSERT(v_br_o.Map(11, 149) == 448);
     wxASSERT(v_br_o.Map(0, 3) == 4960);
+
+    MatrixMapper v_br_e2(outputManager, 10, 1, 10, "Vertical", "Bottom Right", "1", "Test");
+    wxASSERT(v_br_e2.Map(0, 0) == 271);
+    wxASSERT(v_br_e2.Map(9, 9) == 28);
+    wxASSERT(v_br_e2.Map(0, 3) == 280);
+
+    MatrixMapper v_bl_e2(outputManager, 10, 1, 10, "Vertical", "Bottom Left", "1", "Test");
+    wxASSERT(v_bl_e2.Map(0, 0) == 1);
+    wxASSERT(v_bl_e2.Map(9, 9) == 298);
+    wxASSERT(v_bl_e2.Map(0, 3) == 10);
+
+    MatrixMapper v_tr_e2(outputManager, 10, 1, 10, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_e2.Map(0, 0) == 298);
+    wxASSERT(v_tr_e2.Map(9, 9) == 1);
+    wxASSERT(v_tr_e2.Map(0, 3) == 289);
+
+    MatrixMapper v_tl_e2(outputManager, 10, 1, 10, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_e2.Map(0, 0) == 28);
+    wxASSERT(v_tl_e2.Map(9, 9) == 271);
+    wxASSERT(v_tl_e2.Map(0, 3) == 19);
+
+    MatrixMapper v_br_o2(outputManager, 9, 1, 10, "Vertical", "Bottom Right", "1", "Test");
+    wxASSERT(v_br_o2.Map(0, 0) == 241);
+    wxASSERT(v_br_o2.Map(8, 9) == 28);
+    wxASSERT(v_br_o2.Map(0, 3) == 250);
+
+    MatrixMapper v_bl_o2(outputManager, 9, 1, 10, "Vertical", "Bottom Left", "1", "Test");
+    wxASSERT(v_bl_o2.Map(0, 0) == 1);
+    wxASSERT(v_bl_o2.Map(8, 9) == 268);
+    wxASSERT(v_bl_o2.Map(0, 3) == 10);
+
+    MatrixMapper v_tr_o4(outputManager, 9, 1, 10, "Vertical", "Top Right", "1", "Test");
+    wxASSERT(v_tr_o4.Map(0, 0) == 268);
+    wxASSERT(v_tr_o4.Map(8, 9) == 1);
+    wxASSERT(v_tr_o4.Map(0, 3) == 259);
+
+    MatrixMapper v_tl_o4(outputManager, 9, 1, 10, "Vertical", "Top Left", "1", "Test");
+    wxASSERT(v_tl_o4.Map(0, 0) == 28);
+    wxASSERT(v_tl_o4.Map(8, 9) == 241);
+    wxASSERT(v_tl_o4.Map(0, 3) == 19);
+}
+
+std::string MatrixMapper::GetConfigDescription() const
+{
+    return wxString::Format("Orientation: %s, Start: %s, Strings: %d, Strands/String: %d, Nodes Per String: %d, StartChannel:%s:%ld.",
+        DecodeOrientation(_orientation),
+        DecodeStartLocation(_startLocation),
+        _strings,
+        _strandsPerString,
+        _stringLength,
+        _startChannel,
+        GetStartChannelAsNumber()).ToStdString();
 }
 
 MatrixMapper::MatrixMapper(OutputManager* outputManager)
