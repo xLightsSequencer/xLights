@@ -519,6 +519,7 @@ private:
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
     //*)
 
+    void OnCharHook(wxKeyEvent& event);
     void OnIdle(wxIdleEvent& event);
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);

@@ -161,6 +161,7 @@ class LayoutPanel: public wxPanel
         void LockSelectedModels(bool lock);
 
     public:
+        void SaveEffects();
         void UpdatePreview();
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModel(Model *model, bool highlight_tree = true);

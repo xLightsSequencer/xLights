@@ -1241,16 +1241,21 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
+void LayoutPanel::SaveEffects()
 {
     // update xml with offsets and scale
-    for (size_t i=0; i < modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->UpdateXmlWithScale();
     }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
+}
+
+void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
+{
+    SaveEffects();
 }
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)

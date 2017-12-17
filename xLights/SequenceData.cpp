@@ -33,6 +33,9 @@ SequenceData::~SequenceData() {
 }
 
 void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_data != nullptr) {
         free(_data);
         _data = nullptr;
@@ -54,7 +57,6 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         size_t sz = (size_t)_bytesPerFrame * (size_t)_numFrames;
         _data = (unsigned char *)calloc(1, sz);
         wxASSERT(_data != nullptr); // if this fails then we have a memory allocation error
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         if (_data == nullptr)
         {
             logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
@@ -66,6 +68,10 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         {
             logger_base.debug("Memory allocated for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
         }
+    }
+    else
+    {
+        logger_base.debug("Sequence memory released.");
     }
     _invalidData = (unsigned char *)calloc(1, _bytesPerFrame);
 }

@@ -865,6 +865,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, fileNames, exitOnDone);
     } );
 }
+
 void xLightsFrame::SaveSequence()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -932,10 +933,22 @@ void xLightsFrame::SaveSequence()
 
     if (mRenderOnSave) {
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
+
+        // If number of channels is wrong then lets just dump and reallocate before render
+        if (SeqData.NumChannels() != roundTo4(GetMaxNumChannels()))
+        {
+            logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
+
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+
+            SeqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        }
+
         ProgressBar->Show();
         GaugeSizer->Layout();
         logger_base.info("Rendering on save.");
-        RenderIseqData(true, NULL); // render ISEQ layers below the Nutcracker layer
+        RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
         logger_base.info("   iseq below effects done.");
         ProgressBar->SetValue(10);
         RenderGridToSeqData([this, sw] {

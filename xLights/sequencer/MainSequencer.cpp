@@ -44,17 +44,17 @@ void MainSequencer::SetHandlers(wxWindow *window)
         window->Connect(wxID_ANY,
                         wxEVT_CHAR,
                         wxKeyEventHandler(MainSequencer::OnChar),
-                        (wxObject*) NULL,
+                        (wxObject*) nullptr,
                         this);
         window->Connect(wxID_ANY,
                         wxEVT_CHAR_HOOK,
                         wxKeyEventHandler(MainSequencer::OnCharHook),
-                        (wxObject*) NULL,
+                        (wxObject*) nullptr,
                         this);
         window->Connect(wxID_ANY,
                         wxEVT_KEY_DOWN,
                         wxKeyEventHandler(MainSequencer::OnKeyDown),
-                        (wxObject*) NULL,
+                        (wxObject*) nullptr,
                         this);
 
         wxWindowList &list = window->GetChildren();

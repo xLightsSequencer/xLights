@@ -1768,6 +1768,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     DrawingContext::Initialize(this);
 
+    Connect(wxID_ANY,
+        wxEVT_CHAR_HOOK,
+        wxKeyEventHandler(xLightsFrame::OnCharHook),
+        (wxObject*) nullptr,
+        this);
+
     splash.Hide();
 
 #ifdef __WXMSW__
@@ -1860,6 +1866,37 @@ xLightsFrame::~xLightsFrame()
     //*)
 
     reenter = false;
+}
+
+void xLightsFrame::OnCharHook(wxKeyEvent& event)
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxChar uc = event.GetKeyCode();
+    //logger_base.debug("%d %c", (int)uc, uc);
+
+    switch (uc)
+    {
+    case 'S':
+    case 's':
+        if (event.ControlDown())
+        {
+            switch (Notebook1->GetSelection())
+            {
+            case SETUPTAB:
+                SaveNetworksFile();
+                break;
+            case LAYOUTTAB:
+                layoutPanel->SaveEffects();
+                break;
+            case NEWSEQUENCER:
+                SaveSequence();
+                break;
+            }
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void xLightsFrame::OnIdle(wxIdleEvent& event) {
