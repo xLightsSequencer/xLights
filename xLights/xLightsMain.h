@@ -1124,6 +1124,7 @@ protected:
     void TimerOutput(int period);
     void UpdateChannelNames();
     void StopNow(void);
+    bool ShowFolderIsInBackup(const std::string showdir);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;

@@ -473,14 +473,19 @@ void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)
 
 bool xLightsFrame::PromptForShowDirectory()
 {
-    wxString newdir;
     wxDirDialog DirDialog1(this, _("Select Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
 
     if (DirDialog1.ShowModal() == wxID_OK)
     {
         AbortRender(); // make sure nothing is still rendering
-        newdir=DirDialog1.GetPath();
+        wxString newdir = DirDialog1.GetPath();
         if (newdir == CurrentDir) return true;
+
+        if (ShowFolderIsInBackup(newdir.ToStdString()))
+        {
+            wxMessageBox("WARNING: Opening a show folder inside a backup folder. This is ok but please make sure you change back to your proper show folder and dont make changes in this folder.", "WARNING");
+        }
+
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
         return SetDir(newdir);
     }

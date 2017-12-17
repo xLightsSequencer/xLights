@@ -2206,6 +2206,34 @@ void xLightsFrame::StopNow(void)
     }
 }
 
+bool xLightsFrame::ShowFolderIsInBackup(const std::string showdir)
+{
+    int i = showdir.length() - 1;
+    wxString dir = "";
+    while (i >= 0)
+    {
+        if (showdir[i] == '\\' || showdir == '/')
+        {
+            if (dir.Lower() == "backup")
+            {
+                return true;
+            }
+            dir = "";
+        }
+        else if (showdir[i] == ':')
+        {
+            return false;
+        }
+        else
+        {
+            dir = showdir[i] + dir;
+        }
+        i--;
+    }
+
+    return false;
+}
+
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
 {
     StopNow();
@@ -4075,6 +4103,24 @@ void xLightsFrame::CheckSequence(bool display)
     if (testSocket != nullptr)
     {
         delete testSocket;
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Working in a backup directory");
+
+    if (ShowFolderIsInBackup(GetShowDirectory().ToStdString()))
+    {
+        wxString msg = wxString::Format("    ERR: Show directory is a (or is under a) backup show directory. %s.", GetShowDirectory());
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
     }
 
     errcountsave = errcount;
