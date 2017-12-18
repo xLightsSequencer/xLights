@@ -4685,6 +4685,34 @@ void xLightsFrame::CheckSequence(bool display)
                             warncount++;
                         }
                     }
+
+                    int multinodecount = 0;
+                    for (int ii = 0; ii < cm->GetNodeCount(); ii++)
+                    {
+                        std::vector<wxPoint> pts;
+                        cm->GetNodeCoords(ii, pts);
+                        if (pts.size() > 1)
+                        {
+                            multinodecount++;
+                        }
+                    }
+
+                    // >0% but less than 10% multi-nodes ... these may be accidental duplicates
+                    if (multinodecount > 0 && multinodecount < 0.1 * maxn)
+                    {
+                        for (int ii = 0; ii < cm->GetNodeCount(); ii++)
+                        {
+                            std::vector<wxPoint> pts;
+                            cm->GetNodeCoords(ii, pts);
+                            if (pts.size() > 1)
+                            {
+                                wxString msg = wxString::Format("    WARN: Custom model '%s' node %d has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)cm->GetName().c_str(), ii+1, (int)pts.size());
+                                LogAndWrite(f, msg.ToStdString());
+                                warncount++;
+                            }
+                        }
+                    }
+
                     free(chs);
                 }
             }
