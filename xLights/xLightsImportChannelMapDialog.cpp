@@ -806,7 +806,7 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::s
                                 xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
                                 if (anode->_node == node)
                                 {
-                                    return nodes[j];
+                                    return nodes[k];
                                 }
                             }
                         }
