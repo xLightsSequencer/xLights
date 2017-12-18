@@ -92,8 +92,8 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
             if (show3d) color.alpha = 255.0 * double(BarHt - n%BarHt - 1) / BarHt;
         }
         else {
-            HSVValue hsv = color.asHSV();
             if (gradient) buffer.Get2ColorBlend(color, color2, pct);
+            HSVValue hsv = color.asHSV();
             if (highlight && n % BarHt == 0) hsv.saturation = 0.0;
             if (show3d) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
             color = hsv;
@@ -114,7 +114,6 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     bool Gradient = SettingsMap.GetBool("CHECKBOX_Bars_Gradient", false);
 
     int x,y,n,ColorIdx;
-    HSVValue hsv;
     size_t colorcnt = buffer.GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
 
@@ -149,8 +148,9 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (Highlight && n % BarHt == 0) color = xlWHITE;
                 if (Show3D) color.alpha = 255.0 * double(BarHt - n%BarHt - 1) / BarHt;
             } else {
-                buffer.palette.GetHSV(ColorIdx, hsv);
+                buffer.palette.GetColor(ColorIdx, color);
                 if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
+                HSVValue hsv = color.asHSV();
                 if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
                 if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
                 color = hsv;
@@ -224,8 +224,9 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (Show3D) color.alpha = 255.0 * double(BarWi - n%BarWi - 1) / BarWi;
 
             } else {
-                buffer.palette.GetHSV(ColorIdx, hsv);
+                buffer.palette.GetColor(ColorIdx, color);
                 if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
+                HSVValue hsv = color.asHSV();
                 if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
                 if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
                 color = hsv;
@@ -269,8 +270,9 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 if (Show3D) color.alpha = 255.0 * double(BarWi - n%BarWi - 1) / BarWi;
 
             } else {
-                buffer.palette.GetHSV(ColorIdx, hsv);
+                buffer.palette.GetColor(ColorIdx, color);
                 if (Gradient) buffer.Get2ColorBlend(ColorIdx, color2, pct, color);
+                HSVValue hsv = color.asHSV();
                 if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
                 if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
                 color = hsv;

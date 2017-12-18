@@ -11,12 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix bars gradient option when not alpha blending.  Fixes #1032.
 2017.42  Dec 14, 2017
    -- enh (chris)   Enable automatic application of patch for wxwidgets on linux
    -- bug (chris)   Separate patches for wxwidgets on linux so can handle fixes for http://trac.wxwidgets.org/ticket/17683
 					and https://trac.wxwidgets.org/ticket/18021
    -- bug (dkulp)  Fix crash when actions generate a ton of render events for the same models (like mouse resize of effect)
-					This fixes #1024 
+					This fixes #1024
    -- bug (keith)  Reverse a change which may have broken some picture effects
    -- bug (keith)  Fix reopen audio device when it changes
    -- bug (keith)  Fix restricted read from FSEQ doesnt work for offsets
@@ -44,7 +45,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix a number of problems with xSchedule channel constraints not saving
    -- bug (keith)  Fix xSchedule fast start audio does not respect per song volume setting
    -- bug (keith)  Fix virtual matrices not working reliably or correctly in xschedule
-   -- enh (keith)  Allow play list buttons like play schedule to work even if a schedule for that playlist is selected 
+   -- enh (keith)  Allow play list buttons like play schedule to work even if a schedule for that playlist is selected
    -- enh (keith)  Add delete all effects on a layer or a model
    -- bug (keith)  Fix some bugs in calculating pixels for some vertical matrices in xSchedule
 2017.40  Dec 05, 2017
@@ -62,9 +63,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp) Fix some memory leaks when open/close sequences as well as switching show directories
    -- enh (dkulp) Import Superstar files onto a submodel
    -- bug (dkulp) Fix a render bug which could leave artifacts on models
-   -- enh (keith) Begin to introduce output:startchannel and #universe:startchannel addressing into xSchedule. 
+   -- enh (keith) Begin to introduce output:startchannel and #universe:startchannel addressing into xSchedule.
                   Initially in Matrices and Virtual matrices.
-   -- enh (keith) Display window position details to xSchedule for video and image display. Allows simple 
+   -- enh (keith) Display window position details to xSchedule for video and image display. Allows simple
                   comparison of values without opening the positioning window.
 2017.38  Nov 25, 2017
    -- bug (dkulp) Send render event for effect moves, previously not always sent
