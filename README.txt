@@ -12,6 +12,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (gil)    Fix bars gradient option when not alpha blending.  Fixes #1032.
+   -- bug (keith)  Fix xschedule text on single string vertical matrices
+   -- bug (keith)  Fix xmap node level mappings not loading from file correctly
+   -- enh (keith)  Add option to turn model blending off by default in new sequences
+   -- enh (keith)  Detect low proportion duplicate nodes in custom models indicating possible accidental duplication of nodes
+   -- enh (keith)  Ctrl-S works on all tabs as a shortcut to the relevant save button
+   -- enh (keith)  Warn users when they switch to a backup show folder. Also highlight in check sequence.
 2017.42  Dec 14, 2017
    -- enh (chris)   Enable automatic application of patch for wxwidgets on linux
    -- bug (chris)   Separate patches for wxwidgets on linux so can handle fixes for http://trac.wxwidgets.org/ticket/17683
