@@ -73,10 +73,10 @@ wxInputStream *SimpleHTTP::GetInputStream(const wxString& path, wxString& startR
     wxSocketClient::WaitOnConnect(10);
 
     if (!wxSocketClient::IsConnected())
-        return NULL;
+        return nullptr;
 #else
     if (!wxProtocol::Connect(*m_addr))
-        return NULL;
+        return nullptr;
 #endif
 
     // Use the user-specified method if any or determine the method to use

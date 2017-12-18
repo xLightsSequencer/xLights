@@ -27,7 +27,7 @@ void xLightsFrame::AddAllModelsToSequence()
 {
     std::string models_to_add = "";
     bool first_model = true;
-    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "modelGroup")
         {
@@ -42,7 +42,7 @@ void xLightsFrame::AddAllModelsToSequence()
             }
         }
     }
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "model")
         {
@@ -71,6 +71,11 @@ void xLightsFrame::NewSequence()
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
     CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+
+    if (_modelBlendDefaultOff)
+    {
+        CurrentSeqXmlFile->setSupportsModelBlending(false);
+    }
 
     SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
     setting_dlg.Fit();
@@ -1253,9 +1258,9 @@ void MapToStrandName(const std::string &name, std::vector<std::string> &strands)
     }
 }
 void ReadHLSData(wxXmlNode *chand, std::vector<unsigned char> & data) {
-    for (wxXmlNode* chani=chand->GetChildren(); chani!=NULL; chani=chani->GetNext()) {
+    for (wxXmlNode* chani=chand->GetChildren(); chani!=nullptr; chani=chani->GetNext()) {
         if ("IlluminationData" == chani->GetName()) {
-            for (wxXmlNode* block=chani->GetChildren(); block!=NULL; block=block->GetNext()) {
+            for (wxXmlNode* block=chani->GetChildren(); block!=nullptr; block=block->GetNext()) {
                 wxString vals = block->GetChildren()->GetContent();
                 int offset = wxAtoi(vals.SubString(0, vals.Find("-")));
                 vals = vals.SubString(vals.Find("-")+1, vals.size());
@@ -1281,13 +1286,13 @@ void MapHLSChannelInformation(xLightsFrame *xlights, EffectLayer *layer, wxXmlNo
     wxXmlNode *greenNode = nullptr;
     wxXmlNode *blueNode = nullptr;
 
-    for (wxXmlNode* univ=tuniv->GetChildren(); univ!=NULL; univ=univ->GetNext()) {
+    for (wxXmlNode* univ=tuniv->GetChildren(); univ!=nullptr; univ=univ->GetNext()) {
         if (univ->GetName() == "Universe") {
-            for (wxXmlNode* channels=univ->GetChildren(); channels!=NULL; channels=channels->GetNext()) {
+            for (wxXmlNode* channels=univ->GetChildren(); channels!=nullptr; channels=channels->GetNext()) {
                 if (channels->GetName() == "Channels") {
-                    for (wxXmlNode* chand=channels->GetChildren(); chand!=NULL; chand=chand->GetNext()) {
+                    for (wxXmlNode* chand=channels->GetChildren(); chand!=nullptr; chand=chand->GetNext()) {
                         if (chand->GetName() == "ChannelData") {
-                            for (wxXmlNode* chani=chand->GetChildren(); chani!=NULL; chani=chani->GetNext()) {
+                            for (wxXmlNode* chani=chand->GetChildren(); chani!=nullptr; chani=chani->GetNext()) {
                                 if (chani->GetName() == "ChanInfo") {
                                     wxString info = chani->GetChildren()->GetContent();
                                     if (info == cn + ", Normal") {
@@ -1757,20 +1762,20 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
     int frames = 0;
     int frameTime = 0;
     wxXmlNode *totalUniverses = nullptr;
-    for (wxXmlNode* tuniv=input_xml.GetRoot()->GetChildren(); tuniv!=NULL; tuniv=tuniv->GetNext()) {
+    for (wxXmlNode* tuniv=input_xml.GetRoot()->GetChildren(); tuniv!=nullptr; tuniv=tuniv->GetNext()) {
         if (tuniv->GetName() == "NumberOfTimeCells") {
             frames = wxAtoi(tuniv->GetChildren()->GetContent());
         } else if (tuniv->GetName() == "MilliSecPerTimeUnit") {
             frameTime = wxAtoi(tuniv->GetChildren()->GetContent());
         } else if (tuniv->GetName() == "TotalUniverses") {
             totalUniverses = tuniv;
-            for (wxXmlNode* univ=tuniv->GetChildren(); univ!=NULL; univ=univ->GetNext()) {
+            for (wxXmlNode* univ=tuniv->GetChildren(); univ!=nullptr; univ=univ->GetNext()) {
                 if (univ->GetName() == "Universe") {
-                    for (wxXmlNode* channels=univ->GetChildren(); channels!=NULL; channels=channels->GetNext()) {
+                    for (wxXmlNode* channels=univ->GetChildren(); channels!=nullptr; channels=channels->GetNext()) {
                         if (channels->GetName() == "Channels") {
-                            for (wxXmlNode* chand=channels->GetChildren(); chand!=NULL; chand=chand->GetNext()) {
+                            for (wxXmlNode* chand=channels->GetChildren(); chand!=nullptr; chand=chand->GetNext()) {
                                 if (chand->GetName() == "ChannelData") {
-                                    for (wxXmlNode* chani=chand->GetChildren(); chani!=NULL; chani=chani->GetNext()) {
+                                    for (wxXmlNode* chani=chand->GetChildren(); chani!=nullptr; chani=chani->GetNext()) {
                                         if (chani->GetName() == "ChanInfo") {
                                             std::string info = chani->GetChildren()->GetContent().ToStdString();
                                             if (info.find(", Normal") != info.npos) {
@@ -1941,7 +1946,7 @@ void AdjustAllTimings(wxXmlNode *input_xml, int offset) {
             input_xml->AddAttribute("time", wxString::Format("%d", i + offset));
         }
     }
-    for (wxXmlNode* chan=input_xml->GetChildren(); chan!=NULL; chan=chan->GetNext()) {
+    for (wxXmlNode* chan=input_xml->GetChildren(); chan!=nullptr; chan=chan->GetNext()) {
         AdjustAllTimings(chan, offset);
     }
 }
@@ -2046,7 +2051,7 @@ bool findRGB(wxXmlNode *e, wxXmlNode *chan, wxXmlNode *&rchannel, wxXmlNode *&gc
             }
         }
     }
-    for (wxXmlNode* ch=e->GetChildren(); ch!=NULL; ch=ch->GetNext()) {
+    for (wxXmlNode* ch=e->GetChildren(); ch!=nullptr; ch=ch->GetNext()) {
         if (ch->GetName() == "channel") {
             wxString idx = ch->GetAttribute("savedIndex");
             if (idx == idxs[0]) {
@@ -2681,7 +2686,7 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
             i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
         }
     }
-    for(wxXmlNode* e=element->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for (wxXmlNode* e = element->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "element") {
             int x = wxAtoi(e->GetAttribute("ribbonIndex"));
             int y = wxAtoi(e->GetAttribute("pixelIndex")) - y_offset;
@@ -2704,6 +2709,7 @@ wxString CreateSceneImage(const std::string &imagePfx, const std::string &postFi
     i.SaveFile(name);
     return name;
 }
+
 bool IsPartOfModel(wxXmlNode *element, int num_rows, int num_columns, bool &isFull, wxRect &rect, bool reverse) {
 
     if (element == nullptr) return false;
@@ -2769,12 +2775,12 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
     std::string imagePfx;
     std::vector<bool> reserved;
     std::string blend_string = "";
-    if( average_colors ) {
+    if (average_colors) {
         blend_string = ",T_CHOICE_LayerMethod=Average";
     }
-    for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for (wxXmlNode* e = input_root->GetChildren(); e != nullptr; e = e->GetNext()) {
         if ("imageActions" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("imageAction" == element->GetName()) {
                     int layer_index = wxAtoi(element->GetAttribute("layer"));
                     if (layer_index > 0) layer_index--;
@@ -2835,7 +2841,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
             layout_defined = true;
         }
     }
-    for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=input_root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "morphs")
         {
@@ -2844,29 +2850,25 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 wxMessageBox("The layouts section was not found in the SuperStar file!");
                 return false;
             }
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
             {
-                int layer_index;
-                double layer_val;
                 wxString name_attr;
                 wxString acceleration;
                 wxString state1_time, state2_time, ramp_time_ext;
-                std::string attr;
-                int start_time, end_time, ramp_time;
                 element->GetAttribute("name", &name_attr);
                 element->GetAttribute("acceleration", &acceleration);
-                attr = element->GetAttribute("layer");
-                layer_val = atof(attr.c_str());
-                layer_index = (int)layer_val;
+                std::string attr = element->GetAttribute("layer").ToStdString();
+                double layer_val = atof(attr.c_str());
+                int layer_index = (int)layer_val;
                 wxXmlNode* state1=element->GetChildren();
                 wxXmlNode* state2=state1->GetNext();
                 wxXmlNode* ramp=state2->GetNext();
                 state1->GetAttribute("time", &state1_time);
                 state2->GetAttribute("time", &state2_time);
                 ramp->GetAttribute("timeExt", &ramp_time_ext);
-                start_time = wxAtoi(state1_time) * 10;
-                end_time = wxAtoi(state2_time) * 10;
-                ramp_time = wxAtoi(ramp_time_ext) * 10;
+                int start_time = wxAtoi(state1_time) * 10;
+                int end_time = wxAtoi(state2_time) * 10;
+                int ramp_time = wxAtoi(ramp_time_ext) * 10;
                 end_time += ramp_time;
                 double head_duration = (1.0 - (double)ramp_time/((double)end_time-(double)start_time)) * 100.0;
                 std::string settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
@@ -2909,11 +2911,10 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 else              attr = state1->GetAttribute("x2");
                 if( !CalcPercentage(attr, num_rows, reverse_rows, y_offset) ) continue;
                 settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                std::string sRed, sGreen, sBlue,color;
-                sRed = state1->GetAttribute("red");
-                sGreen = state1->GetAttribute("green");
-                sBlue = state1->GetAttribute("blue");
-                color = GetColorString(sRed, sGreen, sBlue);
+                std::string sRed = state1->GetAttribute("red").ToStdString();
+                std::string sGreen = state1->GetAttribute("green").ToStdString();
+                std::string sBlue = state1->GetAttribute("blue").ToStdString();
+                std::string color = GetColorString(sRed, sGreen, sBlue).ToStdString();
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
                 sRed = state2->GetAttribute("red");
                 sGreen = state2->GetAttribute("green");
@@ -2952,9 +2953,9 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 layer->AddEffect(0, "Morph", settings, palette, start_time, end_time, false, false);
             }
         } else if ("images" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("image" == element->GetName()) {
-                    for(wxXmlNode* i=element->GetChildren(); i!=NULL; i=i->GetNext()) {
+                    for(wxXmlNode* i=element->GetChildren(); i!=nullptr; i=i->GetNext()) {
                         if ("pixe" == i->GetName()){
                             wxString data = i->GetAttribute("s");
                             int w = wxAtoi(element->GetAttribute("width"));
@@ -3019,22 +3020,22 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 }
             }
         } else if ("flowys" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("flowy" == element->GetName()) {
                     std::string centerX, centerY;
                     int startms = wxAtoi(element->GetAttribute("startTime")) * 10;
                     int endms = wxAtoi(element->GetAttribute("endTime")) * 10;
                     wxString type = element->GetAttribute("flowyType");
                     wxString color_string = element->GetAttribute("Colors");
-                    std::string sRed, sGreen, sBlue, color;
+                    std::string color;
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
                     int cnt = 1;
                     wxStringTokenizer tokenizer(color_string, " ");
                     while (tokenizer.HasMoreTokens() && cnt <=6) {
                         wxStringTokenizer tokenizer2(tokenizer.GetNextToken(), ",");
-                        sRed = tokenizer2.GetNextToken();
-                        sGreen = tokenizer2.GetNextToken();
-                        sBlue = tokenizer2.GetNextToken();
+                        std::string sRed = tokenizer2.GetNextToken().ToStdString();
+                        std::string sGreen = tokenizer2.GetNextToken().ToStdString();
+                        std::string sBlue = tokenizer2.GetNextToken().ToStdString();
                         color = GetColorString(sRed, sGreen, sBlue);
                         if( cnt > 1 ) {
                             palette += ",";
@@ -3299,7 +3300,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
                 }
             }
         } else if ("textActions" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("textAction" == element->GetName()) {
                     wxString startms = element->GetAttribute("startCentisecond") + "0";
                     wxString endms = element->GetAttribute("endCentisecond") + "0";
@@ -3454,7 +3455,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
             }
 
         } else if ("imageActions" == e->GetName()) {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext()) {
+            for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext()) {
                 if ("imageAction" == element->GetName()) {
                     //<imageAction name="Image Action 14" colorType="nativeColor" maskType="normal" rotation="0" direction="8"
                     //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"

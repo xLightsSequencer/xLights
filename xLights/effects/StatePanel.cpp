@@ -33,8 +33,8 @@ END_EVENT_TABLE()
 
 StatePanel::StatePanel(wxWindow* parent)
 {
-    _effect = NULL;
-    _model = NULL;
+    _effect = nullptr;
+    _model = nullptr;
 
 	//(*Initialize(StatePanel)
 	wxStaticBoxSizer* StaticBoxSizer2;

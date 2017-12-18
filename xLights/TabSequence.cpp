@@ -700,16 +700,16 @@ void xLightsFrame::UpdateModelsList()
                          modelPreview->GetVirtualCanvasHeight());
 
     std::vector<std::string> current;
-    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         current.push_back(it->first);
     }
-    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != NULL; e = e->GetNext()) {
+    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             current.push_back(name);
         }
     }
-    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != NULL; e = e->GetNext()) {
+    for (wxXmlNode* e=ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
             Model *model = AllModels[name];
@@ -730,7 +730,7 @@ void xLightsFrame::UpdateModelsList()
                     switch (sel) {
                         case 0:
                         case 1:
-                            for (wxXmlNode* e2=ModelsNode->GetChildren(); e2!=NULL; e2=e2->GetNext()) {
+                            for (wxXmlNode* e2=ModelsNode->GetChildren(); e2!=nullptr; e2=e2->GetNext()) {
                                 if (e2->GetName() == "model") {
                                     std::string mname = e2->GetAttribute("name").ToStdString();
                                     if (mname == name) {

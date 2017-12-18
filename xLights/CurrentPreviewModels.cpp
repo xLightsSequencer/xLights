@@ -99,7 +99,7 @@ void CurrentPreviewModels::PopulateModelGroups()
     wxString name;
     wxXmlNode* e;
     CheckListBoxCurrentGroups->Clear();
-	for(e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )
+	for(e=mModelGroups->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "modelGroup")
         {

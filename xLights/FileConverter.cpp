@@ -1139,12 +1139,12 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
     {
         VixChannels.clear();
         wxXmlNode* root=doc.GetRoot();
-        for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+        for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
         {
             tag = e->GetName();
             if (tag == wxString("ChannelObjects"))
             {
-                for( wxXmlNode* p=e->GetChildren(); p!=NULL; p=p->GetNext() )
+                for( wxXmlNode* p=e->GetChildren(); p!=nullptr; p=p->GetNext() )
                 {
                     if (p->GetName() == wxString("Channel"))
                     {

@@ -107,7 +107,7 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
     previewHeight = previewH;
     this->modelNode = modelNode;
     int countValid = 0;
-    for (wxXmlNode* e=modelNode->GetChildren(); e!=NULL; e=e->GetNext()) {
+    for (wxXmlNode* e=modelNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "model") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {

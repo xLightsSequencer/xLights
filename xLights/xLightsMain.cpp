@@ -292,6 +292,7 @@ const long xLightsFrame::ID_MNU_SD_40 = wxNewId();
 const long xLightsFrame::ID_MNU_SUPPRESSDUPLICATES = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
+const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
 const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
@@ -999,6 +1000,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(MenuItem_e131sync);
     MenuItem_ForceLocalIP = new wxMenuItem(MenuSettings, ID_MNU_FORCEIP, _("&Force Local IP"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_ForceLocalIP);
+    MenuItem_ModelBlendDefaultOff = new wxMenuItem(MenuSettings, ID_MNU_DEFAULTMODELBLENDOFF, _("Model Blend Default Off"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_ModelBlendDefaultOff);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
@@ -1201,6 +1204,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MNU_SD_40,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_40Selected);
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
+    Connect(ID_MNU_DEFAULTMODELBLENDOFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
     Connect(ID_MNU_VIDEOS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VideoTutorialsSelected);
@@ -1359,6 +1363,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
     MenuItem_SmallWaveform->Check(_smallWaveform);
     logger_base.debug("Small Waveform: %s.", _smallWaveform ? "true" : "false");
+
+    config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
+    MenuItem_ModelBlendDefaultOff->Check(_modelBlendDefaultOff);
+    logger_base.debug("Model Blend Default Off: %s.", _modelBlendDefaultOff ? "true" : "false");
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -1824,7 +1832,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
-    config->Write("xLightsSmallWaveform", _smallWaveform);
+    config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -5603,7 +5611,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                 if( start_ms+milliseconds < 0 ) {
                     if( end_ms+milliseconds < 0 ) {
                         // effect shifted off screen - delete
-                        
+
                         el->RemoveEffect(ef);
                         if (eff == selectedEffect) {
                             UnselectEffect();
@@ -7164,4 +7172,9 @@ void xLightsFrame::OnMenuItem_SmallWaveformSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_LogRenderStateSelected(wxCommandEvent& event)
 {
     LogRenderStatus();
+}
+
+void xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event)
+{
+    _modelBlendDefaultOff = MenuItem_ModelBlendDefaultOff->IsChecked();
 }

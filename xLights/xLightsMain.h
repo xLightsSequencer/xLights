@@ -517,6 +517,7 @@ private:
     void OnMenuItem_UpdateSelected(wxCommandEvent& event);
     void OnMenuItem_SmallWaveformSelected(wxCommandEvent& event);
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
+    void OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event);
     //*)
 
     void OnCharHook(wxKeyEvent& event);
@@ -720,6 +721,7 @@ private:
     static const long ID_MNU_SUPPRESSDUPLICATES;
     static const long ID_E131_Sync;
     static const long ID_MNU_FORCEIP;
+    static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -776,6 +778,7 @@ private:
     wxMenuItem* MenuItem_BackupSubfolders;
     wxMenu* MenuItem15;
     wxMenuItem* MenuItemGridNodeValuesOn;
+    wxMenuItem* MenuItem_ModelBlendDefaultOff;
     wxMenu* Menu3;
     wxMenu* MenuItemRenderMode;
     wxButton* Button_Change_Media_Dir;
@@ -943,6 +946,7 @@ private:
     bool _playControlsOnPreview;
     bool _autoShowHousePreview;
     bool _smallWaveform;
+    bool _modelBlendDefaultOff;
     bool _autoSavePerspecive;
 
     void ShowACLights();
@@ -1238,7 +1242,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
-    
+
     void UnselectEffect();
 
 private:

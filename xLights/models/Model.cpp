@@ -393,7 +393,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     LAYOUT_GROUPS.push_back("Unassigned");
 
     wxXmlNode* layouts_node = modelManager.GetLayoutsNode();
-    for(wxXmlNode* e=layouts_node->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=layouts_node->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "layoutGroup")
         {
