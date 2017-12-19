@@ -412,6 +412,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    xScheduleFrame::GetScheduleManager()->WebRequestReceived();
+
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
     if (request.URI().Lower().StartsWith("/xschedulecommand"))
     {
@@ -566,6 +568,9 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    xScheduleFrame::GetScheduleManager()->WebRequestReceived();
+
     if (message.Type() == WebSocketMessage::Text)
     {
         wxString text((char *)message.Content().GetData(), message.Content().GetDataLen());

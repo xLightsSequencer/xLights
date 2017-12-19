@@ -78,6 +78,7 @@ class ScheduleManager : public wxEvtHandler
     Xyzzy* _xyzzy;
     wxDateTime _lastXyzzyCommand;
     int _timerAdjustment;
+    bool _webRequestToggle;
 
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
@@ -124,6 +125,8 @@ class ScheduleManager : public wxEvtHandler
         RunningSchedule* GetRunningSchedule(Schedule* schedule) const;
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         std::list<OutputProcess*>* GetOutputProcessing() { return &_outputProcessing; }
+        void WebRequestReceived() { _webRequestToggle = !_webRequestToggle; }
+        bool GetWebRequestToggle();
         bool IsDirty();
         void SetDirty();
         void ClearDirty();

@@ -22,6 +22,7 @@ class BrightnessControl;
 #include <wx/panel.h>
 #include <wx/filedlg.h>
 #include <wx/bmpbuttn.h>
+#include <wx/statbmp.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
@@ -198,6 +199,7 @@ public:
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
+        static const long ID_STATICBITMAP1;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
         static const long ID_MNU_SAVE;
@@ -276,6 +278,7 @@ public:
         wxMenuItem* MenuItem_Standalone;
         wxPanel* Panel2;
         wxFlexGridSizer* FlexGridSizer1;
+        wxStaticBitmap* StaticBitmap_WebIcon;
         wxSplitterWindow* SplitterWindow1;
         wxMenuItem* MenuItem_WebInterface;
         wxStaticText* StaticText_IP;

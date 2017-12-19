@@ -41,6 +41,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _webRequestToggle = false;
     _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
     _queuedSongs->SetName("Song Queue");
@@ -287,6 +288,15 @@ ScheduleManager::~ScheduleManager()
     logger_base.info("Closed schedule.");
 }
 
+bool ScheduleManager::GetWebRequestToggle()
+{
+    static bool last = false;
+
+    if (last && _webRequestToggle) _webRequestToggle = false;
+
+    return _webRequestToggle;
+}
+
 bool ScheduleManager::IsDirty()
 {
     bool res = _lastSavedChangeCount != _changeCount;
@@ -438,6 +448,8 @@ void ScheduleManager::AllOff()
 
     if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
     {
+        logger_base.debug("   ... except the background lights.");
+
         if (!_backgroundPlayList->IsRunning())
         {
             _backgroundPlayList->Start(true);

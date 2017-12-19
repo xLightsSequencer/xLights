@@ -65,6 +65,9 @@
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
 
+#include "../include/web_icon.xpm"
+#include "../include/no_web_icon.xpm"
+
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -126,6 +129,7 @@ const long xScheduleFrame::ID_STATICTEXT3 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT4 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT5 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
+const long xScheduleFrame::ID_STATICBITMAP1 = wxNewId();
 const long xScheduleFrame::ID_PANEL4 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
@@ -384,7 +388,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
     Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    FlexGridSizer6 = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer6 = new wxFlexGridSizer(0, 6, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -392,10 +396,12 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer6->Add(StaticText_IP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_PacketsPerSec = new wxStaticText(Panel4, ID_STATICTEXT4, _("Packets/Sec: 0"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer6->Add(StaticText_PacketsPerSec, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(Panel4, ID_STATICTEXT5, _("     "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    StaticText2 = new wxStaticText(Panel4, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Time = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer6->Add(StaticText_Time, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBitmap_WebIcon = new wxStaticBitmap(Panel4, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(24,24), 0, _T("ID_STATICBITMAP1"));
+    FlexGridSizer6->Add(StaticBitmap_WebIcon, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel4->SetSizer(FlexGridSizer6);
     FlexGridSizer6->Fit(Panel4);
     FlexGridSizer6->SetSizeHints(Panel4);
@@ -616,6 +622,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
     AddWindowsMenu();
+
+    StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
 
     UpdateUI();
     ValidateWindow();
@@ -1068,6 +1076,15 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     _timerOutputFrame = !_timerOutputFrame;
 
     StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+
+    if (__schedule->GetWebRequestToggle())
+    {
+        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+    }
+    else
+    {
+        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+    }
 
     CorrectTimer(rate);
 }
@@ -2132,6 +2149,15 @@ void xScheduleFrame::UpdateUI()
     UpdateStatus();
 
     Brightness->SetValue(__schedule->GetBrightness());
+
+    if (__schedule->GetWebRequestToggle())
+    {
+        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+    }
+    else
+    {
+        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+    }
 
     if (!_suspendOTL)
     {
