@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.43  Dec 18, 2017
    -- bug (gil)    Fix bars gradient option when not alpha blending.  Fixes #1032.
    -- bug (keith)  Fix xschedule text on single string vertical matrices
    -- bug (keith)  Fix xmap node level mappings not loading from file correctly
