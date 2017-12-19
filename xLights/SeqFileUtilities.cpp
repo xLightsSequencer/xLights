@@ -114,7 +114,8 @@ void xLightsFrame::NewSequence()
     std::string new_timing = "New Timing";
     CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
     mSequenceElements.AddTimingToAllViews(new_timing);
-    MenuItem_File_Save_Sequence->Enable(true);
+    MenuItem_File_Save->Enable(true);
+    MenuItem_File_SaveAs_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
     MenuItem_PackageSequence->Enable(true);
     MenuItem_GenerateLyrics->Enable(true);

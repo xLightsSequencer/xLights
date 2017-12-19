@@ -401,7 +401,6 @@ private:
     void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
-    void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
@@ -518,9 +517,9 @@ private:
     void OnMenuItem_SmallWaveformSelected(wxCommandEvent& event);
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
     void OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event);
+    void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
     //*)
 
-    void OnCharHook(wxKeyEvent& event);
     void OnIdle(wxIdleEvent& event);
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
@@ -785,7 +784,6 @@ private:
     wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItem_Donate;
-    wxMenuItem* MenuItem_File_Save_Sequence;
     wxMenuItem* MenuItem36;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItemCheckSequence;
@@ -877,6 +875,7 @@ private:
     wxMenuItem* MenuItem43;
     wxMenuItem* MenuItemEffectAssistWindow;
     wxMenuItem* ActionTestMenuItem;
+    wxMenuItem* MenuItem_File_Save;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
     wxGauge* ProgressBar;

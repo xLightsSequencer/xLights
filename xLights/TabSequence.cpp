@@ -1127,7 +1127,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVEAS,false);
         EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_RENDERALL,false);
         Menu_Settings_Sequence->Enable(false);
-        MenuItem_File_Save_Sequence->Enable(false);
+        MenuItem_File_Save->Enable(false);
+        MenuItem_File_SaveAs_Sequence->Enable(false);
         MenuItem_File_Close_Sequence->Enable(false);
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);

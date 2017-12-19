@@ -731,10 +731,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTRL-o"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Open_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Open_Sequence);
-    MenuItem_File_Save_Sequence = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
-    MenuFile->Append(MenuItem_File_Save_Sequence);
-    MenuItem_File_Save_Sequence->Enable(false);
+    MenuItem_File_Save = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_File_Save->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
+    MenuFile->Append(MenuItem_File_Save);
+    MenuItem_File_Save->Enable(false);
     MenuItem_File_SaveAs_Sequence = new wxMenuItem(MenuFile, ID_SAVE_AS_SEQUENCE, _("Save Sequence As"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_SaveAs_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_SaveAs_Sequence);
@@ -1104,7 +1104,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
     Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
-    Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_SequenceSelected);
+    Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_Selected);
     Connect(ID_SAVE_AS_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected);
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
@@ -1708,6 +1708,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Notebook1->ChangeSelection(SETUPTAB);
     EnableNetworkChanges();
 
+
     wxImage::AddHandler(new wxGIFHandler);
 
     config->Read("xLightse131Sync", &me131Sync, false);
@@ -1776,11 +1777,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
 
     DrawingContext::Initialize(this);
 
-    Connect(wxID_ANY,
-        wxEVT_CHAR_HOOK,
-        wxKeyEventHandler(xLightsFrame::OnCharHook),
-        (wxObject*) nullptr,
-        this);
+    MenuItem_File_Save->Enable(true);
+    MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
 
     splash.Hide();
 
@@ -1874,37 +1872,6 @@ xLightsFrame::~xLightsFrame()
     //*)
 
     reenter = false;
-}
-
-void xLightsFrame::OnCharHook(wxKeyEvent& event)
-{
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxChar uc = event.GetKeyCode();
-    //logger_base.debug("%d %c", (int)uc, uc);
-
-    switch (uc)
-    {
-    case 'S':
-    case 's':
-        if (event.ControlDown())
-        {
-            switch (Notebook1->GetSelection())
-            {
-            case SETUPTAB:
-                SaveNetworksFile();
-                break;
-            case LAYOUTTAB:
-                layoutPanel->SaveEffects();
-                break;
-            case NEWSEQUENCER:
-                SaveSequence();
-                break;
-            }
-        }
-        break;
-    default:
-        break;
-    }
 }
 
 void xLightsFrame::OnIdle(wxIdleEvent& event) {
@@ -2156,15 +2123,26 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
         UpdatePreview();
         SetStatusText(_(""));
+        MenuItem_File_Save->Enable(true);
+        MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
     }
     else if (pagenum == NEWSEQUENCER)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
         EffectSettingsTimer.Start(50);
+        MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
+        MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
+    }
+    else if (pagenum == SETUPTAB)
+    {
+        MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
+        MenuItem_File_Save->Enable(true);
+        SetStatusText(_(""));
     }
     else
     {
+        MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
     }
 }
@@ -2763,11 +2741,6 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
     OpenSequence("", nullptr);
-}
-
-void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
-{
-    SaveSequence();
 }
 
 void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event)
@@ -7178,3 +7151,19 @@ void xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event
 {
     _modelBlendDefaultOff = MenuItem_ModelBlendDefaultOff->IsChecked();
 }
+
+void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
+{
+     switch (Notebook1->GetSelection()) {
+         case SETUPTAB:
+             SaveNetworksFile();
+             break;
+         case LAYOUTTAB:
+             layoutPanel->SaveEffects();
+             break;
+         case NEWSEQUENCER:
+             SaveSequence();
+             break;
+    }
+}
+
