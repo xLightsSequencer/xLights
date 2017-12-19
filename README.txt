@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.44  Dec 19, 2017
    -- bug (dkulp)  Fix keyboard handling of numbers
    -- enh (keith)  Add visual clue that xSchedule is serving web requests
    -- bug (keith)  Add handling of mixed audio rates on windows/linux
