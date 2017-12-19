@@ -19,7 +19,8 @@ int AudioData::__nextId = 0;
 
 #ifndef __WXOSX__
 #define DEFAULT_NUM_SAMPLES 1024
-#define DEFAULT_RATE 44100
+#define RESAMPLE_RATE 44100
+#define DEFAULT_RATE RESAMPLE_RATE
 #else
 //OSX recommendation is to keep the number of samples buffered very small at 256
 //Also recommend sampling to 48000 as that's what the drivers do internally anyway
