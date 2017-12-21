@@ -205,6 +205,7 @@
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
+    <ClCompile Include="ConfigureOSC.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="DimDialog.cpp" />
     <ClCompile Include="DimWhiteDialog.cpp" />
@@ -216,6 +217,7 @@
     <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="OptionsDialog.cpp" />
+    <ClCompile Include="OSCPacket.cpp" />
     <ClCompile Include="OutputProcess.cpp" />
     <ClCompile Include="OutputProcessColourOrder.cpp" />
     <ClCompile Include="OutputProcessDeadChannel.cpp" />
@@ -331,6 +333,7 @@
     <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
+    <ClInclude Include="ConfigureOSC.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="DeadChannelDialog.h" />
     <ClInclude Include="DimDialog.h" />
@@ -344,6 +347,7 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="MyTreeItemData.h" />
     <ClInclude Include="OptionsDialog.h" />
+    <ClInclude Include="OSCPacket.h" />
     <ClInclude Include="OutputProcess.h" />
     <ClInclude Include="OutputProcessColourOrder.h" />
     <ClInclude Include="OutputProcessDeadChannel.h" />

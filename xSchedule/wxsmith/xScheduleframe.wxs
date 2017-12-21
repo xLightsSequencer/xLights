@@ -85,6 +85,7 @@
 						<object class="sizeritem">
 							<object class="Custom" name="ID_CUSTOM1" subclass="BrightnessControl" variable="Brightness" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+								<style>ZERO</style>
 								<size>32,32</size>
 							</object>
 							<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -104,6 +105,7 @@
 						<object class="sizeritem">
 							<object class="Custom" name="ID_CUSTOM2" subclass="VolumeDisplay" variable="Custom_Volume" member="yes">
 								<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+								<style>ZERO</style>
 								<size>32,32</size>
 								<handler function="OnCustom_VolumeLeftDown" entry="EVT_LEFT_DOWN" />
 							</object>
@@ -369,9 +371,24 @@
 					<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_OSCMASTER" variable="MenuItem_OSCMaster" member="yes">
+					<label>OSC Master</label>
+					<handler function="OnMenuItem_OSCMasterSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_OSCFPPMASTER" variable="MenuItem_FPPOSCMaster" member="yes">
+					<label>FPP + OSC Master</label>
+					<handler function="OnMenuItem_FPPOSCMasterSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_FPPRemote" member="yes">
 					<label>FPP Remote</label>
 					<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_OSCREMOTE" variable="MenuItem_OSCRemote" member="yes">
+					<label>OSC Remote</label>
+					<handler function="OnMenuItem_OSCRemoteSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_FPPUnicastRemote" member="yes">
@@ -383,6 +400,10 @@
 					<label>Edit FPP Remotes</label>
 					<help>Edit remotes to unicast sync packets to</help>
 					<handler function="OnMenuItem_EditFPPRemotesSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_OSCOPTION" variable="MenuItem_ConfigureOSC" member="yes">
+					<label>Configure OSC</label>
+					<handler function="OnMenuItem_ConfigureOSCSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">

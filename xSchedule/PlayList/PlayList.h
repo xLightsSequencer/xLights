@@ -127,6 +127,7 @@ public:
     PlayListStep* GetStep(wxUint32 id);
     PlayListItem* GetItem(wxUint32 id);
     PlayListStep* GetStepWithFSEQ(const std::string fseqFile);
+    PlayListStep* GetStepWithTimingName(const std::string timingName);
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
     PlayListItemText* GetRunningText(const std::string& name) const;

@@ -7,6 +7,8 @@
  * License:
  **************************************************************/
 
+#define ZERO 0
+
 #include "xScheduleMain.h"
 #include <wx/msgdlg.h>
 #include "PlayList/PlayList.h"
@@ -35,6 +37,7 @@
 #include "MatricesDialog.h"
 #include "VirtualMatricesDialog.h"
 #include "FPPRemotesDialog.h"
+#include "ConfigureOSC.h"
 
 #include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -146,9 +149,13 @@ const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
+const long xScheduleFrame::ID_MNU_OSCFPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_OSCOPTION = wxNewId();
 const long xScheduleFrame::idMenuAbout = wxNewId();
 const long xScheduleFrame::ID_STATUSBAR1 = wxNewId();
 const long xScheduleFrame::ID_TIMER1 = wxNewId();
@@ -333,11 +340,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer5->Add(BitmapButton_StepLoop, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Unsaved = new wxBitmapButton(Panel2, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     FlexGridSizer5->Add(BitmapButton_Unsaved, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM1"));
+    Brightness = new BrightnessControl(Panel2,ID_CUSTOM1,wxDefaultPosition,wxSize(32,32),ZERO,wxDefaultValidator,_T("ID_CUSTOM1"));
     FlexGridSizer5->Add(Brightness, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_VolumeDown = new wxBitmapButton(Panel2, ID_BITMAPBUTTON8, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
     FlexGridSizer5->Add(BitmapButton_VolumeDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Custom_Volume = new VolumeDisplay(Panel2,ID_CUSTOM2,wxDefaultPosition,wxSize(32,32),0,wxDefaultValidator,_T("ID_CUSTOM2"));
+    Custom_Volume = new VolumeDisplay(Panel2,ID_CUSTOM2,wxDefaultPosition,wxSize(32,32),ZERO,wxDefaultValidator,_T("ID_CUSTOM2"));
     FlexGridSizer5->Add(Custom_Volume, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_VolumeUp = new wxBitmapButton(Panel2, ID_BITMAPBUTTON9, wxNullBitmap, wxDefaultPosition, wxSize(32,32), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
     FlexGridSizer5->Add(BitmapButton_VolumeUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -445,12 +452,20 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu4->Append(MenuItem_Standalone);
     MenuItem_FPPMaster = new wxMenuItem(Menu4, ID_MNU_FPPMASTER, _("FPP Master"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPMaster);
+    MenuItem_OSCMaster = new wxMenuItem(Menu4, ID_MNU_OSCMASTER, _("OSC Master"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_OSCMaster);
+    MenuItem_FPPOSCMaster = new wxMenuItem(Menu4, ID_MNU_OSCFPPMASTER, _("FPP + OSC Master"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_FPPOSCMaster);
     MenuItem_FPPRemote = new wxMenuItem(Menu4, ID_MNU_FPPREMOTE, _("FPP Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPRemote);
+    MenuItem_OSCRemote = new wxMenuItem(Menu4, ID_MNU_OSCREMOTE, _("OSC Remote"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_OSCRemote);
     MenuItem_FPPUnicastRemote = new wxMenuItem(Menu4, ID_MNU_FPPUNICASTREMOTE, _("FPP Unicast Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPUnicastRemote);
     MenuItem_EditFPPRemotes = new wxMenuItem(Menu4, ID_MNU_EDITFPPREMOTE, _("Edit FPP Remotes"), _("Edit remotes to unicast sync packets to"), wxITEM_NORMAL);
     Menu4->Append(MenuItem_EditFPPRemotes);
+    MenuItem_ConfigureOSC = new wxMenuItem(Menu4, ID_MNU_OSCOPTION, _("Configure OSC"), wxEmptyString, wxITEM_NORMAL);
+    Menu4->Append(MenuItem_ConfigureOSC);
     MenuBar1->Append(Menu4, _("&Modes"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
@@ -506,9 +521,13 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
+    Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
+    Connect(ID_MNU_OSCFPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPOSCMasterSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
+    Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
     Connect(ID_MNU_FPPUNICASTREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
+    Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xScheduleFrame::On_timerScheduleTrigger);
@@ -1669,12 +1688,20 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (__schedule->GetMode() == SYNCMODE::FPPSLAVE || __schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
+        if (__schedule->GetMode() == SYNCMODE::FPPSLAVE || __schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE || __schedule->GetMode() == SYNCMODE::OSCSLAVE)
         {
             if (scheduled != 13)
                 BitmapButton_IsScheduled->SetBitmap(_falconremote);
-            if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
-                BitmapButton_IsScheduled->SetToolTip("FPP remote.");
+            if (__schedule->GetMode() == SYNCMODE::OSCSLAVE)
+            {
+                if (BitmapButton_IsScheduled->GetToolTipText() != "OSC remote.")
+                    BitmapButton_IsScheduled->SetToolTip("OSC remote.");
+            }
+            else
+            {
+                if (BitmapButton_IsScheduled->GetToolTipText() != "FPP remote.")
+                    BitmapButton_IsScheduled->SetToolTip("FPP remote.");
+            }
             scheduled = 13;
         }
         else if (__schedule->IsCurrentPlayListScheduled())
@@ -2200,6 +2227,29 @@ void xScheduleFrame::UpdateUI()
         MenuItem_FPPRemote->Check(false);
         MenuItem_Standalone->Check(false);
         MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::FPPOSCMASTER)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(true);
+        MenuItem_OSCRemote->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::OSCMASTER)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(true);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
     {
@@ -2207,6 +2257,19 @@ void xScheduleFrame::UpdateUI()
         MenuItem_FPPRemote->Check(true);
         MenuItem_Standalone->Check(false);
         MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::OSCSLAVE)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(true);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
     {
@@ -2214,6 +2277,9 @@ void xScheduleFrame::UpdateUI()
         MenuItem_FPPRemote->Check(false);
         MenuItem_Standalone->Check(false);
         MenuItem_FPPUnicastRemote->Check(true);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
     }
     else
     {
@@ -2221,6 +2287,9 @@ void xScheduleFrame::UpdateUI()
         MenuItem_FPPRemote->Check(false);
         MenuItem_Standalone->Check(true);
         MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
     }
 
     ValidateWindow();
@@ -2382,5 +2451,32 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPUNICASTSLAVE);
+    UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event)
+{
+    if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
+    {
+        ConfigureOSC dlg(this, __schedule->GetOptions()->GetOSCOptions());
+        dlg.ShowModal();
+    }
+}
+
+void xScheduleFrame::OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event)
+{
+    __schedule->SetMode(SYNCMODE::FPPOSCMASTER);
+    UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_OSCMasterSelected(wxCommandEvent& event)
+{
+    __schedule->SetMode(SYNCMODE::OSCMASTER);
+    UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
+{
+    __schedule->SetMode(SYNCMODE::OSCSLAVE);
     UpdateUI();
 }

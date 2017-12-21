@@ -5,6 +5,7 @@
 #include <wx/wx.h>
 #include "Schedule.h"
 #include "CommandManager.h"
+#include "OSCPacket.h"
 #include "FSEQFile.h"
 #include <wx/socket.h>
 
@@ -26,7 +27,10 @@ typedef enum
     FPPSLAVE,
     FPPUNICASTSLAVE,
     ARTNETMASTER,
-    ARTNETSLAVE
+    ARTNETSLAVE,
+    OSCMASTER,
+    FPPOSCMASTER,
+    OSCSLAVE
 } SYNCMODE;
 
 class PixelData
@@ -71,8 +75,10 @@ class ScheduleManager : public wxEvtHandler
     int _lastBrightness;
     wxByte _brightnessArray[255];
     wxDatagramSocket* _fppSyncMaster;
+    wxDatagramSocket* _oscSyncMaster;
     wxDatagramSocket* _fppSyncMasterUnicast;
     wxDatagramSocket* _fppSyncSlave;
+    wxDatagramSocket* _oscSyncSlave;
     wxDatagramSocket* _fppSyncUnicastSlave;
     std::list<OutputProcess*> _outputProcessing;
     Xyzzy* _xyzzy;
@@ -80,21 +86,29 @@ class ScheduleManager : public wxEvtHandler
     int _timerAdjustment;
     bool _webRequestToggle;
 
+    void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
+    void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
     void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
+    void CloseOSCSyncSendSocket();
     void OpenFPPSyncListenSocket();
+    void OpenOSCSyncListenSocket();
     void OpenFPPSyncUnicastListenSocket();
     void CloseFPPSyncListenSocket();
+    void CloseOSCSyncListenSocket();
     void CloseFPPSyncUnicastListenSocket();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
     void OnServerEvent(wxSocketEvent& event);
+    void HandleOSCEvent(wxSocketEvent& event);
     void StartFSEQ(const std::string fseq);
+    void StartStep(const std::string stepName);
+    void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
 
     DECLARE_EVENT_TABLE()
@@ -113,6 +127,7 @@ class ScheduleManager : public wxEvtHandler
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
         void OpenFPPSyncSendSocket();
+        void OpenOSCSyncSendSocket();
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }

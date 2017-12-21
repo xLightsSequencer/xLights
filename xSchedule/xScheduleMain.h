@@ -156,6 +156,10 @@ public:
         void OnMenuItem_VirtualMatricesSelected(wxCommandEvent& event);
         void OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event);
         void OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event);
+        void OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event);
+        void OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_OSCMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -216,9 +220,13 @@ public:
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPMASTER;
+        static const long ID_MNU_OSCMASTER;
+        static const long ID_MNU_OSCFPPMASTER;
         static const long ID_MNU_FPPREMOTE;
+        static const long ID_MNU_OSCREMOTE;
         static const long ID_MNU_FPPUNICASTREMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
+        static const long ID_MNU_OSCOPTION;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
@@ -241,8 +249,10 @@ public:
         wxBitmapButton* BitmapButton_StepLoop;
         wxBitmapButton* BitmapButton_PLLoop;
         wxBitmapButton* BitmapButton_IsScheduled;
+        wxMenuItem* MenuItem_ConfigureOSC;
         wxStaticText* StaticText_Time;
         wxPanel* Panel5;
+        wxMenuItem* MenuItem_OSCRemote;
         wxBitmapButton* BitmapButton_VolumeUp;
         wxBitmapButton* BitmapButton_OutputToLights;
         wxBitmapButton* BitmapButton_Unsaved;
@@ -257,6 +267,8 @@ public:
         wxMenuItem* MenuItem_Save;
         wxPanel* Panel1;
         wxFileDialog* FileDialog1;
+        wxMenuItem* MenuItem_FPPOSCMaster;
+        wxMenuItem* MenuItem_OSCMaster;
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
