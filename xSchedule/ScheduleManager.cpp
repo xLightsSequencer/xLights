@@ -46,8 +46,10 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _queuedSongs = new PlayList();
     _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
+    _oscSyncMaster = nullptr;
     _fppSyncMasterUnicast = nullptr;
     _fppSyncSlave = nullptr;
+    _oscSyncSlave = nullptr;
     _fppSyncUnicastSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
@@ -123,10 +125,24 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         logger_base.info("SyncMode: FPPMASTER");
         OpenFPPSyncSendSocket();
     }
+    else if (_mode == SYNCMODE::OSCMASTER) {
+        logger_base.info("SyncMode: OSCMASTER");
+        OpenOSCSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::FPPOSCMASTER) {
+        logger_base.info("SyncMode: FPPOSCMASTER");
+        OpenFPPSyncSendSocket();
+        OpenOSCSyncSendSocket();
+    }
     else if (_mode == SYNCMODE::FPPSLAVE)
     {
         logger_base.info("SyncMode: FPPREMOTE");
         OpenFPPSyncListenSocket();
+    }
+    else if (_mode == SYNCMODE::OSCSLAVE)
+    {
+        logger_base.info("SyncMode: OSCREMOTE");
+        OpenOSCSyncListenSocket();
     }
     else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
     {
@@ -208,6 +224,10 @@ ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
+    CloseOSCSyncSendSocket();
+    CloseFPPSyncListenSocket();
+    CloseFPPSyncUnicastListenSocket();
+    CloseOSCSyncListenSocket();
     AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
@@ -528,7 +548,7 @@ int ScheduleManager::Frame(bool outputframe)
             rate = running->GetFrameMS();
             done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
-            if (outputframe && _mode == SYNCMODE::FPPMASTER && running->GetRunningStep() != nullptr)
+            if ((outputframe && _mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
             {
                 if (running->GetActiveSyncItemFSEQ() != "")
                 {
@@ -538,6 +558,11 @@ int ScheduleManager::Frame(bool outputframe)
                 {
                     SendFPPSync(running->GetActiveSyncItemMedia(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
                 }
+            }
+
+            if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER)  && running->GetRunningStep() != nullptr)
+            {
+                SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
             }
 
             // for queued songs we must remove the queued song when it finishes
@@ -2545,24 +2570,56 @@ void ScheduleManager::SetMode(SYNCMODE mode)
 
         if (_mode == SYNCMODE::FPPMASTER)
         {
+            CloseOSCSyncSendSocket();
+            CloseOSCSyncListenSocket();
             CloseFPPSyncUnicastListenSocket();
             CloseFPPSyncListenSocket();
             OpenFPPSyncSendSocket();
         }
+        else if (_mode == SYNCMODE::OSCMASTER)
+        {
+            CloseOSCSyncListenSocket();
+            CloseFPPSyncUnicastListenSocket();
+            CloseFPPSyncListenSocket();
+            CloseFPPSyncSendSocket();
+            OpenOSCSyncSendSocket();
+        }
+        else if (_mode == SYNCMODE::FPPOSCMASTER)
+        {
+            CloseOSCSyncListenSocket();
+            CloseFPPSyncUnicastListenSocket();
+            CloseFPPSyncListenSocket();
+            OpenFPPSyncSendSocket();
+            OpenOSCSyncSendSocket();
+        }
         else if (_mode == SYNCMODE::FPPSLAVE)
         {
+            CloseOSCSyncSendSocket();
+            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
             CloseFPPSyncUnicastListenSocket();
             OpenFPPSyncListenSocket();
         }
+        else if (_mode == SYNCMODE::OSCSLAVE)
+        {
+            CloseOSCSyncSendSocket();
+            CloseFPPSyncSendSocket();
+            CloseFPPSyncUnicastListenSocket();
+            CloseFPPSyncListenSocket();
+            OpenOSCSyncListenSocket();
+        }
         else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
         {
+            CloseOSCSyncSendSocket();
+            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
             CloseFPPSyncListenSocket();
             OpenFPPSyncUnicastListenSocket();
         }
         else
         {
+            CloseOSCSyncSendSocket();
+            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
             CloseFPPSyncListenSocket();
             CloseFPPSyncUnicastListenSocket();
@@ -3806,7 +3863,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
         return;
     }
 
-    if (_mode == SYNCMODE::FPPMASTER && _fppSyncMaster == nullptr)
+    if ((_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _fppSyncMaster == nullptr)
     {
         OpenFPPSyncSendSocket();
     }
@@ -3955,6 +4012,75 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
     }
 }
 
+void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
+{
+    static std::string lastfseq = "";
+    static size_t lastfseqmsec = 0;
+
+    if ((_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _oscSyncMaster == nullptr)
+    {
+        OpenOSCSyncSendSocket();
+    }
+
+    if (_oscSyncMaster == nullptr) return;
+
+    wxString path = GetOptions()->GetOSCOptions()->GetMasterPath();
+
+    path.Replace("%STEPNAME%", step->GetNameNoTime());
+    if (step->GetTimeSource(frameMS) != nullptr)
+        path.Replace("%TIMINGITEM%", step->GetTimeSource(frameMS)->GetNameNoTime());
+
+    if (GetOptions()->GetOSCOptions()->IsTime())
+    {
+        switch (GetOptions()->GetOSCOptions()->GetTimeCode())
+        {
+        case OSCTIME::TIME_SECONDS:
+            SendOSC(OSCPacket(path.ToStdString(), (float)msec / 1000));
+            break;
+        case OSCTIME::TIME_MILLISECONDS:
+            SendOSC(OSCPacket(path.ToStdString(), (int)msec));
+            break;
+        }
+    }
+    else
+    {
+        switch (GetOptions()->GetOSCOptions()->GetFrameCode())
+        {
+        case OSCFRAME::FRAME_24:
+            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 24 / 1000)));
+            break;
+        case OSCFRAME::FRAME_25:
+            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 25 / 1000)));
+            break;
+        case OSCFRAME::FRAME_2997:
+            SendOSC(OSCPacket(path.ToStdString(), (int)((float)msec * 29.97 / 1000)));
+            break;
+        case OSCFRAME::FRAME_30:
+            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 30 / 1000)));
+            break;
+        case OSCFRAME::FRAME_60:
+            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 60 / 1000)));
+            break;
+        case OSCFRAME::FRAME_DEFAULT:
+            SendOSC(OSCPacket(path.ToStdString(), (int)(msec / frameMS)));
+            break;
+        case OSCFRAME::FRAME_PROGRESS:
+            SendOSC(OSCPacket(path.ToStdString(), (float)msec / (float)step->GetLengthMS()));
+            break;
+        }
+    }
+}
+
+void ScheduleManager::SendOSC(const OSCPacket& osc)
+{
+    wxIPV4address remoteAddr;
+    //remoteAddr.BroadcastAddress();
+    remoteAddr.Hostname(GetOptions()->GetOSCOptions()->GetIPAddress());
+    remoteAddr.Service(GetOptions()->GetOSCOptions()->GetServerPort());
+
+    _oscSyncMaster->SendTo(remoteAddr, osc.GetBuffer(), osc.GetBuffSize());
+}
+
 void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4053,6 +4179,47 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     }
 }
 
+void ScheduleManager::OpenOSCSyncSendSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    CloseOSCSyncSendSocket();
+
+    wxIPV4address localaddr;
+    if (IPOutput::GetLocalIP() == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::GetLocalIP());
+    }
+
+    _oscSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    if (_oscSyncMaster == nullptr)
+    {
+        logger_base.error("Error opening datagram for OSC Sync as master.");
+    }
+    else if (!_oscSyncMaster->IsOk())
+    {
+        logger_base.error("Error opening datagram for OSC Sync as master. OK : FALSE");
+        delete _oscSyncMaster;
+        _oscSyncMaster = nullptr;
+    }
+    else if (_oscSyncMaster->Error())
+    {
+        logger_base.error("Error opening datagram for OSC Sync as master. %d : %s", 
+            _oscSyncMaster->LastError(), 
+            (const char*)IPOutput::DecodeError(_oscSyncMaster->LastError()).c_str());
+        delete _oscSyncMaster;
+        _oscSyncMaster = nullptr;
+    }
+    else
+    {
+        logger_base.info("OSC Sync as master datagram opened successfully.");
+    }
+}
+
 void ScheduleManager::CloseFPPSyncSendSocket()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4072,6 +4239,17 @@ void ScheduleManager::CloseFPPSyncSendSocket()
     }
 }
 
+void ScheduleManager::CloseOSCSyncSendSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_oscSyncMaster != nullptr) {
+        logger_base.info("OSC Sync as master datagram closed.");
+        _oscSyncMaster->Close();
+        delete _oscSyncMaster;
+        _oscSyncMaster = nullptr;
+    }
+}
+
 void ScheduleManager::CloseFPPSyncListenSocket()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4080,6 +4258,17 @@ void ScheduleManager::CloseFPPSyncListenSocket()
         _fppSyncSlave->Close();
         delete _fppSyncSlave;
         _fppSyncSlave = nullptr;
+    }
+}
+
+void ScheduleManager::CloseOSCSyncListenSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_oscSyncSlave != nullptr) {
+        logger_base.info("OSC Sync as remote datagram closed.");
+        _oscSyncSlave->Close();
+        delete _oscSyncSlave;
+        _oscSyncSlave = nullptr;
     }
 }
 
@@ -4140,6 +4329,49 @@ void ScheduleManager::OpenFPPSyncListenSocket()
         _fppSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
         _fppSyncSlave->Notify(true);
         logger_base.info("FPP Sync as remote datagram opened successfully.");
+    }
+}
+
+void ScheduleManager::OpenOSCSyncListenSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    CloseOSCSyncListenSocket();
+
+    wxIPV4address localaddr;
+    if (IPOutput::GetLocalIP() == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::GetLocalIP());
+    }
+    localaddr.Service(GetOptions()->GetOSCOptions()->GetClientPort());
+
+    _oscSyncSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    if (_oscSyncSlave == nullptr)
+    {
+        logger_base.error("Error opening datagram for OSC Sync as remote.");
+    }
+    else if (!_oscSyncSlave->IsOk())
+    {
+        logger_base.error("Error opening datagram for OSC Sync as remote. OK : FALSE");
+        delete _oscSyncSlave;
+        _oscSyncSlave = nullptr;
+    }
+    else if (_oscSyncSlave->Error())
+    {
+        logger_base.error("Error opening datagram for FPP Sync as remote. %d : %s", _oscSyncSlave->LastError(), (const char*)IPOutput::DecodeError(_oscSyncSlave->LastError()).c_str());
+        delete _oscSyncSlave;
+        _oscSyncSlave = nullptr;
+    }
+    else
+    {
+        _oscSyncSlave->SetEventHandler(*this, SERVER_ID);
+        _oscSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
+        _oscSyncSlave->Notify(true);
+        logger_base.info("OSC Sync as remote datagram opened successfully.");
     }
 }
 
@@ -4228,9 +4460,98 @@ void ScheduleManager::StartFSEQ(const std::string fseq)
     }
 }
 
+void ScheduleManager::StartTiming(const std::string timingName)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // find this fseq file and run it
+    PlayList* pl = GetRunningPlayList();
+    PlayListStep* pls = nullptr;
+    if (pl != nullptr)
+    {
+        pls = pl->GetStepWithTimingName(timingName);
+        StopPlayList(pl, false);
+    }
+
+    if (pls == nullptr)
+    {
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            pls = (*it)->GetStepWithTimingName(timingName);
+
+            if (pls != nullptr) {
+                pl = *it;
+                break;
+            }
+        }
+    }
+
+    if (pl != nullptr && pls != nullptr)
+    {
+        logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+        size_t rate;
+        PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        wxCommandEvent event1(EVT_FRAMEMS);
+        event1.SetInt(rate);
+        wxPostEvent(wxGetApp().GetTopWindow(), event1);
+
+        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+    }
+}
+
+void ScheduleManager::StartStep(const std::string stepName)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // find this step and run it
+    PlayList* pl = GetRunningPlayList();
+    PlayListStep* pls = nullptr;
+    if (pl != nullptr)
+    {
+        pls = pl->GetStep(stepName);
+        StopPlayList(pl, false);
+    }
+
+    if (pls == nullptr)
+    {
+        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+        {
+            pls = (*it)->GetStep(stepName);
+
+            if (pls != nullptr) {
+                pl = *it;
+                break;
+            }
+        }
+    }
+
+    if (pl != nullptr && pls != nullptr)
+    {
+        logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+        size_t rate;
+        PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        wxCommandEvent event1(EVT_FRAMEMS);
+        event1.SetInt(rate);
+        wxPostEvent(wxGetApp().GetTopWindow(), event1);
+
+        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+    }
+}
+
 void ScheduleManager::OnServerEvent(wxSocketEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_oscSyncSlave != nullptr)
+    {
+        return HandleOSCEvent(event);
+    }
 
     static wxString lastMessage = "";
 
@@ -4385,6 +4706,79 @@ void ScheduleManager::OnServerEvent(wxSocketEvent& event)
                 }
             }
             break;
+            }
+        }
+    }
+}
+
+void ScheduleManager::HandleOSCEvent(wxSocketEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    unsigned char buffer[2048];
+    memset(buffer, 0x00, sizeof(buffer));
+
+    int lastcount = -1;
+
+    while (lastcount != 0)
+    {
+        wxIPV4address remoteaddr;
+        _oscSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
+        lastcount = _oscSyncSlave->LastCount();
+        logger_base.debug("Broadcast OSC sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
+
+        int ms = 50;
+        PlayList* pl = GetRunningPlayList();
+        if (pl != nullptr) ms = pl->GetFrameMS();
+
+        OSCPacket packet(buffer, lastcount, GetOptions()->GetOSCOptions(), ms);
+
+        if (packet.IsOk())
+        {
+            std::string stepname = packet.GetStepName();
+            std::string timingname = packet.GetTimingName();
+
+            pl = GetRunningPlayList();
+            PlayListStep* pls = nullptr;
+            size_t frameMS = 50;
+
+            if (stepname != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == stepname)
+            {
+                // right step is running
+                pls = pl->GetRunningStep();
+            }
+            else if (timingname != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetTimeSource(frameMS)->GetNameNoTime() == timingname)
+            {
+                // right item is running
+                pls = pl->GetRunningStep();
+            }
+            else
+            {
+                if (pl != nullptr)
+                {
+                    StopPlayList(pl, false);
+                    pl = nullptr;
+                }
+
+                // need to start the playlist step
+                if (stepname != "")
+                {
+                    StartStep(stepname);
+                }
+                else if (timingname != "")
+                {
+                    StartTiming(timingname);
+                }
+                pl = GetRunningPlayList();
+                if (pl != nullptr) pls = pl->GetRunningStep();
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
+
+            if (pls != nullptr)
+            {
+                ms = packet.GetMS(pls->GetLengthMS());
+                pls->SetSyncPosition(-1, (size_t)ms, true);
             }
         }
     }

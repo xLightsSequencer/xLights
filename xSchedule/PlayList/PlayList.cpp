@@ -1,6 +1,7 @@
 #include "PlayList.h"
 #include "PlayListDialog.h"
 #include "PlayListStep.h"
+#include "PlayListItem.h"
 #include "../Schedule.h"
 
 #include <wx/xml/xml.h>
@@ -968,6 +969,20 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
     for (auto it = _steps.begin(); it != _steps.end(); ++it)
     {
         if ((*it)->IsRunningFSEQ(fseqFile))
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
+PlayListStep* PlayList::GetStepWithTimingName(const std::string timingName)
+{
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        size_t ms;
+        if ((*it)->GetTimeSource(ms) != nullptr && (*it)->GetTimeSource(ms)->GetNameNoTime() == timingName)
         {
             return *it;
         }

@@ -11,6 +11,7 @@
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 {
+    _oscOptions = nullptr;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
@@ -51,7 +52,13 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
         {
             _fppRemotes.push_back(n->GetAttribute("IP").ToStdString());
         }
+        else if (n->GetName() == "OSC")
+        {
+            _oscOptions = new OSCOptions(n);
+        }
     }
+
+    if (_oscOptions == nullptr) _oscOptions = new OSCOptions();
 }
 
 void ScheduleOptions::AddProjector(const std::string& name, const std::string& ip, const std::string& password)
@@ -76,6 +83,7 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
+    _oscOptions = new OSCOptions();
     _password = "";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
@@ -107,6 +115,7 @@ ScheduleOptions::~ScheduleOptions()
         delete *it;
     }
     _buttons.clear();
+    if (_oscOptions != nullptr) delete _oscOptions;
 }
 
 wxXmlNode* ScheduleOptions::Save()
@@ -170,6 +179,8 @@ wxXmlNode* ScheduleOptions::Save()
         n->AddAttribute("IP", wxString(*it));
         res->AddChild(n);
     }
+
+    if (_oscOptions != nullptr) res->AddChild(_oscOptions->Save());
 
     return res;
 }
@@ -274,6 +285,8 @@ bool ScheduleOptions::IsDirty() const
         res = res || (*it)->IsDirty();
     }
 
+    if (_oscOptions != nullptr) res = res || _oscOptions->IsDirty();
+
     return res;
 }
 
@@ -300,6 +313,8 @@ void ScheduleOptions::ClearDirty()
     {
         (*it)->ClearDirty();
     }
+
+    if (_oscOptions != nullptr) _oscOptions->ClearDirty();
 }
 
 UserButton* ScheduleOptions::GetButton(const std::string& label) const
@@ -342,4 +357,110 @@ std::string ScheduleOptions::GetDefaultRoot() const
     d = wxStandardPaths::Get().GetResourcesDir();
 #endif
     return d.ToStdString();
+}
+
+wxXmlNode* OSCOptions::Save()
+{
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "OSC");
+
+    res->AddAttribute("MasterPath", _masterPath);
+    res->AddAttribute("RemotePath", _remotePath);
+    res->AddAttribute("IP", _ipAddress);
+    res->AddAttribute("Time", DecodeTime(_time));
+    res->AddAttribute("Frame", DecodeFrame(_frame));
+    res->AddAttribute("ServerPort", wxString::Format("%d", _serverport));
+    res->AddAttribute("ClientPort", wxString::Format("%d", _clientport));
+    res->AddAttribute("TimeBased", (IsTime() ? "True" : "False"));
+    return res;
+}
+
+OSCFRAME OSCOptions::EncodeFrame(std::string frame) const
+{
+    if (frame == "Default (int)") return OSCFRAME::FRAME_DEFAULT;
+    if (frame == "24 fps (int)") return OSCFRAME::FRAME_24;
+    if (frame == "25 fps (int)") return OSCFRAME::FRAME_25;
+    if (frame == "29.97 fps (int)") return OSCFRAME::FRAME_2997;
+    if (frame == "30 fps (int)") return OSCFRAME::FRAME_30;
+    if (frame == "60 fps (int)") return OSCFRAME::FRAME_60;
+    if (frame == "Progress (float)") return OSCFRAME::FRAME_PROGRESS;
+
+    wxASSERT(false);
+    return OSCFRAME::FRAME_DEFAULT;
+}
+
+std::string OSCOptions::DecodeFrame(OSCFRAME frame)
+{
+    switch (frame)
+    {
+    case OSCFRAME::FRAME_DEFAULT:
+        return "Default (int)";
+    case OSCFRAME::FRAME_24:
+        return "24 fps (int)";
+    case OSCFRAME::FRAME_25:
+        return "25 fps (int)";
+    case OSCFRAME::FRAME_2997:
+        return "29.97 fps (int)";
+    case OSCFRAME::FRAME_30:
+        return "30 fps (int)";
+    case OSCFRAME::FRAME_60:
+        return "60 fps (int)";
+    case OSCFRAME::FRAME_PROGRESS:
+        return "Progress (float)";
+    }
+    wxASSERT(false);
+    return "Default (int)";
+}
+
+OSCTIME OSCOptions::EncodeTime(std::string time) const
+{
+    if (time == "Seconds (float)") return OSCTIME::TIME_SECONDS;
+    if (time == "Milliseconds (int)") return OSCTIME::TIME_MILLISECONDS;
+
+    wxASSERT(false);
+    return OSCTIME::TIME_SECONDS;
+}
+
+std::string OSCOptions::DecodeTime(OSCTIME time)
+{
+    switch(time)
+    {
+    case OSCTIME::TIME_SECONDS: return "Seconds (float)";
+    case OSCTIME::TIME_MILLISECONDS: return "Milliseconds (int)";
+    }
+
+    wxASSERT(false);
+    return "Seconds (float)";
+}
+
+void OSCOptions::Load(wxXmlNode* node)
+{
+    _masterPath = node->GetAttribute("MasterPath", "/Timecode/%STEPNAME%").ToStdString();
+    _remotePath = node->GetAttribute("RemotePath", "/Timecode/%STEPNAME%").ToStdString();
+    _ipAddress = node->GetAttribute("IP", "255.255.255.255").ToStdString();
+    _time = EncodeTime(node->GetAttribute("Time", "Seconds (float)").ToStdString());
+    _frame = EncodeFrame(node->GetAttribute("Frame", "Default (int)").ToStdString());
+    _serverport = wxAtoi(node->GetAttribute("ServerPort", "9000"));
+    _clientport = wxAtoi(node->GetAttribute("ClientPort", "9000"));
+    _time_not_frames = (node->GetAttribute("TimeBased", "True") == "True");
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
+OSCOptions::OSCOptions(wxXmlNode* node)
+{
+    Load(node);
+}
+
+OSCOptions::OSCOptions()
+{
+    _masterPath = "/Timecode/%STEPNAME%";
+    _remotePath = "/Timecode/%STEPNAME%";
+    _ipAddress = "255.255.255.255";
+    _time = EncodeTime("Seconds (float)");
+    _frame = EncodeFrame("Default (int)");
+    _serverport = 9000;
+    _clientport = 9000;
+    _time_not_frames = true;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
 }

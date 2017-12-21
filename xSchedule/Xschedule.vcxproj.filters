@@ -139,6 +139,8 @@
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="OutputProcessDeadChannel.cpp" />
     <ClCompile Include="VideoCache.cpp" />
+    <ClCompile Include="ConfigureOSC.cpp" />
+    <ClCompile Include="OSCPacket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -260,6 +262,8 @@
     <ClInclude Include="DeadChannelDialog.h" />
     <ClInclude Include="OutputProcessDeadChannel.h" />
     <ClInclude Include="VideoCache.h" />
+    <ClInclude Include="ConfigureOSC.h" />
+    <ClInclude Include="OSCPacket.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -360,6 +360,8 @@
 		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
+		<Unit filename="ConfigureOSC.cpp" />
+		<Unit filename="ConfigureOSC.h" />
 		<Unit filename="Control.h" />
 		<Unit filename="DeadChannelDialog.cpp" />
 		<Unit filename="DeadChannelDialog.h" />
@@ -381,6 +383,8 @@
 		<Unit filename="MatrixDialog.h" />
 		<Unit filename="MatrixMapper.cpp" />
 		<Unit filename="MatrixMapper.h" />
+		<Unit filename="OSCPacket.cpp" />
+		<Unit filename="OSCPacket.h" />
 		<Unit filename="OptionsDialog.cpp" />
 		<Unit filename="OptionsDialog.h" />
 		<Unit filename="OutputProcess.cpp" />
@@ -538,6 +542,7 @@
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
+		<Unit filename="wxsmith/ConfigureOSC.wxs" />
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
@@ -627,6 +632,7 @@
 					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DeadChannelDialog.wxs" src="DeadChannelDialog.cpp" hdr="DeadChannelDialog.h" fwddecl="0" i18n="1" name="DeadChannelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ConfigureOSC.wxs" src="ConfigureOSC.cpp" hdr="ConfigureOSC.h" fwddecl="0" i18n="1" name="ConfigureOSC" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
