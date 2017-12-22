@@ -244,16 +244,6 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
     SpinCtrl_FadeIn->SetValue(fseq->GetFadeInMS());
     SpinCtrl_FadeOut->SetValue(fseq->GetFadeOutMS());
 
-    if (fseq->GetVolume() != -1)
-    {
-        CheckBox_OverrideVolume->SetValue(true);
-        Slider1->SetValue(fseq->GetVolume());
-    }
-    else
-    {
-        CheckBox_OverrideVolume->SetValue(false);
-    }
-
     long channels = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
     SpinCtrl_Channels->SetRange(1, channels);
 
@@ -274,6 +264,16 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
         std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
+    }
+
+    if (fseq->GetVolume() != -1)
+    {
+        CheckBox_OverrideVolume->SetValue(true);
+        Slider1->SetValue(fseq->GetVolume());
+    }
+    else
+    {
+        CheckBox_OverrideVolume->SetValue(false);
     }
 
     SetWindowPositionText();

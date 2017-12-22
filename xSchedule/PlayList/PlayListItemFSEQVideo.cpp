@@ -263,7 +263,7 @@ wxXmlNode* PlayListItemFSEQVideo::Save()
     node->AddAttribute("H", wxString::Format(wxT("%i"), _size.GetHeight()));
     node->AddAttribute("FadeInMS", wxString::Format(wxT("%i"), _fadeInMS));
     node->AddAttribute("FadeOutMS", wxString::Format(wxT("%i"), _fadeOutMS));
-    node->AddAttribute("Channels", wxString::Format(wxT("%ld"), _channels));
+    node->AddAttribute("Channels", wxString::Format(wxT("%ld"), (long)_channels));
     node->AddAttribute("StartChannel", _startChannel);
 
     if (!_topMost)
