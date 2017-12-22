@@ -442,6 +442,10 @@
 		<Unit filename="PlayList/PlayListItemImage.h" />
 		<Unit filename="PlayList/PlayListItemImagePanel.cpp" />
 		<Unit filename="PlayList/PlayListItemImagePanel.h" />
+		<Unit filename="PlayList/PlayListItemOSC.cpp" />
+		<Unit filename="PlayList/PlayListItemOSC.h" />
+		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemOSCPanel.h" />
 		<Unit filename="PlayList/PlayListItemPJLink.cpp" />
 		<Unit filename="PlayList/PlayListItemPJLink.h" />
 		<Unit filename="PlayList/PlayListItemPJLinkPanel.cpp" />
@@ -562,6 +566,7 @@
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemPJLinkPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
@@ -605,9 +610,12 @@
 					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFilePanel.wxs" src="PlayList/PlayListItemFilePanel.cpp" hdr="PlayList/PlayListItemFilePanel.h" fwddecl="0" i18n="1" name="PlayListItemFilePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQVideoPanel.wxs" src="PlayList/PlayListItemFSEQVideoPanel.cpp" hdr="PlayList/PlayListItemFSEQVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQVideoPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemAudioPanel.wxs" src="PlayList/PlayListItemAudioPanel.cpp" hdr="PlayList/PlayListItemAudioPanel.h" fwddecl="0" i18n="1" name="PlayListItemAudioPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemVideoPanel.wxs" src="PlayList/PlayListItemVideoPanel.cpp" hdr="PlayList/PlayListItemVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemVideoPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemOSCPanel.wxs" src="PlayList/PlayListItemOSCPanel.cpp" hdr="PlayList/PlayListItemOSCPanel.h" fwddecl="0" i18n="1" name="PlayListItemOSCPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemRunProcessPanel.wxs" src="PlayList/PlayListItemRunProcessPanel.cpp" hdr="PlayList/PlayListItemRunProcessPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunProcessPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListPanel.wxs" src="PlayList/PlayListPanel.cpp" hdr="PlayList/PlayListPanel.h" fwddecl="0" i18n="1" name="PlayListPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListStepPanel.wxs" src="PlayList/PlayListStepPanel.cpp" hdr="PlayList/PlayListStepPanel.h" fwddecl="0" i18n="1" name="PlayListStepPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/VideoWindowPositionDialog.wxs" src="PlayList/VideoWindowPositionDialog.cpp" hdr="PlayList/VideoWindowPositionDialog.h" fwddecl="0" i18n="1" name="VideoWindowPositionDialog" language="CPP" />

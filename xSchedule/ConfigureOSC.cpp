@@ -5,6 +5,7 @@
 //(*InternalHeaders(ConfigureOSC)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "OSCPacket.h"
 //*)
 
 //(*IdInit(ConfigureOSC)
@@ -248,5 +249,5 @@ bool ConfigureOSC::IsValidPath() const
 {
     // to be valid it must start with /
     // must not end with /
-    return TextCtrl_MasterPath->GetValue().StartsWith("/") && !TextCtrl_MasterPath->GetValue().EndsWith("/");
+    return OSCPacket::IsPathValid(TextCtrl_MasterPath->GetValue().ToStdString());
 }

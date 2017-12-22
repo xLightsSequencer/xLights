@@ -17,6 +17,7 @@
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemRunCommand.h"
+#include "PlayListItemOSC.h"
 #include "PlayListItemAudio.h"
 #include <wx/filename.h>
 #include "../xScheduleMain.h"
@@ -184,6 +185,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLICommand")
         {
             _items.push_back(new PlayListItemRunCommand(n));
+        }
+        else if (n->GetName() == "PLIOSC")
+        {
+            _items.push_back(new PlayListItemOSC(n));
         }
         else if (n->GetName() == "PLIVirtualMatrix")
         {

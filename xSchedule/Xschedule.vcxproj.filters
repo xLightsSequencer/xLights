@@ -141,6 +141,8 @@
     <ClCompile Include="VideoCache.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
     <ClCompile Include="OSCPacket.cpp" />
+    <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -264,6 +266,8 @@
     <ClInclude Include="VideoCache.h" />
     <ClInclude Include="ConfigureOSC.h" />
     <ClInclude Include="OSCPacket.h" />
+    <ClInclude Include="PlayList\PlayListItemOSC.h" />
+    <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

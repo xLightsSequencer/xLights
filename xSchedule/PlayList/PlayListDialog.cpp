@@ -9,6 +9,7 @@
 #include "PlayListItemVideo.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemRunCommand.h"
+#include "PlayListItemOSC.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemFile.h"
@@ -68,6 +69,7 @@ const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
+const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
@@ -550,6 +552,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mi = mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mi = mnu.Append(ID_MNU_ADDCURL, "Add CURL");
     mi = mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
+    mi = mnu.Append(ID_MNU_ADDOSC, "Add OSC");
     mi = mnu.Append(ID_MNU_ADDTEXT, "Add Text");
     mi = mnu.Append(ID_MNU_ADDFILE, "Add File");
 
@@ -628,6 +631,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDCOMMAND)
     {
         PlayListItemRunCommand* pli = new PlayListItemRunCommand();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDOSC)
+    {
+        PlayListItemOSC* pli = new PlayListItemOSC();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDTEXT)
