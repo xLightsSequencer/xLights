@@ -550,13 +550,13 @@ void EffectsGrid::FillRandomEffects()
                     if( effectLayer->GetRangeIsClearMS(eff->GetStartTimeMS(), eff->GetEndTimeMS()) )
                     {
                         Effect* ef = effectLayer->AddEffect(0,
-                                                  "Random",
-                                                  "",
-                                                  "",
-                                                                  eff->GetStartTimeMS(),
-                                                                  eff->GetEndTimeMS(),
-                                                                  EFFECT_SELECTED,
-                                                                  false);
+                                                            "Random",
+                                                            "",
+                                                            "",
+                                                            eff->GetStartTimeMS(),
+                                                            eff->GetEndTimeMS(),
+                                                            EFFECT_SELECTED,
+                                                            false);
                         lastEffect = ef;
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect( effectLayer->GetParentElement()->GetModelName(), effectLayer->GetIndex(), ef->GetID() );
                         RaiseSelectedEffectChanged(ef, true, false);

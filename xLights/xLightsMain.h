@@ -1292,7 +1292,8 @@ private:
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
-    void UpdateEffectPalette(wxCommandEvent& event);
+    void RandomizeEffect(wxCommandEvent &event);
+    void UpdateEffectPalette(wxCommandEvent &event);
     void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
