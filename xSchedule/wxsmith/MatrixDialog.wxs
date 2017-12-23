@@ -51,7 +51,7 @@
 				<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_StringLength" member="yes">
 					<value>150</value>
 					<min>1</min>
-					<max>1024</max>
+					<max>65535</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -68,7 +68,7 @@
 			<object class="sizeritem">
 				<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_StrandsPerString" member="yes">
 					<value>1</value>
-					<max>64</max>
+					<max>8192</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
