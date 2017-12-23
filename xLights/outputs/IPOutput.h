@@ -31,6 +31,7 @@ public:
     #pragma region Getters and Setters
     virtual bool IsIpOutput() const override { return true; }
     virtual bool IsSerialOutput() const override { return false; }
+    virtual std::string GetPingDescription() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Operators
@@ -38,6 +39,8 @@ public:
     #pragma endregion Operators
     
     virtual wxXmlNode* Save() override;
+    PINGSTATE Ping() const override;
+    bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop
     virtual bool Open() override { return Output::Open(); }

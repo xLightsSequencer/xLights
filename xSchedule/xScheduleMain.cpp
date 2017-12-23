@@ -38,6 +38,7 @@
 #include "VirtualMatricesDialog.h"
 #include "FPPRemotesDialog.h"
 #include "ConfigureOSC.h"
+#include "Pinger.h"
 
 #include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -74,6 +75,7 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "../xLights/outputs/IPOutput.h"
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -122,6 +124,10 @@ const long xScheduleFrame::ID_BUTTON1 = wxNewId();
 const long xScheduleFrame::ID_BUTTON2 = wxNewId();
 const long xScheduleFrame::ID_BUTTON3 = wxNewId();
 const long xScheduleFrame::ID_BUTTON4 = wxNewId();
+const long xScheduleFrame::ID_PANEL6 = wxNewId();
+const long xScheduleFrame::ID_LISTVIEW2 = wxNewId();
+const long xScheduleFrame::ID_PANEL7 = wxNewId();
+const long xScheduleFrame::ID_SPLITTERWINDOW2 = wxNewId();
 const long xScheduleFrame::ID_PANEL3 = wxNewId();
 const long xScheduleFrame::ID_LISTVIEW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL5 = wxNewId();
@@ -302,6 +308,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _pinger = nullptr;
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
     _webServer = nullptr;
@@ -315,6 +322,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxMenu* Menu1;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer8;
     wxBoxSizer* BoxSizer1;
     wxMenuBar* MenuBar1;
     wxFlexGridSizer* FlexGridSizer6;
@@ -360,19 +369,40 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
-    TreeCtrl_PlayListsSchedules = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
+    SplitterWindow2 = new wxSplitterWindow(Panel3, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
+    SplitterWindow2->SetMinimumPaneSize(10);
+    SplitterWindow2->SetSashGravity(0.5);
+    Panel6 = new wxPanel(SplitterWindow2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer7->AddGrowableCol(0);
+    FlexGridSizer7->AddGrowableRow(0);
+    TreeCtrl_PlayListsSchedules = new wxTreeCtrl(Panel6, ID_TREECTRL1, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
     TreeCtrl_PlayListsSchedules->SetMinSize(wxSize(300,300));
-    FlexGridSizer2->Add(TreeCtrl_PlayListsSchedules, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+    FlexGridSizer7->Add(TreeCtrl_PlayListsSchedules, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    Button_Add = new wxButton(Panel3, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    Button_Add = new wxButton(Panel6, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     BoxSizer1->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Edit = new wxButton(Panel3, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    Button_Edit = new wxButton(Panel6, ID_BUTTON2, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     BoxSizer1->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Delete = new wxButton(Panel3, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    Button_Delete = new wxButton(Panel6, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     BoxSizer1->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Schedule = new wxButton(Panel3, ID_BUTTON4, _("Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    Button_Schedule = new wxButton(Panel6, ID_BUTTON4, _("Schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     BoxSizer1->Add(Button_Schedule, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel6->SetSizer(FlexGridSizer7);
+    FlexGridSizer7->Fit(Panel6);
+    FlexGridSizer7->SetSizeHints(Panel6);
+    Panel7 = new wxPanel(SplitterWindow2, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
+    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer8->AddGrowableCol(0);
+    FlexGridSizer8->AddGrowableRow(0);
+    ListView_Ping = new wxListView(Panel7, ID_LISTVIEW2, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTVIEW2"));
+    FlexGridSizer8->Add(ListView_Ping, 1, wxALL|wxEXPAND, 5);
+    Panel7->SetSizer(FlexGridSizer8);
+    FlexGridSizer8->Fit(Panel7);
+    FlexGridSizer8->SetSizeHints(Panel7);
+    SplitterWindow2->SplitHorizontally(Panel6, Panel7);
+    FlexGridSizer2->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
     FlexGridSizer2->Fit(Panel3);
     FlexGridSizer2->SetSizeHints(Panel3);
@@ -505,6 +535,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_EditClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_DeleteClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xScheduleFrame::OnButton_ScheduleClick);
+    Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemActivated);
+    Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemRClick);
     Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
     Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
@@ -572,6 +604,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Duration");
     ListView_Running->AppendColumn("");
+
+    ListView_Ping->AppendColumn("Controller");
 
     _otlon = wxBitmap(xs_otlon);
     _otloff = wxBitmap(xs_otloff);
@@ -650,12 +684,22 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
 void xScheduleFrame::LoadSchedule()
 {
+    if (_pinger != nullptr)
+    {
+        delete _pinger;
+        _pinger = nullptr;
+    }
+    ListView_Ping->ClearAll();
+    ListView_Ping->AppendColumn("Controller");
+
     if (__schedule != nullptr)
     {
         delete __schedule;
         __schedule = nullptr;
     }
     __schedule = new ScheduleManager(this, _showDir);
+
+    _pinger = new Pinger(__schedule->GetOutputManager());
 
     if (__schedule == nullptr) return;
 
@@ -691,6 +735,12 @@ void xScheduleFrame::LoadSchedule()
 
 xScheduleFrame::~xScheduleFrame()
 {
+    if (_pinger != nullptr)
+    {
+        delete _pinger;
+        _pinger = nullptr;
+    }
+
     int x, y;
     GetPosition(&x, &y);
 
@@ -2292,6 +2342,58 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCRemote->Check(false);
     }
 
+    if (_pinger != nullptr)
+    {
+        auto pingresults = _pinger->GetPingers();
+        for (auto it = pingresults.begin(); it != pingresults.end(); ++it)
+        {
+            // find it in the list
+            int item = -1;
+            for (int i = 0; i < ListView_Ping->GetItemCount(); i++)
+            {
+                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
+                {
+                    item = i;
+                    break;
+                }
+            }
+            // if not there ... add it
+            if (item == -1)
+            {
+                item = ListView_Ping->GetItemCount();
+                ListView_Ping->InsertItem(ListView_Ping->GetItemCount(), (*it)->GetName());
+                ListView_Ping->SetColumnWidth(0, wxLIST_AUTOSIZE);
+            }
+
+            // update the colour
+            if (item >= 0)
+            {
+                switch ((*it)->GetPingResult())
+                {
+                case PING_OK:
+                case PING_OPEN:
+                case PING_OPENED:
+                case PING_WEBOK:
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    ListView_Ping->SetItemBackgroundColour(item, *wxGREEN);
+                    break;
+                case PING_ALLFAILED:
+                    ListView_Ping->SetItemTextColour(item, *wxWHITE);
+                    ListView_Ping->SetItemBackgroundColour(item, *wxRED);
+                    break;
+                case PING_UNAVAILABLE:
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    ListView_Ping->SetItemBackgroundColour(item, *wxWHITE);
+                    break;
+                case PING_UNKNOWN:
+                    ListView_Ping->SetItemTextColour(item, *wxBLACK);
+                    ListView_Ping->SetItemBackgroundColour(item, wxColour(255, 128, 0));
+                    break;
+                }
+            }
+        }
+    }
+
     ValidateWindow();
 }
 
@@ -2479,4 +2581,17 @@ void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::OSCSLAVE);
     UpdateUI();
+}
+
+void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
+{
+    std::string ip = event.GetItem().GetText().SubString(0, event.GetItem().GetText().Find(' ')-1).ToStdString();
+    if (IPOutput::IsIPValid(ip))
+    {
+        ::wxLaunchDefaultBrowser("http://" + ip);
+    }
+}
+
+void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
+{
 }

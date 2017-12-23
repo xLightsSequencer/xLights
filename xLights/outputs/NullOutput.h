@@ -16,6 +16,7 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_NULL; }
     virtual std::string GetLongDescription() const override;
+    virtual std::string GetPingDescription() const override { return ""; }
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual bool IsOutputable() const override { return false; }
@@ -40,6 +41,9 @@ public:
     virtual void SetManyChannels(long channel, unsigned char* data, long size) override {};
     virtual void AllOff() override {}
     #pragma endregion Data Setting
+
+    PINGSTATE Ping() const override { return PINGSTATE::PING_UNAVAILABLE; }
+    bool CanPing() const override { return false; }
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI

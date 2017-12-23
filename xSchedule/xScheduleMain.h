@@ -40,6 +40,7 @@ class WebServer;
 class Schedule;
 class RunningSchedule;
 class VolumeDisplay;
+class Pinger;
 
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
@@ -57,6 +58,7 @@ class xScheduleFrame : public wxFrame
     wxDateTime _statusSetAt;
     bool _timerOutputFrame;
     bool _suspendOTL;
+    Pinger* _pinger;
 
     void LoadShowDir();
     void SaveShowDir() const;
@@ -160,6 +162,8 @@ public:
         void OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
+        void OnListView_PingItemActivated(wxListEvent& event);
+        void OnListView_PingItemRClick(wxListEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -193,6 +197,10 @@ public:
         static const long ID_BUTTON2;
         static const long ID_BUTTON3;
         static const long ID_BUTTON4;
+        static const long ID_PANEL6;
+        static const long ID_LISTVIEW2;
+        static const long ID_PANEL7;
+        static const long ID_SPLITTERWINDOW2;
         static const long ID_PANEL3;
         static const long ID_LISTVIEW1;
         static const long ID_PANEL5;
@@ -261,6 +269,7 @@ public:
         wxPanel* Panel4;
         wxMenu* Menu3;
         wxButton* Button_Schedule;
+        wxSplitterWindow* SplitterWindow2;
         wxMenuItem* MenuItem_Matrices;
         wxMenuItem* MenuItem_FPPUnicastRemote;
         xLightsTimer _timer;
@@ -270,12 +279,15 @@ public:
         wxMenuItem* MenuItem_FPPOSCMaster;
         wxMenuItem* MenuItem_OSCMaster;
         wxMenuItem* MenuItem_BackgroundPlaylist;
+        wxPanel* Panel6;
         wxPanel* Panel3;
         wxStaticText* StaticText_ShowDir;
         wxMenuItem* MenuItem_CheckSchedule;
+        wxPanel* Panel7;
         wxButton* Button_Delete;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
+        wxListView* ListView_Ping;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
         wxMenuItem* MenuItem_FPPRemote;

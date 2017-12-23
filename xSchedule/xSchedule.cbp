@@ -90,6 +90,8 @@
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/iphlpapi.lib" />
+					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -141,6 +143,8 @@
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
+					<Add library="../lib/windows/iphlpapi.lib" />
+					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -261,6 +265,8 @@
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libimagehlp.a" />
+					<Add library="../lib/windows64/iphlpapi.lib" />
+					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -400,6 +406,8 @@
 		<Unit filename="OutputProcessSet.cpp" />
 		<Unit filename="OutputProcessingDialog.cpp" />
 		<Unit filename="OutputProcessingDialog.h" />
+		<Unit filename="Pinger.cpp" />
+		<Unit filename="Pinger.h" />
 		<Unit filename="PlayList/PlayList.cpp" />
 		<Unit filename="PlayList/PlayList.h" />
 		<Unit filename="PlayList/PlayListDialog.cpp" />

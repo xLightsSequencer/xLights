@@ -140,66 +140,98 @@
 							<growablecols>0</growablecols>
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
-								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_PlayListsSchedules" member="yes">
-									<image_list>&lt;none&gt;</image_list>
-									<tree_items>
-										<item>TreeCtrl_PlayListsSchedules</item>
-										<item>&lt;none&gt;</item>
-									</tree_items>
-									<items_text>
-										<item2>TreeCtrl_PlayListsSchedules</item2>
-										<item2>&lt;none&gt;</item2>
-									</items_text>
-									<minsize>300,300</minsize>
-									<handler function="OnTreeCtrl_PlayListsSchedulesItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
-									<handler function="OnTreeCtrl_PlayListsSchedulesSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
-									<handler function="OnTreeCtrl_PlayListsSchedulesKeyDown" entry="EVT_TREE_KEY_DOWN" />
-									<handler function="OnTreeCtrl_PlayListsSchedulesItemMenu" entry="EVT_TREE_ITEM_MENU" />
+								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
+									<minsize>10</minsize>
+									<object class="wxPanel" name="ID_PANEL6" variable="Panel6" member="yes">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+											<cols>1</cols>
+											<growablecols>0</growablecols>
+											<growablerows>0</growablerows>
+											<object class="sizeritem">
+												<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_PlayListsSchedules" member="yes">
+													<image_list>&lt;none&gt;</image_list>
+													<tree_items>
+														<item>TreeCtrl_PlayListsSchedules</item>
+														<item>&lt;none&gt;</item>
+													</tree_items>
+													<items_text>
+														<item2>TreeCtrl_PlayListsSchedules</item2>
+														<item2>&lt;none&gt;</item2>
+													</items_text>
+													<minsize>300,300</minsize>
+													<handler function="OnTreeCtrl_PlayListsSchedulesItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
+													<handler function="OnTreeCtrl_PlayListsSchedulesSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+													<handler function="OnTreeCtrl_PlayListsSchedulesKeyDown" entry="EVT_TREE_KEY_DOWN" />
+													<handler function="OnTreeCtrl_PlayListsSchedulesItemMenu" entry="EVT_TREE_ITEM_MENU" />
+												</object>
+												<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON1" variable="Button_Add" member="yes">
+															<label>Add</label>
+															<handler function="OnButton_AddClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON2" variable="Button_Edit" member="yes">
+															<label>Edit</label>
+															<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON3" variable="Button_Delete" member="yes">
+															<label>Delete</label>
+															<handler function="OnButton_DeleteClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON4" variable="Button_Schedule" member="yes">
+															<label>Schedule</label>
+															<handler function="OnButton_ScheduleClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+									</object>
+									<object class="wxPanel" name="ID_PANEL7" variable="Panel7" member="yes">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+											<cols>1</cols>
+											<growablecols>0</growablecols>
+											<growablerows>0</growablerows>
+											<object class="sizeritem">
+												<object class="wxListView" name="ID_LISTVIEW2" variable="ListView_Ping" member="yes">
+													<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL</style>
+													<handler function="OnListView_PingItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+													<handler function="OnListView_PingItemRClick" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+									</object>
 								</object>
-								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBoxSizer" variable="BoxSizer1" member="no">
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON1" variable="Button_Add" member="yes">
-											<label>Add</label>
-											<handler function="OnButton_AddClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON2" variable="Button_Edit" member="yes">
-											<label>Edit</label>
-											<handler function="OnButton_EditClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON3" variable="Button_Delete" member="yes">
-											<label>Delete</label>
-											<handler function="OnButton_DeleteClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON4" variable="Button_Schedule" member="yes">
-											<label>Schedule</label>
-											<handler function="OnButton_ScheduleClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

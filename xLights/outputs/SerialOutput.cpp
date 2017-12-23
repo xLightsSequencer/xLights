@@ -130,6 +130,11 @@ std::string SerialOutput::GetLongDescription() const
 
     return res;
 }
+
+std::string SerialOutput::GetPingDescription() const
+{
+    return GetCommPort() + " " + GetDescription();
+}
 #pragma endregion Getters and Setters
 
 #pragma region Static Functions
@@ -393,6 +398,30 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
 
 
     return nullptr;
+}
+
+PINGSTATE SerialOutput::Ping() const
+{
+    if (_serial != nullptr)
+    {
+        return PINGSTATE::PING_OPEN;
+    }
+    else
+    {
+        PINGSTATE res = PINGSTATE::PING_ALLFAILED;
+        SerialPort* serial = new SerialPort();
+
+        int errcode = serial->Open(_commPort, _baudRate, _serialConfig);
+        if (errcode >= 0)
+        {
+            res = PINGSTATE::PING_OPENED;
+            serial->Close();
+        }
+
+        delete serial;
+    }
+
+    return PINGSTATE::PING_ALLFAILED;
 }
 
 #pragma region UI

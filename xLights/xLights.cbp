@@ -211,6 +211,8 @@
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/libliquidfund.a" />
+					<Add library="../lib/windows/iphlpapi.lib" />
+					<Add library="../lib/windows/WS2_32.Lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -272,6 +274,8 @@
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/libliquidfun.a" />
+					<Add library="../lib/windows/iphlpapi.lib" />
+					<Add library="../lib/windows/WS2_32.Lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -417,6 +421,8 @@
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libliquidfun.a" />
+					<Add library="../lib/windows64/iphlpapi.lib" />
+					<Add library="../lib/windows64/WS2_32.Lib" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -474,6 +480,8 @@
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cppd.a" />
 					<Add library="../lib/windows64/libliquidfun.a" />
+					<Add library="../lib/windows64/iphlpapi.lib" />
+					<Add library="../lib/windows64/WS2_32.Lib" />
 					<Add directory="$(#wx64)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -1363,7 +1371,6 @@
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
-
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

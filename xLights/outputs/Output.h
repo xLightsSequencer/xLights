@@ -22,6 +22,17 @@ class OutputManager;
 #define OUTPUT_OPENDMX "OpenDMX"
 #pragma endregion Output Constants
 
+typedef enum
+{
+    PING_OK,
+    PING_WEBOK,
+    PING_OPEN,
+    PING_OPENED,
+    PING_ALLFAILED,
+    PING_UNAVAILABLE, 
+    PING_UNKNOWN
+} PINGSTATE;
+
 class Output
 {
 protected:
@@ -96,6 +107,7 @@ public:
     bool IsOk() const { return _ok; }
     virtual std::string GetType() const = 0;
     virtual std::string GetLongDescription() const = 0;
+    virtual std::string GetPingDescription() const = 0;
     virtual bool IsIpOutput() const = 0;
     virtual bool IsSerialOutput() const = 0;
     virtual bool IsOutputable() const { return true; }
@@ -107,6 +119,8 @@ public:
     virtual size_t TxNonEmptyCount() const { return 0; }
     virtual bool TxEmpty() const { return true; }
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
+    virtual PINGSTATE Ping() const = 0;
+    virtual bool CanPing() const = 0;
     #pragma endregion Getters and Setters
 
     #pragma region Operators

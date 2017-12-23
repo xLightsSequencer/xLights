@@ -537,7 +537,6 @@ bool xLightsApp::OnInit()
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
-        __frame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);
     }

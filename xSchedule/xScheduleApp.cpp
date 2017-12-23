@@ -394,8 +394,7 @@ bool xScheduleApp::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	xScheduleFrame* Frame = new xScheduleFrame(0, showDir.ToStdString(), playlist.ToStdString());
-        topFrame = Frame;
+    	xScheduleFrame* Frame = new xScheduleFrame(0);
     	Frame->Show();
     	SetTopWindow(Frame);
     }

@@ -4,6 +4,13 @@
 #include <wx/regex.h>
 #include <wx/socket.h>
 #include <log4cpp/Category.hh>
+#include <wx/protocol/http.h>
+
+#ifdef __WXMSW__
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <icmpapi.h>
+#endif
 
 std::string IPOutput::__localIP = "";
 
@@ -117,6 +124,61 @@ wxXmlNode* IPOutput::Save()
     return node;
 }
 
+PINGSTATE IPOutput::Ping() const
+{
+#ifdef __WXMSW__
+    unsigned long ipaddr = inet_addr(GetIP().c_str());
+    if (ipaddr == INADDR_NONE) {
+        return PINGSTATE::PING_ALLFAILED;
+    }
+
+    HANDLE hIcmpFile = IcmpCreateFile();
+    if (hIcmpFile == INVALID_HANDLE_VALUE) {
+        return PINGSTATE::PING_ALLFAILED;
+    }
+
+    char SendData[32] = "Data Buffer";
+    uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
+    void* ReplyBuffer = malloc(ReplySize);
+    if (ReplyBuffer == nullptr) {
+        IcmpCloseHandle(hIcmpFile);
+        return PINGSTATE::PING_ALLFAILED;
+    }
+
+    uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
+    if (dwRetVal != 0) {
+        IcmpCloseHandle(hIcmpFile);
+        free(ReplyBuffer);
+        return PINGSTATE::PING_OK;
+    }
+    else
+    {
+        IcmpCloseHandle(hIcmpFile);
+        free(ReplyBuffer);
+        return PINGSTATE::PING_ALLFAILED;
+    }
+#endif
+
+    wxHTTP http;    
+    http.SetMethod("GET");
+    http.SetTimeout(2);
+    bool connected = false;
+    connected  = http.Connect(_ip, false);
+
+    if (connected)
+    {
+        wxInputStream *httpStream = http.GetInputStream("/");
+        if (http.GetError() == wxPROTO_NOERR)
+        {
+            return PINGSTATE::PING_WEBOK;
+        }
+        wxDELETE(httpStream);
+        http.Close();
+    }
+
+    return PINGSTATE::PING_UNAVAILABLE;
+}
+
 void IPOutput::Save(wxXmlNode* node)
 {
     if (_ip != "")
@@ -158,6 +220,11 @@ std::string IPOutput::DecodeError(wxSocketError err)
     default:
         return "God knows what happened";
     }
+}
+
+std::string IPOutput::GetPingDescription() const
+{
+    return GetIP() + " " + GetDescription();
 }
 
 #pragma region Operators

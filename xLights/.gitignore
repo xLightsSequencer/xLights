@@ -1,4 +1,5 @@
 .objs/
+.objs*/
 xLights.depend
 xLights.layout
 *.psess
