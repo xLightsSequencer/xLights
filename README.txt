@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (craig)  Added a randomize current selected effect button
    -- bug (craig)  Fixed the create random effects to generate random settings
+   -- enh (keith)  Add Open Sound Control (OSC) Master and Remote sync
+   -- enh (keith)  Add Open Sound Control (OSC) sender as a play list item
+   -- enh (keith)  Show layers and layer number in row headings
+   -- enh (keith)  Expand the sizes of matrices xSchedule supports
+   -- bug (keith)  Fix audio override checkbox not set correctly when loaded
 2017.44  Dec 19, 2017
    -- bug (dkulp)  Fix keyboard handling of numbers
    -- enh (keith)  Add visual clue that xSchedule is serving web requests

@@ -79,17 +79,23 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
         Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
         if (e != nullptr)
         {
+            wxString layers;
+            if (e->GetType() != ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1)
+            {
+                layers = wxString::Format(" [%d]", (int)e->GetEffectLayerCount());
+            }
+
             wxClientDC dc(this);
-            wxSize size = dc.GetTextExtent(e->GetName());
+            wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
             // Only set tooltip if the text looks too big to display correctly
             if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE)
             {
                 auto s1 = GetToolTipText().ToStdString();
                 auto s2 = e->GetName();
-                if (GetToolTipText() != e->GetName())
+                if (GetToolTipText() != e->GetName() + layers)
                 {
-                    SetToolTip(e->GetName());
+                    SetToolTip(e->GetName() + layers);
                 }
             }
             else
@@ -884,19 +890,26 @@ void RowHeading::Draw()
 {
     wxClientDC dc(this);
     wxCoord w,h;
-    wxPen penOutline(wxColor(32,32,32), .1);
+    wxPen penOutline(wxColor(32,32,32), 0.1);
     dc.GetSize(&w,&h);
-    wxBrush brush(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER).asWxColor(),wxBRUSHSTYLE_SOLID);
+    wxBrush brush(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER).asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
-    int row=0;
-    int startY = 0,endY = 0;
-    for(int i =0;i< mSequenceElements->GetVisibleRowInformationSize();i++)
+    int row = 0;
+    int startY = 0;
+    int endY = 0;
+
+    for (int i = 0; i< mSequenceElements->GetVisibleRowInformationSize(); i++)
     {
         Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(i);
         wxString prefix;
+        wxString layers;
         if (rowInfo->submodel) {
             prefix = "  ";
+        }
+        if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING && rowInfo->element->GetEffectLayerCount() > 1)
+        {
+            layers = wxString::Format(" [%d]", (int)rowInfo->element->GetEffectLayerCount());
         }
         wxBrush brush2(GetHeaderColor(rowInfo).asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
@@ -919,13 +932,25 @@ void RowHeading::Draw()
                     } else {
                         name = wxString::Format("Strand %d", rowInfo->strandIndex + 1);
                     }
-
                 }
                 if (rowInfo->nodeIndex >= 0) {
-                    dc.DrawLabel(prefix + "     " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(prefix + "     " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 } else if (rowInfo->layerIndex == 0) {
-                    dc.DrawLabel(prefix + "  " + name,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+                    dc.DrawLabel(prefix + "  " + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
                 }
+                else
+                {
+                    dc.SetPen(*wxBLUE_PEN);
+                    wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                    dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+                }
+            }
+            else
+            {
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN, startY, w - DEFAULT_ROW_HEADING_MARGIN, DEFAULT_ROW_HEADING_HEIGHT);
+                dc.SetPen(*wxBLUE_PEN);
+                wxString lay = wxString::Format("   [%d]", rowInfo->layerIndex + 1);
+                dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
             }
             dc.SetPen(penOutline);
             dc.SetBrush(brush2);
@@ -936,7 +961,7 @@ void RowHeading::Draw()
                 prefix += "  ";
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + rowInfo->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(prefix + rowInfo->element->GetName() + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)
