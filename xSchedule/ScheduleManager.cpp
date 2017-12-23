@@ -548,7 +548,7 @@ int ScheduleManager::Frame(bool outputframe)
             rate = running->GetFrameMS();
             done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
 
-            if ((outputframe && _mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
+            if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
             {
                 if (running->GetActiveSyncItemFSEQ() != "")
                 {

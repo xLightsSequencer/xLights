@@ -4,7 +4,7 @@
 #include <string>
 #include <list>
 #include <wx/wx.h>
-#include "../../../xLights/outputs/Output.h"
+#include "../xLights/outputs/Output.h"
 #include <mutex>
 
 #define PINGINTERVAL 60
