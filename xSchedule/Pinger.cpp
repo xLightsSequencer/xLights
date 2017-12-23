@@ -1,6 +1,6 @@
 #include "Pinger.h"
 #include <log4cpp/Category.hh>
-#include "../../../xLights/outputs/OutputManager.h"
+#include "../xLights/outputs/OutputManager.h"
 
 class PingThread : public wxThread
 {
