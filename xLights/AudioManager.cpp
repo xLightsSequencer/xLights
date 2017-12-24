@@ -75,6 +75,7 @@ SDL::SDL(const std::string& device)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _dev = 0;
     _state = SDLSTATE::SDLUNINITIALISED;
     _playbackrate = 1.0f;
 
@@ -107,7 +108,6 @@ SDL::SDL(const std::string& device)
         return;
     }
 
-    _state = SDLSTATE::SDLOPENED;
     logger_base.debug("SDL initialised");
 }
 
@@ -119,10 +119,9 @@ SDL::~SDL()
     {
         Stop();
     }
-    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
-    {
-        SDL_CloseAudio();
-    }
+
+    CloseAudioDevice();
+
     if (_state != SDLSTATE::SDLUNINITIALISED)
     {
         SDL_Quit();
@@ -184,23 +183,58 @@ std::list<std::string> SDL::GetAudioDevices()
     return devices;
 }
 
+bool SDL::CloseAudioDevice()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        if (_dev > 0)
+        {
+            logger_base.debug("Pausing audio device %d.", _dev);
+            SDL_ClearError();
+            SDL_PauseAudioDevice(_dev, 1);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            logger_base.debug("Closing audio device %d.", _dev);
+            SDL_ClearError();
+            SDL_CloseAudioDevice(_dev);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            _dev = 0;
+        }
+        else
+        {
+            logger_base.debug("Closing default audio device.");
+            SDL_ClearError();
+            SDL_CloseAudio();
+            logger_base.debug("    Result '%s'", SDL_GetError());
+        }
+        _state = SDLSTATE::SDLINITIALISED;
+    }
+
+    return true;
+}
+
 bool SDL::OpenAudioDevice(const std::string device)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_state != SDLSTATE::SDLOPENED && _state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
         Stop();
     }
 
-    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
-    {
-        SDL_CloseAudio();
-    }
+    CloseAudioDevice();
 
+    SDL_AudioSpec actual_spec;
+    SDL_AudioDeviceID rc;
 #ifdef __WXMSW__
     if (device == "")
     {
 #endif
-        if (SDL_OpenAudio(&_wanted_spec, nullptr) < 0)
+        logger_base.debug("Opening default audio device.");
+        SDL_ClearError();
+        rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
+        logger_base.debug("    Result '%s'", SDL_GetError());
+        if (rc < 0)
         {
             return false;
         }
@@ -208,13 +242,38 @@ bool SDL::OpenAudioDevice(const std::string device)
     }
     else
     {
-        if (SDL_OpenAudioDevice(device.c_str(), 0, &_wanted_spec, nullptr, 0) <= 0)
+        logger_base.debug("Opening named audio device. %s", (const char *)device.c_str());
+        SDL_ClearError();
+        rc = SDL_OpenAudioDevice(device.c_str(), 0, &_wanted_spec, &actual_spec, 0);
+        logger_base.debug("    Result '%s'", SDL_GetError());
+        if (rc < 1)
         {
             return false;
         }
+        _dev = rc;
+
+        logger_base.debug("Unpausing audio device %d.", _dev);
+        SDL_ClearError();
+        SDL_PauseAudioDevice(_dev, 1);
+        logger_base.debug("    Result '%s'", SDL_GetError());
     }
 #endif
 
+    logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)rc);
+    logger_base.debug("    Current audio driver %s", SDL_GetCurrentAudioDriver());
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(rc);
+    logger_base.debug("    Audio device status (%d) %s", (int)rc, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
+    as = SDL_GetAudioDeviceStatus(1);
+    logger_base.debug("    Audio device status (1) %s", (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
+    logger_base.debug("    Size Asked %d Received %d", _wanted_spec.size, actual_spec.size);
+    logger_base.debug("    Channels Asked %d Received %d", _wanted_spec.channels, actual_spec.channels);
+    logger_base.debug("    Format Asked 0x%x Received 0x%x", _wanted_spec.format, actual_spec.format);
+    logger_base.debug("    Frequency Asked %d Received %d", _wanted_spec.freq, actual_spec.freq);
+    logger_base.debug("    Padding Asked %d Received %d", _wanted_spec.padding, actual_spec.padding);
+    logger_base.debug("    Samples Asked %d Received %d", _wanted_spec.samples, actual_spec.samples);
+    logger_base.debug("    Silence Asked %d Received %d", _wanted_spec.silence, actual_spec.silence);
+
+    _state = SDLSTATE::SDLOPENED;
     return true;
 }
 
@@ -246,9 +305,7 @@ void SDL::Reopen()
         (*it)->SavePos();
     }
 
-    SDL_CloseAudio();
-
-    _state = SDLSTATE::SDLINITIALISED;
+    CloseAudioDevice();
 
     //SDL_AudioSpec
     _wanted_spec.freq = _initialisedRate * _playbackrate;
@@ -267,8 +324,6 @@ void SDL::Reopen()
     }
     else
     {
-        _state = SDLSTATE::SDLINITIALISED;
-
         for (auto it = _audioData.begin(); it != _audioData.end(); ++it)
         {
             (*it)->RestorePos();
@@ -2266,8 +2321,11 @@ void SDL::SetAudioDevice(const std::string device)
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
     _device = "";
 #else
-    _device = device;
-    Reopen();
+    if (_device != device)
+    {
+        _device = device;
+        Reopen();
+    }
 #endif
 }
 

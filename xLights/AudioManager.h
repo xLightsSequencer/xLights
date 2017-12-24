@@ -136,6 +136,7 @@ class AudioData
 
 class SDL
 {
+    SDL_AudioDeviceID _dev;
     SDLSTATE _state;
     std::list<AudioData*> _audioData;
     std::mutex _audio_Lock;
@@ -171,6 +172,7 @@ public:
     static std::list<std::string> GetAudioDevices();
     bool OpenAudioDevice(const std::string device);
     void SetAudioDevice(const std::string device);
+    bool CloseAudioDevice();
 };
 
 class AudioManager

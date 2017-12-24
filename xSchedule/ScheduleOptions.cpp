@@ -70,6 +70,15 @@ void ScheduleOptions::AddProjector(const std::string& name, const std::string& i
     _projectors.push_back(p);
 }
 
+void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
+{
+    if (_audioDevice != audioDevice) {
+        _audioDevice = audioDevice; 
+        AudioManager::SetAudioDevice(_audioDevice);
+        _changeCount++;
+    } 
+}
+
 void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color)
 {
     UserButton* b = new UserButton();

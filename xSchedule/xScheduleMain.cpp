@@ -1302,6 +1302,7 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         }
 
         __schedule->OptionsChanged();
+
         CreateButtons();
     }
 

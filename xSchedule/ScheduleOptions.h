@@ -135,7 +135,7 @@ class ScheduleOptions
         std::string GetAudioDevice() const { return _audioDevice; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
-        void SetAudioDevice(const std::string& audioDevice) { if (_audioDevice != audioDevice) { _audioDevice = audioDevice; _changeCount++; } }
+        void SetAudioDevice(const std::string& audioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
         void AddProjector(const std::string& name, const std::string& ip, const std::string& password);
         bool GetAPIOnly() const { return _webAPIOnly; }

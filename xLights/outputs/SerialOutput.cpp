@@ -402,7 +402,7 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
 
 PINGSTATE SerialOutput::Ping() const
 {
-    if (_serial != nullptr)
+    if (_serial != nullptr && _ok)
     {
         return PINGSTATE::PING_OPEN;
     }
