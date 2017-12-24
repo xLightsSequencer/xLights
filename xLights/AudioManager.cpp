@@ -54,8 +54,11 @@ void fill_audio(void *udata, Uint8 *stream, int len)
             {
                 volume = (volume * __globalVolume) / 100;
             }
-//            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+#ifdef __WXMSW__
             SDL_MixAudioFormat(stream, (*it)->_audio_pos, AUDIO_S16SYS, len, volume);
+#else
+            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+#endif
             (*it)->_audio_pos += len;
             (*it)->_audio_len -= len;
         }
@@ -181,6 +184,7 @@ bool SDL::CloseAudioDevice()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
+#ifdef __WXMSW__
         if (_dev > 0)
         {
             logger_base.debug("Pausing audio device %d.", _dev);
@@ -194,6 +198,7 @@ bool SDL::CloseAudioDevice()
             _dev = 0;
         }
         else
+#endif
         {
             logger_base.debug("Closing default audio device.");
             SDL_ClearError();
@@ -262,11 +267,13 @@ bool SDL::OpenAudioDevice(const std::string device)
 #endif
 
     logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)rc);
+#ifdef __WXMSW__
     logger_base.debug("    Current audio driver %s", SDL_GetCurrentAudioDriver());
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(rc);
     logger_base.debug("    Audio device status (%d) %s", (int)rc, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
     as = SDL_GetAudioDeviceStatus(1);
     logger_base.debug("    Audio device status (1) %s", (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
+#endif
     logger_base.debug("    Size Asked %d Received %d", _wanted_spec.size, actual_spec.size);
     logger_base.debug("    Channels Asked %d Received %d", _wanted_spec.channels, actual_spec.channels);
     logger_base.debug("    Format Asked 0x%x Received 0x%x", _wanted_spec.format, actual_spec.format);
