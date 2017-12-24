@@ -19,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Expand the sizes of matrices xSchedule supports
    -- bug (keith)  Fix audio override checkbox not set correctly when loaded
    -- enh (keith)  Show controller status in xSchedule
+   -- bug (keith)  Fix audio send to specified device
 2017.44  Dec 19, 2017
    -- bug (dkulp)  Fix keyboard handling of numbers
    -- enh (keith)  Add visual clue that xSchedule is serving web requests

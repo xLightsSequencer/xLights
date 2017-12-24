@@ -54,7 +54,8 @@ void fill_audio(void *udata, Uint8 *stream, int len)
             {
                 volume = (volume * __globalVolume) / 100;
             }
-            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+//            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+            SDL_MixAudioFormat(stream, (*it)->_audio_pos, AUDIO_S16SYS, len, volume);
             (*it)->_audio_pos += len;
             (*it)->_audio_len -= len;
         }
@@ -93,14 +94,6 @@ SDL::SDL(const std::string& device)
 #endif
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
-
-    _wanted_spec.freq = _initialisedRate * _playbackrate;
-    _wanted_spec.format = AUDIO_S16SYS;
-    _wanted_spec.channels = 2;
-    _wanted_spec.silence = 0;
-    _wanted_spec.samples = DEFAULT_NUM_SAMPLES;
-    _wanted_spec.callback = fill_audio;
-    _wanted_spec.userdata = &_audio_Lock;
 
     if (!OpenAudioDevice(device))
     {
@@ -224,6 +217,15 @@ bool SDL::OpenAudioDevice(const std::string device)
 
     CloseAudioDevice();
 
+    //SDL_AudioSpec
+    _wanted_spec.freq = _initialisedRate * _playbackrate;
+    _wanted_spec.format = AUDIO_S16SYS;
+    _wanted_spec.channels = 2;
+    _wanted_spec.silence = 0;
+    _wanted_spec.samples = DEFAULT_NUM_SAMPLES;
+    _wanted_spec.callback = fill_audio;
+    _wanted_spec.userdata = &_audio_Lock;
+
     SDL_AudioSpec actual_spec;
     SDL_AudioDeviceID rc;
 #ifdef __WXMSW__
@@ -234,7 +236,7 @@ bool SDL::OpenAudioDevice(const std::string device)
         SDL_ClearError();
         rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
         logger_base.debug("    Result '%s'", SDL_GetError());
-        if (rc < 0)
+        if (rc > 1000) // -1 would be a large number
         {
             return false;
         }
@@ -246,7 +248,7 @@ bool SDL::OpenAudioDevice(const std::string device)
         SDL_ClearError();
         rc = SDL_OpenAudioDevice(device.c_str(), 0, &_wanted_spec, &actual_spec, 0);
         logger_base.debug("    Result '%s'", SDL_GetError());
-        if (rc < 1)
+        if (rc < 2)
         {
             return false;
         }
@@ -254,7 +256,7 @@ bool SDL::OpenAudioDevice(const std::string device)
 
         logger_base.debug("Unpausing audio device %d.", _dev);
         SDL_ClearError();
-        SDL_PauseAudioDevice(_dev, 1);
+        SDL_PauseAudioDevice(_dev, 0);
         logger_base.debug("    Result '%s'", SDL_GetError());
     }
 #endif
@@ -268,6 +270,10 @@ bool SDL::OpenAudioDevice(const std::string device)
     logger_base.debug("    Size Asked %d Received %d", _wanted_spec.size, actual_spec.size);
     logger_base.debug("    Channels Asked %d Received %d", _wanted_spec.channels, actual_spec.channels);
     logger_base.debug("    Format Asked 0x%x Received 0x%x", _wanted_spec.format, actual_spec.format);
+    logger_base.debug("        Bitsize Asked %d Received %d", (int)SDL_AUDIO_BITSIZE(_wanted_spec.format), (int)SDL_AUDIO_BITSIZE(actual_spec.format));
+    logger_base.debug("        Float Asked %s Received %s", SDL_AUDIO_ISFLOAT(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISFLOAT(actual_spec.format) ? "True" : "False");
+    logger_base.debug("        Big Endian Asked %s Received %s", SDL_AUDIO_ISBIGENDIAN(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISBIGENDIAN(actual_spec.format) ? "True" : "False");
+    logger_base.debug("        Signed Asked %s Received %s", SDL_AUDIO_ISSIGNED(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISSIGNED(actual_spec.format) ? "True" : "False");
     logger_base.debug("    Frequency Asked %d Received %d", _wanted_spec.freq, actual_spec.freq);
     logger_base.debug("    Padding Asked %d Received %d", _wanted_spec.padding, actual_spec.padding);
     logger_base.debug("    Samples Asked %d Received %d", _wanted_spec.samples, actual_spec.samples);
@@ -306,17 +312,6 @@ void SDL::Reopen()
     }
 
     CloseAudioDevice();
-
-    //SDL_AudioSpec
-    _wanted_spec.freq = _initialisedRate * _playbackrate;
-    _wanted_spec.format = AUDIO_S16SYS;
-    _wanted_spec.channels = 2;
-    _wanted_spec.silence = 0;
-    _wanted_spec.samples = DEFAULT_NUM_SAMPLES;
-    _wanted_spec.callback = fill_audio;
-    _wanted_spec.userdata = &_audio_Lock;
-
-    logger_base.info("Starting audio with frequency %d.", _wanted_spec.freq);
 
     if (!OpenAudioDevice(_device))
     {
