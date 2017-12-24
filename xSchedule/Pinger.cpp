@@ -77,6 +77,26 @@ PINGSTATE APinger::GetPingResult()
     return _lastResult;
 }
 
+std::string APinger::GetPingResultName(PINGSTATE state)
+{
+    switch(state)
+    {
+    case PINGSTATE::PING_ALLFAILED:
+        return "Failed";
+    case PINGSTATE::PING_UNAVAILABLE:
+        return "Unavailable";
+    case PINGSTATE::PING_OK:
+    case PINGSTATE::PING_WEBOK:
+    case PINGSTATE::PING_OPEN:
+    case PINGSTATE::PING_OPENED:
+        return "Ok";
+    case PINGSTATE::PING_UNKNOWN:
+        return "Unknown";
+    }
+
+    return "Unknown";
+}
+
 void APinger::Ping()
 {
     SetPingResult(_output->Ping());

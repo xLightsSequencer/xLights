@@ -19,6 +19,7 @@ class OutputProcess;
 class Xyzzy;
 class PlayListItem;
 class xScheduleFrame;
+class Pinger;
 
 typedef enum
 {
@@ -85,7 +86,9 @@ class ScheduleManager : public wxEvtHandler
     wxDateTime _lastXyzzyCommand;
     int _timerAdjustment;
     bool _webRequestToggle;
+    Pinger* _pinger;
 
+    std::string GetPingStatus();
     void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
@@ -115,6 +118,7 @@ class ScheduleManager : public wxEvtHandler
 
     public:
 
+        void SetPinger(Pinger* pinger) { _pinger = pinger; }
         void SetMode(SYNCMODE mode);
         SYNCMODE GetMode() const { return _mode; }
         void ToggleMute();

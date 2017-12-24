@@ -700,6 +700,7 @@ void xScheduleFrame::LoadSchedule()
     __schedule = new ScheduleManager(this, _showDir);
 
     _pinger = new Pinger(__schedule->GetOutputManager());
+    __schedule->SetPinger(_pinger);
 
     if (__schedule == nullptr) return;
 

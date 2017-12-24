@@ -26,6 +26,7 @@ class APinger
 	APinger(Output* output);
 	virtual ~APinger();
 	PINGSTATE GetPingResult();
+	static std::string GetPingResultName(PINGSTATE state);
     void Ping();
 	std::string GetName() const;
     int GetPingInterval() const { return PINGINTERVAL; }

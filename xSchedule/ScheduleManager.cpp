@@ -32,6 +32,7 @@
 #include "Control.h"
 #include "../xLights/outputs/IPOutput.h"
 #include "../xLights/UtilFunctions.h"
+#include "Pinger.h"
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -41,6 +42,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _pinger = nullptr;
     _webRequestToggle = false;
     _backgroundPlayList = nullptr;
     _queuedSongs = new PlayList();
@@ -2190,7 +2192,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"version\":\"" + xlights_version_string +
                 "\",\"reference\":\"" + reference +
                 "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == ""? "false" : "true") +
-                "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +"\"}";
+                "\",\"time\":\""+ wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S") +
+                "\"," + GetPingStatus() +"}";
         }
         else
         {
@@ -2248,7 +2251,8 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
                 "\",\"reference\":\"" + reference +
                 "\",\"autooutputtolights\":\"" + (_manualOTL ? "false" : "true") +
                 "\",\"passwordset\":\"" + (_scheduleOptions->GetPassword() == "" ? "false" : "true") +
-                "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + "\"}";
+                "\",\"outputtolights\":\"" + std::string(_outputManager->IsOutputting() ? "true" : "false") + 
+                "\"," + GetPingStatus() + "}";
             //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             //logger_base.info("%s", (const char*)data.c_str());
         }
@@ -2264,6 +2268,34 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     }
 
     return result;
+}
+
+std::string ScheduleManager::GetPingStatus()
+{
+    std::string res = "\"pingstatus\":[";
+
+    if (_pinger != nullptr)
+    {
+        auto ps = _pinger->GetPingers();
+
+        bool first = true;
+        for (auto it = ps.begin(); it != ps.end(); ++it)
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                res += ",";
+            }
+
+            res += "{\"controller\":\"" + (*it)->GetName() + "\",\"result\":\"" + APinger::GetPingResultName((*it)->GetPingResult()) + "\"}";
+        }
+    }
+
+    res += "]";
+    return res;
 }
 
 bool ScheduleManager::StoreData(const std::string& key, const std::string& data, std::string& msg) const
