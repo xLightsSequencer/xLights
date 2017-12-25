@@ -5577,29 +5577,32 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for(int row=0;row<mSequenceElements.GetRowInformationSize();row++) {
-            EffectLayer* el = mSequenceElements.GetEffectLayer(row);
-            for(int ef=el->GetEffectCount()-1; ef >= 0; ef--) {  // count backwards so we can delete if needed
-                Effect* eff = el->GetEffect(ef);
-                int start_ms = eff->GetStartTimeMS();
-                int end_ms = eff->GetEndTimeMS();
-                if( start_ms+milliseconds < 0 ) {
-                    if( end_ms+milliseconds < 0 ) {
-                        // effect shifted off screen - delete
+        for(int elem=0;elem<mSequenceElements.GetElementCount(MASTER_VIEW);elem++) {
+            Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
+            for(int layer=0;layer<ele->GetEffectLayerCount();layer++) {
+                EffectLayer* el = ele->GetEffectLayer(layer);
+                for(int ef=el->GetEffectCount()-1; ef >= 0; ef--) {  // count backwards so we can delete if needed
+                    Effect* eff = el->GetEffect(ef);
+                    int start_ms = eff->GetStartTimeMS();
+                    int end_ms = eff->GetEndTimeMS();
+                    if( start_ms+milliseconds < 0 ) {
+                        if( end_ms+milliseconds < 0 ) {
+                            // effect shifted off screen - delete
 
-                        el->RemoveEffect(ef);
-                        if (eff == selectedEffect) {
-                            UnselectEffect();
+                            el->RemoveEffect(ef);
+                            if (eff == selectedEffect) {
+                                UnselectEffect();
+                            }
+                            continue;
+                        } else {
+                            // truncate start of effect
+                            eff->SetStartTimeMS(0);
                         }
-                        continue;
                     } else {
-                        // truncate start of effect
-                        eff->SetStartTimeMS(0);
+                        eff->SetStartTimeMS(start_ms+milliseconds);
                     }
-                } else {
-                    eff->SetStartTimeMS(start_ms+milliseconds);
+                    eff->SetEndTimeMS(end_ms+milliseconds);
                 }
-                eff->SetEndTimeMS(end_ms+milliseconds);
             }
         }
         mainSequencer->PanelEffectGrid->Refresh();
