@@ -5581,31 +5581,61 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
             for(int layer=0;layer<ele->GetEffectLayerCount();layer++) {
                 EffectLayer* el = ele->GetEffectLayer(layer);
-                for(int ef=el->GetEffectCount()-1; ef >= 0; ef--) {  // count backwards so we can delete if needed
-                    Effect* eff = el->GetEffect(ef);
-                    int start_ms = eff->GetStartTimeMS();
-                    int end_ms = eff->GetEndTimeMS();
-                    if( start_ms+milliseconds < 0 ) {
-                        if( end_ms+milliseconds < 0 ) {
-                            // effect shifted off screen - delete
-
-                            el->RemoveEffect(ef);
-                            if (eff == selectedEffect) {
-                                UnselectEffect();
-                            }
-                            continue;
-                        } else {
-                            // truncate start of effect
-                            eff->SetStartTimeMS(0);
+                ShiftEffectsOnLayer(el, milliseconds);
+            }
+            if (ele->GetType() == ELEMENT_TYPE_MODEL)
+            {
+                ModelElement *me = dynamic_cast<ModelElement *>(ele);
+                for (int i = 0; i < me->GetStrandCount(); ++i)
+                {
+                    Element* se = me->GetStrand(i);
+                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k)
+                    {
+                        NodeLayer* nl = ste->GetNodeLayer(k, false);
+                        if (nl != nullptr)
+                        {
+                            ShiftEffectsOnLayer(nl, milliseconds);
                         }
-                    } else {
-                        eff->SetStartTimeMS(start_ms+milliseconds);
                     }
-                    eff->SetEndTimeMS(end_ms+milliseconds);
+                }
+                for (int i = 0; i < me->GetSubModelCount(); ++i)
+                {
+                    Element* se = me->GetSubModel(i);
+                    for(int layer=0;layer<se->GetEffectLayerCount();layer++) {
+                        EffectLayer* sel = se->GetEffectLayer(layer);
+                        ShiftEffectsOnLayer(sel, milliseconds);
+                    }
                 }
             }
         }
         mainSequencer->PanelEffectGrid->Refresh();
+    }
+}
+
+void xLightsFrame::ShiftEffectsOnLayer(EffectLayer* el, int milliseconds)
+{
+    for(int ef=el->GetEffectCount()-1; ef >= 0; ef--) {  // count backwards so we can delete if needed
+        Effect* eff = el->GetEffect(ef);
+        int start_ms = eff->GetStartTimeMS();
+        int end_ms = eff->GetEndTimeMS();
+        if( start_ms+milliseconds < 0 ) {
+            if( end_ms+milliseconds < 0 ) {
+                // effect shifted off screen - delete
+
+                el->RemoveEffect(ef);
+                if (eff == selectedEffect) {
+                    UnselectEffect();
+                }
+                continue;
+            } else {
+                // truncate start of effect
+                eff->SetStartTimeMS(0);
+            }
+        } else {
+            eff->SetStartTimeMS(start_ms+milliseconds);
+        }
+        eff->SetEndTimeMS(end_ms+milliseconds);
     }
 }
 

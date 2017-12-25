@@ -1321,6 +1321,7 @@ private:
     void AutoShowHouse();
     bool CheckForUpdate(bool force);
     void check32AppOn64Machine();
+    void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
 
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
