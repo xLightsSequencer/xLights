@@ -727,6 +727,19 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
 
     bool hasEffects = false;
 
+	if (e->GetCollapsed())
+	{
+		for (int layer = 0; layer<e->GetEffectLayerCount(); layer++)
+		{
+			EffectLayer* el = e->GetEffectLayer(layer);
+			if (el->GetEffectCount() > 0)
+			{
+				e->SetCollapsed(false);
+				break;
+			}
+		}
+	}
+
     if (e->GetType() == ELEMENT_TYPE_MODEL)
     {
         ModelElement *me = dynamic_cast<ModelElement *>(e);
