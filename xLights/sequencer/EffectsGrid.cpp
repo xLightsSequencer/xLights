@@ -1058,6 +1058,27 @@ Effect* EffectsGrid::GetSelectedEffect()
     return mSelectedEffect;
 }
 
+int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
+{
+    int count = 0;
+
+    for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        count += el->GetSelectedEffectCount(effectName);
+    }
+
+    return count;
+}
+
+void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+{
+    for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+    {
+        mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, effectName, id, value, vc, vcid);
+    }
+}
+
 void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

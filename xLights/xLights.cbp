@@ -500,6 +500,10 @@
 		<Unit filename="BufferPanel.h" />
 		<Unit filename="BufferSizeDialog.cpp" />
 		<Unit filename="BufferSizeDialog.h" />
+		<Unit filename="BulkEditSlider.cpp" />
+		<Unit filename="BulkEditSlider.h" />
+		<Unit filename="BulkEditSliderDialog.cpp" />
+		<Unit filename="BulkEditSliderDialog.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
@@ -1109,6 +1113,7 @@
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
@@ -1371,6 +1376,7 @@
 					<wxDialog wxs="wxsmith/SplashDialog.wxs" src="SplashDialog.cpp" hdr="SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

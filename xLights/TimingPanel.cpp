@@ -236,6 +236,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
 
+    SetName("Timing");
+
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
     config->Read("xLightsResetTimingPanel", &reset, false);

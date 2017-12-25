@@ -161,6 +161,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BatchRenderDialog.cpp" />
+    <ClCompile Include="BulkEditSlider.cpp" />
+    <ClCompile Include="BulkEditSliderDialog.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
@@ -475,6 +477,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
+    <ClInclude Include="BulkEditSlider.h" />
+    <ClInclude Include="BulkEditSliderDialog.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="controllers\Falcon.h" />

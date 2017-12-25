@@ -1034,6 +1034,16 @@ Effect* MainSequencer::GetSelectedEffect()
     return PanelEffectGrid->GetSelectedEffect();
 }
 
+int MainSequencer::GetSelectedEffectCount(const std::string effectName) const
+{
+    return PanelEffectGrid->GetSelectedEffectCount(effectName);
+}
+
+void MainSequencer::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+{
+    return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);
+}
+
 void MainSequencer::Paste(bool row_paste) {
     wxTextDataObject data;
     wxClipboard *cbd = wxClipboard::Get();

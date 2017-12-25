@@ -10,6 +10,7 @@
 #include "../../include/globals.h"
 #include <unordered_map>
 #include "../SequenceCheck.h"
+#include "../ValueCurve.h"
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
@@ -231,6 +232,36 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
         for (auto it = x.begin(); it != x.end(); ++it)
         {
                 mSettings[it->first] = it->second;
+        }
+    }
+    IncrementChangeCount();
+}
+
+void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
+{
+    wxString idd(id);
+    if (idd.StartsWith("C_"))
+    {
+        if (vc != nullptr && vc->IsActive())
+        {
+            mPaletteMap[vcid] = vc->Serialise();
+        }
+        else
+        {
+            mPaletteMap.erase(wxString(vcid));
+            mPaletteMap[id] = value;
+        }
+    }
+    else
+    {
+        if (vc != nullptr && vc->IsActive())
+        {
+            mSettings[vcid] = vc->Serialise();
+        }
+        else
+        {
+            mSettings.erase(wxString(vcid));
+            mSettings[id] = value;
         }
     }
     IncrementChangeCount();

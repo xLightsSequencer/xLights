@@ -446,6 +446,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&BufferPanel::OnResize);
 	//*)
 
+    SetName("Buffer");
+
     Slider_Rotation->SetValue(__rotation);
     TextCtrl_Rotation->SetValue(wxString::Format("%d", __rotation));
     Slider_Rotations->SetValue(__rotations * 10.0f);
