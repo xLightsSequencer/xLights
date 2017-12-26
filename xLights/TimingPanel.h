@@ -1,6 +1,8 @@
 #ifndef TIMINGPANEL_H
 #define TIMINGPANEL_H
 
+#include "BulkEditControls.h"
+
 //(*Headers(TimingPanel)
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
@@ -24,37 +26,35 @@ class TimingPanel: public wxPanel
 		virtual ~TimingPanel();
 
         wxString GetTimingString();
+        void SetDefaultControls(const Model *model, bool optionbased = false);
 
 		//(*Declarations(TimingPanel)
-		wxChoice* Choice_In_Transition_Type;
 		wxStaticText* InAdjustmentText;
-		wxTextCtrl* TextCtrl_In_Adjust;
 		wxNotebook* Notebook1;
+		BulkEditCheckBox* CheckBox_In_Reverse;
 		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Out_Adjust;
+		BulkEditChoice* Choice_LayerMethod;
 		wxPanel* Panel_Sizer;
-		wxTextCtrl* TextCtrl_Fadein;
-		wxSlider* Slider_EffectLayerMix;
-		wxCheckBox* CheckBox_Out_Reverse;
+		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
+		BulkEditChoice* Choice_Out_Transition_Type;
+		BulkEditSlider* Slider_In_Adjust;
+		BulkEditTextCtrl* TextCtrl_Fadeout;
+		BulkEditSlider* Slider_EffectLayerMix;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxStaticText* OutAdjustmentText;
-		wxChoice* Choice_Out_Transition_Type;
-		wxChoice* Choice_LayerMethod;
 		wxBitmapButton* BitmapButton_EffectLayerMix;
-		wxCheckBox* CheckBox_In_Reverse;
-		wxTextCtrl* TextCtrl_Fadeout;
+		BulkEditCheckBox* CheckBox_Out_Reverse;
 		wxScrolledWindow* ScrolledWindowTiming;
-		wxSlider* Slider_Out_Adjust;
+		BulkEditChoice* Choice_In_Transition_Type;
+		BulkEditTextCtrl* TextCtrl_In_Adjust;
+		BulkEditTextCtrl* TextCtrl_Out_Adjust;
+		BulkEditSlider* Slider_Out_Adjust;
 		wxStaticText* StaticText4;
-		wxTextCtrl* txtCtlEffectMix;
-		wxSlider* Slider_In_Adjust;
+		BulkEditTextCtrl* TextCtrl_Fadein;
 		//*)
-    
-    
-        void SetDefaultControls(const Model *model, bool optionbased = false);
-
+       
 	protected:
 
 		//(*Identifiers(TimingPanel)
@@ -66,17 +66,17 @@ class TimingPanel: public wxPanel
 		static const long IDD_TEXTCTRL_EffectLayerMix;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_CHOICE_In_Transition_Type;
-		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT_Fadein;
 		static const long ID_TEXTCTRL_Fadein;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_In_Transition_Adjust;
 		static const long ID_SLIDER_In_Transition_Adjust;
 		static const long IDD_TEXTCTRL_In_Transition_Adjust;
 		static const long ID_CHECKBOX_In_Transition_Reverse;
 		static const long ID_PANEL2;
 		static const long ID_CHOICE_Out_Transition_Type;
-		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT_Fadeout;
 		static const long ID_TEXTCTRL_Fadeout;
-		static const long ID_STATICTEXT5;
+		static const long ID_STATICTEXT_Out_Transition_Adjust;
 		static const long ID_SLIDER_Out_Transition_Adjust;
 		static const long IDD_TEXTCTRL_Out_Transition_Adjust;
 		static const long ID_CHECKBOX_Out_Transition_Reverse;
@@ -90,23 +90,23 @@ class TimingPanel: public wxPanel
 
 		//(*Handlers(TimingPanel)
 		void OnResize(wxSizeEvent& event);
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnTransitionTypeSelect(wxCommandEvent& event);
-		void OnEffectTimeChange(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
-		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
 		void OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event);
-		//*)
+        //*)
+
+        void UpdateLinkedSliderFloat(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
+        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
+        void UpdateLinkedSlider360(wxCommandEvent& event);
+        void UpdateLinkedSlider(wxCommandEvent& event);
+        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
+        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
+        void UpdateLinkedTextCtrl(wxScrollEvent& event);
+        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

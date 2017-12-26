@@ -1,5 +1,5 @@
-#ifndef BULKEDITSLIDER_H
-#define BULKEDITSLIDER_H
+#ifndef BULKEDITCONTROLS_H
+#define BULKEDITCONTROLS_H
 
 #include <wx/slider.h>
 #include <wx/textctrl.h>
@@ -7,6 +7,7 @@
 #include <wx/choice.h>
 #include <wx/checkbox.h>
 #include "ValueCurveButton.h"
+
 class wxStaticText;
 
 typedef enum
@@ -149,6 +150,8 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+// Helper functions
+wxWindow* GetPanel(wxWindow* w);
 std::string GetPanelName(wxWindow* w);
 std::string FixIdForPanel(std::string panel, std::string id);
 bool IsAssociatedControl(wxWindow* source, wxWindow* target);
@@ -158,5 +161,6 @@ wxStaticText* GetSettingLabelControl(wxWindow* w, std::string ourName, std::stri
 BulkEditTextCtrl* GetSettingTextControl(wxWindow* w, std::string ourName, std::string ourType);
 BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::string ourType);
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
+bool IsBulkEditAvailable(wxWindow* w);
 
 #endif

@@ -984,10 +984,10 @@
     <ClCompile Include="UpdaterDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BulkEditSlider.cpp">
+    <ClCompile Include="BulkEditSliderDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BulkEditSliderDialog.cpp">
+    <ClCompile Include="BulkEditControls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1919,10 +1919,10 @@
     <ClInclude Include="UpdaterDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BulkEditSlider.h">
+    <ClInclude Include="BulkEditSliderDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BulkEditSliderDialog.h">
+    <ClInclude Include="BulkEditControls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,10 +14,8 @@
 //*)
 
 #include <wx/dir.h>
-#include <wx/colordlg.h>
-#include "ValueCurveButton.h"
 #include "ColorCurve.h"
-#include "BulkEditSlider.h"
+#include "BulkEditControls.h"
 
 #include <vector>
 #include <map>
