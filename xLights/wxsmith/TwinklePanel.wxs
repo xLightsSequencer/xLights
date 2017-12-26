@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT86" variable="StaticText85" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Twinkle_Count" variable="StaticText85" member="yes">
 					<label>Number Lights</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,22 +14,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Twinkle_Count" variable="Slider_Twinkle_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Twinkle_Count" subclass="BulkEditSlider" variable="Slider_Twinkle_Count" member="yes">
 					<value>3</value>
 					<min>2</min>
 					<size>117,24</size>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Count" variable="TextCtrl79" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Count" subclass="BulkEditTextCtrl" variable="TextCtrl79" member="no">
 					<value>3</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -48,7 +46,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT105" variable="StaticText104" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Twinkle_Steps" variable="StaticText104" member="yes">
 					<label>Twinkle Steps</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -56,23 +54,21 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Twinkle_Steps" variable="Slider_Twinkle_Steps" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Twinkle_Steps" subclass="BulkEditSlider" variable="Slider_Twinkle_Steps" member="yes">
 					<value>30</value>
 					<min>2</min>
 					<max>200</max>
 					<size>119,24</size>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Steps" variable="TextCtrl80" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Twinkle_Steps" subclass="BulkEditTextCtrl" variable="TextCtrl80" member="no">
 					<value>30</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -96,7 +92,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_Strobe" variable="CheckBox_Twinkle_Strobe" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_Strobe" subclass="BulkEditCheckBox" variable="CheckBox_Twinkle_Strobe" member="yes">
 					<label>Strobe</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -126,7 +122,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_ReRandom" variable="CheckBox_Twinkle_ReRandom" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_ReRandom" subclass="BulkEditCheckBox" variable="CheckBox_Twinkle_ReRandom" member="yes">
 					<label>Re-Randomize after twinkle</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

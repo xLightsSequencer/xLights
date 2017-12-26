@@ -10,6 +10,8 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
+#include "../BulkEditControls.h"
+
 class LifePanel: public wxPanel
 {
 	public:
@@ -20,24 +22,26 @@ class LifePanel: public wxPanel
 		//(*Declarations(LifePanel)
 		wxBitmapButton* BitmapButton_LifeSpeed;
 		wxStaticText* StaticText37;
+		BulkEditSlider* Slider_Life_Speed;
 		wxBitmapButton* BitmapButton_LifeCount;
-		wxSlider* Slider_Life_Count;
+		BulkEditSlider* Slider_Life_Count;
+		wxStaticText* StaticText134;
+		BulkEditSlider* Slider_Life_Seed;
 		wxStaticText* StaticText35;
-		wxSlider* Slider_Life_Speed;
-		wxSlider* Slider_Life_Seed;
 		//*)
 
 	protected:
 
 		//(*Identifiers(LifePanel)
-		static const long ID_STATICTEXT36;
+		static const long ID_STATICTEXT_Life_Count;
 		static const long ID_SLIDER_Life_Count;
 		static const long IDD_TEXTCTRL_Life_Count;
 		static const long ID_BITMAPBUTTON_SLIDER_Life_Count;
-		static const long ID_STATICTEXT37;
+		static const long ID_STATICTEXT_Life_Seed;
 		static const long ID_SLIDER_Life_Seed;
 		static const long IDD_TEXTCTRL_Life_Seed;
 		static const long ID_BITMAPBUTTON_SLIDER_Life_Seed;
+		static const long ID_STATICTEXT_Life_Speed;
 		static const long ID_SLIDER_Life_Speed;
 		static const long IDD_TEXTCTRL_Life_Speed;
 		//*)
@@ -45,19 +49,9 @@ class LifePanel: public wxPanel
 	public:
 
 		//(*Handlers(LifePanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
 		DECLARE_EVENT_TABLE()

@@ -14,7 +14,7 @@
 							<cols>4</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
+								<object class="wxStaticText" name="ID_STATICTEXT_Circles_Count" variable="StaticText136" member="yes">
 									<label>Number of Circles</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -22,18 +22,17 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Count" subclass="BulkEditSlider" variable="Slider_Circles_Count" member="yes">
 									<value>3</value>
 									<min>1</min>
 									<max>10</max>
-									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Count" subclass="ValueCurveButton" variable="BitmapButton_Circles_Count" member="yes">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Circles_Count" member="yes">
 									<bitmap code="valuecurvenotselected_24" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -42,11 +41,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Count" variable="TextCtrl27" member="no">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Count" subclass="BulkEditTextCtrl" variable="TextCtrl27" member="no">
 									<value>3</value>
 									<maxlength>2</maxlength>
 									<size>20,-1d</size>
-									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
@@ -73,7 +71,7 @@
 							<cols>4</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT138" variable="StaticText137" member="yes">
+								<object class="wxStaticText" name="ID_STATICTEXT_Circles_Size" variable="StaticText137" member="yes">
 									<label>Size</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -81,18 +79,17 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Size" subclass="BulkEditSlider" variable="Slider_Circles_Size" member="yes">
 									<value>5</value>
 									<min>1</min>
 									<max>20</max>
-									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Size" subclass="ValueCurveButton" variable="BitmapButton_Circles_Size" member="yes">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Size" subclass="BulkEditValueCurveButton" variable="BitmapButton_Circles_Size" member="yes">
 									<bitmap code="valuecurvenotselected_24" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -101,11 +98,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Size" variable="TextCtrl28" member="no">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Size" subclass="BulkEditTextCtrl" variable="TextCtrl28" member="no">
 									<value>5</value>
 									<maxlength>2</maxlength>
 									<size>20,-1d</size>
-									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
@@ -132,7 +128,7 @@
 							<cols>4</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText31" member="no">
+								<object class="wxStaticText" name="ID_STATICTEXT_Circles_Speed" variable="StaticText31" member="yes">
 									<label>Speed</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -140,18 +136,17 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Circles_Speed" variable="Slider_Circles_Speed" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_Circles_Speed" subclass="BulkEditSlider" variable="Slider_Circles_Speed" member="yes">
 									<value>10</value>
 									<min>1</min>
 									<max>30</max>
-									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Speed" subclass="ValueCurveButton" variable="BitmapButton_Circles_Speed" member="yes">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Circles_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Circles_Speed" member="yes">
 									<bitmap code="valuecurvenotselected_24" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -160,11 +155,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Speed" variable="TextCtrl29" member="no">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Circles_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl29" member="no">
 									<value>10</value>
 									<maxlength>2</maxlength>
 									<size>20,-1d</size>
-									<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
@@ -190,7 +184,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" variable="CheckBox_Circles_Bounce" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Bounce" member="yes">
 									<label>Bounce</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -217,7 +211,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" variable="CheckBox_Circles_Radial" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Radial" member="yes">
 									<label>Radial</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -244,7 +238,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Plasma" variable="CheckBox_Circles_Plasma" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Plasma" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Plasma" member="yes">
 									<label>Plasma</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -271,7 +265,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial_3D" variable="CheckBox_Circles_Radial_3D" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial_3D" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Radial_3D" member="yes">
 									<label>Radial 3D</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -298,7 +292,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer91" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" variable="CheckBox_Circles_Bubbles" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Bubbles" member="yes">
 									<label>Bubbles</label>
 									<handler function="OnCheckBox_Circles_BubblesClick" entry="EVT_CHECKBOX" />
 								</object>
@@ -326,7 +320,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Collide" member="yes">
 									<label>Collide</label>
 									<hidden>1</hidden>
 								</object>
@@ -355,7 +349,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer16" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" variable="CheckBox_Circles_Random_m" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Random_m" member="yes">
 									<label>Random Motion</label>
 									<hidden>1</hidden>
 								</object>
@@ -384,7 +378,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer107" member="no">
 							<cols>1</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Linear_Fade" variable="CheckBox_Circles_Linear_Fade" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Linear_Fade" subclass="BulkEditCheckBox" variable="CheckBox_Circles_Linear_Fade" member="yes">
 									<label>Linear Fade</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

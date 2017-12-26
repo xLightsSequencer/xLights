@@ -14,7 +14,8 @@ typedef enum
 {
     BE_INT,
     BE_FLOAT1,
-    BE_FLOAT2
+    BE_FLOAT2,
+    BE_FLOAT360
 }
 BESLIDERTYPE;
 
@@ -51,6 +52,13 @@ public:
     virtual ~BulkEditSliderF2() {}
 };
 
+class BulkEditSliderF360 : public BulkEditSlider
+{
+public:
+    BulkEditSliderF360(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
+    virtual ~BulkEditSliderF360() {}
+};
+
 class BulkEditTextCtrl : public wxTextCtrl
 {
 protected:
@@ -81,6 +89,13 @@ class BulkEditTextCtrlF2 : public BulkEditTextCtrl
 public:
     BulkEditTextCtrlF2(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
     virtual ~BulkEditTextCtrlF2() {}
+};
+
+class BulkEditTextCtrlF360 : public BulkEditTextCtrl
+{
+public:
+    BulkEditTextCtrlF360(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
+    virtual ~BulkEditTextCtrlF360() {}
 };
 
 class BulkEditSpinCtrl : public wxSpinCtrl

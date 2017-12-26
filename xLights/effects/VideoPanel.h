@@ -16,6 +16,8 @@ class wxChoice;
 #include <mutex>
 #include <map>
 
+#include "../BulkEditControls.h"
+
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v"
 
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
@@ -47,25 +49,26 @@ class VideoPanel: public wxPanel
         void addVideoTime(std::string fn, unsigned long ms);
 
         //(*Declarations(VideoPanel)
-        wxSlider* Slider_Video_CropBottom;
-        wxChoice* Choice_Video_DurationTreatment;
-        wxSlider* Slider_Video_Starttime;
-        wxSlider* Slider_Video_CropRight;
+        BulkEditTextCtrl* TextCtrl_Video_CropBottom;
         wxStaticText* StaticText2;
-        wxCheckBox* CheckBox_Video_AspectRatio;
-        wxTextCtrl* TextCtrl_Video_CropRight;
+        BulkEditSlider* Slider_Video_CropTop;
+        BulkEditChoice* Choice_Video_DurationTreatment;
+        BulkEditCheckBox* CheckBox_Video_AspectRatio;
         wxStaticText* StaticText8;
-        wxCheckBox* CheckBox_SynchroniseWithAudio;
+        BulkEditSlider* Slider_Video_CropRight;
+        wxStaticText* StaticText1;
         wxStaticText* StaticText3;
+        BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
+        BulkEditSlider* Slider_Video_CropBottom;
         xlVideoFilePickerCtrl* FilePicker_Video_Filename;
-        wxSlider* Slider_Video_CropLeft;
-        wxSlider* Slider_Video_CropTop;
         wxStaticText* StaticText5;
-        wxTextCtrl* TextCtrl_Video_CropTop;
-        wxTextCtrl* TextCtrl_Video_CropLeft;
-        wxTextCtrl* TextCtrl_Video_CropBottom;
-        wxTextCtrl* TextCtrl_Video_Starttime;
+        BulkEditSliderF2* Slider_Video_Starttime;
+        BulkEditCheckBox* CheckBox_SynchroniseWithAudio;
+        BulkEditTextCtrl* TextCtrl_Video_CropTop;
         wxStaticText* StaticText4;
+        BulkEditSlider* Slider_Video_CropLeft;
+        BulkEditTextCtrl* TextCtrl_Video_CropLeft;
+        BulkEditTextCtrl* TextCtrl_Video_CropRight;
         //*)
 
 protected:
@@ -75,22 +78,23 @@ protected:
     
 		//(*Identifiers(VideoPanel)
 		static const long ID_FILEPICKERCTRL_Video_Filename;
-		static const long ID_STATICTEXT8;
+		static const long ID_STATICTEXT_Video_Starttime;
 		static const long IDD_SLIDER_Video_Starttime;
 		static const long ID_TEXTCTRL_Video_Starttime;
+		static const long ID_STATICTEXT_Video_DurationTreatment;
 		static const long ID_CHOICE_Video_DurationTreatment;
 		static const long ID_CHECKBOX_Video_AspectRatio;
 		static const long ID_CHECKBOX_SynchroniseWithAudio;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_Video_CropLeft;
 		static const long IDD_SLIDER_Video_CropLeft;
 		static const long ID_TEXTCTRL_Video_CropLeft;
-		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT_Video_CropRight;
 		static const long IDD_SLIDER_Video_CropRight;
 		static const long ID_TEXTCTRL_Video_CropRight;
-		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT_Video_CropTop;
 		static const long IDD_SLIDER_Video_CropTop;
 		static const long ID_TEXTCTRL_Video_CropTop;
-		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT_Video_CropBottom;
 		static const long IDD_SLIDER_Video_CropBottom;
 		static const long ID_TEXTCTRL_Video_CropBottom;
 		//*)
@@ -98,17 +102,7 @@ protected:
 	public:
 
 		//(*Handlers(VideoPanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);

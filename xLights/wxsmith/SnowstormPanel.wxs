@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT45" variable="StaticText45" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowstorm_Count" variable="StaticText45" member="yes">
 					<label>Max flakes</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,20 +14,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Count" variable="Slider_Snowstorm_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Count" subclass="BulkEditSlider" variable="Slider_Snowstorm_Count" member="yes">
 					<value>50</value>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Count" variable="TextCtrl53" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Count" subclass="BulkEditTextCtrl" variable="TextCtrl53" member="no">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -45,7 +43,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT51" variable="StaticText51" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowstorm_Length" variable="StaticText51" member="yes">
 					<label>Trail Length</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -53,20 +51,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Length" variable="Slider_Snowstorm_Length" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Length" subclass="BulkEditSlider" variable="Slider_Snowstorm_Length" member="yes">
 					<value>50</value>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Length" variable="TextCtrl54" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Length" subclass="BulkEditTextCtrl" variable="TextCtrl54" member="no">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -84,7 +80,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText180" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowstorm_Speed" variable="StaticText180" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -92,22 +88,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Speed" variable="Slider_Snowstorm_Speed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowstorm_Speed" subclass="BulkEditSlider" variable="Slider_Snowstorm_Speed" member="yes">
 					<value>10</value>
 					<min>1</min>
 					<max>50</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Speed" variable="TextCtrl55" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowstorm_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl55" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

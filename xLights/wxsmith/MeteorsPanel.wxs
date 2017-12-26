@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText39" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Type" variable="StaticText39" member="yes">
 					<label>Colors</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Meteors_Type" variable="Choice_Meteors_Type" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Meteors_Type" subclass="BulkEditChoice" variable="Choice_Meteors_Type" member="yes">
 					<content>
 						<item>Rainbow</item>
 						<item>Range</item>
@@ -44,7 +44,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT129" variable="StaticText128" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Effect" variable="StaticText128" member="yes">
 					<label>Effect</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -52,7 +52,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Meteors_Effect" variable="Choice_Meteors_Effect" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Meteors_Effect" subclass="BulkEditChoice" variable="Choice_Meteors_Effect" member="yes">
 					<content>
 						<item>Down</item>
 						<item>Up</item>
@@ -88,7 +88,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT41" variable="StaticText41" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Count" variable="StaticText41" member="yes">
 					<label>Count</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -96,21 +96,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Meteors_Count" variable="Slider_Meteors_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_Count" subclass="BulkEditSlider" variable="Slider_Meteors_Count" member="yes">
 					<value>10</value>
 					<min>1</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Count" variable="TextCtrl49" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Count" subclass="BulkEditTextCtrl" variable="TextCtrl49" member="no">
 					<value>10</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -129,7 +127,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT43" variable="StaticText43" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Length" variable="StaticText43" member="yes">
 					<label>Trail Length</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -137,21 +135,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Meteors_Length" variable="Slider_Meteors_Length" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_Length" subclass="BulkEditSlider" variable="Slider_Meteors_Length" member="yes">
 					<value>25</value>
 					<min>1</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Length" variable="TextCtrl50" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Length" subclass="BulkEditTextCtrl" variable="TextCtrl50" member="no">
 					<value>25</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -170,7 +166,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT131" variable="StaticText130" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Swirl_Intensity" variable="StaticText130" member="yes">
 					<label>Swirl Intensity</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -178,20 +174,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Meteors_Swirl_Intensity" variable="Slider_Meteors_Swirl_Intensity" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_Swirl_Intensity" subclass="BulkEditSlider" variable="Slider_Meteors_Swirl_Intensity" member="yes">
 					<max>20</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Swirl_Intensity" variable="TextCtrl51" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Swirl_Intensity" subclass="BulkEditTextCtrl" variable="TextCtrl51" member="no">
 					<value>0</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -210,7 +204,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_Speed" variable="StaticText4" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -218,21 +212,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Meteors_Speed" variable="Slider_Meteors_Speed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Meteors_Speed" subclass="BulkEditSlider" variable="Slider_Meteors_Speed" member="yes">
 					<value>10</value>
 					<max>50</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Speed" variable="TextCtrl52" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Meteors_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl52" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -244,7 +236,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_XOffset" variable="StaticText1" member="yes">
 					<label>Horizontal Offset</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -252,20 +244,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="IDD_SLIDER_Meteors_XOffset" variable="Slider_Meteors_XOffset" member="yes">
+				<object class="wxSlider" name="IDD_SLIDER_Meteors_XOffset" subclass="BulkEditSlider" variable="Slider_Meteors_XOffset" member="yes">
 					<min>-100</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Meteors_XOffset" variable="TextCtrl_Meteors_XOffset" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Meteors_XOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_Meteors_XOffset" member="yes">
 					<value>0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -284,7 +274,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Meteors_YOffset" variable="StaticText2" member="yes">
 					<label>Vertical Offset</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -292,20 +282,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="IDD_SLIDER_Meteors_YOffset" variable="Slider_Meteors_YOffset" member="yes">
+				<object class="wxSlider" name="IDD_SLIDER_Meteors_YOffset" subclass="BulkEditSlider" variable="Slider_Meteors_YOffset" member="yes">
 					<min>-100</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Meteors_YOffset" variable="TextCtrl_Meteors_Yoffset" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Meteors_YOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_Meteors_Yoffset" member="yes">
 					<value>0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -329,7 +317,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Meteors_UseMusic" variable="CheckBox_Meteors_UseMusic" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Meteors_UseMusic" subclass="BulkEditCheckBox" variable="CheckBox_Meteors_UseMusic" member="yes">
 					<label>Adjust count based on music intensity</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
@@ -359,7 +347,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_FadeWithDistance" variable="CheckBox_FadeWithDistance" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_FadeWithDistance" subclass="BulkEditCheckBox" variable="CheckBox_FadeWithDistance" member="yes">
 					<label>Starfield simulation</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

@@ -13,7 +13,7 @@
 								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText154" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_CenterX" variable="StaticText154" member="yes">
 										<label>Center X:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -21,16 +21,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" variable="Slider_Shockwave_CenterX" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterX" subclass="BulkEditSlider" variable="Slider_Shockwave_CenterX" member="yes">
 										<value>50</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterX" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_CenterX" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterX" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_CenterX" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -40,12 +39,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterX" variable="TextCtrl_Shockwave_CenterX" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterX" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_CenterX" member="no">
 										<value>50</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5d</border>
@@ -64,7 +62,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT151" variable="StaticText155" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_CenterY" variable="StaticText155" member="yes">
 										<label>Center Y:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -72,16 +70,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" variable="Slider_Shockwave_CenterY" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_CenterY" subclass="BulkEditSlider" variable="Slider_Shockwave_CenterY" member="yes">
 										<value>50</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterY" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_CenterY" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterY" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_CenterY" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -91,12 +88,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterY" variable="TextCtrl_Shockwave_CenterY" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_CenterY" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_CenterY" member="no">
 										<value>50</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -115,7 +111,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT152" variable="StaticText156" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_Start_Radius" variable="StaticText156" member="yes">
 										<label>Radius1:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -123,17 +119,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" variable="Slider_Shockwave_Start_Radius" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Radius" subclass="BulkEditSlider" variable="Slider_Shockwave_Start_Radius" member="yes">
 										<value>1</value>
 										<max>250</max>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Radius" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Radius" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -143,12 +138,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Radius" variable="TextCtrl_Shockwave_Start_Radius" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Radius" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_Start_Radius" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -167,7 +161,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT154" variable="StaticText158" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_End_Radius" variable="StaticText158" member="yes">
 										<label>Radius2:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -175,17 +169,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" variable="Slider_Shockwave_End_Radius" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Radius" subclass="BulkEditSlider" variable="Slider_Shockwave_End_Radius" member="yes">
 										<value>10</value>
 										<max>250</max>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Radius" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_End_Radius" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Radius" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_End_Radius" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -195,12 +188,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Radius" variable="TextCtrl_Shockwave_End_Radius" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Radius" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_End_Radius" member="no">
 										<value>10</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -219,7 +211,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT153" variable="StaticText157" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_Start_Width" variable="StaticText157" member="yes">
 										<label>Width1:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -227,17 +219,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" variable="Slider_Shockwave_Start_Width" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Start_Width" subclass="BulkEditSlider" variable="Slider_Shockwave_Start_Width" member="yes">
 										<value>5</value>
 										<max>255</max>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Width" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_Start_Width" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Width" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_Start_Width" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -247,12 +238,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Width" variable="TextCtrl_Shockwave_Start_Width" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Start_Width" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_Start_Width" member="no">
 										<value>5</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -271,7 +261,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT155" variable="StaticText159" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_End_Width" variable="StaticText159" member="yes">
 										<label>Width2:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -279,17 +269,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" variable="Slider_Shockwave_End_Width" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_End_Width" subclass="BulkEditSlider" variable="Slider_Shockwave_End_Width" member="yes">
 										<value>10</value>
 										<max>255</max>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Width" subclass="ValueCurveButton" variable="BitmapButton_Shockwave_End_Width" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Width" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_End_Width" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -299,12 +288,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Width" variable="TextCtrl_Shockwave_End_Width" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_End_Width" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_End_Width" member="no">
 										<value>10</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -332,7 +320,7 @@
 								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT162" variable="StaticText166" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Shockwave_Accel" variable="StaticText166" member="yes">
 										<label>Acceleration:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -340,22 +328,20 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shockwave_Accel" variable="Slider_Shockwave_Accel" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Shockwave_Accel" subclass="BulkEditSlider" variable="Slider_Shockwave_Accel" member="yes">
 										<min>-10</min>
 										<max>10</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Accel" variable="TextCtrl_Shockwave_Accel" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shockwave_Accel" subclass="BulkEditTextCtrl" variable="TextCtrl_Shockwave_Accel" member="no">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -374,7 +360,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Shockwave_Blend_Edges" variable="CheckBox_Shockwave_Blend_Edges" member="yes">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Shockwave_Blend_Edges" subclass="BulkEditCheckBox" variable="CheckBox_Shockwave_Blend_Edges" member="yes">
 										<label>Blend Edges:</label>
 										<checked>1</checked>
 										<style>wxALIGN_RIGHT</style>

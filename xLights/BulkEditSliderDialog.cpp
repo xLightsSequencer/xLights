@@ -21,7 +21,7 @@ BEGIN_EVENT_TABLE(BulkEditSliderDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-BulkEditSliderDialog::BulkEditSliderDialog(wxWindow* parent, const std::string& label, int value, int min, int max, BESLIDERTYPE type, ValueCurveButton* vcb, wxWindowID id,const wxPoint& pos,const wxSize& size)
+BulkEditSliderDialog::BulkEditSliderDialog(wxWindow* parent, const std::string& label, int value, int min, int max, int pageSize, BESLIDERTYPE type, ValueCurveButton* vcb, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _vcb = vcb;
 
@@ -83,6 +83,7 @@ BulkEditSliderDialog::BulkEditSliderDialog(wxWindow* parent, const std::string& 
     Slider_BulkEdit->SetMin(min);
     Slider_BulkEdit->SetMax(max);
     Slider_BulkEdit->SetValue(value);
+    Slider_BulkEdit->SetPageSize(pageSize);
 
     wxScrollEvent e;
     OnSlider_BulkEditCmdSliderUpdated(e);

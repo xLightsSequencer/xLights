@@ -17,7 +17,7 @@
 //(*IdInit(GlediatorPanel)
 const long GlediatorPanel::ID_STATICTEXT2 = wxNewId();
 const long GlediatorPanel::ID_FILEPICKERCTRL_Glediator_Filename = wxNewId();
-const long GlediatorPanel::ID_STATICTEXT1 = wxNewId();
+const long GlediatorPanel::ID_STATICTEXT_Glediator_DurationTreatment = wxNewId();
 const long GlediatorPanel::ID_CHOICE_Glediator_DurationTreatment = wxNewId();
 //*)
 
@@ -37,9 +37,9 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent)
 	FlexGridSizer53->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FilePickerCtrl_Glediator_Filename = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL_Glediator_Filename, wxEmptyString, _("Select a glediator file"), _T("Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Glediator_Filename"));
 	FlexGridSizer53->Add(FilePickerCtrl_Glediator_Filename, 1, wxALL|wxEXPAND, 5);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Duration Treatment:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Glediator_DurationTreatment, _("Duration Treatment:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Glediator_DurationTreatment"));
 	FlexGridSizer53->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Glediator_DurationTreatment = new wxChoice(this, ID_CHOICE_Glediator_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Glediator_DurationTreatment"));
+	Choice_Glediator_DurationTreatment = new BulkEditChoice(this, ID_CHOICE_Glediator_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Glediator_DurationTreatment"));
 	Choice_Glediator_DurationTreatment->SetSelection( Choice_Glediator_DurationTreatment->Append(_("Normal")) );
 	Choice_Glediator_DurationTreatment->Append(_("Loop"));
 	Choice_Glediator_DurationTreatment->Append(_("Slow/Accelerate"));

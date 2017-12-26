@@ -18,12 +18,12 @@
 //*)
 
 //(*IdInit(ShimmerPanel)
-const long ShimmerPanel::ID_STATICTEXT68 = wxNewId();
+const long ShimmerPanel::ID_STATICTEXT_Shimmer_Duty_Factor = wxNewId();
 const long ShimmerPanel::ID_SLIDER_Shimmer_Duty_Factor = wxNewId();
 const long ShimmerPanel::ID_VALUECURVE_Shimmer_Duty_Factor = wxNewId();
 const long ShimmerPanel::IDD_TEXTCTRL_Shimmer_Duty_Factor = wxNewId();
 const long ShimmerPanel::ID_BITMAPBUTTON_DutyFactor = wxNewId();
-const long ShimmerPanel::ID_STATICTEXT9 = wxNewId();
+const long ShimmerPanel::ID_STATICTEXT_Shimmer_Cycles = wxNewId();
 const long ShimmerPanel::IDD_SLIDER_Shimmer_Cycles = wxNewId();
 const long ShimmerPanel::ID_VALUECURVE_Shimmer_Cycles = wxNewId();
 const long ShimmerPanel::ID_TEXTCTRL_Shimmer_Cycles = wxNewId();
@@ -44,38 +44,38 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	//(*Initialize(ShimmerPanel)
 	wxFlexGridSizer* FlexGridSizer56;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxTextCtrl* TextCtrl47;
+	BulkEditTextCtrl* TextCtrl46;
 	wxFlexGridSizer* FlexGridSizer1;
-	wxTextCtrl* TextCtrl46;
+	BulkEditTextCtrlF1* TextCtrl47;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer56 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer56->AddGrowableCol(1);
-	StaticText66 = new wxStaticText(this, ID_STATICTEXT68, _("Duty Factor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
+	StaticText66 = new wxStaticText(this, ID_STATICTEXT_Shimmer_Duty_Factor, _("Duty Factor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shimmer_Duty_Factor"));
 	FlexGridSizer56->Add(StaticText66, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_Shimmer_Duty_Factor = new wxSlider(this, ID_SLIDER_Shimmer_Duty_Factor, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shimmer_Duty_Factor"));
+	Slider_Shimmer_Duty_Factor = new BulkEditSlider(this, ID_SLIDER_Shimmer_Duty_Factor, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shimmer_Duty_Factor"));
 	FlexGridSizer1->Add(Slider_Shimmer_Duty_Factor, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Shimmer_Duty_FactorVC = new ValueCurveButton(this, ID_VALUECURVE_Shimmer_Duty_Factor, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shimmer_Duty_Factor"));
+	BitmapButton_Shimmer_Duty_FactorVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shimmer_Duty_Factor, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shimmer_Duty_Factor"));
 	FlexGridSizer1->Add(BitmapButton_Shimmer_Duty_FactorVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer56->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
-	TextCtrl46 = new wxTextCtrl(this, IDD_TEXTCTRL_Shimmer_Duty_Factor, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shimmer_Duty_Factor"));
+	TextCtrl46 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shimmer_Duty_Factor, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shimmer_Duty_Factor"));
 	TextCtrl46->SetMaxLength(3);
 	FlexGridSizer56->Add(TextCtrl46, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Shimmer_Duty_Factor = new wxBitmapButton(this, ID_BITMAPBUTTON_DutyFactor, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_DutyFactor"));
 	BitmapButton_Shimmer_Duty_Factor->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer56->Add(BitmapButton_Shimmer_Duty_Factor, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	StaticText65 = new wxStaticText(this, ID_STATICTEXT9, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	StaticText65 = new wxStaticText(this, ID_STATICTEXT_Shimmer_Cycles, _("Cycle Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shimmer_Cycles"));
 	FlexGridSizer56->Add(StaticText65, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Slider_Shimmer_Cycles = new wxSlider(this, IDD_SLIDER_Shimmer_Cycles, 10, 0, 6000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shimmer_Cycles"));
+	Slider_Shimmer_Cycles = new BulkEditSliderF1(this, IDD_SLIDER_Shimmer_Cycles, 10, 0, 6000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Shimmer_Cycles"));
 	FlexGridSizer2->Add(Slider_Shimmer_Cycles, 1, wxALL|wxEXPAND, 5);
-	BitmapButton_Shimmer_CyclesVC = new ValueCurveButton(this, ID_VALUECURVE_Shimmer_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shimmer_Cycles"));
+	BitmapButton_Shimmer_CyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shimmer_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shimmer_Cycles"));
 	FlexGridSizer2->Add(BitmapButton_Shimmer_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer56->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
-	TextCtrl47 = new wxTextCtrl(this, ID_TEXTCTRL_Shimmer_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shimmer_Cycles"));
+	TextCtrl47 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Shimmer_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shimmer_Cycles"));
 	TextCtrl47->SetMaxLength(5);
 	FlexGridSizer56->Add(TextCtrl47, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton5 = new wxBitmapButton(this, ID_BITMAPBUTTON24, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
@@ -84,7 +84,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	FlexGridSizer56->Add(BitmapButton5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText67 = new wxStaticText(this, ID_STATICTEXT69, _("Use All Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT69"));
 	FlexGridSizer56->Add(StaticText67, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Shimmer_Use_All_Colors = new wxCheckBox(this, ID_CHECKBOX_Shimmer_Use_All_Colors, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shimmer_Use_All_Colors"));
+	CheckBox_Shimmer_Use_All_Colors = new BulkEditCheckBox(this, ID_CHECKBOX_Shimmer_Use_All_Colors, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shimmer_Use_All_Colors"));
 	CheckBox_Shimmer_Use_All_Colors->SetValue(false);
 	FlexGridSizer56->Add(CheckBox_Shimmer_Use_All_Colors, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -93,7 +93,7 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	BitmapButton_Shimmer_Use_All_Colors->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer56->Add(BitmapButton_Shimmer_Use_All_Colors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_PRE_2017_7 = new wxCheckBox(this, ID_CHECKBOX_PRE_2017_7, _("Pre v2017.7 Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PRE_2017_7"));
+	CheckBox_PRE_2017_7 = new BulkEditCheckBox(this, ID_CHECKBOX_PRE_2017_7, _("Pre v2017.7 Shimmer"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_PRE_2017_7"));
 	CheckBox_PRE_2017_7->SetValue(false);
 	FlexGridSizer56->Add(CheckBox_PRE_2017_7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -102,13 +102,9 @@ ShimmerPanel::ShimmerPanel(wxWindow* parent)
 	FlexGridSizer56->Fit(this);
 	FlexGridSizer56->SetSizeHints(this);
 
-	Connect(ID_SLIDER_Shimmer_Duty_Factor,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShimmerPanel::UpdateLinkedTextCtrlVC);
 	Connect(ID_VALUECURVE_Shimmer_Duty_Factor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnVCButtonClick);
-	Connect(IDD_TEXTCTRL_Shimmer_Duty_Factor,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShimmerPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_DutyFactor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
-	Connect(IDD_SLIDER_Shimmer_Cycles,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ShimmerPanel::UpdateLinkedTextCtrlFloatVC);
 	Connect(ID_VALUECURVE_Shimmer_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnVCButtonClick);
-	Connect(ID_TEXTCTRL_Shimmer_Cycles,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ShimmerPanel::UpdateLinkedSliderFloat);
 	Connect(ID_BITMAPBUTTON24,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShimmerPanel::OnLockButtonClick);
 	//*)

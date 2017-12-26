@@ -9,6 +9,8 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
+#include "../BulkEditControls.h"
+
 class GlediatorPanel: public wxPanel
 {
 	public:
@@ -19,8 +21,8 @@ class GlediatorPanel: public wxPanel
 		//(*Declarations(GlediatorPanel)
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
+		BulkEditChoice* Choice_Glediator_DurationTreatment;
 		wxFilePickerCtrl* FilePickerCtrl_Glediator_Filename;
-		wxChoice* Choice_Glediator_DurationTreatment;
 		//*)
     
         wxString defaultDir;
@@ -30,26 +32,16 @@ class GlediatorPanel: public wxPanel
 		//(*Identifiers(GlediatorPanel)
 		static const long ID_STATICTEXT2;
 		static const long ID_FILEPICKERCTRL_Glediator_Filename;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_Glediator_DurationTreatment;
 		static const long ID_CHOICE_Glediator_DurationTreatment;
 		//*)
 
 	public:
 
 		//(*Handlers(GlediatorPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
 		DECLARE_EVENT_TABLE()

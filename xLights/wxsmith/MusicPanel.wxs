@@ -10,7 +10,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Bars" variable="StaticText1" member="yes">
 							<label>Bars</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -22,10 +22,9 @@
 							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Music_Bars" variable="Slider_Music_Bars" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_Music_Bars" subclass="BulkEditSlider" variable="Slider_Music_Bars" member="yes">
 									<value>20</value>
 									<min>1</min>
-									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -37,10 +36,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Bars" variable="TextCtrl_Music_Bars" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Bars" subclass="BulkEditTextCtrl" variable="TextCtrl_Music_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -58,7 +56,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Type" variable="StaticText2" member="yes">
 							<label>Type</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -66,7 +64,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Music_Type" variable="Choice_Music_Type" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_Music_Type" subclass="BulkEditChoice" variable="Choice_Music_Type" member="yes">
 							<content>
 								<item>Morph</item>
 								<item>Bounce</item>
@@ -98,7 +96,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_StartNote" variable="StaticText12" member="yes">
 							<label>Start Note</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -106,7 +104,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Music_StartNote" variable="Slider_Music_StartNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Music_StartNote" subclass="BulkEditSlider" variable="Slider_Music_StartNote" member="yes">
 							<value>60</value>
 							<max>127</max>
 							<handler function="OnSlider_Music_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -116,7 +114,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_StartNote" variable="TextCtrl_Music_StartNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_StartNote" subclass="BulkEditTextCtrl" variable="TextCtrl_Music_StartNote" member="yes">
 							<value>60</value>
 							<size>20,-1d</size>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
@@ -137,7 +135,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_EndNote" variable="StaticText11" member="yes">
 							<label>End Note</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -145,7 +143,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Music_EndNote" variable="Slider_Music_EndNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Music_EndNote" subclass="BulkEditSlider" variable="Slider_Music_EndNote" member="yes">
 							<value>80</value>
 							<max>127</max>
 							<handler function="OnSlider_Music_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -155,7 +153,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_EndNote" variable="TextCtrl_Music_EndNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_EndNote" subclass="BulkEditTextCtrl" variable="TextCtrl_Music_EndNote" member="yes">
 							<value>80</value>
 							<size>20,-1d</size>
 							<handler function="OnTextCtrl_Music_StartNoteText" entry="EVT_TEXT" />
@@ -176,7 +174,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEX_Music_Sensitivity" variable="StaticText4" member="yes">
 							<label>Sensitivity</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -188,9 +186,8 @@
 							<cols>1</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Music_Sensitivity" variable="Slider_Music_Sensitivity" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_Music_Sensitivity" subclass="BulkEditSlider" variable="Slider_Music_Sensitivity" member="yes">
 									<value>50</value>
-									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -202,10 +199,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Sensitivity" variable="TextCtrl_Music_Sensitivity" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Sensitivity" subclass="BulkEditTextCtrl" variable="TextCtrl_Music_Sensitivity" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -223,7 +219,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Offset" variable="StaticText3" member="yes">
 							<label>Offset</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -235,15 +231,13 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Music_Offset" variable="Slider_Music_Offset" member="yes">
-									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
-								</object>
+								<object class="wxSlider" name="ID_SLIDER_Music_Offset" subclass="BulkEditSlider" variable="Slider_Music_Offset" member="yes" />
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_VALUECURVE_Music_Offset" subclass="ValueCurveButton" variable="BitmapButton_Music_OffsetVC" member="yes">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Music_Offset" subclass="BulkEditValueCurveButton" variable="BitmapButton_Music_OffsetVC" member="yes">
 									<bitmap code="valuecurvenotselected_24" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -258,10 +252,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Offset" variable="TextCtrl_Music_Offset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Music_Offset" subclass="BulkEditTextCtrl" variable="TextCtrl_Music_Offset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -284,7 +277,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Music_Scale" variable="CheckBox_Music_Scale" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Music_Scale" subclass="BulkEditCheckBox" variable="CheckBox_Music_Scale" member="yes">
 							<label>Scale Bars</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -308,7 +301,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Scaling" variable="StaticText5" member="yes">
 							<label>Notes Scaling</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -316,7 +309,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Music_Scaling" variable="Choice_Music_Scaling" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_Music_Scaling" subclass="BulkEditChoice" variable="Choice_Music_Scaling" member="yes">
 							<content>
 								<item>None</item>
 								<item>Individual Notes</item>
@@ -345,7 +338,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Music_Colour" variable="StaticText6" member="yes">
 							<label>Color</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -353,7 +346,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Music_Colour" variable="Choice_Music_Colour" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_Music_Colour" subclass="BulkEditChoice" variable="Choice_Music_Colour" member="yes">
 							<content>
 								<item>Distinct</item>
 								<item>Blend</item>
@@ -387,7 +380,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Music_Fade" variable="CheckBox_Music_Fade" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Music_Fade" subclass="BulkEditCheckBox" variable="CheckBox_Music_Fade" member="yes">
 							<label>Fade</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

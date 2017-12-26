@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT71" variable="StaticText69" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Object_To_Draw" variable="StaticText69" member="yes">
 					<label>Object to Draw</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Ripple_Object_To_Draw" variable="Choice_Ripple_Object_To_Draw" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Ripple_Object_To_Draw" subclass="BulkEditChoice" variable="Choice_Ripple_Object_To_Draw" member="yes">
 					<content>
 						<item>Circle</item>
 						<item>Square</item>
@@ -45,7 +45,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT72" variable="StaticText70" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Movement" variable="StaticText70" member="yes">
 					<label>Movement</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -53,7 +53,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Ripple_Movement" variable="Choice_Ripple_Movement" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Ripple_Movement" subclass="BulkEditChoice" variable="Choice_Ripple_Movement" member="yes">
 					<content>
 						<item>Explode</item>
 						<item>Implode</item>
@@ -82,7 +82,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT74" variable="StaticText72" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Thickness" variable="StaticText72" member="yes">
 					<label>Thickness</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -94,17 +94,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Ripple_Thickness" variable="Slider_Ripple_Thickness" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Thickness" subclass="BulkEditSlider" variable="Slider_Ripple_Thickness" member="yes">
 							<value>3</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Thickness" subclass="ValueCurveButton" variable="BitmapButton_Ripple_ThicknessVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_ThicknessVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -119,11 +118,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Thickness" variable="TextCtrl33" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Thickness" subclass="BulkEditTextCtrl" variable="TextCtrl33" member="no">
 					<value>3</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -142,7 +140,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText176" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Cycles" variable="StaticText176" member="yes">
 					<label>Cycle Count</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -154,17 +152,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Ripple_Cycles" variable="Slider_Ripple_Cycles" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Ripple_Cycles" subclass="BulkEditSliderF1" variable="Slider_Ripple_Cycles" member="yes">
 							<value>10</value>
 							<max>300</max>
-							<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Cycles" subclass="ValueCurveButton" variable="BitmapButton_Ripple_CyclesVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Cycles" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_CyclesVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -179,11 +176,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Cycles" variable="TextCtrl34" member="no">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Ripple_Cycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl34" member="no">
 					<value>1.0</value>
 					<maxlength>4</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -203,22 +199,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_RIPPLE_POINTS" variable="Slider_Ripple_Points" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_RIPPLE_POINTS" subclass="BulkEditSlider" variable="Slider_Ripple_Points" member="yes">
 					<value>5</value>
 					<min>4</min>
 					<max>7</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_RIPPLE_POINTS" variable="TextCtrl_Ripple_Points" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_RIPPLE_POINTS" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Points" member="yes">
 					<value>5</value>
 					<maxlength>1</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -240,7 +234,7 @@
 				<object class="wxFlexGridSizer" variable="FlexGridSizer60" member="no">
 					<cols>4</cols>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Ripple3D" variable="CheckBox_Ripple3D" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Ripple3D" subclass="BulkEditCheckBox" variable="CheckBox_Ripple3D" member="yes">
 							<label>3D</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>

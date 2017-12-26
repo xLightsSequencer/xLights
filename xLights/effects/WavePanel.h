@@ -12,7 +12,7 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 class WavePanel: public wxPanel
 {
@@ -24,69 +24,67 @@ class WavePanel: public wxPanel
 		virtual ~WavePanel();
 
 		//(*Declarations(WavePanel)
+		BulkEditSlider* Slider_Thickness_Percentage;
+		BulkEditChoice* Choice_Wave_Type;
 		wxBitmapButton* BitmapButton_Wave_Direction;
-		ValueCurveButton* BitmapButton_Thickness_PercentageVC;
+		BulkEditSlider* Slider_Number_Waves;
+		BulkEditValueCurveButton* BitmapButton_Wave_HeightVC;
+		BulkEditValueCurveButton* BitmapButton_Number_WavesVC;
+		BulkEditValueCurveButton* BitmapButton_Thickness_PercentageVC;
 		wxBitmapButton* BitmapButton_Wave_Height;
-		ValueCurveButton* BitmapButton_Wave_HeightVC;
+		BulkEditValueCurveButton* BitmapButton_Wave_SpeedVC;
 		wxStaticText* StaticText50;
 		wxBitmapButton* BitmapButton13;
 		wxBitmapButton* BitmapButton_Wave_MirrorWave;
+		BulkEditChoice* Choice_Wave_Direction;
 		wxStaticText* StaticText56;
-		wxCheckBox* CheckBox_Mirror_Wave;
 		wxStaticText* StaticText55;
-		wxStaticText* StaticText49;
-		wxSlider* Slider_Thickness_Percentage;
+		BulkEditChoice* Choice_Fill_Colors;
 		wxStaticText* StaticText189;
-		wxChoice* Choice_Wave_Direction;
-		wxSlider* Slider_Wave_Speed;
 		wxStaticText* StaticText47;
+		BulkEditSlider* Slider_Wave_Speed;
 		wxStaticText* StaticText52;
-		ValueCurveButton* BitmapButton_Number_WavesVC;
 		wxBitmapButton* BitmapButton_Wave_Thickness;
 		wxBitmapButton* BitmapButton_NumberWaves;
 		wxBitmapButton* BitmapButton_Wave_FillColors;
-		wxChoice* Choice_Fill_Colors;
-		wxSlider* Slider_Number_Waves;
-		wxChoice* Choice_Wave_Type;
 		wxBitmapButton* BitmapButton_WaveType;
 		wxStaticText* StaticText48;
-		ValueCurveButton* BitmapButton_Wave_SpeedVC;
-		wxSlider* Slider_Wave_Height;
+		BulkEditCheckBox* CheckBox_Mirror_Wave;
+		BulkEditSlider* Slider_Wave_Height;
 		//*)
 
 	protected:
 
 		//(*Identifiers(WavePanel)
-		static const long ID_STATICTEXT49;
+		static const long ID_STATICTEXT_Wave_Type;
 		static const long ID_CHOICE_Wave_Type;
 		static const long ID_BITMAPBUTTON2;
-		static const long ID_STATICTEXT50;
+		static const long ID_STATICTEXT_Fill_Colors;
 		static const long ID_CHOICE_Fill_Colors;
 		static const long ID_BITMAPBUTTON3;
-		static const long ID_STATICTEXT52;
 		static const long ID_CHECKBOX_Mirror_Wave;
 		static const long ID_BITMAPBUTTON4;
-		static const long ID_STATICTEXT55;
+		static const long ID_STATICTEXT_Number_Waves;
 		static const long ID_SLIDER_Number_Waves;
 		static const long ID_VALUECURVE_Number_Waves;
 		static const long IDD_TEXTCTRL_Number_Waves;
 		static const long ID_BITMAPBUTTON5;
-		static const long ID_STATICTEXT56;
+		static const long ID_STATICTEXT_Thickness_Percentage;
 		static const long ID_SLIDER_Thickness_Percentage;
 		static const long ID_VALUECURVE_Thickness_Percentage;
 		static const long IDD_TEXTCTRL_Thickness_Percentage;
 		static const long ID_BITMAPBUTTON6;
-		static const long ID_STATICTEXT58;
+		static const long ID_STATICTEXT_Wave_Height;
 		static const long ID_SLIDER_Wave_Height;
 		static const long ID_VALUECURVE_Wave_Height;
 		static const long IDD_TEXTCTRL_Wave_Height;
 		static const long ID_BITMAPBUTTON7;
-		static const long ID_STATICTEXT32;
+		static const long ID_STATICTEXT_Wave_Speed;
 		static const long ID_SLIDER_Wave_Speed;
 		static const long ID_VALUECURVE_Wave_Speed;
 		static const long IDD_TEXTCTRL_Wave_Speed;
 		static const long ID_BITMAPBUTTON31;
-		static const long ID_STATICTEXT59;
+		static const long ID_STATICTEXT_Wave_Direction;
 		static const long ID_CHOICE_Wave_Direction;
 		static const long ID_BITMAPBUTTON8;
 		//*)
@@ -94,20 +92,10 @@ class WavePanel: public wxPanel
 	public:
 
 		//(*Handlers(WavePanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Wave_TypeSelect(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

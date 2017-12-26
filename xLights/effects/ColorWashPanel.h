@@ -11,7 +11,7 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 #define COLOURWASH_CYCLES_MIN 0.1f
 #define COLOURWASH_CYCLES_MAX 20
@@ -24,22 +24,22 @@ class ColorWashPanel: public wxPanel
 		virtual ~ColorWashPanel();
 
 		//(*Declarations(ColorWashPanel)
-		wxCheckBox* ShimmerCheckBox;
+		BulkEditCheckBox* CircularPaletteCheckBox;
+		BulkEditSliderF1* SliderCycles;
+		BulkEditTextCtrlF1* CyclesTextCtrl;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
-		ValueCurveButton* BitmapButton_ColorWash_CyclesVC;
-		wxCheckBox* CircularPaletteCheckBox;
-		wxCheckBox* HFadeCheckBox;
-		wxTextCtrl* CyclesTextCtrl;
+		BulkEditCheckBox* HFadeCheckBox;
 		wxBitmapButton* BitmapButton_ColorWashHFade;
+		BulkEditCheckBox* VFadeCheckBox;
 		wxStaticText* StaticText5;
-		wxCheckBox* VFadeCheckBox;
-		wxSlider* SliderCycles;
+		BulkEditValueCurveButton* BitmapButton_ColorWash_CyclesVC;
 		wxBitmapButton* BitmapButton_ColorWashCount;
+		BulkEditCheckBox* ShimmerCheckBox;
 		//*)
 
 
 		//(*Identifiers(ColorWashPanel)
-		static const long ID_STATICTEXT21;
+		static const long ID_STATICTEXT_ColorWash_Cycles;
 		static const long IDD_SLIDER_ColorWash_Cycles;
 		static const long ID_VALUECURVE_ColorWash_Cycles;
 		static const long ID_TEXTCTRL_ColorWash_Cycles;
@@ -54,22 +54,12 @@ class ColorWashPanel: public wxPanel
 
     
 		//(*Handlers(ColorWashPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
-		DECLARE_EVENT_TABLE()
+    DECLARE_EVENT_TABLE()
 };
 
 #endif

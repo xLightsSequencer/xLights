@@ -6,15 +6,15 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText25" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Colors" variable="StaticText25" member="yes">
 					<label>Colors</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Butterfly_Colors" variable="Choice_Butterfly_Colors" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Butterfly_Colors" subclass="BulkEditChoice" variable="Choice_Butterfly_Colors" member="yes">
 					<content>
 						<item>Rainbow</item>
 						<item>Palette</item>
@@ -43,30 +43,28 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText26" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Style" variable="StaticText26" member="yes">
 					<label>Style</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" subclass="BulkEditSlider" variable="Slider_Butterfly_Style" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Style" variable="TextCtrl16" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Style" subclass="BulkEditTextCtrl" variable="TextCtrl16" member="no">
 					<value>1</value>
 					<maxlength>1</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -85,10 +83,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText27" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Chunks" variable="StaticText27" member="yes">
 					<label>Bkgrd Chunks</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -97,18 +95,17 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" subclass="BulkEditSlider" variable="Slider_Butterfly_Chunks" member="yes">
 							<value>1</value>
 							<min>1</min>
 							<max>10</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Chunks" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Chunks" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Chunks" subclass="BulkEditValueCurveButton" variable="BitmapButton_Butterfly_Chunks" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -122,11 +119,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Chunks" variable="TextCtrl17" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Chunks" subclass="BulkEditTextCtrl" variable="TextCtrl17" member="no">
 					<value>1</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -145,10 +141,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText28" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Skip" variable="StaticText28" member="yes">
 					<label>Bkgrd Skip</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -157,18 +153,17 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" subclass="BulkEditSlider" variable="Slider_Butterfly_Skip" member="yes">
 							<value>2</value>
 							<min>2</min>
 							<max>10</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Skip" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Skip" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Skip" subclass="BulkEditValueCurveButton" variable="BitmapButton_Butterfly_Skip" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -182,11 +177,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Skip" variable="TextCtrl18" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Skip" subclass="BulkEditTextCtrl" variable="TextCtrl18" member="no">
 					<value>2</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -205,10 +199,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText175" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Speed" variable="StaticText175" member="yes">
 					<label>Speed</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -217,16 +211,15 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" variable="Slider_Butterfly_Speed" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Butterfly_Speed" subclass="BulkEditSlider" variable="Slider_Butterfly_Speed" member="yes">
 							<value>10</value>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Speed" subclass="ValueCurveButton" variable="BitmapButton_Butterfly_Speed" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Butterfly_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Butterfly_Speed" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -240,11 +233,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Speed" variable="TextCtrl25" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Butterfly_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl25" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -263,15 +255,15 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText58" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Butterfly_Direction" variable="StaticText58" member="yes">
 					<label>Direction</label>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Butterfly_Direction" variable="Choice_Butterfly_Direction" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Butterfly_Direction" subclass="BulkEditChoice" variable="Choice_Butterfly_Direction" member="yes">
 					<content>
 						<item>Normal</item>
 						<item>Reverse</item>

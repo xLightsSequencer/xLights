@@ -21,7 +21,7 @@ class BulkEditSliderDialog: public wxDialog
 
 	public:
 
-		BulkEditSliderDialog(wxWindow* parent, const std::string& label, int value, int min, int max, BESLIDERTYPE type, ValueCurveButton* vcb, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		BulkEditSliderDialog(wxWindow* parent, const std::string& label, int value, int min, int max, int pageSize, BESLIDERTYPE type, ValueCurveButton* vcb, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~BulkEditSliderDialog();
 
 		//(*Declarations(BulkEditSliderDialog)

@@ -193,17 +193,6 @@ public:
 		void OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event);
 		//*)
 
-        void UpdateLinkedSliderFloat(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-        void UpdateLinkedSlider360(wxCommandEvent& event);
-        void UpdateLinkedTextCtrl(wxScrollEvent& event);
-        void UpdateLinkedSlider(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-
 		DECLARE_EVENT_TABLE()
 };
 

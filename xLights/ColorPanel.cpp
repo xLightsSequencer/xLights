@@ -470,7 +470,7 @@ void ColorPanel::UpdateTouchBarSlider(wxScrollEvent& event) {
     if (touchBar != nullptr) {
         touchBar->SetSparkles(event.GetPosition());
     }
-    UpdateLinkedTextCtrlVC(event);
+    Slider_SparkleFrequency->OnSlider_SliderUpdated(event);
 }
 
 void ColorPanel::LoadAllPalettes()

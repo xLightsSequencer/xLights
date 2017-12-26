@@ -12,7 +12,7 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 class FirePanel: public wxPanel
 {
@@ -23,63 +23,57 @@ class FirePanel: public wxPanel
 		virtual ~FirePanel();
 
 		//(*Declarations(FirePanel)
+		wxStaticText* StaticText193;
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxStaticText* StaticText83;
-		ValueCurveButton* BitmapButton_Fire_HeightVC;
-		wxSlider* Slider_Fire_HueShift;
-		wxTextCtrl* TextCtrl_Fire_Height;
-		wxCheckBox* CheckBox_Fire_GrowWithMusic;
+		wxStaticText* StaticText30;
+		BulkEditValueCurveButton* BitmapButton_Fire_HueShiftVC;
+		BulkEditTextCtrlF1* TextCtrl_Fire_GrowthCycles;
+		BulkEditSlider* Slider_Fire_Height;
+		BulkEditSliderF1* Slider_Fire_GrowthCycles;
 		wxBitmapButton* BitmapButton_FireGrow;
-		ValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
-		wxSlider* Slider_Fire_Height;
-		wxSlider* Slider_Fire_GrowthCycles;
+		BulkEditValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
+		BulkEditSlider* Slider_Fire_HueShift;
+		BulkEditCheckBox* CheckBox_Fire_GrowWithMusic;
+		BulkEditTextCtrl* TextCtrl_Fire_Height;
 		wxStaticText* StaticText132;
-		wxTextCtrl* TextCtrl_Fire_GrowthCycles;
-		ValueCurveButton* BitmapButton_Fire_HueShiftVC;
+		BulkEditChoice* Choice_Fire_Location;
 		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
-		wxChoice* Choice_Fire_Location;
 		wxBitmapButton* BitmapButton_FireHeight;
+		BulkEditValueCurveButton* BitmapButton_Fire_HeightVC;
 		//*)
 
 	protected:
 
 		//(*Identifiers(FirePanel)
-		static const long ID_STATICTEXT84;
+		static const long ID_STATICTEXT_Fire_Height;
 		static const long ID_SLIDER_Fire_Height;
 		static const long ID_VALUECURVE_Fire_Height;
 		static const long IDD_TEXTCTRL_Fire_Height;
 		static const long ID_BITMAPBUTTON_SLIDER_Fire_Height;
-		static const long ID_STATICTEXT133;
+		static const long ID_STATICTEXT_Fire_HueShift;
 		static const long ID_SLIDER_Fire_HueShift;
 		static const long ID_VALUECURVE_Fire_HueShift;
 		static const long IDD_TEXTCTRL_Fire_HueShift;
 		static const long ID_BITMAPBUTTON_SLIDER_Fire_HueShift;
+		static const long ID_STATICTEXT_Fire_GrowthCycles;
 		static const long IDD_SLIDER_Fire_GrowthCycles;
 		static const long ID_VALUECURVE_Fire_GrowthCycles;
 		static const long ID_TEXTCTRL_Fire_GrowthCycles;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire;
 		static const long ID_CHECKBOX_Fire_GrowWithMusic;
 		static const long ID_BITMAPBUTTON_Fire_GrowWithMusic;
+		static const long ID_STATICTEXT_Fire_Location;
 		static const long ID_CHOICE_Fire_Location;
 		//*)
 
 	public:
 
 		//(*Handlers(FirePanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnCheckBox_Fire_GrowWithMusicClick(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

@@ -17,6 +17,7 @@ class wxChoice;
 //*)
 
 #include <wx/filepicker.h>
+#include "../BulkEditControls.h"
 
 class xlPictureFilePickerCtrl : public wxFilePickerCtrl {
 public:
@@ -44,27 +45,34 @@ class PicturesPanel: public wxPanel
 		virtual ~PicturesPanel();
 
 		//(*Declarations(PicturesPanel)
-		wxSlider* Slider_PicturesEndXC;
-		wxChoice* Choice_Scaling;
-		wxCheckBox* CheckBox_Pictures_PixelOffsets;
-		wxSlider* Slider_Pictures_Speed;
-		wxCheckBox* CheckBox_Pictures_WrapX;
-		wxChoice* Choice_Pictures_Direction;
+		BulkEditSliderF1* Slider_Pictures_Speed;
+		wxStaticText* StaticText2;
+		BulkEditCheckBox* CheckBox_LoopGIF;
+		BulkEditSlider* Slider_Pictures_StartScale;
+		wxStaticText* StaticText1;
 		wxBitmapButton* BitmapButton_PicturesDirection;
+		wxStaticText* StaticText_Pictures_YC;
 		wxBitmapButton* BitmapButton_PicturesSpeed;
-		wxSlider* Slider_Pictures_EndScale;
-		wxCheckBox* CheckBox_LoopGIF;
-		wxSlider* Slider_PicturesXC;
-		wxSlider* Slider_Pictures_StartScale;
 		xlPictureFilePickerCtrl* FilePickerCtrl1;
-		wxSlider* Slider_PicturesYC;
-		wxCheckBox* CheckBox_Pictures_Shimmer;
+		BulkEditChoice* Choice_Scaling;
+		BulkEditSliderF1* Slider_Pictures_FR;
+		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
+		BulkEditSlider* Slider_Pictures_EndScale;
 		wxBitmapButton* BitmapButton6;
+		BulkEditChoice* Choice_Pictures_Direction;
+		wxStaticText* StaticText96;
 		wxPanel* PictureEndPositionPanel;
+		BulkEditSlider* Slider_PicturesYC;
+		BulkEditSlider* Slider_PicturesEndYC;
 		wxBitmapButton* BitmapButton_PicturesFilename;
 		wxStaticText* StaticText68;
-		wxSlider* Slider_Pictures_FR;
-		wxSlider* Slider_PicturesEndYC;
+		wxStaticText* StaticText160;
+		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
+		wxStaticText* StaticText_Pictures_XC;
+		BulkEditSlider* Slider_PicturesEndXC;
+		BulkEditSlider* Slider_PicturesXC;
+		wxStaticText* StaticText161;
+		BulkEditCheckBox* CheckBox_Pictures_WrapX;
 		wxStaticText* StaticText46;
 		//*)
 
@@ -73,13 +81,14 @@ class PicturesPanel: public wxPanel
 		//(*Identifiers(PicturesPanel)
 		static const long ID_FILEPICKER_Pictures_Filename;
 		static const long ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME;
-		static const long ID_STATICTEXT46;
+		static const long ID_STATICTEXT_Pictures_Direction;
 		static const long ID_CHOICE_Pictures_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
-		static const long ID_STATICTEXT27;
+		static const long ID_STATICTEXT_Pictures_Speed;
 		static const long IDD_SLIDER_Pictures_Speed;
 		static const long ID_TEXTCTRL_Pictures_Speed;
 		static const long ID_BITMAPBUTTON25;
+		static const long ID_STATICTEXT_Pictures_FrameRateAdj;
 		static const long IDD_SLIDER_Pictures_FrameRateAdj;
 		static const long ID_TEXTCTRL_Pictures_FrameRateAdj;
 		static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
@@ -87,20 +96,26 @@ class PicturesPanel: public wxPanel
 		static const long ID_CHOICE_Scaling;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
 		static const long ID_CHECKBOX_LoopGIF;
+		static const long ID_STATICTEXT_PicturesXC;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;
 		static const long IDD_TEXTCTRL_PicturesXC;
+		static const long ID_STATICTEXT_PicturesYC;
 		static const long IDD_TEXTCTRL_PicturesYC;
 		static const long ID_SLIDER_PicturesYC;
 		static const long ID_PANEL43;
+		static const long ID_STATICTEXT_PicturesEndXC;
 		static const long ID_SLIDER_PicturesEndXC;
 		static const long IDD_TEXTCTRL_PicturesEndXC;
+		static const long ID_STATICTEXT_PicturesEndYC;
 		static const long IDD_TEXTCTRL_PicturesEndYC;
 		static const long ID_SLIDER_PicturesEndYC;
 		static const long ID_PANEL45;
+		static const long ID_STATICTEXT_Pictures_StartScale;
 		static const long ID_SLIDER_Pictures_StartScale;
 		static const long IDD_TEXTCTRL_Pictures_StartScale;
 		static const long ID_PANEL1;
+		static const long ID_STATICTEXT_Pictures_EndScale;
 		static const long ID_SLIDER_Pictures_EndScale;
 		static const long IDD_TEXTCTRL_Pictures_EndScale;
 		static const long ID_PANEL2;
@@ -110,18 +125,8 @@ class PicturesPanel: public wxPanel
 	public:
 
 		//(*Handlers(PicturesPanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnChoicePicturesDirectionSelect(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);

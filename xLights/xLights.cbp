@@ -500,8 +500,8 @@
 		<Unit filename="BufferPanel.h" />
 		<Unit filename="BufferSizeDialog.cpp" />
 		<Unit filename="BufferSizeDialog.h" />
-		<Unit filename="BulkEditSlider.cpp" />
-		<Unit filename="BulkEditSlider.h" />
+		<Unit filename="BulkEditControls.cpp" />
+		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditSliderDialog.cpp" />
 		<Unit filename="BulkEditSliderDialog.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />

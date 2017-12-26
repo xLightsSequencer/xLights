@@ -12,7 +12,7 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 class DMXPanel: public wxPanel
 {
@@ -22,123 +22,141 @@ class DMXPanel: public wxPanel
 		virtual ~DMXPanel();
 
 		//(*Declarations(DMXPanel)
-		wxSlider* Slider_DMX16;
+		BulkEditSlider* Slider_DMX11;
 		ValueCurveButton* ValueCurve_DMX16;
-		wxSlider* Slider_DMX3;
+		wxStaticText* Label_DMX8;
+		BulkEditSlider* Slider_DMX5;
+		BulkEditSlider* Slider_DMX1;
+		wxStaticText* Label_DMX17;
 		wxNotebook* Notebook7;
 		wxFlexGridSizer* FlexGridSizer_Main;
-		wxSlider* Slider_DMX6;
+		BulkEditSlider* Slider_DMX15;
+		BulkEditSlider* Slider_DMX14;
 		ValueCurveButton* ValueCurve_DMX18;
 		wxFlexGridSizer* FlexGridSizer_Panel1;
-		wxSlider* Slider_DMX14;
-		wxSlider* Slider_DMX2;
-		wxSlider* Slider_DMX4;
-		ValueCurveButton* ValueCurve_DMX7;
-		wxSlider* Slider_DMX15;
-		wxSlider* Slider_DMX18;
+		BulkEditSlider* Slider_DMX6;
+		wxStaticText* Label_DMX10;
+		wxStaticText* Label_DMX9;
+		wxStaticText* Label_DMX2;
+		wxStaticText* Label_DMX1;
+		BulkEditValueCurveButton* ValueCurve_DMX8;
+		BulkEditValueCurveButton* ValueCurve_DMX2;
+		BulkEditSlider* Slider_DMX12;
+		BulkEditSlider* Slider_DMX16;
+		BulkEditSlider* Slider_DMX17;
+		BulkEditValueCurveButton* ValueCurve_DMX9;
+		BulkEditValueCurveButton* ValueCurve_DMX7;
 		ValueCurveButton* ValueCurve_DMX17;
+		BulkEditSlider* Slider_DMX3;
+		wxStaticText* Label_DMX18;
 		ValueCurveButton* ValueCurve_DMX12;
-		wxSlider* Slider_DMX1;
+		BulkEditSlider* Slider_DMX4;
 		wxPanel* ChannelPanel1;
-		ValueCurveButton* ValueCurve_DMX9;
-		ValueCurveButton* ValueCurve_DMX6;
+		BulkEditSlider* Slider_DMX18;
+		BulkEditSlider* Slider_DMX13;
+		BulkEditValueCurveButton* ValueCurve_DMX6;
+		wxStaticText* Label_DMX5;
+		BulkEditSlider* Slider_DMX10;
 		ValueCurveButton* ValueCurve_DMX14;
+		wxStaticText* Label_DMX13;
+		wxStaticText* Label_DMX11;
 		ValueCurveButton* ValueCurve_DMX13;
+		BulkEditSlider* Slider_DMX2;
 		wxPanel* ChannelPanel2;
-		wxSlider* Slider_DMX11;
-		wxSlider* Slider_DMX7;
-		ValueCurveButton* ValueCurve_DMX4;
-		ValueCurveButton* ValueCurve_DMX2;
+		wxStaticText* Label_DMX12;
+		BulkEditSlider* Slider_DMX7;
+		BulkEditValueCurveButton* ValueCurve_DMX4;
+		wxStaticText* Label_DMX16;
+		wxStaticText* Label_DMX15;
 		wxFlexGridSizer* FlexGridSizer_Panel2;
-		wxSlider* Slider_DMX13;
-		wxSlider* Slider_DMX9;
-		wxSlider* Slider_DMX17;
-		ValueCurveButton* ValueCurve_DMX1;
-		ValueCurveButton* ValueCurve_DMX3;
-		wxSlider* Slider_DMX8;
+		wxStaticText* Label_DMX6;
+		BulkEditValueCurveButton* ValueCurve_DMX3;
+		BulkEditSlider* Slider_DMX9;
+		BulkEditValueCurveButton* ValueCurve_DMX5;
+		wxStaticText* Label_DMX4;
 		ValueCurveButton* ValueCurve_DMX15;
 		ValueCurveButton* ValueCurve_DMX10;
-		ValueCurveButton* ValueCurve_DMX8;
+		wxStaticText* Label_DMX14;
+		BulkEditValueCurveButton* ValueCurve_DMX1;
 		ValueCurveButton* ValueCurve_DMX11;
-		ValueCurveButton* ValueCurve_DMX5;
-		wxSlider* Slider_DMX10;
-		wxSlider* Slider_DMX5;
-		wxSlider* Slider_DMX12;
+		BulkEditSlider* Slider_DMX8;
+		wxStaticText* Label_DMX3;
+		wxStaticText* Label_DMX7;
 		//*)
 
 	protected:
 
 		//(*Identifiers(DMXPanel)
-		static const long ID_LABEL_DMX1;
+		static const long ID_STATICTEXT_DMX1;
 		static const long ID_SLIDER_DMX1;
 		static const long ID_VALUECURVE_DMX1;
 		static const long IDD_TEXTCTRL_DMX1;
-		static const long ID_LABEL_DMX2;
+		static const long ID_STATICTEXT_DMX2;
 		static const long ID_SLIDER_DMX2;
 		static const long ID_VALUECURVE_DMX2;
 		static const long IDD_TEXTCTRL_DMX2;
-		static const long ID_LABEL_DMX3;
+		static const long ID_STATICTEXT_DMX3;
 		static const long ID_SLIDER_DMX3;
 		static const long ID_VALUECURVE_DMX3;
 		static const long IDD_TEXTCTRL_DMX3;
-		static const long ID_LABEL_DMX4;
+		static const long ID_STATICTEXT_DMX4;
 		static const long ID_SLIDER_DMX4;
 		static const long ID_VALUECURVE_DMX4;
 		static const long IDD_TEXTCTRL_DMX4;
-		static const long ID_LABEL_DMX5;
+		static const long ID_STATICTEXT_DMX5;
 		static const long ID_SLIDER_DMX5;
 		static const long ID_VALUECURVE_DMX5;
 		static const long IDD_TEXTCTRL_DMX5;
-		static const long ID_LABEL_DMX6;
+		static const long ID_STATICTEXT_DMX6;
 		static const long ID_SLIDER_DMX6;
 		static const long ID_VALUECURVE_DMX6;
 		static const long IDD_TEXTCTRL_DMX6;
-		static const long ID_LABEL_DMX7;
+		static const long ID_STATICTEXT_DMX7;
 		static const long ID_SLIDER_DMX7;
 		static const long ID_VALUECURVE_DMX7;
 		static const long IDD_TEXTCTRL_DMX7;
-		static const long ID_LABEL_DMX8;
+		static const long ID_STATICTEXT_DMX8;
 		static const long ID_SLIDER_DMX8;
 		static const long ID_VALUECURVE_DMX8;
 		static const long IDD_TEXTCTRL_DMX8;
-		static const long ID_LABEL_DMX9;
+		static const long ID_STATICTEXT_DMX9;
 		static const long ID_SLIDER_DMX9;
 		static const long ID_VALUECURVE_DMX9;
 		static const long IDD_TEXTCTRL_DMX9;
 		static const long ID_PANEL6;
-		static const long ID_LABEL_DMX10;
+		static const long ID_STATICTEXT_DMX10;
 		static const long ID_SLIDER_DMX10;
 		static const long ID_VALUECURVE_DMX10;
 		static const long IDD_TEXTCTRL_DMX10;
-		static const long ID_LABEL_DMX11;
+		static const long ID_STATICTEXT_DMX11;
 		static const long ID_SLIDER_DMX11;
 		static const long ID_VALUECURVE_DMX11;
 		static const long IDD_TEXTCTRL_DMX11;
-		static const long ID_LABEL_DMX12;
+		static const long ID_STATICTEXT_DMX12;
 		static const long ID_SLIDER_DMX12;
 		static const long ID_VALUECURVE_DMX12;
 		static const long IDD_TEXTCTRL_DMX12;
-		static const long ID_LABEL_DMX13;
+		static const long ID_STATICTEXT_DMX13;
 		static const long ID_SLIDER_DMX13;
 		static const long ID_VALUECURVE_DMX13;
 		static const long IDD_TEXTCTRL_DMX13;
-		static const long ID_LABEL_DMX14;
+		static const long ID_STATICTEXT_DMX14;
 		static const long ID_SLIDER_DMX14;
 		static const long ID_VALUECURVE_DMX14;
 		static const long IDD_TEXTCTRL_DMX14;
-		static const long ID_LABEL_DMX15;
+		static const long ID_STATICTEXT_DMX15;
 		static const long ID_SLIDER_DMX15;
 		static const long ID_VALUECURVE_DMX15;
 		static const long IDD_TEXTCTRL_DMX15;
-		static const long ID_LABEL_DMX16;
+		static const long ID_STATICTEXT_DMX16;
 		static const long ID_SLIDER_DMX16;
 		static const long ID_VALUECURVE_DMX16;
 		static const long IDD_TEXTCTRL_DMX16;
-		static const long ID_LABEL_DMX17;
+		static const long ID_STATICTEXT_DMX17;
 		static const long ID_SLIDER_DMX17;
 		static const long ID_VALUECURVE_DMX17;
 		static const long IDD_TEXTCTRL_DMX17;
-		static const long ID_LABEL_DMX18;
+		static const long ID_STATICTEXT_DMX18;
 		static const long ID_SLIDER_DMX18;
 		static const long ID_VALUECURVE_DMX18;
 		static const long IDD_TEXTCTRL_DMX18;
@@ -149,22 +167,12 @@ class DMXPanel: public wxPanel
 	public:
 
 		//(*Handlers(DMXPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
-		DECLARE_EVENT_TABLE()
+    DECLARE_EVENT_TABLE()
 };
 
 #endif

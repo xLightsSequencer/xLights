@@ -23,6 +23,7 @@
 #pragma region Bulk Edit Control Constructors
 BulkEditSlider::BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
 {
+    _supportsBulkEdit = true;
     _type = BESLIDERTYPE::BE_INT;
     ID_SLIDER_BULKEDIT = wxNewId();
     Connect(wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&BulkEditSlider::OnSlider_SliderUpdated);
@@ -31,6 +32,7 @@ BulkEditSlider::BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int m
 
 BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
 {
+    _supportsBulkEdit = true;
     _type = BESLIDERTYPE::BE_INT;
     ID_TEXTCTRL_BULKEDIT = wxNewId();
     Connect(wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrl_TextUpdated);
@@ -39,6 +41,7 @@ BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString val
 
 BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxString &value, const wxPoint &pos, const wxSize &size, long style, int min, int max, int initial, const wxString &name) : wxSpinCtrl(parent, id, value, pos, size, style, min, max, initial, name)
 {
+    _supportsBulkEdit = true;
     _type = BESLIDERTYPE::BE_INT;
     ID_SPINCTRL_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSpinCtrl::OnRightDown, nullptr, this);
@@ -46,6 +49,7 @@ BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxStri
 
 BulkEditValueCurveButton::BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : ValueCurveButton(parent, id, bitmap, pos, size, style, validator, name)
 {
+    _supportsBulkEdit = true;
     //_type = BESLIDERTYPE::BE_INT;
     ID_VALUECURVE_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditValueCurveButton::OnRightDown, nullptr, this);
@@ -53,12 +57,14 @@ BulkEditValueCurveButton::BulkEditValueCurveButton(wxWindow *parent, wxWindowID 
 
 BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : wxChoice(parent, id, pos, size, n, choices, style, validator, name)
 {
+    _supportsBulkEdit = true;
     ID_CHOICE_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditChoice::OnRightDown, nullptr, this);
 }
 
 BulkEditCheckBox::BulkEditCheckBox(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxCheckBox(parent, id, label, pos, size, style, validator, name)
 {
+    _supportsBulkEdit = true;
     ID_CHECKBOX_BULKEDIT_CHECKED = wxNewId();
     ID_CHECKBOX_BULKEDIT_UNCHECKED = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditCheckBox::OnRightDown, nullptr, this);
@@ -79,9 +85,19 @@ BulkEditSliderF2::BulkEditSliderF2(wxWindow *parent, wxWindowID id, int value, i
     _type = BESLIDERTYPE::BE_FLOAT2;
 }
 
+BulkEditSliderF360::BulkEditSliderF360(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditSlider(parent, id, value, minValue, maxValue, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT360;
+}
+
 BulkEditTextCtrlF2::BulkEditTextCtrlF2(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditTextCtrl(parent, id, value, pos, size, style, validator, name)
 {
-    _type = BESLIDERTYPE::BE_FLOAT1;
+    _type = BESLIDERTYPE::BE_FLOAT2;
+}
+
+BulkEditTextCtrlF360::BulkEditTextCtrlF360(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : BulkEditTextCtrl(parent, id, value, pos, size, style, validator, name)
+{
+    _type = BESLIDERTYPE::BE_FLOAT360;
 }
 #pragma endregion
 
@@ -181,7 +197,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             label = l->GetLabel();
         }
 
-        BulkEditSliderDialog dlg(this, label, GetValue(), GetMin(), GetMax(), _type, vcb);
+        BulkEditSliderDialog dlg(this, label, GetValue(), GetMin(), GetMax(), GetPageSize(), _type, vcb);
 
         if (dlg.ShowModal() == wxID_OK)
         {
@@ -481,6 +497,15 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
             }
         }
         break;
+        case BESLIDERTYPE::BE_FLOAT360:
+        {
+            auto s = wxString::Format("%.1f", (float)GetValue() / 360.0);
+            if (t->GetValue() != s)
+            {
+                t->SetValue(s);
+            }
+        }
+        break;
         }
     }
 }
@@ -520,6 +545,15 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
             case BESLIDERTYPE::BE_FLOAT2:
             {
                 auto t = wxAtof(GetValue()) * 100.0;
+                if (s->GetValue() != t)
+                {
+                    s->SetValue(t);
+                }
+            }
+            break;
+            case BESLIDERTYPE::BE_FLOAT360:
+            {
+                auto t = wxAtof(GetValue()) * 360.0;
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
@@ -686,16 +720,29 @@ bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType)
 // Check if bulk edit is appropriate ... ie sequence is open and suitable effects are selected
 bool IsBulkEditAvailable(wxWindow* w)
 {
-    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) return false;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
+        logger_base.debug("Bulk edit refused ... no sequencer.");
+        return false;
+    }
 
     // i should only display the menu if more than one effect is selected
-    if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("") < 2) return false;
+    if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("") < 2)
+    {
+        logger_base.debug("Bulk edit refused ... insufficent effects selected.");
+        return false;
+    }
 
     // if it is an effect setting maybe i should check more than 1 of that effect are selected
     if (GetPanelName(w) == "Effect")
     {
         std::string effect = ((EffectsPanel*)GetPanel(w))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
-        if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect) < 2) return false;
+        if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect) < 2)
+        {
+            logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
+            return false;
+        }
     }
 
     return true;

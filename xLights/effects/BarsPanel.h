@@ -12,7 +12,7 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 class BarsPanel: public wxPanel
 {
@@ -24,33 +24,39 @@ class BarsPanel: public wxPanel
 		virtual ~BarsPanel();
 
 		//(*Declarations(BarsPanel)
-		ValueCurveButton* BitmapButton_Bars_BarCount;
-		wxSlider* Slider_Bars_Cycles;
-		ValueCurveButton* BitmapButton_Bars_Center;
-		wxCheckBox* CheckBox_Bars_Highlight;
-		wxSlider* Slider_Bars_Center;
+		BulkEditValueCurveButton* BitmapButton_Bars_Center;
+		wxStaticText* StaticText177;
+		BulkEditValueCurveButton* BitmapButton_Bars_BarCount;
+		BulkEditSlider* Slider_Bars_Center;
+		BulkEditTextCtrl* TextCtrl_Bars_Center;
+		BulkEditCheckBox* CheckBox_Bars_Highlight;
 		wxStaticText* StaticText1;
-		wxSlider* Slider_Bars_BarCount;
-		wxCheckBox* CheckBox_Bars_3D;
-		wxChoice* Choice_Bars_Direction;
-		wxTextCtrl* TextCtrl_Bars_Center;
-		ValueCurveButton* BitmapButton_Bars_Cycles;
-		wxCheckBox* CheckBox_Bars_Gradient;
+		BulkEditChoice* Choice_Bars_Direction;
+		wxStaticText* StaticText23;
+		wxStaticText* StaticText24;
+		BulkEditSlider* Slider_Bars_BarCount;
+		BulkEditValueCurveButton* BitmapButton_Bars_Cycles;
+		BulkEditCheckBox* CheckBox_Bars_3D;
+		BulkEditSliderF1* Slider_Bars_Cycles;
+		BulkEditCheckBox* CheckBox_Bars_Gradient;
 		//*)
 
 	protected:
 
 		//(*Identifiers(BarsPanel)
+		static const long ID_STATICTEXT_Bars_BarCount;
 		static const long ID_SLIDER_Bars_BarCount;
 		static const long ID_VALUECURVE_Bars_BarCount;
 		static const long IDD_TEXTCTRL_Bars_BarCount;
 		static const long ID_BITMAPBUTTON_SLIDER_Bars_BarCount;
+		static const long ID_STATICTEXT_Bars_Cycles;
 		static const long IDD_SLIDER_Bars_Cycles;
 		static const long ID_VALUECURVE_Bars_Cycles;
 		static const long ID_TEXTCTRL_Bars_Cycles;
+		static const long ID_STATICTEXT_Bars_Direction;
 		static const long ID_CHOICE_Bars_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Bars_Direction;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_Bars_Center;
 		static const long IDD_SLIDER_Bars_Center;
 		static const long ID_VALUECURVE_Bars_Center;
 		static const long ID_TEXTCTRL_Bars_Center;
@@ -65,17 +71,7 @@ class BarsPanel: public wxPanel
 	private:
 
 		//(*Handlers(BarsPanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
-        void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnChoice_Bars_DirectionSelect(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);

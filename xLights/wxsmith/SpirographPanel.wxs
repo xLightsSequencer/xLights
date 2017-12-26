@@ -6,7 +6,7 @@
 			<cols>3</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText190" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_Speed" variable="StaticText190" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -18,17 +18,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Speed" variable="Slider_Spirograph_Speed" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Speed" subclass="BulkEditSlider" variable="Slider_Spirograph_Speed" member="yes">
 							<value>10</value>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Speed" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_SpeedrVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_SpeedrVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -38,11 +37,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Speed" variable="TextCtrl81" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl81" member="no">
 							<value>10</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -66,7 +64,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_R" variable="StaticText87" member="yes">
 					<label>R - Radius of outer circle</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -78,17 +76,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Spirograph_R" subclass="BulkEditSlider" variable="Slider_Spirograph_R" member="yes">
 							<value>20</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_R" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_RVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_R" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_RVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -98,11 +95,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_R" variable="TextCtrl21" member="no">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_R" subclass="BulkEditTextCtrl" variable="TextCtrl21" member="no">
 							<value>20</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -126,7 +122,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT89" variable="StaticText88" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_r" variable="StaticText88" member="yes">
 					<label>r - Radius of inner circle</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -138,17 +134,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Spirograph_r" subclass="BulkEditSlider" variable="Slider_Spirograph_r" member="yes">
 							<value>10</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_r" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_rVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_r" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_rVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -158,11 +153,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_r" variable="TextCtrl22" member="no">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_r" subclass="BulkEditTextCtrl" variable="TextCtrl22" member="no">
 							<value>10</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -186,7 +180,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_d" variable="StaticText89" member="yes">
 					<label>d - Distance</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -198,17 +192,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Spirograph_d" subclass="BulkEditSlider" variable="Slider_Spirograph_d" member="yes">
 							<value>30</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_d" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_dVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_d" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_dVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -218,11 +211,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_d" variable="TextCtrl23" member="no">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Spirograph_d" subclass="BulkEditTextCtrl" variable="TextCtrl23" member="no">
 							<value>30</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -246,7 +238,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText92" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_Animate" variable="StaticText92" member="yes">
 					<label>a - Animation</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -258,17 +250,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Animate" variable="Slider_Spirograph_Animate" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Animate" subclass="BulkEditSlider" variable="Slider_Spirograph_Animate" member="yes">
 							<min>-50</min>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Animate" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_AnimateVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Animate" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_AnimateVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -278,11 +269,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Animate" variable="TextCtrl82" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Animate" subclass="BulkEditTextCtrl" variable="TextCtrl82" member="no">
 							<value>0</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -306,7 +296,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText191" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Spirograph_Length" variable="StaticText191" member="yes">
 					<label>Length</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -318,17 +308,16 @@
 					<cols>3</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Length" variable="Slider_Spirograph_Length" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Spirograph_Length" subclass="BulkEditSlider" variable="Slider_Spirograph_Length" member="yes">
 							<value>20</value>
 							<max>50</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Length" subclass="ValueCurveButton" variable="BitmapButton_Spirograph_LengthVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Spirograph_Length" subclass="BulkEditValueCurveButton" variable="BitmapButton_Spirograph_LengthVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -338,11 +327,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Length" variable="TextCtrl83" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Spirograph_Length" subclass="BulkEditTextCtrl" variable="TextCtrl83" member="no">
 							<value>20</value>
 							<maxlength>3</maxlength>
 							<size>25,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

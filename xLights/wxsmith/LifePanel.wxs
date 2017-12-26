@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT36" variable="StaticText35" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Life_Count" variable="StaticText35" member="yes">
 					<label>Cells to start</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,20 +14,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Life_Count" variable="Slider_Life_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Life_Count" subclass="BulkEditSlider" variable="Slider_Life_Count" member="yes">
 					<value>50</value>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Count" variable="TextCtrl32" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Count" subclass="BulkEditTextCtrl" variable="TextCtrl32" member="no">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -46,7 +44,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT37" variable="StaticText37" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Life_Seed" variable="StaticText37" member="yes">
 					<label>Type</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -54,20 +52,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Life_Seed" variable="Slider_Life_Seed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Life_Seed" subclass="BulkEditSlider" variable="Slider_Life_Seed" member="yes">
 					<max>4</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Seed" variable="TextCtrl31" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Seed" subclass="BulkEditTextCtrl" variable="TextCtrl31" member="no">
 					<value>0</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -86,7 +82,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText134" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Life_Speed" variable="StaticText134" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -94,22 +90,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Life_Speed" variable="Slider_Life_Speed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Life_Speed" subclass="BulkEditSlider" variable="Slider_Life_Speed" member="yes">
 					<value>10</value>
 					<min>1</min>
 					<max>30</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Speed" variable="TextCtrl30" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Life_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl30" member="no">
 					<value>10</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
