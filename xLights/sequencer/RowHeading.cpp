@@ -942,6 +942,7 @@ void RowHeading::Draw()
                 if (name == "") {
                     if (rowInfo->nodeIndex >= 0) {
                         name = wxString::Format("Node %d", rowInfo->nodeIndex + 1);
+                        layers = "";
                     } else {
                         name = wxString::Format("Strand %d", rowInfo->strandIndex + 1);
                     }
