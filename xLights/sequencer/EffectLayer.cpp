@@ -897,9 +897,10 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
     for (int i = 0; i<mEffects.size(); i++)
     {
         if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
-            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+            ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+           )
         {
             count++;
         }
@@ -912,9 +913,10 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, const std::str
     for (int i = 0; i<mEffects.size(); i++)
     {
         if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
-            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+            ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+           )
         {
             mEffects[i]->ApplySetting(id, value, vc, vcid);
             grid->sendRenderEvent(GetParentElement()->GetModelName(), mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());

@@ -235,7 +235,7 @@ void ConfigureOSC::ValidateWindow()
     }
 
     if (!IsValidPath() ||
-        !CheckBox_ServerBroadcast->GetValue() && !IPOutput::IsIPValid(TextCtrl_ServerIP->GetValue().ToStdString()))
+        (!CheckBox_ServerBroadcast->GetValue() && !IPOutput::IsIPValid(TextCtrl_ServerIP->GetValue().ToStdString())))
     {
         Button_ok->Enable(false);
     }

@@ -139,6 +139,15 @@ void BulkEditSliderDialog::OnSlider_BulkEditCmdSliderUpdated(wxScrollEvent& even
         }
     }
     break;
+    case BESLIDERTYPE::BE_FLOAT360:
+    {
+        auto s = wxString::Format("%.2f", (float)Slider_BulkEdit->GetValue() / 360.0);
+        if (TextCtrl_BulkEdit->GetValue() != s)
+        {
+            TextCtrl_BulkEdit->SetValue(s);
+        }
+    }
+    break;
     }
 }
 
@@ -170,6 +179,15 @@ void BulkEditSliderDialog::OnTextCtrl_BulkEditText(wxCommandEvent& event)
         if (Slider_BulkEdit->GetValue() != (int)(f * 100))
         {
             Slider_BulkEdit->SetValue(f * 100);
+        }
+    }
+    break;
+    case BESLIDERTYPE::BE_FLOAT360:
+    {
+        float f = wxAtof(TextCtrl_BulkEdit->GetValue());
+        if (Slider_BulkEdit->GetValue() != (int)(f * 360))
+        {
+            Slider_BulkEdit->SetValue(f * 360);
         }
     }
     break;

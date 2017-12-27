@@ -499,7 +499,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
         break;
         case BESLIDERTYPE::BE_FLOAT360:
         {
-            auto s = wxString::Format("%.1f", (float)GetValue() / 360.0);
+            auto s = wxString::Format("%.2f", (float)GetValue() / 360.0);
             if (t->GetValue() != s)
             {
                 t->SetValue(s);
