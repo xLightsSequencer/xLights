@@ -11,7 +11,7 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 #define SPIRALS_COUNT_MIN 1
 #define SPIRALS_COUNT_MAX 5
@@ -33,49 +33,51 @@ class SpiralsPanel: public wxPanel
 		virtual ~SpiralsPanel();
 
 		//(*Declarations(SpiralsPanel)
-		wxCheckBox* CheckBox_Spirals_Blend;
-		wxCheckBox* CheckBox_Spirals_3D;
-		ValueCurveButton* BitmapButton_VCSpirals_Movement;
-		wxSlider* Slider_Spirals_Count;
-		ValueCurveButton* BitmapButton_VCSpiralsCount;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Movement;
 		wxStaticText* StaticText40;
+		BulkEditCheckBox* CheckBox_Spirals_3D;
 		wxBitmapButton* BitmapButton_Spirals3D;
-		ValueCurveButton* BitmapButton_VCSpirals_Thickness;
 		wxStaticText* StaticText38;
 		wxBitmapButton* BitmapButton_SpiralsShrink;
-		wxSlider* Slider_Spirals_Movement;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Rotation;
+		BulkEditSlider* Slider_Spirals_Count;
+		BulkEditCheckBox* CheckBox_Spirals_Blend;
 		wxBitmapButton* BitmapButton_SpiralsGrow;
+		BulkEditSliderF1* Slider_Spirals_Rotation;
 		wxStaticText* StaticText34;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
 		wxBitmapButton* BitmapButton_SpiralsThickness;
-		wxSlider* Slider_Spirals_Thickness;
-		wxCheckBox* CheckBox_Spirals_Grow;
-		ValueCurveButton* BitmapButton_VCSpirals_Rotation;
+		BulkEditValueCurveButton* BitmapButton_VCSpiralsCount;
+		BulkEditCheckBox* CheckBox_Spirals_Grow;
+		BulkEditSlider* Slider_Spirals_Thickness;
+		BulkEditCheckBox* CheckBox_Spirlas_Shrink;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Thickness;
 		wxBitmapButton* BitmapButton_SpiralsDirection;
 		wxBitmapButton* BitmapButton_SpiralsCount;
+		BulkEditSliderF1* Slider_Spirals_Movement;
 		wxBitmapButton* BitmapButton_SpiralsRotation;
-		wxCheckBox* CheckBox_Spirlas_Shrink;
-		wxSlider* Slider_Spirals_Rotation;
+		wxStaticText* StaticText36;
 		//*)
 
 	protected:
 
 		//(*Identifiers(SpiralsPanel)
-		static const long ID_STATICTEXT38;
+		static const long ID_STATICTEXT_Spirals_Count;
 		static const long ID_SLIDER_Spirals_Count;
 		static const long ID_VALUECURVE_Spirals_Count;
 		static const long IDD_TEXTCTRL_Spirals_Count;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirals_Count;
+		static const long ID_STATICTEXT_Spirals_Rotation;
 		static const long ID_SLIDER_Spirals_Rotation;
 		static const long ID_VALUECURVE_Spirals_Rotation;
 		static const long IDD_TEXTCTRL_Spirals_Rotation;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirals_Rotation;
-		static const long ID_STATICTEXT42;
+		static const long ID_STATICTEXT_Spirals_Thickness;
 		static const long ID_SLIDER_Spirals_Thickness;
 		static const long ID_VALUECURVE_Spirals_Thickness;
 		static const long IDD_TEXTCTRL_Spirals_Thickness;
 		static const long ID_BITMAPBUTTON_SLIDER_Spirals_Thickness;
-		static const long ID_STATICTEXT44;
+		static const long ID_STATICTEXT_Spirals_Movement;
 		static const long IDD_SLIDER_Spirals_Movement;
 		static const long ID_VALUECURVE_Spirals_Movement;
 		static const long ID_TEXTCTRL_Spirals_Movement;
@@ -93,19 +95,9 @@ class SpiralsPanel: public wxPanel
 	public:
 
 		//(*Handlers(SpiralsPanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
         void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

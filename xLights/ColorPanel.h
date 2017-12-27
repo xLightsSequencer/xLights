@@ -14,9 +14,8 @@
 //*)
 
 #include <wx/dir.h>
-#include <wx/colordlg.h>
-#include "ValueCurveButton.h"
 #include "ColorCurve.h"
+#include "BulkEditControls.h"
 
 #include <vector>
 #include <map>
@@ -79,46 +78,46 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
+		BulkEditSlider* Slider_Color_ValueAdjust;
 		wxStaticText* StaticText22;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxBitmapButton* BitmapButton_Contrast;
-		wxSlider* Slider_Color_HueAdjust;
 		wxBitmapButton* BitmapButton_Brightness;
-		ValueCurveButton* BitmapButton_Color_ValueAdjust;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		BulkEditTextCtrl* txtCtlBrightness;
 		wxBitmapButton* BitmapButton_ShuffleColours;
 		wxStaticText* StaticText2;
-		wxSlider* Slider_Color_SaturationAdjust;
+		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		wxBitmapButton* BitmapButton_SavePalette;
 		wxBitmapButton* BitmapButton_random;
-		wxTextCtrl* TextCtrl_Color_ValueAdjust;
+		BulkEditSlider* Slider_Color_HueAdjust;
 		wxBitmapButton* BitmapButton_normal;
+		BulkEditSlider* Slider_Color_SaturationAdjust;
 		wxPanel* Panel_Sizer;
+		BulkEditSlider* Slider_SparkleFrequency;
 		ColourList* BitmapButton_ColourChoice;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxStaticText* StaticText1;
-		ValueCurveButton* BitmapButton_Color_SaturationAdjust;
+		BulkEditTextCtrl* TextCtrl_Color_HueAdjust;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText127;
-		wxTextCtrl* txtCtlBrightness;
-		wxTextCtrl* txtCtlContrast;
+		BulkEditSlider* Slider_Brightness;
 		wxBitmapButton* BitmapButton_locked;
-		wxSlider* Slider_Color_ValueAdjust;
+		BulkEditValueCurveButton* BitmapButton_Color_HueAdjust;
+		BulkEditTextCtrl* txtCtrlSparkleFreq;
 		wxBitmapButton* BitmapButton_MusicSparkles;
-		wxSlider* Slider_Brightness;
+		BulkEditValueCurveButton* BitmapButton_Color_SaturationAdjust;
+		BulkEditTextCtrl* TextCtrl_Color_ValueAdjust;
+		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
+		BulkEditSlider* Slider_Contrast;
 		wxStaticText* StaticText126;
-		wxSlider* Slider_SparkleFrequency;
+		BulkEditValueCurveButton* BitmapButton_Color_ValueAdjust;
 		wxScrolledWindow* ColorScrollWindow;
-		ValueCurveButton* BitmapButton_VCBrightness;
-		ValueCurveButton* BitmapButton_Color_HueAdjust;
-		wxTextCtrl* txtCtrlSparkleFreq;
-		wxSlider* Slider_Contrast;
+		BulkEditTextCtrl* TextCtrl_Color_SaturationAdjust;
 		wxBitmapButton* BitmapButton_DeletePalette;
-		wxCheckBox* CheckBox_MusicSparkles;
+		BulkEditTextCtrl* txtCtlContrast;
 		wxStaticText* StaticText4;
-		ValueCurveButton* BitmapButton_SparkleFrequencyVC;
-		wxTextCtrl* TextCtrl_Color_HueAdjust;
-		wxTextCtrl* TextCtrl_Color_SaturationAdjust;
+		BulkEditCheckBox* CheckBox_MusicSparkles;
 		//*)
 
 	protected:
@@ -130,32 +129,32 @@ public:
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON2;
 		static const long ID_CHECKBOX_ResetColorPanel;
-		static const long ID_STATICTEXT24;
+		static const long ID_STATICTEXT_SparkleFrequency;
 		static const long ID_SLIDER_SparkleFrequency;
 		static const long ID_VALUECURVE_SparkleFrequency;
 		static const long IDD_TEXTCTRL_SparkleFrequency;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
 		static const long ID_CHECKBOX_MusicSparkles;
 		static const long ID_BITMAPBUTTON_MusicSparkles;
-		static const long ID_STATICTEXT127;
+		static const long ID_STATICTEXT_Brightness;
 		static const long ID_SLIDER_Brightness;
 		static const long ID_VALUECURVE_Brightness;
 		static const long IDD_TEXTCTRL_Brightness;
 		static const long ID_BITMAPBUTTON_SLIDER_Brightness;
-		static const long ID_STATICTEXT128;
+		static const long ID_STATICTEXT_Contrast;
 		static const long ID_SLIDER_Contrast;
 		static const long IDD_TEXTCTRL_Contrast;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
 		static const long ID_STATICTEXT4;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_Color_HueAdjust;
 		static const long ID_SLIDER_Color_HueAdjust;
 		static const long ID_VALUECURVE_Color_HueAdjust;
 		static const long IDD_TEXTCTRL_Color_HueAdjust;
-		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT_Color_SaturationAdjust;
 		static const long ID_SLIDER_Color_SaturationAdjust;
 		static const long ID_VALUECURVE_Color_SaturationAdjust;
 		static const long IDD_TEXTCTRL_Color_SaturationAdjust;
-		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT_Color_ValueAdjust;
 		static const long ID_SLIDER_Color_ValueAdjust;
 		static const long ID_VALUECURVE_Color_ValueAdjust;
 		static const long IDD_TEXTCTRL_Color_ValueAdjust;
@@ -173,19 +172,9 @@ public:
 		//void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnUpdateColorClick(wxCommandEvent& event);
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-		void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
 		void OnCheckBox_MusicSparklesClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-		void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
 		void OnBitmapButton_SavePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_DeletePaletteClick(wxCommandEvent& event);
 		void OnBitmapButton_ShuffleColoursClick(wxCommandEvent& event);

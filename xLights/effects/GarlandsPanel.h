@@ -11,7 +11,7 @@ class wxFlexGridSizer;
 class wxChoice;
 //*)
 
-#include "../ValueCurveButton.h"
+#include "../BulkEditControls.h"
 
 class GarlandsPanel: public wxPanel
 {
@@ -21,31 +21,33 @@ class GarlandsPanel: public wxPanel
 		virtual ~GarlandsPanel();
 
 		//(*Declarations(GarlandsPanel)
+		BulkEditValueCurveButton* BitmapButton_Garlands_CyclesVC;
+		BulkEditSliderF1* Slider_Garlands_Cycles;
 		wxBitmapButton* BitmapButton_GarlandsType;
-		wxSlider* Slider_Garlands_Cycles;
-		ValueCurveButton* BitmapButton_Garlands_SpacingVC;
 		wxStaticText* StaticText33;
+		BulkEditValueCurveButton* BitmapButton_Garlands_SpacingVC;
 		wxBitmapButton* BitmapButton_GarlandsSpacing;
 		wxStaticText* StaticText192;
 		wxStaticText* StaticText32;
-		wxSlider* Slider_Garlands_Spacing;
-		ValueCurveButton* BitmapButton_Garlands_CyclesVC;
-		wxChoice* Choice_Garlands_Direction;
-		wxSlider* Slider_Garlands_Type;
+		wxStaticText* StaticText183;
+		BulkEditChoice* Choice_Garlands_Direction;
+		BulkEditSlider* Slider_Garlands_Type;
+		BulkEditSlider* Slider_Garlands_Spacing;
 		//*)
 
 	protected:
 
 		//(*Identifiers(GarlandsPanel)
-		static const long ID_STATICTEXT34;
+		static const long ID_STATICTEXT_Garlands_Type;
 		static const long ID_SLIDER_Garlands_Type;
 		static const long IDD_TEXTCTRL_Garlands_Type;
 		static const long ID_BITMAPBUTTON_SLIDER_Garlands_Type;
-		static const long ID_STATICTEXT35;
+		static const long ID_STATICTEXT_Garlands_Spacing;
 		static const long ID_SLIDER_Garlands_Spacing;
 		static const long ID_VALUECURVE_Garlands_Spacing;
 		static const long IDD_TEXTCTRL_Garlands_Spacing;
 		static const long ID_BITMAPBUTTON_SLIDER_Garlands_Spacing;
+		static const long ID_STATICTEXT_Garlands_Cycles;
 		static const long IDD_SLIDER_Garlands_Cycles;
 		static const long ID_VALUECURVE_Garlands_Cycles;
 		static const long ID_TEXTCTRL_Garlands_Cycles;
@@ -56,19 +58,9 @@ class GarlandsPanel: public wxPanel
 	public:
 
 		//(*Handlers(GarlandsPanel)
-    void UpdateLinkedSliderFloat(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-    void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-    void UpdateLinkedSlider360(wxCommandEvent& event);
-    void UpdateLinkedTextCtrl(wxScrollEvent& event);
-    void UpdateLinkedSlider(wxCommandEvent& event);
     void OnLockButtonClick(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-    void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
     void OnVCButtonClick(wxCommandEvent& event);
     void OnVCChanged(wxCommandEvent& event);
-    void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-    void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
     //*)
 
 		DECLARE_EVENT_TABLE()

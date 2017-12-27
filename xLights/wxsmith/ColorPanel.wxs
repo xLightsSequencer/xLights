@@ -61,6 +61,7 @@
 															<object class="sizeritem">
 																<object class="Custom" name="ID_CUSTOM1" subclass="ColourList" variable="BitmapButton_ColourChoice" member="yes">
 																	<creating_code>$(THIS) = new $(CLASS)($(PARENT),$(ID),$(POS),$(SIZE),$(STYLE),wxDefaultValidator,$(NAME));</creating_code>
+																	<style>ZERO</style>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<border>2</border>
@@ -141,7 +142,7 @@
 											<cols>4</cols>
 											<growablecols>1</growablecols>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT24" variable="StaticText22" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_SparkleFrequency" variable="StaticText22" member="yes">
 													<label>Sparkles</label>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
@@ -153,15 +154,14 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" subclass="BulkEditSlider" variable="Slider_SparkleFrequency" member="yes">
 															<max>200</max>
-															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_SparkleFrequency" subclass="ValueCurveButton" variable="BitmapButton_SparkleFrequencyVC" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_SparkleFrequency" subclass="BulkEditValueCurveButton" variable="BitmapButton_SparkleFrequencyVC" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -175,10 +175,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_SparkleFrequency" variable="txtCtrlSparkleFreq" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_SparkleFrequency" subclass="BulkEditTextCtrl" variable="txtCtrlSparkleFreq" member="yes">
 													<value>0</value>
 													<size>20,-1d</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -202,9 +201,8 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_MusicSparkles" variable="CheckBox_MusicSparkles" member="yes">
+												<object class="wxCheckBox" name="ID_CHECKBOX_MusicSparkles" subclass="BulkEditCheckBox" variable="CheckBox_MusicSparkles" member="yes">
 													<label>Sparkles reflect music</label>
-													<handler function="OnCheckBox_MusicSparklesClick" entry="EVT_CHECKBOX" />
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
 												<border>2</border>
@@ -229,7 +227,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT127" variable="StaticText126" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_Brightness" variable="StaticText126" member="yes">
 													<label>Brightness</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -241,16 +239,15 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Brightness" subclass="BulkEditSlider" variable="Slider_Brightness" member="yes">
 															<value>100</value>
 															<max>400</max>
-															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="ValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -263,11 +260,10 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" variable="txtCtlBrightness" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" subclass="BulkEditTextCtrl" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>20,-1d</size>
 													<validator>__brightness</validator>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -285,7 +281,7 @@
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText127" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_Contrast" variable="StaticText127" member="yes">
 													<label>Contrast</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -293,17 +289,14 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes">
-													<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-												</object>
+												<object class="wxSlider" name="ID_SLIDER_Contrast" subclass="BulkEditSlider" variable="Slider_Contrast" member="yes" />
 												<flag>wxALL|wxEXPAND</flag>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Contrast" variable="txtCtlContrast" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Contrast" subclass="BulkEditTextCtrl" variable="txtCtlContrast" member="yes">
 													<value>0</value>
 													<size>20,-1d</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -348,7 +341,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_Color_HueAdjust" variable="StaticText1" member="yes">
 													<label>Hue</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -360,16 +353,15 @@
 													<cols>3</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Color_HueAdjust" variable="Slider_Color_HueAdjust" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Color_HueAdjust" subclass="BulkEditSlider" variable="Slider_Color_HueAdjust" member="yes">
 															<min>-100</min>
-															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -384,18 +376,17 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_HueAdjust" variable="TextCtrl_Color_HueAdjust" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_HueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_HueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
 													<size>35,-1</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_Color_SaturationAdjust" variable="StaticText2" member="yes">
 													<label>Saturation</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -407,16 +398,15 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Color_SaturationAdjust" variable="Slider_Color_SaturationAdjust" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Color_SaturationAdjust" subclass="BulkEditSlider" variable="Slider_Color_SaturationAdjust" member="yes">
 															<min>-100</min>
-															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -431,18 +421,17 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_SaturationAdjust" variable="TextCtrl_Color_SaturationAdjust" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_SaturationAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_SaturationAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
 													<size>35,-1</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+												<object class="wxStaticText" name="ID_STATICTEXT_Color_ValueAdjust" variable="StaticText3" member="yes">
 													<label>Value</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -454,16 +443,15 @@
 													<cols>3</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Color_ValueAdjust" variable="Slider_Color_ValueAdjust" member="yes">
+														<object class="wxSlider" name="ID_SLIDER_Color_ValueAdjust" subclass="BulkEditSlider" variable="Slider_Color_ValueAdjust" member="yes">
 															<min>-100</min>
-															<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="ValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
+														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
 															<bitmap code="valuecurvenotselected_24" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -478,11 +466,10 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_ValueAdjust" variable="TextCtrl_Color_ValueAdjust" member="yes">
+												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_ValueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_ValueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
 													<size>35,-1</size>
-													<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>

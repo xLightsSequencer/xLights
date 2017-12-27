@@ -14,10 +14,10 @@
 							<cols>2</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText113" member="no">
+								<object class="wxStaticText" name="ID_STATICTEXT_Eff_On_Start" variable="StaticText113" member="yes">
 									<label>Start Intensity</label>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -26,20 +26,18 @@
 									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Eff_On_Start" variable="SliderStart" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Eff_On_Start" subclass="BulkEditSlider" variable="SliderStart" member="yes">
 											<value>100</value>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" variable="TextCtrlStart" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" subclass="BulkEditTextCtrl" variable="TextCtrlStart" member="yes">
 											<value>100</value>
 											<size>30,-1d</size>
 											<style>wxTE_PROCESS_ENTER</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
@@ -50,10 +48,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText114" member="no">
+								<object class="wxStaticText" name="ID_STATICTEXT_Eff_On_End" variable="StaticText114" member="yes">
 									<label>End Intensity</label>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -62,20 +60,18 @@
 									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Eff_On_End" variable="SliderEnd" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Eff_On_End" subclass="BulkEditSlider" variable="SliderEnd" member="yes">
 											<value>100</value>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" variable="TextCtrlEnd" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" subclass="BulkEditTextCtrl" variable="TextCtrlEnd" member="yes">
 											<value>100</value>
 											<size>30,-1d</size>
 											<style>wxTE_PROCESS_ENTER</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
@@ -86,10 +82,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText137" member="no">
+								<object class="wxStaticText" name="ID_STATICTEXT_On_Transparency" variable="StaticText137" member="yes">
 									<label>Transparency</label>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -98,15 +94,14 @@
 									<cols>3</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_On_Transparency" variable="Slider_On_Transparency" member="yes">
-											<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+										<object class="wxSlider" name="IDD_SLIDER_On_Transparency" subclass="BulkEditSlider" variable="Slider_On_Transparency" member="yes">
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_VALUECURVE_On_Transparency" subclass="ValueCurveButton" variable="BitmapButton_On_Transparency" member="yes">
+										<object class="wxBitmapButton" name="ID_VALUECURVE_On_Transparency" subclass="BulkEditValueCurveButton" variable="BitmapButton_On_Transparency" member="yes">
 											<bitmap code="valuecurvenotselected_24" />
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -115,11 +110,10 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Transparency" variable="TextCtrlOnTransparency" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Transparency" subclass="BulkEditTextCtrl" variable="TextCtrlOnTransparency" member="yes">
 											<value>0</value>
 											<maxlength>3</maxlength>
 											<size>30,-1d</size>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
@@ -130,10 +124,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText174" member="no">
+								<object class="wxStaticText" name="ID_STATICTEXT_On_Cycles" variable="StaticText174" member="yes">
 									<label>Cycle Count</label>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -142,21 +136,19 @@
 									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_On_Cycles" variable="SliderCycles" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_On_Cycles" subclass="BulkEditSlider" variable="SliderCycles" member="yes">
 											<value>10</value>
 											<max>1000</max>
-											<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" variable="TextCtrlCycles" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" subclass="BulkEditTextCtrl" variable="TextCtrlCycles" member="yes">
 											<value>1.0</value>
 											<maxlength>5</maxlength>
 											<size>30,-1d</size>
-											<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
@@ -177,7 +169,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_On_Shimmer" variable="CheckBoxShimmer" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_On_Shimmer" subclass="BulkEditCheckBox" variable="CheckBoxShimmer" member="yes">
 					<label>Shimmer</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

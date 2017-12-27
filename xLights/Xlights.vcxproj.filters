@@ -984,6 +984,12 @@
     <ClCompile Include="UpdaterDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BulkEditSliderDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BulkEditControls.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1911,6 +1917,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UpdaterDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BulkEditSliderDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BulkEditControls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -41,6 +41,8 @@ class MainSequencer: public wxPanel
         void TagAllSelectedEffects();
         void UnTagAllEffects();
         Effect* GetSelectedEffect();
+        int GetSelectedEffectCount(const std::string effectName) const;
+        void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
 
         void Cut();
         void Copy();

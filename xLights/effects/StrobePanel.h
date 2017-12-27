@@ -11,6 +11,8 @@ class wxBitmapButton;
 class wxFlexGridSizer;
 //*)
 
+#include "../BulkEditControls.h"
+
 class StrobePanel: public wxPanel
 {
 	public:
@@ -20,33 +22,33 @@ class StrobePanel: public wxPanel
 
 		//(*Declarations(StrobePanel)
 		wxBitmapButton* BitmapButton_StrobeDuration;
+		BulkEditSlider* Slider_Strobe_Duration;
 		wxStaticText* StaticText111;
-		wxCheckBox* CheckBox_Strobe_Music;
 		wxStaticText* StaticText110;
-		wxSlider* Slider_Strobe_Type;
+		BulkEditSlider* Slider_Number_Strobes;
+		BulkEditTextCtrl* TextCtrl_Strobe_Type;
 		wxBitmapButton* BitmapButton_Strobe_Type;
+		BulkEditTextCtrl* TextCtrl_Strobe_Duration;
 		wxBitmapButton* BitmapButton_Strobe_Music;
-		wxTextCtrl* TextCtrl_Strobe_Duration;
-		wxTextCtrl* TextCtrl_Strobe_Type;
 		wxStaticText* StaticText112;
 		wxBitmapButton* BitmapButton_NumberStrobes;
-		wxSlider* Slider_Number_Strobes;
-		wxTextCtrl* TextCtrl_Number_Strobes;
-		wxSlider* Slider_Strobe_Duration;
+		BulkEditCheckBox* CheckBox_Strobe_Music;
+		BulkEditTextCtrl* TextCtrl_Number_Strobes;
+		BulkEditSlider* Slider_Strobe_Type;
 		//*)
 
 	protected:
 
 		//(*Identifiers(StrobePanel)
-		static const long ID_STATICTEXT112;
+		static const long ID_STATICTEXT_Number_Strobes;
 		static const long ID_SLIDER_Number_Strobes;
 		static const long IDD_TEXTCTRL_Number_Strobes;
 		static const long ID_BITMAPBUTTON49;
-		static const long ID_STATICTEXT113;
+		static const long ID_STATICTEXT_Strobe_Duration;
 		static const long ID_SLIDER_Strobe_Duration;
 		static const long IDD_TEXTCTRL_Strobe_Duration;
 		static const long ID_BITMAPBUTTON51;
-		static const long ID_STATICTEXT114;
+		static const long ID_STATICTEXT_Strobe_Type;
 		static const long ID_SLIDER_Strobe_Type;
 		static const long IDD_TEXTCTRL_Strobe_Type;
 		static const long ID_BITMAPBUTTON50;
@@ -57,20 +59,10 @@ class StrobePanel: public wxPanel
 	public:
 
 		//(*Handlers(StrobePanel)
-		void UpdateLinkedSliderFloat(wxCommandEvent& event);
-		void UpdateLinkedTextCtrlFloat(wxScrollEvent& event);
-		void UpdateLinkedTextCtrl360(wxScrollEvent& event);
-		void UpdateLinkedSlider360(wxCommandEvent& event);
-		void UpdateLinkedTextCtrl(wxScrollEvent& event);
-		void UpdateLinkedSlider(wxCommandEvent& event);
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnSlider_Strobe_TypeCmdScroll(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlVC(wxScrollEvent& event);
-        void UpdateLinkedTextCtrlFloatVC(wxScrollEvent& event);
         void OnVCButtonClick(wxCommandEvent& event);
         void OnVCChanged(wxCommandEvent& event);
-        void UpdateLinkedSliderFloat2(wxCommandEvent& event);
-        void UpdateLinkedTextCtrlFloat2(wxScrollEvent& event);
         //*)
 
 		DECLARE_EVENT_TABLE()

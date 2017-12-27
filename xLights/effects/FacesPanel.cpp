@@ -19,7 +19,7 @@ const long FacesPanel::IDD_RADIOBUTTON_Faces_TimingTrack = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_TimingTrack = wxNewId();
 const long FacesPanel::ID_STATICTEXT15 = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
-const long FacesPanel::ID_STATICTEXT66 = wxNewId();
+const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
 //*)
@@ -72,16 +72,16 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Face_FaceDefinitonChoice = new wxChoice(this, ID_CHOICE_Faces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_FaceDefinition"));
 	FlexGridSizer98->Add(Face_FaceDefinitonChoice, 1, wxALL|wxEXPAND, 5);
-	StaticText71 = new wxStaticText(this, ID_STATICTEXT66, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
+	StaticText71 = new wxStaticText(this, ID_STATICTEXT_Faces_Eyes, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Faces_Eyes"));
 	FlexGridSizer98->Add(StaticText71, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Faces_Eyes = new wxChoice(this, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
+	Choice_Faces_Eyes = new BulkEditChoice(this, ID_CHOICE_Faces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Eyes"));
 	Choice_Faces_Eyes->Append(_("Open"));
 	Choice_Faces_Eyes->Append(_("Closed"));
 	Choice_Faces_Eyes->SetSelection( Choice_Faces_Eyes->Append(_("Auto")) );
 	Choice_Faces_Eyes->Append(_("(off)"));
 	FlexGridSizer98->Add(Choice_Faces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Faces_Outline = new wxCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
+	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND, 2);

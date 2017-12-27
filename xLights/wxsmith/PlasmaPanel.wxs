@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText64" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Plasma_Color" variable="StaticText64" member="yes">
 					<label>Color Choice</label>
 				</object>
 				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,7 +14,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Plasma_Color" variable="Choice_Plasma_Color" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Plasma_Color" subclass="BulkEditChoice" variable="Choice_Plasma_Color" member="yes">
 					<content>
 						<item>Normal</item>
 						<item>Preset Colors 1</item>
@@ -46,7 +46,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText197" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Plasma_Style" variable="StaticText197" member="yes">
 					<label>Add Twist to Effect</label>
 				</object>
 				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -54,22 +54,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Plasma_Style" variable="Slider_Plasma_Style" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Plasma_Style" subclass="BulkEditSlider" variable="Slider_Plasma_Style" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Style" variable="TextCtrl84" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Style" subclass="BulkEditTextCtrl" variable="TextCtrl84" member="no">
 					<value>1</value>
 					<maxlength>1</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -88,7 +86,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText202" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Plasma_Line_Density" variable="StaticText202" member="yes">
 					<label>Line Density</label>
 				</object>
 				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -96,22 +94,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Plasma_Line_Density" variable="Slider_Plasma_Line_Density" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Plasma_Line_Density" subclass="BulkEditSlider" variable="Slider_Plasma_Line_Density" member="yes">
 					<value>1</value>
 					<min>1</min>
 					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Line_Density" variable="TextCtrl85" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Line_Density" subclass="BulkEditTextCtrl" variable="TextCtrl85" member="no">
 					<value>1</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -130,7 +126,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText204" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Plasma_Speed" variable="StaticText204" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -142,16 +138,15 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Plasma_Speed" variable="Slider_Plasma_Speed" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Plasma_Speed" subclass="BulkEditSlider" variable="Slider_Plasma_Speed" member="yes">
 							<value>10</value>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Plasma_Speed" subclass="ValueCurveButton" variable="BitmapButton_Plasma_SpeedVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Plasma_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Plasma_SpeedVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -165,11 +160,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Speed" variable="TextCtrl87" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Plasma_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl87" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>

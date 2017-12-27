@@ -76,7 +76,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     //*)
 
-    this->SetName("Effect");
+    SetName("Effect");
 
     for (auto it = effectManager->begin(); it != effectManager->end(); ++it) {
         RenderableEffect *p = *it;

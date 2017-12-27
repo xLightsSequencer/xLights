@@ -10,7 +10,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT112" variable="StaticText110" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Number_Strobes" variable="StaticText110" member="yes">
 							<label>Number Strobes</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -18,22 +18,20 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Number_Strobes" variable="Slider_Number_Strobes" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Number_Strobes" subclass="BulkEditSlider" variable="Slider_Number_Strobes" member="yes">
 							<value>3</value>
 							<min>1</min>
 							<max>300</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Strobes" variable="TextCtrl_Number_Strobes" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Strobes" subclass="BulkEditTextCtrl" variable="TextCtrl_Number_Strobes" member="yes">
 							<value>3</value>
 							<maxlength>3</maxlength>
 							<size>40,-1</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -51,7 +49,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT113" variable="StaticText111" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Strobe_Duration" variable="StaticText111" member="yes">
 							<label>Strobe Duration</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -59,21 +57,19 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Strobe_Duration" variable="Slider_Strobe_Duration" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Strobe_Duration" subclass="BulkEditSlider" variable="Slider_Strobe_Duration" member="yes">
 							<value>10</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Duration" variable="TextCtrl_Strobe_Duration" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Duration" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Duration" member="yes">
 							<value>10</value>
 							<maxlength>3</maxlength>
 							<size>40,-1</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -91,7 +87,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT114" variable="StaticText112" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Strobe_Type" variable="StaticText112" member="yes">
 							<label>Strobe Type</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -99,22 +95,20 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Strobe_Type" variable="Slider_Strobe_Type" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Strobe_Type" subclass="BulkEditSlider" variable="Slider_Strobe_Type" member="yes">
 							<value>1</value>
 							<min>1</min>
 							<max>4</max>
-							<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Type" variable="TextCtrl_Strobe_Type" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Type" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Type" member="yes">
 							<value>1</value>
 							<maxlength>1</maxlength>
 							<size>40,-1</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -137,7 +131,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Strobe_Music" variable="CheckBox_Strobe_Music" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Strobe_Music" subclass="BulkEditCheckBox" variable="CheckBox_Strobe_Music" member="yes">
 							<label>Reacts to music</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

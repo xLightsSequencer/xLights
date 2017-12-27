@@ -65,7 +65,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_State_TimingTrack" variable="Choice_State_TimingTrack" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_State_TimingTrack" subclass="BulkEditChoice" variable="Choice_State_TimingTrack" member="yes">
 									<enabled>0</enabled>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -87,7 +87,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_State_Mode" variable="StaticText1" member="yes">
 							<label>Mode</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -95,7 +95,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_State_Mode" variable="Choice_State_Mode" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_State_Mode" subclass="BulkEditChoice" variable="Choice_State_Mode" member="yes">
 							<content>
 								<item>Default</item>
 								<item>Countdown</item>
@@ -110,7 +110,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_State_Color" variable="StaticText2" member="yes">
 							<label>Color</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -118,7 +118,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_State_Color" variable="Choice_State_Color" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_State_Color" subclass="BulkEditChoice" variable="Choice_State_Color" member="yes">
 							<content>
 								<item>Graduate</item>
 								<item>Cycle</item>

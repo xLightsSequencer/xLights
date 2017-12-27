@@ -68,7 +68,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxChoice" name="ID_CHOICE_LayerMethod" variable="Choice_LayerMethod" member="yes">
+												<object class="wxChoice" name="ID_CHOICE_LayerMethod" subclass="BulkEditChoice" variable="Choice_LayerMethod" member="yes">
 													<content>
 														<item>Normal</item>
 														<item>Effect 1</item>
@@ -103,20 +103,17 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
-															<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-														</object>
+														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" subclass="BulkEditSlider" variable="Slider_EffectLayerMix" member="yes" />
 														<flag>wxALL|wxEXPAND</flag>
 														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxTextCtrl" name="IDD_TEXTCTRL_EffectLayerMix" variable="txtCtlEffectMix" member="yes">
+														<object class="wxTextCtrl" name="IDD_TEXTCTRL_EffectLayerMix" subclass="BulkEditTextCtrl" variable="TextCtrl_EffectLayerMix" member="yes">
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
 															<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
-															<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -156,7 +153,7 @@
 															<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 																<cols>4</cols>
 																<object class="sizeritem">
-																	<object class="wxChoice" name="ID_CHOICE_In_Transition_Type" variable="Choice_In_Transition_Type" member="yes">
+																	<object class="wxChoice" name="ID_CHOICE_In_Transition_Type" subclass="BulkEditChoice" variable="Choice_In_Transition_Type" member="yes">
 																		<content>
 																			<item>Fade</item>
 																			<item>Wipe</item>
@@ -177,7 +174,7 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+																	<object class="wxStaticText" name="ID_STATICTEXT_Fadein" variable="StaticText2" member="yes">
 																		<label>Time (s)</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -185,10 +182,9 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
+																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadein" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
-																		<handler function="OnEffectTimeChange" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -204,7 +200,7 @@
 																<cols>3</cols>
 																<growablecols>1</growablecols>
 																<object class="sizeritem">
-																	<object class="wxStaticText" name="ID_STATICTEXT1" variable="InAdjustmentText" member="yes">
+																	<object class="wxStaticText" name="ID_STATICTEXT_In_Transition_Adjust" variable="InAdjustmentText" member="yes">
 																		<label>Adjustment</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -212,19 +208,17 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxSlider" name="ID_SLIDER_In_Transition_Adjust" variable="Slider_In_Adjust" member="yes">
+																	<object class="wxSlider" name="ID_SLIDER_In_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_In_Adjust" member="yes">
 																		<value>50</value>
-																		<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
 																	<border>1</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="IDD_TEXTCTRL_In_Transition_Adjust" variable="TextCtrl_In_Adjust" member="yes">
+																	<object class="wxTextCtrl" name="IDD_TEXTCTRL_In_Transition_Adjust" subclass="BulkEditTextCtrl" variable="TextCtrl_In_Adjust" member="yes">
 																		<value>50</value>
 																		<size>20,-1d</size>
-																		<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>1</border>
@@ -240,7 +234,7 @@
 																<cols>2</cols>
 																<growablecols>0</growablecols>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_In_Transition_Reverse" variable="CheckBox_In_Reverse" member="yes">
+																	<object class="wxCheckBox" name="ID_CHECKBOX_In_Transition_Reverse" subclass="BulkEditCheckBox" variable="CheckBox_In_Reverse" member="yes">
 																		<label>Reverse</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -265,7 +259,7 @@
 															<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 																<cols>3</cols>
 																<object class="sizeritem">
-																	<object class="wxChoice" name="ID_CHOICE_Out_Transition_Type" variable="Choice_Out_Transition_Type" member="yes">
+																	<object class="wxChoice" name="ID_CHOICE_Out_Transition_Type" subclass="BulkEditChoice" variable="Choice_Out_Transition_Type" member="yes">
 																		<content>
 																			<item>Fade</item>
 																			<item>Wipe</item>
@@ -286,7 +280,7 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+																	<object class="wxStaticText" name="ID_STATICTEXT_Fadeout" variable="StaticText4" member="yes">
 																		<label>Time (s)</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -294,10 +288,9 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
+																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadeout" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
-																		<handler function="OnEffectTimeChange" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -313,7 +306,7 @@
 																<cols>3</cols>
 																<growablecols>1</growablecols>
 																<object class="sizeritem">
-																	<object class="wxStaticText" name="ID_STATICTEXT5" variable="OutAdjustmentText" member="yes">
+																	<object class="wxStaticText" name="ID_STATICTEXT_Out_Transition_Adjust" variable="OutAdjustmentText" member="yes">
 																		<label>Adjustment</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -321,19 +314,17 @@
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxSlider" name="ID_SLIDER_Out_Transition_Adjust" variable="Slider_Out_Adjust" member="yes">
+																	<object class="wxSlider" name="ID_SLIDER_Out_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_Out_Adjust" member="yes">
 																		<value>50</value>
-																		<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
 																	<border>2</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxTextCtrl" name="IDD_TEXTCTRL_Out_Transition_Adjust" variable="TextCtrl_Out_Adjust" member="yes">
+																	<object class="wxTextCtrl" name="IDD_TEXTCTRL_Out_Transition_Adjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Out_Adjust" member="yes">
 																		<value>50</value>
 																		<size>20,-1d</size>
-																		<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>1</border>
@@ -348,7 +339,7 @@
 															<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
 																<cols>3</cols>
 																<object class="sizeritem">
-																	<object class="wxCheckBox" name="ID_CHECKBOX_Out_Transition_Reverse" variable="CheckBox_Out_Reverse" member="yes">
+																	<object class="wxCheckBox" name="ID_CHECKBOX_Out_Transition_Reverse" subclass="BulkEditCheckBox" variable="CheckBox_Out_Reverse" member="yes">
 																		<label>Reverse</label>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

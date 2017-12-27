@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Shimmer_Duty_Factor" variable="StaticText66" member="yes">
 					<label>Duty Factor</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -18,17 +18,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" variable="Slider_Shimmer_Duty_Factor" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" subclass="BulkEditSlider" variable="Slider_Shimmer_Duty_Factor" member="yes">
 							<value>50</value>
 							<min>1</min>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Shimmer_Duty_Factor" subclass="ValueCurveButton" variable="BitmapButton_Shimmer_Duty_FactorVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shimmer_Duty_Factor" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shimmer_Duty_FactorVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -43,11 +42,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shimmer_Duty_Factor" variable="TextCtrl46" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Shimmer_Duty_Factor" subclass="BulkEditTextCtrl" variable="TextCtrl46" member="no">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -64,7 +62,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText65" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Shimmer_Cycles" variable="StaticText65" member="yes">
 					<label>Cycle Count</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -76,17 +74,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Shimmer_Cycles" variable="Slider_Shimmer_Cycles" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Shimmer_Cycles" subclass="BulkEditSliderF1" variable="Slider_Shimmer_Cycles" member="yes">
 							<value>10</value>
 							<max>6000</max>
-							<handler function="UpdateLinkedTextCtrlFloatVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Shimmer_Cycles" subclass="ValueCurveButton" variable="BitmapButton_Shimmer_CyclesVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shimmer_Cycles" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shimmer_CyclesVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -101,11 +98,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shimmer_Cycles" variable="TextCtrl47" member="no">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shimmer_Cycles" subclass="BulkEditTextCtrlF1" variable="TextCtrl47" member="no">
 					<value>1.0</value>
 					<maxlength>5</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -131,7 +127,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Shimmer_Use_All_Colors" variable="CheckBox_Shimmer_Use_All_Colors" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shimmer_Use_All_Colors" subclass="BulkEditCheckBox" variable="CheckBox_Shimmer_Use_All_Colors" member="yes">
 					<label>Yes</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -159,7 +155,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_PRE_2017_7" variable="CheckBox_PRE_2017_7" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_PRE_2017_7" subclass="BulkEditCheckBox" variable="CheckBox_PRE_2017_7" member="yes">
 					<label>Pre v2017.7 Shimmer</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

@@ -18,6 +18,7 @@ class EffectLayer;
 
 wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
+class ValueCurve;
 
 class Effect
 {
@@ -62,6 +63,7 @@ class Effect
 
         std::string GetSettingsAsString() const;
         void SetSettings(const std::string &settings, bool keepxsettings);
+        void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
 
         const SettingsMap &GetSettings() const { return mSettings;}
         const xlColorVector &GetPalette() const { return mColors;}
@@ -76,7 +78,6 @@ class Effect
 
         void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
         void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
-
 
         std::string GetPaletteAsString() const;
         void SetPalette(const std::string& i);

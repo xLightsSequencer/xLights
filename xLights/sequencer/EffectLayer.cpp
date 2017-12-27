@@ -890,6 +890,38 @@ void EffectLayer::TagAllSelectedEffects()
     }
 }
 
+int EffectLayer::GetSelectedEffectCount(const std::string effectName)
+{
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    int count = 0;
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
+            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+{
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
+            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+        {
+            mEffects[i]->ApplySetting(id, value, vc, vcid);
+            grid->sendRenderEvent(GetParentElement()->GetModelName(), mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+        }
+    }
+}
+
 void EffectLayer::UnTagAllEffects()
 {
     std::unique_lock<std::recursive_mutex> locker(lock);

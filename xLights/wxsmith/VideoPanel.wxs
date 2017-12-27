@@ -33,7 +33,7 @@
 							<cols>3</cols>
 							<growablecols>1</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+								<object class="wxStaticText" name="ID_STATICTEXT_Video_Starttime" variable="StaticText8" member="yes">
 									<label>Start Time</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -41,21 +41,19 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSlider" name="IDD_SLIDER_Video_Starttime" variable="Slider_Video_Starttime" member="yes">
+								<object class="wxSlider" name="IDD_SLIDER_Video_Starttime" subclass="BulkEditSliderF2" variable="Slider_Video_Starttime" member="yes">
 									<max>20</max>
 									<size>200,-1</size>
-									<handler function="UpdateLinkedTextCtrlFloat2" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_Starttime" variable="TextCtrl_Video_Starttime" member="yes">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_Starttime" subclass="BulkEditTextCtrlF2" variable="TextCtrl_Video_Starttime" member="yes">
 									<value>0.0</value>
 									<size>40,-1d</size>
 									<style>wxTE_RIGHT</style>
-									<handler function="UpdateLinkedSliderFloat2" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>2</border>
@@ -75,7 +73,7 @@
 									<cols>2</cols>
 									<growablecols>1</growablecols>
 									<object class="sizeritem">
-										<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+										<object class="wxStaticText" name="ID_STATICTEXT_Video_DurationTreatment" variable="StaticText1" member="yes">
 											<label>Duration Treatment</label>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -83,7 +81,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxChoice" name="ID_CHOICE_Video_DurationTreatment" variable="Choice_Video_DurationTreatment" member="yes">
+										<object class="wxChoice" name="ID_CHOICE_Video_DurationTreatment" subclass="BulkEditChoice" variable="Choice_Video_DurationTreatment" member="yes">
 											<content>
 												<item>Normal</item>
 												<item>Loop</item>
@@ -101,7 +99,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" variable="CheckBox_Video_AspectRatio" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Video_AspectRatio" subclass="BulkEditCheckBox" variable="CheckBox_Video_AspectRatio" member="yes">
 									<label>Maintain Aspect Ratio</label>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -109,7 +107,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_SynchroniseWithAudio" variable="CheckBox_SynchroniseWithAudio" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_SynchroniseWithAudio" subclass="BulkEditCheckBox" variable="CheckBox_SynchroniseWithAudio" member="yes">
 									<label>Use sequence audio file as video file and synchronise</label>
 									<handler function="OnCheckBox_SynchroniseWithAudioClick" entry="EVT_CHECKBOX" />
 								</object>
@@ -122,7 +120,7 @@
 									<cols>3</cols>
 									<growablecols>1</growablecols>
 									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText2" member="yes">
+										<object class="wxStaticText" name="ID_STATICTEXT_Video_CropLeft" variable="StaticText2" member="yes">
 											<label>Crop Left</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -130,27 +128,25 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropLeft" variable="Slider_Video_CropLeft" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Video_CropLeft" subclass="BulkEditSlider" variable="Slider_Video_CropLeft" member="yes">
 											<size>200,-1</size>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropLeft" variable="TextCtrl_Video_CropLeft" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropLeft" subclass="BulkEditTextCtrl" variable="TextCtrl_Video_CropLeft" member="yes">
 											<value>0</value>
 											<size>40,-1d</size>
 											<style>wxTE_RIGHT</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText3" member="yes">
+										<object class="wxStaticText" name="ID_STATICTEXT_Video_CropRight" variable="StaticText3" member="yes">
 											<label>Crop Right</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -158,28 +154,26 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropRight" variable="Slider_Video_CropRight" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Video_CropRight" subclass="BulkEditSlider" variable="Slider_Video_CropRight" member="yes">
 											<value>100</value>
 											<size>200,-1</size>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropRight" variable="TextCtrl_Video_CropRight" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropRight" subclass="BulkEditTextCtrl" variable="TextCtrl_Video_CropRight" member="yes">
 											<value>100</value>
 											<size>40,-1d</size>
 											<style>wxTE_RIGHT</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText4" member="yes">
+										<object class="wxStaticText" name="ID_STATICTEXT_Video_CropTop" variable="StaticText4" member="yes">
 											<label>Crop Top</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -187,28 +181,26 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropTop" variable="Slider_Video_CropTop" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Video_CropTop" subclass="BulkEditSlider" variable="Slider_Video_CropTop" member="yes">
 											<value>100</value>
 											<size>200,-1</size>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropTop" variable="TextCtrl_Video_CropTop" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropTop" subclass="BulkEditTextCtrl" variable="TextCtrl_Video_CropTop" member="yes">
 											<value>100</value>
 											<size>40,-1d</size>
 											<style>wxTE_RIGHT</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText5" member="yes">
+										<object class="wxStaticText" name="ID_STATICTEXT_Video_CropBottom" variable="StaticText5" member="yes">
 											<label>Crop Bottom</label>
 										</object>
 										<flag>wxALL|wxALIGN_LEFT</flag>
@@ -216,20 +208,18 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_Video_CropBottom" variable="Slider_Video_CropBottom" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_Video_CropBottom" subclass="BulkEditSlider" variable="Slider_Video_CropBottom" member="yes">
 											<size>200,-1</size>
-											<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropBottom" variable="TextCtrl_Video_CropBottom" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_CropBottom" subclass="BulkEditTextCtrl" variable="TextCtrl_Video_CropBottom" member="yes">
 											<value>0</value>
 											<size>40,-1d</size>
 											<style>wxTE_RIGHT</style>
-											<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>2</border>

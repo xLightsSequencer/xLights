@@ -7,7 +7,7 @@
 			<rows>5</rows>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Tree_Branches" variable="StaticText86" member="yes">
 					<label>Number Branches</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -15,22 +15,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Tree_Branches" variable="Slider_Tree_Branches" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Tree_Branches" subclass="BulkEditSlider" variable="Slider_Tree_Branches" member="yes">
 					<value>3</value>
 					<min>1</min>
 					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Tree_Branches" variable="TextCtrl59" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Tree_Branches" subclass="BulkEditTextCtrl" variable="TextCtrl59" member="no">
 					<value>3</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -48,7 +46,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText182" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Tree_Speed" variable="StaticText182" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -56,22 +54,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Tree_Speed" variable="Slider_Tree_Speed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Tree_Speed" subclass="BulkEditSlider" variable="Slider_Tree_Speed" member="yes">
 					<value>10</value>
 					<min>1</min>
 					<max>50</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Tree_Speed" variable="TextCtrl60" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Tree_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl60" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -88,7 +84,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Tree_ShowLights" variable="CheckBox1" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Tree_ShowLights" subclass="BulkEditCheckBox" variable="CheckBox1" member="yes">
 					<label>Show Tree Lights</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

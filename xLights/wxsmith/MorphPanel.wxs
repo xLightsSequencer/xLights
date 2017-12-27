@@ -13,7 +13,7 @@
 								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_Start_X1" variable="StaticText2" member="yes">
 										<label>X1a:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -21,15 +21,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes">
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" subclass="BulkEditSlider" variable="Slider_Morph_Start_X1" member="yes">
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X1" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_X1" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Start_X1" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -39,12 +38,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" variable="TextCtrl_Morph_Start_X1" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X1" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Start_X1" member="yes">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -63,7 +61,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_Start_Y1" variable="StaticText3" member="yes">
 										<label>Y1a:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -71,15 +69,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes">
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y1" member="yes">
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y1" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_Y1" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Start_Y1" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -89,12 +86,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" variable="TextCtrl_Morph_Start_Y1" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y1" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Start_Y1" member="yes">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -113,7 +109,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT61" variable="StaticText59" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_Start_X2" variable="StaticText59" member="yes">
 										<label>X1b:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -121,16 +117,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" subclass="BulkEditSlider" variable="Slider_Morph_Start_X2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X2" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_X2" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_X2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Start_X2" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -140,12 +135,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" variable="TextCtrl_Morph_Start_X2" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_X2" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Start_X2" member="yes">
 										<value>100</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -164,7 +158,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText99" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_Start_Y2" variable="StaticText99" member="yes">
 										<label>Y1b:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -172,15 +166,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes">
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y2" member="yes">
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y2" subclass="ValueCurveButton" variable="BitmapButton_Morph_Start_Y2" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Start_Y2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Start_Y2" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -190,12 +183,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" variable="TextCtrl_Morph_Start_Y2" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Start_Y2" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Start_Y2" member="yes">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -214,7 +206,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT115" variable="StaticText115" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_MorphStartLength" variable="StaticText115" member="yes">
 										<label>Head Length:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -222,16 +214,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_MorphStartLength" variable="Slider_MorphStartLength" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_MorphStartLength" subclass="BulkEditSlider" variable="Slider_MorphStartLength" member="yes">
 										<value>1</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphStartLength" subclass="ValueCurveButton" variable="BitmapButton_MorphStartLength" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphStartLength" subclass="BulkEditValueCurveButton" variable="BitmapButton_MorphStartLength" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -241,12 +232,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphStartLength" variable="TextCtrl_MorphStartLength" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphStartLength" subclass="BulkEditTextCtrl" variable="TextCtrl_MorphStartLength" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -328,7 +318,7 @@
 								<cols>5</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT116" variable="StaticText117" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_End_X1" variable="StaticText117" member="yes">
 										<label>X2a:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -336,15 +326,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes">
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
+									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" subclass="BulkEditSlider" variable="Slider_Morph_End_X1" member="yes">
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X1" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_X1" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_End_X1" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -354,12 +343,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" variable="TextCtrl_Morph_End_X1" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X1" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_End_X1" member="yes">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -378,7 +366,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT117" variable="StaticText119" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_End_Y1" variable="StaticText119" member="yes">
 										<label>Y2a:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -386,16 +374,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" variable="Slider_Morph_End_Y1" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" subclass="BulkEditSlider" variable="Slider_Morph_End_Y1" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y1" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_Y1" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y1" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_End_Y1" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -405,12 +392,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" variable="TextCtrl_Morph_End_Y1" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y1" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_End_Y1" member="yes">
 										<value>100</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -429,7 +415,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT119" variable="StaticText120" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_End_X2" variable="StaticText120" member="yes">
 										<label>X2b:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -437,16 +423,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" subclass="BulkEditSlider" variable="Slider_Morph_End_X2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X2" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_X2" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_X2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_End_X2" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -456,12 +441,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" variable="TextCtrl_Morph_End_X2" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_X2" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_End_X2" member="yes">
 										<value>100</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -480,7 +464,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT121" variable="StaticText121" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_Morph_End_Y2" variable="StaticText121" member="yes">
 										<label>Y2b:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -488,16 +472,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" variable="Slider_Morph_End_Y2" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" subclass="BulkEditSlider" variable="Slider_Morph_End_Y2" member="yes">
 										<value>100</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y2" subclass="ValueCurveButton" variable="BitmapButton_Morph_End_Y2" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_End_Y2" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_End_Y2" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -507,12 +490,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" variable="TextCtrl_Morph_End_Y2" member="yes">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_End_Y2" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_End_Y2" member="yes">
 										<value>100</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -531,7 +513,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT122" variable="StaticText122" member="yes">
+									<object class="wxStaticText" name="ID_STATICTEXT_MorphEndLength" variable="StaticText122" member="yes">
 										<label>Head Length:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -539,16 +521,15 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_MorphEndLength" variable="Slider_MorphEndLength" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_MorphEndLength" subclass="BulkEditSlider" variable="Slider_MorphEndLength" member="yes">
 										<value>1</value>
-										<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphEndLength" subclass="ValueCurveButton" variable="BitmapButton_MorphEndLength" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_MorphEndLength" subclass="BulkEditValueCurveButton" variable="BitmapButton_MorphEndLength" member="yes">
 										<bitmap code="valuecurvenotselected_24" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -558,12 +539,11 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphEndLength" variable="TextCtrl_MorphEndLength" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphEndLength" subclass="BulkEditTextCtrl" variable="TextCtrl_MorphEndLength" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
 										<style>wxTE_CENTRE</style>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -609,7 +589,7 @@
 										<cols>5</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
+											<object class="wxStaticText" name="ID_STATICTEXT_MorphDuration" variable="StaticText123" member="yes">
 												<label>Head Duration:</label>
 												<size>-1,-1</size>
 											</object>
@@ -618,16 +598,15 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_MorphDuration" variable="Slider_MorphDuration" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MorphDuration" subclass="BulkEditSlider" variable="Slider_MorphDuration" member="yes">
 												<value>20</value>
-												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphDuration" subclass="ValueCurveButton" variable="BitmapButton_MorphDuration" member="yes">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphDuration" subclass="BulkEditValueCurveButton" variable="BitmapButton_MorphDuration" member="yes">
 												<bitmap code="valuecurvenotselected_24" />
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -637,12 +616,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphDuration" variable="TextCtrl_MorphDuration" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphDuration" subclass="BulkEditTextCtrl" variable="TextCtrl_MorphDuration" member="no">
 												<value>20</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -661,7 +639,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT124" variable="StaticText124" member="yes">
+											<object class="wxStaticText" name="ID_STATICTEXT_MorphAccel" variable="StaticText124" member="yes">
 												<label>Acceleration:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -669,17 +647,16 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_MorphAccel" subclass="BulkEditSlider" variable="Slider_MorphAccel" member="yes">
 												<min>-10</min>
 												<max>10</max>
-												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphAccel" subclass="ValueCurveButton" variable="BitmapButton_MorphAccel" member="yes">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MorphAccel" subclass="BulkEditValueCurveButton" variable="BitmapButton_MorphAccel" member="yes">
 												<bitmap code="valuecurvenotselected_24" />
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -689,12 +666,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphAccel" variable="TextCtrl_MorphAccel" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MorphAccel" subclass="BulkEditTextCtrl" variable="TextCtrl_MorphAccel" member="no">
 												<value>0</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -713,7 +689,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT97" variable="StaticText171" member="yes">
+											<object class="wxStaticText" name="ID_STATICTEXT_Morph_Repeat_Count" variable="StaticText171" member="yes">
 												<label>Repeat Count:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -721,16 +697,15 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Count" variable="Slider_Morph_Repeat_Count" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Count" subclass="BulkEditSlider" variable="Slider_Morph_Repeat_Count" member="yes">
 												<max>250</max>
-												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Count" subclass="ValueCurveButton" variable="BitmapButton_Morph_Repeat_Count" member="yes">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Repeat_Count" member="yes">
 												<bitmap code="valuecurvenotselected_24" />
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -740,12 +715,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Count" variable="TextCtrl_Morph_Repeat_Count" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Count" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Repeat_Count" member="no">
 												<value>0</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -764,7 +738,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT156" variable="StaticText172" member="yes">
+											<object class="wxStaticText" name="ID_STATICTEXT_Morph_Repeat_Skip" variable="StaticText172" member="yes">
 												<label>Repeat Skip:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -772,17 +746,16 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Skip" variable="Slider_Morph_Repeat_Skip" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Morph_Repeat_Skip" subclass="BulkEditSlider" variable="Slider_Morph_Repeat_Skip" member="yes">
 												<value>1</value>
 												<min>1</min>
-												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Skip" subclass="ValueCurveButton" variable="BitmapButton_Morph_Repeat_Skip" member="yes">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Repeat_Skip" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Repeat_Skip" member="yes">
 												<bitmap code="valuecurvenotselected_24" />
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -792,12 +765,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Skip" variable="TextCtrl_Morph_Repeat_Skip" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Repeat_Skip" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Repeat_Skip" member="no">
 												<value>1</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -816,7 +788,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT157" variable="StaticText173" member="yes">
+											<object class="wxStaticText" name="ID_STATICTEXT_Morph_Stagger" variable="StaticText173" member="yes">
 												<label>Stagger:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -824,16 +796,15 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Morph_Stagger" variable="Slider_Morph_Stagger" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Morph_Stagger" subclass="BulkEditSlider" variable="Slider_Morph_Stagger" member="yes">
 												<min>-100</min>
-												<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Stagger" subclass="ValueCurveButton" variable="BitmapButton_Morph_Stagger" member="yes">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Morph_Stagger" subclass="BulkEditValueCurveButton" variable="BitmapButton_Morph_Stagger" member="yes">
 												<bitmap code="valuecurvenotselected_24" />
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -843,12 +814,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Stagger" variable="TextCtrl_Morph_Stagger" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Morph_Stagger" subclass="BulkEditTextCtrl" variable="TextCtrl_Morph_Stagger" member="no">
 												<value>0</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -875,7 +845,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer105" member="no">
 										<cols>2</cols>
 										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" variable="CheckBox_ShowHeadAtStart" member="yes">
+											<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" subclass="BulkEditCheckBox" variable="CheckBox_ShowHeadAtStart" member="yes">
 												<label>Show Head at Start</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

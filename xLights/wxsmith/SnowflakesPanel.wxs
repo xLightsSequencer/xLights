@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT80" variable="StaticText79" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowflakes_Count" variable="StaticText79" member="yes">
 					<label>Max flakes</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,21 +14,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" variable="Slider_Snowflakes_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" subclass="BulkEditSlider" variable="Slider_Snowflakes_Count" member="yes">
 					<value>5</value>
 					<min>1</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Count" variable="TextCtrl56" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Count" subclass="BulkEditTextCtrl" variable="TextCtrl56" member="no">
 					<value>5</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -46,7 +44,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT81" variable="StaticText80" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowflakes_Type" variable="StaticText80" member="yes">
 					<label>Type</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -54,21 +52,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Type" variable="Slider_Snowflakes_Type" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Type" subclass="BulkEditSlider" variable="Slider_Snowflakes_Type" member="yes">
 					<value>1</value>
 					<max>5</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Type" variable="TextCtrl57" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Type" subclass="BulkEditTextCtrl" variable="TextCtrl57" member="no">
 					<value>1</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -86,7 +82,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText181" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Snowflakes_Speed" variable="StaticText181" member="yes">
 					<label>Speed</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -94,21 +90,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" variable="Slider_Snowflakes_Speed" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" subclass="BulkEditSlider" variable="Slider_Snowflakes_Speed" member="yes">
 					<value>10</value>
 					<max>50</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Speed" variable="TextCtrl58" member="no">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Snowflakes_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl58" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -125,7 +119,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Falling" variable="StaticText1" member="yes">
 					<label>Falling</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -133,7 +127,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Falling" variable="Choice_Falling" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Falling" subclass="BulkEditChoice" variable="Choice_Falling" member="yes">
 					<content>
 						<item>Driving</item>
 						<item>Falling</item>

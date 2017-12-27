@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT84" variable="StaticText83" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Candle_FlameAgility" variable="StaticText83" member="yes">
 					<label>Flame Agility</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -18,18 +18,17 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Candle_FlameAgility" variable="Slider_Candle_FlameAgility" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Candle_FlameAgility" subclass="BulkEditSlider" variable="Slider_Candle_FlameAgility" member="yes">
 							<value>2</value>
 							<min>1</min>
 							<max>10</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_FlameAgility" subclass="ValueCurveButton" variable="BitmapButton_Candle_FlameAgilityVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_FlameAgility" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_FlameAgilityVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -42,11 +41,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_FlameAgility" variable="TextCtrl_Candle_FlameAgility" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_FlameAgility" subclass="BulkEditTextCtrl" variable="TextCtrl_Candle_FlameAgility" member="yes">
 					<value>2</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -65,7 +63,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT133" variable="StaticText132" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Candle_WindBaseline" variable="StaticText132" member="yes">
 					<label>Wind Baseline</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -77,17 +75,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Candle_WindBaseline" variable="Slider_Candle_WindBaseline" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Candle_WindBaseline" subclass="BulkEditSlider" variable="Slider_Candle_WindBaseline" member="yes">
 							<value>30</value>
 							<max>255</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindBaseline" subclass="ValueCurveButton" variable="BitmapButton_Candle_WindBaselineVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindBaseline" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindBaselineVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -100,11 +97,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindBaseline" variable="TextCtrl_Candle_WindBaseline" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindBaseline" subclass="BulkEditTextCtrl" variable="TextCtrl_Candle_WindBaseline" member="yes">
 					<value>30</value>
 					<maxlength>3</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -123,7 +119,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText30" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Candle_WindVariability" variable="StaticText30" member="yes">
 					<label>Wind Variability</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -135,17 +131,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Candle_WindVariability" variable="Slider_Candle_WindVariability" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Candle_WindVariability" subclass="BulkEditSlider" variable="Slider_Candle_WindVariability" member="yes">
 							<value>5</value>
 							<max>10</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindVariability" subclass="ValueCurveButton" variable="BitmapButton_Candle_WindVariabilityVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindVariability" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindVariabilityVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -158,11 +153,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindVariability" variable="TextCtrl_Candle_WindVariability" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindVariability" subclass="BulkEditTextCtrl" variable="TextCtrl_Candle_WindVariability" member="yes">
 					<value>5</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
@@ -181,7 +175,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+				<object class="wxStaticText" name="ID_STATICTEXT_Candle_WindCalmness" variable="StaticText1" member="yes">
 					<label>Wind Calmness</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -193,17 +187,16 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Candle_WindCalmness" variable="Slider_Candle_WindCalmness" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Candle_WindCalmness" subclass="BulkEditSlider" variable="Slider_Candle_WindCalmness" member="yes">
 							<value>2</value>
 							<max>10</max>
-							<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindCalmness" subclass="ValueCurveButton" variable="BitmapButton_Candle_WindCalmnessVC" member="yes">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindCalmness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindCalmnessVC" member="yes">
 							<bitmap code="valuecurvenotselected_24" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -216,11 +209,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindCalmness" variable="TextCtrl_Candle_WindCalmness" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Candle_WindCalmness" subclass="BulkEditTextCtrl" variable="TextCtrl_Candle_WindCalmness" member="yes">
 					<value>2</value>
 					<maxlength>2</maxlength>
 					<size>20,-1d</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -244,7 +236,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_PerNode" variable="CheckBox_PerNode" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_PerNode" subclass="BulkEditCheckBox" variable="CheckBox_PerNode" member="yes">
 					<label>Per node</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

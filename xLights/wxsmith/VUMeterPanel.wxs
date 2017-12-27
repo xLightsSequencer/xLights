@@ -10,7 +10,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Bars" variable="StaticText1" member="yes">
 							<label>Bars</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -22,10 +22,9 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_VUMeter_Bars" variable="Slider_VUMeter_Bars" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_Bars" subclass="BulkEditSlider" variable="Slider_VUMeter_Bars" member="yes">
 									<value>20</value>
 									<min>1</min>
-									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -37,10 +36,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Bars" variable="TextCtrl_VUMeter_Bars" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Bars" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_Bars" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -58,7 +56,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Type" variable="StaticText2" member="yes">
 							<label>Type</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -66,7 +64,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" variable="Choice_VUMeter_Type" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" subclass="BulkEditChoice" variable="Choice_VUMeter_Type" member="yes">
 							<content>
 								<item>Spectrogram</item>
 								<item>Volume Bars</item>
@@ -118,7 +116,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_TimingTrack" variable="StaticText3" member="yes">
 							<label>Timing Track</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -126,7 +124,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_VUMeter_TimingTrack" variable="Choice_VUMeter_TimingTrack" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_VUMeter_TimingTrack" subclass="BulkEditChoice" variable="Choice_VUMeter_TimingTrack" member="yes">
 							<enabled>0</enabled>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -153,7 +151,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Sensitivity" variable="StaticText6" member="yes">
 							<label>Sensitivity</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -166,9 +164,8 @@
 							<rows>2</rows>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_VUMeter_Sensitivity" variable="Slider_VUMeter_Sensitivity" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_Sensitivity" subclass="BulkEditSlider" variable="Slider_VUMeter_Sensitivity" member="yes">
 									<value>70</value>
-									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -180,10 +177,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Sensitivity" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_Sensitivity" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_Sensitivity" member="yes">
 							<value>70</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -201,7 +197,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Shape" variable="StaticText7" member="yes">
 							<label>Shape</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -209,7 +205,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_VUMeter_Shape" variable="Choice_VUMeter_Shape" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_VUMeter_Shape" subclass="BulkEditChoice" variable="Choice_VUMeter_Shape" member="yes">
 							<content>
 								<item>Circle</item>
 								<item>Filled Circle</item>
@@ -265,7 +261,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_VUMeter_SlowDownFalls" variable="CheckBox_VUMeter_SlowDownFalls" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_VUMeter_SlowDownFalls" subclass="BulkEditCheckBox" variable="CheckBox_VUMeter_SlowDownFalls" member="yes">
 							<label>Slow Down Falls</label>
 							<checked>1</checked>
 						</object>
@@ -293,7 +289,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_StartNote" variable="StaticText12" member="yes">
 							<label>Start Note</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -301,7 +297,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_VUMeter_StartNote" variable="Slider_VUMeter_StartNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_VUMeter_StartNote" subclass="BulkEditSlider" variable="Slider_VUMeter_StartNote" member="yes">
 							<value>36</value>
 							<max>127</max>
 							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -311,7 +307,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_StartNote" variable="TextCtrl_VUMeter_StartNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_StartNote" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_StartNote" member="yes">
 							<value>36</value>
 							<size>20,-1d</size>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
@@ -332,7 +328,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_EndNote" variable="StaticText11" member="yes">
 							<label>End Note</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -340,7 +336,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_VUMeter_EndNote" variable="Slider_VUMeter_EndNote" member="yes">
+						<object class="wxSlider" name="ID_SLIDER_VUMeter_EndNote" subclass="BulkEditSlider" variable="Slider_VUMeter_EndNote" member="yes">
 							<value>84</value>
 							<max>127</max>
 							<handler function="OnSlider_VUMeter_StartNoteCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -350,7 +346,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_EndNote" variable="TextCtrl_VUMeter_EndNote" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_EndNote" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_EndNote" member="yes">
 							<value>84</value>
 							<size>20,-1d</size>
 							<handler function="OnTextCtrl_VUMeter_StartNoteText" entry="EVT_TEXT" />
@@ -371,7 +367,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText13" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_XOffset" variable="StaticText13" member="yes">
 							<label>Horizontal Offset</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -383,9 +379,8 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_VUMeter_XOffset" variable="Slider_VUMeter_XOffset" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_XOffset" subclass="BulkEditSlider" variable="Slider_VUMeter_XOffset" member="yes">
 									<min>-100</min>
-									<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -397,10 +392,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_XOffset" variable="TextCtrl_VUMeter_XOffset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_XOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_XOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -418,7 +412,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText14" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_YOffset" variable="StaticText14" member="yes">
 							<label>Vertical Offset</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -430,16 +424,15 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_VUMeter_YOffset" variable="Slider_VUMeter_YOffset" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_YOffset" subclass="BulkEditSlider" variable="Slider_VUMeter_YOffset" member="yes">
 									<min>-100</min>
-									<handler function="UpdateLinkedTextCtrlVC" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_VALUECURVE_VUMeter_YOffset" subclass="ValueCurveButton" variable="BitmapButton_VUMeter_YOffsetVC" member="yes">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_VUMeter_YOffset" subclass="BulkEditValueCurveButton" variable="BitmapButton_VUMeter_YOffsetVC" member="yes">
 									<bitmap code="valuecurvenotselected_24" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -454,10 +447,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_YOffset" variable="TextCtrl_VUMeter_YOffset" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_VUMeter_YOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_YOffset" member="yes">
 							<value>0</value>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

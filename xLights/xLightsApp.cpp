@@ -542,6 +542,7 @@ bool xLightsApp::OnInit()
     }
     //*)
     topFrame = (xLightsFrame* )GetTopWindow();
+    __frame = topFrame;
 
     if (parser.Found("r")) {
         logger_base.info("-r: Render mode is ON");

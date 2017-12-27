@@ -1,4 +1,5 @@
 #include "BufferSizeDialog.h"
+#include "ValueCurveDialog.h"
 
 //(*InternalHeaders(BufferSizeDialog)
 #include <wx/bitmap.h>
@@ -6,7 +7,6 @@
 #include <wx/button.h>
 #include <wx/image.h>
 #include <wx/string.h>
-#include "ValueCurveDialog.h"
 //*)
 
 //(*IdInit(BufferSizeDialog)

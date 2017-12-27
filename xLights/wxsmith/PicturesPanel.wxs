@@ -37,7 +37,7 @@
 					<cols>4</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText46" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Pictures_Direction" variable="StaticText46" member="yes">
 							<label>Movement</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -45,7 +45,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Pictures_Direction" variable="Choice_Pictures_Direction" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_Pictures_Direction" subclass="BulkEditChoice" variable="Choice_Pictures_Direction" member="yes">
 							<content>
 								<item>none</item>
 								<item>left</item>
@@ -97,7 +97,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText68" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Pictures_Speed" variable="StaticText68" member="yes">
 							<label>Movement Speed</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -105,7 +105,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Pictures_Speed" variable="Slider_Pictures_Speed" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Pictures_Speed" subclass="BulkEditSliderF1" variable="Slider_Pictures_Speed" member="yes">
 							<value>10</value>
 							<max>200</max>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -115,7 +115,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Speed" variable="TextCtrl48" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Speed" subclass="BulkEditTextCtrlF1" variable="TextCtrl48" member="no">
 							<value>1.0</value>
 							<maxlength>4</maxlength>
 							<size>20,-1d</size>
@@ -138,7 +138,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="wxID_ANY" variable="StaticText96" member="no">
+						<object class="wxStaticText" name="ID_STATICTEXT_Pictures_FrameRateAdj" variable="StaticText96" member="yes">
 							<label>Frame Rate Adj</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -146,7 +146,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" variable="Slider_Pictures_FR" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Pictures_FrameRateAdj" subclass="BulkEditSliderF1" variable="Slider_Pictures_FR" member="yes">
 							<value>10</value>
 							<handler function="UpdateLinkedTextCtrlFloat" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
@@ -155,7 +155,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_FrameRateAdj" variable="TextCtrl_Pictures_FR" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_FrameRateAdj" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Pictures_FR" member="no">
 							<value>1.0</value>
 							<maxlength>4</maxlength>
 							<size>20,-1d</size>
@@ -191,7 +191,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 							<cols>2</cols>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_PixelOffsets" variable="CheckBox_Pictures_PixelOffsets" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_PixelOffsets" subclass="BulkEditCheckBox" variable="CheckBox_Pictures_PixelOffsets" member="yes">
 									<label>Offsets In Pixels</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -199,7 +199,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_Scaling" variable="Choice_Scaling" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Scaling" subclass="BulkEditChoice" variable="Choice_Scaling" member="yes">
 									<content>
 										<item>No Scaling</item>
 										<item>Scale To Fit</item>
@@ -212,7 +212,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_Shimmer" variable="CheckBox_Pictures_Shimmer" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_Shimmer" subclass="BulkEditCheckBox" variable="CheckBox_Pictures_Shimmer" member="yes">
 									<label>Shimmer</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -220,7 +220,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX_LoopGIF" variable="CheckBox_LoopGIF" member="yes">
+								<object class="wxCheckBox" name="ID_CHECKBOX_LoopGIF" subclass="BulkEditCheckBox" variable="CheckBox_LoopGIF" member="yes">
 									<label>Loop Animated GIF</label>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -245,7 +245,7 @@
 												<cols>2</cols>
 												<growablecols>1</growablecols>
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Pictures_XC" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_PicturesXC" variable="StaticText_Pictures_XC" member="yes">
 														<label>X-axis Center</label>
 													</object>
 													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -253,7 +253,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesXC" variable="Slider_PicturesXC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_PicturesXC" subclass="BulkEditSlider" variable="Slider_PicturesXC" member="yes">
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -262,7 +262,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_WrapX" variable="CheckBox_Pictures_WrapX" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_WrapX" subclass="BulkEditCheckBox" variable="CheckBox_Pictures_WrapX" member="yes">
 														<label>Wrap X</label>
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -270,7 +270,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesXC" variable="TextCtrl_PicturesXC" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesXC" subclass="BulkEditTextCtrl" variable="TextCtrl_PicturesXC" member="no">
 														<value>0</value>
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
@@ -289,7 +289,7 @@
 										<object class="sizeritem">
 											<object class="wxGridBagSizer" variable="GridBagSizer2" member="no">
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Pictures_YC" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_PicturesYC" variable="StaticText_Pictures_YC" member="yes">
 														<label>Y-axis Center</label>
 													</object>
 													<col>0</col>
@@ -299,7 +299,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesYC" variable="TextCtrl_PicturesYC" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesYC" subclass="BulkEditTextCtrl" variable="TextCtrl_PicturesYC" member="no">
 														<value>0</value>
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
@@ -313,7 +313,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesYC" variable="Slider_PicturesYC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_PicturesYC" subclass="BulkEditSlider" variable="Slider_PicturesYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -345,7 +345,7 @@
 												<cols>2</cols>
 												<growablecols>1</growablecols>
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText160" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_PicturesEndXC" variable="StaticText160" member="yes">
 														<label>X-axis Center</label>
 													</object>
 													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -353,7 +353,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesEndXC" variable="Slider_PicturesEndXC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_PicturesEndXC" subclass="BulkEditSlider" variable="Slider_PicturesEndXC" member="yes">
 														<min>-100</min>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -367,7 +367,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndXC" variable="TextCtrl1" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndXC" subclass="BulkEditTextCtrl" variable="TextCtrl1" member="no">
 														<value>0</value>
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
@@ -386,7 +386,7 @@
 										<object class="sizeritem">
 											<object class="wxGridBagSizer" variable="GridBagSizer3" member="no">
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText161" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_PicturesEndYC" variable="StaticText161" member="yes">
 														<label>Y-axis Center</label>
 													</object>
 													<col>0</col>
@@ -396,7 +396,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndYC" variable="TextCtrl2" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_PicturesEndYC" subclass="BulkEditTextCtrl" variable="TextCtrl2" member="no">
 														<value>0</value>
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
@@ -410,7 +410,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_PicturesEndYC" variable="Slider_PicturesEndYC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_PicturesEndYC" subclass="BulkEditSlider" variable="Slider_PicturesEndYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -437,7 +437,7 @@
 										<cols>3</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="wxID_ANY" variable="StaticText1" member="no">
+											<object class="wxStaticText" name="ID_STATICTEXT_Pictures_StartScale" variable="StaticText1" member="yes">
 												<label>Scaling</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -445,7 +445,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pictures_StartScale" variable="Slider_Pictures_StartScale" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Pictures_StartScale" subclass="BulkEditSlider" variable="Slider_Pictures_StartScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -455,7 +455,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_StartScale" variable="TextCtrl_Pictures_StartScale" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_StartScale" subclass="BulkEditTextCtrl" variable="TextCtrl_Pictures_StartScale" member="no">
 												<value>100</value>
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>
@@ -476,7 +476,7 @@
 										<cols>3</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
+											<object class="wxStaticText" name="ID_STATICTEXT_Pictures_EndScale" variable="StaticText2" member="yes">
 												<label>Scaling</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -484,7 +484,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Pictures_EndScale" variable="Slider_Pictures_EndScale" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Pictures_EndScale" subclass="BulkEditSlider" variable="Slider_Pictures_EndScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
 												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -494,7 +494,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_EndScale" variable="TextCtrl_Pictures_EndScale" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Pictures_EndScale" subclass="BulkEditTextCtrl" variable="TextCtrl_Pictures_EndScale" member="no">
 												<value>100</value>
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>

@@ -22,17 +22,17 @@ const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_CHOICE_In_Transition_Type = wxNewId();
-const long TimingPanel::ID_STATICTEXT2 = wxNewId();
+const long TimingPanel::ID_STATICTEXT_Fadein = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
-const long TimingPanel::ID_STATICTEXT1 = wxNewId();
+const long TimingPanel::ID_STATICTEXT_In_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_SLIDER_In_Transition_Adjust = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_In_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_CHECKBOX_In_Transition_Reverse = wxNewId();
 const long TimingPanel::ID_PANEL2 = wxNewId();
 const long TimingPanel::ID_CHOICE_Out_Transition_Type = wxNewId();
-const long TimingPanel::ID_STATICTEXT4 = wxNewId();
+const long TimingPanel::ID_STATICTEXT_Fadeout = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadeout = wxNewId();
-const long TimingPanel::ID_STATICTEXT5 = wxNewId();
+const long TimingPanel::ID_STATICTEXT_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_SLIDER_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_Out_Transition_Adjust = wxNewId();
 const long TimingPanel::ID_CHECKBOX_Out_Transition_Reverse = wxNewId();
@@ -90,7 +90,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_CheckBox_LayerMorph->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_CheckBox_LayerMorph->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_CheckBox_LayerMorph, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Choice_LayerMethod = new wxChoice(ScrolledWindowTiming, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
+	Choice_LayerMethod = new BulkEditChoice(ScrolledWindowTiming, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
 	Choice_LayerMethod->SetSelection( Choice_LayerMethod->Append(_("Normal")) );
 	Choice_LayerMethod->Append(_("Effect 1"));
 	Choice_LayerMethod->Append(_("Effect 2"));
@@ -114,11 +114,11 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL, 2);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_EffectLayerMix = new wxSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
+	Slider_EffectLayerMix = new BulkEditSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
 	FlexGridSizer1->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
-	txtCtlEffectMix = new wxTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectLayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectLayerMix"));
-	txtCtlEffectMix->SetMaxLength(3);
-	FlexGridSizer1->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	TextCtrl_EffectLayerMix = new BulkEditTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectLayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectLayerMix"));
+	TextCtrl_EffectLayerMix->SetMaxLength(3);
+	FlexGridSizer1->Add(TextCtrl_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -130,7 +130,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 4, 0, 0);
-	Choice_In_Transition_Type = new wxChoice(Panel1, ID_CHOICE_In_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_In_Transition_Type"));
+	Choice_In_Transition_Type = new BulkEditChoice(Panel1, ID_CHOICE_In_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_In_Transition_Type"));
 	Choice_In_Transition_Type->SetSelection( Choice_In_Transition_Type->Append(_("Fade")) );
 	Choice_In_Transition_Type->Append(_("Wipe"));
 	Choice_In_Transition_Type->Append(_("Clock"));
@@ -142,24 +142,24 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_In_Transition_Type->Append(_("Slide Checks"));
 	Choice_In_Transition_Type->Append(_("Slide Bars"));
 	FlexGridSizer10->Add(Choice_In_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT_Fadein, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadein"));
 	FlexGridSizer10->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Fadein = new wxTextCtrl(Panel1, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
+	TextCtrl_Fadein = new BulkEditTextCtrl(Panel1, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
 	TextCtrl_Fadein->SetMaxLength(4);
 	FlexGridSizer10->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11->AddGrowableCol(1);
-	InAdjustmentText = new wxStaticText(Panel1, ID_STATICTEXT1, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	InAdjustmentText = new wxStaticText(Panel1, ID_STATICTEXT_In_Transition_Adjust, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_In_Transition_Adjust"));
 	FlexGridSizer11->Add(InAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_In_Adjust = new wxSlider(Panel1, ID_SLIDER_In_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_In_Transition_Adjust"));
+	Slider_In_Adjust = new BulkEditSlider(Panel1, ID_SLIDER_In_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_In_Transition_Adjust"));
 	FlexGridSizer11->Add(Slider_In_Adjust, 1, wxALL|wxEXPAND, 1);
-	TextCtrl_In_Adjust = new wxTextCtrl(Panel1, IDD_TEXTCTRL_In_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_In_Transition_Adjust"));
+	TextCtrl_In_Adjust = new BulkEditTextCtrl(Panel1, IDD_TEXTCTRL_In_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_In_Transition_Adjust"));
 	FlexGridSizer11->Add(TextCtrl_In_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer6->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
-	CheckBox_In_Reverse = new wxCheckBox(Panel1, ID_CHECKBOX_In_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_In_Transition_Reverse"));
+	CheckBox_In_Reverse = new BulkEditCheckBox(Panel1, ID_CHECKBOX_In_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_In_Transition_Reverse"));
 	CheckBox_In_Reverse->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_In_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 1);
@@ -170,7 +170,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer8->AddGrowableCol(0);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
-	Choice_Out_Transition_Type = new wxChoice(Panel2, ID_CHOICE_Out_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Out_Transition_Type"));
+	Choice_Out_Transition_Type = new BulkEditChoice(Panel2, ID_CHOICE_Out_Transition_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Out_Transition_Type"));
 	Choice_Out_Transition_Type->SetSelection( Choice_Out_Transition_Type->Append(_("Fade")) );
 	Choice_Out_Transition_Type->Append(_("Wipe"));
 	Choice_Out_Transition_Type->Append(_("Clock"));
@@ -182,23 +182,23 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_Out_Transition_Type->Append(_("Slide Checks"));
 	Choice_Out_Transition_Type->Append(_("Slide Bars"));
 	FlexGridSizer12->Add(Choice_Out_Transition_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT4, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	StaticText4 = new wxStaticText(Panel2, ID_STATICTEXT_Fadeout, _("Time (s)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fadeout"));
 	FlexGridSizer12->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Fadeout = new wxTextCtrl(Panel2, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
+	TextCtrl_Fadeout = new BulkEditTextCtrl(Panel2, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
 	TextCtrl_Fadeout->SetMaxLength(4);
 	FlexGridSizer12->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer8->Add(FlexGridSizer12, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer9->AddGrowableCol(1);
-	OutAdjustmentText = new wxStaticText(Panel2, ID_STATICTEXT5, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	OutAdjustmentText = new wxStaticText(Panel2, ID_STATICTEXT_Out_Transition_Adjust, _("Adjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(OutAdjustmentText, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Out_Adjust = new wxSlider(Panel2, ID_SLIDER_Out_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Out_Transition_Adjust"));
+	Slider_Out_Adjust = new BulkEditSlider(Panel2, ID_SLIDER_Out_Transition_Adjust, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(Slider_Out_Adjust, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Out_Adjust = new wxTextCtrl(Panel2, IDD_TEXTCTRL_Out_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Out_Transition_Adjust"));
+	TextCtrl_Out_Adjust = new BulkEditTextCtrl(Panel2, IDD_TEXTCTRL_Out_Transition_Adjust, _("50"), wxDefaultPosition, wxDLG_UNIT(Panel2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Out_Transition_Adjust"));
 	FlexGridSizer9->Add(TextCtrl_Out_Adjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 1);
 	FlexGridSizer13 = new wxFlexGridSizer(0, 3, 0, 0);
-	CheckBox_Out_Reverse = new wxCheckBox(Panel2, ID_CHECKBOX_Out_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Out_Transition_Reverse"));
+	CheckBox_Out_Reverse = new BulkEditCheckBox(Panel2, ID_CHECKBOX_Out_Transition_Reverse, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Out_Transition_Reverse"));
 	CheckBox_Out_Reverse->SetValue(false);
 	FlexGridSizer13->Add(CheckBox_Out_Reverse, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer8->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 1);
@@ -222,19 +222,17 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Connect(ID_CHECKBOX_ResetTimingPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_ResetTimingPanelClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
-	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_EffectLayerMix,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectLayerMix,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
-	Connect(ID_TEXTCTRL_Fadein,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnEffectTimeChange);
-	Connect(ID_SLIDER_In_Transition_Adjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_In_Transition_Adjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
-	Connect(ID_TEXTCTRL_Fadeout,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::OnEffectTimeChange);
-	Connect(ID_SLIDER_Out_Transition_Adjust,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedTextCtrl);
-	Connect(IDD_TEXTCTRL_Out_Transition_Adjust,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TimingPanel::UpdateLinkedSlider);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
 	//*)
+
+    // Turn off bulk edit for this setting
+    Slider_EffectLayerMix->SetSupportsBulkEdit(false);
+    TextCtrl_EffectLayerMix->SetSupportsBulkEdit(false);
+
+    SetName("Timing");
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
@@ -247,7 +245,6 @@ TimingPanel::~TimingPanel()
 	//(*Destroy(TimingPanel)
 	//*)
 }
-
 
 void TimingPanel::OnResize(wxSizeEvent& event)
 {
@@ -272,7 +269,7 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         CheckBox_LayerMorph->SetValue(false);
         Choice_LayerMethod->SetSelection(0);
         Slider_EffectLayerMix->SetValue(0);
-	txtCtlEffectMix->SetValue("0");
+	    TextCtrl_EffectLayerMix->SetValue("0");
         TextCtrl_Fadein->SetValue("0.00");
         TextCtrl_Fadeout->SetValue("0.00");
         Slider_In_Adjust->SetValue(50);
@@ -346,11 +343,7 @@ wxString TimingPanel::GetTimingString()
     return s;
 }
 
-
-
 PANEL_EVENT_HANDLERS(TimingPanel)
-
-
 
 void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
 {
@@ -389,10 +382,6 @@ void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& event)
         Slider_Out_Adjust->Enable();
         TextCtrl_Out_Adjust->Enable();
     }
-}
-
-void TimingPanel::OnEffectTimeChange(wxCommandEvent& event)
-{
 }
 
 void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)

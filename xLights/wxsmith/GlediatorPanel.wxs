@@ -22,7 +22,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Glediator_DurationTreatment" variable="StaticText1" member="yes">
 					<label>Duration Treatment:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -30,7 +30,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_Glediator_DurationTreatment" variable="Choice_Glediator_DurationTreatment" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_Glediator_DurationTreatment" subclass="BulkEditChoice" variable="Choice_Glediator_DurationTreatment" member="yes">
 					<content>
 						<item>Normal</item>
 						<item>Loop</item>

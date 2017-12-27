@@ -13,7 +13,7 @@
 								<cols>4</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText116" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Band_Size" variable="StaticText116" member="yes">
 										<label>Band Size:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -21,21 +21,19 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" variable="Slider_Marquee_Band_Size" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Band_Size" member="yes">
 										<value>3</value>
 										<min>1</min>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Band_Size" variable="TextCtrl_Marquee_Band_Size" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Band_Size" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Band_Size" member="no">
 										<value>3</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -54,7 +52,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText194" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Skip_Size" variable="StaticText194" member="yes">
 										<label>Skip Size:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -62,19 +60,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" variable="Slider_Marquee_Skip_Size" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Skip_Size" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Skip_Size" variable="TextCtrl_Marquee_Skip_Size" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Skip_Size" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Skip_Size" member="no">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -93,7 +88,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText195" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Thickness" variable="StaticText195" member="yes">
 										<label>Thickness:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -101,21 +96,19 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" variable="Slider_Marquee_Thickness" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" subclass="BulkEditSlider" variable="Slider_Marquee_Thickness" member="yes">
 										<value>1</value>
 										<min>1</min>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Thickness" variable="TextCtrl_Marquee_Thickness" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Thickness" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Thickness" member="no">
 										<value>1</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -134,7 +127,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText62" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Stagger" variable="StaticText62" member="yes">
 										<label>Stagger:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -142,20 +135,18 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" variable="Slider_Marquee_Stagger" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" subclass="BulkEditSlider" variable="Slider_Marquee_Stagger" member="yes">
 										<max>50</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Stagger" variable="TextCtrl_Marquee_Stagger" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Stagger" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Stagger" member="no">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -174,7 +165,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText196" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Speed" variable="StaticText196" member="yes">
 										<label>Speed:</label>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -182,21 +173,19 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" variable="Slider_Marquee_Speed" member="yes">
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" subclass="BulkEditSlider" variable="Slider_Marquee_Speed" member="yes">
 										<value>3</value>
 										<max>50</max>
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Speed" variable="TextCtrl_Marquee_Speed" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Speed" member="no">
 										<value>3</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -215,7 +204,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="wxID_ANY" variable="StaticText244" member="no">
+									<object class="wxStaticText" name="ID_STATICTEXT_Marquee_Start" variable="StaticText244" member="yes">
 										<label>Start Pos:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -223,19 +212,16 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" variable="Slider_Marquee_Start" member="yes">
-										<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" subclass="BulkEditSlider" variable="Slider_Marquee_Start" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Start" variable="TextCtrl_Marquee_Start" member="no">
+									<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_Start" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_Start" member="no">
 										<value>0</value>
 										<maxlength>3</maxlength>
 										<size>20,-1d</size>
-										<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -259,7 +245,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" variable="CheckBox_Marquee_Reverse" member="yes">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_Reverse" subclass="BulkEditCheckBox" variable="CheckBox_Marquee_Reverse" member="yes">
 										<label>Reverse:</label>
 										<style>wxALIGN_RIGHT</style>
 									</object>
@@ -280,7 +266,7 @@
 										<cols>4</cols>
 										<growablecols>1</growablecols>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="wxID_ANY" variable="StaticText198" member="no">
+											<object class="wxStaticText" name="ID_STATICTEXT_Marquee_ScaleX" variable="StaticText198" member="yes">
 												<label>Scale X:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -288,21 +274,19 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" variable="Slider_Marquee_ScaleX" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleX" member="yes">
 												<value>100</value>
 												<min>1</min>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_ScaleX" variable="TextCtrl_Marquee_ScaleX" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_ScaleX" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_ScaleX" member="no">
 												<value>100</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -321,7 +305,7 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="wxID_ANY" variable="StaticText199" member="no">
+											<object class="wxStaticText" name="ID_STATICTEXT_Marquee_ScaleY" variable="StaticText199" member="yes">
 												<label>Scale Y:</label>
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -329,21 +313,19 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" variable="Slider_Marquee_ScaleY" member="yes">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleY" member="yes">
 												<value>100</value>
 												<min>1</min>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_ScaleY" variable="TextCtrl_Marquee_ScaleY" member="no">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_Marquee_ScaleY" subclass="BulkEditTextCtrl" variable="TextCtrl_Marquee_ScaleY" member="no">
 												<value>100</value>
 												<maxlength>3</maxlength>
 												<size>20,-1d</size>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -375,7 +357,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_PixelOffsets" variable="CheckBox_Marquee_PixelOffsets" member="yes">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_PixelOffsets" subclass="BulkEditCheckBox" variable="CheckBox_Marquee_PixelOffsets" member="yes">
 										<label>Offsets In Pixels</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -391,7 +373,7 @@
 												<cols>2</cols>
 												<growablecols>1</growablecols>
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText200" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_MarqueeXC" variable="StaticText200" member="yes">
 														<label>X-axis Center</label>
 													</object>
 													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -399,16 +381,15 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_MarqueeXC" variable="Slider_MarqueeXC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_MarqueeXC" subclass="BulkEditSlider" variable="Slider_MarqueeXC" member="yes">
 														<min>-100</min>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" variable="CheckBox_Marquee_WrapX" member="yes">
+													<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapX" subclass="BulkEditCheckBox" variable="CheckBox_Marquee_WrapX" member="yes">
 														<label>Wrap X</label>
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -416,12 +397,11 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_MarqueeXC" variable="TextCtrl_MarqueeXC" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_MarqueeXC" subclass="BulkEditTextCtrl" variable="TextCtrl_MarqueeXC" member="no">
 														<value>0</value>
 														<maxlength>3</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -435,7 +415,7 @@
 										<object class="sizeritem">
 											<object class="wxGridBagSizer" variable="GridBagSizer5" member="no">
 												<object class="sizeritem">
-													<object class="wxStaticText" name="wxID_ANY" variable="StaticText201" member="no">
+													<object class="wxStaticText" name="ID_STATICTEXT_MarqueeYC" variable="StaticText201" member="yes">
 														<label>Y-axis Center</label>
 													</object>
 													<col>0</col>
@@ -445,12 +425,11 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="IDD_TEXTCTRL_MarqueeYC" variable="TextCtrl_MarqueeYC" member="no">
+													<object class="wxTextCtrl" name="IDD_TEXTCTRL_MarqueeYC" subclass="BulkEditTextCtrl" variable="TextCtrl_MarqueeYC" member="no">
 														<value>0</value>
 														<maxlength>3</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<col>0</col>
 													<row>2</row>
@@ -459,10 +438,9 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_MarqueeYC" variable="Slider_MarqueeYC" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_MarqueeYC" subclass="BulkEditSlider" variable="Slider_MarqueeYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<rowspan>4</rowspan>
 													<col>1</col>

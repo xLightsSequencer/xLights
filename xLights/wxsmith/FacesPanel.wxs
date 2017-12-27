@@ -89,7 +89,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT66" variable="StaticText71" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT_Faces_Eyes" variable="StaticText71" member="yes">
 							<label>Eyes</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -97,7 +97,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Faces_Eyes" variable="Choice_Faces_Eyes" member="yes">
+						<object class="wxChoice" name="ID_CHOICE_Faces_Eyes" subclass="BulkEditChoice" variable="Choice_Faces_Eyes" member="yes">
 							<content>
 								<item>Open</item>
 								<item>Closed</item>
@@ -116,7 +116,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Outline" variable="CheckBox_Faces_Outline" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_Outline" subclass="BulkEditCheckBox" variable="CheckBox_Faces_Outline" member="yes">
 							<label>Show outline</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

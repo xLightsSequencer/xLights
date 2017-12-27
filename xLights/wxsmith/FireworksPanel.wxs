@@ -6,7 +6,7 @@
 			<cols>4</cols>
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Fireworks_Explosions" variable="StaticText94" member="yes">
 					<label>Number of Explosions</label>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -14,22 +14,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Explosions" variable="Slider_Fireworks_Num_Explosions" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Explosions" subclass="BulkEditSlider" variable="Slider_Fireworks_Num_Explosions" member="yes">
 					<value>16</value>
 					<min>1</min>
 					<max>50</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Explosions" variable="TextCtrl_Fireworks_Explosions" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Explosions" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Explosions" member="yes">
 					<value>16</value>
 					<maxlength>2</maxlength>
 					<size>40,-1</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -48,7 +46,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT92" variable="StaticText91" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Fireworks_Count" variable="StaticText91" member="yes">
 					<label>Particles in Explosion</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -56,21 +54,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" subclass="BulkEditSlider" variable="Slider_Fireworks_Count" member="yes">
 					<value>50</value>
 					<min>1</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Count" variable="TextCtrl_Fireworks_Count" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Count" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Count" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>40,-1</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -89,7 +85,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT94" variable="StaticText93" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Fireworks_Velocity" variable="StaticText93" member="yes">
 					<label>Velocity of Particles</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -97,22 +93,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" variable="Slider_Fireworks_Velocity" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" subclass="BulkEditSlider" variable="Slider_Fireworks_Velocity" member="yes">
 					<value>2</value>
 					<min>1</min>
 					<max>10</max>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Velocity" variable="TextCtrl_Fireworks_Velocity" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Velocity" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Velocity" member="yes">
 					<value>2</value>
 					<maxlength>2</maxlength>
 					<size>40,-1</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -131,7 +125,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT96" variable="StaticText95" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Fireworks_Fade" variable="StaticText95" member="yes">
 					<label>Particle Fade</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -139,21 +133,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" subclass="BulkEditSlider" variable="Slider_Fireworks_Fade" member="yes">
 					<value>50</value>
 					<min>1</min>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Fade" variable="TextCtrl_Fireworks_Fade" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Fade" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Fade" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>40,-1</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -177,7 +169,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Fireworks_UseMusic" variable="CheckBox_Fireworks_UseMusic" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Fireworks_UseMusic" subclass="BulkEditCheckBox" variable="CheckBox_Fireworks_UseMusic" member="yes">
 					<label>Fire with music</label>
 					<handler function="OnCheckBox_Fireworks_UseMusicClick" entry="EVT_CHECKBOX" />
 				</object>
@@ -203,7 +195,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_Fireworks_Sensitivity" variable="StaticText1" member="yes">
 					<label>Trigger level</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -211,20 +203,18 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Sensitivity" variable="Slider_Fireworks_Sensitivity" member="yes">
+				<object class="wxSlider" name="ID_SLIDER_Fireworks_Sensitivity" subclass="BulkEditSlider" variable="Slider_Fireworks_Sensitivity" member="yes">
 					<value>50</value>
-					<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Sensitivity" variable="TextCtrl_Fireworks_Sensitivity" member="yes">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Sensitivity" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Sensitivity" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
 					<size>40,-1</size>
-					<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -248,7 +238,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_FIRETIMING" variable="CheckBox_FireTiming" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_FIRETIMING" subclass="BulkEditCheckBox" variable="CheckBox_FireTiming" member="yes">
 					<label>Fire with timing track</label>
 					<handler function="OnCheckBox_FireTimingClick" entry="EVT_CHECKBOX" />
 				</object>
@@ -274,7 +264,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_FIRETIMINGTRACK" variable="StaticText2" member="yes">
 					<label>Timing Track</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -282,7 +272,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE_FIRETIMINGTRACK" variable="Choice_TimingTrack" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_FIRETIMINGTRACK" subclass="BulkEditChoice" variable="Choice_TimingTrack" member="yes">
 					<handler function="OnChoice_TimingTrackSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
