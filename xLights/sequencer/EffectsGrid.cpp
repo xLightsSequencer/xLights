@@ -1073,10 +1073,12 @@ int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
 
 void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
     {
-        mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, effectName, id, value, vc, vcid);
+        mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid);
     }
+    sendRenderDirtyEvent();
 }
 
 void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow)

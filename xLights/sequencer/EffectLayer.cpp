@@ -908,7 +908,7 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
     return count;
 }
 
-void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
     for (int i = 0; i<mEffects.size(); i++)
     {
@@ -918,6 +918,7 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, const std::str
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))
            )
         {
+            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->ApplySetting(id, value, vc, vcid);
             grid->sendRenderEvent(GetParentElement()->GetModelName(), mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
         }
