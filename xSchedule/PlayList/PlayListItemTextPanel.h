@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -27,6 +28,7 @@ class PlayListItemTextPanel: public wxPanel
 		//(*Declarations(PlayListItemTextPanel)
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText9;
+		wxCheckBox* CheckBox_RenderWhenBlank;
 		wxSpinCtrl* SpinCtrl_Y;
 		wxChoice* Choice_Orientation;
 		wxSpinCtrl* SpinCtrl_X;
@@ -78,6 +80,7 @@ class PlayListItemTextPanel: public wxPanel
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT10;
 		static const long ID_CHOICE4;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT12;
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT13;

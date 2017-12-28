@@ -22,6 +22,7 @@ PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
     _text = "";
     _matrix = "";
     _movement = "None";
+    _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
     _type = "Normal";
@@ -59,6 +60,7 @@ void PlayListItemText::Load(wxXmlNode* node)
     _text = node->GetAttribute("Text", "").ToStdString();
     _matrix = node->GetAttribute("Matrix", "").ToStdString();
     _movement = node->GetAttribute("Movement", "None").ToStdString();
+    _renderWhenBlank = (node->GetAttribute("RenderWhenBlank", "True") == "True");
     _orientation = node->GetAttribute("Orientation", "Normal").ToStdString();
     _type = node->GetAttribute("Type", "Normal").ToStdString();
     _speed = wxAtoi(node->GetAttribute("Speed", "10"));
@@ -102,6 +104,7 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _text = "";
     _matrix = "";
     _movement = "None";
+    _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
     _type = "Normal";
@@ -115,6 +118,7 @@ PlayListItem* PlayListItemText::Copy() const
     PlayListItemText* res = new PlayListItemText();
     res->_matrix = _matrix;
     res->_movement = _movement;
+    res->_renderWhenBlank = _renderWhenBlank;
     res->_orientation = _orientation;
     res->_speed = _speed;
     res->_durationMS = _durationMS;
@@ -144,6 +148,10 @@ wxXmlNode* PlayListItemText::Save()
     node->AddAttribute("Text", _text);
     node->AddAttribute("Matrix", _matrix);
     node->AddAttribute("Movement", _movement);
+    if (!_renderWhenBlank)
+    {
+        node->AddAttribute("RenderWhenBank", "False");
+    }
     node->AddAttribute("Orientation", _orientation);
     node->AddAttribute("Type", _type);
     node->AddAttribute("Speed", wxString::Format(wxT("%i"), _speed));
@@ -388,74 +396,81 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         // work out our Text
         std::string text = GetText(effms);
 
-        wxBitmap bitmap(_matrixMapper->GetWidth(), _matrixMapper->GetHeight());
-        wxMemoryDC dc(bitmap);
-
-        // draw the text into our DC
-        dc.SetTextForeground(_colour);
-        dc.SetFont(*_font);
-        wxSize sz = dc.GetTextExtent(text);
-        if (sz.x > _maxSize.x) _maxSize.x = sz.x;
-        if (sz.y > _maxSize.y) _maxSize.y = sz.y;
-
-        if (_orientation == "Normal")
+        if (text == "" && !_renderWhenBlank)
         {
-            // work out where to draw it
-            wxPoint loc = GetLocation(effms, _maxSize);
-            dc.DrawText(text, loc);
+            // dont do anything
         }
-        else if (_orientation == "Vertical Up" || _orientation == "Vertical Down")
+        else
         {
-            // work out where to draw it
-            wxSize sz1(_maxSize.GetHeight(), dc.GetCharHeight() * text.size());
-            wxPoint loc = GetLocation(effms, sz1);
-            int y = loc.y;
-            for (auto c = text.begin(); c != text.end(); ++c)
+            wxBitmap bitmap(_matrixMapper->GetWidth(), _matrixMapper->GetHeight());
+            wxMemoryDC dc(bitmap);
+
+            // draw the text into our DC
+            dc.SetTextForeground(_colour);
+            dc.SetFont(*_font);
+            wxSize sz = dc.GetTextExtent(text);
+            if (sz.x > _maxSize.x) _maxSize.x = sz.x;
+            if (sz.y > _maxSize.y) _maxSize.y = sz.y;
+
+            if (_orientation == "Normal")
             {
-                wxSize cSize = dc.GetTextExtent(*c);
-                int xoffset = cSize.GetWidth() / 2;
-                dc.DrawText(wxString(*c), loc.x - xoffset, y);
-                if (_orientation == "Vertical Down")
+                // work out where to draw it
+                wxPoint loc = GetLocation(effms, _maxSize);
+                dc.DrawText(text, loc);
+            }
+            else if (_orientation == "Vertical Up" || _orientation == "Vertical Down")
+            {
+                // work out where to draw it
+                wxSize sz1(_maxSize.GetHeight(), dc.GetCharHeight() * text.size());
+                wxPoint loc = GetLocation(effms, sz1);
+                int y = loc.y;
+                for (auto c = text.begin(); c != text.end(); ++c)
                 {
-                    y += dc.GetCharHeight();
-                }
-                else
-                {
-                    y -= dc.GetCharHeight();
+                    wxSize cSize = dc.GetTextExtent(*c);
+                    int xoffset = cSize.GetWidth() / 2;
+                    dc.DrawText(wxString(*c), loc.x - xoffset, y);
+                    if (_orientation == "Vertical Down")
+                    {
+                        y += dc.GetCharHeight();
+                    }
+                    else
+                    {
+                        y -= dc.GetCharHeight();
+                    }
                 }
             }
-        }
-        else if (_orientation == "Rotate Up 90")
-        {
-            wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
-            wxPoint loc = GetLocation(effms, sz1);
-            dc.DrawRotatedText(text, loc, 90);
-        }
-        else if (_orientation == "Rotate Down 90")
-        {
-            wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
-            wxPoint loc = GetLocation(effms, sz1);
-            dc.DrawRotatedText(text, loc, -90);
-        }
-
-        // write out the bitmap
-        dc.SelectObject(wxNullBitmap);
-        wxImage image = bitmap.ConvertToImage();
-        for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
-        {
-            for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
+            else if (_orientation == "Rotate Up 90")
             {
-                size_t bl = _matrixMapper->Map(x, _matrixMapper->GetHeight() - y - 1) - 1;
+                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxPoint loc = GetLocation(effms, sz1);
+                dc.DrawRotatedText(text, loc, 90);
+            }
+            else if (_orientation == "Rotate Down 90")
+            {
+                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxPoint loc = GetLocation(effms, sz1);
+                dc.DrawRotatedText(text, loc, -90);
+            }
 
-                if (bl < size)
+            // write out the bitmap
+            dc.SelectObject(wxNullBitmap);
+            wxImage image = bitmap.ConvertToImage();
+            for (int x = 0; x < _matrixMapper->GetWidth(); ++x)
+            {
+                for (int y = 0; y < _matrixMapper->GetHeight(); ++y)
                 {
-                    wxByte* p = buffer + bl;
+                    size_t bl = _matrixMapper->Map(x, _matrixMapper->GetHeight() - y - 1) - 1;
 
-                    SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
-                }
-                else
-                {
-                    wxASSERT(false);
+                    if (bl < size)
+                    {
+                        wxByte* p = buffer + bl;
+
+                        SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
+                    }
+                    else
+                    {
+                        wxASSERT(false);
+                    }
                 }
             }
         }

@@ -26,6 +26,7 @@ protected:
     wxFont* _font;
     int _x;
     int _y;
+    bool _renderWhenBlank;
     wxSize _maxSize;
     MatrixMapper* _matrixMapper;
     #pragma endregion Member Variables
@@ -66,6 +67,8 @@ public:
     std::string GetOrientation() const { return _orientation; }
     void SetMovement(const std::string& movement) { if (_movement != movement) { _movement = movement; _changeCount++; } }
     std::string GetMovement() const { return _movement; }
+    void SetRenderWhenBlank(bool renderWhenBlank) { if (_renderWhenBlank != renderWhenBlank) { _renderWhenBlank = renderWhenBlank; _changeCount++; } }
+    bool GetRenderWhenBlank() const { return _renderWhenBlank; }
     void SetFont(wxFont* font);
     wxFont* GetFont() const { return _font; }
     void SetX(int x) { if (_x != x) { _x = x; _changeCount++; } }
