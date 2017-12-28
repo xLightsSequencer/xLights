@@ -12,6 +12,8 @@
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
 		1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */; };
 		1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */; };
+		1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */; };
+		1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */; };
 		3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F281E7E50A200A3F84F /* jsonreader.cpp */; };
 		3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F291E7E50A200A3F84F /* jsonval.cpp */; };
 		3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */; };
@@ -592,6 +594,10 @@
 		1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTest.h; path = PlayList/PlayListItemTest.h; sourceTree = "<group>"; };
 		1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTestPanel.cpp; path = PlayList/PlayListItemTestPanel.cpp; sourceTree = "<group>"; };
 		1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTestPanel.h; path = PlayList/PlayListItemTestPanel.h; sourceTree = "<group>"; };
+		1ECB4F5F1FF4D012006D57AA /* BulkEditControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditControls.h; sourceTree = "<group>"; };
+		1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditControls.cpp; sourceTree = "<group>"; };
+		1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditSliderDialog.cpp; sourceTree = "<group>"; };
+		1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditSliderDialog.h; sourceTree = "<group>"; };
 		3D585F281E7E50A200A3F84F /* jsonreader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = wxJSON/jsonreader.cpp; sourceTree = "<group>"; };
 		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = wxJSON/jsonval.cpp; sourceTree = "<group>"; };
 		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = ../xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
@@ -2117,6 +2123,10 @@
 				673C45551C79570B00FDED47 /* BufferPanel.h */,
 				67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */,
 				67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */,
+				1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */,
+				1ECB4F5F1FF4D012006D57AA /* BulkEditControls.h */,
+				1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */,
+				1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				670C828D1C45CCCF000AA5D8 /* Color.cpp */,
 				67D2B0421D54CC6A006D324F /* ColorCurve.cpp */,
@@ -2920,6 +2930,7 @@
 				67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */,
 				67B2CFE91C3A186A003C17CA /* MarqueeEffect.cpp in Sources */,
 				67BCD1521E6DAF4900F99935 /* GIFImage.cpp in Sources */,
+				1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */,
 				671859E31D61FFF5008F52AA /* SevenSegmentDialog.cpp in Sources */,
 				67BF80071F278956002F118D /* FPPConnectDialog.cpp in Sources */,
 				67B2B22E1E1947BE0024F0BB /* OpenDMXOutput.cpp in Sources */,
@@ -2952,6 +2963,7 @@
 				67B2CFEE1C3A186A003C17CA /* GalaxyEffect.cpp in Sources */,
 				679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */,
 				6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */,
+				1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */,
 				67B2CFEA1C3A186A003C17CA /* LightningEffect.cpp in Sources */,
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
 				675DE26A1B53381800A9BB44 /* xlColorPicker.cpp in Sources */,
