@@ -1436,6 +1436,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 if (rs != nullptr && rs->GetSchedule() != nullptr)
                 {
                     rs->GetSchedule()->AddMinsToEndTime(wxAtoi(parameters));
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
                 }
             }
             else if (command == "Set volume to")
