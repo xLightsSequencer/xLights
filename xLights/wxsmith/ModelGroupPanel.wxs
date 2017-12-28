@@ -95,6 +95,21 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
+							<object class="spacer">
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_ShowSubmodels" member="yes">
+									<label>Show submodels to add</label>
+									<checked>1</checked>
+									<handler function="OnCheckBox_ShowSubmodelsClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>

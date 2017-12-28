@@ -75,6 +75,7 @@ const long ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT4 = wxNewId();
 const long ModelGroupPanel::ID_SPINCTRL1 = wxNewId();
 const long ModelGroupPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const long ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT3 = wxNewId();
 const long ModelGroupPanel::ID_STATICTEXT2 = wxNewId();
 const long ModelGroupPanel::ID_LISTCTRL1 = wxNewId();
@@ -139,6 +140,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show submodels to add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_ShowSubmodels->SetValue(true);
+	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12 = new wxFlexGridSizer(2, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
@@ -178,6 +183,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent,ModelManager &Models,LayoutPan
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoiceModelLayoutTypeSelect);
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelGroupPanel::OnSizeSpinCtrlChange);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnChoicePreviewsSelect);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ModelGroupPanel::OnListBoxAddToModelGroupItemSelect);
 	Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelGroupPanel::OnButtonAddToModelGroupClick);
@@ -251,20 +257,23 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     wxXmlNode *e = g->GetModelXml();
     std::list<std::string> modelsInGroup;
     modelsInGroup.push_back(g->GetName());
-    for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); it++) {
+    for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); ++it) {
         ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
         modelsInGroup.push_back(*it);
     }
-    for (auto it = mModels.begin(); it != mModels.end(); it++) {
+    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
         if (it->first != group) {
             if (canAddToGroup(g, mModels, it->first, modelsInGroup)) {
                 ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
             }
-            for (auto smit = it->second->GetSubModels().begin() ; smit != it->second->GetSubModels().end(); smit++) {
-                Model *sm = *smit;
+            if (CheckBox_ShowSubmodels->GetValue())
+            {
+                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); smit++) {
+                    Model *sm = *smit;
 
-                if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                    if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                        ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
+                    }
                 }
             }
         }
@@ -781,9 +790,12 @@ void ModelGroupPanel::RemoveSelectedModels()
         if (IsItemSelected(ListBoxModelsInGroup, i))
         {
             std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
-            int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
-            ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
             Model* model = mModels[modelName];
+            if (model->GetDisplayAs() != "SubModel" || CheckBox_ShowSubmodels->GetValue())
+            {
+                int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
+                ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            }
             if (model != nullptr) {
                 model->GroupSelected = false;
             }
@@ -842,4 +854,9 @@ void ModelGroupPanel::ClearSelections(wxListCtrl* listCtrl, long stateMask)
     {
         listCtrl->SetItemState(i, 0, stateMask);
     }
+}
+
+void ModelGroupPanel::OnCheckBox_ShowSubmodelsClick(wxCommandEvent& event)
+{
+    UpdatePanel(mGroup);
 }

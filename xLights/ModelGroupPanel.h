@@ -7,6 +7,7 @@
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -58,6 +59,7 @@ class ModelGroupPanel: public wxPanel
 		wxStaticText* GridSizeLabel;
 		wxSpinCtrl* SizeSpinCtrl;
 		wxStaticText* StaticText5;
+		wxCheckBox* CheckBox_ShowSubmodels;
 		//*)
 
 	protected:
@@ -69,6 +71,7 @@ class ModelGroupPanel: public wxPanel
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL1;
 		static const long ID_CHOICE_PREVIEWS;
+		static const long ID_CHECKBOX1;
 		static const long ID_STATICTEXT3;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL1;
@@ -98,6 +101,7 @@ class ModelGroupPanel: public wxPanel
 		void OnListBoxAddToModelGroupItemSelect(wxListEvent& event);
 		void OnListBoxModelsInGroupBeginDrag(wxListEvent& event);
 		void OnListBoxModelsInGroupItemSelect(wxListEvent& event);
+		void OnCheckBox_ShowSubmodelsClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
