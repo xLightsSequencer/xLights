@@ -1464,9 +1464,36 @@ std::string Model::GetStartChannelInDisplayFormat()
 
 std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
 {
+    std::string modelFormat = ModelStartChannel;
+    char firstChar = ModelStartChannel[0];
+
     unsigned int lastChannel = GetLastChannel()+1;
 
-    if (ModelStartChannel[0] == '#')
+    if (firstChar == '@' || firstChar == '>' && CountChar(ModelStartChannel, ':') == 1)
+    {
+        std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
+        Model *m = modelManager[referencedModel];
+
+        if (m != nullptr)
+        {
+            std::string end = m->GetLastChannelInStartChannelFormat(outputManager);
+            if (end != "")
+            {
+                if (end[0] == '#')
+                {
+                    firstChar = '#';
+                    modelFormat = end;
+                }
+                else if (CountChar(end, ':') == 1)
+                {
+                    firstChar = '0';
+                    modelFormat = end;
+                }
+            }
+        }
+    }
+
+    if (firstChar == '#')
     {
         // universe:channel
         long startChannel;
@@ -1482,7 +1509,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             startChannel = lastChannel - output->GetStartChannel() + 1;
         }
 
-        if (CountChar(ModelStartChannel, ':') == 1)
+        if (CountChar(modelFormat, ':') == 1)
         {
             return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
         }
@@ -1496,7 +1523,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, lastChannel).ToStdString();
         }
     }
-    else if (ModelStartChannel[0] == '@' || ModelStartChannel[0] == '>' || CountChar(ModelStartChannel, ':') == 0)
+    else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
         // absolute
         return wxString::Format("%u", lastChannel).ToStdString();
