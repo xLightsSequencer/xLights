@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Show controller status in xSchedule
    -- bug (keith)  Fix audio send to specified device
    -- enh (keith)  Add effect setting bulk editing to almost all settings
+   -- enh (keith)  Add horizontal and vertical stack buffer styles for groups ... makes text on groups possible.
+   -- enh (keith)  Show schedule end time when a schedule is running (including any extensions)
    -- bug (gil)    Fix Shift Effects not shifting effects in collapsed layers. Fixes #1046.
    -- bug (gil)    Fix Show All Effects not expanding collapsed model layers or strand layers.  Fixes #1045.
 2017.44  Dec 19, 2017

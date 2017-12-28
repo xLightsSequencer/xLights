@@ -43,6 +43,8 @@
 									<content>
 										<item>Grid as per preview</item>
 										<item>Minimal Grid</item>
+										<item>Horizontal Stack</item>
+										<item>Vertical Stack</item>
 										<item>Horizontal Per Model</item>
 										<item>Vertical Per Model</item>
 										<item>Horizontal Per Model/Strand</item>

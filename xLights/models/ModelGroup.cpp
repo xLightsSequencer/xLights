@@ -8,6 +8,8 @@
 #include "ModelScreenLocation.h"
 #include <log4cpp/Category.hh>
 
+static const std::string HORIZ("Horizontal Stack");
+static const std::string VERT("Vertical Stack");
 static const std::string HORIZ_PER_MODEL("Horizontal Per Model");
 static const std::string VERT_PER_MODEL("Vertical Per Model");
 static const std::string SINGLELINE_AS_PIXEL("Single Line Model As A Pixel");
@@ -27,6 +29,8 @@ const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
             GROUP_BUFFER_STYLES = Model::DEFAULT_BUFFER_STYLES;
+            GROUP_BUFFER_STYLES.push_back(HORIZ);
+            GROUP_BUFFER_STYLES.push_back(VERT);
             GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODEL);
             GROUP_BUFFER_STYLES.push_back(VERT_PER_MODEL);
             GROUP_BUFFER_STYLES.push_back(HORIZ_PER_MODELSTRAND);
@@ -323,6 +327,8 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     int maxNodes = 0;
     int total = 0;
 
+    int totWid = 0;
+    int totHi = 0;
     int maxWid = 0;
     int maxHi = 0;
     for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
@@ -340,6 +346,8 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
             }
             maxWid = std::max(maxWid, m->GetDefaultBufferWi());
             maxHi = std::max(maxHi, m->GetDefaultBufferHt());
+            totWid += m->GetDefaultBufferWi();
+            totHi += m->GetDefaultBufferHt();
             maxStrandLen = std::max(maxStrandLen, bh);
         } else if (m != nullptr) {
             models++;
@@ -356,6 +364,8 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
 
             maxWid = std::max(maxWid, m->GetDefaultBufferWi());
             maxHi = std::max(maxHi, m->GetDefaultBufferHt());
+            totWid += m->GetDefaultBufferWi();
+            totHi += m->GetDefaultBufferHt();
         }
     }
     if (type == HORIZ_PER_MODEL) {
@@ -364,6 +374,12 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
     } else if (type == VERT_PER_MODEL) {
         BufferHt = models;
         BufferWi = maxNodes;
+    } else if (type == HORIZ) {
+        BufferHt = maxHi;
+        BufferWi = totWid;
+    } else if (type == VERT) {
+        BufferHt = totHi;
+        BufferWi = maxWid;
     } else if (type == SINGLELINE_AS_PIXEL) {
         BufferHt = 1;
         BufferWi = models;
@@ -438,6 +454,50 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                     BufferHt = y;
                 }
                 BufferWi++;
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (type == HORIZ) {
+        int modelX = 0;
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
+            Model* m = modelManager[*it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufX = it2->bufX + modelX;
+                    }
+                    start++;
+                }
+                if (y > BufferHt) {
+                    BufferHt = y;
+                }
+                BufferWi += x;
+                modelX += x;
+            }
+        }
+        ApplyTransform(transform, Nodes, BufferWi, BufferHt);
+    } else if (type == VERT) {
+        int modelY = 0;
+        for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
+            Model* m = modelManager[*it];
+            if (m != nullptr) {
+                int start = Nodes.size();
+                int x, y;
+                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                while (start < Nodes.size()) {
+                    for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
+                        it2->bufY = it2->bufY + modelY;
+                    }
+                    start++;
+                }
+                if (x > BufferWi) {
+                    BufferWi = x;
+                }
+                BufferHt += y;
+                modelY += y;
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
