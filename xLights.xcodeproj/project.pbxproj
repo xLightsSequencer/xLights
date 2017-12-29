@@ -14,6 +14,11 @@
 		1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */; };
 		1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */; };
 		1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */; };
+		1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */; };
+		1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F741FF635D7006D57AA /* OSCPacket.cpp */; };
+		1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F771FF635EC006D57AA /* PlayListItemOSC.cpp */; };
+		1ECB4F7C1FF635EE006D57AA /* PlayListItemOSCPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F791FF635ED006D57AA /* PlayListItemOSCPanel.cpp */; };
+		1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F7D1FF63621006D57AA /* Pinger.cpp */; };
 		3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F281E7E50A200A3F84F /* jsonreader.cpp */; };
 		3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F291E7E50A200A3F84F /* jsonval.cpp */; };
 		3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */; };
@@ -598,6 +603,16 @@
 		1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditControls.cpp; sourceTree = "<group>"; };
 		1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditSliderDialog.cpp; sourceTree = "<group>"; };
 		1ECB4F621FF4D014006D57AA /* BulkEditSliderDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditSliderDialog.h; sourceTree = "<group>"; };
+		1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureOSC.cpp; sourceTree = "<group>"; };
+		1ECB4F721FF635D5006D57AA /* OSCPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSCPacket.h; sourceTree = "<group>"; };
+		1ECB4F731FF635D6006D57AA /* ConfigureOSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigureOSC.h; sourceTree = "<group>"; };
+		1ECB4F741FF635D7006D57AA /* OSCPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCPacket.cpp; sourceTree = "<group>"; };
+		1ECB4F771FF635EC006D57AA /* PlayListItemOSC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemOSC.cpp; path = PlayList/PlayListItemOSC.cpp; sourceTree = "<group>"; };
+		1ECB4F781FF635EC006D57AA /* PlayListItemOSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemOSC.h; path = PlayList/PlayListItemOSC.h; sourceTree = "<group>"; };
+		1ECB4F791FF635ED006D57AA /* PlayListItemOSCPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemOSCPanel.cpp; path = PlayList/PlayListItemOSCPanel.cpp; sourceTree = "<group>"; };
+		1ECB4F7A1FF635ED006D57AA /* PlayListItemOSCPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemOSCPanel.h; path = PlayList/PlayListItemOSCPanel.h; sourceTree = "<group>"; };
+		1ECB4F7D1FF63621006D57AA /* Pinger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pinger.cpp; sourceTree = "<group>"; };
+		1ECB4F7E1FF63621006D57AA /* Pinger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Pinger.h; sourceTree = "<group>"; };
 		3D585F281E7E50A200A3F84F /* jsonreader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = wxJSON/jsonreader.cpp; sourceTree = "<group>"; };
 		3D585F291E7E50A200A3F84F /* jsonval.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = wxJSON/jsonval.cpp; sourceTree = "<group>"; };
 		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = ../xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
@@ -2391,6 +2406,10 @@
 			children = (
 				67C78D091FBA2A4900B82E48 /* VideoCache.cpp */,
 				67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */,
+				1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */,
+				1ECB4F731FF635D6006D57AA /* ConfigureOSC.h */,
+				1ECB4F741FF635D7006D57AA /* OSCPacket.cpp */,
+				1ECB4F721FF635D5006D57AA /* OSCPacket.h */,
 				67FFB8171FA3F65D007F9FBB /* Control.h */,
 				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
 				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
@@ -2450,6 +2469,8 @@
 				67DA0AF21E39C8EB00E2A859 /* OutputProcessingDialog.cpp */,
 				67DA0AF31E39C8EB00E2A859 /* OutputProcessingDialog.h */,
 				67DA0AF41E39C8EB00E2A859 /* OutputProcessRemap.cpp */,
+				1ECB4F7D1FF63621006D57AA /* Pinger.cpp */,
+				1ECB4F7E1FF63621006D57AA /* Pinger.h */,
 				67DA0AF51E39C8EB00E2A859 /* OutputProcessRemap.h */,
 				67DA0AF61E39C8EB00E2A859 /* OutputProcessSet.cpp */,
 				67DA0AF71E39C8EB00E2A859 /* OutputProcessSet.h */,
@@ -2547,6 +2568,10 @@
 				67F23FB01E329E7400F8B985 /* PlayListItem.cpp */,
 				67F23FB11E329E7400F8B985 /* PlayListItem.h */,
 				67F23FB21E329E7400F8B985 /* PlayListItemAllOff.cpp */,
+				1ECB4F771FF635EC006D57AA /* PlayListItemOSC.cpp */,
+				1ECB4F781FF635EC006D57AA /* PlayListItemOSC.h */,
+				1ECB4F791FF635ED006D57AA /* PlayListItemOSCPanel.cpp */,
+				1ECB4F7A1FF635ED006D57AA /* PlayListItemOSCPanel.h */,
 				67F23FB31E329E7400F8B985 /* PlayListItemAllOff.h */,
 				67F23FB41E329E7400F8B985 /* PlayListItemAllOffPanel.cpp */,
 				67F23FB51E329E7400F8B985 /* PlayListItemAllOffPanel.h */,
@@ -3107,6 +3132,7 @@
 				67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */,
 				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
+				1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
@@ -3125,6 +3151,7 @@
 				67F240271E32A09E00F8B985 /* xLightsTimer.cpp in Sources */,
 				67DA0AFD1E39C8EB00E2A859 /* OutputProcessingDialog.cpp in Sources */,
 				67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */,
+				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
@@ -3186,6 +3213,7 @@
 				67F23FF01E329E7400F8B985 /* PlayListItemESEQ.cpp in Sources */,
 				67F23F671E329AD800F8B985 /* ProjectorDetailsDialog.cpp in Sources */,
 				67F23F5B1E329AD800F8B985 /* ScheduleManager.cpp in Sources */,
+				1ECB4F7C1FF635EE006D57AA /* PlayListItemOSCPanel.cpp in Sources */,
 				67F23FF81E329E7400F8B985 /* PlayListItemRDS.cpp in Sources */,
 				67F23F661E329AD800F8B985 /* md5.cpp in Sources */,
 				67F240001E329E7400F8B985 /* PlayListPanel.cpp in Sources */,
@@ -3226,6 +3254,7 @@
 				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
 				67F23FF61E329E7400F8B985 /* PlayListItemPJLink.cpp in Sources */,
+				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
 				67F23FA21E329E3300F8B985 /* message.cpp in Sources */,
@@ -3233,6 +3262,7 @@
 				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
+				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
