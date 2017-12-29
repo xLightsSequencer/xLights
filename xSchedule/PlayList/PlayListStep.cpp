@@ -352,9 +352,9 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
         (*it)->Frame(buffer, size, frameMS, msPerFrame, outputframe);
     }
 
-    if (sw.Time() > msPerFrame / 2)
+    if (sw.Time() > (float)msPerFrame * 0.8)
     {
-        logger_base.warn("Step %s frame %ld took longer than half the frame time to output: %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
+        logger_base.warn("Step %s frame %ld took longer than 80% frame time to output: %ldms.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());
     }
 
     //logger_base.debug("    Step %s frame %ld done in %ld.", (const char *)GetNameNoTime().c_str(), (long)frameMS, (long)sw.Time());

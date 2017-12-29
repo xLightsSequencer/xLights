@@ -1129,10 +1129,8 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
             }
         }
     }
-    else
-    {
-        return schedule->GetName() + " [" + schedule->GetNextTriggerTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
-    }
+
+    return schedule->GetName() + " [" + schedule->GetNextTriggerTime() + "]"; // +wxString::Format(" Id:%i", schedule->GetId()).ToStdString();
 }
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
