@@ -43,7 +43,9 @@ namespace RenderType
 		LEVEL_BAR,
 		NOTE_LEVEL_BAR,
 		LEVEL_PULSE_COLOR,
-		TIMING_EVENT_BARS
+		TIMING_EVENT_BARS,
+        LEVEL_COLOR,
+        TIMING_EVENT_PULSE_COLOR
 	};
 }
 
@@ -317,6 +319,14 @@ int VUMeterEffect::DecodeType(const std::string& type)
     {
         return RenderType::TIMING_EVENT_BARS;
     }
+    else if (type == "Timing Event Pulse Color")
+    {
+        return RenderType::TIMING_EVENT_PULSE_COLOR;
+    }
+    else if (type == "Level Color")
+    {
+        return RenderType::LEVEL_COLOR;
+    }
 
 	// default type is volume bars
 	return RenderType::VOLUME_BARS;
@@ -512,6 +522,12 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             break;
         case RenderType::TIMING_EVENT_BARS:
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true);
+            break;
+        case RenderType::TIMING_EVENT_PULSE_COLOR:
+            RenderTimingEventPulseColourFrame(buffer, usebars, timingtrack, _lastsize, _colourindex);
+            break;
+        case RenderType::LEVEL_COLOR:
+            RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark);
             break;
         }
 	}
@@ -1079,6 +1095,43 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
                     buffer.SetPixel(x, y, color1);
                 }
             }
+        }
+    }
+}
+
+void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    float f = 0.0;
+    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    if (pf != nullptr)
+    {
+        f = *pf->begin();
+    }
+
+    if (f > (float)sensitivity / 100.0)
+    {
+        if (lasttimingmark != buffer.curPeriod - 1)
+        {
+            colourindex++;
+            if (colourindex >= buffer.GetColorCount())
+            {
+                colourindex = 0;
+            }
+        }
+
+        lasttimingmark = buffer.curPeriod;
+    }
+
+    xlColor color1;
+    buffer.palette.GetColor(colourindex, color1);
+
+    for (int x = 0; x < buffer.BufferWi; x++)
+    {
+        for (int y = 0; y < buffer.BufferHt; y++)
+        {
+            buffer.SetPixel(x, y, color1);
         }
     }
 }
@@ -1858,6 +1911,65 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer &buffer, int fadefr
         {
             xlColor color;
             buffer.palette.GetColor(0, color);
+            color.alpha = lastsize * 255 / fadeframes;
+            for (int y = 0; y < buffer.BufferHt * lastsize; y++)
+            {
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    buffer.SetPixel(x, y, color);
+                }
+            }
+
+            lastsize--;
+        }
+    }
+}
+
+void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer &buffer, int fadeframes, std::string timingtrack, float& lastsize, int& colourindex)
+{
+    if (timingtrack != "")
+    {
+        Element* t = nullptr;
+        for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+        {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING
+                && e->GetName() == timingtrack)
+            {
+                t = e;
+                break;
+            }
+        }
+
+        if (t != nullptr)
+        {
+            EffectLayer* el = t->GetEffectLayer(0);
+            int ms = buffer.curPeriod*buffer.frameTimeInMs;
+            bool effectPresent = false;
+            for (int j = 0; j < el->GetEffectCount(); j++)
+            {
+                if (el->GetEffect(j)->GetStartTimeMS() == ms)
+                {
+                    effectPresent = true;
+                    break;
+                }
+            }
+
+            if (effectPresent)
+            {
+                lastsize = fadeframes;
+                colourindex++;
+                if (colourindex >= buffer.GetColorCount())
+                {
+                    colourindex = 0;
+                }
+            }
+        }
+
+        if (lastsize > 0)
+        {
+            xlColor color;
+            buffer.palette.GetColor(colourindex, color);
             color.alpha = lastsize * 255 / fadeframes;
             for (int y = 0; y < buffer.BufferHt * lastsize; y++)
             {

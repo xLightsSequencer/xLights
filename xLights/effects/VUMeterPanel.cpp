@@ -106,6 +106,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Intensity Wave"));
 	Choice_VUMeter_Type->Append(_("Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Bar"));
+	Choice_VUMeter_Type->Append(_("Level Color"));
 	Choice_VUMeter_Type->Append(_("Level Pulse"));
 	Choice_VUMeter_Type->Append(_("Level Pulse Color"));
 	Choice_VUMeter_Type->Append(_("Level Shape"));
@@ -117,6 +118,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Choice_VUMeter_Type->Append(_("Timing Event Jump"));
 	Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
 	Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
+	Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
 	Choice_VUMeter_Type->Append(_("Note On"));
 	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
 	Choice_VUMeter_Type->Append(_("Note Level Bar"));
@@ -279,6 +281,7 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bars" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump 100" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
     {
         Choice_VUMeter_TimingTrack->Enable();
@@ -292,6 +295,7 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Level Pulse Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Bar" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Level Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
@@ -337,6 +341,7 @@ void VUMeterPanel::ValidateWindow()
         if (Choice_VUMeter_Type->GetStringSelection() == "On" ||
             Choice_VUMeter_Type->GetStringSelection() == "Color On" ||
             Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
+            Choice_VUMeter_Type->GetStringSelection() == "Level Color" ||
             Choice_VUMeter_Type->GetStringSelection() == "Note On")
         {
             Slider_VUMeter_Bars->Disable();
@@ -366,7 +371,9 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_EndNote->Disable();
         TextCtrl_VUMeter_StartNote->Disable();
     }
-    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" || Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
+
+    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
     {
         Slider_VUMeter_XOffset->Enable();
         TextCtrl_VUMeter_XOffset->Enable();
@@ -376,6 +383,7 @@ void VUMeterPanel::ValidateWindow()
         Slider_VUMeter_XOffset->Disable();
         TextCtrl_VUMeter_XOffset->Disable();
     }
+
     if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
         Choice_VUMeter_Type->GetStringSelection() == "Waveform")
     {

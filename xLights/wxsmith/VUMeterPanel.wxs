@@ -74,6 +74,7 @@
 								<item>Intensity Wave</item>
 								<item>Pulse</item>
 								<item>Level Bar</item>
+								<item>Level Color</item>
 								<item>Level Pulse</item>
 								<item>Level Pulse Color</item>
 								<item>Level Shape</item>
@@ -85,6 +86,7 @@
 								<item>Timing Event Jump</item>
 								<item>Timing Event Jump 100</item>
 								<item>Timing Event Pulse</item>
+								<item>Timing Event Pulse Color</item>
 								<item>Note On</item>
 								<item>Note Level Pulse</item>
 								<item>Note Level Bar</item>
