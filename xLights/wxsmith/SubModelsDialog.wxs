@@ -3,7 +3,7 @@
 	<object class="wxDialog" name="SubModelsDialog">
 		<title>Sub Models</title>
 		<centered>1</centered>
-		<size>417,215</size>
+		<size>778,368</size>
 		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -12,35 +12,35 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 							<cols>1</cols>
-							<growablecols>0</growablecols>
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-									<cols>5</cols>
-									<growablecols>1</growablecols>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText3" member="yes">
-											<label>Name:</label>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxChoice" name="ID_CHOICE3" variable="NameChoice" member="yes">
-											<minsize>100,-1d</minsize>
-											<handler function="OnNameChoiceSelect" entry="EVT_CHOICE" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+									<cols>3</cols>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl1" member="yes">
+									<size>150,-1</size>
+									<minsize>150,-1</minsize>
+									<style>wxLC_REPORT</style>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+									<cols>3</cols>
+									<rows>1</rows>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
 											<label>Add</label>
@@ -69,12 +69,49 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxALIGN_BOTTOM</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+									<cols>5</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText3" member="yes">
+											<label>Name:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl1" member="yes">
+											<value>Text</value>
+											<size>361,32</size>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<minsize>100,0</minsize>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<minsize>-1,-1</minsize>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="TypeNotebook" member="yes">
-									<handler function="OnTypeNotebookPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 									<object class="notebookpage">
 										<object class="wxPanel" name="ID_PANEL2" variable="Panel1" member="no">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
@@ -199,30 +236,12 @@
 								<growablerows>0</growablerows>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<minsize>100,100d</minsize>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
-					<object class="button">
-						<object class="wxButton" name="wxID_OK">
-							<label></label>
-						</object>
-					</object>
-					<object class="button">
-						<object class="wxButton" name="wxID_CANCEL">
-							<label></label>
-						</object>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>
