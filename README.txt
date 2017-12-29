@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2017.45  Dec 29, 2017
    -- enh (craig)  Added a randomize current selected effect button
    -- bug (craig)  Fixed the create random effects to generate random settings
    -- enh (keith)  Add Open Sound Control (OSC) Master and Remote sync
