@@ -13,27 +13,20 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>3</cols>
-					<growablecols>1</growablecols>
+					<growablecols>2</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 							<cols>1</cols>
-							<growablerows>1</growablerows>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-									<cols>3</cols>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListCtrl1" member="yes">
 									<size>150,-1</size>
 									<minsize>150,-1</minsize>
 									<style>wxLC_REPORT</style>
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -69,12 +62,12 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_BOTTOM</flag>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -98,16 +91,13 @@
 									<object class="sizeritem">
 										<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl1" member="yes">
 											<value>Text</value>
-											<size>361,32</size>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 										<border>5</border>
-										<minsize>100,0</minsize>
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<minsize>-1,-1</minsize>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -147,7 +137,7 @@
 																	<option>1</option>
 																</object>
 															</object>
-															<flag>wxALL|wxEXPAND</flag>
+															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -167,12 +157,12 @@
 																<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 																<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 															</object>
-															<flag>wxALL|wxEXPAND</flag>
+															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALL|wxEXPAND</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -218,11 +208,11 @@
 										<label>SubBuffer</label>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -240,8 +230,30 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+							<object class="button">
+								<object class="wxButton" name="wxID_OK">
+									<label></label>
+								</object>
+							</object>
+							<object class="button">
+								<object class="wxButton" name="wxID_CANCEL">
+									<label></label>
+								</object>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 		</object>
