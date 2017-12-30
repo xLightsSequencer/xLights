@@ -150,7 +150,7 @@ wxXmlNode* PlayListItemText::Save()
     node->AddAttribute("Movement", _movement);
     if (!_renderWhenBlank)
     {
-        node->AddAttribute("RenderWhenBank", "False");
+        node->AddAttribute("RenderWhenBlank", "False");
     }
     node->AddAttribute("Orientation", _orientation);
     node->AddAttribute("Type", _type);
