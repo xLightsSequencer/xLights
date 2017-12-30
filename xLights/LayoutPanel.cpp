@@ -88,6 +88,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -262,6 +263,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
+	 modelPreview->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewContextMenu, nullptr, this);
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -2852,6 +2854,20 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     UpdatePreview();
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
+}
+
+void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
+{
+	wxMenu menu;
+	menu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
+	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewSaveImage, nullptr, this);
+
+	PopupMenu(&menu);
+}
+
+void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
+{
+	// todo: grab image from modelPreview and allow to save!
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)

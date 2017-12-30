@@ -125,6 +125,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
         static const long ID_PREVIEW_MODEL_DELCURVE;
+		  static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
 
 	public:
 
@@ -145,6 +146,8 @@ class LayoutPanel: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
+		void OnPreviewContextMenu(wxContextMenuEvent& event);
+		void OnPreviewSaveImage(wxCommandEvent& event);
 		//*)
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
