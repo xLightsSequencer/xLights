@@ -64,6 +64,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_LOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_UNLOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_CREATEGROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
@@ -790,8 +791,6 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     return 0;
 }
 
-
-
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
@@ -1002,6 +1001,66 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                 preview->Update();
             }
         }
+    }
+}
+
+void LayoutPanel::CreateModelGroupFromSelected()
+{
+    wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
+    if (dlg.ShowModal() == wxID_OK) {
+        wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
+        while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
+            wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");
+            if (dlg2.ShowModal() == wxID_OK) {
+                name = wxString(Model::SafeModelName(dlg2.GetValue().ToStdString()));
+            }
+            else {
+                return;
+            }
+        }
+
+        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+        xlights->ModelGroupsNode->AddChild(node);
+        node->AddAttribute("selected", "0");
+        node->AddAttribute("name", name);
+        node->AddAttribute("layout", "minimalGrid");
+        node->AddAttribute("GridSize", "400");
+        wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
+        node->AddAttribute("LayoutGroup", grp);
+
+        wxString ModelsInGroup = "";
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                if (ModelsInGroup != "")
+                {
+                    ModelsInGroup += ",";
+                }
+                ModelsInGroup += modelPreview->GetModels()[i]->GetName();
+            }
+        }
+
+        node->AddAttribute("models", ModelsInGroup);
+
+        xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
+        xlights->UpdateModelsList();
+        xlights->MarkEffectsFileDirty(true);
+        model_grp_panel->UpdatePanel(name.ToStdString());
+        ShowPropGrid(false);
+        SelectModel(name.ToStdString());
+        wxArrayString models = wxSplit(ModelsInGroup, ',');
+        for (auto it = models.begin(); it != models.end(); ++it)
+        {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                {
+                    modelPreview->GetModels()[i]->GroupSelected = true;
+                }
+            }
+        }
+        RenderLayout();
     }
 }
 
@@ -1326,8 +1385,6 @@ int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
     }
     return found.size();
 }
-
-
 
 bool LayoutPanel::SelectSingleModel(int x,int y)
 {
@@ -1752,6 +1809,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             {
                 mnu.Append(ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL, "Export xLights Model");
             }
+            mnu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         }
     }
 
@@ -1837,6 +1895,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         Model* md = selectedModel;
         if (md == nullptr) return;
         md->ExportAsCustomXModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_CREATEGROUP)
+    {
+        CreateModelGroupFromSelected();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
     {
@@ -2546,13 +2608,13 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
         UnSelectAllModels();
 
         if (undoBuffer[sz].type == "Background") {
-            wxPropertyGridEvent event;
-            event.SetPropertyGrid(propertyEditor);
+            wxPropertyGridEvent pgEvent;
+            pgEvent.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Background", undoBuffer[sz].key, undoBuffer[sz].data);
-            event.SetProperty(&wsp);
+            pgEvent.SetProperty(&wsp);
             wxVariant value(undoBuffer[sz].data);
-            event.SetPropertyValue(value);
-            OnPropertyGridChange(event);
+            pgEvent.SetPropertyValue(value);
+            OnPropertyGridChange(pgEvent);
             UnSelectAllModels();
         } else if (undoBuffer[sz].type == "ModelProperty") {
             SelectModel(undoBuffer[sz].model);
@@ -2639,6 +2701,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
         undoBuffer.resize(sz);
     }
 }
+
 void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key, const std::string &data) {
     xlights->MarkEffectsFileDirty(false);
     int idx = undoBuffer.size();
@@ -2790,7 +2853,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 
 LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 {
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if( grp->GetName() == name ) {
             return grp;
@@ -2801,7 +2864,7 @@ LayoutGroup* LayoutPanel::GetLayoutGroup(const std::string &name)
 
 void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 {
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
         Model *model = it->second;
         model->Selected = false;
         model->GroupSelected = false;
@@ -2990,10 +3053,6 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
         }
     }
 }
-
-//void OnItemExpanding(wxTreeListEvent& event);
-//void OnItemExpanded(wxTreeListEvent& event);
-//void OnItemChecked(wxTreeListEvent& event);
 
 void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 {

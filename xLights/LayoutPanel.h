@@ -104,6 +104,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
+        static const long ID_PREVIEW_MODEL_CREATEGROUP;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
@@ -180,6 +181,7 @@ class LayoutPanel: public wxPanel
     protected:
         void AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
+        void CreateModelGroupFromSelected();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);

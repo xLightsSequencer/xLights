@@ -225,7 +225,8 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
     if (model == g->GetName()) {
         return false;
     }
-    for (auto it = modelGroupsInGroup.begin(); it != modelGroupsInGroup.end(); it++) {
+
+    for (auto it = modelGroupsInGroup.begin(); it != modelGroupsInGroup.end(); ++it) {
         if (*it == model) {
             return false;
         }
