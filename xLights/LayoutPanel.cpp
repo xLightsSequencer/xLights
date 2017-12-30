@@ -10,6 +10,7 @@
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/filedlg.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -2867,7 +2868,25 @@ void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
 
 void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
 {
-	// todo: grab image from modelPreview and allow to save!
+	wxImage *image = modelPreview->GrabImage();
+	if (image == nullptr)
+	{
+		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+		msgDlg.ShowModal();
+		return;
+	}
+
+	const char wildcard[] = "JPG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG files (*.png)|*.png";
+	wxFileDialog saveDlg(this, _("Save Image"), wxEmptyString, wxEmptyString,
+		wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (saveDlg.ShowModal() == wxID_OK)
+	{
+		wxString path = saveDlg.GetPath();
+		wxBitmapType bitmapType = path.EndsWith(".png") ? wxBITMAP_TYPE_PNG : wxBITMAP_TYPE_JPEG;
+		image->SaveFile(path, bitmapType);
+	}
+
+	delete image;
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)
