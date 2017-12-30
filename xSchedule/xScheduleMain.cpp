@@ -656,6 +656,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     // Uncomment this to run the MatrixMapper tests
     //MatrixMapper::Test(__schedule->GetOutputManager());
 
+    // Uncomment this to run the schedule date tests
+    //Schedule::Test();
+
     wxFrame::SendSizeEvent();
     size_t rate = 50;
 

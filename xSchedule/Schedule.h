@@ -31,7 +31,7 @@ class Schedule
 
     public:
 
-        void Test();
+        static void Test();
 
         wxUint32 GetId() const { return _id; }
         bool operator<(const Schedule& rhs) const { return _priority < rhs._priority; }

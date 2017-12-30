@@ -166,21 +166,57 @@ void Schedule::SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat
 
 void Schedule::Test()
 {
-    _startDate = wxDateTime(5, (wxDateTime::Month)11, 2016);
-    _endDate = wxDateTime(12, (wxDateTime::Month)0, 2017);
-    _startTime = wxDateTime((wxDateTime::wxDateTime_t)22);
-    _endTime = wxDateTime((wxDateTime::wxDateTime_t)2);
-    _dow = "MonTue";
-    wxASSERT(IsOkDOW(wxDateTime(9, (wxDateTime::Month)0, 2017)));
-    wxASSERT(IsOkDOW(wxDateTime(10, (wxDateTime::Month)0, 2017)));
-    wxASSERT(!IsOkDOW(wxDateTime(11, (wxDateTime::Month)0, 2017)));
-    wxASSERT(!IsOkDOW(wxDateTime(12, (wxDateTime::Month)0, 2017)));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxASSERT(!CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 21, 0)));
-    wxASSERT(CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 22, 0)));
-    wxASSERT(CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 1, 0)));
-    wxASSERT(!CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 3, 0)));
-    wxASSERT(!CheckActiveAt(wxDateTime(16, (wxDateTime::Month)0, 2017, 23, 0)));
+    logger_base.warn("Running Schedule tests.");
+
+    Schedule s;
+
+    s._startDate = wxDateTime(5, (wxDateTime::Month)11, 2016);
+    s._endDate = wxDateTime(12, (wxDateTime::Month)0, 2017);
+    s._startTime = wxDateTime((wxDateTime::wxDateTime_t)22);
+    s._endTime = wxDateTime((wxDateTime::wxDateTime_t)2);
+    s._dow = "MonTue";
+    wxASSERT(s.IsOkDOW(wxDateTime(9, (wxDateTime::Month)0, 2017)));
+    wxASSERT(s.IsOkDOW(wxDateTime(10, (wxDateTime::Month)0, 2017)));
+    wxASSERT(!s.IsOkDOW(wxDateTime(11, (wxDateTime::Month)0, 2017)));
+    wxASSERT(!s.IsOkDOW(wxDateTime(12, (wxDateTime::Month)0, 2017)));
+
+    wxASSERT(!s.CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 21, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(5, (wxDateTime::Month)11, 2016, 22, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 1, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(6, (wxDateTime::Month)11, 2016, 3, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(16, (wxDateTime::Month)0, 2017, 23, 0)));
+
+    s._startDate = wxDateTime(26, (wxDateTime::Month)11, 2017);
+    s._endDate = wxDateTime(1, (wxDateTime::Month)0, 2018);
+    s._startTime = wxDateTime((wxDateTime::wxDateTime_t)19);
+    s._endTime = wxDateTime((wxDateTime::wxDateTime_t)22);
+    s._dow = "MonTueWedThuFriSatSun";
+    wxASSERT(s.IsOkDOW(wxDateTime(1, (wxDateTime::Month)0, 2018)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2018, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2019, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(2, (wxDateTime::Month)0, 2018, 19, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2017, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2018, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(25, (wxDateTime::Month)11, 2017, 19, 0)));
+
+    s._startTime = wxDateTime((wxDateTime::wxDateTime_t)19);
+    s._endTime = wxDateTime((wxDateTime::wxDateTime_t)19);
+    wxASSERT(!s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2017, 16, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2017, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2018, 19, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(27, (wxDateTime::Month)11, 2017, 1, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2018, 1, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2019, 1, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2018, 20, 0)));
+
+    s._everyYear = true;
+    wxASSERT(s.CheckActiveAt(wxDateTime(1, (wxDateTime::Month)0, 2019, 1, 0)));
+    wxASSERT(s.CheckActiveAt(wxDateTime(26, (wxDateTime::Month)11, 2019, 19, 0)));
+    wxASSERT(!s.CheckActiveAt(wxDateTime(2, (wxDateTime::Month)0, 2018, 19, 0)));
+
+    logger_base.warn("    Schedule tests done.");
 }
 
 bool Schedule::IsOkDOW(const wxDateTime& date)
@@ -193,10 +229,24 @@ bool Schedule::CheckActive()
     return CheckActiveAt(wxDateTime::Now());
 }
 
+//#define LOGCALCNEXTTRIGGERTIME
+
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
+#ifdef LOGCALCNEXTTRIGGERTIME
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
     if (!_enabled || !IsOkDOW(now))
     {
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("       Disabled or wrong day of week.");
+#endif
+
         _active = false;
         return _active;
     }
@@ -206,7 +256,21 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
 
     if (_everyYear)
     {
-        if (start < end)
+        wxDateTime n = now;
+        n.SetHour(0);
+        n.SetMinute(0);
+        n.SetSecond(0);
+
+        start.SetYear(n.GetYear());
+        end.SetYear(n.GetYear());
+
+        if (start > n)
+        {
+            start.SetYear(n.GetYear() - 1);
+            end.SetYear(n.GetYear() - 1);
+        }
+
+        if (start > end)
         {
             end = end.SetYear(end.GetYear() + 1);
         }
@@ -222,22 +286,24 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         end.Add(wxTimeSpan(24));
     }
 
-    start.SetYear(now.GetYear());
-    end.SetYear(now.GetYear() + end.GetYear() - start.GetYear());
-
     // handle the 24 hours a day case
     if (_startTime == _endTime)
     {
         _active = now >= start && now <= end;
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+        if (!_active) logger_base.debug("       24 hrs a day but not within dates. %s-%s", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
         return _active;
     }
 
     if (now >= start && now <= end)
     {
         // dates are ok ... now check the times
-        start.SetDay(now.GetDay());
-        start.SetMonth(now.GetMonth());
         start.SetYear(now.GetYear());
+        start.SetMonth(now.GetMonth());
+        start.SetDay(now.GetDay());
         end = start;
         end.SetHour(_endTime.GetHour());
         end.SetMinute(_endTime.GetMinute());
@@ -252,9 +318,16 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         }
 
         _active = now >= start && now <= end;
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+        if (!_active) logger_base.debug("       Valid dates but not at this time %s-%s.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
     }
     else
     {
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("       Not valid on this date %s-%s.", (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
         // outside date range
         _active = false;
         return _active;
@@ -323,6 +396,10 @@ wxDateTime Schedule::GetNextTriggerDateTime()
 
 std::string Schedule::GetNextTriggerTime()
 {
+#ifdef LOGCALCNEXTTRIGGERTIME
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
     wxDateTime end = _endDate;
     if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
 
@@ -337,6 +414,10 @@ std::string Schedule::GetNextTriggerTime()
         next.SetHour(_startTime.GetHour());
         next.SetMinute(_startTime.GetMinute());
 
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
         if (next > wxDateTime::Now() && CheckActiveAt(next))
         {
             return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -345,6 +426,9 @@ std::string Schedule::GetNextTriggerTime()
         for (int i = 0; i < 7; i++)
         {
             next += wxTimeSpan(24);
+#ifdef LOGCALCNEXTTRIGGERTIME
+            logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
             if (next > wxDateTime::Now() && CheckActiveAt(next))
             {
                 return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -361,6 +445,9 @@ std::string Schedule::GetNextTriggerTime()
     next.SetHour(_startTime.GetHour());
     next.SetMinute(_startTime.GetMinute());
     next.SetSecond(0);
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
     if (next > wxDateTime::Now() && CheckActiveAt(next))
     {
         return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -369,13 +456,43 @@ std::string Schedule::GetNextTriggerTime()
     for (int i =0; i < 7; i++)
     {
         next += wxTimeSpan(24);
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
         if (next > wxDateTime::Now() && CheckActiveAt(next))
         {
             return next.Format("%Y-%m-%d %H:%M").ToStdString();
         }
     }
 
+    if (_everyYear)
+    {
+        next = _startDate;
+        next.SetYear(wxDateTime::Now().GetYear());
+        next.SetHour(_startTime.GetHour());
+        next.SetMinute(_startTime.GetMinute());
+
+        if (next < wxDateTime::Now())
+        {
+            next.SetYear(next.GetYear() + 1);
+        }
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
+        if (CheckActiveAt(next))
+        {
+            return next.Format("%Y-%m-%d %H:%M").ToStdString();
+        }
+    }
+
     // I give up
+    if (_everyYear)
+    {
+        return "A long time from now";
+    }
+
     return "Never";
 }
 
