@@ -1,4 +1,5 @@
 #include <wx/file.h>
+#include <wx/image.h>
 #include "xlGLCanvas.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
@@ -241,6 +242,52 @@ DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString &msg) {
     wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
+}
+
+wxImage * xlGLCanvas::GrabImage()
+{
+	if (m_context == nullptr)
+		return nullptr;
+
+	if (!m_context->SetCurrent(*this))
+		return nullptr;
+
+	// We'll grab the image as 4-byte-aligned RGBA and then convert to the
+	// RGB format that wxImage uses; also doing a vertical flip along the way.
+	int width = mWindowWidth, height = mWindowHeight;
+	width += width % 4;
+
+	GLubyte *tmpBuf = new GLubyte[width * 4 * height];
+
+	GLint currentReadBuffer = GL_NONE;
+	GLint currentUnpackAlignment = 1;
+	glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
+
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
+	glReadBuffer(currentReadBuffer);
+
+	unsigned char *buf = (unsigned char *)malloc(mWindowWidth * 3 * mWindowHeight);
+	unsigned char *dst = buf;
+	for (int y = mWindowHeight - 1; y >= 0; --y)
+	{
+		const unsigned char *src = tmpBuf + 4 * width * y;
+		for (int x = 0; x < mWindowWidth; ++x, src += 4, dst += 3)
+		{
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = src[2];
+		}
+	}
+
+	delete[] tmpBuf;
+
+	return new wxImage(mWindowWidth, mWindowHeight, buf, false);
 }
 
 

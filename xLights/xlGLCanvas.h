@@ -4,6 +4,8 @@
 #include "wx/glcanvas.h"
 #include "DrawGLUtils.h"
 
+class wxImage;
+
 
 class xlGLCanvas
     : public wxGLCanvas
@@ -24,6 +26,10 @@ class xlGLCanvas
         double translateToBacking(double x);
 
         void DisplayWarning(const wxString &msg);
+
+		  // Grab a copy of the front buffer at window dimensions; it's the caller's
+		  // responsibility to delete the image when done with it
+		  wxImage *GrabImage();
     protected:
       	DECLARE_EVENT_TABLE()
 
