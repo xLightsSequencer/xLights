@@ -10,6 +10,7 @@
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/filedlg.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -89,6 +90,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -263,6 +265,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
+	 modelPreview->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewContextMenu, nullptr, this);
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -2915,6 +2918,38 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     UpdatePreview();
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
+}
+
+void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
+{
+	wxMenu menu;
+	menu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
+	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewSaveImage, nullptr, this);
+
+	PopupMenu(&menu);
+}
+
+void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
+{
+	wxImage *image = modelPreview->GrabImage();
+	if (image == nullptr)
+	{
+		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+		msgDlg.ShowModal();
+		return;
+	}
+
+	const char wildcard[] = "JPG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG files (*.png)|*.png";
+	wxFileDialog saveDlg(this, _("Save Image"), wxEmptyString, wxEmptyString,
+		wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (saveDlg.ShowModal() == wxID_OK)
+	{
+		wxString path = saveDlg.GetPath();
+		wxBitmapType bitmapType = path.EndsWith(".png") ? wxBITMAP_TYPE_PNG : wxBITMAP_TYPE_JPEG;
+		image->SaveFile(path, bitmapType);
+	}
+
+	delete image;
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)
