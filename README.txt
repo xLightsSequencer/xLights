@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
 2017.45  Dec 29, 2017
    -- enh (craig)  Added a randomize current selected effect button
    -- bug (craig)  Fixed the create random effects to generate random settings

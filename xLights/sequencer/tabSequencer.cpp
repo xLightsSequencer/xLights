@@ -1525,6 +1525,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 {
     mSequenceElements.get_undo_mgr().CreateUndoStep();
+    bool efUpdated = false;
 
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
@@ -1560,6 +1561,7 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 selectedEffect = el->GetEffect(j);
                 startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
                 endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
+                efUpdated = true;
             }
         }
 
@@ -1570,7 +1572,11 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
         }
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
-    sEffectAssist->ForceRefresh();
+    // Update if effect has been modified
+    if( m_mgr->GetPane("EffectAssist").IsShown() && efUpdated )
+    {
+        sEffectAssist->ForceRefresh();
+    }
 }
 
 void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
