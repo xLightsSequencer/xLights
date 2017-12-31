@@ -764,6 +764,7 @@ void xLightsFrame::UnselectEffect(){
         playEndTime = -1;
         playStartMS = -1;
     }
+    sEffectAssist->SetPanel(nullptr);
     selectedEffect = nullptr;
     selectedEffectName = "";
     selectedEffectString = "";
@@ -1525,7 +1526,6 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 {
     mSequenceElements.get_undo_mgr().CreateUndoStep();
-    bool efUpdated = false;
 
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
@@ -1538,10 +1538,9 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)  {
                 std::string effectName = el->GetEffect(j)->GetEffectName();
                 int effectIndex = el->GetEffect(j)->GetEffectIndex();
-                std::string settings, palette;
 
-                settings = EffectsPanel1->GetRandomEffectString(effectIndex);
-                palette = colorPanel->GetRandomColorString();
+                std::string settings = EffectsPanel1->GetRandomEffectString(effectIndex).ToStdString();
+                std::string palette = colorPanel->GetRandomColorString().ToStdString();
 
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
@@ -1561,7 +1560,6 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 selectedEffect = el->GetEffect(j);
                 startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
                 endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
-                efUpdated = true;
             }
         }
 
@@ -1571,9 +1569,9 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
             RenderEffectForModel(element->GetModelName(),startms,endms);
         }
     }
+
     mainSequencer->PanelEffectGrid->ForceRefresh();
-    // Update if effect has been modified
-    if( m_mgr->GetPane("EffectAssist").IsShown() && efUpdated )
+    if( m_mgr->GetPane("EffectAssist").IsShown())
     {
         sEffectAssist->ForceRefresh();
     }

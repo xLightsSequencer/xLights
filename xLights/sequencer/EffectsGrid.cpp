@@ -889,6 +889,7 @@ void EffectsGrid::ClearSelection(bool keepCanPaste)
     {
         mCanPaste = false;
     }
+    UnselectEffect();
     mSelectedEffect = nullptr;
     mRangeCursorRow = mRangeStartRow;
     mRangeCursorCol = mRangeStartCol;
@@ -1142,6 +1143,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                         mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
                         el->RemoveEffect(i);
                         if (eff == mSelectedEffect) {
+                            UnselectEffect();
                             mSelectedEffect = nullptr;
                         }
                         --i;
@@ -1170,6 +1172,7 @@ void EffectsGrid::ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity,
                             mSequenceElements->get_undo_mgr().CaptureEffectToBeDeleted(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
                             el->RemoveEffect(i);
                             if (eff == mSelectedEffect) {
+                                UnselectEffect();
                                 mSelectedEffect = nullptr;
                             }
 
@@ -3635,6 +3638,7 @@ void EffectsGrid::DeleteSelectedEffects()
             el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
     }
+    UnselectEffect();
     mSelectedEffect = nullptr;
     mSelectedRow = -1;
     mResizing = false;

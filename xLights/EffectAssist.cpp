@@ -47,6 +47,7 @@ void EffectAssist::ForceRefresh()
         mAssistPanel->RefreshEffect();
     }
 }
+
 AssistPanel *EffectAssist::GetDefaultAssistPanel() {
     if (defaultAssistPanel == nullptr) {
         defaultAssistPanel = new AssistPanel(this);
@@ -57,6 +58,7 @@ AssistPanel *EffectAssist::GetDefaultAssistPanel() {
     }
     return defaultAssistPanel;
 }
+
 void EffectAssist::SetPanel(AssistPanel* panel_)
 {
     wxSize s = GetSize();
