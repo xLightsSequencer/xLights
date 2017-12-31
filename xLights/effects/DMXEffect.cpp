@@ -268,7 +268,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
     int num_channels = cls->GetNumChannels();
 
     for(int i = 1; i <= 18; ++i) {
-        wxString label_ctrl = wxString::Format("ID_LABEL_DMX%d", i);
+        wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
         std::string name = cls->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
         if( label != nullptr ) {
