@@ -348,6 +348,29 @@ static wxArrayString NODE_TYPES;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
 
+wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
+{
+    wxArrayString lg;
+    lg.push_back("Default");
+    lg.push_back("All Previews");
+    lg.push_back("Unassigned");
+
+    wxXmlNode* layouts_node = mm.GetLayoutsNode();
+    for (wxXmlNode* e = layouts_node->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "layoutGroup")
+        {
+            wxString grp_name = e->GetAttribute("name");
+            if (!grp_name.IsEmpty())
+            {
+                lg.push_back(grp_name.ToStdString());
+            }
+        }
+    }
+
+    return lg;
+}
+
 void Model::SetProperty(wxString property, wxString value, bool apply)
 {
     wxString val = ModelXml->GetAttribute(property);
@@ -387,23 +410,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("Single Color Intensity");
     }
 
-    LAYOUT_GROUPS.clear();
-    LAYOUT_GROUPS.push_back("Default");
-    LAYOUT_GROUPS.push_back("All Previews");
-    LAYOUT_GROUPS.push_back("Unassigned");
-
-    wxXmlNode* layouts_node = modelManager.GetLayoutsNode();
-    for(wxXmlNode* e=layouts_node->GetChildren(); e!=nullptr; e=e->GetNext() )
-    {
-        if (e->GetName() == "layoutGroup")
-        {
-            wxString grp_name=e->GetAttribute("name");
-            if (!grp_name.IsEmpty())
-            {
-                LAYOUT_GROUPS.push_back(grp_name.ToStdString());
-            }
-        }
-    }
+    LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
     wxPGProperty *p;
     wxPGProperty *sp;
@@ -3256,6 +3263,17 @@ int Model::GetPort() const
     }
 
     return 0;
+}
+
+void Model::SetControllerConnection(const std::string& controllerConnection)
+{
+    controller_connection = controllerConnection;
+    ModelXml->DeleteAttribute("ControllerConnection");
+    if (controller_connection != "")
+    {
+        ModelXml->AddAttribute("ControllerConnection", controller_connection);
+    }
+    IncrementChangeCount();
 }
 
 std::list<std::string> Model::GetProtocols()

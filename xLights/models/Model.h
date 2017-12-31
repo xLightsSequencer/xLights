@@ -37,7 +37,7 @@ class Model
 public:
     Model(const ModelManager &manger);
     virtual ~Model();
-
+    static wxArrayString GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
     {
         wxString n(name.c_str());
@@ -197,6 +197,7 @@ public:
     static bool IsProtocolValid(std::string protocol);
     int GetPort() const;
     std::string GetControllerConnection() const { return controller_connection; }
+    void SetControllerConnection(const std::string& controllerConnection);
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

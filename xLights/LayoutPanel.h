@@ -108,6 +108,10 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
+        static const long ID_PREVIEW_BULKEDIT;
+        static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
+        static const long ID_PREVIEW_BULKEDIT_PREVIEW;
+        static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_LEFT;
@@ -185,6 +189,9 @@ class LayoutPanel: public wxPanel
         void AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
+        void BulkEditControllerConnection();
+        void BulkEditControllerPreview();
+        void BulkEditDimmingCurves();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);

@@ -26,12 +26,14 @@
 #include "xLightsMain.h"
 #include "DrawGLUtils.h"
 #include "ChannelLayoutDialog.h"
+#include "ControllerConnectionDialog.h"
 #include "models/ModelGroup.h"
 #include "ModelGroupPanel.h"
 
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "WiringDialog.h"
+#include "ModelDimmingCurveDialog.h"
 
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_PANEL3 = wxNewId();
@@ -72,6 +74,10 @@ const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_LEFT = wxNewId();
@@ -456,7 +462,7 @@ void LayoutPanel::Reset()
     ChoiceLayoutGroups->Append("Default");
     ChoiceLayoutGroups->Append("All Models");
     ChoiceLayoutGroups->Append("Unassigned");
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         ChoiceLayoutGroups->Append(grp->GetName());
     }
@@ -938,7 +944,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 {
     std::set<std::string> modelsAdded;
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
         Model *model = it->second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
@@ -954,7 +960,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
-    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
         Model *model = it->second;
         bool mark_selected = false;
         if( mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name) ) {
@@ -963,7 +969,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)(model);
             if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
+                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
                     Model *m = xlights->AllModels[*it2];
                     if (m != nullptr) {
                         if (mark_selected) {
@@ -1004,6 +1010,191 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                 preview->Update();
             }
         }
+    }
+}
+
+void LayoutPanel::BulkEditDimmingCurves()
+{
+    // get the first dimming curve    
+    ModelDimmingCurveDialog dlg(this);
+    std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            wxXmlNode *f = modelPreview->GetModels()[i]->GetModelXml()->GetChildren();
+            while (f != nullptr) {
+                if ("dimmingCurve" == f->GetName()) {
+                    wxXmlNode *dc = f->GetChildren();
+                    while (dc != nullptr) {
+                        std::string name = dc->GetName().ToStdString();
+                        wxXmlAttribute *att = dc->GetAttributes();
+                        while (att != nullptr) {
+                            dimmingInfo[name][att->GetName().ToStdString()] = att->GetValue();
+                            att = att->GetNext();
+                        }
+                        dc = dc->GetNext();
+                    }
+                }
+                f = f->GetNext();
+            }
+        }
+
+        if (modelPreview->GetModels()[i]->GetModelXml()->GetAttribute("ModelBrightness", "-1") != "-1")
+        {
+            wxString b = modelPreview->GetModels()[i]->GetModelXml()->GetAttribute("ModelBrightness", "0");
+            dimmingInfo["all"]["gamma"] = "1.0";
+            dimmingInfo["all"]["brightness"] = b;
+        }
+
+        if (!dimmingInfo.empty()) {
+            break;
+        }
+    }
+
+    if (dimmingInfo.empty()) {
+        dimmingInfo["all"]["gamma"] = "1.0";
+        dimmingInfo["all"]["brightness"] = "0";
+    }
+
+    dlg.Init(dimmingInfo);
+    if (dlg.ShowModal() == wxID_OK) {
+        dimmingInfo.clear();
+        dlg.Update(dimmingInfo);
+
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                wxXmlNode *f1 = modelPreview->GetModels()[i]->GetModelXml()->GetChildren();
+                while (f1 != nullptr) {
+                    if ("dimmingCurve" == f1->GetName()) {
+                        modelPreview->GetModels()[i]->GetModelXml()->RemoveChild(f1);
+                        delete f1;
+                        f1 = modelPreview->GetModels()[i]->GetModelXml()->GetChildren();
+                    }
+                    else {
+                        f1 = f1->GetNext();
+                    }
+                }
+                f1 = new wxXmlNode(wxXML_ELEMENT_NODE, "dimmingCurve");
+                modelPreview->GetModels()[i]->GetModelXml()->AddChild(f1);
+                for (auto it = dimmingInfo.begin(); it != dimmingInfo.end(); ++it) {
+                    wxXmlNode *dc = new wxXmlNode(wxXML_ELEMENT_NODE, it->first);
+                    f1->AddChild(dc);
+                    for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+                        dc->AddAttribute(it2->first, it2->second);
+                    }
+                }
+                xlights->MarkEffectsFileDirty(true);
+            }
+        }
+    }
+}
+
+void LayoutPanel::BulkEditControllerConnection()
+{
+    // get the first controller connection
+    std::string cc = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            cc = modelPreview->GetModels()[i]->GetControllerConnection();
+            if (cc != "") break;
+        }
+    }
+
+    ControllerConnectionDialog dlg(this);
+    dlg.Set(cc);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                modelPreview->GetModels()[i]->SetControllerConnection(dlg.Get());
+            }
+        }
+
+        xlights->MarkEffectsFileDirty(true);
+        resetPropertyGrid();
+    }
+}
+
+void LayoutPanel::BulkEditControllerPreview()
+{
+    // get the first preview
+    std::string p = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            p = modelPreview->GetModels()[i]->GetLayoutGroup();
+            if (p != "") break;
+        }
+    }
+
+    // remember the selected models
+    wxString selected = "";
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += modelPreview->GetModels()[i]->GetName();
+        }
+    }
+
+    Model* sm = selectedModel;
+
+    wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
+    int sel = 0;
+    int j = 0;
+    for (auto it = choices.begin(); it != choices.end(); ++it)
+    {
+        if (*it == p) {
+            sel = j;
+            break;
+        }
+        j++;
+    }
+    wxSingleChoiceDialog dlg(this, "Preview", "Preview", choices);
+    dlg.SetSelection(sel);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                modelPreview->GetModels()[i]->SetLayoutGroup(dlg.GetStringSelection().ToStdString());
+            }
+        }
+
+        xlights->MarkEffectsFileDirty(true);
+        UpdateModelList(true);
+        SelectModel(sm, true);
+        resetPropertyGrid();
+
+        // reselect all the models
+        wxArrayString models = wxSplit(selected, ',');
+        for (auto it = models.begin(); it != models.end(); ++it)
+        {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetName() == it->ToStdString())
+                {
+                    modelPreview->GetModels()[i]->GroupSelected = true;
+                }
+            }
+        }
+
+        RenderLayout();
     }
 }
 
@@ -1741,8 +1932,13 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
+        wxMenu* mnuBulkEdit = new wxMenu();
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_DIMMINGCURVES, "Dimming Curves");
+        mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
         wxMenu* mnuAlign = new wxMenu();
-        wxMenu* mnuDistribute = new wxMenu();
         mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
         mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
         mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
@@ -1751,6 +1947,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
+        wxMenu* mnuDistribute = new wxMenu();
         mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
         mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
         mnuDistribute->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
@@ -1761,6 +1958,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
         mnuResize->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
+        mnu.Append(ID_PREVIEW_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
         mnu.Append(ID_PREVIEW_ALIGN, "Align", mnuAlign, "");
         mnu.Append(ID_PREVIEW_DISTRIBUTE, "Distribute", mnuDistribute, "");
         mnu.Append(ID_PREVIEW_RESIZE, "Resize", mnuResize, "");
@@ -1837,6 +2035,18 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
         PreviewModelAlignBottoms();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION)
+    {
+        BulkEditControllerConnection();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW)
+    {
+        BulkEditControllerPreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES)
+    {
+        BulkEditDimmingCurves();
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
     {
