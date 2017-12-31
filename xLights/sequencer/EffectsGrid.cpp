@@ -104,7 +104,6 @@ EffectsGrid::~EffectsGrid()
 {
 }
 
-
 void EffectsGrid::UnselectEffect(bool force) {
     if (mSelectedEffect != nullptr || force) {
         mSelectedEffect = nullptr;
@@ -4761,7 +4760,6 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
 {
     int effectIndex;
 
-
     int time = mTimeline->GetRawTimeMSfromPosition(x);
     HitLocation selectionType = HitLocation::NONE;
     Effect * eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType);
@@ -5051,8 +5049,8 @@ void EffectsGrid::InitializeGLCanvas()
 void EffectsGrid::DrawLines()
 {
     // Draw Horizontal lines
-    int x1=1;
-    int x2 = mWindowWidth-1;
+    int x1 = 1;
+    int x2 = mWindowWidth - 1;
     int y;
     bool isEvenLayer=false;
 
@@ -5174,10 +5172,11 @@ float ComputeFontSize(int &toffset, const float factor) {
     }
     return fontSize;
 }
+
 void EffectsGrid::DrawEffects()
 {
     int width = getWidth();
-    for(int row=0;row<mSequenceElements->GetVisibleRowInformationSize();row++)
+    for (int row=0; row < mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
         if(ri->element->GetType() == ELEMENT_TYPE_TIMING) {
@@ -5423,9 +5422,6 @@ void EffectsGrid::DrawTimingEffects(int row)
     TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
     EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
 
-    DrawGLUtils::xlVertexAccumulator * linesRight;
-    DrawGLUtils::xlVertexAccumulator * linesLeft;
-    DrawGLUtils::xlVertexAccumulator * linesCenter;
     xlColor c(xlights->color_mgr.GetTimingColor(ri->colorIndex));
     c.alpha = 128;
 
@@ -5445,11 +5441,11 @@ void EffectsGrid::DrawTimingEffects(int row)
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
                                              effectLayer->GetEffect(effectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
 
-        linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&timingEffLines:&selectedLines;
-        linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&timingEffLines:&selectedLines;
-        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+        DrawGLUtils::xlVertexAccumulator * linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&timingEffLines:&selectedLines;
+        DrawGLUtils::xlVertexAccumulator * linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                                                        effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&timingEffLines:&selectedLines;
+        DrawGLUtils::xlVertexAccumulator * linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
 
         if(mode!=SCREEN_L_R_OFF) {
             // Draw Left line
@@ -5595,8 +5591,7 @@ void EffectsGrid::DrawSelectedCells()
             int end_y = last_row*DEFAULT_ROW_HEADING_HEIGHT;
 
              if( !xlights->IsACActive() ) {
-                xlColor highlight_color;
-                highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+                xlColor highlight_color = xlights->color_mgr.GetTimingColor(mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
                 LOG_GL_ERRORV(glEnable(GL_BLEND));
                 DrawGLUtils::DrawFillRectangle(highlight_color,80,start_x,start_y,end_x-start_x,end_y-start_y+DEFAULT_ROW_HEADING_HEIGHT);
                 LOG_GL_ERRORV(glDisable(GL_BLEND));
@@ -5669,7 +5664,7 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
     else if(event.ShiftDown())
     {
         int i = event.GetWheelRotation();
-        if(i<0)
+        if (i < 0)
         {
             wxCommandEvent eventScroll(EVT_GSCROLL);
             eventScroll.SetInt(SCROLL_RIGHT);
@@ -5699,9 +5694,12 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool up
     if (effect == nullptr) {
         return;
     }
+
     // Place effect pointer in client data
     SelectedEffectChangedEvent eventEffectChanged(effect, isNew, updateUI);
-    wxPostEvent(GetParent(), eventEffectChanged);
+    // Pass it this way to prevent risk of effect being deleted before pointer is used
+    GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
+    //wxPostEvent(GetParent(), eventEffectChanged);
 }
 
 void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect)
@@ -5712,7 +5710,9 @@ void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool ren
     playArgs->effect = effect;
     playArgs->renderEffect = renderEffect;
     eventPlayModelEffect.SetClientData(playArgs);
-    wxPostEvent(GetParent(), eventPlayModelEffect);
+    // Pass it this way to prevent risk of effect being deleted before pointer is used
+    GetParent()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
+    //wxPostEvent(GetParent(), eventPlayModelEffect);
 }
 
 void EffectsGrid::RaiseEffectDropped(int x, int y)
@@ -5786,7 +5786,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
     } else {
         int start_row = -1;
         int end_row = -1;
-        for(int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+        for(int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer B was NULL ... this is going to crash.");
@@ -5800,7 +5800,7 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset)
         }
         int delta_step = deltaMS / (end_row - start_row);
         delta_step = mTimeline->RoundToMultipleOfPeriod(delta_step, mSequenceElements->GetFrequency());
-        for(int row = start_row; row <= end_row; row++)
+        for (int row = start_row; row <= end_row; row++)
         {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el == nullptr) logger_base.crit("MoveAllSelectedEffect EffectLayer C was NULL ... this is going to crash.");

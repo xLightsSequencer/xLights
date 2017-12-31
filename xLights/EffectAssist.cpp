@@ -74,6 +74,7 @@ void EffectAssist::SetPanel(AssistPanel* panel_)
             defaultAssistPanel->Hide();
         }
     }
+
     if( mAssistPanel != nullptr )
     {
         FlexGridSizer1->Add(mAssistPanel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 2);
@@ -96,8 +97,8 @@ void EffectAssist::AdjustClientSizes(wxSize s)
     mSize = s;
     if( mAssistPanel != nullptr )
     {
-        s.SetWidth(s.GetWidth()-15);
-        s.SetHeight(s.GetHeight()-15);
+        s.SetWidth(s.GetWidth() - 15);
+        s.SetHeight(s.GetHeight() - 15);
         mAssistPanel->AdjustSize(s);
     }
 }
