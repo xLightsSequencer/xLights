@@ -13,6 +13,8 @@ class wxFlexGridSizer;
 class wxListCtrl;
 class wxButton;
 class wxStdDialogButtonSizer;
+class wxSplitterWindow;
+class wxSplitterEvent;
 class wxGrid;
 class wxNotebookEvent;
 class wxStaticText;
@@ -41,36 +43,48 @@ class SubModelsDialog: public wxDialog
 		wxFlexGridSizer* PreviewSizer;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
+		wxButton* Button_MoveDown;
 		wxButton* AddRowButton;
 		wxFlexGridSizer* SubBufferSizer;
+		wxStaticText* StaticText1;
 		wxButton* Button_Generate;
+		wxPanel* Panel2;
 		wxButton* DeleteButton;
-		wxStaticText* StaticText3;
-		wxListCtrl* ListCtrl1;
+		wxSplitterWindow* SplitterWindow1;
+		wxStaticText* StaticTextName;
+		wxTextCtrl* TextCtrl_Name;
+		wxPanel* Panel3;
 		wxPanel* ModelPreviewPanelLocation;
-		wxTextCtrl* TextCtrl1;
 		wxPanel* SubBufferPanelHolder;
 		wxNotebook* TypeNotebook;
 		wxCheckBox* LayoutCheckbox;
+		wxButton* Button_MoveUp;
+		wxListCtrl* ListCtrl_SubModels;
 		//*)
 
 	protected:
 
 		//(*Identifiers(SubModelsDialog)
-		static const long ID_LISTCTRL1;
+		static const long ID_STATICTEXT1;
+		static const long ID_LISTCTRL_SUB_MODELS;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
-		static const long ID_STATICTEXT1;
-		static const long ID_TEXTCTRL1;
+		static const long ID_PANEL4;
+		static const long ID_STATICTEXT_NAME;
+		static const long ID_TEXTCTRL_NAME;
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON6;
 		static const long ID_GRID1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON_MOVE_UP;
+		static const long ID_BUTTON_MOVE_DOWN;
 		static const long ID_PANEL2;
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
+		static const long ID_PANEL5;
+		static const long ID_SPLITTERWINDOW1;
 		static const long ID_PANEL1;
 		//*)
 
