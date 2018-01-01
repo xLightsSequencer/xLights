@@ -228,6 +228,7 @@
     <ClCompile Include="OutputProcessRemap.cpp" />
     <ClCompile Include="OutputProcessReverse.cpp" />
     <ClCompile Include="OutputProcessSet.cpp" />
+    <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
     <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
@@ -281,6 +282,7 @@
     <ClCompile Include="ScheduleManager.cpp" />
     <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="SetDialog.cpp" />
+    <ClCompile Include="ThreeToFourDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="VideoCache.cpp" />
     <ClCompile Include="VirtualMatricesDialog.cpp" />
@@ -361,6 +363,7 @@
     <ClInclude Include="OutputProcessRemap.h" />
     <ClInclude Include="OutputProcessReverse.h" />
     <ClInclude Include="OutputProcessSet.h" />
+    <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />
     <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
@@ -414,6 +417,7 @@
     <ClInclude Include="ScheduleManager.h" />
     <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="SetDialog.h" />
+    <ClInclude Include="ThreeToFourDialog.h" />
     <ClInclude Include="UserButton.h" />
     <ClInclude Include="VideoCache.h" />
     <ClInclude Include="VirtualMatricesDialog.h" />

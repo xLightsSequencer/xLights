@@ -48,7 +48,7 @@ void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
 void ColourOrderDialog::ValidateWindow()
 {
     long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-    StaticText_StartChannel->SetLabel(wxString::Format("%ld", sc));
+    StaticText_StartChannel->SetLabel(wxString::Format("%ld", (long)sc));
     if (sc == 0 || sc > xScheduleFrame::GetScheduleManager()->GetTotalChannels())
     {
         Button_Ok->Enable(false);

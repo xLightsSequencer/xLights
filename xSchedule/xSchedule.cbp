@@ -404,6 +404,8 @@
 		<Unit filename="OutputProcessRemap.cpp" />
 		<Unit filename="OutputProcessReverse.cpp" />
 		<Unit filename="OutputProcessSet.cpp" />
+		<Unit filename="OutputProcessThreeToFour.cpp" />
+		<Unit filename="OutputProcessThreeToFour.h" />
 		<Unit filename="OutputProcessingDialog.cpp" />
 		<Unit filename="OutputProcessingDialog.h" />
 		<Unit filename="Pinger.cpp" />
@@ -511,6 +513,8 @@
 		<Unit filename="ScheduleOptions.h" />
 		<Unit filename="SetDialog.cpp" />
 		<Unit filename="SetDialog.h" />
+		<Unit filename="ThreeToFourDialog.cpp" />
+		<Unit filename="ThreeToFourDialog.h" />
 		<Unit filename="UserButton.cpp" />
 		<Unit filename="UserButton.h" />
 		<Unit filename="VideoCache.cpp" />
@@ -589,6 +593,7 @@
 		<Unit filename="wxsmith/RemapDialog.wxs" />
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
+		<Unit filename="wxsmith/ThreeToFourDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
 		<Unit filename="wxsmith/VirtualMatricesDialog1.wxs" />
 		<Unit filename="wxsmith/VirtualMatrixDialog.wxs" />
@@ -649,6 +654,7 @@
 					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DeadChannelDialog.wxs" src="DeadChannelDialog.cpp" hdr="DeadChannelDialog.h" fwddecl="0" i18n="1" name="DeadChannelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConfigureOSC.wxs" src="ConfigureOSC.cpp" hdr="ConfigureOSC.h" fwddecl="0" i18n="1" name="ConfigureOSC" language="CPP" />
+					<wxDialog wxs="wxsmith/ThreeToFourDialog.wxs" src="ThreeToFourDialog.cpp" hdr="ThreeToFourDialog.h" fwddecl="0" i18n="1" name="ThreeToFourDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

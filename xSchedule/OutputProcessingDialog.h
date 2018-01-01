@@ -34,6 +34,7 @@ class OutputProcessingDialog: public wxDialog
 		wxButton* Button_Dim;
 		wxButton* Button_Ok;
 		wxButton* Button_Reverse;
+		wxButton* Button_3to4;
 		wxListView* ListView_Processes;
 		wxButton* Button_ColourOrder;
 		wxButton* Button_DimWhite;
@@ -60,6 +61,7 @@ class OutputProcessingDialog: public wxDialog
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON11;
+		static const long ID_BUTTON13;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON4;
 		//*)
@@ -85,6 +87,7 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_GammaClick(wxCommandEvent& event);
 		void OnButton_AddDeadChannelClick(wxCommandEvent& event);
 		void OnListView_ProcessesItemRClick(wxListEvent& event);
+		void OnButton_3to4Click(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

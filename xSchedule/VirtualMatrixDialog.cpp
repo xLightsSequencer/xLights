@@ -193,7 +193,7 @@ void VirtualMatrixDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event)
     }
     else
     {
-        StaticText6->SetLabel(wxString::Format("%ld", sc));
+        StaticText6->SetLabel(wxString::Format("%ld", (long)sc));
     }
     ValidateWindow();
 }

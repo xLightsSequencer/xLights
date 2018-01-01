@@ -144,6 +144,8 @@
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="OutputProcessThreeToFour.cpp" />
+    <ClCompile Include="ThreeToFourDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -270,6 +272,8 @@
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="OutputProcessThreeToFour.h" />
+    <ClInclude Include="ThreeToFourDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

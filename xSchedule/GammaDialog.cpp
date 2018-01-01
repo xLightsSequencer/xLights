@@ -195,7 +195,7 @@ void GammaDialog::OnButton_CancelClick(wxCommandEvent& event)
 void GammaDialog::ValidateWindow()
 {
     size_t sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
-    StaticText_StartChannel->SetLabel(wxString::Format("%ld", sc));
+    StaticText_StartChannel->SetLabel(wxString::Format("%ld", (long)sc));
     float simple = wxAtof(TextCtrl_Simple->GetValue());
     float r = wxAtof(TextCtrl_R->GetValue());
     float g = wxAtof(TextCtrl_G->GetValue());

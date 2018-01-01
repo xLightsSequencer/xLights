@@ -165,7 +165,7 @@ void MatrixDialog::OnTextCtrl_StartChannelText(wxCommandEvent& event)
     }
     else
     {
-        StaticText8->SetLabel(wxString::Format("%ld", sc));
+        StaticText8->SetLabel(wxString::Format("%ld", (long)sc));
     }
     ValidateWindow();
 }

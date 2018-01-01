@@ -3,6 +3,7 @@
 #include <wx/wxcrt.h>
 #include "OutputProcessDim.h"
 #include "OutputProcessDimWhite.h"
+#include "OutputProcessThreeToFour.h"
 #include "OutputProcessSet.h"
 #include "OutputProcessRemap.h"
 #include "OutputProcessReverse.h"
@@ -84,6 +85,10 @@ OutputProcess* OutputProcess::CreateFromXml(OutputManager* outputManager, wxXmlN
     else if (node->GetName() == "OPDimWhite")
     {
         return new OutputProcessDimWhite(outputManager, node);
+    }
+    else if (node->GetName() == "OP3To4")
+    {
+        return new OutputProcessThreeToFour(outputManager, node);
     }
     else if (node->GetName() == "OPSet")
     {
