@@ -11,6 +11,7 @@
 #include <wx/button.h>
 #include <wx/string.h>
 #include <wx/filedlg.h>
+#include <wx/prntbase.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -97,6 +98,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -3133,17 +3135,36 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
 {
 	wxMenu menu;
+
 	menu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
-	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewSaveImage, nullptr, this);
+	menu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+
+	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewContextMenuCommand, nullptr, this);
 
 	PopupMenu(&menu);
 }
 
-void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
+void LayoutPanel::OnPreviewContextMenuCommand(wxCommandEvent& event)
+{
+	int id = event.GetId();
+	if (id == ID_PREVIEW_SAVE_LAYOUT_IMAGE)
+	{
+		SavePreviewImage();
+	}
+	else
+	{
+		PrintPreviewImage();
+	}
+}
+
+void LayoutPanel::SavePreviewImage()
 {
 	wxImage *image = modelPreview->GrabImage();
 	if (image == nullptr)
 	{
+		static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+		logger_base.error("SavePreviewImage() - problem grabbing ModelPreview image");
+
 		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
 		msgDlg.ShowModal();
 		return;
@@ -3157,6 +3178,67 @@ void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
 		wxString path = saveDlg.GetPath();
 		wxBitmapType bitmapType = path.EndsWith(".png") ? wxBITMAP_TYPE_PNG : wxBITMAP_TYPE_JPEG;
 		image->SaveFile(path, bitmapType);
+	}
+
+	delete image;
+}
+
+void LayoutPanel::PrintPreviewImage()
+{
+	class Printout : public wxPrintout
+	{
+	public:
+		Printout(wxImage *image) : m_image(image) {}
+		bool OnPrintPage(int page) override
+		{
+			wxRect rect = GetLogicalPageRect();
+			wxBitmap bmp;
+			bmp.Create(rect.GetWidth() * 0.95f, rect.GetHeight() * 0.95f);
+
+			double xScale = rect.GetWidth() / double(m_image->GetWidth());
+			double yScale = rect.GetHeight() / double(m_image->GetHeight());
+			double scale = std::min(xScale, yScale);
+
+			wxAffineMatrix2D mtx;
+			mtx.Scale(scale, scale);
+
+			wxDC* dc = GetDC();
+			dc->SetTransformMatrix(mtx);
+			dc->DrawBitmap(*m_image, 0, 0);
+
+			return false;
+		}
+	protected:
+		wxImage *m_image;
+	};
+
+	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	wxImage *image = modelPreview->GrabImage();
+	if (image == nullptr)
+	{
+		logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
+
+		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+		msgDlg.ShowModal();
+		return;
+	}
+
+	Printout printout(image);
+
+	static wxPrintDialogData printDialogData;
+	wxPrinter printer(&printDialogData);
+
+	if (!printer.Print(this, &printout, true))
+	{
+		if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
+		{
+			logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
+			wxMessageBox("Problem printing.");
+		}
+	}
+	else
+	{
+		printDialogData = printer.GetPrintDialogData();
 	}
 
 	delete image;
