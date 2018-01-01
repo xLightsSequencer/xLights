@@ -130,7 +130,8 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_DELETEPOINT;
         static const long ID_PREVIEW_MODEL_ADDCURVE;
         static const long ID_PREVIEW_MODEL_DELCURVE;
-		static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
+        static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
+        static const long ID_PREVIEW_PRINT_LAYOUT_IMAGE;
 
 	public:
 
@@ -166,6 +167,7 @@ class LayoutPanel: public wxPanel
         void DeleteSelectedModel();
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
+        void PreviewPrintImage();
 
     public:
         void SaveEffects();
