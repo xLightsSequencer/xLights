@@ -423,8 +423,6 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    SetDefaultPalette();
-
     wxImage i;
     i.Create(save_xpm);
     wxBitmap save(i);
@@ -440,7 +438,8 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 
     _lastShowDir = xLightsFrame::CurrentDir;
 
-    LoadAllPalettes();
+    //SetDefaultPallette will call LoadAllPalettes in this case
+    SetDefaultPalette();
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
@@ -503,7 +502,9 @@ void ColorPanel::LoadAllPalettes()
         LoadPalettes(dir, true);
     }
 
-    BitmapButton_ColourChoice->Clear();
+    if (BitmapButton_ColourChoice->GetCount() != 0) {
+        BitmapButton_ColourChoice->Clear();
+    }
     BitmapButton_ColourChoice->AppendString("(Load)");
     for(auto it=  _loadedPalettes.begin(); it != _loadedPalettes.end(); ++it)
     {

@@ -405,6 +405,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("BGR Nodes");
         NODE_TYPES.push_back("3 Channel RGB");
         NODE_TYPES.push_back("4 Channel RGBW");
+        NODE_TYPES.push_back("4 Channel WRGB");
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
         NODE_TYPES.push_back("Single Color Intensity");
@@ -1476,7 +1477,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
 
     unsigned int lastChannel = GetLastChannel()+1;
 
-    if (firstChar == '@' || firstChar == '>' && CountChar(ModelStartChannel, ':') == 1)
+    if ((firstChar == '@' || firstChar == '>') && CountChar(ModelStartChannel, ':') == 1)
     {
         std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
         Model *m = modelManager[referencedModel];
@@ -1663,6 +1664,8 @@ NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t N
         ret = new NodeClassWhite(ns,NodesPerString);
     } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
         ret = new NodeClassRGBW(ns,NodesPerString);
+    } else if (StringType=="4 Channel WRGB" || StringType == "WRGB") {
+        ret = new NodeClassWRGB(ns,NodesPerString);
     } else {
         ret = new NodeBaseClass(ns,1,rgbOrder);
     }
@@ -2005,6 +2008,11 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
+        } else if (StringType=="4 Channel WRGB") {
+            for(n=0; n<NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWRGB(n,NodesPerString, GetNextName())));
+                Nodes.back()->model = this;
+            }
         } else {
             // 3 Channel RGB
             for(n=0; n<NumStrings; n++) {
@@ -2032,6 +2040,8 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
     } else if (nodeType == "Strobes") {
         return 1;
     } else if (nodeType == "4 Channel RGBW") {
+        return 4;
+    } else if (nodeType == "4 Channel WRGB") {
         return 4;
     }
     return 3;

@@ -8,6 +8,7 @@ const std::string NodeBaseClass::GREEN("G");
 const std::string NodeBaseClass::BLUE("B");
 const std::string NodeBaseClass::WHITE("W");
 const std::string NodeBaseClass::RGBW("RGBW");
+const std::string NodeBaseClass::WRGB("WRGB");
 
 const std::string NodeBaseClass::RGB("RGB");
 const std::string NodeBaseClass::RBG("RBG");

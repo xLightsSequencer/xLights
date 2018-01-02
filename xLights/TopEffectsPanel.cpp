@@ -4,9 +4,9 @@
 #include "xLightsMain.h"
 #include "sequencer/EffectDropTarget.h"
 #include "../include/Off.xpm"
-#include "../include/dice-24.xpm"
 
 //(*InternalHeaders(TopEffectsPanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/settings.h>
 #include <wx/intl.h>
@@ -41,9 +41,8 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer3->AddGrowableCol(2);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
-	BitmapButtonRandomize = new wxBitmapButton(this, ID_BITMAPBUTTON_RANDOMIZE, dice_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RANDOMIZE"));
-	BitmapButtonRandomize->SetToolTip(_("Randomize"));
-	FlexGridSizer5->Add(BitmapButtonRandomize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButtonRandomize = new wxBitmapButton(this, ID_BITMAPBUTTON_RANDOMIZE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DICE_ICON")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RANDOMIZE"));
+	FlexGridSizer5->Add(BitmapButtonRandomize, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonUpdateEffect = new wxButton(this, ID_BUTTON_UpdateEffect, _("Update (F5)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UpdateEffect"));
 	FlexGridSizer5->Add(ButtonUpdateEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButtonSelectedEffect = new DragEffectBitmapButton(this, ID_BITMAPBUTTON_SelectedEffect, Off, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SelectedEffect"));
@@ -59,9 +58,9 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MainSizer->Fit(this);
 	MainSizer->SetSizeHints(this);
 
-	Connect(ID_BUTTON_UpdateEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonUpdateEffectClick);
 	Connect(ID_BITMAPBUTTON_RANDOMIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonRandomizeEffectClick);
-	Connect(ID_BITMAPBUTTON_SelectedEffect, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&TopEffectsPanel::OnBitmapButtonSelectedEffectClick);
+	Connect(ID_BUTTON_UpdateEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnButtonUpdateEffectClick);
+	Connect(ID_BITMAPBUTTON_SelectedEffect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TopEffectsPanel::OnBitmapButtonSelectedEffectClick);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&TopEffectsPanel::OnResize);
 	//*)
 
@@ -104,7 +103,7 @@ void TopEffectsPanel::OnButtonUpdateEffectClick(wxCommandEvent& event)
     Refresh();
 }
 
-void TopEffectsPanel::OnButtonRandomizeEffectClick(wxCommandEvent& event) 
+void TopEffectsPanel::OnButtonRandomizeEffectClick(wxCommandEvent& event)
 {
 	wxCommandEvent eventEffectRandomize(EVT_EFFECT_RANDOMIZE);
 	wxPostEvent(GetParent(), eventEffectRandomize);

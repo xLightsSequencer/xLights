@@ -172,6 +172,7 @@ public:
     static const std::string BLUE;
     static const std::string WHITE;
     static const std::string RGBW;
+    static const std::string WRGB;
 
     static const std::string RGB;
     static const std::string RBG;
@@ -411,8 +412,49 @@ public:
         return new NodeClassRGBW(*this);
     }
 };
+class NodeClassWRGB : public NodeBaseClass
+{
+public:
+    NodeClassWRGB(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    {
+        chanCnt = NODE_RGBW_CHAN_CNT;
+        SetName(n);
+    }
+    
+    virtual void SetFromChannels(const unsigned char *buf) override {
+        if (buf[0] != 0) {
+            c[0] = c[1] = c[2] = buf[0];
+        } else {
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    c[x] = buf[offsets[x] + 1];
+                }
+            }
+        }
+    }
+    virtual void GetForChannels(unsigned char *buf) const override {
+        if (c[0] == c[1] && c[1] == c[2]) {
+            buf[1] = buf[2] = buf[3] = 0;
+            buf[0] = c[0];
+        } else {
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    buf[offsets[x] + 1] = c[x];
+                }
+            }
+            buf[0] = 0;
+        }
+    }
+    virtual const std::string &GetNodeType() const override {
+        return WRGB;
+    }
+    virtual NodeBaseClass *clone() const override {
+        return new NodeClassWRGB(*this);
+    }
+};
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
 
 #endif /* Node_h */
+
