@@ -41,6 +41,27 @@ static bool functionsLoaded = false;
 #endif
 #endif
 
+extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+
+static bool hasOpenGL3FramebufferObjects()
+{
+	return glGenFramebuffers != nullptr
+		&& glBindFramebuffer != nullptr
+		&& glDeleteFramebuffers != nullptr
+		&& glGenRenderbuffers != nullptr
+		&& glDeleteRenderbuffers != nullptr
+		&& glBindRenderbuffer != nullptr
+		&& glRenderbufferStorage != nullptr
+		&& glFramebufferRenderbuffer != nullptr;
+}
+
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
                        bool coreProfile)
@@ -244,13 +265,15 @@ void xlGLCanvas::DisplayWarning(const wxString &msg) {
     wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
 }
 
-wxImage * xlGLCanvas::GrabImage()
+wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 {
 	if (m_context == nullptr)
 		return nullptr;
 
 	if (!m_context->SetCurrent(*this))
 		return nullptr;
+
+	// todo at this point... use size!!
 
 	// We'll grab the image as 4-byte-aligned RGBA and then convert to the
 	// RGB format that wxImage uses; also doing a vertical flip along the way.
@@ -259,19 +282,47 @@ wxImage * xlGLCanvas::GrabImage()
 
 	GLubyte *tmpBuf = new GLubyte[width * 4 * height];
 
-	GLint currentReadBuffer = GL_NONE;
 	GLint currentUnpackAlignment = 1;
-	glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
-
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	glReadBuffer(GL_FRONT);
 
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+	if (hasOpenGL3FramebufferObjects())
+	{
+		GLuint fbID = 0, rbID = 0;
+
+		glGenRenderbuffers(1, &rbID);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbID);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+
+		glGenFramebuffers(1, &fbID);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
+
+		render();
+
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDeleteFramebuffers(1, &fbID);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glDeleteRenderbuffers(1, &rbID);
+	}
+	else
+	{
+		GLint currentReadBuffer = GL_NONE;
+		glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
+
+		glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+		glReadBuffer(currentReadBuffer);
+	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
-	glReadBuffer(currentReadBuffer);
 
+	// copying to wxImage
 	unsigned char *buf = (unsigned char *)malloc(mWindowWidth * 3 * mWindowHeight);
 	unsigned char *dst = buf;
 	for (int y = mWindowHeight - 1; y >= 0; --y)
@@ -374,6 +425,8 @@ void xlGLCanvas::CreateGLContext() {
         config->Read("ForceOpenGLVer", &ver, 99);
 
         static bool supportsCoreProfile = true;
+
+		  const GLubyte *foo = glGetString(GL_VERSION);
 
         if (supportsCoreProfile && m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
