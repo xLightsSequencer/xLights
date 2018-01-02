@@ -2558,7 +2558,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-    GetModelScreenLocation().PrepareToDraw();
+	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
+	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
+
+    screenLocation.PrepareToDraw();
 
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
