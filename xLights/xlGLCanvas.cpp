@@ -273,11 +273,16 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 	if (!m_context->SetCurrent(*this))
 		return nullptr;
 
-	// todo at this point... use size!!
+	int width = mWindowWidth, height = mWindowHeight;
+	bool canScale = hasOpenGL3FramebufferObjects();
+	if (canScale && size != wxSize(0, 0))
+	{
+		width = size.GetWidth();
+		height = size.GetHeight();
+	}
 
 	// We'll grab the image as 4-byte-aligned RGBA and then convert to the
 	// RGB format that wxImage uses; also doing a vertical flip along the way.
-	int width = mWindowWidth, height = mWindowHeight;
 	width += width % 4;
 
 	GLubyte *tmpBuf = new GLubyte[width * 4 * height];
@@ -286,7 +291,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-	if (hasOpenGL3FramebufferObjects())
+	if (canScale)
 	{
 		GLuint fbID = 0, rbID = 0;
 
@@ -298,7 +303,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
 		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
 
-		render();
+		render(wxSize(width,height));
 
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
@@ -323,12 +328,13 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
 
 	// copying to wxImage
-	unsigned char *buf = (unsigned char *)malloc(mWindowWidth * 3 * mWindowHeight);
+	wxSize dstSize = (canScale && size != wxSize(0, 0)) ? wxSize(width, height) : wxSize(mWindowWidth, mWindowHeight);
+	unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
 	unsigned char *dst = buf;
-	for (int y = mWindowHeight - 1; y >= 0; --y)
+	for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
 	{
 		const unsigned char *src = tmpBuf + 4 * width * y;
-		for (int x = 0; x < mWindowWidth; ++x, src += 4, dst += 3)
+		for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3)
 		{
 			dst[0] = src[0];
 			dst[1] = src[1];
@@ -338,7 +344,7 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 
 	delete[] tmpBuf;
 
-	return new wxImage(mWindowWidth, mWindowHeight, buf, false);
+	return new wxImage(dstSize.GetWidth(), dstSize.GetHeight(), buf, false);
 }
 
 
