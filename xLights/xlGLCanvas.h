@@ -31,7 +31,7 @@ class xlGLCanvas
 		  // caller's responsibility to delete the image when done with it
 		  wxImage *GrabImage( wxSize size = wxSize(0,0) );
 
-		  virtual void render() {};
+		  virtual void render( const wxSize& = wxSize(0,0) ) {};
     protected:
       	DECLARE_EVENT_TABLE()
 

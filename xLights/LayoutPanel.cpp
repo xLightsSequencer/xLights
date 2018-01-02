@@ -36,6 +36,27 @@
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 
+static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+{
+	wxRect r;
+	float srcAspectRatio = float(srcWidth) / srcHeight;
+	float dstAspectRatio = float(dstWidth) / dstHeight;
+
+	if (srcAspectRatio > dstAspectRatio)
+	{
+		r.SetWidth(dstWidth);
+		r.SetHeight(int(dstWidth / srcAspectRatio));
+		r.SetTopLeft(wxPoint(0, (dstHeight - r.GetHeight()) / 2));
+	}
+	else
+	{
+		r.SetHeight(dstHeight);
+		r.SetWidth(int(dstHeight * srcAspectRatio));
+		r.SetTopLeft(wxPoint((dstWidth - r.GetWidth()) / 2, 0));
+	}
+	return r;
+}
+
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
@@ -3185,45 +3206,75 @@ void LayoutPanel::SavePreviewImage()
 
 void LayoutPanel::PrintPreviewImage()
 {
+	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	class Printout : public wxPrintout
 	{
 	public:
-		Printout(wxImage *image) : m_image(image) {}
-		bool OnPrintPage(int page) override
+		Printout(xlGLCanvas *canvas) : m_canvas(canvas), m_image(nullptr), m_grabbedImage(false) {}
+		virtual ~Printout()
 		{
+			clearImage();
+		}
+
+		void clearImage()
+		{
+			if (m_image != nullptr)
+			{
+				delete m_image;
+				m_image = nullptr;
+			}
+		}
+
+		virtual bool GrabImage()
+		{
+			clearImage();
+
 			wxRect rect = GetLogicalPageRect();
-			wxBitmap bmp;
-			bmp.Create(rect.GetWidth() * 0.95f, rect.GetHeight() * 0.95f);
+			rect.Deflate(rect.GetWidth() / 20, rect.GetHeight() / 20);
+			wxRect adjustedRect = scaledRect(m_canvas->getWidth(), m_canvas->getHeight(), rect.GetWidth(), rect.GetHeight());
 
-			double xScale = rect.GetWidth() / double(m_image->GetWidth());
-			double yScale = rect.GetHeight() / double(m_image->GetHeight());
-			double scale = std::min(xScale, yScale);
+			m_image = m_canvas->GrabImage(wxSize(adjustedRect.GetWidth(), adjustedRect.GetHeight()));
+			m_grabbedImage = (m_image != nullptr);
+			return m_grabbedImage;
+		}
 
-			wxAffineMatrix2D mtx;
-			mtx.Scale(scale, scale);
+		virtual bool OnPrintPage(int page) override
+		{
+			if ( GrabImage() == false )
+				return false;
 
 			wxDC* dc = GetDC();
-			dc->SetTransformMatrix(mtx);
-			dc->DrawBitmap(*m_image, 0, 0);
+			wxRect rect = GetLogicalPageRect();
 
-			return false;
+			// If OpenGL 3.0 Framebuffer Object functionality is unavailable, we'll have captured
+			// at canvas dimensions, so we'll want to up-scale to page dimensions.
+			if (m_image->GetWidth() == m_canvas->getWidth() && m_image->GetHeight() == m_canvas->getHeight())
+			{
+				wxRect r = scaledRect(m_image->GetWidth(), m_image->GetHeight(), rect.GetWidth(), rect.GetHeight());
+				wxAffineMatrix2D mtx;
+				double xScale = r.GetWidth() / double(m_image->GetWidth());
+				double yScale = r.GetHeight() / double(m_image->GetHeight());
+				mtx.Scale(xScale, yScale);
+				dc->SetTransformMatrix(mtx);
+				dc->DrawBitmap(*m_image, rect.GetTopLeft());
+			}
+			else
+			{
+				dc->DrawBitmap(*m_image, rect.GetTopLeft());
+			}
+
+			return true;
 		}
+
+		bool grabbedImage() const { return m_grabbedImage; }
 	protected:
+		xlGLCanvas *m_canvas;
 		wxImage *m_image;
+		bool m_grabbedImage;
 	};
 
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-	wxImage *image = modelPreview->GrabImage();
-	if (image == nullptr)
-	{
-		logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
-
-		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
-		msgDlg.ShowModal();
-		return;
-	}
-
-	Printout printout(image);
+	Printout printout(modelPreview);
 
 	static wxPrintDialogData printDialogData;
 	wxPrinter printer(&printDialogData);
@@ -3240,8 +3291,13 @@ void LayoutPanel::PrintPreviewImage()
 	{
 		printDialogData = printer.GetPrintDialogData();
 	}
+	if (!printout.grabbedImage())
+	{
+		logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
 
-	delete image;
+		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+		msgDlg.ShowModal();
+	}
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)
