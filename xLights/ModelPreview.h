@@ -76,6 +76,8 @@ public:
     void SetActive(bool show);
     bool GetActive();
 
+	 void render() override;
+
     DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
 protected:
     virtual void InitializeGLCanvas();

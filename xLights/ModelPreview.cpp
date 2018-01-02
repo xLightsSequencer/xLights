@@ -299,6 +299,13 @@ bool ModelPreview::GetActive()
     return mPreviewPane->GetActive();
 }
 
+void ModelPreview::render()
+{
+	wxPaintEvent dummyEvent;
+
+	render(dummyEvent);
+}
+
 void ModelPreview::SetActive(bool show) {
     if( show ) {
         mPreviewPane->Show();
