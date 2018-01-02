@@ -254,7 +254,14 @@ void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
                 ListView_Processes->SetItem(dropitem + 1, 2, p1);
                 ListView_Processes->SetItem(dropitem + 1, 3, p1);
                 ListView_Processes->SetItem(dropitem + 1, 4, d);
-                if (!e) ListView_Processes->SetItemTextColour(dropitem + 1 , *wxLIGHT_GREY);
+                if (!e) 
+		{
+			ListView_Processes->SetItemTextColour(dropitem + 1 , *wxLIGHT_GREY);
+		}
+	        else
+	        {
+			ListView_Processes->SetItemTextColour(dropitem + 1 , *wxBLACK);
+	        }
 
                 ListView_Processes->EnsureVisible(dropitem + 1);
 
@@ -549,6 +556,10 @@ bool OutputProcessingDialog::EditSelectedItem()
             {
                 ListView_Processes->SetItemTextColour(row, *wxLIGHT_GREY);
             }
+	    else
+	    {
+                ListView_Processes->SetItemTextColour(row, *wxBLACK);
+	    }
             result = true;
         }
     }
