@@ -271,7 +271,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
-	 modelPreview->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewContextMenu, nullptr, this);
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -2021,6 +2020,8 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
     }
 
+    mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
     modelPreview->SetFocus();
@@ -2031,6 +2032,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
     {
         PreviewModelAlignTops();
+    }
+    else if (event.GetId() == ID_PREVIEW_SAVE_LAYOUT_IMAGE)
+    {
+        PreviewSaveImage();
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
@@ -3130,16 +3135,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
 }
 
-void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
-{
-	wxMenu menu;
-	menu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
-	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewSaveImage, nullptr, this);
-
-	PopupMenu(&menu);
-}
-
-void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
+void LayoutPanel::PreviewSaveImage()
 {
 	wxImage *image = modelPreview->GrabImage();
 	if (image == nullptr)
