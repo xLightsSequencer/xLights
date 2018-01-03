@@ -116,7 +116,8 @@ public:
     };
     virtual ~ModelTreeData() {};
 
-    Model *GetModel() {
+    Model *GetModel() const
+    {
         if ("" != subModel) {
             return model->GetSubModel(subModel);
         }
@@ -158,10 +159,12 @@ public:
             SetBitmap(bitmap);
         }
     }
-    unsigned int GetState() {
+    unsigned int GetState() const
+    {
         return state;
     }
-    const std::string &GetModelType() {
+    const std::string &GetModelType() const
+    {
         return modelType;
     }
 protected:
@@ -1596,9 +1599,9 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
     }
     else if (modelCount>1)
     {
-        for(int i=0;i<modelCount;i++)
+        for (int i=0; i<modelCount; i++)
         {
-            if(mHitTestNextSelectModelIndex==i)
+            if (mHitTestNextSelectModelIndex == i)
             {
                 SelectModel(modelPreview->GetModels()[found[i]]);
                 mHitTestNextSelectModelIndex += 1;
@@ -1612,7 +1615,7 @@ bool LayoutPanel::SelectSingleModel(int x,int y)
 
 void LayoutPanel::SelectAllInBoundingRect()
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
                                          m_bound_end_x,m_bound_end_y))
@@ -1630,8 +1633,8 @@ void LayoutPanel::SelectAllInBoundingRect()
 bool LayoutPanel::SelectMultipleModels(int x,int y)
 {
     std::vector<int> found;
-    int modelCount = FindModelsClicked(x,y,found);
-    if (modelCount==0)
+    int modelCount = FindModelsClicked(x, y, found);
+    if (modelCount == 0)
     {
         return false;
     }
@@ -1663,7 +1666,7 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
 
 void LayoutPanel::SetSelectedModelToGroupSelected()
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected)
         {
@@ -1718,7 +1721,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     {
         //create a new model
         int wi, ht;
-        modelPreview->GetVirtualCanvasSize(wi,ht);
+        modelPreview->GetVirtualCanvasSize(wi, ht);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
@@ -1758,7 +1761,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if(SelectSingleModel(event.GetX(),y))
+        if(SelectSingleModel(event.GetX(), y))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
@@ -1862,7 +1865,6 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
-    int wi,ht;
 
     if (m_creating_bound_rect)
     {
@@ -1893,6 +1895,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
+        int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
         {
@@ -1964,6 +1967,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
         mnu.AppendSeparator();
     }
+
     if (selectedModelCnt > 0) {
         Model* model = selectedModel;
         if (model != nullptr && !model->GetModelScreenLocation().IsLocked())
@@ -2091,9 +2095,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
-        Model* md=selectedModel;
-        if( md == nullptr ) return;
-        wxString html=md->ChannelLayoutHtml(xlights->GetOutputManager());
+        Model* md = selectedModel;
+        if (md == nullptr) return;
+        wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
         ChannelLayoutDialog dialog(this);
         dialog.SetHtmlSource(html);
         dialog.ShowModal();
@@ -2215,15 +2219,15 @@ return; \
 void LayoutPanel::PreviewModelAlignTops()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex<0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int top = modelPreview->GetModels()[selectedindex]->GetTop(modelPreview);
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetTop(modelPreview,top);
+            modelPreview->GetModels()[i]->SetTop(modelPreview, top);
         }
     }
     UpdatePreview();
@@ -2232,15 +2236,15 @@ void LayoutPanel::PreviewModelAlignTops()
 void LayoutPanel::PreviewModelAlignBottoms()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int bottom = modelPreview->GetModels()[selectedindex]->GetBottom(modelPreview);
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetBottom(modelPreview,bottom);
+            modelPreview->GetModels()[i]->SetBottom(modelPreview, bottom);
         }
     }
     UpdatePreview();
@@ -2249,15 +2253,15 @@ void LayoutPanel::PreviewModelAlignBottoms()
 void LayoutPanel::PreviewModelAlignLeft()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int left = modelPreview->GetModels()[selectedindex]->GetLeft(modelPreview);
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetLeft(modelPreview,left);
+            modelPreview->GetModels()[i]->SetLeft(modelPreview, left);
         }
     }
     UpdatePreview();
@@ -2266,8 +2270,8 @@ void LayoutPanel::PreviewModelAlignLeft()
 void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
     if (sameWidth)
@@ -2299,15 +2303,15 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 void LayoutPanel::PreviewModelAlignRight()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     int right = modelPreview->GetModels()[selectedindex]->GetRight(modelPreview);
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetRight(modelPreview,right);
+            modelPreview->GetModels()[i]->SetRight(modelPreview, right);
         }
     }
     UpdatePreview();
@@ -2316,11 +2320,11 @@ void LayoutPanel::PreviewModelAlignRight()
 void LayoutPanel::PreviewModelAlignHCenter()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetHcenterOffset();
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -2449,11 +2453,11 @@ void LayoutPanel::PreviewModelVDistribute()
 void LayoutPanel::PreviewModelAlignVCenter()
 {
     int selectedindex = GetSelectedModelIndex();
-    if (selectedindex<0)
-        return;
+    if (selectedindex < 0) return;
+
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetVcenterOffset();
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -2464,9 +2468,9 @@ void LayoutPanel::PreviewModelAlignVCenter()
 }
 
 
-int LayoutPanel::GetSelectedModelIndex()
+int LayoutPanel::GetSelectedModelIndex() const
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected)
         {
@@ -2475,10 +2479,10 @@ int LayoutPanel::GetSelectedModelIndex()
     }
     return -1;
 }
-int LayoutPanel::ModelsSelectedCount()
+int LayoutPanel::ModelsSelectedCount() const
 {
-    int selectedModelCount=0;
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    int selectedModelCount = 0;
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
         {
@@ -2501,7 +2505,7 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 }
 
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
-    for (auto it = buttons.begin(); it != buttons.end(); it++) {
+    for (auto it = buttons.begin(); it != buttons.end(); ++it) {
         if (event.GetId() == (*it)->GetId()) {
             int state = (*it)->GetState();
             (*it)->SetState(state + 1);
@@ -2519,7 +2523,8 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     }
 }
 
-Model *LayoutPanel::CreateNewModel(const std::string &type) {
+Model *LayoutPanel::CreateNewModel(const std::string &type) const
+{
     std::string t = type;
     if (t == "Import Custom")
     {
@@ -2534,11 +2539,11 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) {
     return m;
 }
 
-std::list<Model*> LayoutPanel::GetSelectedModels()
+std::list<Model*> LayoutPanel::GetSelectedModels() const
 {
     std::list<Model*> res;
 
-    if(selectedModel != nullptr)
+    if (selectedModel != nullptr)
     {
         res.push_back(selectedModel);
     }
@@ -2759,6 +2764,7 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
         }
     }
 }
+
 void LayoutPanel::DoCut(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();

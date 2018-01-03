@@ -200,9 +200,9 @@ class LayoutPanel: public wxPanel
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
 
-        int ModelsSelectedCount();
-        int GetSelectedModelIndex();
-        std::list<Model*> GetSelectedModels();
+        int ModelsSelectedCount() const;
+        int GetSelectedModelIndex() const;
+        std::list<Model*> GetSelectedModels() const;
         void PreviewModelAlignTops();
         void PreviewModelAlignBottoms();
         void PreviewModelAlignLeft();
@@ -212,7 +212,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
-        Model *CreateNewModel(const std::string &type);
+        Model *CreateNewModel(const std::string &type) const;
 
         bool _firstTreeLoad;
         bool m_dragging;

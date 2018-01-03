@@ -259,7 +259,6 @@ std::string CustomModel::GetNodeName(size_t x, bool def) const {
 
 std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
-    wxString bgcolor;
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
     std::string direction="n/a";
@@ -289,18 +288,17 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             html+="<tr><td>No custom data</td></tr>";
     }
 
-    wxArrayString cols;
     wxArrayString rows=wxSplit(data, ';');
     for(size_t row=0; row < rows.size(); row++)
     {
         html+="<tr>";
-        cols=wxSplit(rows[row],',');
+        wxArrayString cols = wxSplit(rows[row],',');
         for(size_t col=0; col < cols.size(); col++)
         {
             wxString value=cols[col];
             if (!value.IsEmpty() && value != "0")
             {
-                bgcolor="#ADD8E6"; //"#90EE90"
+                wxString bgcolor = "#ADD8E6"; //"#90EE90"
                 html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%s</td>",value);
             }
             else

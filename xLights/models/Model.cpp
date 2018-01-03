@@ -30,7 +30,6 @@
 #include "../UtilFunctions.h"
 #include "xLightsVersion.h"
 
-
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");
 static const std::string SINGLE_LINE("Single Line");
@@ -2392,102 +2391,122 @@ void Model::ExportAsCustomXModel() const {
     f.Close();
 }
 
-std::string Model::ChannelLayoutHtml(OutputManager* outputManager) {
-    size_t NodeCount=GetNodeCount();
-    size_t i;
-    int n, s;
-    wxString bgcolor;
+std::string Model::ChannelLayoutHtml(OutputManager* outputManager) 
+{
+    size_t NodeCount = GetNodeCount();
+
     std::vector<int> chmap;
-    chmap.resize(BufferHt * BufferWi,0);
+    chmap.resize(BufferHt * BufferWi, 0);
+
     bool IsCustom = DisplayAs == "Custom";
+    
     std::string direction;
     if (IsCustom) {
-        direction="n/a";
+        direction = "n/a";
     } else if (!IsLtoR) {
         if(!isBotToTop)
-            direction="Top Right";
+            direction = "Top Right";
         else
-            direction="Bottom Right";
+            direction = "Bottom Right";
     } else {
         if (!isBotToTop)
-            direction="Top Left";
+            direction = "Top Left";
         else
-            direction="Bottom Left";
+            direction = "Bottom Left";
     }
 
     long sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";
-    html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
-    html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
-    html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
-    html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
-    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",(int)NodeCount);
-    html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
+    html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
+    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
+    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
+
     if (o != nullptr)
+    {
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
+    }
+
     if (wxString(controller_connection).Contains(":"))
     {
         wxArrayString cc = wxSplit(controller_connection, ':');
         html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
-        if (GetNumStrings() ==  1)
+        if (GetNumStrings() == 1)
+        {
             html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+        }
         else
-            html += wxString::Format("<tr><td>Controller Connections:</td><td>%s-%d</td></tr>", cc[1], wxAtoi(cc[1])+ GetNumPhysicalStrings() -1);
+        {
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%s-%d</td></tr>", cc[1], wxAtoi(cc[1]) + GetNumPhysicalStrings() - 1);
+        }
     }
-    html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
+    html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     if (BufferHt == 1) {
         // single line or arch or cane
-        html+="<tr>";
-        for(i=1; i<=NodeCount; i++) {
-            n=IsLtoR ? i : NodeCount-i+1;
-            s=Nodes[n-1]->StringNum+1;
-            bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
-            html += wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
+        html += "<tr>";
+        for (size_t i = 1; i <= NodeCount; i++) {
+            int n = IsLtoR ? i : NodeCount - i + 1;
+            int s = Nodes[n-1]->StringNum + 1;
+            wxString bgcolor = s%2 == 1 ? "#ADD8E6" : "#90EE90";
+            while (n > NodesPerString())
+            {
+                n -= NodesPerString();
+            }
+            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
         }
-        html+="</tr>";
+        html += "</tr>";
     } else if (BufferHt > 1) {
         // horizontal or vertical matrix or frame
-        for(i=0; i<NodeCount; i++) {
+        for (size_t i = 0; i < NodeCount; i++) {
             size_t idx = Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
-            if (idx < chmap.size()) chmap[idx]=i + 1;
+            if (idx < chmap.size())
+            {
+                chmap[idx] = i + 1;
+            }
         }
-        for(int y = BufferHt-1; y>=0; y--) {
-            html+="<tr>";
-            for(int x = 0; x<BufferWi; x++) {
-                n=chmap[y*BufferWi+x];
-                if (n==0) {
-                    html+="<td></td>";
+        for (int y = BufferHt - 1; y >= 0; y--) {
+            html += "<tr>";
+            for (int x = 0; x < BufferWi; x++) {
+                int n = chmap[y * BufferWi + x];
+                if (n == 0) {
+                    html += "<td></td>";
                 } else {
-                    s=Nodes[n-1]->StringNum+1;
-                    bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
-                    html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
+                    int s = Nodes[n-1]->StringNum + 1;
+                    wxString bgcolor = (s%2 == 1) ? "#ADD8E6" : "#90EE90";
+                    while (n > NodesPerString())
+                    {
+                        n -= NodesPerString();
+                    }
+                    html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", n, s);
                 }
             }
-            html+="</tr>";
+            html += "</tr>";
         }
     } else {
-        html+="<tr><td>Error - invalid height</td></tr>";
+        html += "<tr><td>Error - invalid height</td></tr>";
     }
-    html+="</table></body></html>";
+    html += "</table></body></html>";
     return html;
 }
 
 // initialize screen coordinates
 void Model::CopyBufCoord2ScreenCoord() {
-    size_t NodeCount=GetNodeCount();
-    int xoffset=BufferWi/2;
-    int yoffset=BufferHt/2;
-    for(size_t n=0; n<NodeCount; n++) {
+    size_t NodeCount = GetNodeCount();
+    int xoffset = BufferWi / 2;
+    int yoffset = BufferHt / 2;
+    for (size_t n = 0; n < NodeCount; n++) {
         size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
+        for (size_t c = 0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
             Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY - yoffset;
         }
     }
-    GetModelScreenLocation().SetRenderSize(BufferWi,BufferHt);
+    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt);
 }
 
 void Model::UpdateXmlWithScale() {
@@ -2504,18 +2523,17 @@ bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
     return GetModelScreenLocation().IsContained(x1, y1, x2, y2);
 }
 
-
-bool Model::HitTest(ModelPreview* preview,int x,int y) {
-    int y1 = preview->GetVirtualCanvasHeight()-y;
+bool Model::HitTest(ModelPreview* preview, int x, int y) {
+    int y1 = preview->GetVirtualCanvasHeight() - y;
     SetMinMaxModelScreenCoordinates(preview);
     return GetModelScreenLocation().HitTest(x, y1);
 }
 
-
-wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x,wxCoord y) {
+wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x, wxCoord y) {
     return GetModelScreenLocation().CheckIfOverHandles(handle, x, y);
 }
-wxCursor Model::InitializeLocation(int &handle, wxCoord x,wxCoord y) {
+
+wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
 }
 
@@ -2531,14 +2549,13 @@ void Model::ApplyTransparency(xlColor &color, int transparency) {
 // display model using colors stored in each node
 // used when preview is running
 void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
-    size_t NodeCount=Nodes.size();
+    size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
         color = *c;
     }
+
     int w, h;
-    //int vw, vh;
-    //preview->GetSize(&w, &h);
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw();
@@ -2559,8 +2576,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     va.PreAlloc(maxVertexCount);
 
-    int first = 0; int last = NodeCount;
-    int buffFirst = -1; int buffLast = -1;
+    int first = 0; 
+    int last = NodeCount;
+    int buffFirst = -1; 
+    int buffLast = -1;
     bool left = true;
 
     while (first < last) {
