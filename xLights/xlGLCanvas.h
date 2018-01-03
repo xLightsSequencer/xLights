@@ -27,9 +27,11 @@ class xlGLCanvas
 
         void DisplayWarning(const wxString &msg);
 
-		  // Grab a copy of the front buffer at window dimensions; it's the caller's
-		  // responsibility to delete the image when done with it
-		  wxImage *GrabImage();
+		  // Grab a copy of the front buffer (at window dimensions by default); it's the
+		  // caller's responsibility to delete the image when done with it
+		  wxImage *GrabImage( wxSize size = wxSize(0,0) );
+
+		  virtual void render( const wxSize& = wxSize(0,0) ) {};
     protected:
       	DECLARE_EVENT_TABLE()
 

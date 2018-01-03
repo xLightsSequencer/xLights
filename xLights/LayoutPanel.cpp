@@ -11,6 +11,7 @@
 #include <wx/button.h>
 #include <wx/string.h>
 #include <wx/filedlg.h>
+#include <wx/prntbase.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -34,6 +35,27 @@
 #include "models/SubModel.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
+
+static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+{
+	wxRect r;
+	float srcAspectRatio = float(srcWidth) / srcHeight;
+	float dstAspectRatio = float(dstWidth) / dstHeight;
+
+	if (srcAspectRatio > dstAspectRatio)
+	{
+		r.SetWidth(dstWidth);
+		r.SetHeight(int(dstWidth / srcAspectRatio));
+		r.SetTopLeft(wxPoint(0, (dstHeight - r.GetHeight()) / 2));
+	}
+	else
+	{
+		r.SetHeight(dstHeight);
+		r.SetWidth(int(dstHeight * srcAspectRatio));
+		r.SetTopLeft(wxPoint((dstWidth - r.GetWidth()) / 2, 0));
+	}
+	return r;
+}
 
 //(*IdInit(LayoutPanel)
 const long LayoutPanel::ID_PANEL3 = wxNewId();
@@ -97,6 +119,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELETEPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -3133,17 +3156,36 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 void LayoutPanel::OnPreviewContextMenu(wxContextMenuEvent& event)
 {
 	wxMenu menu;
+
 	menu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
-	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewSaveImage, nullptr, this);
+	menu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+
+	menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPreviewContextMenuCommand, nullptr, this);
 
 	PopupMenu(&menu);
 }
 
-void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
+void LayoutPanel::OnPreviewContextMenuCommand(wxCommandEvent& event)
+{
+	int id = event.GetId();
+	if (id == ID_PREVIEW_SAVE_LAYOUT_IMAGE)
+	{
+		SavePreviewImage();
+	}
+	else
+	{
+		PrintPreviewImage();
+	}
+}
+
+void LayoutPanel::SavePreviewImage()
 {
 	wxImage *image = modelPreview->GrabImage();
 	if (image == nullptr)
 	{
+		static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+		logger_base.error("SavePreviewImage() - problem grabbing ModelPreview image");
+
 		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
 		msgDlg.ShowModal();
 		return;
@@ -3160,6 +3202,102 @@ void LayoutPanel::OnPreviewSaveImage(wxCommandEvent& event)
 	}
 
 	delete image;
+}
+
+void LayoutPanel::PrintPreviewImage()
+{
+	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+	class Printout : public wxPrintout
+	{
+	public:
+		Printout(xlGLCanvas *canvas) : m_canvas(canvas), m_image(nullptr), m_grabbedImage(false) {}
+		virtual ~Printout()
+		{
+			clearImage();
+		}
+
+		void clearImage()
+		{
+			if (m_image != nullptr)
+			{
+				delete m_image;
+				m_image = nullptr;
+			}
+		}
+
+		virtual bool GrabImage()
+		{
+			clearImage();
+
+			wxRect rect = GetLogicalPageRect();
+			rect.Deflate(rect.GetWidth() / 20, rect.GetHeight() / 20);
+			wxRect adjustedRect = scaledRect(m_canvas->getWidth(), m_canvas->getHeight(), rect.GetWidth(), rect.GetHeight());
+
+			m_image = m_canvas->GrabImage(wxSize(adjustedRect.GetWidth(), adjustedRect.GetHeight()));
+			m_grabbedImage = (m_image != nullptr);
+			return m_grabbedImage;
+		}
+
+		virtual bool OnPrintPage(int page) override
+		{
+			if ( GrabImage() == false )
+				return false;
+
+			wxDC* dc = GetDC();
+			wxRect rect = GetLogicalPageRect();
+
+			// If OpenGL 3.0 Framebuffer Object functionality is unavailable, we'll have captured
+			// at canvas dimensions, so we'll want to up-scale to page dimensions.
+			if (m_image->GetWidth() == m_canvas->getWidth() && m_image->GetHeight() == m_canvas->getHeight())
+			{
+				wxRect r = scaledRect(m_image->GetWidth(), m_image->GetHeight(), rect.GetWidth(), rect.GetHeight());
+				wxAffineMatrix2D mtx;
+				double xScale = r.GetWidth() / double(m_image->GetWidth());
+				double yScale = r.GetHeight() / double(m_image->GetHeight());
+				mtx.Scale(xScale, yScale);
+				dc->SetTransformMatrix(mtx);
+				dc->DrawBitmap(*m_image, rect.GetTopLeft());
+			}
+			else
+			{
+				dc->DrawBitmap(*m_image, rect.GetTopLeft());
+			}
+
+			return true;
+		}
+
+		bool grabbedImage() const { return m_grabbedImage; }
+	protected:
+		xlGLCanvas *m_canvas;
+		wxImage *m_image;
+		bool m_grabbedImage;
+	};
+
+	Printout printout(modelPreview);
+
+	static wxPrintDialogData printDialogData;
+	wxPrinter printer(&printDialogData);
+
+	if (!printer.Print(this, &printout, true))
+	{
+		if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
+		{
+			logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
+			wxMessageBox("Problem printing.");
+		}
+	}
+	else
+	{
+		printDialogData = printer.GetPrintDialogData();
+	}
+	if (!printout.grabbedImage())
+	{
+		logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
+
+		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+		msgDlg.ShowModal();
+	}
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)

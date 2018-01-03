@@ -76,6 +76,8 @@ public:
     void SetActive(bool show);
     bool GetActive();
 
+	 virtual void render(const wxSize& size=wxSize(0,0)) override;
+
     DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
 protected:
     virtual void InitializeGLCanvas();

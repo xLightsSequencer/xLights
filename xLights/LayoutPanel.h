@@ -131,6 +131,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_ADDCURVE;
         static const long ID_PREVIEW_MODEL_DELCURVE;
 		  static const long ID_PREVIEW_SAVE_LAYOUT_IMAGE;
+		  static const long ID_PREVIEW_PRINT_LAYOUT_IMAGE;
 
 	public:
 
@@ -152,7 +153,7 @@ class LayoutPanel: public wxPanel
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnPreviewContextMenu(wxContextMenuEvent& event);
-		void OnPreviewSaveImage(wxCommandEvent& event);
+		void OnPreviewContextMenuCommand(wxCommandEvent& event);
 		//*)
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
@@ -214,6 +215,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelVDistribute();
         void PreviewModelResize(bool sameWidth, bool sameHeight);
         Model *CreateNewModel(const std::string &type);
+		  void SavePreviewImage();
+		  void PrintPreviewImage();
 
         bool _firstTreeLoad;
         bool m_dragging;

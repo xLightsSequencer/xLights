@@ -41,6 +41,27 @@ static bool functionsLoaded = false;
 #endif
 #endif
 
+extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+
+static bool hasOpenGL3FramebufferObjects()
+{
+	return glGenFramebuffers != nullptr
+		&& glBindFramebuffer != nullptr
+		&& glDeleteFramebuffers != nullptr
+		&& glGenRenderbuffers != nullptr
+		&& glDeleteRenderbuffers != nullptr
+		&& glBindRenderbuffer != nullptr
+		&& glRenderbufferStorage != nullptr
+		&& glFramebufferRenderbuffer != nullptr;
+}
+
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
                        bool coreProfile)
@@ -244,7 +265,7 @@ void xlGLCanvas::DisplayWarning(const wxString &msg) {
     wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
 }
 
-wxImage * xlGLCanvas::GrabImage()
+wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 {
 	if (m_context == nullptr)
 		return nullptr;
@@ -252,32 +273,68 @@ wxImage * xlGLCanvas::GrabImage()
 	if (!m_context->SetCurrent(*this))
 		return nullptr;
 
+	int width = mWindowWidth, height = mWindowHeight;
+	bool canScale = hasOpenGL3FramebufferObjects();
+	if (canScale && size != wxSize(0, 0))
+	{
+		width = size.GetWidth();
+		height = size.GetHeight();
+	}
+
 	// We'll grab the image as 4-byte-aligned RGBA and then convert to the
 	// RGB format that wxImage uses; also doing a vertical flip along the way.
-	int width = mWindowWidth, height = mWindowHeight;
 	width += width % 4;
 
 	GLubyte *tmpBuf = new GLubyte[width * 4 * height];
 
-	GLint currentReadBuffer = GL_NONE;
 	GLint currentUnpackAlignment = 1;
-	glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
-
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	glReadBuffer(GL_FRONT);
 
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+	if (canScale)
+	{
+		GLuint fbID = 0, rbID = 0;
+
+		glGenRenderbuffers(1, &rbID);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbID);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+
+		glGenFramebuffers(1, &fbID);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
+
+		render(wxSize(width,height));
+
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDeleteFramebuffers(1, &fbID);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glDeleteRenderbuffers(1, &rbID);
+	}
+	else
+	{
+		GLint currentReadBuffer = GL_NONE;
+		glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
+
+		glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+		glReadBuffer(currentReadBuffer);
+	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
-	glReadBuffer(currentReadBuffer);
 
-	unsigned char *buf = (unsigned char *)malloc(mWindowWidth * 3 * mWindowHeight);
+	// copying to wxImage
+	wxSize dstSize = (canScale && size != wxSize(0, 0)) ? wxSize(width, height) : wxSize(mWindowWidth, mWindowHeight);
+	unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
 	unsigned char *dst = buf;
-	for (int y = mWindowHeight - 1; y >= 0; --y)
+	for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
 	{
 		const unsigned char *src = tmpBuf + 4 * width * y;
-		for (int x = 0; x < mWindowWidth; ++x, src += 4, dst += 3)
+		for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3)
 		{
 			dst[0] = src[0];
 			dst[1] = src[1];
@@ -287,7 +344,7 @@ wxImage * xlGLCanvas::GrabImage()
 
 	delete[] tmpBuf;
 
-	return new wxImage(mWindowWidth, mWindowHeight, buf, false);
+	return new wxImage(dstSize.GetWidth(), dstSize.GetHeight(), buf, false);
 }
 
 
@@ -374,6 +431,8 @@ void xlGLCanvas::CreateGLContext() {
         config->Read("ForceOpenGLVer", &ver, 99);
 
         static bool supportsCoreProfile = true;
+
+		  const GLubyte *foo = glGetString(GL_VERSION);
 
         if (supportsCoreProfile && m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
