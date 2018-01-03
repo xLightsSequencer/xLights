@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add xSchedule output process which can scale pixels from 3 channel to 4 channels per pixel
+   -- bug (keith)  Fix xSchedule output processors not re-enabling
+   -- enh (keith)  Add bulk edit of mulitple model controller connection, dimming curve and preview
+   -- enh (keith)  Add create group of models by right clicking on a layout after selecting the models to be in the group
+   -- bug (keith)  Display node number relative to string in node layout rather that absolute node number within model
+   -- bug (scotth) Fix bars effect rounding problem
+   -- enh (kevinm) Add ability to save the layout as an image via right click menu
    -- bug (gil)    Last release broke DMX effect panel label updating.
    -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
 2017.45  Dec 29, 2017
