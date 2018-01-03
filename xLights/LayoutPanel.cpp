@@ -2048,6 +2048,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     }
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
+    mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -3239,22 +3240,14 @@ void LayoutPanel::PreviewPrintImage()
 			wxDC* dc = GetDC();
 			wxRect rect = GetLogicalPageRect();
 
-			// If OpenGL 3.0 Framebuffer Object functionality is unavailable, we'll have captured
-			// at canvas dimensions, so we'll want to up-scale to page dimensions.
-			if (m_image->GetWidth() == m_canvas->getWidth() && m_image->GetHeight() == m_canvas->getHeight())
-			{
-				wxRect r = scaledRect(m_image->GetWidth(), m_image->GetHeight(), rect.GetWidth(), rect.GetHeight());
-				wxAffineMatrix2D mtx;
-				double xScale = r.GetWidth() / double(m_image->GetWidth());
-				double yScale = r.GetHeight() / double(m_image->GetHeight());
-				mtx.Scale(xScale, yScale);
-				dc->SetTransformMatrix(mtx);
-				dc->DrawBitmap(*m_image, rect.GetTopLeft());
-			}
-			else
-			{
-				dc->DrawBitmap(*m_image, rect.GetTopLeft());
-			}
+
+            wxRect r = scaledRect(m_image->GetWidth(), m_image->GetHeight(), rect.GetWidth(), rect.GetHeight());
+            wxAffineMatrix2D mtx;
+            double xScale = r.GetWidth() / double(m_image->GetWidth());
+            double yScale = r.GetHeight() / double(m_image->GetHeight());
+            mtx.Scale(xScale, yScale);
+            dc->SetTransformMatrix(mtx);
+            dc->DrawBitmap(*m_image, rect.GetTopLeft());
 
 			return true;
 		}

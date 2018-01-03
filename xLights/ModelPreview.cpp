@@ -301,28 +301,26 @@ bool ModelPreview::GetActive()
 
 void ModelPreview::render(const wxSize& size/*wxSize(0,0)*/)
 {
-	wxPaintEvent dummyEvent;
-	wxSize origSize(0, 0);
-	wxSize origVirtSize(virtualWidth, virtualHeight);
-	if (size != wxSize(0, 0))
-	{
+    wxPaintEvent dummyEvent;
+    wxSize origSize(0, 0);
+    wxSize origVirtSize(virtualWidth, virtualHeight);
+    if (size != wxSize(0, 0)) {
 		origSize = wxSize(mWindowWidth, mWindowHeight);
-		mWindowWidth = size.GetWidth();
-		mWindowHeight = size.GetHeight();
-		float mult = float(size.GetWidth()) / origSize.GetWidth();
-		virtualWidth = int(mult * origVirtSize.GetWidth());
-		virtualHeight = int(mult * origVirtSize.GetHeight());
-	}
+        mWindowWidth = ((float)size.GetWidth() / GetContentScaleFactor());
+        mWindowHeight = ((float)size.GetHeight() / GetContentScaleFactor());
+        float mult = float(mWindowWidth) / origSize.GetWidth();
+        virtualWidth = int(mult * origVirtSize.GetWidth());
+        virtualHeight = int(mult * origVirtSize.GetHeight());
+    }
 
-	render(dummyEvent);
+    render(dummyEvent);
 
-	if (origSize != wxSize(0, 0))
-	{
-		mWindowWidth = origSize.GetWidth();
-		mWindowHeight = origSize.GetHeight();
-		virtualWidth = origVirtSize.GetWidth();
-		virtualHeight = origVirtSize.GetHeight();
-	}
+    if (origSize != wxSize(0, 0)) {
+        mWindowWidth = origSize.GetWidth();
+        mWindowHeight = origSize.GetHeight();
+        virtualWidth = origVirtSize.GetWidth();
+        virtualHeight = origVirtSize.GetHeight();
+    }
 }
 
 void ModelPreview::SetActive(bool show) {

@@ -278,8 +278,9 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 	if (!m_context->SetCurrent(*this))
 		return nullptr;
 
-	int width = mWindowWidth, height = mWindowHeight;
-	bool canScale = hasOpenGL3FramebufferObjects();
+    int width = mWindowWidth * GetContentScaleFactor();
+    int height = mWindowHeight * GetContentScaleFactor();
+	bool canScale = hasOpenGL3FramebufferObjects() && DrawGLUtils::IsCoreProfile();
 	if (canScale && size != wxSize(0, 0))
 	{
 		width = size.GetWidth();
@@ -333,7 +334,10 @@ wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
 
 	// copying to wxImage
-	wxSize dstSize = (canScale && size != wxSize(0, 0)) ? wxSize(width, height) : wxSize(mWindowWidth, mWindowHeight);
+	wxSize dstSize = (canScale && size != wxSize(0, 0))
+        ? wxSize(width, height)
+        : wxSize(mWindowWidth * GetContentScaleFactor(),
+                 mWindowHeight * GetContentScaleFactor());
 	unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
 	unsigned char *dst = buf;
 	for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
@@ -436,8 +440,6 @@ void xlGLCanvas::CreateGLContext() {
         config->Read("ForceOpenGLVer", &ver, 99);
 
         static bool supportsCoreProfile = true;
-
-		  const GLubyte *foo = glGetString(GL_VERSION);
 
         if (supportsCoreProfile && m_coreProfile && ver >= 3) {
             wxGLContextAttrs atts;
