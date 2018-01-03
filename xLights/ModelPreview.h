@@ -80,11 +80,11 @@ public:
 
     DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
 protected:
-    virtual void InitializeGLCanvas();
-    virtual bool UsesVertexTextureAccumulator() {return true;}
-    virtual bool UsesVertexColorAccumulator() {return false;}
-    virtual bool UsesVertexAccumulator() {return false;}
-    virtual bool UsesAddVertex() {return true;}
+    virtual void InitializeGLCanvas() override;
+    virtual bool UsesVertexTextureAccumulator() override {return true;}
+    virtual bool UsesVertexColorAccumulator() override {return false;}
+    virtual bool UsesVertexAccumulator() override {return false;}
+    virtual bool UsesAddVertex() override {return true;}
 
 private:
 	void render(wxPaintEvent& event);
