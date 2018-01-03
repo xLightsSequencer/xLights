@@ -123,7 +123,7 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     if (Direction < 4 || Direction == 8 || Direction == 9)
     {
-        int BarHt = buffer.BufferHt/BarCount+1;
+        int BarHt = (int)std::ceil((float)buffer.BufferHt / (float)BarCount);
         if(BarHt<1) BarHt=1;
         int NewCenter = buffer.BufferHt * (100 + Center) / 200;
         int BlockHt=colorcnt * BarHt;
@@ -205,7 +205,7 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         if( Direction == 13 ) {
             std::swap(width, height);
         }
-        int BarWi = width/BarCount+1;
+        int BarWi = (int)std::ceil((float)width / (float)BarCount);
         if(BarWi<1) BarWi=1;
         int NewCenter = (width * (100.0 + Center) / 200.0 - width/2);
         int BlockWi=colorcnt * BarWi;
@@ -246,7 +246,7 @@ void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
     else
     {
-        int BarWi = buffer.BufferWi/BarCount+1;
+        int BarWi = (int)std::ceil((float)buffer.BufferWi / (float)BarCount);
         if(BarWi<1) BarWi=1;
         int NewCenter = buffer.BufferWi * (100 + Center) / 200;
         int BlockWi=colorcnt * BarWi;
