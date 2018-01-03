@@ -1,0 +1,127 @@
+This file documents the dependencies xLights has on third party libraries. Eventually I would like to get Conan.io 
+or some equivalent dependency manager implemented to manage these dependencies ... but in lieu of that a more complete set of
+documentation and some cleaning up of our repository seems in order.
+
+Library:     wxWidgets
+Usage:       Platform independence
+Link:        https://www.wxwidgets.org/
+Source:      https://github.com/wxWidgets/wxWidgets
+Last Pulled: ?
+Version:     3.1.0
+License:     wxWindows Library License
+Strategy:    Windows: wxWidgets source is not included in the xLights repository. Builders are expected to grab the appropriate version from Git. Windows 64 bit release binaries are included in the repository.
+
+Library:     log4cpp
+Usage:       Logging
+Link:        http://log4cpp.sourceforge.net/
+Source:      https://sourceforge.net/p/log4cpp/codegit/ci/master/tree/
+Last Pulled: ?
+Version:     ?
+License:     LGPL
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
+
+Library:     kiss_fft
+Usage:       FFT for audio analysis
+Link:        https://sourceforge.net/projects/kissfft/
+Source:      https://sourceforge.net/p/kissfft/code/ci/default/tree/
+Last Pulled: ?
+Version:     ?
+Licence:     BSD
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     libavcodec/ffmpeg
+Usage:       Audio and Video processing
+Link:        https://www.ffmpeg.org/
+Source:      https://github.com/FFmpeg/FFmpeg
+Last Pulled: ?
+Version:     ?
+License:     LGPL
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
+
+Library:     SDL
+Usage:       Audio playback
+Link:        https://www.libsdl.org/
+Source:      http://hg.libsdl.org/SDL
+Last Pulled: ?
+Version:     ?
+License:     zlib
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
+
+Library:     Vamp-host SDK
+Usage:       Audio analysis
+Link:        http://vamp-plugins.org/develop.html
+Source:      https://code.soundsoftware.ac.uk/projects/vamp-plugin-sdk/repository
+Last Pulled: ?
+Version:     ?
+License:     New BSD
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     LiquidFun/Box2D
+Usage:       Liquid Effect
+Link:        http://google.github.io/liquidfun/
+Source:      https://github.com/google/liquidfun
+Last Pulled: ?
+Version:     ?
+License:     ?
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries.
+
+Library:     wxJSON
+Usage:       xSchedule JSON message processing
+Link:        http://luccat.users.sourceforge.net/wxjson/
+Source:      http://svn.code.sf.net/p/wxcode/code/trunk/wxCode/components/wxjson/
+Last Pulled: ?
+Version:     ?
+License:     wxWindows Library License
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     wxHTTPServer
+Usage:       xSchedule web server
+Link:        https://sourceforge.net/projects/wxhttpserver/
+Source:      https://sourceforge.net/p/wxhttpserver/code/HEAD/tree/
+Last Pulled: ?
+Version:     ?
+License:     GPL2
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     MIDI
+Usage:       MIDI file reading for Piano effect
+Link:        http://midifile.sapp.org/
+Source:      https://github.com/craigsapp/midifile
+Last Pulled: ?
+Version:     ?
+License:     freeBSD
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     SPXML
+Usage:       XML parsing without loading really large XML files in their entirety
+Link:        
+Source:      https://github.com/spsoft/spxml
+Last Pulled: ?
+Version:     ?
+License:     LGPL
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     GLM
+Usage:       ?
+Link:        https://glm.g-truc.net/0.9.8/index.html
+Source:      https://github.com/g-truc/glm
+Last Pulled: ?
+Version:     ?
+License:     MIT License
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     
+Usage:       
+Link:        
+Source:      
+Last Pulled: 
+Version:     
+License:     
+Strategy:    
+
+
+
+
+
+
+
