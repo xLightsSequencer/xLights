@@ -20,6 +20,13 @@
 						<item>Square</item>
 						<item>Triangle</item>
 						<item>Star</item>
+						<item>Polygon</item>
+						<item>Heart</item>
+						<item>Tree</item>
+						<item>Candy Cane</item>
+						<item>Snow Flake</item>
+						<item>Crucifix</item>
+						<item>Present</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_Ripple_Object_To_DrawSelect" entry="EVT_CHOICE" />
@@ -201,8 +208,8 @@
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_RIPPLE_POINTS" subclass="BulkEditSlider" variable="Slider_Ripple_Points" member="yes">
 					<value>5</value>
-					<min>4</min>
-					<max>7</max>
+					<min>3</min>
+					<max>8</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -228,6 +235,63 @@
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_Ripple_Rotation" variable="StaticText_Ripple_Rotation" member="yes">
+					<label>Rotation</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Ripple_Rotation" subclass="BulkEditSlider" variable="Slider_Ripple_Rotation" member="yes">
+							<max>360</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_RotationVC" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Rotation" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Rotation" member="yes">
+					<value>0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Ripple_Rotation" variable="BitmapButton_Ripple_Rotation" member="yes">
+					<bitmap code="padlock16x16_blue_xpm" />
+					<size>13,13</size>
+					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>1</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

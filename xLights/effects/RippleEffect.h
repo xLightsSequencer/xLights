@@ -11,6 +11,9 @@
 #define RIPPLE_THICKNESS_MIN 1
 #define RIPPLE_THICKNESS_MAX 100
 
+#define RIPPLE_ROTATION_MIN 0
+#define RIPPLE_ROTATION_MAX 360
+
 class RippleEffect : public RenderableEffect
 {
     public:
@@ -26,7 +29,15 @@ protected:
     void Drawcircle(RenderBuffer &buffer, int Movement, int xc, int yc, double radius,HSVValue &hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
     void Drawsquare(RenderBuffer &buffer, int Movement, int x1, int x2, int y1, int y2, int Ripple_Thickness, int CheckBox_Ripple3D, HSVValue &hsv);
     void Drawtriangle(RenderBuffer &buffer, int Movement, int xc, int yc, double side, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
-    void Drawstar(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, int points, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
+    void Drawstar(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, int points, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D, float rotation);
+	
+	void Drawheart(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
+	void Drawpolygon(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, int points, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D, float rotation);
+	void Drawsnowflake(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, int points, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D, double rotation);
+	void Drawtree(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
+	void Drawcandycane(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
+	void Drawcrucifix(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
+	void Drawpresent(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D);
 
 };
 
