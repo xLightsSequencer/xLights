@@ -39,7 +39,6 @@ static bool functionsLoaded = false;
 #else
     #include <GL/glext.h>
 #endif
-#endif
 
 extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
@@ -61,6 +60,12 @@ static bool hasOpenGL3FramebufferObjects()
 		&& glRenderbufferStorage != nullptr
 		&& glFramebufferRenderbuffer != nullptr;
 }
+#else
+static bool hasOpenGL3FramebufferObjects()
+{
+    return true;
+}
+#endif
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
