@@ -38,6 +38,10 @@ const long RipplePanel::ID_STATICTEXT1 = wxNewId();
 const long RipplePanel::ID_SLIDER_RIPPLE_POINTS = wxNewId();
 const long RipplePanel::IDD_TEXTCTRL_RIPPLE_POINTS = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_RIPPLE_POINTS = wxNewId();
+const long RipplePanel::ID_STATICTEXT_Ripple_Rotation = wxNewId();
+const long RipplePanel::ID_SLIDER_Ripple_Rotation = wxNewId();
+const long RipplePanel::IDD_TEXTCTRL_Ripple_Rotation = wxNewId();
+const long RipplePanel::ID_BITMAPBUTTON_Ripple_Rotation = wxNewId();
 const long RipplePanel::ID_CHECKBOX_Ripple3D = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON17 = wxNewId();
 //*)
@@ -67,6 +71,13 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	Choice_Ripple_Object_To_Draw->Append(_("Square"));
 	Choice_Ripple_Object_To_Draw->Append(_("Triangle"));
 	Choice_Ripple_Object_To_Draw->Append(_("Star"));
+	Choice_Ripple_Object_To_Draw->Append(_("Polygon"));
+	Choice_Ripple_Object_To_Draw->Append(_("Heart"));
+	Choice_Ripple_Object_To_Draw->Append(_("Tree"));
+	Choice_Ripple_Object_To_Draw->Append(_("Candy Cane"));
+	Choice_Ripple_Object_To_Draw->Append(_("Snow Flake"));
+	Choice_Ripple_Object_To_Draw->Append(_("Crucifix"));
+	Choice_Ripple_Object_To_Draw->Append(_("Present"));
 	FlexGridSizer57->Add(Choice_Ripple_Object_To_Draw, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Ripple_Object_To_Draw = new wxBitmapButton(this, ID_BITMAPBUTTON20, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON20"));
@@ -112,7 +123,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Points"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer57->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Ripple_Points = new BulkEditSlider(this, ID_SLIDER_RIPPLE_POINTS, 5, 4, 7, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_RIPPLE_POINTS"));
+	Slider_Ripple_Points = new BulkEditSlider(this, ID_SLIDER_RIPPLE_POINTS, 5, 3, 8, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_RIPPLE_POINTS"));
 	FlexGridSizer57->Add(Slider_Ripple_Points, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Ripple_Points = new BulkEditTextCtrl(this, IDD_TEXTCTRL_RIPPLE_POINTS, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_RIPPLE_POINTS"));
 	TextCtrl_Ripple_Points->SetMaxLength(1);
@@ -120,6 +131,16 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	BitmapButton_Ripple_Points = new wxBitmapButton(this, ID_BITMAPBUTTON_RIPPLE_POINTS, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_RIPPLE_POINTS"));
 	BitmapButton_Ripple_Points->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer57->Add(BitmapButton_Ripple_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Ripple_Rotation = new wxStaticText(this, ID_STATICTEXT_Ripple_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Rotation"));
+	FlexGridSizer57->Add(StaticText_Ripple_Rotation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Ripple_Rotation = new BulkEditSlider(this, ID_SLIDER_Ripple_Rotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Rotation"));
+	FlexGridSizer57->Add(Slider_Ripple_Rotation, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_Ripple_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Ripple_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Ripple_Rotation"));
+	TextCtrl_Ripple_Rotation->SetMaxLength(3);
+	FlexGridSizer57->Add(TextCtrl_Ripple_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Ripple_Rotation = new wxBitmapButton(this, ID_BITMAPBUTTON_Ripple_Rotation, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Ripple_Rotation"));
+	BitmapButton_Ripple_Rotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer57->Add(BitmapButton_Ripple_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer60 = new wxFlexGridSizer(0, 4, 0, 0);
 	CheckBox_Ripple3D = new BulkEditCheckBox(this, ID_CHECKBOX_Ripple3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple3D"));
 	CheckBox_Ripple3D->SetValue(false);
@@ -139,6 +160,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_Ripple_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_RIPPLE");
@@ -167,16 +189,24 @@ void RipplePanel::OnChoice_Ripple_Object_To_DrawSelect(wxCommandEvent& event)
 
 void RipplePanel::ValidateWindow()
 {
-    if (Choice_Ripple_Object_To_Draw->GetStringSelection() == "Star")
+    if (Choice_Ripple_Object_To_Draw->GetStringSelection() == "Star" || Choice_Ripple_Object_To_Draw->GetStringSelection() == "Snow Flake" || Choice_Ripple_Object_To_Draw->GetStringSelection() == "Polygon")
     {
         Slider_Ripple_Points->Enable();
         TextCtrl_Ripple_Points->Enable();
         BitmapButton_Ripple_Points->Enable();
+
+		BitmapButton_Ripple_Rotation->Enable();
+		Slider_Ripple_Rotation->Enable();
+		TextCtrl_Ripple_Rotation->Enable();
     }
     else
     {
         Slider_Ripple_Points->Disable();
         TextCtrl_Ripple_Points->Disable();
         BitmapButton_Ripple_Points->Disable();
+
+		BitmapButton_Ripple_Rotation->Disable();
+		Slider_Ripple_Rotation->Disable();
+		TextCtrl_Ripple_Rotation->Disable();
     }
 }
