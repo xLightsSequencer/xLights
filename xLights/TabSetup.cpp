@@ -65,6 +65,7 @@ const long xLightsFrame::ID_NETWORK_UCISanDevices = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOSanDevices = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
+const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1631,6 +1632,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mide = mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate");
     wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
+    wxMenuItem* pc = mnu.Append(ID_NETWORK_PINGCONTROLLER, "Ping Controller");
 
     mideu->Enable(true);
     mid->Enable(selcnt > 0);
@@ -1638,9 +1640,11 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mide->Enable(selcnt > 0);
 
     oc->Enable(selcnt == 1);
+    pc->Enable(selcnt == 1);
     if (!AllSelectedSupportIP())
     {
         oc->Enable(false);
+        pc->Enable(false);
     }
     else
     {
@@ -1650,6 +1654,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             if (o->GetIP() == "MULTICAST")
             {
                 oc->Enable(false);
+                pc->Enable(false);
             }
         }
     }
@@ -1764,6 +1769,20 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         Output* o = _outputManager.GetOutput(item);
         if (o != nullptr) {
             ::wxLaunchDefaultBrowser("http://" + o->GetIP());
+        }
+    }
+    else if (id == ID_NETWORK_PINGCONTROLLER)
+    {
+        Output* o = _outputManager.GetOutput(item);
+        if (o != nullptr) {
+            if (PINGSTATE::PING_OK == o->Ping())
+            {
+                wxMessageBox("Ping was Successful on Controller: " + o->GetIP());
+            }
+            else
+            {
+                wxMessageBox("Unable to Ping Controller: " + o->GetIP(), _("Error"));
+            }
         }
     }
 }

@@ -1396,6 +1396,7 @@ private:
     static const long ID_NETWORK_UCOSanDevices;
     static const long ID_NETWORK_UCOJ1SYS;
     static const long ID_NETWORK_UCOPixlite16;
+    static const long ID_NETWORK_PINGCONTROLLER;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
