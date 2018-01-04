@@ -186,6 +186,7 @@ const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
 const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
+const long xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
@@ -744,7 +745,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
     MenuItem_File_Close_Sequence->Enable(false);
-    MenuFile->AppendSeparator();
+	 MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export Video"), wxEmptyString, wxITEM_NORMAL);
+	 MenuFile->Append(MenuItem_File_Export_Video);
+	 MenuItem_File_Export_Video->Enable(false);
+	 MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
@@ -1112,6 +1116,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_Selected);
     Connect(ID_SAVE_AS_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected);
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
+	 Connect(ID_EXPORT_VIDEO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
@@ -2770,6 +2775,49 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
+{
+	int frameCount;
+
+	if ((frameCount = SeqData.NumFrames()) == 0)
+		return;
+
+	ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
+	if (housePreview == nullptr)
+		return;
+
+	int widthWithScaleFactor = housePreview->getWidth() * GetContentScaleFactor();
+	int heightWithScaleFactor = housePreview->getHeight() * GetContentScaleFactor();
+	unsigned int bufSize = widthWithScaleFactor * 3 * heightWithScaleFactor;
+	unsigned char *buf = (unsigned char *)malloc(bufSize);
+
+	xlGLCanvas::CaptureHelper captureHelper(housePreview->getWidth(), housePreview->getHeight(), GetContentScaleFactor());
+	captureHelper.SetActive(true);
+
+	for (int i = 0; i < frameCount; ++i)
+	{
+		const FrameData frameData = SeqData[i];
+		const unsigned char *data = frameData[0];
+
+		housePreview->Render(data);
+		wxString dirPath(_("C:\\Temp\\FrameImages\\"));
+
+		bool status = captureHelper.ToRGB(buf, bufSize);
+		if (status)
+		{
+			wxImage img(widthWithScaleFactor, heightWithScaleFactor, buf, true);
+			wxString localPath;
+			localPath.Printf(_("%03d.png"), i);
+			wxString path(dirPath + localPath);
+			img.SaveFile(path, wxBITMAP_TYPE_PNG);
+		}
+	}
+
+	captureHelper.SetActive(false);
+
+	free(buf);
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)

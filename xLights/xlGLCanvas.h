@@ -32,6 +32,25 @@ class xlGLCanvas
 		  wxImage *GrabImage( wxSize size = wxSize(0,0) );
 
 		  virtual void render( const wxSize& = wxSize(0,0) ) {};
+
+		  class CaptureHelper
+		  {
+		  public:
+			  // note: width & height without content-scale factor
+			  CaptureHelper(int i_width, int i_height, double i_contentScaleFactor) : fbID(0), rbID(0), width(i_width), height(i_height), contentScaleFactor(i_contentScaleFactor), tmpBuf(nullptr) {};
+			  virtual ~CaptureHelper();
+
+			  void SetActive(bool active);
+
+			  bool ToRGB(unsigned char *buf, unsigned int bufSize);
+		  protected:
+			  unsigned fbID;
+			  unsigned rbID;
+			  const int width;
+			  const int height;
+			  const double contentScaleFactor;
+			  unsigned char *tmpBuf;
+		  };
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -54,6 +73,7 @@ class xlGLCanvas
         virtual bool UsesAddVertex() {return true;}
 
         DrawGLUtils::xlGLCacheInfo *cache;
+
     private:
         wxGLContext* m_context;
         bool m_coreProfile;
