@@ -27,8 +27,8 @@ class FaceGrid;
 class ModelFaceDialog: public wxDialog
 {
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
-    void DoSetPhonemes(wxFileName fn, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);
-    void DoSetMatrixModels(wxFileName fn, std::string key, int count, int col, std::string name);
+    void DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);
+    void DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name);
     void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
 
     public:

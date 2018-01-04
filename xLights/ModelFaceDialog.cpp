@@ -549,7 +549,7 @@ std::string ExtractKey(wxString key)
 wxFileName GetFileNamePhoneme(wxFileName fn, std::string key, int count, std::string phoneme)
 {
     wxString base = fn.GetName();
-    for(int i = 0; i < count - 1; i++)
+    for (int i = 0; i <= count - 1; i++)
     {
         base.Replace(key, ":", false);
     }
@@ -562,11 +562,13 @@ wxFileName GetFileNamePhoneme(wxFileName fn, std::string key, int count, std::st
     return fn2;
 }
 
-void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme)
+void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme)
 {
+    if (key == setPhoneme) return;
+
     for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
     {
-        wxFileName fn2 = GetFileNamePhoneme(fn, key, count, *it);
+        wxFileName fn2 = GetFileNamePhoneme(fn, actualkey, count, *it);
         if (fn2.Exists() && faceData[name][GenerateKey(col, setPhoneme)] == "")
         {
             faceData[name][GenerateKey(col, setPhoneme)] = fn2.GetFullPath();
@@ -575,66 +577,73 @@ void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string key, int count, i
     }
 }
 
-void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string key, int count, int col, std::string name)
+std::list<std::string> GetPhonemes(std::string key)
 {
-    if (key != "AI")
+    if (key == "AI")
     {
         std::list<std::string> phonemes = { "AI", "Ai", "ai", "A", "a" };
-        DoSetPhonemes(fn, key, count, 0, col, name, phonemes, "AI");
+        return phonemes;
     }
-
-    if (key != "E")
+    else if (key == "E")
     {
         std::list<std::string> phonemes = { "E", "e" };
-        DoSetPhonemes(fn, key, count, 1, col, name, phonemes, "E");
+        return phonemes;
     }
-
-    if (key != "etc")
+    else if (key == "etc")
     {
         std::list<std::string> phonemes = { "etc", "ETC", "Etc" };
-        DoSetPhonemes(fn, key, count, 2, col, name, phonemes, "etc");
+        return phonemes;
     }
-
-    if (key != "FV")
+    else if (key == "FV")
     {
         std::list<std::string> phonemes = { "FV", "Fv", "fv", "F", "f" };
-        DoSetPhonemes(fn, key, count, 3, col, name, phonemes, "FV");
+        return phonemes;
     }
-
-    if (key != "L")
+    else if (key == "L")
     {
         std::list<std::string> phonemes = { "L", "l" };
-        DoSetPhonemes(fn, key, count, 4, col, name, phonemes, "L");
+        return phonemes;
     }
-
-    if (key != "MBP")
+    else if (key == "MBP")
     {
         std::list<std::string> phonemes = { "MBP", "Mbp", "mbp" };
-        DoSetPhonemes(fn, key, count, 5, col, name, phonemes, "MBP");
+        return phonemes;
     }
-
-    if (key != "O")
+    else if (key == "O")
     {
         std::list<std::string> phonemes = { "O", "o" };
-        DoSetPhonemes(fn, key, count, 6, col, name, phonemes, "O");
+        return phonemes;
     }
-
-    if (key != "rest")
+    else if (key == "rest")
     {
         std::list<std::string> phonemes = { "rest", "Rest", "REST" };
-        DoSetPhonemes(fn, key, count, 7, col, name, phonemes, "rest");
+        return phonemes;
     }
-
-    if (key != "U")
+    else if (key == "U")
     {
         std::list<std::string> phonemes = { "U", "u" };
-        DoSetPhonemes(fn, key, count, 8, col, name, phonemes, "U");
+        return phonemes;
     }
-
-    if (key != "WQ")
+    else if (key == "WQ")
     {
         std::list<std::string> phonemes = { "WQ", "wq", "Wq", "W", "w" };
-        DoSetPhonemes(fn, key, count, 9, col, name, phonemes, "WQ");
+        return phonemes;
+    }
+    else
+    {
+        wxASSERT(false);
+        std::list<std::string> phonemes = { };
+        return phonemes;
+    }
+}
+
+void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name)
+{
+    std::list<std::string> phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ"};
+    int i = 0;
+    for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
+    {
+        DoSetPhonemes(fn, actualkey, key, count, i++, col, name, GetPhonemes(*it), *it);
     }
 }
 
@@ -643,30 +652,40 @@ void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key,
     wxFileName fn = wxFileName(new_filename);
 
     std::string k = ExtractKey(key);
-    
-    int replacecount = fn.GetName().Replace(k, "etc", true);
 
-    // because some file systems are case sensitive try some common variants
-    for (int i = 0; i < replacecount; i++)
+    auto phonemes = GetPhonemes(k);
+
+    bool done = false;
+    // try each of the possible variants in the phoneme
+    for (auto it = phonemes.begin(); !done && it != phonemes.end(); ++it)
     {
-        wxFileName fn2 = GetFileNamePhoneme(fn, k, i, "etc");
-        if (fn2.Exists())
+        int replacecount = fn.GetName().Replace(*it, "etc", true);
+
+        // because some file systems are case sensitive try some common variants
+        for (int i = 0; i < replacecount; i++)
         {
-            DoSetMatrixModels(fn, k, i, col, name);
-        }
-        else
-        {
-            fn2 = GetFileNamePhoneme(fn, k, i, "ETC");
+            wxFileName fn2 = GetFileNamePhoneme(fn, *it, i, "etc");
             if (fn2.Exists())
             {
-                DoSetMatrixModels(fn, k, i, col, name);
+                DoSetMatrixModels(fn, *it, k, i, col, name);
+                done = true;
             }
             else
             {
-                fn2 = GetFileNamePhoneme(fn, k, i, "Etc");
+                fn2 = GetFileNamePhoneme(fn, *it, i, "ETC");
                 if (fn2.Exists())
                 {
-                    DoSetMatrixModels(fn, k, i, col, name);
+                    DoSetMatrixModels(fn, *it, k, i, col, name);
+                    done = true;
+                }
+                else
+                {
+                    fn2 = GetFileNamePhoneme(fn, *it, i, "Etc");
+                    if (fn2.Exists())
+                    {
+                        DoSetMatrixModels(fn, *it, k, i, col, name);
+                        done = true;
+                    }
                 }
             }
         }
