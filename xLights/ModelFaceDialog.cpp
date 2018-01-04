@@ -334,11 +334,11 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
             }
         }
 
-		for (std::map<std::string, std::string>::iterator it = info.begin(); it != info.end(); ++it)
+		for (std::map<std::string, std::string>::iterator it2 = info.begin(); it2 != info.end(); ++it2)
 		{
-			if (it->first.substr(0, 5) == "Mouth" || it->first.substr(0, 4) == "Eyes")
+			if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
 			{
-				it->second = FixFile("", it->second);
+				it2->second = FixFile("", it2->second);
 			}
 		}
 
@@ -506,8 +506,6 @@ void ModelFaceDialog::OnMatrixModelsGridCellChange(wxGridEvent& event)
     faceData[name][key.ToStdString()] = MatrixModelsGrid->GetCellValue(r, c);
 }
 
-
-//static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*";
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
 {
@@ -525,9 +523,155 @@ void ModelFaceDialog::OnMatrixModelsGridCellLeftClick(wxGridEvent& event)
         key.Replace(" ", "");
         faceData[name][key.ToStdString()] = new_filename;
         MatrixModelsGrid->SetCellValue(r, c, new_filename);
+
+        TryToSetAllMatrixModels(name, key.ToStdString(), new_filename.ToStdString(), r, c);
     }
 }
 
+std::string GenerateKey(int col, std::string key)
+{
+    if (col == 0)
+    {
+        return "Mouth-" + key + "-EyesOpen";
+    }
+    else
+    {
+        return "Mouth-" + key + "-EyesClosed";
+    }
+}
+
+std::string ExtractKey(wxString key)
+{
+    return key.AfterFirst('-').BeforeFirst('-').ToStdString();
+}
+
+// replace the count'th occurrence of key with "etc" and return the position
+wxFileName GetFileNamePhoneme(wxFileName fn, std::string key, int count, std::string phoneme)
+{
+    wxString base = fn.GetName();
+    for(int i = 0; i < count - 1; i++)
+    {
+        base.Replace(key, ":", false);
+    }
+    base.Replace(key, phoneme, false);
+    base.Replace(":", key);
+
+    wxFileName fn2(fn);
+    fn2.SetName(base);
+
+    return fn2;
+}
+
+void ModelFaceDialog::DoSetPhonemes(wxFileName fn, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme)
+{
+    for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
+    {
+        wxFileName fn2 = GetFileNamePhoneme(fn, key, count, *it);
+        if (fn2.Exists() && faceData[name][GenerateKey(col, setPhoneme)] == "")
+        {
+            faceData[name][GenerateKey(col, setPhoneme)] = fn2.GetFullPath();
+            MatrixModelsGrid->SetCellValue(row, col, fn2.GetFullPath());
+        }
+    }
+}
+
+void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string key, int count, int col, std::string name)
+{
+    if (key != "AI")
+    {
+        std::list<std::string> phonemes = { "AI", "Ai", "ai", "A", "a" };
+        DoSetPhonemes(fn, key, count, 0, col, name, phonemes, "AI");
+    }
+
+    if (key != "E")
+    {
+        std::list<std::string> phonemes = { "E", "e" };
+        DoSetPhonemes(fn, key, count, 1, col, name, phonemes, "E");
+    }
+
+    if (key != "etc")
+    {
+        std::list<std::string> phonemes = { "etc", "ETC", "Etc" };
+        DoSetPhonemes(fn, key, count, 2, col, name, phonemes, "etc");
+    }
+
+    if (key != "FV")
+    {
+        std::list<std::string> phonemes = { "FV", "Fv", "fv", "F", "f" };
+        DoSetPhonemes(fn, key, count, 3, col, name, phonemes, "FV");
+    }
+
+    if (key != "L")
+    {
+        std::list<std::string> phonemes = { "L", "l" };
+        DoSetPhonemes(fn, key, count, 4, col, name, phonemes, "L");
+    }
+
+    if (key != "MBP")
+    {
+        std::list<std::string> phonemes = { "MBP", "Mbp", "mbp" };
+        DoSetPhonemes(fn, key, count, 5, col, name, phonemes, "MBP");
+    }
+
+    if (key != "O")
+    {
+        std::list<std::string> phonemes = { "O", "o" };
+        DoSetPhonemes(fn, key, count, 6, col, name, phonemes, "O");
+    }
+
+    if (key != "rest")
+    {
+        std::list<std::string> phonemes = { "rest", "Rest", "REST" };
+        DoSetPhonemes(fn, key, count, 7, col, name, phonemes, "rest");
+    }
+
+    if (key != "U")
+    {
+        std::list<std::string> phonemes = { "U", "u" };
+        DoSetPhonemes(fn, key, count, 8, col, name, phonemes, "U");
+    }
+
+    if (key != "WQ")
+    {
+        std::list<std::string> phonemes = { "WQ", "wq", "Wq", "W", "w" };
+        DoSetPhonemes(fn, key, count, 9, col, name, phonemes, "WQ");
+    }
+}
+
+void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col)
+{
+    wxFileName fn = wxFileName(new_filename);
+
+    std::string k = ExtractKey(key);
+    
+    int replacecount = fn.GetName().Replace(k, "etc", true);
+
+    // because some file systems are case sensitive try some common variants
+    for (int i = 0; i < replacecount; i++)
+    {
+        wxFileName fn2 = GetFileNamePhoneme(fn, k, i, "etc");
+        if (fn2.Exists())
+        {
+            DoSetMatrixModels(fn, k, i, col, name);
+        }
+        else
+        {
+            fn2 = GetFileNamePhoneme(fn, k, i, "ETC");
+            if (fn2.Exists())
+            {
+                DoSetMatrixModels(fn, k, i, col, name);
+            }
+            else
+            {
+                fn2 = GetFileNamePhoneme(fn, k, i, "Etc");
+                if (fn2.Exists())
+                {
+                    DoSetMatrixModels(fn, k, i, col, name);
+                }
+            }
+        }
+    }
+}
 
 void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
 {

@@ -1,6 +1,8 @@
 #ifndef MODELFACEDIALOG_H
 #define MODELFACEDIALOG_H
 
+#include <wx/filename.h>
+
 //(*Headers(ModelFaceDialog)
 #include <wx/notebook.h>
 #include <wx/sizer.h>
@@ -15,6 +17,8 @@
 //*)
 
 #include <map>
+#include <list>
+#include <string>
 
 class Model;
 class ModelPreview;
@@ -23,7 +27,10 @@ class FaceGrid;
 class ModelFaceDialog: public wxDialog
 {
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
-    
+    void DoSetPhonemes(wxFileName fn, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);
+    void DoSetMatrixModels(wxFileName fn, std::string key, int count, int col, std::string name);
+    void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
+
     public:
 
 		ModelFaceDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
