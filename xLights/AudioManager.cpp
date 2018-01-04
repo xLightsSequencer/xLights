@@ -587,7 +587,7 @@ void AudioManager::SetGlobalVolume(int volume)
 
 void AudioManager::Seek(long pos) const
 {
-	if (pos < 0 || pos > _lengthMS)
+	if (pos < 0 || pos > _lengthMS || !_ok)
 	{
 		return;
 	}
@@ -603,7 +603,7 @@ void AudioManager::Pause()
 
 void AudioManager::Play(long posms, long lenms)
 {
-    if (posms < 0 || posms > _lengthMS)
+    if (posms < 0 || posms > _lengthMS || !_ok)
     {
         return;
     }
@@ -621,6 +621,8 @@ void AudioManager::Play(long posms, long lenms)
 
 void AudioManager::Play()
 {
+    if (!_ok) return;
+
     if (!__sdl.HasAudio(_sdlid))
     {
         _sdlid = __sdl.AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
@@ -776,6 +778,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_pcmdata = nullptr;
 	_polyphonicTranscriptionDone = false;
     _sdlid = -1;
+    _rate = -1;
 
 	// extra is the extra bytes added to the data we read. This allows analysis functions to exceed the file length without causing memory exceptions
 	_extra = std::max(step, block) + 1;
@@ -783,8 +786,11 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	// Open the media file
 	OpenMediaFile();
 
+    // if we didnt get a valid looking rate then we really are not ok
+    if (_rate <= 0) _ok = false;
+
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
-	if (_intervalMS > 0)
+	if (_intervalMS > 0 && _ok)
 	{
 		PrepareFrameData(true);
 	}

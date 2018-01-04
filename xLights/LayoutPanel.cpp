@@ -3024,13 +3024,17 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
 
 void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int id = event.GetId();
     if(id == ID_MNU_DELETE_MODEL)
     {
+        logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModel();
     }
     else if(id == ID_MNU_DELETE_MODEL_GROUP)
     {
+        logger_base.debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
         if( mSelectedGroup.IsOk() ) {
             wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
@@ -3046,6 +3050,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     }
     else if(id == ID_MNU_RENAME_MODEL_GROUP)
     {
+        logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if( mSelectedGroup.IsOk() ) {
             wxString sel = TreeListViewModels->GetItemText(mSelectedGroup);
             wxTextEntryDialog dlg(this, "Enter new name for group " + sel, "Rename " + sel, sel);
@@ -3073,6 +3078,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     }
     else if(id == ID_MNU_ADD_MODEL_GROUP)
     {
+        logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
         if (dlg.ShowModal() == wxID_OK) {
             wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
@@ -3271,18 +3277,18 @@ void LayoutPanel::PreviewPrintImage()
 			logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
 			wxMessageBox("Problem printing.");
 		}
-	}
+    }
 	else
 	{
 		printDialogData = printer.GetPrintDialogData();
-	}
-	if (!printout.grabbedImage())
-	{
-		logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
+        if (!printout.grabbedImage())
+        {
+            logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
 
-		wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
-		msgDlg.ShowModal();
-	}
+            wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
+            msgDlg.ShowModal();
+        }
+    }
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string &name)
@@ -3474,12 +3480,12 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     UnSelectAllModels(false);
     wxTreeListItem item = event.GetItem();
-    if( item.IsOk() ) {
+    if (item.IsOk()) {
 
         ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
         Model *model = data != nullptr ? data->GetModel() : nullptr;
-        if( model != nullptr ) {
-            if( model->GetDisplayAs() == "ModelGroup" ) {
+        if (model != nullptr) {
+            if (model->GetDisplayAs() == "ModelGroup") {
                 mSelectedGroup = item;
                 ShowPropGrid(false);
                 UpdateModelList(false);

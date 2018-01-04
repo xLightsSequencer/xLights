@@ -979,7 +979,8 @@ void xLightsFrame::UpdateRenderStatus() {
 }
 
 
-void xLightsFrame::RenderDone() {
+void xLightsFrame::RenderDone()
+{
     mainSequencer->PanelEffectGrid->Refresh();
 }
 
@@ -1000,6 +1001,7 @@ public:
         }
         sortRanges(ranges);
     }
+
     void AddRange(unsigned int start, unsigned int end) {
         if (!ranges.empty()) {
             if ((ranges.back().end + 1) == start) {

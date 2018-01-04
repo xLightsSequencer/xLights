@@ -545,7 +545,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         {
 			wxString error;
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
-            if(musicLength <=0)
+            if (musicLength <= 0)
             {
                 logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));

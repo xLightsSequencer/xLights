@@ -18,8 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add bulk edit of mulitple model controller connection, dimming curve and preview
    -- enh (keith)  Add create group of models by right clicking on a layout after selecting the models to be in the group
    -- bug (keith)  Display node number relative to string in node layout rather that absolute node number within model
+   -- enh (keith)  Add to matrix face dialog attempt to fill in all the rows based on the pattern of an entered row
    -- bug (scotth) Fix bars effect rounding problem
-   -- enh (kevinm) Add ability to save the layout as an image via right click menu
+   -- enh (k.mojek) Add ability to save the layout as an image via right click menu
    -- bug (gil)    Last release broke DMX effect panel label updating.
    -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
    -- bug (billy)  Fixed xSchedule webui timeout, it will now reconnect automatically.

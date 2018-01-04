@@ -572,6 +572,9 @@ void xLightsFrame::ClearSequenceData()
 
 void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("xLightsFrame::RenderIseqData bottom_layers %d", bottom_layers);
+
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     ConvertParameters::ReadMode read_mode;
     if (bottom_layers && data_layers.GetNumLayers() == 1 &&
@@ -585,6 +588,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 
     if( bottom_layers )
     {
+        logger_base.debug("xLightsFrame::RenderIseqData clearing sequence data.");
         ClearSequenceData();
         read_mode = ConvertParameters::READ_MODE_NORMAL;
     }
@@ -592,16 +596,17 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
     {
         read_mode = ConvertParameters::READ_MODE_IGNORE_BLACK;
     }
+
     int layers_rendered = 0;
     bool start_rendering = bottom_layers;
     for( int i = data_layers.GetNumLayers() - 1; i >= 0; --i )  // build layers bottom up
     {
         DataLayer* data_layer = data_layers.GetDataLayer(i);
-
         if( data_layer->GetName() != "Nutcracker" )
         {
             if( start_rendering )
             {
+                logger_base.debug("xLightsFrame::RenderIseqData rendering %s.", (const char *)data_layer->GetDataSource().c_str());
                 if (plog != nullptr)
                 {
                     plog->Show(true);

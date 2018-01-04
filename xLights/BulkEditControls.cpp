@@ -184,8 +184,13 @@ void BulkEditSlider::BulkEdit()
 #pragma region Do the bulk edit
 void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (event.GetId() == ID_SLIDER_BULKEDIT)
     {
+        // Logging this because these dont happen often and I have seen crashes here and I would like to know which slider is crashing
+        logger_base.debug("BulkEditSlider::OnSliderPopup %s", (const char *)GetName().c_str());
+
         // does it support a value curve - this function should be common
         ValueCurveButton* vcb = GetSettingValueCurveButton(GetParent(), GetName().ToStdString(), "SLIDER");
 
@@ -209,12 +214,19 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
             }
             else
             {
+                logger_base.crit("BulkEditSlider::OnSliderPopup text control not found %s", (const char *)GetName().c_str());
                 wxASSERT(false);
             }
 
             std::string vcid = "";
             if (vcb != nullptr)
             {
+                if (vcb->GetValue() == nullptr)
+                {
+                    logger_base.crit("BulkEditSlider::OnSliderPopup value curve not present.");
+                    wxASSERT(false);
+                }
+
                 vcid = vcb->GetValue()->GetId();
                 dlg.BitmapButton_VC->GetValue()->SetId(vcid);
                 vcid = FixIdForPanel(GetPanelName(GetParent()), vcid);
