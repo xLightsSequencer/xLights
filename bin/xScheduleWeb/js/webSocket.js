@@ -1,6 +1,6 @@
 // Create WebSocket connection.
 url = 'ws://' + location.hostname + (location.port ? ':' + location.port : '');
-const socket = new WebSocket(url);
+const socket = new ReconnectingWebSocket(url);
 // Connection opened
 socket.addEventListener('open', function(event) {
   console.log("Socket Opened");

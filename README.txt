@@ -22,6 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (kevinm) Add ability to save the layout as an image via right click menu
    -- bug (gil)    Last release broke DMX effect panel label updating.
    -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
+   -- bug (billy)  Fixed xSchedule webui timeout, it will now reconnect automatically.
 2017.45  Dec 29, 2017
    -- enh (craig)  Added a randomize current selected effect button
    -- bug (craig)  Fixed the create random effects to generate random settings
