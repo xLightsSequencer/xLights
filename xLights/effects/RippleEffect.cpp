@@ -48,9 +48,6 @@ void RippleEffect::SetDefaultParameters(Model *cls) {
 
     rp->BitmapButton_Ripple_CyclesVC->SetActive(false);
     rp->BitmapButton_Ripple_ThicknessVC->SetActive(false);
-	rp->BitmapButton_Ripple_RotationVC->SetActive(false);
-	//rp->Slider_Ripple_Rotation->Disable;
-	//rp->TextCrl_Ripple_Rotation->Disable;
 
     SetChoiceValue(rp->Choice_Ripple_Object_To_Draw, "Circle");
     SetChoiceValue(rp->Choice_Ripple_Movement, "Explode");
@@ -73,7 +70,7 @@ void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
     float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
-	int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX);
+    int rotation = SettingsMap.GetInt("SLIDER_Ripple_Rotation", 0);
 
     int Object_To_Draw;
     if (Object_To_DrawStr == "Circle")

@@ -246,31 +246,12 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
-					<cols>2</cols>
-					<growablecols>0</growablecols>
-					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_Ripple_Rotation" subclass="BulkEditSlider" variable="Slider_Ripple_Rotation" member="yes">
 							<max>360</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_VALUECURVE_Ripple_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_Ripple_RotationVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
-				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Ripple_Rotation" subclass="BulkEditTextCtrl" variable="TextCtrl_Ripple_Rotation" member="yes">
