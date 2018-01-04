@@ -2793,16 +2793,17 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	unsigned int bufSize = widthWithScaleFactor * 3 * heightWithScaleFactor;
 	unsigned char *buf = (unsigned char *)malloc(bufSize);
 
+	wxString dirPath(_("C:\\Temp\\FrameImages\\"));
+
 	xlGLCanvas::CaptureHelper captureHelper(housePreview->getWidth(), housePreview->getHeight(), GetContentScaleFactor());
 	captureHelper.SetActive(true);
 
-	for (int i = 0; i < frameCount; ++i)
+	for (int i = 0; i < /*frameCount*/60; ++i)
 	{
 		const FrameData frameData = SeqData[i];
 		const unsigned char *data = frameData[0];
 
-		housePreview->Render(data);
-		wxString dirPath(_("C:\\Temp\\FrameImages\\"));
+		housePreview->Render(data, false);
 
 		bool status = captureHelper.ToRGB(buf, bufSize);
 		if (status)

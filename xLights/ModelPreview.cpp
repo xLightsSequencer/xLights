@@ -109,7 +109,7 @@ void ModelPreview::Render()
     }
 }
 
-void ModelPreview::Render(const unsigned char *data) {
+void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
     if (StartDrawing(mPointSize)) {
         if (PreviewModels != nullptr) {
             for (int m=0; m<PreviewModels->size(); m++) {
@@ -121,7 +121,7 @@ void ModelPreview::Render(const unsigned char *data) {
                 (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator);
             }
         }
-        EndDrawing();
+        EndDrawing(swapBuffers);
     }
 }
 
@@ -409,14 +409,17 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     return true;
 }
 
-void ModelPreview::EndDrawing()
+void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
     if (accumulator.count > maxVertexCount) {
         maxVertexCount= accumulator.count;
     }
     DrawGLUtils::Draw(accumulator);
     DrawGLUtils::PopMatrix();
-    LOG_GL_ERRORV(SwapBuffers());
+	 if (swapBuffers)
+	 {
+		 LOG_GL_ERRORV(SwapBuffers());
+	 }
     accumulator.Reset();
     mIsDrawing = false;
 }

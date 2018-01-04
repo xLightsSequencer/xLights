@@ -33,7 +33,7 @@ public:
 	void InitializePreview(wxString img,int brightness);
     bool StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
-    void EndDrawing();
+    void EndDrawing(bool swapBuffers=true);
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);
     void GetVirtualCanvasSize(int &w, int& h) const
@@ -56,7 +56,7 @@ public:
     bool GetScaleBackgroundImage() const { return scaleImage; }
 
     void Render();
-    void Render(const unsigned char *data);
+    void Render(const unsigned char *data, bool swapBuffers=true);
 
     double calcPixelSize(double i);
     void SetModels(std::vector<Model*> &models) {
