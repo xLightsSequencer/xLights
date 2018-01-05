@@ -298,7 +298,7 @@ void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
     {
         if (IsSliderTextPair(GetParent(), GetName().ToStdString(), "TEXTCTRL"))
         {
-            BulkEditSlider* slider = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "VALUECURVE");
+            BulkEditSlider* slider = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "TEXTCTRL");
             if (slider == nullptr)
             {
                 wxASSERT(false);
