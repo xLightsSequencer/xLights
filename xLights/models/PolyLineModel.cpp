@@ -97,7 +97,7 @@ int PolyLineModel::GetNumStrands() const {
 void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
     bool HasIndividualStartChans=tempstr == "1";
-    if( HasIndividualStartChans ) {
+    if( HasIndividualStartChans && !SingleNode ) {
         // if individual start channels defer to InitModel where we know all the segment length data
     } else {
         Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);

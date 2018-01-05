@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix PolyLine crash for case of 3 Channel RGB with Individual Start Channels set.
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu
    -- enh (dkulp)  Add WRGB 4 channel node type
