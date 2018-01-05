@@ -536,6 +536,8 @@
 		67F240301E32A3CF00F8B985 /* libavcodec.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67F240311E32A3CF00F8B985 /* libswscale.4.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67EE95B41C848BF000C62C95 /* libswscale.4.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67F240321E32A3CF00F8B985 /* libswresample.2.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67F4145C1FFEE239009F2E74 /* OutputProcessThreeToFour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */; };
+		67F4145D1FFEE239009F2E74 /* ThreeToFourDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */; };
 		67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6131A097A35003E978F /* Image_Loader.cpp */; };
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
@@ -1468,6 +1470,10 @@
 		67F23FE31E329E7400F8B985 /* PlayListStepPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListStepPanel.h; path = PlayList/PlayListStepPanel.h; sourceTree = "<group>"; };
 		67F23FE41E329E7400F8B985 /* VideoWindowPositionDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VideoWindowPositionDialog.cpp; path = PlayList/VideoWindowPositionDialog.cpp; sourceTree = "<group>"; };
 		67F23FE51E329E7400F8B985 /* VideoWindowPositionDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoWindowPositionDialog.h; path = PlayList/VideoWindowPositionDialog.h; sourceTree = "<group>"; };
+		67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessThreeToFour.cpp; sourceTree = "<group>"; };
+		67F414591FFEE238009F2E74 /* ThreeToFourDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreeToFourDialog.h; sourceTree = "<group>"; };
+		67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreeToFourDialog.cpp; sourceTree = "<group>"; };
+		67F4145B1FFEE239009F2E74 /* OutputProcessThreeToFour.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessThreeToFour.h; sourceTree = "<group>"; };
 		67F4C6131A097A35003E978F /* Image_Loader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image_Loader.cpp; sourceTree = "<group>"; };
 		67F4C6141A097A35003E978F /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
@@ -2404,6 +2410,10 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */,
+				67F4145B1FFEE239009F2E74 /* OutputProcessThreeToFour.h */,
+				67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */,
+				67F414591FFEE238009F2E74 /* ThreeToFourDialog.h */,
 				67C78D091FBA2A4900B82E48 /* VideoCache.cpp */,
 				67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */,
 				1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */,
@@ -3204,8 +3214,10 @@
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
 				67C581541E4B95A400932DFA /* OutputProcessColourOrder.cpp in Sources */,
 				67F23FF91E329E7400F8B985 /* PlayListItemRDSPanel.cpp in Sources */,
+				67F4145C1FFEE239009F2E74 /* OutputProcessThreeToFour.cpp in Sources */,
 				6763C5631F701E87006616FF /* PlayListItemFile.cpp in Sources */,
 				1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */,
+				67F4145D1FFEE239009F2E74 /* ThreeToFourDialog.cpp in Sources */,
 				1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */,
 				67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */,
 				67F23FFB1E329E7400F8B985 /* PlayListItemRunCommandPanel.cpp in Sources */,
