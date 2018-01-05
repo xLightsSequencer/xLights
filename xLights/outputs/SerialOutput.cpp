@@ -419,6 +419,7 @@ PINGSTATE SerialOutput::Ping() const
         }
 
         delete serial;
+        return res;
     }
 
     return PINGSTATE::PING_ALLFAILED;

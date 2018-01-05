@@ -984,6 +984,7 @@ private:
     void UploadSanDevicesOutput();
     void UploadJ1SYSOutput();
     void UploadPixlite16Output();
+	void PingController(Output* e);
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
