@@ -10,6 +10,18 @@
 #ifndef XSCHEDULEMAIN_H
 #define XSCHEDULEMAIN_H
 
+#ifdef _MSC_VER
+
+#include <stdlib.h>
+
+//#define VISUALSTUDIO_MEMORYLEAKDETECTION
+#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
+#endif
+
 class BrightnessControl;
 
 //(*Headers(xScheduleFrame)

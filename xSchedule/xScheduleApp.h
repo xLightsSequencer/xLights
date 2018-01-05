@@ -10,13 +10,16 @@
 #ifndef XSCHEDULEAPP_H
 #define XSCHEDULEAPP_H
 
-#include <wx/app.h>
-
-#ifdef _MSC_VER_
-#define _CRTDBG_MAP_ALLOC
+#ifdef _MSC_VER
 #include <stdlib.h>
+//#define VISUALSTUDIO_MEMORYLEAKDETECTION
+#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
+#define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
+#endif
+
+#include <wx/app.h>
 
 class wxSingleInstanceChecker;
 

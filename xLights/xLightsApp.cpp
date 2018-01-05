@@ -411,7 +411,9 @@ bool xLightsApp::OnInit()
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 #endif
 
 #if wxUSE_ON_FATAL_EXCEPTION
