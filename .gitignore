@@ -34,4 +34,4 @@ wxWidgets*
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
 *.opensdf
-.vscode/
+*.cbp.mak.orig

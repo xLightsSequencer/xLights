@@ -29,11 +29,14 @@ class SubBufferPanel;
 
 class SubModelsDialog: public wxDialog
 {
+    int _sortOrder = 0;
+    int _numSubModels = 0;
+
     public:
 
 		SubModelsDialog(wxWindow* parent);
 		virtual ~SubModelsDialog();
-    
+
         void Setup(Model *m);
         void Save();
 
@@ -108,8 +111,8 @@ class SubModelsDialog: public wxDialog
 		//*)
 
 		DECLARE_EVENT_TABLE()
-    
-    
+
+
 private:
     void SelectRow(int r);
     void Select(const wxString &name);
@@ -130,12 +133,15 @@ private:
     void GenerateSegment(SubModelInfo& sm, int segments, int segment, bool horizontal, int count);
     SubModelInfo &GetSubModelInfo(const wxString &str);
     int GetSubModelInfoIndex(const wxString &str);
-    
+	void AddSubModelToList(SubModelInfo &submodel);
+	wxString GetSelectedName();
+	bool IsItemSelected(wxListCtrl* ctrl, int item);
+
     Model *model;
     ModelPreview *modelPreview;
     SubBufferPanel *subBufferPanel;
     std::vector<SubModelInfo> subModels;
-    
+
 };
 
 #endif
