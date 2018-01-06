@@ -22,6 +22,7 @@
 #include "../ControllerConnectionDialog.h"
 #include "../outputs/Output.h"
 #include "../outputs/IPOutput.h"
+#include "../VendorModelDialog.h"
 
 #include "ModelScreenLocation.h"
 #include <wx/sstream.h>
@@ -3120,16 +3121,43 @@ void Model::ExportXlightsModel()
 {
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled)
+Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download)
 {
     if (last_model == "")
     {
-        wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf", wxFD_OPEN);
-        if (filename.IsEmpty()) {
-            cancelled = true;
-            return model;
+        if (download)
+        {
+            xlights->SuspendAutoSave(true);
+            VendorModelDialog dlg(xlights);
+            if (dlg.DlgInit() && dlg.ShowModal() == wxID_OK)
+            {
+                xlights->SuspendAutoSave(false);
+                last_model = dlg.GetModelFile();
+
+                if (last_model == "")
+                {
+                    wxMessageBox("Failed to download model file.");
+
+                    cancelled = true;
+                    return model;
+                }
+            }
+            else
+            {
+                xlights->SuspendAutoSave(false);
+                cancelled = true;
+                return model;
+            }
         }
-        last_model = filename.ToStdString();
+        else
+        {
+            wxString filename = wxFileSelector(_("Choose model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xLights Model files (*.xmodel)|*.xmodel|LOR prop files (*.lff;*.lpf)|*.lff;*.lpf", wxFD_OPEN);
+            if (filename.IsEmpty()) {
+                cancelled = true;
+                return model;
+            }
+            last_model = filename.ToStdString();
+        }
     }
 
     // if it isnt an xmodel then it is custom
