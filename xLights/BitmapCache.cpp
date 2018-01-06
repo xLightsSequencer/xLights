@@ -56,23 +56,47 @@
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
 
-#include "../include/stop-24.xpm"
+#include "../include/toolbar/stop-16.xpm"
+#include "../include/toolbar/stop-24.xpm"
+#include "../include/toolbar/stop-32.xpm"
+#include "../include/toolbar/stop-48.xpm"
+#include "../include/toolbar/stop-64.xpm"
 #include "../include/stop-24_off.xpm"
 #include "../include/trash-24.xpm"
 #include "../include/search-24.xpm"
-#include "../include/replay-24.xpm"
-#include "../include/play-24.xpm"
+#include "../include/toolbar/replay-16.xpm"
+#include "../include/toolbar/replay-24.xpm"
+#include "../include/toolbar/replay-32.xpm"
+#include "../include/toolbar/replay-48.xpm"
+#include "../include/toolbar/replay-64.xpm"
+#include "../include/toolbar/play-16.xpm"
+#include "../include/toolbar/play-24.xpm"
+#include "../include/toolbar/play-32.xpm"
+#include "../include/toolbar/play-48.xpm"
+#include "../include/toolbar/play-64.xpm"
 #include "../include/play-24_off.xpm"
-#include "../include/pause-24.xpm"
+#include "../include/toolbar/pause-16.xpm"
+#include "../include/toolbar/pause-24.xpm"
+#include "../include/toolbar/pause-32.xpm"
+#include "../include/toolbar/pause-48.xpm"
+#include "../include/toolbar/pause-64.xpm"
 #include "../include/pause-24_off.xpm"
 #include "../include/move-24.xpm"
 #include "../include/home-24.xpm"
 #include "../include/gears-24.xpm"
-#include "../include/forward-24.xpm"
+#include "../include/toolbar/forward-16.xpm"
+#include "../include/toolbar/forward-24.xpm"
+#include "../include/toolbar/forward-32.xpm"
+#include "../include/toolbar/forward-48.xpm"
+#include "../include/toolbar/forward-64.xpm"
 #include "../include/fforward10-24.xpm"
 #include "../include/forward-24_off.xpm"
 #include "../include/eye-open-24.xpm"
-#include "../include/backward-24.xpm"
+#include "../include/toolbar/backward-16.xpm"
+#include "../include/toolbar/backward-24.xpm"
+#include "../include/toolbar/backward-32.xpm"
+#include "../include/toolbar/backward-48.xpm"
+#include "../include/toolbar/backward-64.xpm"
 #include "../include/rewind10-24.xpm"
 #include "../include/backward-24_off.xpm"
 
@@ -333,21 +357,21 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_SETTINGS" == id) {
         return effectBitmaps.get(24, false, id, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm);
     } else if ("xlART_PLAY" == id) {
-        return effectBitmaps.get(24, false, id, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm);
+        return effectBitmaps.get(24, false, id, play_16_xpm, play_24_xpm, play_32_xpm, play_48_xpm, play_64_xpm);
     } else if ("xlART_PAUSE" == id) {
-        return effectBitmaps.get(24, false, id, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm);
+        return effectBitmaps.get(24, false, id, pause_16_xpm, pause_24_xpm, pause_32_xpm, pause_48_xpm, pause_64_xpm);
     } else if ("xlART_BACKWARD" == id) {
-        return effectBitmaps.get(24, false, id, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm);
+        return effectBitmaps.get(24, false, id, backward_16_xpm, backward_24_xpm, backward_32_xpm, backward_48_xpm, backward_64_xpm);
     } else if ("xlART_REWIND10" == id) {
         return effectBitmaps.get(24, false, id, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm, rewind10_24_xpm);
     } else if ("xlART_FFORWARD10" == id) {
         return effectBitmaps.get(24, false, id, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm, fforward10_24_xpm);
     } else if ("xlART_FORWARD" == id) {
-        return effectBitmaps.get(24, false, id, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm);
+        return effectBitmaps.get(24, false, id, forward_16_xpm, forward_24_xpm, forward_32_xpm, forward_48_xpm, forward_64_xpm);
     } else if ("xlART_REPLAY" == id) {
-        return effectBitmaps.get(24, false, id, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm);
+        return effectBitmaps.get(24, false, id, replay_16_xpm, replay_24_xpm, replay_32_xpm, replay_48_xpm, replay_64_xpm);
     } else if ("xlART_STOP" == id) {
-        return effectBitmaps.get(24, false, id, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm);
+        return effectBitmaps.get(24, false, id, stop_16_xpm, stop_24_xpm, stop_32_xpm, stop_48_xpm, stop_64_xpm);
     } else if ("xlART_LINK" == id) {
         return effectBitmaps.get(48, false, id, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm, link_48_xpm);
     } else if ("xlART_UNLINK" == id) {

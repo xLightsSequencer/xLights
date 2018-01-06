@@ -1,0 +1,33 @@
+/* XPM */
+static const char *stop_16_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 11 1 ",
+"  c #9F372C",
+". c #B74236",
+"X c #C3473A",
+"o c #9E544C",
+"O c #E75648",
+"+ c #E07166",
+"@ c #EC766A",
+"# c #C39691",
+"$ c #F3ABA4",
+"% c white",
+"& c None",
+/* pixels */
+"&OOOOOOOOOOOOOO&",
+"OOOOOOOOOOOOOOOO",
+"OOOOOOOOOOOOOOOO",
+"OOO@$$$$$$$$+OOO",
+"OOO$%%%%%%%%#XOO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO$%%%%%%%%# OO",
+"OOO+########o OO",
+"OOOOX        .OO",
+"OOOOOOOOOOOOOOOO",
+"&OOOOOOOOOOOOOO&"
+};
