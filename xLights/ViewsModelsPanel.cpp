@@ -445,30 +445,30 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                     AddModelToList(elem);
                 }
             }
+        }
 
-            for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
+        for (wxXmlNode* e = _modelGroups->GetChildren(); e != nullptr; e = e->GetNext())
+        {
+            if (e->GetName() == "modelGroup")
             {
-                if (e->GetName() == "modelGroup")
+                wxString name = e->GetAttribute("name");
+                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
                 {
-                    wxString name = e->GetAttribute("name");
-                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
-                    {
-                        ModelElement *me = new ModelElement(name.ToStdString());
-                        AddModelToNotList(me);
-                    }
+                    ModelElement *me = new ModelElement(name.ToStdString());
+                    AddModelToNotList(me);
                 }
             }
+        }
 
-            for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
+        for (wxXmlNode* e = _models->GetChildren(); e != nullptr; e = e->GetNext())
+        {
+            if (e->GetName() == "model")
             {
-                if (e->GetName() == "model")
+                wxString name = e->GetAttribute("name");
+                if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
                 {
-                    wxString name = e->GetAttribute("name");
-                    if (!_sequenceElements->ElementExists(name.ToStdString(), 0))
-                    {
-                        ModelElement *me = new ModelElement(name.ToStdString());
-                        AddModelToNotList(me);
-                    }
+                    ModelElement *me = new ModelElement(name.ToStdString());
+                    AddModelToNotList(me);
                 }
             }
         }

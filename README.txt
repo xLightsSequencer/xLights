@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Make sure all models are available when creating new Views.  Fixes #1049.
    -- bug (gil)    Fix Bulk Edit crash when right-clicking a TextEdit box.
    -- bug (gil)    Fix PolyLine crash for case of 3 Channel RGB with Individual Start Channels set.
 2018.1 Jan 04, 2018
