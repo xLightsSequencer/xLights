@@ -175,7 +175,7 @@ bool VideoExporter::Export(const char *path)
 	videoCodecContext->height = height;
 	videoCodecContext->time_base.num = 1;
 	videoCodecContext->time_base.den = 1000 / m_frameDuration;
-	videoCodecContext->gop_size = 12;
+	videoCodecContext->gop_size = 20;
 	videoCodecContext->max_b_frames = 1;
 	videoCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
