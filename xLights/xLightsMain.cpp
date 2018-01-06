@@ -83,59 +83,307 @@ extern "C"
 #include <libavutil/imgutils.h>
 }
 
-typedef float AudioSample; // hard-coding to mono for now...
-typedef std::queue<AudioSample> AudioSampleQueue;
-
-static double t = 0.;
-static double freq = 750.;
-static double deltaTime = 1. / 44100;
-
-static void get_audio_frame(float *samples, int frame_size, int numChannels)
+class VideoExporter
 {
-	float *q = samples;
-	for (int i = 0; i < frame_size; ++i)
-	{
-		double v = sin(2 * M_PI * freq * t);
-		for (int j = 0; j < numChannels; ++j)
-			*q++ = float(v);
-		t += deltaTime;
-	}
+public:
+	VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, log4cpp::Category &logger_base);
+
+	typedef std::function<bool(unsigned char * /*buf*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
+	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/)> GetAudioFrameFn;
+
+	void SetGetVideoFrame(GetVideoFrameFn gvfn) { m_GetVideo = gvfn; }
+
+	bool Export(const char *path);
+
+protected:
+	typedef float AudioSample; // hard-coding to mono for now...
+	typedef std::queue<AudioSample> AudioSampleQueue;
+
+	static bool dummyGetVideoFrame(unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex);
+	static bool dummyGetAudioFrame(float *samples, int framSize, int numChannels);
+
+	bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame,
+	                       SwsContext *sws_ctx, unsigned char *buf, int origWidth, int origHeight, int width, int height, int frameIndex, int frameCount, log4cpp::Category &logger_base);
+	bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue = false);
+
+	const int m_width;
+	const int m_height;
+	const float m_scaleFactor;
+	const unsigned int m_frameDuration;
+	const unsigned int m_frameCount;
+	log4cpp::Category &m_logger_base;
+
+	GetVideoFrameFn m_GetVideo;
+	GetAudioFrameFn m_GetAudio;
+
+	static double s_t;
+	static double s_freq;
+	static double s_deltaTime;
+};
+
+double VideoExporter::s_t = 0.;
+double VideoExporter::s_freq = 750.;
+double VideoExporter::s_deltaTime = 1. / 44100;
+
+VideoExporter::VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, log4cpp::Category &logger_base)
+	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount), m_logger_base(logger_base)
+	, m_GetVideo(dummyGetVideoFrame), m_GetAudio(dummyGetAudioFrame)
+{
+	s_t = 0.;
 }
 
-static void get_video_frame(unsigned char *buf, int width, int height, float pct)
+bool VideoExporter::Export(const char *path)
 {
-	int ymin = (int)floor(pct * height);
-	int ymax = (int)ceil((pct + 0.01) * height);
-	ymin = std::max(0, ymin);
-	ymax = std::min(height - 1, ymax);
-	unsigned char *ptr = buf;
-	for (int y = 0; y < height; ++y)
+	int width = m_width;
+	int height = m_height;
+
+	// width and height must be even
+	if (width % 2)
+		++width;
+	if (height % 2)
+		++height;
+
+	avcodec_register_all();
+	av_register_all();
+
+	AVOutputFormat* fmt = av_guess_format(nullptr, path, nullptr);
+	AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
+	AVCodec *audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+	if (videoCodec == nullptr || audioCodec == nullptr)
 	{
-		for (int x = 0; x < width; ++x)
+		m_logger_base.error("  error finding codecs.");
+		return false;
+	}
+
+	AVFormatContext* formatContext;
+	avformat_alloc_output_context2(&formatContext, fmt, nullptr, path);
+	if (formatContext == nullptr)
+	{
+		m_logger_base.error("  error opening output-context");
+		return false;
+	}
+
+	AVStream* video_st = avformat_new_stream(formatContext, videoCodec);
+	video_st->id = formatContext->nb_streams - 1;
+	video_st->time_base.num = 1;
+	video_st->time_base.den = 1000 / m_frameDuration;
+	AVCodecContext* videoCodecContext = video_st->codec;
+	avcodec_get_context_defaults3(videoCodecContext, videoCodec);
+	videoCodecContext->codec_id = fmt->video_codec;
+	videoCodecContext->bit_rate = 400000;
+	videoCodecContext->width = width;
+	videoCodecContext->height = height;
+	videoCodecContext->time_base.num = 1;
+	videoCodecContext->time_base.den = 1000 / m_frameDuration;
+	videoCodecContext->gop_size = 12;
+	videoCodecContext->max_b_frames = 1;
+	videoCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+
+	av_opt_set(videoCodecContext->priv_data, "preset", "medium", 0);
+	av_opt_set(videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
+
+	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
+		videoCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
+	int status = avcodec_open2(videoCodecContext, videoCodec, nullptr);
+	if (status != 0)
+	{
+		m_logger_base.error("  error opening video codec.");
+		return false;
+	}
+
+	AVStream *audio_st = avformat_new_stream(formatContext, audioCodec);
+	audio_st->id = formatContext->nb_streams - 1;
+	AVCodecContext *audioCodecContext = audio_st->codec;
+	avcodec_get_context_defaults3(audioCodecContext, audioCodec);
+	audioCodecContext->codec_id = fmt->audio_codec;
+	audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
+	audioCodecContext->bit_rate = 128000;
+	audioCodecContext->sample_rate = 44100;
+	audioCodecContext->channels = 1;
+	audioCodecContext->channel_layout = AV_CH_LAYOUT_MONO;
+
+	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
+		audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+	status = avcodec_open2(audioCodecContext, audioCodec, nullptr);
+	if (status != 0)
+	{
+		m_logger_base.error("  error opening audio codec.");
+		return false;
+	}
+
+	AudioSampleQueue audioSampleQueue;
+
+	AVFrame *frame = av_frame_alloc();
+	frame->format = videoCodecContext->pix_fmt;
+	frame->width = videoCodecContext->width;
+	frame->height = videoCodecContext->height;
+
+	int sws_flags = SWS_BICUBIC;
+	AVPixelFormat informat = AV_PIX_FMT_RGB24;
+	SwsContext *sws_ctx = sws_getContext(m_width, m_height, informat,
+		videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
+		sws_flags, nullptr, nullptr, nullptr);
+
+	AVFrame src_picture;
+	int ret = av_image_alloc(src_picture.data, src_picture.linesize, m_width, m_height, informat, 1);
+	if (ret < 0)
+	{
+		m_logger_base.error("  error allocating for src-picture buffer");
+		return false;
+	}
+
+	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 1);
+	if (ret < 0)
+	{
+		m_logger_base.error("  error allocatinf for encoded-picture buffer");
+		return false;
+	}
+
+	if (!(fmt->flags & AVFMT_NOFILE))
+	{
+		ret = avio_open(&formatContext->pb, path, AVIO_FLAG_WRITE);
+		if (ret < 0)
 		{
-			if (y >= ymin && y <= ymax)
-			{
-				*ptr++ = 0xff;
-				*ptr++ = 0x00;
-			}
-			else
-			{
-				*ptr++ = 0x00;
-				*ptr++ = 0xff;
-			}
-			*ptr++ = 0x00;
+			m_logger_base.error("  error opening output file");
+			return false;
 		}
 	}
+
+	if (avformat_write_header(formatContext, nullptr) < 0)
+	{
+		m_logger_base.error("  error writing file header");
+		return false;
+	}
+
+	// buffer for RGB input
+	unsigned char *buf = new unsigned char[m_width * 3 * m_height];
+
+	// Loop through each frame
+	frame->pts = 0;
+
+	for (unsigned int i = 0; i < m_frameCount; ++i)
+	{
+		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, m_width, m_height, width, height, i, m_frameCount, m_logger_base))
+			break;
+
+		if (!write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base))
+			break;
+
+		frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
+	}
+
+	// delayed video frames
+	for (int got_video_output = 1; got_video_output;)
+	{
+		AVPacket pkt;
+		av_init_packet(&pkt);
+		pkt.data = nullptr;
+		pkt.size = 0;
+		pkt.stream_index = video_st->index;
+
+		status = avcodec_encode_video2(videoCodecContext, &pkt, nullptr, &got_video_output);
+		if (status != 0)
+		{
+			m_logger_base.error("  error encoding delayed video frame");
+			return false;
+		}
+		if (got_video_output)
+		{
+			ret = av_interleaved_write_frame(formatContext, &pkt);
+			if (ret != 0)
+			{
+				m_logger_base.error("  error writing delayed video frame");
+				return false;
+			}
+
+			av_packet_unref(&pkt);
+		}
+	}
+
+	// Take care of any remaining samples in the audio queue
+	size_t numLeftInQueue = audioSampleQueue.size();
+	if (audioSampleQueue.size())
+		write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base, true);
+
+	// delayed_audio_frames
+	for (int got_audio_output = 1; got_audio_output;)
+	{
+		AVPacket pkt;
+		av_init_packet(&pkt);
+		pkt.data = nullptr;
+		pkt.size = 0;
+		pkt.stream_index = audio_st->index;
+
+		int ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
+		if (ret < 0)
+		{
+			m_logger_base.error("  error encoding delayed audio frame");
+			return false;
+		}
+
+		if (got_audio_output)
+		{
+			pkt.stream_index = audio_st->index;
+			if (av_interleaved_write_frame(formatContext, &pkt) != 0)
+			{
+				m_logger_base.error("  error writing delayed audio frame");
+				return false;
+			}
+
+			av_packet_unref(&pkt);
+		}
+
+		av_frame_free(&frame);
+	}
+
+	delete[] buf;
+
+	ret = av_write_trailer(formatContext);
+	if (ret)
+	{
+		m_logger_base.error("  error writing file trailer");
+		return false;
+	}
+
+	// Clean-up and close the output file
+	sws_freeContext(sws_ctx);
+	avcodec_close(video_st->codec);
+	avcodec_close(audio_st->codec);
+	av_frame_free(&frame);
+	for (int i = 0; i < formatContext->nb_streams; i++)
+	{
+		av_freep(&formatContext->streams[i]->codec);
+		av_freep(&formatContext->streams[i]);
+	}
+	if (!(fmt->flags & AVFMT_NOFILE))
+	{
+		avio_close(formatContext->pb);
+	}
+	av_free(formatContext);
+
+	return true;
 }
 
-static bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int origWidth, int origHeight, int width, int height, int frameIndex, int frameCount, log4cpp::Category &logger_base)
+bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int origWidth, int origHeight, int width, int height, int frameIndex, int frameCount, log4cpp::Category &logger_base)
 {
-	get_video_frame(buf, width, height, frameIndex / float(frameCount-1) );
+	if (m_GetVideo == nullptr)
+	{
+		m_logger_base.error("  GetVideo un-set");
+		return false;
+	}
+
+	bool getStatus = m_GetVideo(buf, m_width, m_height, m_scaleFactor, frameIndex);
+	if (!getStatus)
+	{
+		m_logger_base.error("  GetVideo fails");
+		return false;
+	}
 
 	int ret = av_image_fill_arrays(srcFrame->data, srcFrame->linesize, buf, AV_PIX_FMT_RGB24, origWidth, origHeight, 1);
 	if (ret < 0)
 	{
-		logger_base.error("  error retrieving src-image data");
+		m_logger_base.error("  error retrieving src-image data");
 		return false;
 	}
 
@@ -145,13 +393,13 @@ static bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecConte
 	ret = sws_scale(sws_ctx, tmp, stride, 0, height, dstFrame->data, dstFrame->linesize);
 	if (ret != cc->height)
 	{
-		logger_base.error("  error scaling src-image");
+		m_logger_base.error("  error scaling src-image");
 		return false;
 	}
 
 	AVPacket pkt;
 	av_init_packet(&pkt);
-	pkt.data = nullptr;    // packet data will be allocated by the encoder
+	pkt.data = nullptr;
 	pkt.size = 0;
 
 	int got_video_output = 0;
@@ -166,7 +414,6 @@ static bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecConte
 	{
 		pkt.stream_index = streamIndex;
 
-		/* Write the compressed frame to the media file. */
 		ret = av_interleaved_write_frame(oc, &pkt);
 
 		av_packet_unref(&pkt);
@@ -175,9 +422,15 @@ static bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecConte
 	return true;
 }
 
-static bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue = false)
+bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue/*= false*/)
 {
 	AVCodecContext *c = st->codec;
+
+	if (m_GetAudio == nullptr)
+	{
+		m_logger_base.error("  GetAudio un-set");
+		return false;
+	}
 
 	// We'll ask for audio samples in video-frame-time chunks but for AAC, we can
 	// only encode in 1024-sample chunks, so we'll use a FIFO buffer in between.
@@ -187,7 +440,14 @@ static bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueu
 	if (!clearQueue)
 	{
 		buf = new AudioSample[read_frame_size];
-		get_audio_frame((float *)buf, read_frame_size, c->channels);
+		//get_audio_frame((float *)buf, read_frame_size, c->channels);
+		bool getStatus = m_GetAudio((float *)buf, read_frame_size, c->channels);
+		if (getStatus == false)
+		{
+			logger_base.error("  GetAudio fails");
+			return false;
+		}
+
 		for (int i = 0; i < read_frame_size; ++i)
 			queue.push(buf[i]);
 	}
@@ -257,236 +517,33 @@ static bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueu
 	return true;
 }
 
-static void foo( const char *path, int origWidth, int origHeight, unsigned int frameTime, unsigned int frameCount, log4cpp::Category &logger_base)
+bool VideoExporter::dummyGetVideoFrame(unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex)
 {
-	int width = origWidth;
-	int height = origHeight;
-
-	// width and height must be even
-	if (width % 2)
-		++width;
-	if (height % 2)
-		++height;
-
-	avcodec_register_all();
-	av_register_all();
-
-	AVOutputFormat* fmt = av_guess_format(nullptr, path, nullptr);
-	AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
-	AVCodec *audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
-	if (videoCodec == nullptr || audioCodec == nullptr)
+	unsigned char *ptr = buf;
+	for (int y = 0; y < height; ++y)
 	{
-		logger_base.error("  error finding codecs.");
-		return;
-	}
-
-	AVFormatContext* formatContext;
-	avformat_alloc_output_context2(&formatContext, fmt, nullptr, path );
-	if (formatContext == nullptr)
-	{
-		logger_base.error("  error opening output-context");
-		return;
-	}
-
-	AVStream* video_st = avformat_new_stream(formatContext, videoCodec);
-	video_st->id = formatContext->nb_streams - 1;
-	video_st->time_base.num = 1;
-	video_st->time_base.den = 1000 / frameTime;
-	AVCodecContext* videoCodecContext = video_st->codec;
-	avcodec_get_context_defaults3(videoCodecContext, videoCodec);
-	videoCodecContext->codec_id = fmt->video_codec;
-	videoCodecContext->bit_rate = 400000;
-	videoCodecContext->width = width;
-	videoCodecContext->height = height;
-	videoCodecContext->time_base.num = 1;
-	videoCodecContext->time_base.den = 1000 / frameTime;
-	videoCodecContext->gop_size = 12;
-	videoCodecContext->max_b_frames = 1;
-	videoCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-
-	av_opt_set(videoCodecContext->priv_data, "preset", "medium", 0);
-	av_opt_set(videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
-
-	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
-		videoCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-
-	int status = avcodec_open2(videoCodecContext, videoCodec, nullptr);
-	if (status != 0)
-	{
-		logger_base.error("  error opening video codec.");
-		return;
-	}
-
-	AVStream *audio_st = avformat_new_stream(formatContext, audioCodec);
-	audio_st->id = formatContext->nb_streams - 1;
-	AVCodecContext *audioCodecContext = audio_st->codec;
-	avcodec_get_context_defaults3(audioCodecContext, audioCodec);
-	audioCodecContext->codec_id = fmt->audio_codec;
-	audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
-	audioCodecContext->bit_rate = 128000;
-	audioCodecContext->sample_rate = 44100;
-	audioCodecContext->channels = 1;
-	audioCodecContext->channel_layout = AV_CH_LAYOUT_MONO;
-
-	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
-		audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
-	status = avcodec_open2(audioCodecContext, audioCodec, nullptr);
-	if (status != 0)
-	{
-		logger_base.error("  error opening audio codec.");
-		return;
-	}
-
-	AudioSampleQueue audioSampleQueue;
-
-	AVFrame *frame = av_frame_alloc();
-	frame->format = videoCodecContext->pix_fmt;
-	frame->width = videoCodecContext->width;
-	frame->height = videoCodecContext->height;
-	
-	int sws_flags = SWS_BICUBIC;
-	AVPixelFormat informat = AV_PIX_FMT_RGB24;
-	SwsContext *sws_ctx = sws_getContext(origWidth, origHeight, informat,
-		videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
-		sws_flags, nullptr, nullptr, nullptr);
-
-	AVFrame src_picture;
-	int ret = av_image_alloc(src_picture.data, src_picture.linesize, origWidth, origHeight, informat, 1);
-	if (ret < 0)
-	{
-		logger_base.error("  error allocating for src-picture buffer");
-		return;
-	}
-
-	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 1);
-	if (ret < 0)
-	{
-		logger_base.error("  error allocatinf for encoded-picture buffer");
-		return;
-	}
-
-	if (!(fmt->flags & AVFMT_NOFILE))
-	{
-		ret = avio_open(&formatContext->pb, path, AVIO_FLAG_WRITE);
-		if (ret < 0)
+		for (int x = 0; x < width; ++x)
 		{
-			logger_base.error("  error opening output file");
-			return;
+			*ptr++ = 0xff;
+			*ptr++ = 0x00;
+			*ptr++ = 0x00;
 		}
 	}
+	return true;
+}
 
-	if (avformat_write_header(formatContext, nullptr) < 0)
+bool VideoExporter::dummyGetAudioFrame(float *samples, int frameSize, int numChannels)
+{
+	float *q = samples;
+	for (int i = 0; i < frameSize; ++i)
 	{
-		logger_base.error("  error writing file header");
-		return;
+		double v = sin(2 * M_PI * s_freq * s_t);
+		for (int j = 0; j < numChannels; ++j)
+			*q++ = float(v);
+		s_t += s_deltaTime;
 	}
 
-	// dummy output
-	unsigned char *buf = new unsigned char[origWidth * 3 * origHeight];
-
-	// Loop through each frame
-	frame->pts = 0;
-
-	for (int i = 0; i < frameCount; ++i)
-	{
-		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, origWidth, origHeight, width, height, i, frameCount, logger_base))
-			break;
-
-		if (!write_audio_frame(formatContext, audio_st, audioSampleQueue, logger_base))
-			break;
-
-		frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
-	}
-
-	// delayed video frames
-	for (int got_video_output = 1; got_video_output;)
-	{
-		AVPacket pkt;
-		av_init_packet(&pkt);
-		pkt.data = nullptr;    // packet data will be allocated by the encoder
-		pkt.size = 0;
-		pkt.stream_index = video_st->index;
-
-		status = avcodec_encode_video2(videoCodecContext, &pkt, nullptr, &got_video_output);
-		if (status != 0)
-		{
-			logger_base.error("  error encoding delayed video frame");
-			return;
-		}
-		if (got_video_output)
-		{
-			/* Write the compressed frame to the media file. */
-			ret = av_interleaved_write_frame(formatContext, &pkt);
-			if (ret != 0)
-			{
-				logger_base.error("  error writing delayed video frame");
-				return;
-			}
-
-			av_packet_unref(&pkt);
-		}
-	}
-
-	// Take care of any remaining samples in the audio queue
-	size_t numLeftInQueue = audioSampleQueue.size();
-	if (audioSampleQueue.size())
-		write_audio_frame(formatContext, audio_st, audioSampleQueue, logger_base, true);
-
-	// delayed_audio_frames
-	for ( int got_audio_output = 1; got_audio_output;)
-	{
-		AVPacket pkt;
-		av_init_packet(&pkt);
-		pkt.data = nullptr;    // packet data will be allocated by the encoder
-		pkt.size = 0;
-		pkt.stream_index = audio_st->index;
-
-		int ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
-		if (ret < 0)
-		{
-			logger_base.error("  error encoding delayed audio frame");
-			return;
-		}
-
-		if (got_audio_output)
-		{
-			pkt.stream_index = audio_st->index;
-			if (av_interleaved_write_frame(formatContext, &pkt) != 0)
-			{
-				logger_base.error("  error writing delayed audio frame");
-				return;
-			}
-
-			av_packet_unref(&pkt);
-		}
-
-		av_frame_free(&frame);
-	}
-
-	delete[] buf;
-
-	ret = av_write_trailer(formatContext);
-	if (ret)
-	{
-		logger_base.error("  error writing file trailer");
-		return;
-	}
-
-	// Clean-up and close the output file
-	sws_freeContext(sws_ctx);
-	avcodec_close(video_st->codec);
-	avcodec_close(audio_st->codec);
-	av_frame_free(&frame);
-	for (int i = 0; i < formatContext->nb_streams; i++)
-	{
-		av_freep(&formatContext->streams[i]->codec);
-		av_freep(&formatContext->streams[i]);
-	}
-	if (!(fmt->flags & AVFMT_NOFILE))
-	{
-		avio_close(formatContext->pb);
-	}
-	av_free(formatContext);
+	return true;
 }
 
 //helper functions
@@ -1160,7 +1217,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
     MenuItem_File_Close_Sequence->Enable(false);
-	 MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export Video"), wxEmptyString, wxITEM_NORMAL);
+	 MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
 	 MenuFile->Append(MenuItem_File_Export_Video);
 	 MenuItem_File_Export_Video->Enable(false);
 	 MenuFile->AppendSeparator();
@@ -3210,7 +3267,23 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	int width = housePreview->getWidth();
 	int height = housePreview->getHeight();
 	double contentScaleFactor = GetContentScaleFactor();
-	foo(path, int(width*contentScaleFactor), int(height*contentScaleFactor), SeqData.FrameTime(), SeqData.NumFrames(), logger_base);
+
+	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), logger_base);
+
+	xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
+	captureHelper.SetActive(true);
+
+	videoExporter.SetGetVideoFrame(
+		[&](unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex) {
+			const FrameData frameData = SeqData[frameIndex];
+			const unsigned char *data = frameData[0];
+			housePreview->Render(data, false);
+			return captureHelper.ToRGB(buf, width * 3 * height);
+		}
+	);
+	bool exportStatus = videoExporter.Export(path);
+	captureHelper.SetActive(false);
+
 	logger_base.debug("Finished writing house-preview video.");
 #if 0
 	int widthWithScaleFactor = housePreview->getWidth() * GetContentScaleFactor();
