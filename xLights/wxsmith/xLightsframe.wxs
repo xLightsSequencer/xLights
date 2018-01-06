@@ -1564,6 +1564,11 @@
 					<handler function="OnMenuItem_ModelBlendDefaultOffSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SNAP_TO_TIMING" variable="MenuItem_SnapToTimingMarks" member="yes">
+					<label>Snap to Timing Marks</label>
+					<handler function="OnMenuItem_SnapToTimingMarksSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>

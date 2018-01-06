@@ -524,6 +524,7 @@ private:
     void OnMenuItem_LogRenderStateSelected(wxCommandEvent& event);
     void OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
+    void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
     //*)
 
     void OnIdle(wxIdleEvent& event);
@@ -727,6 +728,7 @@ private:
     static const long ID_E131_Sync;
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
+    static const long ID_MNU_SNAP_TO_TIMING;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -820,6 +822,7 @@ private:
     wxButton* ButtonAddDongle;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
+    wxMenuItem* MenuItem_SnapToTimingMarks;
     wxMenuItem* MenuItemBackup;
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* Menu_GenerateCustomModel;
@@ -952,6 +955,7 @@ private:
     bool _autoShowHousePreview;
     bool _smallWaveform;
     bool _modelBlendDefaultOff;
+    bool _snapToTimingMarks;
     bool _autoSavePerspecive;
 
     void ShowACLights();
@@ -1115,6 +1119,8 @@ public:
 
     void SetXmlSetting(const wxString& settingName,const wxString& value);
     unsigned int GetMaxNumChannels();
+
+    bool GetSnapToTimingMarks() { return _snapToTimingMarks; }
 
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);

@@ -4660,6 +4660,72 @@ void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
 void EffectsGrid::ResizeSingleEffect(int position)
 {
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+
+    // Snap to timing marks logic
+    if( xlights->GetSnapToTimingMarks() )
+    {
+        if (mSequenceElements->GetSelectedTimingRow() >= 0)
+        {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+
+            if (tel != nullptr)
+            {
+                if( tel->GetEffectCount() > 0 )
+                {
+                    Effect* eff1 = nullptr;
+                    Effect* eff2 = nullptr;
+                    int pos1 = -1000;
+                    int pos2 = 100000000;
+                    // see if inside an effect
+                    eff1 = tel->GetEffectAtTime(time);
+                    if (eff1 != nullptr)
+                    {
+                        pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetStartTimeMS());
+                        pos2 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+
+                        if( (position - pos1) <= 10 )
+                        {
+                            time = eff1->GetStartTimeMS();
+                        }
+                        else
+                        {
+                            if( (pos2-position) <= 10 )
+                            {
+                                time = eff1->GetEndTimeMS();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        eff1 = tel->GetEffectBeforeTime(time);
+                        eff2 = tel->GetEffectAfterTime(time);
+
+                        if (eff1 != nullptr )
+                        {
+                            pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+                        }
+                        if (eff2 != nullptr )
+                        {
+                            pos2 = mTimeline->GetPositionFromTimeMS(eff2->GetStartTimeMS());
+                        }
+
+                        if( (position - pos1) <= 10 )
+                        {
+                            time = eff1->GetEndTimeMS();
+                        }
+                        else
+                        {
+                            if( (pos2-position) <= 10 )
+                            {
+                                time = eff2->GetStartTimeMS();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     time = mTimeline->RoundToMultipleOfPeriod(time, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
     {
@@ -5739,7 +5805,7 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
 Element* EffectsGrid::GetActiveTimingElement()
 {
     Element* returnValue=nullptr;
-    
+
     for (int row = 0; row<mSequenceElements->GetVisibleRowInformationSize(); row++)
     {
         Element* e = mSequenceElements->GetVisibleRowInformation(row)->element;

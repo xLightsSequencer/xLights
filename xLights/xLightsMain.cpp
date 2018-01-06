@@ -293,6 +293,7 @@ const long xLightsFrame::ID_MNU_SUPPRESSDUPLICATES = wxNewId();
 const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
+const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
 const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
@@ -1004,6 +1005,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuSettings->Append(MenuItem_ForceLocalIP);
     MenuItem_ModelBlendDefaultOff = new wxMenuItem(MenuSettings, ID_MNU_DEFAULTMODELBLENDOFF, _("Model Blend Default Off"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_ModelBlendDefaultOff);
+    MenuItem_SnapToTimingMarks = new wxMenuItem(MenuSettings, ID_MNU_SNAP_TO_TIMING, _("Snap to Timing Marks"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_SnapToTimingMarks);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
@@ -1207,6 +1210,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_E131_Sync,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_e131syncSelected);
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(ID_MNU_DEFAULTMODELBLENDOFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected);
+    Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
     Connect(ID_MNU_VIDEOS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VideoTutorialsSelected);
@@ -1369,6 +1373,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     MenuItem_ModelBlendDefaultOff->Check(_modelBlendDefaultOff);
     logger_base.debug("Model Blend Default Off: %s.", _modelBlendDefaultOff ? "true" : "false");
+
+    config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
+    MenuItem_SnapToTimingMarks->Check(_snapToTimingMarks);
+    logger_base.debug("Snap To Timing Marks: %s.", _snapToTimingMarks ? "true" : "false");
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -1833,6 +1841,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
+    config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -7202,3 +7211,8 @@ void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
     }
 }
 
+
+void xLightsFrame::OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event)
+{
+    _snapToTimingMarks = MenuItem_SnapToTimingMarks->IsChecked();
+}

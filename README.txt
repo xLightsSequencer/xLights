@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Add Snap to Timing Marks feature.  Turn this on in Settings.  Only works for single effect resizing.  Fixes #132.
    -- bug (gil)    Prevent error message when importing ISEQ data layer not in show directory.  Fixes #1047.
    -- bug (gil)    Make sure all models are available when creating new Views.  Fixes #1049.
    -- bug (gil)    Fix Bulk Edit crash when right-clicking a TextEdit box.
