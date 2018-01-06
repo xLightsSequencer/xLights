@@ -926,7 +926,9 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         full_name.SetPath(fDir);
         wxFileName data_file(full_name);
         data_file.SetExt("iseq");
-        data_file.SetPath(xLightsParent->GetShowDirectory());
+        if( full_name.GetExt() != "iseq" ) {
+            data_file.SetPath(xLightsParent->GetShowDirectory());
+        }
         DataLayerSet& data_layers = xml_file->GetDataLayers();
         DataLayer* new_data_layer = data_layers.AddDataLayer(full_name.GetName(), full_name.GetFullPath(), data_file.GetFullPath() );
         wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
@@ -936,6 +938,11 @@ bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes, ConvertLogDia
         wxTreeItemId branch_num_channels = TreeCtrl_Data_Layers->AppendItem(branch1, "Number of Channels: <waiting for file conversion>");
         TreeCtrl_Data_Layers->AppendItem(branch1, "Channel Offset: 0");
         TreeCtrl_Data_Layers->Expand(branch1);
+
+
+        {
+
+        }
 
         wxString media_filename;
         ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename

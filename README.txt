@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Prevent error message when importing ISEQ data layer not in show directory.  Fixes #1047.
    -- bug (gil)    Make sure all models are available when creating new Views.  Fixes #1049.
    -- bug (gil)    Fix Bulk Edit crash when right-clicking a TextEdit box.
    -- bug (gil)    Fix PolyLine crash for case of 3 Channel RGB with Individual Start Channels set.
