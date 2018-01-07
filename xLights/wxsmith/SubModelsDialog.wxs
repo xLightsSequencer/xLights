@@ -40,7 +40,7 @@
 											<minsize>150,-1</minsize>
 											<style>wxLC_REPORT</style>
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -103,12 +103,12 @@
 												<object class="wxTextCtrl" name="ID_TEXTCTRL_NAME" variable="TextCtrl_Name" member="yes">
 													<value>Submodel Name</value>
 												</object>
-												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+												<flag>wxALL|wxEXPAND</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -148,7 +148,7 @@
 																			<option>1</option>
 																		</object>
 																	</object>
-																	<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
@@ -168,12 +168,12 @@
 																		<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 																		<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																	</object>
-																	<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<flag>wxALL|wxEXPAND</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
 															</object>
-															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -235,13 +235,13 @@
 												<label>SubBuffer</label>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+										<flag>wxALL|wxEXPAND</flag>
 										<option>1</option>
 									</object>
 								</object>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -255,12 +255,12 @@
 								<growablerows>0</growablerows>
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
