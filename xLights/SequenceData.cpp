@@ -32,7 +32,7 @@ SequenceData::~SequenceData() {
     }
 }
 
-void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime) {
+void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -44,7 +44,14 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
         free(_invalidData);
         _invalidData = nullptr;
     }
-    _numChannels = roundTo4(numChannels);
+    if (roundto4)
+    {
+        _numChannels = roundTo4(numChannels);
+    }
+    else
+    {
+        _numChannels = numChannels;
+    }
     _numFrames = numFrames;
     _frameTime = frameTime;
     _bytesPerFrame = roundTo4(numChannels);

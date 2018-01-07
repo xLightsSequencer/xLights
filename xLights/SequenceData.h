@@ -44,8 +44,7 @@ public:
     SequenceData();
     virtual ~SequenceData();
     
-    void init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime);
-    
+    void init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4 = true);
 
     unsigned int TotalTime() const { return _numFrames * _frameTime; }
     bool OK(unsigned int frame, unsigned int channel) const { return frame < _numFrames && channel < _numChannels; }

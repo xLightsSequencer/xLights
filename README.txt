@@ -17,6 +17,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (gil)    Make sure all models are available when creating new Views.  Fixes #1049.
    -- bug (gil)    Fix Bulk Edit crash when right-clicking a TextEdit box.
    -- bug (gil)    Fix PolyLine crash for case of 3 Channel RGB with Individual Start Channels set.
+   -- bug (keith)  Fix eseq frame size rounded by 4 when it shouldnt be.
+   -- bug (keith)  Newly created schedule doesnt play immediately
+   -- bug (keith)  Reset schedule does not reset
+   -- enh (keith)  Add a reset all schedules function to xschedule
+   -- bug (keith)  Fix cant double click on first song in a playlist to jump to it
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu
    -- enh (dkulp)  Add WRGB 4 channel node type

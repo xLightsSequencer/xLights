@@ -315,7 +315,7 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     modelPreview->SetModel(cls);
 
     for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
-         it != finfo.end(); it++) {
+         it != finfo.end(); ++it) {
 
         std::string name = it->first;
         std::map<std::string, std::string> &info = it->second;
@@ -581,7 +581,7 @@ std::list<std::string> GetPhonemes(std::string key)
 {
     if (key == "AI")
     {
-        std::list<std::string> phonemes = { "AI", "Ai", "ai", "A", "a" };
+        std::list<std::string> phonemes = { "AI", "Ai", "ai", "A", "a", "A,I", "a,i" };
         return phonemes;
     }
     else if (key == "E")
@@ -596,7 +596,7 @@ std::list<std::string> GetPhonemes(std::string key)
     }
     else if (key == "FV")
     {
-        std::list<std::string> phonemes = { "FV", "Fv", "fv", "F", "f" };
+        std::list<std::string> phonemes = { "FV", "Fv", "fv", "F", "f", "F,V", "f,v" };
         return phonemes;
     }
     else if (key == "L")
@@ -626,7 +626,7 @@ std::list<std::string> GetPhonemes(std::string key)
     }
     else if (key == "WQ")
     {
-        std::list<std::string> phonemes = { "WQ", "wq", "Wq", "W", "w" };
+        std::list<std::string> phonemes = { "WQ", "wq", "Wq", "W", "w", "W,Q", "w,q" };
         return phonemes;
     }
     else
