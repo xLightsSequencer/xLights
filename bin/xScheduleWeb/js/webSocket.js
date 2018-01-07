@@ -6,6 +6,8 @@ socket.addEventListener('open', function(event) {
   console.log("Socket Opened");
 });
 
+
+
 socket.addEventListener('message', function(event) {
   var response = JSON.parse(event.data);
   if (response.score == undefined && response.highscore == undefined) {
@@ -38,7 +40,7 @@ socket.addEventListener('message', function(event) {
 });
 
 socket.onclose = function(e) {
-  notification('Web Socket: Disconnected "' + e + '"', 'danger', '0');
+  notification('Web Socket: Disconnected "' + e + '"', 'danger', '2');
 };
 
 //

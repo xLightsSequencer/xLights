@@ -22,6 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Reset schedule does not reset
    -- enh (keith)  Add a reset all schedules function to xschedule
    -- bug (keith)  Fix cant double click on first song in a playlist to jump to it
+   —- enh (Billy)  Added Controller Status to xSchedule WebUI
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu
    -- enh (dkulp)  Add WRGB 4 channel node type

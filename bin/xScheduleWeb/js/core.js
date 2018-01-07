@@ -258,7 +258,7 @@ function runCommand(name, param, reference) {
       }
     }
   } else {
-
+    console.log("xJAX CALL");
     if (param == undefined)
       var command = name
     else
