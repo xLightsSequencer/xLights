@@ -229,14 +229,14 @@ bool VideoExporter::Export(const char *path)
 		sws_flags, nullptr, nullptr, nullptr);
 
 	AVFrame src_picture;
-	int ret = av_image_alloc(src_picture.data, src_picture.linesize, width, height, informat, 4);
+	int ret = av_image_alloc(src_picture.data, src_picture.linesize, width, height, informat, 1);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocating for src-picture buffer");
 		return false;
 	}
 
-	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 4);
+	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 1);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocatinf for encoded-picture buffer");
@@ -260,7 +260,7 @@ bool VideoExporter::Export(const char *path)
 	}
 
 	// buffer for RGB input
-	unsigned char *buf = new unsigned char[/*m_width * 3 * m_height*/width * 3 * height];
+	unsigned char *buf = new unsigned char[width * 3 * height];
 
 	// Loop through each frame
 	frame->pts = 0;
@@ -383,7 +383,7 @@ bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCo
 		return false;
 	}
 
-	int ret = av_image_fill_arrays(srcFrame->data, srcFrame->linesize, buf, AV_PIX_FMT_RGB24, origWidth, origHeight, 1);
+	int ret = av_image_fill_arrays(srcFrame->data, srcFrame->linesize, buf, AV_PIX_FMT_RGB24, width, height, 1);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error retrieving src-image data");

@@ -141,6 +141,11 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
 	unsigned char *dst = buf;
+	if (padHeight)
+	{
+		memset(dst, 0, widthWithPadding * 3);
+		dst += widthWithPadding * 3;
+	}
 	for (int y = h - 1; y >= 0; --y)
 	{
 		const unsigned char *src = tmpBuf + 4 * w * y;
@@ -156,8 +161,6 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 			dst += 3;
 		}
 	}
-	if (padHeight)
-		memset(dst, 0, widthWithPadding * 3);
 
 	return true;
 }
