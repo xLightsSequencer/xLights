@@ -42,7 +42,7 @@ class xlGLCanvas
 
 			  void SetActive(bool active);
 
-			  bool ToRGB(unsigned char *buf, unsigned int bufSize);
+			  bool ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims=false);
 		  protected:
 			  unsigned fbID;
 			  unsigned rbID;

@@ -119,12 +119,16 @@ void xlGLCanvas::CaptureHelper::SetActive(bool active)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }
-bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize)
+bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims/*=false*/)
 {
 	int w = width * contentScaleFactor;
 	int h = height * contentScaleFactor;
 
-	unsigned int reqSize = w * 3 * h;
+	bool padWidth = padToEvenDims && (w % 2);
+	bool padHeight = padToEvenDims && (h % 2);
+	int widthWithPadding = padWidth ? (w + 1) : w;
+	int heightWithPadding = padHeight ? (h + 1) : h;
+	unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
 	if (bufSize < reqSize)
 		return false;
 
@@ -146,7 +150,14 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize)
 			dst[1] = src[1];
 			dst[2] = src[2];
 		}
+		if (padWidth)
+		{
+			dst[0] = dst[1] = dst[2] = 0x00;
+			dst += 3;
+		}
 	}
+	if (padHeight)
+		memset(dst, 0, widthWithPadding * 3);
 
 	return true;
 }
