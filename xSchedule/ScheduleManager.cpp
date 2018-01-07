@@ -1503,15 +1503,31 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else if (command == "Restart selected schedule")
             {
-                auto rs = GetRunningSchedule();
-                if (rs != nullptr)
+                if (selschedule != nullptr)
                 {
-                    rs->Reset();
-                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event);
-                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+                    {
+                        if ((*it)->GetSchedule()->GetId() == selschedule->GetId())
+                        {
+                            (*it)->Reset();
+                            wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                            wxPostEvent(wxGetApp().GetTopWindow(), event);
+                            wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                            wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                        }
+                    }
                 }
+            }
+            else if (command == "Restart all schedules")
+            {
+                for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+                {
+                    (*it)->Reset();
+                }
+                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
             }
             else if (command == "Restart named schedule")
             {

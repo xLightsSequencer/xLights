@@ -306,7 +306,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Increase brightness by n%", 1, i, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Set brightness to n%", 1, i, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("PressButton", 1, s, false, false, false, false, true, true, false, true));
-    _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, true, false, true, true, true));
+    _commands.push_back(new Command("Restart selected schedule", 0, {}, false, true, false, false, false, true, true, true));
+    _commands.push_back(new Command("Restart all schedules", 0, {}, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Restart playlist schedules", 1, pl, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Restart named schedule", 1, sch, false, false, false, true, false, true, true, false));
     _commands.push_back(new Command("Toggle mute", 0, {}, false, false, false, false, true, true, true, false));

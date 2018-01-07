@@ -1353,6 +1353,7 @@ void xScheduleFrame::CreateButtons()
     {
         __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green");
         __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red");
+        __schedule->GetOptions()->AddButton("Reset All", "Restart all schedules", "", '~', "default");
         __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default");
         __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red");
         __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default");
@@ -1540,7 +1541,7 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
 
     PlayList* p = __schedule->GetRunningPlayList();
 
-    if (selected > 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
+    if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
     {
         size_t rate;
         std::string msg;
@@ -2461,6 +2462,8 @@ void xScheduleFrame::AddSchedule()
             playlist->AddSchedule(schedule);
         }
 	}
+    UpdateSchedule();
+    UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_MatricesSelected(wxCommandEvent& event)
