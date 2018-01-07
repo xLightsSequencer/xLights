@@ -86,12 +86,13 @@ extern "C"
 class VideoExporter
 {
 public:
-	VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, log4cpp::Category &logger_base);
+	VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base);
 
 	typedef std::function<bool(unsigned char * /*buf*/, int /*bufSize*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
-	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/)> GetAudioFrameFn;
+	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/ )> GetAudioFrameFn;
 
 	void SetGetVideoFrameCallback(GetVideoFrameFn gvfn) { m_GetVideo = gvfn; }
+	void SetGetAudioFrameCallback(GetAudioFrameFn gafn) { m_GetAudio = gafn; }
 
 	bool Export(const char *path);
 
@@ -111,6 +112,8 @@ protected:
 	const float m_scaleFactor;
 	const unsigned int m_frameDuration;
 	const unsigned int m_frameCount;
+	const int m_audioChannelCount;
+	const int m_audioSampleRate;
 	log4cpp::Category &m_logger_base;
 
 	GetVideoFrameFn m_GetVideo;
@@ -125,8 +128,8 @@ double VideoExporter::s_t = 0.;
 double VideoExporter::s_freq = 750.;
 double VideoExporter::s_deltaTime = 1. / 44100;
 
-VideoExporter::VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, log4cpp::Category &logger_base)
-	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount), m_logger_base(logger_base)
+VideoExporter::VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base)
+	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount), m_audioChannelCount(audioChannelCount), m_audioSampleRate(audioSampleRate), m_logger_base(logger_base)
 	, m_GetVideo(dummyGetVideoFrame), m_GetAudio(dummyGetAudioFrame)
 {
 	s_t = 0.;
@@ -199,7 +202,7 @@ bool VideoExporter::Export(const char *path)
 	audioCodecContext->codec_id = fmt->audio_codec;
 	audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
 	audioCodecContext->bit_rate = 128000;
-	audioCodecContext->sample_rate = 44100;
+	audioCodecContext->sample_rate = m_audioSampleRate;
 	audioCodecContext->channels = 1;
 	audioCodecContext->channel_layout = AV_CH_LAYOUT_MONO;
 
@@ -221,19 +224,19 @@ bool VideoExporter::Export(const char *path)
 
 	int sws_flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're only doing a colorspace conversion currently
 	AVPixelFormat informat = AV_PIX_FMT_RGB24;
-	SwsContext *sws_ctx = sws_getContext(/*m_width, m_height*/width, height, informat,
+	SwsContext *sws_ctx = sws_getContext(width, height, informat,
 		videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
 		sws_flags, nullptr, nullptr, nullptr);
 
 	AVFrame src_picture;
-	int ret = av_image_alloc(src_picture.data, src_picture.linesize, /*m_width, m_height*/width, height, informat, /*1*/4);
+	int ret = av_image_alloc(src_picture.data, src_picture.linesize, width, height, informat, 4);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocating for src-picture buffer");
 		return false;
 	}
 
-	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, /*1*/4);
+	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 4);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocatinf for encoded-picture buffer");
@@ -435,12 +438,11 @@ bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSa
 	// We'll ask for audio samples in video-frame-time chunks but for AAC, we can
 	// only encode in 1024-sample chunks, so we'll use a FIFO buffer in between.
 	AudioSample *buf = nullptr;
-	const int read_frame_size = 2205;
+	const int read_frame_size = 2205; // todo - hard-coded for 20-fps sequences!!
 
 	if (!clearQueue)
 	{
 		buf = new AudioSample[read_frame_size];
-		//get_audio_frame((float *)buf, read_frame_size, c->channels);
 		bool getStatus = m_GetAudio((float *)buf, read_frame_size, c->channels);
 		if (getStatus == false)
 		{
@@ -3260,15 +3262,49 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	if (housePreview == nullptr)
 		return;
 
+	// todo - verify house-preview is visible?
+
+	const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
+	wxFileDialog exportDlg(this, _("Export House Preview Video"), wxEmptyString, wxEmptyString,
+		+wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (exportDlg.ShowModal() != wxID_OK)
+		return;
+
+	wxString path = exportDlg.GetPath();
+
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.debug("Writing house-preview video.");
 
-	const char path[] = "C:\\Temp\\FrameImages\\out.mp4";
 	int width = housePreview->getWidth();
 	int height = housePreview->getHeight();
 	double contentScaleFactor = GetContentScaleFactor();
 
-	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), logger_base);
+	int audioChannelCount = 0;
+	int audioSampleRate = 0;
+	AudioManager *audioMgr = CurrentSeqXmlFile->GetMedia();
+	if (audioMgr != nullptr)
+	{
+		audioSampleRate = audioMgr->GetRate();
+		audioChannelCount = audioMgr->GetChannels();
+	}
+	int audioFrameIndex = 0;
+
+	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
+
+	videoExporter.SetGetAudioFrameCallback(
+		[&audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
+		   int trackSize = audioMgr->GetTrackSize();
+			const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+			const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+
+			// We're currently exporting mono audio, so mix left & right
+			for (int i = 0; i < frameSize; ++i)
+				samples[i] = (audioFrameIndex + i >= trackSize) ? 0.f : (0.5 * (leftptr[i] + rightptr[1]));
+
+			audioFrameIndex += frameSize;
+			return true;
+	   }
+	);
 
 	xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
 	captureHelper.SetActive(true);
@@ -3285,39 +3321,6 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	captureHelper.SetActive(false);
 
 	logger_base.debug("Finished writing house-preview video.");
-#if 0
-	int widthWithScaleFactor = housePreview->getWidth() * GetContentScaleFactor();
-	int heightWithScaleFactor = housePreview->getHeight() * GetContentScaleFactor();
-	unsigned int bufSize = widthWithScaleFactor * 3 * heightWithScaleFactor;
-	unsigned char *buf = (unsigned char *)malloc(bufSize);
-
-	wxString dirPath(_("C:\\Temp\\FrameImages\\"));
-
-	xlGLCanvas::CaptureHelper captureHelper(width, height, GetContentScaleFactor());
-	captureHelper.SetActive(true);
-
-	for (int i = 0; i < /*frameCount*/60; ++i)
-	{
-		const FrameData frameData = SeqData[i];
-		const unsigned char *data = frameData[0];
-
-		housePreview->Render(data, false);
-
-		bool status = captureHelper.ToRGB(buf, bufSize);
-		if (status)
-		{
-			wxImage img(widthWithScaleFactor, heightWithScaleFactor, buf, true);
-			wxString localPath;
-			localPath.Printf(_("%03d.png"), i);
-			wxString path(dirPath + localPath);
-			img.SaveFile(path, wxBITMAP_TYPE_PNG);
-		}
-	}
-
-	captureHelper.SetActive(false);
-
-	free(buf);
-#endif
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)
