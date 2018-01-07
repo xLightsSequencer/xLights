@@ -269,14 +269,9 @@ void SubModelsDialog::Setup(Model *m)
     wxListItem nm0;
     nm0.SetId(0);
     nm0.SetImage(-1);
-    nm0.SetAlign(wxLIST_FORMAT_CENTER);
+    nm0.SetAlign(wxLIST_FORMAT_LEFT);
     nm0.SetText(_("SubModel"));
     ListCtrl_SubModels->InsertColumn(1, nm0);
-
-    ListCtrl_SubModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    if (ListCtrl_SubModels->GetColumnWidth(0) < 22) {
-        ListCtrl_SubModels->SetColumnWidth(0, 22);
-    }
 
 
     model = m;
@@ -312,6 +307,11 @@ void SubModelsDialog::Setup(Model *m)
         }
             // NameChoice->Append(name);
         child = child->GetNext();
+    }
+
+    ListCtrl_SubModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    if (ListCtrl_SubModels->GetColumnWidth(0) < 22) {
+        ListCtrl_SubModels->SetColumnWidth(0, 22);
     }
 
     // use a general validateDialog() here?

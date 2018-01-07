@@ -217,7 +217,7 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
         SubModelsDialog dlg(propGrid);
-        // dlg.Setup(m_model);
+        dlg.Setup(m_model);
         if (dlg.ShowModal() == wxID_OK) {
             dlg.Save();
             wxVariant v(CLICK_TO_EDIT);
