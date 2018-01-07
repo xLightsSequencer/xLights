@@ -3301,7 +3301,18 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 
 			// We're currently exporting mono audio, so mix left & right
 			for (int i = 0; i < frameSize; ++i)
-				samples[i] = (audioFrameIndex + i >= trackSize) ? 0.f : (0.5 * (leftptr[i] + rightptr[1]));
+			{
+				if (audioFrameIndex + i >= trackSize)
+				{
+					samples[i] = 0.f;
+				}
+				else
+				{
+					double left = leftptr[i];
+					double right = rightptr[i];
+					samples[i] = float(0.5 * (left + right));
+				}
+			}
 
 			audioFrameIndex += frameSize;
 			return true;
