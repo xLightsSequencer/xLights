@@ -85,7 +85,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(2);
 	FlexGridSizer2->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(600,400), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(1000,400));
 	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
@@ -209,6 +209,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
 
+    SetSize(1200, 800);
     _numSubModels = 0;
     wxPoint loc;
     wxSize sz;
@@ -231,14 +232,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     SubBufferSizer->Fit(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
 
-//    FlexGridSizer1->SetMinSize(600,400);
-//    FlexGridSizer2->SetMinSize(600,400);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+    
     //Center();
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
-    SetSize(1200, 800);
 //    Layout();
 }
 
