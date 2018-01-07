@@ -88,10 +88,10 @@ class VideoExporter
 public:
 	VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, log4cpp::Category &logger_base);
 
-	typedef std::function<bool(unsigned char * /*buf*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
+	typedef std::function<bool(unsigned char * /*buf*/, int /*bufSize*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
 	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/)> GetAudioFrameFn;
 
-	void SetGetVideoFrame(GetVideoFrameFn gvfn) { m_GetVideo = gvfn; }
+	void SetGetVideoFrameCallback(GetVideoFrameFn gvfn) { m_GetVideo = gvfn; }
 
 	bool Export(const char *path);
 
@@ -99,7 +99,7 @@ protected:
 	typedef float AudioSample; // hard-coding to mono for now...
 	typedef std::queue<AudioSample> AudioSampleQueue;
 
-	static bool dummyGetVideoFrame(unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex);
+	static bool dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex);
 	static bool dummyGetAudioFrame(float *samples, int framSize, int numChannels);
 
 	bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame,
@@ -219,21 +219,21 @@ bool VideoExporter::Export(const char *path)
 	frame->width = videoCodecContext->width;
 	frame->height = videoCodecContext->height;
 
-	int sws_flags = SWS_BICUBIC;
+	int sws_flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're only doing a colorspace conversion currently
 	AVPixelFormat informat = AV_PIX_FMT_RGB24;
-	SwsContext *sws_ctx = sws_getContext(m_width, m_height, informat,
+	SwsContext *sws_ctx = sws_getContext(/*m_width, m_height*/width, height, informat,
 		videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt,
 		sws_flags, nullptr, nullptr, nullptr);
 
 	AVFrame src_picture;
-	int ret = av_image_alloc(src_picture.data, src_picture.linesize, m_width, m_height, informat, 1);
+	int ret = av_image_alloc(src_picture.data, src_picture.linesize, /*m_width, m_height*/width, height, informat, /*1*/4);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocating for src-picture buffer");
 		return false;
 	}
 
-	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, 1);
+	ret = av_image_alloc(frame->data, frame->linesize, videoCodecContext->width, videoCodecContext->height, videoCodecContext->pix_fmt, /*1*/4);
 	if (ret < 0)
 	{
 		m_logger_base.error("  error allocatinf for encoded-picture buffer");
@@ -257,7 +257,7 @@ bool VideoExporter::Export(const char *path)
 	}
 
 	// buffer for RGB input
-	unsigned char *buf = new unsigned char[m_width * 3 * m_height];
+	unsigned char *buf = new unsigned char[/*m_width * 3 * m_height*/width * 3 * height];
 
 	// Loop through each frame
 	frame->pts = 0;
@@ -373,7 +373,7 @@ bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCo
 		return false;
 	}
 
-	bool getStatus = m_GetVideo(buf, m_width, m_height, m_scaleFactor, frameIndex);
+	bool getStatus = m_GetVideo(buf, width*3*height, m_width, m_height, m_scaleFactor, frameIndex);
 	if (!getStatus)
 	{
 		m_logger_base.error("  GetVideo fails");
@@ -517,7 +517,7 @@ bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSa
 	return true;
 }
 
-bool VideoExporter::dummyGetVideoFrame(unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex)
+bool VideoExporter::dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex)
 {
 	unsigned char *ptr = buf;
 	for (int y = 0; y < height; ++y)
@@ -3273,12 +3273,12 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
 	captureHelper.SetActive(true);
 
-	videoExporter.SetGetVideoFrame(
-		[&](unsigned char *buf, int width, int height, float scaleFactor, unsigned frameIndex) {
+	videoExporter.SetGetVideoFrameCallback(
+		[&](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
 			const FrameData frameData = SeqData[frameIndex];
 			const unsigned char *data = frameData[0];
 			housePreview->Render(data, false);
-			return captureHelper.ToRGB(buf, width * 3 * height);
+			return captureHelper.ToRGB(buf, bufSize, true);
 		}
 	);
 	bool exportStatus = videoExporter.Export(path);
