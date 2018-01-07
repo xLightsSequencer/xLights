@@ -65,6 +65,7 @@ const long xLightsFrame::ID_NETWORK_UCISanDevices = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOSanDevices = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
+const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1631,6 +1632,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* mide = mnu.Append(ID_NETWORK_DEACTIVATE, "Deactivate");
     wxMenuItem* mideu = mnu.Append(ID_NETWORK_DEACTIVATEUNUSED, "Deactivate Unused");
     wxMenuItem* oc = mnu.Append(ID_NETWORK_OPENCONTROLLER, "Open Controller");
+    wxMenuItem* pc = mnu.Append(ID_NETWORK_PINGCONTROLLER, "Ping Controller");
 
     mideu->Enable(true);
     mid->Enable(selcnt > 0);
@@ -1638,6 +1640,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mide->Enable(selcnt > 0);
 
     oc->Enable(selcnt == 1);
+
     if (!AllSelectedSupportIP())
     {
         oc->Enable(false);
@@ -1653,6 +1656,19 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             }
         }
     }
+
+	pc->Enable(false);
+	if (selcnt == 1)
+	{
+		int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+		if (item != -1) {
+			Output* o = _outputManager.GetOutput(item);
+			if (o->CanPing())
+			{
+				pc->Enable(true);
+			}
+		}
+	}
 
     if (!ButtonAddE131->IsEnabled())
     {
@@ -1765,6 +1781,11 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         if (o != nullptr) {
             ::wxLaunchDefaultBrowser("http://" + o->GetIP());
         }
+    }
+    else if (id == ID_NETWORK_PINGCONTROLLER)
+    {
+        Output* o = _outputManager.GetOutput(item);
+        PingController(o);
     }
 }
 
@@ -2145,4 +2166,42 @@ void xLightsFrame::UploadJ1SYSOutput()
         }
         SetCursor(wxCURSOR_ARROW);
     }
+}
+
+void xLightsFrame::PingController(Output* e)
+{
+	if (e != nullptr)
+	{
+		std::string name;
+		if (e->IsIpOutput())
+		{
+			name = e->GetIP() + " " + e->GetDescription();
+		}
+		else
+		{
+			name = e->GetCommPort() + " " + e->GetDescription();
+		}
+		switch (e->Ping())
+		{
+			case PING_OK:
+			case PING_WEBOK:
+				wxMessageBox("Pinging the Controller was Successful: " + name);
+				break;
+			case PING_OPENED:
+				wxMessageBox("Serial Port Exists and was Opened: " + name);
+				break;
+			case PING_OPEN:
+				wxMessageBox("Serial Port Exists but couldn't be opened: " + name, _("Warn"), wxICON_WARNING);
+				break;
+			case PING_UNAVAILABLE:
+				wxMessageBox("Controller Status is Unavailible: " + name, _("Warn"), wxICON_WARNING);
+				break;
+			case PING_UNKNOWN:
+				wxMessageBox("Controller Status is Unknown: " + name, _("Warn"), wxICON_WARNING);
+				break;
+			case PING_ALLFAILED:
+				wxMessageBox("Unable to Communicate with the Controller: " + name, _("Error"), wxICON_ERROR);
+				break;
+		}
+	}
 }
