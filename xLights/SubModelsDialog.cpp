@@ -13,18 +13,18 @@
 #include "UtilFunctions.h"
 
 //(*InternalHeaders(SubModelsDialog)
-#include <wx/grid.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
 #include <wx/notebook.h>
-#include <wx/button.h>
-#include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/splitter.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/splitter.h>
+#include <wx/panel.h>
+#include <wx/grid.h>
+#include <wx/intl.h>
+#include <wx/button.h>
+#include <wx/string.h>
 //*)
 
 
@@ -64,17 +64,17 @@ END_EVENT_TABLE()
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
 	//(*Initialize(SubModelsDialog)
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxPanel* Panel1;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxPanel* Panel1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -83,7 +83,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer2->AddGrowableCol(2);
+	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(1000,400));
@@ -230,11 +230,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     subBufferPanel->SetMinSize(s);
     SubBufferSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
     SubBufferSizer->Fit(SubBufferPanelHolder);
+//    SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-    
+
     //Center();
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());

@@ -12,8 +12,8 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>3</cols>
-					<growablecols>2</growablecols>
+					<cols>2</cols>
+					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">

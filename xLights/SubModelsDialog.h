@@ -6,20 +6,20 @@
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
-class wxGridEvent;
-class wxTextCtrl;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxListCtrl;
-class wxButton;
-class wxStdDialogButtonSizer;
-class wxSplitterWindow;
-class wxSplitterEvent;
-class wxGrid;
-class wxNotebookEvent;
-class wxStaticText;
 class wxPanel;
+class wxGrid;
+class wxSplitterWindow;
+class wxStdDialogButtonSizer;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxSplitterEvent;
+class wxNotebook;
+class wxStaticText;
+class wxListCtrl;
+class wxFlexGridSizer;
+class wxButton;
+class wxGridEvent;
 //*)
 
 class Model;
@@ -41,28 +41,28 @@ class SubModelsDialog: public wxDialog
         void Save();
 
 		//(*Declarations(SubModelsDialog)
-		wxButton* DeleteRowButton;
-		wxButton* Button_ReverseNodes;
+		wxCheckBox* LayoutCheckbox;
+		wxPanel* ModelPreviewPanelLocation;
+		wxFlexGridSizer* SubBufferSizer;
+		wxButton* Button_MoveUp;
+		wxButton* AddRowButton;
+		wxTextCtrl* TextCtrl_Name;
+		wxListCtrl* ListCtrl_SubModels;
+		wxPanel* SubBufferPanelHolder;
 		wxFlexGridSizer* PreviewSizer;
+		wxStaticText* StaticText1;
+		wxPanel* Panel3;
+		wxButton* Button_Generate;
+		wxStaticText* StaticTextName;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
+		wxNotebook* TypeNotebook;
 		wxButton* Button_MoveDown;
-		wxButton* AddRowButton;
-		wxFlexGridSizer* SubBufferSizer;
-		wxStaticText* StaticText1;
-		wxButton* Button_Generate;
 		wxPanel* Panel2;
 		wxButton* DeleteButton;
 		wxSplitterWindow* SplitterWindow1;
-		wxStaticText* StaticTextName;
-		wxTextCtrl* TextCtrl_Name;
-		wxPanel* Panel3;
-		wxPanel* ModelPreviewPanelLocation;
-		wxPanel* SubBufferPanelHolder;
-		wxNotebook* TypeNotebook;
-		wxCheckBox* LayoutCheckbox;
-		wxButton* Button_MoveUp;
-		wxListCtrl* ListCtrl_SubModels;
+		wxButton* Button_ReverseNodes;
+		wxButton* DeleteRowButton;
 		//*)
 
 	protected:
