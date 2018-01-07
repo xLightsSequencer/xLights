@@ -104,7 +104,7 @@ protected:
 	static bool dummyGetAudioFrame(float *samples, int framSize, int numChannels);
 
 	bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame,
-	                       SwsContext *sws_ctx, unsigned char *buf, int origWidth, int origHeight, int width, int height, int frameIndex, int frameCount, log4cpp::Category &logger_base);
+	                       SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex, log4cpp::Category &logger_base);
 	bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue = false);
 
 	const int m_width;
@@ -267,7 +267,7 @@ bool VideoExporter::Export(const char *path)
 
 	for (unsigned int i = 0; i < m_frameCount; ++i)
 	{
-		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, m_width, m_height, width, height, i, m_frameCount, m_logger_base))
+		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, width, height, i, m_logger_base))
 			break;
 
 		if (!write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base))
@@ -368,7 +368,7 @@ bool VideoExporter::Export(const char *path)
 	return true;
 }
 
-bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int origWidth, int origHeight, int width, int height, int frameIndex, int frameCount, log4cpp::Category &logger_base)
+bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex,  log4cpp::Category &logger_base)
 {
 	if (m_GetVideo == nullptr)
 	{
