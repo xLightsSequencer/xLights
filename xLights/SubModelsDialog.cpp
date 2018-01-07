@@ -13,18 +13,18 @@
 #include "UtilFunctions.h"
 
 //(*InternalHeaders(SubModelsDialog)
-#include <wx/grid.h>
-#include <wx/checkbox.h>
-#include <wx/sizer.h>
 #include <wx/listctrl.h>
 #include <wx/notebook.h>
-#include <wx/button.h>
-#include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/splitter.h>
-#include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/splitter.h>
+#include <wx/panel.h>
+#include <wx/grid.h>
+#include <wx/intl.h>
+#include <wx/button.h>
+#include <wx/string.h>
 //*)
 
 
@@ -64,17 +64,17 @@ END_EVENT_TABLE()
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
 	//(*Initialize(SubModelsDialog)
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxPanel* Panel1;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxPanel* Panel1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -82,11 +82,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(2);
 	FlexGridSizer2->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(600,400), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinSize(wxSize(1000,400));
 	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
@@ -95,9 +95,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
+	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
 	ListCtrl_SubModels->SetMinSize(wxSize(150,-1));
-	FlexGridSizer9->Add(ListCtrl_SubModels, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer9->Add(ListCtrl_SubModels, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
 	FlexGridSizer10 = new wxFlexGridSizer(1, 3, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer10->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -118,8 +118,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	StaticTextName = new wxStaticText(Panel3, ID_STATICTEXT_NAME, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_NAME"));
 	FlexGridSizer7->Add(StaticTextName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Name = new wxTextCtrl(Panel3, ID_TEXTCTRL_NAME, _("Submodel Name"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_NAME"));
-	FlexGridSizer7->Add(TextCtrl_Name, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer7->Add(TextCtrl_Name, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer3->Add(FlexGridSizer7, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	TypeNotebook = new wxNotebook(Panel3, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(TypeNotebook, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -135,7 +135,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ReverseNodes = new wxButton(Panel1, ID_BUTTON6, _("Reverse Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	FlexGridSizer6->Add(Button_ReverseNodes, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
@@ -146,8 +146,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	NodesGrid->SetRowLabelValue(0, _("Strand   1"));
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
-	FlexGridSizer8->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(NodesGrid, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
 	AddRowButton = new wxButton(Panel1, ID_BUTTON1, _("Add Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer5->Add(AddRowButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -170,12 +170,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
 	TypeNotebook->AddPage(Panel1, _("Node Ranges"), false);
 	TypeNotebook->AddPage(SubBufferPanelHolder, _("SubBuffer"), false);
-	FlexGridSizer3->Add(TypeNotebook, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer3->Add(TypeNotebook, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	Panel3->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel3);
 	FlexGridSizer3->SetSizeHints(Panel3);
 	SplitterWindow1->SplitVertically(Panel2, Panel3);
-	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelPreviewPanelLocation = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(this,wxSize(100,100)));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
@@ -184,8 +184,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
 	PreviewSizer->Fit(ModelPreviewPanelLocation);
 	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
-	FlexGridSizer2->Add(ModelPreviewPanelLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer2->Add(ModelPreviewPanelLocation, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -205,7 +205,6 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
-	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnTypeNotebookPageChanged);
 	//*)
 
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
@@ -232,11 +231,15 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     SubBufferSizer->Fit(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
 
+//    FlexGridSizer1->SetMinSize(600,400);
+//    FlexGridSizer2->SetMinSize(600,400);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     //Center();
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
+    SetSize(1200, 800);
+//    Layout();
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -298,7 +301,7 @@ void SubModelsDialog::Setup(Model *m)
                 sm.strands[x] = child->GetAttribute(wxString::Format("line%d", x));
                 x++;
             }
-            AddSubModelToList(sm);
+            AddSubModelToList(&sm);
             // wxListItem li;
             // li.SetId(_numSubModels);
             // li.SetText(_(""));
@@ -353,14 +356,14 @@ bool SubModelsDialog::IsItemSelected(wxListCtrl* ctrl, int item)
     return ctrl->GetItemState(item, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
 }
 
-void SubModelsDialog::AddSubModelToList(SubModelInfo &submodel)
+void SubModelsDialog::AddSubModelToList(SubModelInfo *submodel)
 {
     wxListItem li;
     li.SetId(_numSubModels);
     li.SetText(_(""));
     ListCtrl_SubModels->InsertItem(li);
-    ListCtrl_SubModels->SetItemPtrData(_numSubModels, (wxUIntPtr)&submodel); //problem here?
-    ListCtrl_SubModels->SetItem(_numSubModels, 1, submodel.name);
+    ListCtrl_SubModels->SetItemPtrData(_numSubModels, (wxUIntPtr)submodel);
+    ListCtrl_SubModels->SetItem(_numSubModels, 0, submodel->name);
     _numSubModels++;
 }
 
@@ -792,7 +795,7 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
                 sm.vertical = false;
                 sm.strands.clear();
                 sm.strands.push_back("");
-                AddSubModelToList(sm);
+                AddSubModelToList(&sm);
                 // NameChoice->Append(name);
 
                 if (dialog.GetType() == "Vertical Slices")

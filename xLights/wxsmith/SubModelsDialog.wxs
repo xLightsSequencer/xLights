@@ -12,14 +12,15 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>4</cols>
+					<cols>3</cols>
 					<growablecols>2</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 							<minsize>10</minsize>
 							<orientation>vertical</orientation>
-							<minsize>10,10</minsize>
+							<size>600,400</size>
+							<minsize>1000,400</minsize>
 							<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 									<cols>1</cols>
@@ -39,7 +40,7 @@
 											<minsize>150,-1</minsize>
 											<style>wxLC_REPORT</style>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
@@ -102,12 +103,12 @@
 												<object class="wxTextCtrl" name="ID_TEXTCTRL_NAME" variable="TextCtrl_Name" member="yes">
 													<value>Submodel Name</value>
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -147,7 +148,7 @@
 																			<option>1</option>
 																		</object>
 																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
+																	<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
@@ -167,12 +168,12 @@
 																		<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 																		<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
+																	<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
 															</object>
-															<flag>wxALL|wxEXPAND</flag>
+															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -234,13 +235,13 @@
 												<label>SubBuffer</label>
 											</object>
 										</object>
-										<flag>wxALL|wxEXPAND</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 										<option>1</option>
 									</object>
 								</object>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -254,12 +255,12 @@
 								<growablerows>0</growablerows>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
