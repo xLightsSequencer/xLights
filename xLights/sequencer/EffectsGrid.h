@@ -157,7 +157,7 @@ private:
     void DrawEffects();
     void DrawPlayMarker();
     bool AdjustDropLocations(int x, EffectLayer* el);
-    void Resize(int position, bool offset);
+    void Resize(int position, bool offset, bool control);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
     void UpdateTimePosition(int time);
     void UpdateMousePosition(int time);

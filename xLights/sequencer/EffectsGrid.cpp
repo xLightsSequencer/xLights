@@ -750,7 +750,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
-        Resize(event.GetX(), event.AltDown());
+        Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
         Update();
     }
@@ -2742,18 +2742,87 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
     }
 }
 
-void EffectsGrid::Resize(int position, bool offset)
+void EffectsGrid::Resize(int position, bool offset, bool control)
 {
     if (mSequenceElements == nullptr) {
         return;
     }
+
+    int new_position = position;
+
+    // Snap to timing marks logic
+    if( xlights->GetSnapToTimingMarks() && !control || !xlights->GetSnapToTimingMarks() && control)
+    {
+        if (mSequenceElements->GetSelectedTimingRow() >= 0)
+        {
+            int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+
+            if (tel != nullptr)
+            {
+                if( tel->GetEffectCount() > 0 )
+                {
+                    Effect* eff1 = nullptr;
+                    Effect* eff2 = nullptr;
+                    int pos1 = -1000;
+                    int pos2 = 100000000;
+                    // see if inside an effect
+                    eff1 = tel->GetEffectAtTime(time);
+                    if (eff1 != nullptr)
+                    {
+                        pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetStartTimeMS());
+                        pos2 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+
+                        if( (position - pos1) <= 10 )
+                        {
+                            new_position = pos1;
+                        }
+                        else
+                        {
+                            if( (pos2-position) <= 10 )
+                            {
+                                new_position = pos2;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        eff1 = tel->GetEffectBeforeTime(time);
+                        eff2 = tel->GetEffectAfterTime(time);
+
+                        if (eff1 != nullptr )
+                        {
+                            pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+                        }
+                        if (eff2 != nullptr )
+                        {
+                            pos2 = mTimeline->GetPositionFromTimeMS(eff2->GetStartTimeMS());
+                        }
+
+                        if( (position - pos1) <= 10 )
+                        {
+                            new_position = pos1;
+                        }
+                        else
+                        {
+                            if( (pos2-position) <= 10 )
+                            {
+                                new_position = pos2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE)
     {
-        ResizeMoveMultipleEffects(position, offset);
+        ResizeMoveMultipleEffects(new_position, offset);
     }
     else
     {
-        ResizeSingleEffect(position);
+        ResizeSingleEffect(new_position);
     }
     if( mSequenceElements->get_undo_mgr().ChangeCaptured() )
     {
@@ -4660,71 +4729,6 @@ void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
 void EffectsGrid::ResizeSingleEffect(int position)
 {
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
-
-    // Snap to timing marks logic
-    if( xlights->GetSnapToTimingMarks() )
-    {
-        if (mSequenceElements->GetSelectedTimingRow() >= 0)
-        {
-            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-
-            if (tel != nullptr)
-            {
-                if( tel->GetEffectCount() > 0 )
-                {
-                    Effect* eff1 = nullptr;
-                    Effect* eff2 = nullptr;
-                    int pos1 = -1000;
-                    int pos2 = 100000000;
-                    // see if inside an effect
-                    eff1 = tel->GetEffectAtTime(time);
-                    if (eff1 != nullptr)
-                    {
-                        pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetStartTimeMS());
-                        pos2 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
-
-                        if( (position - pos1) <= 10 )
-                        {
-                            time = eff1->GetStartTimeMS();
-                        }
-                        else
-                        {
-                            if( (pos2-position) <= 10 )
-                            {
-                                time = eff1->GetEndTimeMS();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        eff1 = tel->GetEffectBeforeTime(time);
-                        eff2 = tel->GetEffectAfterTime(time);
-
-                        if (eff1 != nullptr )
-                        {
-                            pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
-                        }
-                        if (eff2 != nullptr )
-                        {
-                            pos2 = mTimeline->GetPositionFromTimeMS(eff2->GetStartTimeMS());
-                        }
-
-                        if( (position - pos1) <= 10 )
-                        {
-                            time = eff1->GetEndTimeMS();
-                        }
-                        else
-                        {
-                            if( (pos2-position) <= 10 )
-                            {
-                                time = eff2->GetStartTimeMS();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     time = mTimeline->RoundToMultipleOfPeriod(time, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
