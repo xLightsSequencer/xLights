@@ -114,6 +114,7 @@ protected:
 	const unsigned int m_frameCount;
 	const int m_audioChannelCount;
 	const int m_audioSampleRate;
+	const int m_audioFrameSize;
 	log4cpp::Category &m_logger_base;
 
 	GetVideoFrameFn m_GetVideo;
@@ -129,7 +130,8 @@ double VideoExporter::s_freq = 750.;
 double VideoExporter::s_deltaTime = 1. / 44100;
 
 VideoExporter::VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base)
-	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount), m_audioChannelCount(audioChannelCount), m_audioSampleRate(audioSampleRate), m_logger_base(logger_base)
+	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount)
+	, m_audioChannelCount(audioChannelCount), m_audioSampleRate(audioSampleRate), m_audioFrameSize(audioSampleRate/(1000/frameDuration)), m_logger_base(logger_base)
 	, m_GetVideo(dummyGetVideoFrame), m_GetAudio(dummyGetAudioFrame)
 {
 	s_t = 0.;
@@ -438,26 +440,25 @@ bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSa
 	// We'll ask for audio samples in video-frame-time chunks but for AAC, we can
 	// only encode in 1024-sample chunks, so we'll use a FIFO buffer in between.
 	AudioSample *buf = nullptr;
-	const int read_frame_size = 2205; // todo - hard-coded for 20-fps sequences!!
 
 	if (!clearQueue)
 	{
-		buf = new AudioSample[read_frame_size];
-		bool getStatus = m_GetAudio((float *)buf, read_frame_size, c->channels);
+		buf = new AudioSample[m_audioFrameSize];
+		bool getStatus = m_GetAudio((float *)buf, m_audioFrameSize, c->channels);
 		if (getStatus == false)
 		{
 			logger_base.error("  GetAudio fails");
 			return false;
 		}
 
-		for (int i = 0; i < read_frame_size; ++i)
+		for (int i = 0; i < m_audioFrameSize; ++i)
 			queue.push(buf[i]);
 	}
 
 	int encode_frame_size = clearQueue ? queue.size() : c->frame_size;
 
 	// Re-use our AudoSample buffer for encoding if possible...
-	if (buf == nullptr || encode_frame_size > read_frame_size)
+	if (buf == nullptr || encode_frame_size > m_audioFrameSize)
 	{
 		if (buf != nullptr)
 			delete[] buf;
@@ -3293,7 +3294,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
 
 	videoExporter.SetGetAudioFrameCallback(
-		[&audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
+		[audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
 		   int trackSize = audioMgr->GetTrackSize();
 			const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
 			const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
