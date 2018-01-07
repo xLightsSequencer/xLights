@@ -297,15 +297,7 @@ void SubModelsDialog::Setup(Model *m)
                 x++;
             }
             AddSubModelToList(&sm);
-            // wxListItem li;
-            // li.SetId(_numSubModels);
-            // li.SetText(_(""));
-            // ListCtrl_SubModels->InsertItem(li);
-            // ListCtrl_SubModels->SetItemPtrData(_numSubModels, (wxUIntPtr)&sm);
-            // ListCtrl_SubModels->SetItem(_numSubModels, 0, sm.name);
-            // _numSubModels++;
         }
-            // NameChoice->Append(name);
         child = child->GetNext();
     }
 
@@ -381,21 +373,6 @@ wxString SubModelsDialog::GetSelectedName() {
 
 }
 
-// int SubModelsDialog::GetSelectedItemCount()
-// {
-//     int count = 0;
-
-//     for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
-//     {
-//         if (IsItemSelected(ListCtrl_SubModels, i) && ((Element*)ListCtrl_SubModels->GetItemData(i))->GetType() != ELEMENT_TYPE_TIMING)
-//         {
-//             count++;
-//         }
-//     }
-
-//     return count;
-// }
-
 void SubModelsDialog::Save()
 {
     wxXmlNode * root = model->GetModelXml();
@@ -452,7 +429,7 @@ void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
         sm.isRanges = true;
         sm.strands.clear();
         sm.strands.push_back("");
-        //NameChoice->Append(name);
+        AddSubModelToList(&sm);
         Select(name);
     }
 }
@@ -497,6 +474,7 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
     Select(event.GetString());
 }
 
+//todo fix this next....
 void SubModelsDialog::Select(const wxString &name) {
     if (name == "") {
         // NameChoice->Disable();
