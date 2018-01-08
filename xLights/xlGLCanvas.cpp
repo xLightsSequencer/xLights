@@ -67,6 +67,105 @@ static bool hasOpenGL3FramebufferObjects()
 }
 #endif
 
+xlGLCanvas::CaptureHelper::~CaptureHelper()
+{
+	if (tmpBuf != nullptr)
+	{
+		delete[] tmpBuf;
+		tmpBuf = nullptr;
+	}
+
+	if (!hasOpenGL3FramebufferObjects())
+		return;
+
+	if (fbID)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDeleteFramebuffers(1, &fbID);
+		fbID = 0;
+	}
+
+	if (rbID)
+	{
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glDeleteRenderbuffers(1, &rbID);
+	}
+}
+
+void xlGLCanvas::CaptureHelper::SetActive(bool active)
+{
+	if (!hasOpenGL3FramebufferObjects())
+		return;
+
+	if (active)
+	{
+		if (!fbID && !rbID)
+		{
+			int widthWithContentScaleFactor = width * contentScaleFactor;
+			int heightWithContentScaleFactor = height * contentScaleFactor;
+			glGenRenderbuffers(1, &rbID);
+			glBindRenderbuffer(GL_RENDERBUFFER, rbID);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, widthWithContentScaleFactor, heightWithContentScaleFactor);
+
+			glGenFramebuffers(1, &fbID);
+			glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+			glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+	}
+	else
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+}
+bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims/*=false*/)
+{
+	int w = width * contentScaleFactor;
+	int h = height * contentScaleFactor;
+
+	bool padWidth = padToEvenDims && (w % 2);
+	bool padHeight = padToEvenDims && (h % 2);
+	int widthWithPadding = padWidth ? (w + 1) : w;
+	int heightWithPadding = padHeight ? (h + 1) : h;
+	unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
+	if (bufSize < reqSize)
+		return false;
+
+	if (tmpBuf == nullptr)
+	{
+		typedef unsigned char uchar;
+		tmpBuf = new uchar[w * 4 * h];
+	}
+
+	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+
+	unsigned char *dst = buf;
+	if (padHeight)
+	{
+		memset(dst, 0, widthWithPadding * 3);
+		dst += widthWithPadding * 3;
+	}
+	for (int y = h - 1; y >= 0; --y)
+	{
+		const unsigned char *src = tmpBuf + 4 * w * y;
+		for (int x = 0; x < w; ++x, src += 4, dst += 3)
+		{
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = src[2];
+		}
+		if (padWidth)
+		{
+			dst[0] = dst[1] = dst[2] = 0x00;
+			dst += 3;
+		}
+	}
+
+	return true;
+}
+
+
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
                        bool coreProfile)

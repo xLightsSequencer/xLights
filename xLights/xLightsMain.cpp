@@ -46,6 +46,7 @@
 #include "ColorManagerDialog.h"
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
+#include "VideoExporter.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -73,6 +74,7 @@
 #include <cctype>
 #include "outputs/IPOutput.h"
 #include "GenerateLyricsDialog.h"
+
 
 //helper functions
 enum wxbuildinfoformat
@@ -186,6 +188,7 @@ const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
 const long xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
+const long xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
@@ -744,7 +747,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
     MenuItem_File_Close_Sequence->Enable(false);
-    MenuFile->AppendSeparator();
+	 MenuFile->AppendSeparator();
+	 MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
+	 MenuFile->Append(MenuItem_File_Export_Video);
+	 MenuItem_File_Export_Video->Enable(false);
+	 MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
@@ -1112,6 +1119,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_Selected);
     Connect(ID_SAVE_AS_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected);
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
+	 Connect(ID_EXPORT_VIDEO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
@@ -2770,6 +2778,89 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
+{
+	int frameCount;
+
+	if ((frameCount = SeqData.NumFrames()) == 0)
+		return;
+
+	ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
+	if (housePreview == nullptr)
+		return;
+
+	// todo - verify house-preview is visible?
+
+	const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
+	wxFileDialog exportDlg(this, _("Export House Preview Video"), wxEmptyString, wxEmptyString,
+		+wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (exportDlg.ShowModal() != wxID_OK)
+		return;
+
+	wxString path = exportDlg.GetPath();
+
+	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	logger_base.debug("Writing house-preview video.");
+
+	int width = housePreview->getWidth();
+	int height = housePreview->getHeight();
+	double contentScaleFactor = GetContentScaleFactor();
+
+	int audioChannelCount = 0;
+	int audioSampleRate = 0;
+	AudioManager *audioMgr = CurrentSeqXmlFile->GetMedia();
+	if (audioMgr != nullptr)
+	{
+		audioSampleRate = audioMgr->GetRate();
+		audioChannelCount = audioMgr->GetChannels();
+	}
+	int audioFrameIndex = 0;
+
+	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
+
+	videoExporter.SetGetAudioFrameCallback(
+		[audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
+		   int trackSize = audioMgr->GetTrackSize();
+			const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+			const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+
+			// We're currently exporting mono audio, so mix left & right
+			for (int i = 0; i < frameSize; ++i)
+			{
+				if (audioFrameIndex + i >= trackSize)
+				{
+					samples[i] = 0.f;
+				}
+				else
+				{
+					double left = leftptr[i];
+					double right = rightptr[i];
+					samples[i] = float(0.5 * (left + right));
+				}
+			}
+
+			audioFrameIndex += frameSize;
+			return true;
+	   }
+	);
+
+	xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
+	captureHelper.SetActive(true);
+
+	videoExporter.SetGetVideoFrameCallback(
+		[&](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
+			const FrameData frameData = SeqData[frameIndex];
+			const unsigned char *data = frameData[0];
+			housePreview->Render(data, false);
+			return captureHelper.ToRGB(buf, bufSize, true);
+		}
+	);
+	bool exportStatus = videoExporter.Export(path);
+	captureHelper.SetActive(false);
+
+	logger_base.debug("Finished writing house-preview video.");
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)

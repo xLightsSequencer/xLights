@@ -410,6 +410,7 @@ private:
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
+	 void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
@@ -621,6 +622,7 @@ private:
     static const long IS_SAVE_SEQ;
     static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
+	 static const long ID_EXPORT_VIDEO;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
     static const long ID_FILE_ALTBACKUP;
@@ -800,6 +802,7 @@ private:
     wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
+	 wxMenuItem* MenuItem_File_Export_Video;
     wxPanel* AUIStatusBar;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;

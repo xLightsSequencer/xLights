@@ -117,6 +117,7 @@ void xLightsFrame::NewSequence()
     MenuItem_File_Save->Enable(true);
     MenuItem_File_SaveAs_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
+	 MenuItem_File_Export_Video->Enable(true);
     MenuItem_PackageSequence->Enable(true);
     MenuItem_GenerateLyrics->Enable(true);
     MenuItem_ExportEffects->Enable(true);
