@@ -13,18 +13,18 @@
 #include "UtilFunctions.h"
 
 //(*InternalHeaders(SubModelsDialog)
+#include <wx/grid.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
 #include <wx/listctrl.h>
 #include <wx/notebook.h>
-#include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/splitter.h>
+#include <wx/intl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
-#include <wx/intl.h>
-#include <wx/button.h>
-#include <wx/string.h>
 //*)
 
 
@@ -64,17 +64,17 @@ END_EVENT_TABLE()
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
 	//(*Initialize(SubModelsDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxPanel* Panel1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxPanel* Panel1;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
@@ -82,11 +82,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(1000,400));
+	SplitterWindow1->SetMinSize(wxSize(10,10));
 	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
@@ -196,6 +196,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Layout();
 	Center();
 
+	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsBeginDrag);
+	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsItemSelect);
+	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsKeyDown);
+	Connect(ID_LISTCTRL_SUB_MODELS,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnListCtrl_SubModelsColumnClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_GenerateClick);
@@ -235,6 +239,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+
+    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    SplitterWindow1->SetMinSize(wxSize(1000,400));
 
     //Center();
 
@@ -864,4 +871,22 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
         }
         Select(GetSelectedName());
     }
+}
+
+void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
+{
+    Select(GetSelectedName());
+    // ValidateWindow();
+}
+
+void SubModelsDialog::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
+{
+}
+
+void SubModelsDialog::OnListCtrl_SubModelsColumnClick(wxListEvent& event)
+{
+}
+
+void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
+{
 }

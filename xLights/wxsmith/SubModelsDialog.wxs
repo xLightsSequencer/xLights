@@ -38,6 +38,10 @@
 											<size>150,-1</size>
 											<minsize>150,-1</minsize>
 											<style>wxLC_REPORT</style>
+											<handler function="OnListCtrl_SubModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+											<handler function="OnListCtrl_SubModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+											<handler function="OnListCtrl_SubModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
+											<handler function="OnListCtrl_SubModelsColumnClick" entry="EVT_LIST_COL_CLICK" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
