@@ -390,3 +390,105 @@ void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
         size.SetHeight(wxAtoi(ss[3]));
     }
 }
+
+std::string AfterFirstInt(std::string s)
+{
+    std::string res = "";
+    int i = 0;
+    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    {
+        i++;
+    }
+
+    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
+    {
+        i++;
+    }
+
+    while (i < s.size())
+    {
+        res += s[i++];
+    }
+
+    return res;
+}
+
+std::string GetFirstInt(std::string s)
+{
+    std::string res = "";
+    int i = 0;
+    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    {
+        i++;
+    }
+
+    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
+    {
+        res += s[i++];
+    }
+
+    return res;
+}
+
+int NumberAwareStringCompare(std::string a, std::string b)
+{
+    // first replace all the numbers with zeros and compare
+    wxString A = wxString(a);
+    A.Replace("0", "");
+    A.Replace("1", "");
+    A.Replace("2", "");
+    A.Replace("3", "");
+    A.Replace("4", "");
+    A.Replace("5", "");
+    A.Replace("6", "");
+    A.Replace("7", "");
+    A.Replace("8", "");
+    A.Replace("9", "");
+
+    wxString B = wxString(b);
+    B.Replace("0", "");
+    B.Replace("1", "");
+    B.Replace("2", "");
+    B.Replace("3", "");
+    B.Replace("4", "");
+    B.Replace("5", "");
+    B.Replace("6", "");
+    B.Replace("7", "");
+    B.Replace("8", "");
+    B.Replace("9", "");
+
+    if (A == B)
+    {
+        while (true)
+        {
+            std::string ai = GetFirstInt(a);
+            int ia = wxAtoi(ai);
+            int ib = wxAtoi(GetFirstInt(b));
+
+            if (ia == ib)
+            {
+                if (ai == "")
+                {
+                    return 0;
+                }
+                else
+                {
+                    a = AfterFirstInt(a);
+                    b = AfterFirstInt(b);
+                }
+            }
+            else
+            {
+                if (ia < ib)
+                {
+                    return -1;
+                }
+                return 1;
+            }
+        }
+    }
+    else
+    {
+        return A.compare(B);
+    }
+}

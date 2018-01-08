@@ -35,6 +35,7 @@
 #include "models/SubModel.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
+#include "UtilFunctions.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -1583,7 +1584,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return -1;
         return 0;
     } else {
-        return a->name.compare(b->name);
+        return NumberAwareStringCompare(a->name, b->name);
     }
     return 0;
 }

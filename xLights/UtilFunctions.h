@@ -21,7 +21,7 @@ inline long roundTo4(long i) {
     }
     return i + 4 - remainder;
 }
-
+int NumberAwareStringCompare(std::string a, std::string b);
 inline int roundTo16(int i) {
     int remainder = i % 16;
     if (remainder == 0) {
