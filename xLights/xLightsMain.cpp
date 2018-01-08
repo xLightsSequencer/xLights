@@ -264,92 +264,127 @@ bool VideoExporter::Export(const char *path)
 	// buffer for RGB input
 	unsigned char *buf = new unsigned char[width * 3 * height];
 
+	wxProgressDialog progressDialog(_("Export progress"), _T("Exporting video..."), 100, nullptr, wxPD_APP_MODAL|wxPD_AUTO_HIDE|wxPD_CAN_ABORT);
+	bool wasCanceled = false, wasErrored = false;
+	int progressValue = 0;
+	progressDialog.ShowModal();
+
 	// Loop through each frame
 	frame->pts = 0;
 
 	for (unsigned int i = 0; i < m_frameCount; ++i)
 	{
-		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, width, height, i, m_logger_base))
+		if (progressDialog.WasCancelled())
+		{
+			wasCanceled = true;
 			break;
+		}
+		double percentage = double(i) / m_frameCount;
+		int progressAsInt = int(100 * percentage);
+		if (progressAsInt != progressValue)
+		{
+			progressDialog.Update(progressAsInt);
+			progressValue = progressAsInt;
+		}
+
+		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, width, height, i, m_logger_base))
+		{
+			wasErrored = true;
+			break;
+		}
 
 		if (!write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base))
+		{
+			wasErrored = true;
 			break;
+		}
 
 		frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
 	}
 
-	// delayed video frames
-	for (int got_video_output = 1; got_video_output;)
-	{
-		AVPacket pkt;
-		av_init_packet(&pkt);
-		pkt.data = nullptr;
-		pkt.size = 0;
-		pkt.stream_index = video_st->index;
+	progressDialog.Update(100);
 
-		status = avcodec_encode_video2(videoCodecContext, &pkt, nullptr, &got_video_output);
-		if (status != 0)
+	if (!wasErrored && !wasCanceled)
+	{
+		// delayed video frames
+		for (int got_video_output = 1; !got_video_output;)
 		{
-			m_logger_base.error("  error encoding delayed video frame");
-			return false;
-		}
-		if (got_video_output)
-		{
-			ret = av_interleaved_write_frame(formatContext, &pkt);
-			if (ret != 0)
+			AVPacket pkt;
+			av_init_packet(&pkt);
+			pkt.data = nullptr;
+			pkt.size = 0;
+			pkt.stream_index = video_st->index;
+
+			status = avcodec_encode_video2(videoCodecContext, &pkt, nullptr, &got_video_output);
+			if (status != 0)
 			{
-				m_logger_base.error("  error writing delayed video frame");
-				return false;
+				m_logger_base.error("  error encoding delayed video frame");
+				wasErrored = true;
+				break;
 			}
+			if (got_video_output)
+			{
+				ret = av_interleaved_write_frame(formatContext, &pkt);
+				if (ret != 0)
+				{
+					m_logger_base.error("  error writing delayed video frame");
+					wasErrored = true;
+				}
 
-			av_packet_unref(&pkt);
-		}
-	}
-
-	// Take care of any remaining samples in the audio queue
-	size_t numLeftInQueue = audioSampleQueue.size();
-	if (audioSampleQueue.size())
-		write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base, true);
-
-	// delayed_audio_frames
-	for (int got_audio_output = 1; got_audio_output;)
-	{
-		AVPacket pkt;
-		av_init_packet(&pkt);
-		pkt.data = nullptr;
-		pkt.size = 0;
-		pkt.stream_index = audio_st->index;
-
-		int ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
-		if (ret < 0)
-		{
-			m_logger_base.error("  error encoding delayed audio frame");
-			return false;
+				av_packet_unref(&pkt);
+			}
 		}
 
-		if (got_audio_output)
+		// Take care of any remaining samples in the audio queue
+		size_t numLeftInQueue = audioSampleQueue.size();
+		if (audioSampleQueue.size())
+			write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base, true);
+
+		// delayed_audio_frames
+		for (int got_audio_output = 1; got_audio_output;)
 		{
+			AVPacket pkt;
+			av_init_packet(&pkt);
+			pkt.data = nullptr;
+			pkt.size = 0;
 			pkt.stream_index = audio_st->index;
-			if (av_interleaved_write_frame(formatContext, &pkt) != 0)
+
+			int ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
+			if (ret < 0)
 			{
-				m_logger_base.error("  error writing delayed audio frame");
+				m_logger_base.error("  error encoding delayed audio frame");
 				return false;
 			}
 
-			av_packet_unref(&pkt);
-		}
+			if (got_audio_output)
+			{
+				pkt.stream_index = audio_st->index;
+				if (av_interleaved_write_frame(formatContext, &pkt) != 0)
+				{
+					m_logger_base.error("  error writing delayed audio frame");
+					return false;
+				}
 
-		av_frame_free(&frame);
+				av_packet_unref(&pkt);
+			}
+
+			av_frame_free(&frame);
+		}
 	}
 
 	delete[] buf;
 
-	ret = av_write_trailer(formatContext);
-	if (ret)
+	if (!wasErrored && !wasCanceled)
 	{
-		m_logger_base.error("  error writing file trailer");
-		return false;
+		ret = av_write_trailer(formatContext);
+		if (ret)
+		{
+			m_logger_base.error("  error writing file trailer");
+			wasErrored = true;
+		}
 	}
+
+	progressDialog.Hide();
 
 	// Clean-up and close the output file
 	sws_freeContext(sws_ctx);
@@ -367,7 +402,12 @@ bool VideoExporter::Export(const char *path)
 	}
 	av_free(formatContext);
 
-	return true;
+	if (wasErrored || wasCanceled)
+	{
+		wxRemoveFile(path);
+	}
+
+	return !wasErrored;
 }
 
 bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame, SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex,  log4cpp::Category &logger_base)
