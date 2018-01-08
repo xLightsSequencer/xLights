@@ -204,7 +204,7 @@ bool VideoExporter::Export(const char *path)
 	if (!wasErrored && !wasCanceled)
 	{
 		// delayed video frames
-		for (int got_video_output = 1; !got_video_output;)
+		for (int got_video_output = 1; got_video_output;)
 		{
 			AVPacket pkt;
 			av_init_packet(&pkt);
@@ -264,8 +264,6 @@ bool VideoExporter::Export(const char *path)
 
 				av_packet_unref(&pkt);
 			}
-
-			av_frame_free(&frame);
 		}
 	}
 
