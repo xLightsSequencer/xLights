@@ -990,6 +990,9 @@
     <ClCompile Include="BulkEditControls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VideoExporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1923,6 +1926,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BulkEditControls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoExporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
