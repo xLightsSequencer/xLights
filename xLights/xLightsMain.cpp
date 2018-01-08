@@ -2784,25 +2784,29 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
 	int frameCount;
 
-	if ((frameCount = SeqData.NumFrames()) == 0)
+	if (CurrentSeqXmlFile == nullptr || (frameCount = SeqData.NumFrames()) == 0)
 		return;
 
-	ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
-	if (housePreview == nullptr)
-		return;
+    bool visible = m_mgr->GetPane("HousePreview").IsShown();
+    if (!visible)
+    {
+        m_mgr->GetPane("HousePreview").Show();
+        m_mgr->Update();
+    }
 
-	// todo - verify house-preview is visible?
+    ModelPreview *housePreview = _housePreviewPanel->GetModelPreview();
+    if (housePreview == nullptr)
+        return;
 
-	const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
-	wxFileDialog exportDlg(this, _("Export House Preview Video"), wxEmptyString, wxEmptyString,
-		+wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
+	wxFileDialog exportDlg(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 	if (exportDlg.ShowModal() != wxID_OK)
 		return;
 
 	wxString path = exportDlg.GetPath();
 
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-	logger_base.debug("Writing house-preview video.");
+	logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
 
 	int width = housePreview->getWidth();
 	int height = housePreview->getHeight();
@@ -2857,8 +2861,15 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 			return captureHelper.ToRGB(buf, bufSize, true);
 		}
 	);
+
 	bool exportStatus = videoExporter.Export(path);
 	captureHelper.SetActive(false);
+
+    if (!visible)
+    {
+        m_mgr->GetPane("HousePreview").Hide();
+        m_mgr->Update();
+    }
 
 	logger_base.debug("Finished writing house-preview video.");
 }

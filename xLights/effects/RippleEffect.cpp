@@ -235,6 +235,9 @@ void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
 				radius = (xc*rx);
 			Drawpresent(buffer, Movement, xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
 			break;
+        default:
+            wxASSERT(false);
+            break;
     }
 }
 
@@ -375,6 +378,9 @@ void RippleEffect::Drawstar(RenderBuffer &buffer, int Movement, int xc, int yc, 
 	case 8:
 		offsetangle = 90.0 - 360.0 / 8;
 		break;
+    default:
+        wxASSERT(false);
+        break;
     }
 
     xlColor color(hsv);
@@ -456,7 +462,6 @@ void RippleEffect::Drawpolygon(RenderBuffer &buffer, int Movement, int xc, int y
 		{
 			radius = radius - i;
 		}
-		double InnerRadius = radius / 2.618034;    // divide by golden ratio squared
 
 		if (radius >= 0)
 		{
@@ -513,12 +518,9 @@ void RippleEffect::Drawsnowflake(RenderBuffer &buffer, int Movement, int xc, int
 
 void RippleEffect::Drawheart(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
-	double radian;
-	int x, y;
-	float i;
-	xlColor color(hsv);
+    xlColor color(hsv);
 
-	for (i = 0; i<Ripple_Thickness; i += .5)
+	for (float i = 0; i<Ripple_Thickness; i += .5)
 	{
 		if (CheckBox_Ripple3D) {
 			if (buffer.allowAlpha) {
@@ -594,12 +596,9 @@ void RippleEffect::Drawtree(RenderBuffer &buffer, int Movement, int xc, int yc, 
 	};
 	int count = sizeof(points) / sizeof(line);
 
-	double radian;
-	int x, y;
-	float i;
-	xlColor color(hsv);
+    xlColor color(hsv);
 
-	for (i = 0; i<Ripple_Thickness; i += .5)
+	for (float i = 0; i<Ripple_Thickness; i += .5)
 	{
 		if (CheckBox_Ripple3D) {
 			if (buffer.allowAlpha) {
@@ -665,12 +664,9 @@ void RippleEffect::Drawcrucifix(RenderBuffer &buffer, int Movement, int xc, int 
 	};
 	int count = sizeof(points) / sizeof(line);
 
-	double radian;
-	int x, y;
-	float i;
-	xlColor color(hsv);
+    xlColor color(hsv);
 
-	for (i = 0; i<Ripple_Thickness; i += .5)
+	for (float i = 0; i<Ripple_Thickness; i += .5)
 	{
 		if (CheckBox_Ripple3D) {
 			if (buffer.allowAlpha) {
@@ -733,12 +729,9 @@ void RippleEffect::Drawpresent(RenderBuffer &buffer, int Movement, int xc, int y
 	};
 	int count = sizeof(points) / sizeof(line);
 
-	double radian;
-	int x, y;
-	float i;
-	xlColor color(hsv);
+    xlColor color(hsv);
 
-	for (i = 0; i<Ripple_Thickness; i += .5)
+	for (float i = 0; i<Ripple_Thickness; i += .5)
 	{
 		if (CheckBox_Ripple3D) {
 			if (buffer.allowAlpha) {
@@ -779,12 +772,9 @@ void RippleEffect::Drawpresent(RenderBuffer &buffer, int Movement, int xc, int y
 void RippleEffect::Drawcandycane(RenderBuffer &buffer, int Movement, int xc, int yc, double radius, HSVValue &hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
 	double originalRadius = radius;
-	double radian;
-	int x, y;
-	float i;
-	xlColor color(hsv);
+    xlColor color(hsv);
 
-	for (i = 0; i<Ripple_Thickness; i += .5)
+	for (float i = 0; i<Ripple_Thickness; i += .5)
 	{
 		if (CheckBox_Ripple3D) {
 			if (buffer.allowAlpha) {

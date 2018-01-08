@@ -693,6 +693,8 @@
 		<Unit filename="ValueCurveButton.h" />
 		<Unit filename="ValueCurveDialog.cpp" />
 		<Unit filename="ValueCurveDialog.h" />
+		<Unit filename="VideoExporter.cpp" />
+		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
