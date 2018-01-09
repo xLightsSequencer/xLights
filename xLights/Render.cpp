@@ -1560,7 +1560,11 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         if (Out3 == "Lcb") {
             oName.SetExt(_("lcb"));
             fullpath = oName.GetFullPath();
-            WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
+            int lcbVer = 1;
+            if (format.Contains("S5")) {
+                lcbVer = 2;
+            }
+            WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, lcbVer, cpn);
         }
         else if (Out3 == "Vir") {
             oName.SetExt(_("vir"));

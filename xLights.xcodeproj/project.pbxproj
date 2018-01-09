@@ -348,6 +348,7 @@
 		67C0EEE31C755ABE002FE25E /* MatrixModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */; };
 		67C115641E9071E900B06690 /* CandleEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115601E9071E900B06690 /* CandleEffect.cpp */; };
 		67C115651E9071E900B06690 /* CandlePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C115621E9071E900B06690 /* CandlePanel.cpp */; };
+		67C31168200506B3005A12D0 /* VideoExporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C31165200506B2005A12D0 /* VideoExporter.cpp */; };
 		67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */; };
 		67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581391E4B95A400932DFA /* MatrixDialog.cpp */; };
 		67C5814D1E4B95A400932DFA /* VirtualMatrixDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */; };
@@ -1227,6 +1228,9 @@
 		67C115611E9071E900B06690 /* CandleEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CandleEffect.h; path = effects/CandleEffect.h; sourceTree = "<group>"; };
 		67C115621E9071E900B06690 /* CandlePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CandlePanel.cpp; path = effects/CandlePanel.cpp; sourceTree = "<group>"; };
 		67C115631E9071E900B06690 /* CandlePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CandlePanel.h; path = effects/CandlePanel.h; sourceTree = "<group>"; };
+		67C31165200506B2005A12D0 /* VideoExporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoExporter.cpp; sourceTree = "<group>"; };
+		67C31166200506B2005A12D0 /* VideoExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoExporter.h; sourceTree = "<group>"; };
+		67C31167200506B2005A12D0 /* UtilFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilFunctions.h; sourceTree = "<group>"; };
 		67C581361E4B95A400932DFA /* OutputProcessReverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessReverse.h; sourceTree = "<group>"; };
 		67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessColourOrder.h; sourceTree = "<group>"; };
 		67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColourOrderDialog.cpp; sourceTree = "<group>"; };
@@ -2135,6 +2139,9 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67C31167200506B2005A12D0 /* UtilFunctions.h */,
+				67C31165200506B2005A12D0 /* VideoExporter.cpp */,
+				67C31166200506B2005A12D0 /* VideoExporter.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -3072,6 +3079,7 @@
 				670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */,
 				675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */,
 				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
+				67C31168200506B3005A12D0 /* VideoExporter.cpp in Sources */,
 				67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,

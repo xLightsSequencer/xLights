@@ -43,6 +43,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     ChoiceFormat->SetSelection( ChoiceFormat->Append(_("LOR. *.lms or *.las")) );
     ChoiceFormat->Append(_("Lcb, LOR Clipboard *.lcb"));
+    ChoiceFormat->Append(_("Lcb, LOR S5 Clipboard *.lcb"));
     ChoiceFormat->Append(_("Vixen, Vixen sequence file *.vix"));
     ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
     ChoiceFormat->Append(_("LSP, Light Show Pro "));
@@ -140,7 +141,7 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
     {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }
-    else if (fmt == "Lcb, LOR Clipboard *.lcb")
+    else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb")
     {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), wxEmptyString, _model, wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT));
     }

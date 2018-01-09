@@ -117,7 +117,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected)
 {
     mColorMask = xlColor::NilColor();
-    mEffectIndex = parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
+    mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
 
     // Fixes an erroneous blank settings created by using:
@@ -141,7 +141,7 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
                 (const char *)name.c_str(),
-                (const char *)parent->GetParentElement()->GetName().c_str(),
+                (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
                 FORMATTIME(startTimeMS),
                 (const char *)it->first.c_str()
                 );

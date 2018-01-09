@@ -617,7 +617,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 }
 void ConvertDialog::WriteLcbFile(const wxString& filename)
 {
-    _parent->WriteLcbFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
+    _parent->WriteLcbFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 1, 1);
 }
 
 void ConvertDialog::WriteConductorFile(const wxString& filename)

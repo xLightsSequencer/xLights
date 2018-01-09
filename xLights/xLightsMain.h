@@ -1042,7 +1042,7 @@ public:
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
-    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
+    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int ver, int cpn);  //      LOR *.lcb
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);

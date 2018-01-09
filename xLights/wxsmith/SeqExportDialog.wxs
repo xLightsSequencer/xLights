@@ -21,6 +21,7 @@
 							<content>
 								<item>LOR. *.lms or *.las</item>
 								<item>Lcb, LOR Clipboard *.lcb</item>
+								<item>Lcb, LOR S5 Clipboard *.lcb</item>
 								<item>Vixen, Vixen sequence file *.vix</item>
 								<item>Vir, Vixen Routine file. *.vir</item>
 								<item>LSP, Light Show Pro </item>

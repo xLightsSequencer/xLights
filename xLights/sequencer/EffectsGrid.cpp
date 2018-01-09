@@ -2751,7 +2751,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     int new_position = position;
 
     // Snap to timing marks logic
-    if( xlights->GetSnapToTimingMarks() && !control || !xlights->GetSnapToTimingMarks() && control)
+    if ((xlights->GetSnapToTimingMarks() && !control) || (!xlights->GetSnapToTimingMarks() && control))
     {
         if (mSequenceElements->GetSelectedTimingRow() >= 0)
         {

@@ -134,7 +134,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
 
-    if (GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
+    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
         if (name == "") {
             name = "Off";
         }
@@ -968,7 +968,9 @@ bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
 
 void EffectLayer::IncrementChangeCount(int startMS, int endMS)
 {
-    mParentElement->IncrementChangeCount(startMS, endMS);
+    if (mParentElement) {
+        mParentElement->IncrementChangeCount(startMS, endMS);
+    }
 }
 
 std::list<std::string> EffectLayer::GetFileReferences(EffectManager& em) const
