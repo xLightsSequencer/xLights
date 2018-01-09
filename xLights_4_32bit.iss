@@ -52,8 +52,8 @@ Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 
 ; xLightsBatchRender
-Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
-Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
+; Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
+; Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
 
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "C:\wxWidgets-3.1.0\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -99,8 +99,8 @@ Name: "{group}\xLights"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights.ico";
 Name: "{commondesktop}\xSchedule"; Filename: "{app}\xSchedule.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule.ico";
-Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
-Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
+; Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
+; Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
@@ -110,6 +110,13 @@ Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
+
+; Remove Kieth's Batch Render to prevent confusion
+[InstallDelete]
+Type: files; Name: "{app}\xLightsBatchRenderer.exe"
+Type: files; Name: "{app}\xLightsBatchRenderer.ico"
+Type: files; Name: "{group}\xLightsBatchRender.lnk"
+Type: files; Name: "{commondesktop}\xLightsBatchRender.lnk"
 
 [Code]
 
