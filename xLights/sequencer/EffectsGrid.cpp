@@ -3136,29 +3136,26 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
                 // effect length is going to change
                 EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
                 int by = 0;
-                Effect * teff = tel->GetEffectAfterTime(mSelectedEffect->GetEndTimeMS());
+                Effect * teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS());
+                if( teff != nullptr && (mSelectedEffect->GetEndTimeMS() == teff->GetEndTimeMS()) )
+                {
+                    teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS()+1);
+                }
                 if (teff == nullptr)
                 {
-                    teff = tel->GetEffectBeforeTime(mSelectedEffect->GetEndTimeMS());
-                    if (teff != nullptr)
+                    teff = tel->GetEffectAfterTime(mSelectedEffect->GetEndTimeMS());
+                    if (teff == nullptr)
                     {
-                        if (teff->GetEndTimeMS() <= mSelectedEffect->GetEndTimeMS())
-                        {
-                            by = mTimeline->GetTimeLength() - mSelectedEffect->GetEndTimeMS();
-                        }
-                        else
-                        {
-                            by = teff->GetEndTimeMS() - mSelectedEffect->GetEndTimeMS();
-                        }
+                        by = mTimeline->GetTimeLength() - mSelectedEffect->GetEndTimeMS();
                     }
                     else
                     {
-                        by = mTimeline->GetTimeLength() - mSelectedEffect->GetEndTimeMS();
+                        by = teff->GetStartTimeMS() - mSelectedEffect->GetEndTimeMS();
                     }
                 }
                 else
                 {
-                    by = teff->GetStartTimeMS() - mSelectedEffect->GetEndTimeMS();
+                    by = teff->GetEndTimeMS() - mSelectedEffect->GetEndTimeMS();
                 }
                 Effect* next = el->GetEffectAfterTime(mSelectedEffect->GetEndTimeMS());
                 if (next != nullptr && next->GetStartTimeMS() - mSelectedEffect->GetEndTimeMS() < by)
@@ -3277,18 +3274,26 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if (tel != nullptr)
             {
-                Effect *teff = tel->GetEffectAfterTime(mSelectedEffect->GetStartTimeMS());
+                Effect * teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS());
+                if( teff != nullptr && (mSelectedEffect->GetEndTimeMS() == teff->GetEndTimeMS()) )
+                {
+                    teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS()+1);
+                }
                 if (teff == nullptr)
                 {
-                    teff = tel->GetEffectBeforeTime(mSelectedEffect->GetEndTimeMS());
-                    if (teff != nullptr)
+                    teff = tel->GetEffectAfterTime(mSelectedEffect->GetEndTimeMS());
+                    if (teff == nullptr)
                     {
-                        by = teff->GetEndTimeMS() - mSelectedEffect->GetStartTimeMS();
+                        by = mTimeline->GetTimeLength() - mSelectedEffect->GetEndTimeMS();
+                    }
+                    else
+                    {
+                        by = teff->GetStartTimeMS() - mSelectedEffect->GetEndTimeMS();
                     }
                 }
                 else
                 {
-                    by = teff->GetStartTimeMS() - mSelectedEffect->GetStartTimeMS();
+                    by = teff->GetEndTimeMS() - mSelectedEffect->GetEndTimeMS();
                 }
             }
         }
@@ -3374,10 +3379,22 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
                 // effect length is going to change
                 EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
                 int by = 0;
-                Effect * teff = tel->GetEffectBeforeTime(mSelectedEffect->GetStartTimeMS());
+                Effect * teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS());
+                if( teff != nullptr && (mSelectedEffect->GetStartTimeMS() == teff->GetStartTimeMS()) )
+                {
+                    teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS()-1);
+                }
                 if (teff == nullptr)
                 {
-                    by = mSelectedEffect->GetStartTimeMS();
+                    teff = tel->GetEffectBeforeTime(mSelectedEffect->GetStartTimeMS());
+                    if (teff == nullptr)
+                    {
+                        by = mSelectedEffect->GetStartTimeMS();
+                    }
+                    else
+                    {
+                        by = mSelectedEffect->GetStartTimeMS() - teff->GetEndTimeMS();
+                    }
                 }
                 else
                 {
@@ -3498,14 +3515,26 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if (tel != nullptr)
             {
-                Effect *teff = tel->GetEffectBeforeTime(mSelectedEffect->GetStartTimeMS());
+                Effect * teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS());
+                if( teff != nullptr && (mSelectedEffect->GetStartTimeMS() == teff->GetStartTimeMS()) )
+                {
+                    teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS()-1);
+                }
                 if (teff == nullptr)
                 {
-                    by = -1 * mSelectedEffect->GetStartTimeMS();
+                    teff = tel->GetEffectBeforeTime(mSelectedEffect->GetStartTimeMS());
+                    if (teff == nullptr)
+                    {
+                        by = -1 * mSelectedEffect->GetStartTimeMS();
+                    }
+                    else
+                    {
+                        by = -1 * (mSelectedEffect->GetStartTimeMS() - teff->GetEndTimeMS());
+                    }
                 }
                 else
                 {
-                    by = teff->GetStartTimeMS() - mSelectedEffect->GetStartTimeMS();
+                    by = -1 * (mSelectedEffect->GetStartTimeMS() - teff->GetStartTimeMS());
                 }
             }
         }
