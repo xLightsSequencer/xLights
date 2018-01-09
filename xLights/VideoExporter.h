@@ -26,7 +26,7 @@ public:
 	bool Export(const char *path);
 
 protected:
-	typedef float AudioSample; // hard-coding to mono for now...
+	struct AudioSample { float left; float right; };
 	typedef std::queue<AudioSample> AudioSampleQueue;
 
 	static bool dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex);

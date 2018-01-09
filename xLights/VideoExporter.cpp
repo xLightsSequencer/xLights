@@ -98,8 +98,8 @@ bool VideoExporter::Export(const char *path)
 		audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
 		audioCodecContext->bit_rate = 128000;
 		audioCodecContext->sample_rate = m_audioSampleRate;
-		audioCodecContext->channels = 1;
-		audioCodecContext->channel_layout = AV_CH_LAYOUT_MONO;
+		audioCodecContext->channels = 2;
+		audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
 
 		if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
 			audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -393,30 +393,25 @@ bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSa
 
 	int encode_frame_size = clearQueue ? queue.size() : c->frame_size;
 
-	// Re-use our AudoSample buffer for encoding if possible...
-	if (buf == nullptr || encode_frame_size > m_audioFrameSize)
-	{
-		if (buf != nullptr)
-			delete[] buf;
-		buf = new AudioSample[encode_frame_size];
-	}
-
-	int got_packet = 0;
 	while (queue.size() >= encode_frame_size)
 	{
+		int got_packet = 0;
+		float *planarAudioBuff = new float[2 * encode_frame_size];
+		float *leftptr = planarAudioBuff; float *rightptr = planarAudioBuff + encode_frame_size;
 		for (int i = 0; i < encode_frame_size; ++i)
 		{
-			buf[i] = queue.front();
+			AudioSample sample(queue.front());
 			queue.pop();
+			*leftptr++ = sample.left;
+			*rightptr++ = sample.right;
 		}
-
 		AVFrame *frame = av_frame_alloc();
 		frame->format = AV_SAMPLE_FMT_FLTP;
 		frame->channel_layout = c->channel_layout;
 		frame->nb_samples = encode_frame_size;
 
-		int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, encode_frame_size, c->sample_fmt, 0);
-		int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)buf, buffer_size, 1);
+		int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, encode_frame_size, c->sample_fmt, 1);
+		int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)planarAudioBuff, buffer_size, 1);
 		if (audioSize < 0)
 		{
 			logger_base.error("  error filling audio frame");
@@ -447,6 +442,8 @@ bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSa
 
 			av_packet_unref(&pkt);
 		}
+
+		delete[] planarAudioBuff;
 
 		av_frame_free(&frame);
 	}

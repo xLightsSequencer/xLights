@@ -2835,13 +2835,13 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 			{
 				if (audioFrameIndex + i >= trackSize)
 				{
-					samples[i] = 0.f;
+					*samples++ = 0.f;
+					*samples++ = 0.f;
 				}
 				else
 				{
-					double left = leftptr[i];
-					double right = rightptr[i];
-					samples[i] = float(0.5 * (left + right));
+					*samples++ = leftptr[i];
+					*samples++ = rightptr[i];
 				}
 			}
 
