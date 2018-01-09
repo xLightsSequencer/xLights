@@ -2827,23 +2827,14 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	videoExporter.SetGetAudioFrameCallback(
 		[audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
 		   int trackSize = audioMgr->GetTrackSize();
+			int clampedSize = std::min(frameSize, trackSize - audioFrameIndex );
+
 			const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
 			const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
 
-			// We're currently exporting mono audio, so mix left & right
-			for (int i = 0; i < frameSize; ++i)
-			{
-				if (audioFrameIndex + i >= trackSize)
-				{
-					samples[i] = 0.f;
-				}
-				else
-				{
-					double left = leftptr[i];
-					double right = rightptr[i];
-					samples[i] = float(0.5 * (left + right));
-				}
-			}
+			memcpy(samples, leftptr, clampedSize * sizeof(float));
+			samples += clampedSize;
+			memcpy(samples, rightptr, clampedSize * sizeof(float));
 
 			audioFrameIndex += frameSize;
 			return true;

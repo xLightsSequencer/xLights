@@ -2,7 +2,6 @@
 #define VIDEOEXPORTER_H
 
 #include <functional>
-#include <queue>
 
 struct AVCodecContext;
 struct AVFormatContext;
@@ -26,15 +25,12 @@ public:
 	bool Export(const char *path);
 
 protected:
-	typedef float AudioSample; // hard-coding to mono for now...
-	typedef std::queue<AudioSample> AudioSampleQueue;
-
 	static bool dummyGetVideoFrame(unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex);
 	static bool dummyGetAudioFrame(float *samples, int framSize, int numChannels);
 
 	bool write_video_frame(AVFormatContext *oc, int streamIndex, AVCodecContext *cc, AVFrame *srcFrame, AVFrame *dstFrame,
 		SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex, log4cpp::Category &logger_base);
-	bool write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue = false);
+	bool write_audio_frame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, log4cpp::Category &logger_base, bool clearQueue = false);
 
 	const int m_width;
 	const int m_height;
