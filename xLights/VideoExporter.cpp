@@ -111,8 +111,6 @@ bool VideoExporter::Export(const char *path)
 		}
 	}
 
-	AudioSampleQueue audioSampleQueue;
-
 	AVFrame *frame = av_frame_alloc();
 	frame->format = videoCodecContext->pix_fmt;
 	frame->width = videoCodecContext->width;
@@ -187,15 +185,6 @@ bool VideoExporter::Export(const char *path)
 			break;
 		}
 
-		if (hasAudio)
-		{
-			if (!write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base))
-			{
-				wasErrored = true;
-				break;
-			}
-		}
-
 		frame->pts += av_rescale_q(1, video_st->codec->time_base, video_st->time_base);
 	}
 
@@ -231,14 +220,32 @@ bool VideoExporter::Export(const char *path)
 				av_packet_unref(&pkt);
 			}
 		}
+	}
+	if (!wasErrored && !wasCanceled && hasAudio)
+	{
+		double lenInSeconds = (m_frameCount * m_frameDuration) / 1000.;
+		int frameSize = audio_st->codec->frame_size;
+		double numFullFrames = (lenInSeconds * m_audioSampleRate) / frameSize;
+		int numAudioFrames = (int)floor(numFullFrames);
 
-		// Take care of any remaining samples in the audio queue
-		size_t numLeftInQueue = audioSampleQueue.size();
-		if (audioSampleQueue.size())
-			write_audio_frame(formatContext, audio_st, audioSampleQueue, m_logger_base, true);
+		float *audioBuff = new float[audio_st->codec->frame_size * m_audioChannelCount];
+		for (int i = 0; i < numAudioFrames; ++i)
+		{
+			m_GetAudio(audioBuff, frameSize, m_audioChannelCount);
+			write_audio_frame(formatContext, audio_st, audioBuff, frameSize, m_logger_base);
+		}
+
+		int numLeftoverSamples = (int)floor((numFullFrames - numAudioFrames) * frameSize);
+		if (numLeftoverSamples)
+		{
+			m_GetAudio(audioBuff, numLeftoverSamples, m_audioChannelCount);
+			write_audio_frame(formatContext, audio_st, audioBuff, numLeftoverSamples, m_logger_base);
+		}
+
+		delete[] audioBuff;
 
 		// delayed_audio_frames
-		for (int got_audio_output = 1; hasAudio && got_audio_output != 0;)
+		for (int got_audio_output = 1; got_audio_output != 0;)
 		{
 			AVPacket pkt;
 			av_init_packet(&pkt);
@@ -363,93 +370,50 @@ bool VideoExporter::write_video_frame(AVFormatContext *oc, int streamIndex, AVCo
 	return true;
 }
 
-bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, AudioSampleQueue &queue, log4cpp::Category &logger_base, bool clearQueue/*= false*/)
+bool VideoExporter::write_audio_frame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, log4cpp::Category &logger_base, bool clearQueue/*= false*/)
 {
 	AVCodecContext *c = st->codec;
 
-	if (m_GetAudio == nullptr)
+	AVFrame *frame = av_frame_alloc();
+	frame->format = AV_SAMPLE_FMT_FLTP;
+	frame->channel_layout = c->channel_layout;
+	frame->nb_samples = sampleCount;
+
+	int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, sampleCount, c->sample_fmt, 1);
+	int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)sampleBuff, buffer_size, 1);
+	if (audioSize < 0)
 	{
-		m_logger_base.error("  GetAudio un-set");
+		logger_base.error("  error filling audio frame");
 		return false;
 	}
 
-	// We'll ask for audio samples in video-frame-time chunks but for AAC, we can
-	// only encode in 1024-sample chunks, so we'll use a FIFO buffer in between.
-	AudioSample *buf = nullptr;
+	AVPacket pkt;
+	av_init_packet(&pkt);
+	pkt.data = nullptr;    // packet data will be allocated by the encoder
+	pkt.size = 0;
+	pkt.stream_index = st->index;
 
-	if (!clearQueue)
+	int got_packet = 0;
+	int ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
+	if (ret < 0)
 	{
-		buf = new AudioSample[m_audioFrameSize];
-		bool getStatus = m_GetAudio((float *)buf, m_audioFrameSize, c->channels);
-		if (getStatus == false)
-		{
-			logger_base.error("  GetAudio fails");
-			return false;
-		}
-
-		for (int i = 0; i < m_audioFrameSize; ++i)
-			queue.push(buf[i]);
+		logger_base.error("  error encoding audio frame");
+		return false;
 	}
 
-	int encode_frame_size = clearQueue ? queue.size() : c->frame_size;
-
-	while (queue.size() >= encode_frame_size)
+	if (got_packet)
 	{
-		int got_packet = 0;
-		float *planarAudioBuff = new float[2 * encode_frame_size];
-		float *leftptr = planarAudioBuff; float *rightptr = planarAudioBuff + encode_frame_size;
-		for (int i = 0; i < encode_frame_size; ++i)
-		{
-			AudioSample sample(queue.front());
-			queue.pop();
-			*leftptr++ = sample.left;
-			*rightptr++ = sample.right;
-		}
-		AVFrame *frame = av_frame_alloc();
-		frame->format = AV_SAMPLE_FMT_FLTP;
-		frame->channel_layout = c->channel_layout;
-		frame->nb_samples = encode_frame_size;
-
-		int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, encode_frame_size, c->sample_fmt, 1);
-		int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)planarAudioBuff, buffer_size, 1);
-		if (audioSize < 0)
-		{
-			logger_base.error("  error filling audio frame");
-			return false;
-		}
-
-		AVPacket pkt;
-		av_init_packet(&pkt);
-		pkt.data = nullptr;    // packet data will be allocated by the encoder
-		pkt.size = 0;
 		pkt.stream_index = st->index;
-
-		int ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
-		if (ret < 0)
+		if (av_interleaved_write_frame(oc, &pkt) != 0)
 		{
-			logger_base.error("  error encoding audio frame");
+			logger_base.error("  error writing audio data");
 			return false;
 		}
 
-		if (got_packet)
-		{
-			pkt.stream_index = st->index;
-			if (av_interleaved_write_frame(oc, &pkt) != 0)
-			{
-				logger_base.error("  error writing audio data");
-				return false;
-			}
-
-			av_packet_unref(&pkt);
-		}
-
-		delete[] planarAudioBuff;
-
-		av_frame_free(&frame);
+		av_packet_unref(&pkt);
 	}
 
-	delete[] buf;
-
+	av_frame_free(&frame);
 	return true;
 }
 
@@ -470,12 +434,13 @@ bool VideoExporter::dummyGetVideoFrame(unsigned char *buf, int bufSize, int widt
 
 bool VideoExporter::dummyGetAudioFrame(float *samples, int frameSize, int numChannels)
 {
-	float *q = samples;
+	float *left = samples;
+	float *right = samples + frameSize;
 	for (int i = 0; i < frameSize; ++i)
 	{
 		double v = sin(2 * M_PI * s_freq * s_t);
-		for (int j = 0; j < numChannels; ++j)
-			*q++ = float(v);
+		*left++ = float(v);
+		*right++ = float(v);
 		s_t += s_deltaTime;
 	}
 
