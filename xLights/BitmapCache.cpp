@@ -173,6 +173,8 @@
 
 #include "../include/papagayo-16.xpm"
 #include "../include/papagayo-64.xpm"
+#include "../include/papagayo_x-16.xpm"
+#include "../include/papagayo_x-64.xpm"
 
 #include "../include/model-16.xpm"
 #include "../include/model-64.xpm"
@@ -485,6 +487,11 @@ wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
 const wxBitmap &BitmapCache::GetPapgayoIcon(wxString &toolTip, int size, bool exact) {
     toolTip = "Papagayo Voice";
     return effectBitmaps.get(size, exact, "Papagayo", papagayo_16, papagayo_64, papagayo_64, papagayo_64, papagayo_64);
+}
+
+const wxBitmap &BitmapCache::GetPapgayoXIcon(wxString &toolTip, int size, bool exact) {
+    toolTip = "Papagayo Voice";
+    return effectBitmaps.get(size, exact, "PapagayoX", papagayo_x_16, papagayo_x_64, papagayo_x_64, papagayo_x_64, papagayo_x_64);
 }
 
 const wxBitmap &BitmapCache::GetModelGroupIcon(wxString &toolTip, int size, bool exact) {

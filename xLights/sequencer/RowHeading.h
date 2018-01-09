@@ -55,6 +55,7 @@ class RowHeading : public wxWindow
         bool ModelInView(const std::string& model, int view);
 
         wxBitmap papagayo_icon;
+        wxBitmap papagayox_icon;
         wxBitmap model_group_icon;
 
         int mSelectedRow;

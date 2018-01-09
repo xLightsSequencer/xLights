@@ -63,6 +63,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     DOUBLE_BUFFER(this);
     wxString tooltip;
     papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, false);
+    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, false);
     model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, false);
     mCanPaste = false;
 }
@@ -1053,7 +1054,11 @@ void RowHeading::Draw()
                 }
                 dc.SetPen(penOutline);
                 dc.SetBrush(brush2);
-                if(rowInfo->element->GetEffectLayerCount() > 1)
+                if(rowInfo->element->GetEffectLayerCount() == 2)
+                {
+                    dc.DrawBitmap(papagayox_icon, getWidth() - ICON_SPACE, startY + 3, true);
+                }
+                else if(rowInfo->element->GetEffectLayerCount() > 2)
                 {
                     dc.DrawBitmap(papagayo_icon, getWidth() - ICON_SPACE, startY + 3, true);
                 }
