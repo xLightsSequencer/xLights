@@ -403,7 +403,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
 }
 
-
 void AddIcon(wxImageList &list, const std::string &id, double scaleFactor) {
     wxSize iconSize = list.GetSize();
     wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(id), wxART_LIST, wxDefaultSize);
@@ -478,6 +477,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
                        tree->WidthFor(CHNUMWIDTH),
                        wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    tree->SetSortColumn(0, true);
     return tree;
 }
 

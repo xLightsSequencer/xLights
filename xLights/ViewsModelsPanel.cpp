@@ -16,6 +16,7 @@
 #include "xLightsMain.h"
 #include "SequenceViewManager.h"
 #include <wx/dnd.h>
+#include "UtilFunctions.h"
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);
@@ -1696,7 +1697,7 @@ void ViewsModelsPanel::SortModelsByName()
     }
 
     wxArrayString modelArray = wxSplit(models, ',');
-    modelArray.Sort();
+    modelArray.Sort(wxStringNumberAwareStringCompare);
 
     if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW)
     {
@@ -1776,8 +1777,8 @@ void ViewsModelsPanel::SortModelsByNameGM()
         }
     }
 
-    groups.Sort();
-    modelsOnly.Sort();
+    groups.Sort(wxStringNumberAwareStringCompare);
+    modelsOnly.Sort(wxStringNumberAwareStringCompare);
 
     modelArray = MergeStringArrays(groups, modelsOnly);
 

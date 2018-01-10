@@ -13,9 +13,20 @@
 //(*InternalHeaders(xLightsImportChannelMapDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "UtilFunctions.h"
 //*)
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
+
+int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
+}
+
+int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
+}
 
 class MDDropSource : public wxDropSource
 {
@@ -129,6 +140,19 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     }
     
     return false;
+}
+
+int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned column, bool ascending) const
+{
+    if (column == 0)
+    {
+        if (ascending)
+            return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+        else
+            return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+    }
+
+    return 0;
 }
 
 wxString xLightsImportTreeModel::GetModel(const wxDataViewItem &item) const
@@ -525,7 +549,8 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
     TreeListCtrl_Mapping->AssociateModel(dataModel);
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
+    TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     if (_allowColorChoice)
     {
@@ -567,6 +592,10 @@ bool xLightsImportChannelMapDialog::InitImport() {
         wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
+    else
+    {
+        dataModel->Resort();
+    }
 
     return true;
 }
@@ -586,31 +615,29 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     if (ccr)
     {
-        std::multiset<std::string> ccrNamesSorted(ccrNames.begin(), ccrNames.end());
         int j = 0;
         for (auto it = ccrNames.begin(); it != ccrNames.end(); ++it)
         {
             wxString name = *it;
             ListCtrl_Available->InsertItem(j, name);
-            int idx = std::distance(ccrNamesSorted.begin(), ccrNamesSorted.find(*it));
-            ListCtrl_Available->SetItemData(j, idx);
+            ListCtrl_Available->SetItemData(j, j);
             j++;
         }
     }
     else
     {
-        std::multiset<std::string> channelNamesSorted(channelNames.begin(), channelNames.end());
-
         int j = 0;
         for (auto it = channelNames.begin(); it != channelNames.end(); ++it)
         {
             wxString name = *it;
             ListCtrl_Available->InsertItem(j, name);
-            int idx = std::distance(channelNamesSorted.begin(), channelNamesSorted.find(*it));
-            ListCtrl_Available->SetItemData(j, idx);
+            ListCtrl_Available->SetItemData(j, j);
             j++;
         }
     }
+
+    _sortOrder = 1;
+    ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
 
     ListCtrl_Available->Thaw();
 }
@@ -1226,16 +1253,6 @@ void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& event)
 {
-}
-
-int wxCALLBACK MyCompareFunctionAsc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? -1 : 1);
-}
-
-int wxCALLBACK MyCompareFunctionDesc(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-{
-    return item1 == item2 ? 0 : ((item1 < item2) ? 1 : -1);
 }
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)

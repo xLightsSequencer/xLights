@@ -1,6 +1,7 @@
 #include "Element.h"
 #include "../models/Model.h"
 #include <list>
+#include "UtilFunctions.h"
 
 Element::Element(SequenceElements *p, const std::string &name) :
 mEffectLayers(),
@@ -115,7 +116,7 @@ bool Element::operator<(const Element& e) const
 
     if (myType == theirType)
     {
-        return GetName() < e.GetName();
+        return NumberAwareStringCompare(GetName(), e.GetName()) == -1;
     }
     else
     {

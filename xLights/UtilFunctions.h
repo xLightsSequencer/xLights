@@ -21,7 +21,6 @@ inline long roundTo4(long i) {
     }
     return i + 4 - remainder;
 }
-int NumberAwareStringCompare(std::string a, std::string b);
 inline int roundTo16(int i) {
     int remainder = i % 16;
     if (remainder == 0) {
@@ -37,5 +36,8 @@ inline double rand01()
 
 void SaveWindowPosition(const std::string tag, wxWindow* window);
 void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position);
-
+int NumberAwareStringCompare(std::string a, std::string b);
+inline int NumberAwareStringCompareRev(std::string a, std::string b) { return NumberAwareStringCompare(b, a); }
+inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
+inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
 #endif

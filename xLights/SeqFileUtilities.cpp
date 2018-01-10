@@ -1138,7 +1138,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
     bool ok = dlg.InitImport();
 
@@ -1665,7 +1665,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     // the previous calculation because it had a partial last frame
     int numFrames = (int)std::ceil((float)time / (float)frameTime);
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
 
     dlg.InitImport();
 
@@ -1818,9 +1818,9 @@ void xLightsFrame::ImportHLS(const wxFileName &filename)
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
-    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
+    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end(), stdlistNumberAwareStringCompare);
     dlg.ccrNames.insert(dlg.ccrNames.begin(), "");
 
     dlg.Init();
@@ -2422,12 +2422,12 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         }
                         if (idxSP != wxNOT_FOUND) {
                             int i = wxAtoi(name.substr(idxSP + 2, name.size()));
-                            if (i > 0)
+                            if (i > 0 && name != "")
                             {
                                 ccr = true;
                                 dlg.channelNames.push_back(name);
                                 //if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP - 1)) == dlg.ccrNames.end())
-                                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP)) == dlg.ccrNames.end())
+                                if (name.substr(0, idxSP) != "" && std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), name.substr(0, idxSP)) == dlg.ccrNames.end())
                                 {
                                     //dlg.ccrNames.push_back(name.substr(0, idxSP - 1));
                                     dlg.ccrNames.push_back(name.substr(0, idxSP));
@@ -2436,7 +2436,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                         }
                     }
 
-                    if (!ccr)
+                    if (!ccr && name != "")
                     {
                         dlg.channelNames.push_back(name);
                     }
@@ -2462,8 +2462,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
-    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
+    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end(), stdlistNumberAwareStringCompare);
     dlg.timingTracks = timingTrackNames;
 
     dlg.InitImport();
@@ -3727,9 +3727,9 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
         ent = zin.GetNextEntry();
     }
 
-    std::sort(dlg.channelNames.begin(), dlg.channelNames.end());
+    std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
     dlg.channelNames.insert(dlg.channelNames.begin(), "");
-    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end());
+    std::sort(dlg.ccrNames.begin(), dlg.ccrNames.end(), stdlistNumberAwareStringCompare);
     dlg.ccrNames.insert(dlg.ccrNames.begin(), "");
 
     dlg.Init();

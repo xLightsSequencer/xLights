@@ -444,6 +444,10 @@ int NumberAwareStringCompare(std::string a, std::string b)
     A.Replace("7", "");
     A.Replace("8", "");
     A.Replace("9", "");
+    wxString AA = A;
+    AA.Replace("-", "");
+    AA.Replace("_", "");
+    AA.Replace(" ", "");
 
     wxString B = wxString(b);
     B.Replace("0", "");
@@ -456,8 +460,12 @@ int NumberAwareStringCompare(std::string a, std::string b)
     B.Replace("7", "");
     B.Replace("8", "");
     B.Replace("9", "");
+    wxString BB = B;
+    BB.Replace("-", "");
+    BB.Replace("_", "");
+    BB.Replace(" ", "");
 
-    if (A == B)
+    if (AA == BB)
     {
         while (true)
         {
@@ -489,6 +497,14 @@ int NumberAwareStringCompare(std::string a, std::string b)
     }
     else
     {
-        return A.compare(B);
+        if (A < B)
+        {
+            return -1;
+        }
+        if (A == B)
+        {
+            return 0;
+        }
+        return 1;
     }
 }

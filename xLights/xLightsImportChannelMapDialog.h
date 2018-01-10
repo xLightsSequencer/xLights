@@ -213,8 +213,8 @@ public:
         }
     }
 
-
     virtual bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
+    virtual int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column, bool ascending) const override;
 
     void Insert(xLightsImportModelNode* child, unsigned int n)
     {
