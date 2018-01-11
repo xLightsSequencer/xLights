@@ -30,6 +30,7 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms, float fps);
         void UpdateSelectedDisplay(int selected);
+        int GetPlayStatus() const { return mPlayType; }
         void SetPlayStatus(int play_type);
         void GetSelectedEffectsData(wxString& copy_data);
         void GetACEffectsData(wxString& copy_data);

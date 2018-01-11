@@ -18,8 +18,8 @@ double VideoExporter::s_t = 0.;
 double VideoExporter::s_freq = 750.;
 double VideoExporter::s_deltaTime = 1. / 44100;
 
-VideoExporter::VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base)
-	: m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount)
+VideoExporter::VideoExporter(wxWindow *parent, int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base)
+	: m_parent(parent), m_width(width), m_height(height), m_scaleFactor(scaleFactor), m_frameDuration(frameDuration), m_frameCount(frameCount)
 	, m_audioChannelCount(audioChannelCount), m_audioSampleRate(audioSampleRate), m_audioFrameSize(audioSampleRate / (1000 / frameDuration)), m_logger_base(logger_base)
 	, m_GetVideo(dummyGetVideoFrame), m_GetAudio(dummyGetAudioFrame)
 {
@@ -156,7 +156,7 @@ bool VideoExporter::Export(const char *path)
 	// buffer for RGB input
 	unsigned char *buf = new unsigned char[width * 3 * height];
 
-	wxProgressDialog progressDialog(_("Export progress"), _T("Exporting video..."), 100, nullptr, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+	wxProgressDialog progressDialog(_("Export progress"), _T("Exporting video..."), 100, m_parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
 	bool wasCanceled = false, wasErrored = false;
 	int progressValue = 0;
 	progressDialog.ShowModal();
@@ -181,6 +181,7 @@ bool VideoExporter::Export(const char *path)
 
 		if (!write_video_frame(formatContext, video_st->index, videoCodecContext, &src_picture, frame, sws_ctx, buf, width, height, i, m_logger_base))
 		{
+         m_logger_base.error( "   error writing video frame %d", i );
 			wasErrored = true;
 			break;
 		}
@@ -232,14 +233,16 @@ bool VideoExporter::Export(const char *path)
 		for (int i = 0; i < numAudioFrames; ++i)
 		{
 			m_GetAudio(audioBuff, frameSize, m_audioChannelCount);
-			write_audio_frame(formatContext, audio_st, audioBuff, frameSize, m_logger_base);
+			if ( !write_audio_frame(formatContext, audio_st, audioBuff, frameSize, m_logger_base) )
+            m_logger_base.error( "   error writing audio frame %d", i );
 		}
 
 		int numLeftoverSamples = (int)floor((numFullFrames - numAudioFrames) * frameSize);
 		if (numLeftoverSamples)
 		{
 			m_GetAudio(audioBuff, numLeftoverSamples, m_audioChannelCount);
-			write_audio_frame(formatContext, audio_st, audioBuff, numLeftoverSamples, m_logger_base);
+			if ( !write_audio_frame(formatContext, audio_st, audioBuff, numLeftoverSamples, m_logger_base) )
+            m_logger_base.error( "   error writing leftover audio samples" );
 		}
 
 		delete[] audioBuff;

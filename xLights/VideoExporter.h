@@ -14,7 +14,7 @@ struct SwsContext;
 class VideoExporter
 {
 public:
-	VideoExporter(int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base);
+	VideoExporter(wxWindow *parent, int width, int height, float scaleFactor, unsigned int frameDuration, unsigned int frameCount, int audioChannelCount, int audioSampleRate, log4cpp::Category &logger_base);
 
 	typedef std::function<bool(unsigned char * /*buf*/, int /*bufSize*/, int/*width*/, int /*height*/, float/*scaleFactor*/, unsigned /*frameIndex*/)> GetVideoFrameFn;
 	typedef std::function<bool(float * /*samples*/, int/*frameSize*/, int/*numChannels*/)> GetAudioFrameFn;
@@ -32,6 +32,7 @@ protected:
 		SwsContext *sws_ctx, unsigned char *buf, int width, int height, int frameIndex, log4cpp::Category &logger_base);
 	bool write_audio_frame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, log4cpp::Category &logger_base, bool clearQueue = false);
 
+   wxWindow * const m_parent;
 	const int m_width;
 	const int m_height;
 	const float m_scaleFactor;
