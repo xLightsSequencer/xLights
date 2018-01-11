@@ -28,8 +28,8 @@ VideoExporter::VideoExporter(wxWindow *parent, int width, int height, float scal
 
 bool VideoExporter::Export(const char *path)
 {
-	int width = m_width;
-	int height = m_height;
+	int width = m_width * m_scaleFactor;
+	int height = m_height * m_scaleFactor;
 
 	// width and height must be even
 	if (width % 2)
@@ -41,8 +41,8 @@ bool VideoExporter::Export(const char *path)
 	av_register_all();
 
 	AVOutputFormat* fmt = av_guess_format(nullptr, path, nullptr);
-	AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
-	AVCodec *audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+	AVCodec *videoCodec = avcodec_find_encoder(fmt->video_codec);
+	AVCodec *audioCodec = avcodec_find_encoder(fmt->audio_codec);
 	if (videoCodec == nullptr || audioCodec == nullptr)
 	{
 		m_logger_base.error("  error finding codecs.");
@@ -63,14 +63,13 @@ bool VideoExporter::Export(const char *path)
 	video_st->time_base.den = 1000 / m_frameDuration;
 	AVCodecContext* videoCodecContext = video_st->codec;
 	avcodec_get_context_defaults3(videoCodecContext, videoCodec);
-	videoCodecContext->codec_id = fmt->video_codec;
 	videoCodecContext->bit_rate = 400000;
 	videoCodecContext->width = width;
 	videoCodecContext->height = height;
 	videoCodecContext->time_base.num = 1;
 	videoCodecContext->time_base.den = 1000 / m_frameDuration;
 	videoCodecContext->gop_size = 20;
-	videoCodecContext->max_b_frames = 1;
+    videoCodecContext->max_b_frames = 1;
 	videoCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 	av_opt_set(videoCodecContext->priv_data, "preset", "medium", 0);
@@ -79,7 +78,7 @@ bool VideoExporter::Export(const char *path)
 	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
 		videoCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
 
-	int status = avcodec_open2(videoCodecContext, videoCodec, nullptr);
+    int status = avcodec_open2(videoCodecContext, videoCodec, nullptr);
 	if (status != 0)
 	{
 		m_logger_base.error("  error opening video codec.");
@@ -94,7 +93,6 @@ bool VideoExporter::Export(const char *path)
 		audio_st->id = formatContext->nb_streams - 1;
 		AVCodecContext *audioCodecContext = audio_st->codec;
 		avcodec_get_context_defaults3(audioCodecContext, audioCodec);
-		audioCodecContext->codec_id = fmt->audio_codec;
 		audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
 		audioCodecContext->bit_rate = 128000;
 		audioCodecContext->sample_rate = m_audioSampleRate;
