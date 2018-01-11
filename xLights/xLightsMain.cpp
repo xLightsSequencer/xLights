@@ -2799,11 +2799,20 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         return;
 
     const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
-	wxFileDialog exportDlg(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-	if (exportDlg.ShowModal() != wxID_OK)
-		return;
+	wxFileDialog *pExportDlg = new wxFileDialog(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+   int exportChoice = pExportDlg->ShowModal();
 
-	wxString path = exportDlg.GetPath();
+   if (exportChoice != wxID_OK)
+   {
+      delete pExportDlg;
+      return;
+   }
+
+	wxString path( pExportDlg->GetPath() );
+   delete pExportDlg;
+
+   int playStatus = mainSequencer->GetPlayStatus();
+   mainSequencer->SetPlayStatus( PLAY_TYPE_STOPPED );
 
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
@@ -2822,7 +2831,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	}
 	int audioFrameIndex = 0;
 
-	VideoExporter videoExporter(width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
+	VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
 
 	videoExporter.SetGetAudioFrameCallback(
 		[audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
@@ -2841,20 +2850,26 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	   }
 	);
 
-	xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
-	captureHelper.SetActive(true);
+   xlGLCanvas::CaptureHelper captureHelper( width, height, contentScaleFactor );
 
 	videoExporter.SetGetVideoFrameCallback(
-		[&](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
-			const FrameData frameData = SeqData[frameIndex];
+		[this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
+			const FrameData frameData = this->SeqData[frameIndex];
 			const unsigned char *data = frameData[0];
+         logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
 			housePreview->Render(data, false);
-			return captureHelper.ToRGB(buf, bufSize, true);
+         logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
+			bool convertStatus = captureHelper.ToRGB(buf, bufSize, true);
+         logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
+         return convertStatus;
 		}
 	);
 
+   captureHelper.SetActive( true );
 	bool exportStatus = videoExporter.Export(path);
 	captureHelper.SetActive(false);
+
+   mainSequencer->SetPlayStatus( playStatus );
 
     if (!visible)
     {

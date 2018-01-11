@@ -94,8 +94,12 @@ xlGLCanvas::CaptureHelper::~CaptureHelper()
 
 void xlGLCanvas::CaptureHelper::SetActive(bool active)
 {
-	if (!hasOpenGL3FramebufferObjects())
-		return;
+   if ( !hasOpenGL3FramebufferObjects() )
+   {
+      log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
+      logger_base.debug( "xglCanvas::CaptureHelper::SetActive() - framebuffer objects unsupported!" );
+      return;
+   }
 
 	if (active)
 	{
