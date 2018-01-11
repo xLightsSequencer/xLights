@@ -161,12 +161,15 @@ bool VideoExporter::Export(const char *path)
 	int progressValue = 0;
 	progressDialog.ShowModal();
 
+    m_logger_base.debug("Headers written ... writing the video %u frames.", m_frameCount);
+
 	// Loop through each frame
 	frame->pts = 0;
 
 	for (unsigned int i = 0; i < m_frameCount; ++i)
 	{
-		if (progressDialog.WasCancelled())
+        m_logger_base.debug("    Writing frame %u.", i);
+	    if (progressDialog.WasCancelled())
 		{
 			wasCanceled = true;
 			break;
@@ -230,7 +233,9 @@ bool VideoExporter::Export(const char *path)
 		int numAudioFrames = (int)floor(numFullFrames);
 
 		float *audioBuff = new float[audio_st->codec->frame_size * m_audioChannelCount];
-		for (int i = 0; i < numAudioFrames; ++i)
+
+        m_logger_base.debug("    writing the audio %d frames.", numAudioFrames);
+        for (int i = 0; i < numAudioFrames; ++i)
 		{
 			m_GetAudio(audioBuff, frameSize, m_audioChannelCount);
 			if ( !write_audio_frame(formatContext, audio_st, audioBuff, frameSize, m_logger_base) )
@@ -256,7 +261,7 @@ bool VideoExporter::Export(const char *path)
 			pkt.size = 0;
 			pkt.stream_index = audio_st->index;
 
-			int ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
+			ret = avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output);
 			if (ret < 0)
 			{
 				m_logger_base.error("  error encoding delayed audio frame");
