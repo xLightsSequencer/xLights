@@ -159,7 +159,7 @@ bool VideoExporter::Export(const char *path)
 	wxProgressDialog progressDialog(_("Export progress"), _T("Exporting video..."), 100, m_parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
 	bool wasCanceled = false, wasErrored = false;
 	int progressValue = 0;
-	progressDialog.ShowModal();
+	progressDialog.Show();
 
     m_logger_base.debug("Headers written ... writing the video %u frames.", m_frameCount);
 
@@ -168,7 +168,7 @@ bool VideoExporter::Export(const char *path)
 
 	for (unsigned int i = 0; i < m_frameCount; ++i)
 	{
-        m_logger_base.debug("    Writing frame %u.", i);
+        //m_logger_base.debug("    Writing frame %u.", i);
 	    if (progressDialog.WasCancelled())
 		{
 			wasCanceled = true;

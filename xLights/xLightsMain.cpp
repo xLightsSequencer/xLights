@@ -2856,11 +2856,11 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 		[this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
 			const FrameData frameData = this->SeqData[frameIndex];
 			const unsigned char *data = frameData[0];
-         logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
+         //logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
 			housePreview->Render(data, false);
-         logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
+         //logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
 			bool convertStatus = captureHelper.ToRGB(buf, bufSize, true);
-         logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
+         //logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
          return convertStatus;
 		}
 	);
