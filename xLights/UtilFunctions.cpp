@@ -430,6 +430,28 @@ std::string GetFirstInt(std::string s)
     return res;
 }
 
+wxString StripLeadingChars(wxString s, wxString chars)
+{
+    wxString res = s;
+
+    bool found = true;
+    while(found && s.size() != 0)
+    {
+        found = false;
+        for (int i = 0; i < chars.size(); i++)
+        {
+            if (res[0] == chars[i])
+            {
+                res = res.substr(1);
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return res;
+}
+
 int NumberAwareStringCompare(std::string a, std::string b)
 {
     // first replace all the numbers with zeros and compare
@@ -497,6 +519,9 @@ int NumberAwareStringCompare(std::string a, std::string b)
     }
     else
     {
+        A = StripLeadingChars(A, " -_");
+        B = StripLeadingChars(B, " -_");
+
         if (A < B)
         {
             return -1;
