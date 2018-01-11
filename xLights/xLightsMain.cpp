@@ -2877,7 +2877,15 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         m_mgr->Update();
     }
 
-	logger_base.debug("Finished writing house-preview video.");
+    if ( exportStatus )
+    {
+       logger_base.debug( "Finished writing house-preview video." );
+    }
+    else
+    {
+       logger_base.error( "Exporting house-preview video failed!" );
+       wxMessageBox( _( "Exporting house preview video failed" ), _( "Export failure" ), wxOK | wxCENTRE, this );
+    }
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)
