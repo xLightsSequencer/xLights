@@ -1,6 +1,6 @@
 #include "SubModelsDialog.h"
 
-
+#include <wx/dnd.h>
 #include <wx/xml/xml.h>
 #include <wx/textdlg.h>
 #include <wx/msgdlg.h>
@@ -54,7 +54,8 @@ const long SubModelsDialog::ID_PANEL1 = wxNewId();
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
 	//(*EventTable(SubModelsDialog)
-	//*)
+    //*)
+    EVT_COMMAND(wxID_ANY, EVT_VMDROP, SubModelsDialog::OnDrop)
 END_EVENT_TABLE()
 
 #include "ModelPreview.h"
@@ -234,19 +235,17 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     subBufferPanel->SetMinSize(s);
     SubBufferSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
     SubBufferSizer->Fit(SubBufferPanelHolder);
-//    SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
-
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     SplitterWindow1->SetMinSize(wxSize(1000,400));
 
-    //Center();
+    SubModelTextDropTarget *mdt = new SubModelTextDropTarget(this, ListCtrl_SubModels, "SubModel");
+    ListCtrl_SubModels->SetDropTarget(mdt);
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
-//    Layout();
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -303,38 +302,31 @@ void SubModelsDialog::Setup(Model *m)
                 sm.strands[x] = child->GetAttribute(wxString::Format("line%d", x));
                 x++;
             }
-            AddSubModelToList(&sm);
+            AddSubModelToList(&sm, -1, true);
         }
         child = child->GetNext();
     }
 
     ListCtrl_SubModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    if (ListCtrl_SubModels->GetColumnWidth(0) < 22) {
-        ListCtrl_SubModels->SetColumnWidth(0, 22);
+    if (ListCtrl_SubModels->GetColumnWidth(0) < 100) {
+        ListCtrl_SubModels->SetColumnWidth(0, 100);
     }
 
     // use a general validateDialog() here?
-    DeleteButton->Disable();
-    NodesGrid->Disable();
-    LayoutCheckbox->Disable();
-    AddRowButton->Disable();
-    DeleteRowButton->Disable();
-    subBufferPanel->Disable();
-    TypeNotebook->Disable();
-
-    // if (NameChoice->GetCount() > 0) {
-    //     NameChoice->SetSelection(0);
-    //     Select(NameChoice->GetString(0));
-    // } else {
-    //     NameChoice->Disable();
-    //     DeleteButton->Disable();
-    //     NodesGrid->Disable();
-    //     LayoutCheckbox->Disable();
-    //     AddRowButton->Disable();
-    //     DeleteRowButton->Disable();
-    //     subBufferPanel->Disable();
-    //     TypeNotebook->Disable();
-    // }
+    if (ListCtrl_SubModels->GetItemCount() > 0) {
+        Select(ListCtrl_SubModels->GetItemText(0));
+        ListCtrl_SubModels->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    } else {
+        ListCtrl_SubModels->Disable();
+        TextCtrl_Name->Disable();
+        DeleteButton->Disable();
+        NodesGrid->Disable();
+        LayoutCheckbox->Disable();
+        AddRowButton->Disable();
+        DeleteRowButton->Disable();
+        subBufferPanel->Disable();
+        TypeNotebook->Disable();
+    }
 
     wxPoint loc;
     wxSize sz;
@@ -355,19 +347,34 @@ bool SubModelsDialog::IsItemSelected(wxListCtrl* ctrl, int item)
     return ctrl->GetItemState(item, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
 }
 
-void SubModelsDialog::AddSubModelToList(SubModelInfo *submodel)
+void SubModelsDialog::AddSubModelToList(SubModelInfo *submodel, int index, bool load)
 {
-    wxListItem li;
-    li.SetId(_numSubModels);
-    li.SetText(_(""));
-    ListCtrl_SubModels->InsertItem(li);
-    ListCtrl_SubModels->SetItemPtrData(_numSubModels, (wxUIntPtr)submodel);
-    ListCtrl_SubModels->SetItem(_numSubModels, 0, submodel->name);
-    _numSubModels++;
+    int idx = 0;
+    if (index < 0)
+    {
+        idx = ListCtrl_SubModels->InsertItem(_numSubModels, submodel->name);
+    } else {
+        idx = ListCtrl_SubModels->InsertItem(index, submodel->name);
+    }
+    ListCtrl_SubModels->SetItemPtrData(idx, (wxUIntPtr)submodel);
+    if (!load)
+    {
+        subModels.insert(subModels.begin(), *submodel);
+    } else {
+         ++_numSubModels;
+    }
 }
 
-wxString SubModelsDialog::GetSelectedName() {
+void SubModelsDialog::RemoveSubModelFromList(wxString name)
+{
+    subModels.erase(subModels.begin() + GetSubModelInfoIndex(name));
+    long id = ListCtrl_SubModels->FindItem(-1, name);
+    ListCtrl_SubModels->DeleteItem(id);
+    --_numSubModels;
+}
 
+wxString SubModelsDialog::GetSelectedName()
+{
     for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListCtrl_SubModels, i) )
@@ -375,9 +382,7 @@ wxString SubModelsDialog::GetSelectedName() {
             return ListCtrl_SubModels->GetItemText(i);
         }
     }
-
     return "";
-
 }
 
 void SubModelsDialog::Save()
@@ -454,10 +459,11 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
         return;
     }
     // delete selected submodel
-    subModels.erase(subModels.begin() + GetSubModelInfoIndex(name));
-    // NameChoice->Delete(NameChoice->GetSelection());
-    long id = ListCtrl_SubModels->FindItem(-1, name);
-    ListCtrl_SubModels->DeleteItem(id);
+    RemoveSubModelFromList(name);
+//    subModels.erase(subModels.begin() + GetSubModelInfoIndex(name));
+//    // NameChoice->Delete(NameChoice->GetSelection());
+//    long id = ListCtrl_SubModels->FindItem(-1, name);
+//    ListCtrl_SubModels->DeleteItem(id);
     // (validate window)?
     // ValidateWindow();
     //  select the top submodel in list or disable all action buttons
@@ -481,10 +487,9 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
     Select(event.GetString());
 }
 
-//todo fix this next....
 void SubModelsDialog::Select(const wxString &name) {
     if (name == "") {
-        // NameChoice->Disable();
+        TextCtrl_Name->Disable();
         DeleteButton->Disable();
         NodesGrid->Disable();
         LayoutCheckbox->Disable();
@@ -494,7 +499,7 @@ void SubModelsDialog::Select(const wxString &name) {
         TypeNotebook->Disable();
         return;
     }
-    // NameChoice->Enable();
+    TextCtrl_Name->Enable();
     DeleteButton->Enable();
     NodesGrid->Enable();
     LayoutCheckbox->Enable();
@@ -506,8 +511,9 @@ void SubModelsDialog::Select(const wxString &name) {
     SubModelInfo &sm = GetSubModelInfo(name);
     DeleteRowButton->Enable(sm.strands.size() > 1);
 
-    // NameChoice->SetStringSelection(name);
-    // TODO cp16net how to select an item in the listctl
+    TextCtrl_Name->SetValue(name);
+    int idx = ListCtrl_SubModels->FindItem(-1, name);
+    ListCtrl_SubModels->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 
     if (sm.isRanges) {
         TypeNotebook->SetSelection(0);
@@ -540,6 +546,8 @@ void SubModelsDialog::Select(const wxString &name) {
         subBufferPanel->SetValue(sm.subBuffer.ToStdString());
         DisplayRange(sm.subBuffer);
     }
+
+//    NodesGrid->SetGridCursor(0,0);
 }
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
@@ -781,7 +789,6 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
                 sm.strands.clear();
                 sm.strands.push_back("");
                 AddSubModelToList(&sm);
-                // NameChoice->Append(name);
 
                 if (dialog.GetType() == "Vertical Slices")
                 {
@@ -881,6 +888,22 @@ void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
 
 void SubModelsDialog::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
 {
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 0) return;
+
+    wxString drag = "SubModel";
+    for (size_t i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrl_SubModels, i))
+        {
+            drag += "," + ListCtrl_SubModels->GetItemText(i);
+        }
+    }
+
+    wxTextDataObject my_data(drag);
+    wxDropSource dragSource(this);
+    dragSource.SetData(my_data);
+    dragSource.DoDragDrop(wxDrag_DefaultMove);
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void SubModelsDialog::OnListCtrl_SubModelsColumnClick(wxListEvent& event)
@@ -890,3 +913,140 @@ void SubModelsDialog::OnListCtrl_SubModelsColumnClick(wxListEvent& event)
 void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
 {
 }
+
+void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
+{
+    wxString name = GetSelectedName();
+    int indexFrom = GetSubModelInfoIndex(name);
+    if (indexTo == indexFrom) { return; }
+
+    SubModelInfo sm = subModels.at(indexFrom);
+    RemoveSubModelFromList(sm.name);
+    AddSubModelToList(&sm, indexTo);
+    Select(name);
+    ListCtrl_SubModels->SetItemState(indexTo, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+}
+void SubModelsDialog::OnDrop(wxCommandEvent& event)
+{
+    wxArrayString parms = wxSplit(event.GetString(), ',');
+    int x = event.GetExtraLong() >> 16;
+    int y = event.GetExtraLong() & 0xFFFF;
+
+    switch(event.GetInt())
+    {
+        case 0:
+            // an add
+            break;
+        case 1:
+            // Model dropped into models (a reorder)
+        {
+            int flags = wxLIST_HITTEST_ONITEM;
+            long index = ListCtrl_SubModels->HitTest(wxPoint(x, y), flags, nullptr);
+
+            MoveSelectedModelsTo(index);
+        }
+            break;
+        case 2:
+            // a remove
+           break;
+        default:
+            break;
+    }
+}
+
+#pragma region Drag and Drop
+
+wxDragResult SubModelTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    static int MINSCROLLDELAY = 10;
+    static int STARTSCROLLDELAY = 300;
+    static int scrollDelay = STARTSCROLLDELAY;
+    static wxLongLong lastTime = wxGetUTCTimeMillis();
+
+    if (wxGetUTCTimeMillis() - lastTime < scrollDelay)
+    {
+        // too soon to scroll again
+    }
+    else
+    {
+        if (_type == "SubModel" && _list->GetItemCount() > 0)
+        {
+            int flags = wxLIST_HITTEST_ONITEM;
+            int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
+
+            for (int i = 0; i < _list->GetItemCount(); ++i)
+            {
+                if (i == lastItem)
+                {
+                    _list->SetItemState(i, wxLIST_STATE_DROPHILITED, wxLIST_STATE_DROPHILITED);
+                }
+                else
+                {
+                    _list->SetItemState(i, 0, wxLIST_STATE_DROPHILITED);
+                }
+            }
+
+            wxRect rect;
+            _list->GetItemRect(0, rect);
+            int itemSize = rect.GetHeight();
+
+            if (y < 2 * itemSize)
+            {
+                // scroll up
+                if (_list->GetTopItem() > 0)
+                {
+                    lastTime = wxGetUTCTimeMillis();
+                    _list->EnsureVisible(_list->GetTopItem()-1);
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else if (y > _list->GetRect().GetHeight() - itemSize)
+            {
+                // scroll down
+                if (lastItem >= 0 && lastItem < _list->GetItemCount())
+                {
+                    _list->EnsureVisible(lastItem+1);
+                    lastTime = wxGetUTCTimeMillis();
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else
+            {
+                scrollDelay = STARTSCROLLDELAY;
+            }
+        }
+    }
+
+    return wxDragMove;
+}
+
+bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (data == "") return false;
+
+    long mousePos = x;
+    mousePos = mousePos << 16;
+    mousePos += y;
+    wxCommandEvent event(EVT_VMDROP);
+    event.SetString(data); // this is the dropped string
+    event.SetExtraLong(mousePos); // this is the mouse position packed into a long
+
+    wxArrayString parms = wxSplit(data, ',');
+
+    if (parms[0] == "SubModel")
+    {
+        if (_type == "SubModel")
+        {
+            event.SetInt(1);
+            wxPostEvent(_owner, event);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#pragma endregion Drag and Drop
+

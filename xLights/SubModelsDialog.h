@@ -3,7 +3,10 @@
 
 #include <map>
 #include <vector>
+#include <wx/dnd.h>
 #include <wx/listctrl.h>
+
+wxDECLARE_EVENT(EVT_VMDROP, wxCommandEvent);
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
@@ -27,6 +30,24 @@ class Model;
 class wxBookCtrlEvent;
 class ModelPreview;
 class SubBufferPanel;
+
+class SubModelTextDropTarget : public wxTextDropTarget
+{
+public:
+    SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
+	{
+		_owner = owner;
+		_list = list;
+		_type = type;
+	};
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    wxWindow* _owner;
+    wxListCtrl* _list;
+    wxString _type;
+};
 
 class SubModelsDialog: public wxDialog
 {
@@ -115,7 +136,9 @@ class SubModelsDialog: public wxDialog
 		void OnListCtrl_SubModelsKeyDown(wxListEvent& event);
 		//*)
 
-		DECLARE_EVENT_TABLE()
+        void OnDrop(wxCommandEvent& event);
+
+        DECLARE_EVENT_TABLE()
 
 
 private:
@@ -138,9 +161,12 @@ private:
     void GenerateSegment(SubModelInfo& sm, int segments, int segment, bool horizontal, int count);
     SubModelInfo &GetSubModelInfo(const wxString &str);
     int GetSubModelInfoIndex(const wxString &str);
-	void AddSubModelToList(SubModelInfo *submodel);
-	wxString GetSelectedName();
-	bool IsItemSelected(wxListCtrl* ctrl, int item);
+	void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
+    void RemoveSubModelFromList(wxString name);
+    wxString GetSelectedName();
+    bool IsItemSelected(wxListCtrl* ctrl, int item);
+    void MoveSelectedModelsTo(int indexTo);
+
 
     Model *model;
     ModelPreview *modelPreview;
