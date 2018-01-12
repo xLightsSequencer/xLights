@@ -174,7 +174,7 @@ private:
     bool PapagayoEffectsSelected();
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
-    void ResizeMoveMultipleEffectsByTime(int delta);
+    void ResizeMoveMultipleEffectsByTime(int delta, bool force);
     void ButtUpResizeMoveMultipleEffects(bool right);
     void StretchMultipleEffectsByTime(int delta);
     void ButtUpStretchMultipleEffects(bool right);

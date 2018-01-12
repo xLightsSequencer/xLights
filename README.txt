@@ -18,6 +18,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (gil)    Prevent error message when importing ISEQ data layer not in show directory.  Fixes #1047.
    -- bug (gil)    Make sure all models are available when creating new Views.  Fixes #1049.
    -- bug (gil)    Fix Bulk Edit crash when right-clicking a TextEdit box.
+   -- enh (gil)    Correct certain scenarios of right/left arrow move/stretch operations and simplify Single vs Multiple effect movement.
    -- bug (gil)    Fix PolyLine crash for case of 3 Channel RGB with Individual Start Channels set.
    -- bug (keith)  Fix eseq frame size rounded by 4 when it shouldnt be.
    -- bug (keith)  Newly created schedule doesnt play immediately
