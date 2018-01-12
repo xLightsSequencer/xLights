@@ -58,10 +58,11 @@ Then, from inside a Terminal window:
   export CPP="clang -E" 
   export CFLAGS="-g"
   ../configure  --prefix=/opt/local --libdir=/opt/local/libdbg \
-               --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
-               --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
-               --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
-               --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
+                --enable-debug --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
+                --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
+                --with-macosx-version-min=10.10 --with-libjpeg=builtin \
+                --with-cxx=14 --enable-cxx11 --enable-std_containers_compat --enable-std_string \
+                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make
   make install
 
@@ -76,9 +77,11 @@ If you are planning on being able to build Release builds, you will ALSO need to
   export CXXCPP="clang++ -E" 
   export CC=clang 
   export CPP="clang -E" 
+  export CFLAGS=""
   ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
-                --with-macosx-version-min=10.7 --with-libjpeg=builtin --enable-cxx11 --enable-std_containers_compat \
+                --with-macosx-version-min=10.10 --with-libjpeg=builtin \
+                --with-cxx=14 --enable-cxx11 --enable-std_containers_compat --enable-std_string \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make 
   make install
@@ -94,8 +97,17 @@ However, if you have the XCode command line tools installed, you should just be 
 
 
 Other library notes:
-ffmpeg:   currently using 3.4
-./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.7"  --disable-indev=avfoundation --disable-indev=lavfi  --disable-avfoundation --disable-coreimage --disable-audiotoolbox
+x264 - needed for ffmpeg
+grab latest from:
+https://www.videolan.org/developers/x264.html
+./configure --disable-asm --enable-static --bit-depth=8 --disable-cli --enable-lto  --enable-strip
+make
+make install
+
+ffmpeg:   currently using 3.4.1 - needs x264 installed as above
+./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl
+make
+cp ./libavcodec/libavcodec.57.dylib ./libswresample/libswresample.2.dylib ./libswscale/libswscale.4.dylib ./libavformat/libavformat.57.dylib ./libavutil/libavutil.55.dylib ~/working/xLights/lib/osx/
 
 SDL2:  currently using 2.0.7
 
@@ -108,3 +120,4 @@ Nov 23, 2016 - b28dd88994ec144c2235721ef8e1133b3651e790 Newer version fixing var
 Jun  1, 2017 - ff447038714f853a0bae1720e3e8d6f8da279c51 to be able to compile with 10.13 sdk
 Aug 30, 2017 - 4a71ba820f085a3d5a7233e9fd0e23ae4e45af58 attempt to see if fixes #884
 Sept 17, 2017 - a8b33bf08ed582a241071ff7fa876dec1911ed7a fix popup menus on dialogs
+Jan 12, 2018 - 6bd8cb964bd625d7f974621cc9883ba52b58600a Start testing/preparing for wxWidgets 3.1.1/3.2, update to minver 10.10

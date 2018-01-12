@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- update (dkulp) Change minimum OSX requirement to 10.10
    -- enh (dkulp)  Support exporting model to LOR S5 clipboard file
    -- enh (k.mojek) Add "Export House Preview Video" to File menu
    -- enh (gil)    Add Snap to Timing Marks feature.  Turn this on in Settings.  Only works for single effect resizing.  Fixes #132.
