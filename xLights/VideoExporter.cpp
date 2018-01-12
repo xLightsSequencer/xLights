@@ -37,6 +37,8 @@ bool VideoExporter::Export(const char *path)
 	if (height % 2)
 		++height;
 
+    m_logger_base.debug("Video size %d,%d", width, height);
+
 	avcodec_register_all();
 	av_register_all();
 
@@ -48,6 +50,11 @@ bool VideoExporter::Export(const char *path)
 		m_logger_base.error("  error finding codecs.");
 		return false;
 	}
+    else
+    {
+        m_logger_base.debug("Video codec: %s.", videoCodec->name);
+        m_logger_base.debug("Audio codec: %s.", audioCodec->name);
+    }
 
 	AVFormatContext* formatContext;
 	avformat_alloc_output_context2(&formatContext, fmt, nullptr, path);
