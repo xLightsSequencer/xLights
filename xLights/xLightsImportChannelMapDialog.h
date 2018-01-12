@@ -24,6 +24,7 @@
 #include "Color.h"
 #include <wx/arrstr.h>
 #include <wx/filename.h>
+#include <list>
 
 class SequenceElements;
 class xLightsFrame;
@@ -54,7 +55,7 @@ class xLightsImportModelNode : wxDataViewTreeStoreNode
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand, const wxString &node,
-        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -64,13 +65,14 @@ public:
         _mapping = mapping;
         _color = color;
         _group = false;
+        _mappingExists = mappingExists;
 
         m_container = false;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model, const wxString &strand,
-        const wxString &mapping, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -80,13 +82,14 @@ public:
         _mapping = mapping;
         _color = color;
         _group = false;
+        _mappingExists = mappingExists;
 
         m_container = true;
     }
 
     xLightsImportModelNode(xLightsImportModelNode* parent,
         const wxString &model,
-        const wxString &mapping, const wxColor& color = *wxWHITE, const bool isGroup = false) : wxDataViewTreeStoreNode(parent, "XXX")
+        const wxString &mapping, const bool mappingExists, const wxColor& color = *wxWHITE, const bool isGroup = false) : wxDataViewTreeStoreNode(parent, "XXX")
     {
         m_parent = parent;
 
@@ -96,6 +99,7 @@ public:
         _mapping = mapping;
         _color = color;
         _group = isGroup;
+        _mappingExists = mappingExists;
 
         m_container = !isGroup;
     }
@@ -113,6 +117,7 @@ public:
 
     void ClearMapping()
     {
+        _mappingExists = true;
         _mapping = "";
         _color = *wxWHITE;
         size_t count = m_children.GetCount();
@@ -181,6 +186,7 @@ public:     // public to avoid getters/setters
     wxString                _mapping;
     wxColor                 _color;
     bool                    _group;
+    bool                    _mappingExists;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -216,6 +222,7 @@ public:
     virtual bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
     virtual int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column, bool ascending) const override;
 
+    void SetMappingExists(const wxDataViewItem &item, bool exists);
     void Insert(xLightsImportModelNode* child, unsigned int n)
     {
         m_children.Insert(child, n);
@@ -286,6 +293,24 @@ private:
     xLightsImportModelNodePtrArray   m_children;
 };
 
+class StashedMapping
+{
+public:
+    wxString _model;
+    wxString _strand;
+    wxString _node;
+    wxString _mapping;
+    wxColor _color;
+    StashedMapping(wxString model, wxString strand, wxString node, wxString mapping, wxColor color)
+    {
+        _model = model;
+        _strand = strand;
+        _node = node;
+        _mapping = mapping;
+        _color = color;
+    }
+};
+
 class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string model, std::string strand = "", std::string node = "");
@@ -301,6 +326,9 @@ class xLightsImportChannelMapDialog: public wxDialog
     void SetCCROff();
     void PopulateAvailable(bool ccr);
     void MarkUsed();
+    std::list<StashedMapping*> _stashedMappings;
+    StashedMapping* GetStashedMapping(wxString modelName, wxString strandName, wxString nodeName);
+    bool AnyStashedMappingExists(wxString modelName, wxString strandName);
 
     bool _dirty;
     wxFileName _filename;
