@@ -12,6 +12,8 @@
 #include "PlayListItemOSC.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
+#include "PlayListItemSerial.h"
+#include "PlayListItemFPPEvent.h"
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
@@ -72,6 +74,8 @@ const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
+const long PlayListDialog::ID_MNU_ADDSERIAL = wxNewId();
+const long PlayListDialog::ID_MNU_ADDFPPEVENT = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
 const long PlayListDialog::ID_MNU_REMOVEEMPTYSTEPS = wxNewId();
 
@@ -551,6 +555,8 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mi = mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
     mi = mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mi = mnu.Append(ID_MNU_ADDCURL, "Add CURL");
+    mi = mnu.Append(ID_MNU_ADDSERIAL, "Add Serial");
+    mi = mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
     mi = mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
     mi = mnu.Append(ID_MNU_ADDOSC, "Add OSC");
     mi = mnu.Append(ID_MNU_ADDTEXT, "Add Text");
@@ -626,6 +632,16 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDCURL)
     {
         PlayListItemCURL* pli = new PlayListItemCURL();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDSERIAL)
+    {
+        PlayListItemSerial* pli = new PlayListItemSerial();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDFPPEVENT)
+    {
+        PlayListItemFPPEvent* pli = new PlayListItemFPPEvent();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDCOMMAND)

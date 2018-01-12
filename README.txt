@@ -17,6 +17,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (craig)  Randomize only effect settings with a lock available.
    -- enh (keith)  Force xtimging import to round down timing mark times if they occur between frames
    -- enh (keith)  Add the ability to include multiple timings in a single xTiming file
+   -- enh (keith)  Add event triggers to scheduler which trigger command execution. Triggers available:
+						- On a channel value in the running sequence
+						- On a channel in a received E131 packet
+						- On a channel in a received ArtNet packet
+						- On a channel in a received DMX packet from a serial connection
+						- On a channel in a received OpenDMX packet from a serial connection - this looks like it will be less reliable than DMXModel
+						- On a OSC message
+						- On a FPP event
+	-- enh (keith) Add ability to send a FPP Event in a playlist step
+	-- enh (keith) Add ability to send to a serial device in a playlist step
+	-- enh (keith) Rework FPP/OSC remote so it works correctly with new event model and add ARTNet timecode support
 2018.3 Jan 21, 2018
    -- enh (dkulp)  Bunch of render optimizations, particularly for groups with large number of models
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice

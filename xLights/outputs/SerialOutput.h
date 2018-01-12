@@ -28,6 +28,7 @@ public:
     #pragma region Static Functions
     static std::list<std::string> GetAvailableSerialPorts();
     static std::list<std::string> GetPossibleSerialPorts();
+    static std::list<std::string> GetPossibleBaudRates();
     #pragma endregion Static Functions
 
     virtual wxXmlNode* Save() override;

@@ -142,6 +142,7 @@
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
 									<minsize>10</minsize>
+									<minsize>10,10</minsize>
 									<object class="wxPanel" name="ID_PANEL6" variable="Panel6" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 											<cols>1</cols>
@@ -367,6 +368,10 @@
 					<label>&amp;Virtual Matrices</label>
 					<handler function="OnMenuItem_VirtualMatricesSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_EDITEVENTS" variable="MenuItem_EditEvents" member="yes">
+					<label>&amp;Events</label>
+					<handler function="OnMenuItem_EditEventsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_OPTIONS" variable="MenuItem_Options" member="yes">
 					<label>&amp;Options</label>
 					<handler function="OnMenuItem_OptionsSelected" entry="EVT_MENU" />
@@ -413,6 +418,11 @@
 					<handler function="OnMenuItem_FPPOSCMasterSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="IDM_MNU_ARTNETMASTER" variable="MenuItem_ARTNetTimeCodeMaster" member="yes">
+					<label>ARTNet Timecode Master</label>
+					<handler function="OnMenuItem_ARTNetTimeCodeMasterSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_FPPRemote" member="yes">
 					<label>FPP Remote</label>
 					<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
@@ -421,6 +431,11 @@
 				<object class="wxMenuItem" name="ID_MNU_OSCREMOTE" variable="MenuItem_OSCRemote" member="yes">
 					<label>OSC Remote</label>
 					<handler function="OnMenuItem_OSCRemoteSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_ARTNETTIMECODESLAVE" variable="MenuItem_ARTNetTimeCodeSlave" member="yes">
+					<label>ARTNet Timecode Slave</label>
+					<handler function="OnMenuItem_ARTNetTimeCodeSlaveSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_FPPUnicastRemote" member="yes">

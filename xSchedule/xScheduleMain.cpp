@@ -39,6 +39,8 @@
 #include "FPPRemotesDialog.h"
 #include "ConfigureOSC.h"
 #include "Pinger.h"
+#include "EventsDialog.h"
+#include "../xLights/outputs/IPOutput.h"
 
 #include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -75,7 +77,6 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "../xLights/outputs/IPOutput.h"
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -148,6 +149,7 @@ const long xScheduleFrame::ID_MENUITEM1 = wxNewId();
 const long xScheduleFrame::ID_MNU_BACKGROUND = wxNewId();
 const long xScheduleFrame::ID_MNU_MATRICES = wxNewId();
 const long xScheduleFrame::ID_MNU_VIRTUALMATRICES = wxNewId();
+const long xScheduleFrame::ID_MNU_EDITEVENTS = wxNewId();
 const long xScheduleFrame::ID_MNU_OPTIONS = wxNewId();
 const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
@@ -157,8 +159,10 @@ const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCFPPMASTER = wxNewId();
+const long xScheduleFrame::IDM_MNU_ARTNETMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
+const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCOPTION = wxNewId();
@@ -370,6 +374,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer2->AddGrowableCol(0);
     FlexGridSizer2->AddGrowableRow(0);
     SplitterWindow2 = new wxSplitterWindow(Panel3, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
+    SplitterWindow2->SetMinSize(wxSize(10,10));
     SplitterWindow2->SetMinimumPaneSize(10);
     SplitterWindow2->SetSashGravity(0.5);
     Panel6 = new wxPanel(SplitterWindow2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
@@ -464,6 +469,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu5->Append(MenuItem_Matrices);
     MenuItem_VirtualMatrices = new wxMenuItem(Menu5, ID_MNU_VIRTUALMATRICES, _("&Virtual Matrices"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_VirtualMatrices);
+    MenuItem_EditEvents = new wxMenuItem(Menu5, ID_MNU_EDITEVENTS, _("&Events"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_EditEvents);
     MenuItem_Options = new wxMenuItem(Menu5, ID_MNU_OPTIONS, _("&Options"), wxEmptyString, wxITEM_NORMAL);
     Menu5->Append(MenuItem_Options);
     MenuBar1->Append(Menu5, _("&Edit"));
@@ -486,10 +493,14 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu4->Append(MenuItem_OSCMaster);
     MenuItem_FPPOSCMaster = new wxMenuItem(Menu4, ID_MNU_OSCFPPMASTER, _("FPP + OSC Master"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPOSCMaster);
+    MenuItem_ARTNetTimeCodeMaster = new wxMenuItem(Menu4, IDM_MNU_ARTNETMASTER, _("ARTNet Timecode Master"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_ARTNetTimeCodeMaster);
     MenuItem_FPPRemote = new wxMenuItem(Menu4, ID_MNU_FPPREMOTE, _("FPP Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPRemote);
     MenuItem_OSCRemote = new wxMenuItem(Menu4, ID_MNU_OSCREMOTE, _("OSC Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_OSCRemote);
+    MenuItem_ARTNetTimeCodeSlave = new wxMenuItem(Menu4, ID_MNU_ARTNETTIMECODESLAVE, _("ARTNet Timecode Slave"), wxEmptyString, wxITEM_RADIO);
+    Menu4->Append(MenuItem_ARTNetTimeCodeSlave);
     MenuItem_FPPUnicastRemote = new wxMenuItem(Menu4, ID_MNU_FPPUNICASTREMOTE, _("FPP Unicast Remote"), wxEmptyString, wxITEM_RADIO);
     Menu4->Append(MenuItem_FPPUnicastRemote);
     MenuItem_EditFPPRemotes = new wxMenuItem(Menu4, ID_MNU_EDITFPPREMOTE, _("Edit FPP Remotes"), _("Edit remotes to unicast sync packets to"), wxITEM_NORMAL);
@@ -546,6 +557,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_BACKGROUND,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected);
     Connect(ID_MNU_MATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MatricesSelected);
     Connect(ID_MNU_VIRTUALMATRICES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_VirtualMatricesSelected);
+    Connect(ID_MNU_EDITEVENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditEventsSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
@@ -555,8 +567,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
     Connect(ID_MNU_OSCFPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPOSCMasterSelected);
+    Connect(IDM_MNU_ARTNETMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected);
     Connect(ID_MNU_FPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPRemoteSelected);
     Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
+    Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
     Connect(ID_MNU_FPPUNICASTREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
@@ -2297,6 +2311,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPOSCMASTER)
     {
@@ -2307,6 +2323,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(true);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::OSCMASTER)
     {
@@ -2317,6 +2335,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(true);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPSLAVE)
     {
@@ -2327,6 +2347,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::OSCSLAVE)
     {
@@ -2337,6 +2359,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(true);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else if (__schedule->GetMode() == SYNCMODE::FPPUNICASTSLAVE)
     {
@@ -2347,6 +2371,32 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::ARTNETSLAVE)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(true);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::ARTNETMASTER)
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(true);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
     else
     {
@@ -2357,6 +2407,8 @@ void xScheduleFrame::UpdateUI()
         MenuItem_OSCMaster->Check(false);
         MenuItem_FPPOSCMaster->Check(false);
         MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
     }
 
     if (_pinger != nullptr)
@@ -2412,6 +2464,8 @@ void xScheduleFrame::UpdateUI()
     }
 
     ValidateWindow();
+
+    Refresh();
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
@@ -2613,4 +2667,25 @@ void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 
 void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
 {
+}
+
+void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
+{
+    EventsDialog dlg(this, __schedule->GetOptions());
+
+    dlg.ShowModal();
+
+    __schedule->StartListeners();
+}
+
+void xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event)
+{
+    __schedule->SetMode(SYNCMODE::ARTNETSLAVE);
+    UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event)
+{
+    __schedule->SetMode(SYNCMODE::ARTNETMASTER);
+    UpdateUI();
 }

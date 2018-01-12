@@ -145,6 +145,8 @@ void PlayListItemRunCommandPanel::OnTextCtrl_Parm3Text(wxCommandEvent& event)
 
 void PlayListItemRunCommandPanel::OnChoice_CommandSelect(wxCommandEvent& event)
 {
+    Command* c = xScheduleFrame::GetScheduleManager()->GetCommand(Choice_Command->GetStringSelection().ToStdString());
+    Choice_Command->SetToolTip(c->GetParametersTip());
     ValidateWindow();
 }
 

@@ -31,8 +31,10 @@
 #include "PlayList/PlayListItemText.h"
 #include "Control.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "../xLights/outputs/ArtNetOutput.h"
 #include "../xLights/UtilFunctions.h"
 #include "Pinger.h"
+#include "events/ListenerManager.h"
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -42,6 +44,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _listenerManager = nullptr;
     _pinger = nullptr;
     _webRequestToggle = false;
     _backgroundPlayList = nullptr;
@@ -49,10 +52,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
     _oscSyncMaster = nullptr;
+    _artNetSyncMaster = nullptr;
     _fppSyncMasterUnicast = nullptr;
-    _fppSyncSlave = nullptr;
     _oscSyncSlave = nullptr;
-    _fppSyncUnicastSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -123,47 +125,6 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         _scheduleOptions = new ScheduleOptions();
     }
 
-    if (_mode == SYNCMODE::FPPMASTER) {
-        logger_base.info("SyncMode: FPPMASTER");
-        OpenFPPSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::OSCMASTER) {
-        logger_base.info("SyncMode: OSCMASTER");
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::FPPOSCMASTER) {
-        logger_base.info("SyncMode: FPPOSCMASTER");
-        OpenFPPSyncSendSocket();
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::FPPSLAVE)
-    {
-        logger_base.info("SyncMode: FPPREMOTE");
-        OpenFPPSyncListenSocket();
-    }
-    else if (_mode == SYNCMODE::OSCSLAVE)
-    {
-        logger_base.info("SyncMode: OSCREMOTE");
-        OpenOSCSyncListenSocket();
-    }
-    else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
-    {
-        logger_base.info("SyncMode: FPPUNICASTREMOTE");
-        OpenFPPSyncUnicastListenSocket();
-    }
-    else if (_mode == SYNCMODE::STANDALONE)
-    {
-        logger_base.info("SyncMode: STANDALONE");
-    }
-    else if (_mode == SYNCMODE::ARTNETMASTER)
-    {
-        logger_base.info("SyncMode: ARTNETMASTER");
-    }
-    else if (_mode == SYNCMODE::ARTNETSLAVE)
-    {
-        logger_base.info("SyncMode: ARTNETREMOTE");
-    }
-
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
     logger_base.info("Loaded outputs from %s.", (const char *)(_showDir + "/" + _outputManager->GetNetworksFileName()).c_str());
 
@@ -195,6 +156,52 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         StartVirtualMatrices();
     }
 
+    _listenerManager = new ListenerManager(this);
+
+    if (_mode == SYNCMODE::FPPMASTER) {
+        logger_base.info("SyncMode: FPPMASTER");
+        OpenFPPSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::OSCMASTER) {
+        logger_base.info("SyncMode: OSCMASTER");
+        OpenOSCSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::FPPOSCMASTER) {
+        logger_base.info("SyncMode: FPPOSCMASTER");
+        OpenFPPSyncSendSocket();
+        OpenOSCSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::FPPSLAVE)
+    {
+        logger_base.info("SyncMode: FPPREMOTE");
+        _listenerManager->SetRemoteFPP();
+    }
+    else if (_mode == SYNCMODE::OSCSLAVE)
+    {
+        logger_base.info("SyncMode: OSCREMOTE");
+        _listenerManager->SetRemoteOSC();
+    }
+    else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
+    {
+        logger_base.info("SyncMode: FPPUNICASTREMOTE");
+        _listenerManager->SetRemoteFPPUnicast();
+    }
+    else if (_mode == SYNCMODE::STANDALONE)
+    {
+        logger_base.info("SyncMode: STANDALONE");
+    }
+    else if (_mode == SYNCMODE::ARTNETMASTER)
+    {
+        logger_base.info("SyncMode: ARTNETMASTER");
+        OpenARTNetSyncSendSocket();
+    }
+    else if (_mode == SYNCMODE::ARTNETSLAVE)
+    {
+        logger_base.info("SyncMode: ARTNETREMOTE");
+        _listenerManager->SetRemoteArtNet();
+    }
+    _listenerManager->StartListeners();
+
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
     _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
@@ -222,14 +229,121 @@ int ScheduleManager::GetPPS() const
     return 0;
 }
 
+void ScheduleManager::StartListeners()
+{
+    _listenerManager->StartListeners();
+}
+
+int ScheduleManager::Sync(const std::string& filename, long ms)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    PlayList* pl = GetRunningPlayList();
+    PlayListStep* pls = nullptr;
+
+    if (filename != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == filename)
+    {
+        // right step is running
+        pls = pl->GetRunningStep();
+    }
+    else if (filename == "" && pl != nullptr)
+    {
+        // dont touch the playlist but need to work out which step should be playing
+        PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+        if (shouldberunning != nullptr)
+        {
+            if (shouldberunning != pl->GetRunningStep())
+            {
+                logger_base.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char *)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                pl->JumpToStep(shouldberunning->GetNameNoTime());
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
+            if (pl->GetRunningStep() != nullptr)
+            {
+                pl->GetRunningStep()->SetSyncPosition(ms, true);
+            }
+        }
+        else
+        {
+            logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+            pl->Stop();
+        }
+    }
+    else if (filename == "" && pl == nullptr)
+    {
+        if (_playLists.size() > 0)
+        {
+            pl = new PlayList(*_playLists.front());
+            PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+            if (shouldberunning == nullptr)
+            {
+                logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                delete pl;
+            }
+            else
+            {
+                logger_base.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char *)pl->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                pl->Start(false, false, false);
+                pl->JumpToStep(shouldberunning->GetNameNoTime());
+                if (pl->GetRunningStep() != nullptr)
+                {
+                    pl->GetRunningStep()->SetSyncPosition(ms, true);
+                }
+                _immediatePlay = pl;
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
+        }
+        else
+        {
+            logger_base.warn("Remote sync with no filename ... No playlist found to run.");
+        }
+    }
+    else
+    {
+        if (pl != nullptr)
+        {
+            StopPlayList(pl, false);
+            pl = nullptr;
+        }
+
+        // need to start the playlist step
+        if (filename != "")
+        {
+            StartStep(filename);
+        }
+        pl = GetRunningPlayList();
+        if (pl != nullptr) pls = pl->GetRunningStep();
+        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+    }
+
+    if (pls != nullptr)
+    {
+        if (ms == 0xFFFFFFFF)
+        {
+            if (pls->GetName() == filename)
+            {
+                StopPlayList(pl, false);
+            }
+        }
+        else
+        {
+            pls->SetSyncPosition((size_t)ms, true);
+        }
+    }
+
+    if (pls != nullptr) return pls->GetFrameMS();
+    if (pl != nullptr) return pl->GetFrameMS();
+    return 50;
+}
+
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     CloseFPPSyncSendSocket();
     CloseOSCSyncSendSocket();
-    CloseFPPSyncListenSocket();
-    CloseFPPSyncUnicastListenSocket();
-    CloseOSCSyncListenSocket();
+    CloseARTNetSyncSendSocket();
     AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
@@ -301,6 +415,12 @@ ScheduleManager::~ScheduleManager()
         auto toremove = _activeSchedules.front();
         _activeSchedules.remove(toremove);
         delete toremove;
+    }
+
+    if (_listenerManager != nullptr)
+    {
+        _listenerManager->Stop();
+        delete _listenerManager;
     }
 
     delete _scheduleOptions;
@@ -522,6 +642,7 @@ int ScheduleManager::Frame(bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int rate = 0;
+    long totalChannels = _outputManager->GetTotalChannels();
 
     // timeout xyzzy if no api calls for 15 seconds
     if (_xyzzy != nullptr && (wxDateTime::Now() - _lastXyzzyCommand).GetSeconds() > 15)
@@ -536,35 +657,43 @@ int ScheduleManager::Frame(bool outputframe)
 
     if (running != nullptr || _xyzzy != nullptr)
     {
+        std::string fseq = running->GetActiveSyncItemFSEQ();
+        std::string media = running->GetActiveSyncItemMedia();
+        rate = running->GetFrameMS();
+
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
 
         if (outputframe)
         {
-            memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
+            memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
             _outputManager->StartFrame(msec);
         }
 
         bool done = false;
         if (running != nullptr)
         {
-            rate = running->GetFrameMS();
-            done = running->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+            done = running->Frame(_buffer, totalChannels, outputframe);
 
             if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
             {
                 if (running->GetActiveSyncItemFSEQ() != "")
                 {
-                    SendFPPSync(running->GetActiveSyncItemFSEQ(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+                    SendFPPSync(fseq, running->GetRunningStep()->GetPosition(), rate);
                 }
                 if (running->GetActiveSyncItemMedia() != "")
                 {
-                    SendFPPSync(running->GetActiveSyncItemMedia(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+                    SendFPPSync(media, running->GetRunningStep()->GetPosition(), rate);
                 }
             }
 
             if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER)  && running->GetRunningStep() != nullptr)
             {
                 SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+            }
+
+            if (outputframe && _mode == SYNCMODE::ARTNETMASTER  && running != nullptr)
+            {
+                SendARTNetSync(running->GetPosition(), running->GetFrameMS());
             }
 
             // for queued songs we must remove the queued song when it finishes
@@ -588,12 +717,12 @@ int ScheduleManager::Frame(bool outputframe)
                 _backgroundPlayList->Start(true);
                 logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
             }
-            _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+            _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
         }
 
         if (_xyzzy != nullptr)
         {
-            _xyzzy->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+            _xyzzy->Frame(_buffer, totalChannels, outputframe);
         }
 
         if (outputframe)
@@ -601,13 +730,13 @@ int ScheduleManager::Frame(bool outputframe)
             // apply any overlay data
             for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
             {
-                (*it)->Set(_buffer, _outputManager->GetTotalChannels());
+                (*it)->Set(_buffer, totalChannels);
             }
 
             // apply any output processing
             for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
             {
-                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+                (*it)->Frame(_buffer, totalChannels);
             }
 
             if (outputframe && _brightness < 100)
@@ -619,7 +748,7 @@ int ScheduleManager::Frame(bool outputframe)
                 }
 
                 wxByte* pb = _buffer;
-                for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                for (int i = 0; i < totalChannels; ++i)
                 {
                     *pb = _brightnessArray[*pb];
                     pb++;
@@ -629,17 +758,19 @@ int ScheduleManager::Frame(bool outputframe)
             auto vm = GetOptions()->GetVirtualMatrices();
             for (auto it = vm->begin(); it != vm->end(); ++it)
             {
-                (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+                (*it)->Frame(_buffer, totalChannels);
             }
 
-            _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
+            _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+            _outputManager->SetManyChannels(0, _buffer, totalChannels);
             _outputManager->EndFrame();
         }
 
         if (done)
         {
-            SendFPPSync(running->GetActiveSyncItemFSEQ(), 0xFFFFFFFF, running->GetFrameMS());
-            SendFPPSync(running->GetActiveSyncItemMedia(), 0xFFFFFFFF, running->GetFrameMS());
+            SendFPPSync(fseq, 0xFFFFFFFF, rate);
+            SendFPPSync(media, 0xFFFFFFFF, rate);
 
             // playlist is done
             StopPlayList(running, false);
@@ -666,19 +797,19 @@ int ScheduleManager::Frame(bool outputframe)
                         _backgroundPlayList->Start(true);
                         logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                     }
-                    _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe);
+                    _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
 
                     // apply any overlay data
                     for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
                     {
-                        (*it)->Set(_buffer, _outputManager->GetTotalChannels());
+                        (*it)->Set(_buffer, totalChannels);
                     }
                 }
 
                 // apply any output processing
                 for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
                 {
-                    (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+                    (*it)->Frame(_buffer, totalChannels);
                 }
 
                 if (outputframe && _brightness < 100)
@@ -690,7 +821,7 @@ int ScheduleManager::Frame(bool outputframe)
                     }
 
                     wxByte* pb = _buffer;
-                    for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
+                    for (int i = 0; i < totalChannels; ++i)
                     {
                         *pb = _brightnessArray[*pb];
                         pb++;
@@ -700,10 +831,12 @@ int ScheduleManager::Frame(bool outputframe)
                 auto vm = GetOptions()->GetVirtualMatrices();
                 for (auto it = vm->begin(); it != vm->end(); ++it)
                 {
-                    (*it)->Frame(_buffer, _outputManager->GetTotalChannels());
+                    (*it)->Frame(_buffer, totalChannels);
                 }
 
-                _outputManager->SetManyChannels(0, _buffer, _outputManager->GetTotalChannels());
+                _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+                _outputManager->SetManyChannels(0, _buffer, totalChannels);
                 _outputManager->EndFrame();
             }
         }
@@ -992,6 +1125,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 bool ScheduleManager::Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     bool result = true;
+    bool scheduleChanged = false;
 
     Command* cmd = _commandManager.GetCommand(command);
 
@@ -1011,6 +1145,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             if (command == "Stop all now")
             {
                 StopAll();
+                scheduleChanged = true;
             }
             else if (command == "Stop")
             {
@@ -1030,6 +1165,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         p->RemoveAllSteps();
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play selected playlist")
             {
@@ -1041,6 +1177,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play selected playlist looped")
             {
@@ -1052,6 +1189,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play specified playlist")
             {
@@ -1065,6 +1203,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play specified playlist looped")
             {
@@ -1078,6 +1217,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Stop specified playlist")
             {
@@ -1087,6 +1227,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     StopPlayList(p, false);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Stop specified playlist at end of current step")
             {
@@ -1096,6 +1237,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     StopPlayList(p, true);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Stop playlist at end of current step")
             {
@@ -1105,6 +1247,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     StopPlayList(p, true);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Stop specified playlist at end of current loop")
             {
@@ -1114,6 +1257,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->StopAtEndOfThisLoop();
                 }
+                scheduleChanged = true;
             }
             else if (command == "Jump to play once at end at end of current step and then stop")
             {
@@ -1123,6 +1267,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->JumpToEndStepsAtEndOfCurrentStep();
                 }
+                scheduleChanged = true;
             }
             else if (command == "Stop playlist at end of current loop")
             {
@@ -1132,10 +1277,12 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->StopAtEndOfThisLoop();
                 }
+                scheduleChanged = true;
             }
             else if (command == "Pause")
             {
                 result = ToggleCurrentPlayListPause(msg);
+                scheduleChanged = true;
             }
             else if (command == "Next step in current playlist")
             {
@@ -1154,6 +1301,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         rate = p->JumpToNextStep();
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Restart step in current playlist")
             {
@@ -1163,6 +1311,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->RestartCurrentStep();
                 }
+                scheduleChanged = true;
             }
             else if (command == "Prior step in current playlist")
             {
@@ -1172,10 +1321,12 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     rate = p->JumpToPriorStep();
                 }
+                scheduleChanged = true;
             }
             else if (command == "Toggle loop current step")
             {
                 result = ToggleCurrentPlayListStepLoop(msg);
+                scheduleChanged = true;
             }
             else if (command == "Play specified step in specified playlist looped")
             {
@@ -1199,6 +1350,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         p->LoopStep(step);
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Run process")
             {
@@ -1272,6 +1424,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Enqueue playlist step")
             {
@@ -1313,6 +1466,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unknown step.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Clear playlist queue")
             {
@@ -1326,8 +1480,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                 wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
-                wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                scheduleChanged = true;
             }
             else if (command == "Play playlist starting at step")
             {
@@ -1347,6 +1500,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play playlist starting at step looped")
             {
@@ -1366,6 +1520,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Play playlist step")
             {
@@ -1385,6 +1540,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Jump to specified step in current playlist")
             {
@@ -1394,6 +1550,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     rate = p->JumpToStep(parameters);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Jump to specified step in current playlist at the end of current step")
             {
@@ -1403,6 +1560,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     p->JumpToStepAtEndOfCurrentStep(parameters);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Jump to random step in current playlist")
             {
@@ -1416,6 +1574,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         rate = p->JumpToStep(r->GetNameNoTime());
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Jump to random step in specified playlist")
             {
@@ -1429,6 +1588,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         rate = p->JumpToStep(r->GetNameNoTime());
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Add to the current schedule n minutes")
             {
@@ -1471,14 +1631,17 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             else if (command == "Toggle current playlist random")
             {
                 result = ToggleCurrentPlayListRandom(msg);
+                scheduleChanged = true;
             }
             else if (command == "Toggle current playlist loop")
             {
                 result = ToggleCurrentPlayListLoop(msg);
+                scheduleChanged = true;
             }
             else if (command == "Save schedule")
             {
                 Save();
+                scheduleChanged = true;
             }
             else if (command == "Run command at end of current step")
             {
@@ -1517,6 +1680,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Restart all schedules")
             {
@@ -1526,8 +1690,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
-                wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                scheduleChanged = true;
             }
             else if (command == "Restart named schedule")
             {
@@ -1540,6 +1703,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     wxCommandEvent event2(EVT_SCHEDULECHANGED);
                     wxPostEvent(wxGetApp().GetTopWindow(), event2);
                 }
+                scheduleChanged = true;
             }
             else if (command == "Restart playlist schedules")
             {
@@ -1561,8 +1725,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
-                wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                scheduleChanged = true;
             }
             else if (command == "PressButton")
             {
@@ -1601,6 +1764,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else if (command == "Refresh current playlist")
             {
@@ -1695,6 +1859,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     result = false;
                     msg = "Only scheduled and immediately played playlists can be restarted.";
                 }
+                scheduleChanged = true;
             }
             else if (command == "Bring to foreground")
             {
@@ -1839,6 +2004,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         msg = "Unable to start playlist.";
                     }
                 }
+                scheduleChanged = true;
             }
             else
             {
@@ -1868,8 +2034,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         }
     }
 
-    wxCommandEvent event(EVT_SCHEDULECHANGED);
-    wxPostEvent(wxGetApp().GetTopWindow(), event);
+    if (scheduleChanged)
+    {
+        wxCommandEvent event(EVT_SCHEDULECHANGED);
+        wxPostEvent(wxGetApp().GetTopWindow(), event);
+    }
 
     return result;
 }
@@ -2620,60 +2789,67 @@ void ScheduleManager::SetMode(SYNCMODE mode)
 
         if (_mode == SYNCMODE::FPPMASTER)
         {
+            _listenerManager->SetRemoteNone();
             CloseOSCSyncSendSocket();
-            CloseOSCSyncListenSocket();
-            CloseFPPSyncUnicastListenSocket();
-            CloseFPPSyncListenSocket();
+            CloseARTNetSyncSendSocket();
             OpenFPPSyncSendSocket();
         }
         else if (_mode == SYNCMODE::OSCMASTER)
         {
-            CloseOSCSyncListenSocket();
-            CloseFPPSyncUnicastListenSocket();
-            CloseFPPSyncListenSocket();
+            _listenerManager->SetRemoteNone();
             CloseFPPSyncSendSocket();
+            CloseARTNetSyncSendSocket();
             OpenOSCSyncSendSocket();
+        }
+        else if (_mode == SYNCMODE::ARTNETMASTER)
+        {
+            _listenerManager->SetRemoteNone();
+            CloseFPPSyncSendSocket();
+            CloseOSCSyncSendSocket();
+            OpenARTNetSyncSendSocket();
         }
         else if (_mode == SYNCMODE::FPPOSCMASTER)
         {
-            CloseOSCSyncListenSocket();
-            CloseFPPSyncUnicastListenSocket();
-            CloseFPPSyncListenSocket();
+            _listenerManager->SetRemoteNone();
+            CloseARTNetSyncSendSocket();
             OpenFPPSyncSendSocket();
             OpenOSCSyncSendSocket();
         }
         else if (_mode == SYNCMODE::FPPSLAVE)
         {
+            _listenerManager->SetRemoteFPP();
+            CloseARTNetSyncSendSocket();
             CloseOSCSyncSendSocket();
-            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
-            CloseFPPSyncUnicastListenSocket();
-            OpenFPPSyncListenSocket();
+        }
+        else if (_mode == SYNCMODE::ARTNETSLAVE)
+        {
+            _listenerManager->SetRemoteArtNet();
+            CloseARTNetSyncSendSocket();
+            CloseOSCSyncSendSocket();
+            CloseFPPSyncSendSocket();
         }
         else if (_mode == SYNCMODE::OSCSLAVE)
         {
+            _listenerManager->SetRemoteOSC();
+            CloseARTNetSyncSendSocket();
             CloseOSCSyncSendSocket();
             CloseFPPSyncSendSocket();
-            CloseFPPSyncUnicastListenSocket();
-            CloseFPPSyncListenSocket();
-            OpenOSCSyncListenSocket();
         }
         else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
         {
+            _listenerManager->SetRemoteFPPUnicast();
+            CloseARTNetSyncSendSocket();
             CloseOSCSyncSendSocket();
-            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
-            CloseFPPSyncListenSocket();
-            OpenFPPSyncUnicastListenSocket();
         }
         else
         {
+            CloseARTNetSyncSendSocket();
             CloseOSCSyncSendSocket();
-            CloseOSCSyncListenSocket();
             CloseFPPSyncSendSocket();
-            CloseFPPSyncListenSocket();
-            CloseFPPSyncUnicastListenSocket();
         }
+        _listenerManager->StartListeners();
     }
 }
 
@@ -4062,6 +4238,85 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
     }
 }
 
+void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
+{
+    static size_t lastmsec = 0;
+
+    if ((_mode == SYNCMODE::ARTNETMASTER) && _artNetSyncMaster == nullptr)
+    {
+        OpenARTNetSyncSendSocket();
+    }
+
+    if (_artNetSyncMaster == nullptr) return;
+
+    bool dosend = false;
+    if (msec == 0) dosend = true;
+
+    if (!dosend)
+    {
+        if (msec - lastmsec > 1000)
+        {
+            dosend = true;
+        }
+    }
+
+    if (!dosend) return;
+
+    wxIPV4address remoteAddr;
+    //remoteAddr.BroadcastAddress();
+    remoteAddr.Hostname("255.255.255.255");
+    remoteAddr.Service(ARTNET_PORT);
+
+    int bufsize = 19;
+    unsigned char* buffer = (unsigned char*)malloc(bufsize);
+    memset(buffer, 0x00, bufsize);
+
+    if (buffer != nullptr)
+    {
+        buffer[0] = 'A';
+        buffer[1] = 'r';
+        buffer[2] = 't';
+        buffer[3] = '-';
+        buffer[4] = 'N';
+        buffer[5] = 'e';
+        buffer[6] = 't';
+        buffer[9] = 0x97;
+        buffer[11] = 0x0E;
+
+        size_t ms = msec;
+        buffer[15] = ms / (3600000);
+        ms = ms % 360000;
+
+        buffer[14] = ms / 60000;
+        ms = ms % 60000;
+
+        buffer[13] = ms / 1000;
+        ms = ms % 1000;
+
+        buffer[16] = GetOptions()->GetARTNetTimeCodeFormat();
+
+        switch(buffer[16])
+        {
+        case 0: //24 fps
+            buffer[12] = ms * 24 / 1000;
+            break;
+        case 1: // 25 fps
+            buffer[12] = ms * 25 / 1000;
+            break;
+        case 2: // 29.97 fps
+            buffer[12] = ms * 2997 / 100000;
+            break;
+        case 3: // 30 fps
+            buffer[12] = ms * 30 / 1000;
+            break;
+        }
+
+        _artNetSyncMaster->SendTo(remoteAddr, buffer, bufsize);
+
+        free(buffer);
+    }
+}
+
 void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
 {
     static std::string lastfseq = "";
@@ -4270,6 +4525,47 @@ void ScheduleManager::OpenOSCSyncSendSocket()
     }
 }
 
+void ScheduleManager::OpenARTNetSyncSendSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    CloseARTNetSyncSendSocket();
+
+    wxIPV4address localaddr;
+    if (IPOutput::GetLocalIP() == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::GetLocalIP());
+    }
+
+    _artNetSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
+    if (_artNetSyncMaster == nullptr)
+    {
+        logger_base.error("Error opening datagram for ARTNet Sync as master.");
+    }
+    else if (!_artNetSyncMaster->IsOk())
+    {
+        logger_base.error("Error opening datagram for ARTNet Sync as master. OK : FALSE");
+        delete _artNetSyncMaster;
+        _artNetSyncMaster = nullptr;
+    }
+    else if (_artNetSyncMaster->Error())
+    {
+        logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s", 
+            _artNetSyncMaster->LastError(), 
+            (const char*)IPOutput::DecodeError(_artNetSyncMaster->LastError()).c_str());
+        delete _artNetSyncMaster;
+        _artNetSyncMaster = nullptr;
+    }
+    else
+    {
+        logger_base.info("ARTNet Sync as master datagram opened successfully.");
+    }
+}
+
 void ScheduleManager::CloseFPPSyncSendSocket()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4289,6 +4585,17 @@ void ScheduleManager::CloseFPPSyncSendSocket()
     }
 }
 
+void ScheduleManager::CloseARTNetSyncSendSocket()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_artNetSyncMaster != nullptr) {
+        logger_base.info("ARTNet Sync as master datagram closed.");
+        _artNetSyncMaster->Close();
+        delete _artNetSyncMaster;
+        _artNetSyncMaster = nullptr;
+    }
+}
+
 void ScheduleManager::CloseOSCSyncSendSocket()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4297,174 +4604,6 @@ void ScheduleManager::CloseOSCSyncSendSocket()
         _oscSyncMaster->Close();
         delete _oscSyncMaster;
         _oscSyncMaster = nullptr;
-    }
-}
-
-void ScheduleManager::CloseFPPSyncListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_fppSyncSlave != nullptr) {
-        logger_base.info("FPP Sync as remote datagram closed.");
-        _fppSyncSlave->Close();
-        delete _fppSyncSlave;
-        _fppSyncSlave = nullptr;
-    }
-}
-
-void ScheduleManager::CloseOSCSyncListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_oscSyncSlave != nullptr) {
-        logger_base.info("OSC Sync as remote datagram closed.");
-        _oscSyncSlave->Close();
-        delete _oscSyncSlave;
-        _oscSyncSlave = nullptr;
-    }
-}
-
-void ScheduleManager::CloseFPPSyncUnicastListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_fppSyncUnicastSlave != nullptr) {
-        logger_base.info("FPP Unicast Sync as remote datagram closed.");
-        _fppSyncUnicastSlave->Close();
-        delete _fppSyncUnicastSlave;
-        _fppSyncUnicastSlave = nullptr;
-    }
-}
-
-#define SERVER_ID	200
-
-BEGIN_EVENT_TABLE(ScheduleManager, wxEvtHandler)
-EVT_SOCKET(SERVER_ID, ScheduleManager::OnServerEvent)
-END_EVENT_TABLE()
-
-void ScheduleManager::OpenFPPSyncListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseFPPSyncListenSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-    localaddr.Service(FPP_CTRL_PORT);
-
-    _fppSyncSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_fppSyncSlave == nullptr)
-    {
-        logger_base.error("Error opening datagram for FPP Sync as remote.");
-    }
-    else if (!_fppSyncSlave->IsOk())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as remote. OK : FALSE");
-        delete _fppSyncSlave;
-        _fppSyncSlave = nullptr;
-    }
-    else if (_fppSyncSlave->Error())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as remote. %d : %s", _fppSyncSlave->LastError(), (const char*)IPOutput::DecodeError(_fppSyncSlave->LastError()).c_str());
-        delete _fppSyncSlave;
-        _fppSyncSlave = nullptr;
-    }
-    else
-    {
-        _fppSyncSlave->SetEventHandler(*this, SERVER_ID);
-        _fppSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
-        _fppSyncSlave->Notify(true);
-        logger_base.info("FPP Sync as remote datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::OpenOSCSyncListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseOSCSyncListenSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-    localaddr.Service(GetOptions()->GetOSCOptions()->GetClientPort());
-
-    _oscSyncSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_oscSyncSlave == nullptr)
-    {
-        logger_base.error("Error opening datagram for OSC Sync as remote.");
-    }
-    else if (!_oscSyncSlave->IsOk())
-    {
-        logger_base.error("Error opening datagram for OSC Sync as remote. OK : FALSE");
-        delete _oscSyncSlave;
-        _oscSyncSlave = nullptr;
-    }
-    else if (_oscSyncSlave->Error())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as remote. %d : %s", _oscSyncSlave->LastError(), (const char*)IPOutput::DecodeError(_oscSyncSlave->LastError()).c_str());
-        delete _oscSyncSlave;
-        _oscSyncSlave = nullptr;
-    }
-    else
-    {
-        _oscSyncSlave->SetEventHandler(*this, SERVER_ID);
-        _oscSyncSlave->SetNotify(wxSOCKET_INPUT_FLAG);
-        _oscSyncSlave->Notify(true);
-        logger_base.info("OSC Sync as remote datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::OpenFPPSyncUnicastListenSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseFPPSyncUnicastListenSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-    localaddr.Service(FPP_CTRL_CSV_PORT);
-
-    _fppSyncUnicastSlave = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-    if (_fppSyncUnicastSlave == nullptr)
-    {
-        logger_base.error("Error opening datagram for FPP Unicast Sync as remote.");
-    }
-    else if (!_fppSyncUnicastSlave->IsOk())
-    {
-        logger_base.error("Error opening datagram for FPP Uncast Sync as remote. OK : FALSE");
-        delete _fppSyncUnicastSlave;
-        _fppSyncUnicastSlave = nullptr;
-    }
-    else if (_fppSyncUnicastSlave->Error())
-    {
-        logger_base.error("Error opening datagram for FPP Unicast Sync as remote. %d : %s", _fppSyncUnicastSlave->LastError(), (const char*)IPOutput::DecodeError(_fppSyncUnicastSlave->LastError()).c_str());
-        delete _fppSyncUnicastSlave;
-        _fppSyncUnicastSlave = nullptr;
-    }
-    else
-    {
-        _fppSyncUnicastSlave->SetEventHandler(*this, SERVER_ID);
-        _fppSyncUnicastSlave->SetNotify(wxSOCKET_INPUT_FLAG);
-        _fppSyncUnicastSlave->Notify(true);
-        logger_base.info("FPP Unicast Sync as remote datagram opened successfully.");
     }
 }
 
@@ -4591,246 +4730,6 @@ void ScheduleManager::StartStep(const std::string stepName)
 
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(wxGetApp().GetTopWindow(), event2);
-    }
-}
-
-void ScheduleManager::OnServerEvent(wxSocketEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (_oscSyncSlave != nullptr)
-    {
-        return HandleOSCEvent(event);
-    }
-
-    static wxString lastMessage = "";
-
-    unsigned char buffer[2048];
-    memset(buffer, 0x00, sizeof(buffer));
-
-    int lastcount = -1;
-
-    while (lastcount != 0)
-    {
-        uint8_t packetType = -1;
-        std::string fileName = "";
-        uint32_t frameNumber = 999999999;
-        float secondsElapsed = -1;
-
-        wxIPV4address remoteaddr;
-        if (_fppSyncSlave != nullptr)
-        {
-            _fppSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
-            lastcount = _fppSyncSlave->LastCount();
-            logger_base.debug("Broadcast sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
-
-            if (lastcount >= sizeof(ControlPkt) + sizeof(SyncPkt))
-            {
-                ControlPkt* cp = (ControlPkt*)&buffer[0];
-                if (strncmp(cp->fppd, "FPPD", 4) == 0)
-                {
-                    if (cp->pktType == CTRL_PKT_SYNC)
-                    {
-                        SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
-
-                        if (sp->fileType == SYNC_FILE_SEQ)
-                        {
-                            packetType = sp->pktType;
-                            fileName = std::string(sp->filename);
-                            frameNumber = sp->frameNumber;
-                            secondsElapsed = sp->secondsElapsed;
-                        }
-                        else
-                        {
-                            // media file ... not sure what to do with this ... so ignoring it
-                        }
-                    }
-                }
-            }
-        }
-        else if (_fppSyncUnicastSlave != nullptr)
-        {
-            _fppSyncUnicastSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
-            lastcount = _fppSyncUnicastSlave->LastCount();
-
-            logger_base.debug("Unicast sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
-
-            char* cr = strchr((char*)buffer, '\n');
-            if ((size_t)cr - (size_t)&buffer[0] < sizeof(buffer))
-            {
-                *cr = 0x00;
-            }
-
-            wxString msg = wxString(buffer);
-
-            if (msg == lastMessage)
-            {
-                // we dont want to double process
-            }
-            else
-            {
-                lastMessage = msg;
-                wxArrayString components = wxSplit(msg, ',');
-
-                if (components.size() >= 5)
-                {
-                    if (components[0] == "FPP" && wxAtoi(components[1]) == CTRL_PKT_SYNC && wxAtoi(components[2]) == SYNC_FILE_SEQ)
-                    {
-                        packetType = wxAtoi(components[3]);
-                        fileName = components[4].ToStdString();
-                        if (components.size() >= 7)
-                        {
-                            secondsElapsed = ((float)wxAtoi(components[5]) * 1000 + (float)wxAtoi(components[6])) / 1000.0;
-                            PlayList* pl = GetRunningPlayList();
-                            if (pl != nullptr)
-                            {
-                                frameNumber = secondsElapsed * 1000 / pl->GetFrameMS();
-                            }
-                        }
-                        logger_base.debug("Pkt %s.", (const char *)msg.c_str());
-                    }
-                }
-            }
-        }
-
-        if (packetType != -1)
-        {
-            switch (packetType)
-            {
-            case SYNC_PKT_START:
-            {
-                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
-
-                StartFSEQ(fileName);
-            }
-            break;
-            case SYNC_PKT_STOP:
-            {
-                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
-                PlayList* pl = GetRunningPlayList();
-                if (pl != nullptr)
-                {
-                    PlayListStep* pls = pl->GetRunningStep();
-
-                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
-                    {
-                        logger_base.debug("... Stopping %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
-
-                        // if this fseq file is running stop it
-                        StopPlayList(pl, false);
-                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
-                    }
-                }
-            }
-            break;
-            case SYNC_PKT_SYNC:
-            {
-                PlayList* pl = GetRunningPlayList();
-
-                if (pl == nullptr)
-                {
-                    StartFSEQ(fileName);
-                    pl = GetRunningPlayList();
-
-                    if (frameNumber == 999999999)
-                    {
-                        frameNumber = secondsElapsed * 1000 / pl->GetFrameMS();
-                    }
-
-                    PlayListStep* pls = pl->GetRunningStep();
-
-                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
-                    {
-                        pls->SetSyncPosition(frameNumber, (size_t)(secondsElapsed * 1000), true);
-                    }
-                }
-                else
-                {
-                    PlayListStep* pls = pl->GetRunningStep();
-
-                    if (pls != nullptr && pls->IsRunningFSEQ(fileName))
-                    {
-                        pls->SetSyncPosition(frameNumber, (size_t)(secondsElapsed * 1000));
-                    }
-                }
-            }
-            break;
-            }
-        }
-    }
-}
-
-void ScheduleManager::HandleOSCEvent(wxSocketEvent& event)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    unsigned char buffer[2048];
-    memset(buffer, 0x00, sizeof(buffer));
-
-    int lastcount = -1;
-
-    while (lastcount != 0)
-    {
-        wxIPV4address remoteaddr;
-        _oscSyncSlave->RecvFrom(remoteaddr, &buffer[0], sizeof(buffer));
-        lastcount = _oscSyncSlave->LastCount();
-        logger_base.debug("Broadcast OSC sync packet received from %s.", (const char *)remoteaddr.IPAddress().c_str());
-
-        int ms = 50;
-        PlayList* pl = GetRunningPlayList();
-        if (pl != nullptr) ms = pl->GetFrameMS();
-
-        OSCPacket packet(buffer, lastcount, GetOptions()->GetOSCOptions(), ms);
-
-        if (packet.IsOk())
-        {
-            std::string stepname = packet.GetStepName();
-            std::string timingname = packet.GetTimingName();
-
-            pl = GetRunningPlayList();
-            PlayListStep* pls = nullptr;
-            size_t frameMS = 50;
-
-            if (stepname != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == stepname)
-            {
-                // right step is running
-                pls = pl->GetRunningStep();
-            }
-            else if (timingname != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetTimeSource(frameMS)->GetNameNoTime() == timingname)
-            {
-                // right item is running
-                pls = pl->GetRunningStep();
-            }
-            else
-            {
-                if (pl != nullptr)
-                {
-                    StopPlayList(pl, false);
-                    pl = nullptr;
-                }
-
-                // need to start the playlist step
-                if (stepname != "")
-                {
-                    StartStep(stepname);
-                }
-                else if (timingname != "")
-                {
-                    StartTiming(timingname);
-                }
-                pl = GetRunningPlayList();
-                if (pl != nullptr) pls = pl->GetRunningStep();
-                wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                wxPostEvent(wxGetApp().GetTopWindow(), event2);
-            }
-
-            if (pls != nullptr)
-            {
-                ms = packet.GetMS(pls->GetLengthMS());
-                pls->SetSyncPosition(-1, (size_t)ms, true);
-            }
-        }
     }
 }
 

@@ -12,6 +12,7 @@ class wxXmlNode;
 class UserButton;
 class Projector;
 class OutputManager;
+class EventBase;
 
 typedef enum
 {
@@ -100,6 +101,8 @@ class ScheduleOptions
     std::list<std::string> _fppRemotes;
     std::string _audioDevice;
     OSCOptions* _oscOptions;
+    std::list<EventBase*> _events;
+    int _artNetTimeCodeFormat;
 
     public:
 
@@ -115,12 +118,15 @@ class ScheduleOptions
         bool IsAdvancedMode() const { return _advancedMode; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
+        std::list<EventBase*>* GetEvents() { return &_events; }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
+        void SetArtNetTimeCodeFormat(int artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
+        int GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::list<Projector*> GetProjectors() const;
         std::vector<UserButton*> GetButtons() const;
         Projector* GetProjector(const std::string& projector);
@@ -135,6 +141,7 @@ class ScheduleOptions
         std::string GetAudioDevice() const { return _audioDevice; }
         std::string GetDefaultRoot() const;
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
+        void SetDirty() { _changeCount++; }
         void SetAudioDevice(const std::string& audioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
         void AddProjector(const std::string& name, const std::string& ip, const std::string& password);

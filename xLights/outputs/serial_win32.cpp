@@ -42,6 +42,7 @@ int SerialPort::Close()
 {
     if (_fd != INVALID_HANDLE_VALUE)
     {
+        //FlushFileBuffers(_fd);
         CloseHandle(_ov.hEvent);
         CloseHandle(_fd);
         _fd = INVALID_HANDLE_VALUE;
@@ -276,6 +277,7 @@ int SerialPort::Write(char* buf, size_t len)
             return -1;
         }
     }
+    //FlushFileBuffers(_fd);
 
     return write;
 }

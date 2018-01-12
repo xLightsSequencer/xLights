@@ -176,6 +176,9 @@ public:
         void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
         void OnListView_PingItemActivated(wxListEvent& event);
         void OnListView_PingItemRClick(wxListEvent& event);
+        void OnMenuItem_EditEventsSelected(wxCommandEvent& event);
+        void OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event);
+        void OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -233,6 +236,7 @@ public:
         static const long ID_MNU_BACKGROUND;
         static const long ID_MNU_MATRICES;
         static const long ID_MNU_VIRTUALMATRICES;
+        static const long ID_MNU_EDITEVENTS;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEW_LOG;
         static const long ID_MNU_CHECK_SCHEDULE;
@@ -242,8 +246,10 @@ public:
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_OSCMASTER;
         static const long ID_MNU_OSCFPPMASTER;
+        static const long IDM_MNU_ARTNETMASTER;
         static const long ID_MNU_FPPREMOTE;
         static const long ID_MNU_OSCREMOTE;
+        static const long ID_MNU_ARTNETTIMECODESLAVE;
         static const long ID_MNU_FPPUNICASTREMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
         static const long ID_MNU_OSCOPTION;
@@ -279,6 +285,7 @@ public:
         wxMenuItem* MenuItem_FPPMaster;
         wxStaticText* StaticText2;
         wxPanel* Panel4;
+        wxMenuItem* MenuItem_EditEvents;
         wxMenu* Menu3;
         wxButton* Button_Schedule;
         wxSplitterWindow* SplitterWindow2;
@@ -299,6 +306,7 @@ public:
         wxButton* Button_Delete;
         wxStatusBar* StatusBar1;
         wxDirDialog* DirDialog1;
+        wxMenuItem* MenuItem_ARTNetTimeCodeMaster;
         wxListView* ListView_Ping;
         wxTimer _timerSchedule;
         wxListView* ListView_Running;
@@ -320,6 +328,7 @@ public:
         wxStaticText* StaticText_IP;
         wxMenuItem* MenuItem_ImportxLights;
         wxMenuItem* MenuItem_VirtualMatrices;
+        wxMenuItem* MenuItem_ARTNetTimeCodeSlave;
         wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
         wxMenuItem* Menu_OutputProcessing;

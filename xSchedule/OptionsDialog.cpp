@@ -9,11 +9,11 @@
 #include "../xLights/xLightsVersion.h"
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include "../xLights/AudioManager.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "../xLights/AudioManager.h"
 //*)
 
 //(*IdInit(OptionsDialog)
@@ -35,6 +35,8 @@ const long OptionsDialog::ID_BUTTON10 = wxNewId();
 const long OptionsDialog::ID_BUTTON9 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT7 = wxNewId();
 const long OptionsDialog::ID_CHOICE1 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT8 = wxNewId();
+const long OptionsDialog::ID_CHOICE2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT3 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL1 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT4 = wxNewId();
@@ -122,11 +124,19 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Audio Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_AudioDevice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	Choice_AudioDevice->SetSelection( Choice_AudioDevice->Append(_("(Default)")) );
 	FlexGridSizer8->Add(Choice_AudioDevice, 1, wxALL|wxEXPAND, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("ARTNet Time Code Format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer8->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_ARTNetTimeCodeFormat = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	Choice_ARTNetTimeCodeFormat->Append(_("Film - 24 fps"));
+	Choice_ARTNetTimeCodeFormat->SetSelection( Choice_ARTNetTimeCodeFormat->Append(_("EBU - 25 fps")) );
+	Choice_ARTNetTimeCodeFormat->Append(_("DF - 29.97 fps"));
+	Choice_ARTNetTimeCodeFormat->Append(_("SMPTE - 30 fps"));
+	FlexGridSizer8->Add(Choice_ARTNetTimeCodeFormat, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Web Server Port:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer8->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_WebServerPort = new wxSpinCtrl(this, ID_SPINCTRL1, _T("80"), wxDefaultPosition, wxDefaultSize, 0, 1, 64000, 80, _T("ID_SPINCTRL1"));
@@ -198,6 +208,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     ListView_Buttons->AppendColumn("Web Color");
 
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
+    Choice_ARTNetTimeCodeFormat->SetSelection(options->GetARTNetTimeCodeFormat());
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
@@ -297,6 +308,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetPassword(TextCtrl_Password->GetValue().ToStdString());
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
+    _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

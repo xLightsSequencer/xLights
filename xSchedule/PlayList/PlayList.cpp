@@ -883,6 +883,42 @@ std::string PlayList::GetActiveSyncItemMedia() const
     return "";
 }
 
+PlayListStep* PlayList::GetStepAtTime(long ms) const
+{
+    long at = 0;
+
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if (at + (*it)->GetLengthMS() > ms)
+        {
+            return *it;
+        }
+        at += (*it)->GetLengthMS();
+    }
+
+    return nullptr;
+}
+
+// Returns the position within the playlist summing up all steps prior to the current step and the position within the current step
+size_t PlayList::GetPosition() const
+{
+    size_t pos = 0;
+    for (auto it = _steps.begin(); it != _steps.end(); ++it)
+    {
+        if ((*it) == GetRunningStep())
+        {
+            pos += (*it)->GetPosition();
+            break;
+        }
+        else
+        {
+            pos += (*it)->GetLengthMS();
+        }
+    }
+
+    return pos;
+}
+
 std::string PlayList::GetName() const
 {
     std::string duration = "";

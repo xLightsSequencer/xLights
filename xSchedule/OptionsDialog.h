@@ -49,10 +49,12 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_DeleteProjector;
 		wxListView* ListView_Projectors;
 		wxCheckBox* CheckBox_Sync;
+		wxStaticText* StaticText8;
 		wxButton* Button_Export;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
 		wxButton* Button_Import;
+		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText7;
@@ -89,6 +91,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_BUTTON9;
 		static const long ID_STATICTEXT7;
 		static const long ID_CHOICE1;
+		static const long ID_STATICTEXT8;
+		static const long ID_CHOICE2;
 		static const long ID_STATICTEXT3;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;

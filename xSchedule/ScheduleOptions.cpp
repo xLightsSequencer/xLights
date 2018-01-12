@@ -2,15 +2,23 @@
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
-#include <wx/dir.h>
 #include <wx/filename.h>
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "Projector.h"
 #include "../xLights/AudioManager.h"
+#include <log4cpp/Category.hh>
+#include "events/EventBase.h"
+#include "events/EventARTNet.h"
+#include "events/EventSerial.h"
+#include "events/EventOSC.h"
+#include "events/EventFPP.h"
+#include "events/EventE131.h"
+#include "events/EventData.h"
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _oscOptions = nullptr;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
@@ -26,6 +34,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 #endif
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
+    _artNetTimeCodeFormat = wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1"));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
@@ -47,6 +56,40 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "VMatrix")
         {
             _virtualMatrices.push_back(new VirtualMatrix(outputManager, n));
+        }
+        else if (n->GetName() == "Events")
+        {
+            for (auto n2 = n->GetChildren(); n2 != nullptr; n2 = n2->GetNext())
+            {
+                if (n2->GetName() == "EventE131")
+                {
+                    _events.push_back(new EventE131(n2));
+                }
+                else if (n2->GetName() == "EventData")
+                {
+                    _events.push_back(new EventData(n2));
+                }
+                else if (n2->GetName() == "EventOSC")
+                {
+                    _events.push_back(new EventOSC(n2));
+                }
+                else if (n2->GetName() == "EventFPP")
+                {
+                    _events.push_back(new EventFPP(n2));
+                }
+                else if (n2->GetName() == "EventSerial")
+                {
+                    _events.push_back(new EventSerial(n2));
+                }
+                else if (n2->GetName() == "EventARTNet")
+                {
+                    _events.push_back(new EventARTNet(n2));
+                }
+                else
+                {
+                    logger_base.warn("Unrecognised event type %s.", (const char *)n2->GetName().c_str());
+                }
+            }
         }
         else if (n->GetName() == "FPPRemote")
         {
@@ -92,6 +135,7 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
+    _artNetTimeCodeFormat = 1;
     _oscOptions = new OSCOptions();
     _password = "";
     _passwordTimeout = 30;
@@ -161,6 +205,7 @@ wxXmlNode* ScheduleOptions::Save()
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
+    res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));
 
     for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
@@ -180,6 +225,13 @@ wxXmlNode* ScheduleOptions::Save()
     for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
     {
         res->AddChild((*it)->Save());
+    }
+
+    wxXmlNode* en = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Events");
+    res->AddChild(en);
+    for (auto it = _events.begin(); it != _events.end(); ++it)
+    {
+        en->AddChild((*it)->Save());
     }
 
     for (auto it = _fppRemotes.begin(); it != _fppRemotes.end(); ++it)
@@ -294,6 +346,11 @@ bool ScheduleOptions::IsDirty() const
         res = res || (*it)->IsDirty();
     }
 
+    for (auto it = _events.begin(); it != _events.end(); ++it)
+    {
+        res = res || (*it)->IsDirty();
+    }
+
     if (_oscOptions != nullptr) res = res || _oscOptions->IsDirty();
 
     return res;
@@ -319,6 +376,11 @@ void ScheduleOptions::ClearDirty()
     }
 
     for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    {
+        (*it)->ClearDirty();
+    }
+
+    for (auto it = _events.begin(); it != _events.end(); ++it)
     {
         (*it)->ClearDirty();
     }
