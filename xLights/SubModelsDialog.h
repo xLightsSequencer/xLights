@@ -134,6 +134,7 @@ class SubModelsDialog: public wxDialog
 		void OnListCtrl_SubModelsBeginDrag(wxListEvent& event);
 		void OnListCtrl_SubModelsColumnClick(wxListEvent& event);
 		void OnListCtrl_SubModelsKeyDown(wxListEvent& event);
+		void OnTextCtrl_NameText_Change(wxCommandEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

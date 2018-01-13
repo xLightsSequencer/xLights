@@ -204,6 +204,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddButtonClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteButtonClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_GenerateClick);
+	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
@@ -1048,3 +1049,12 @@ bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& da
 
 #pragma endregion Drag and Drop
 
+
+void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
+{
+    wxString s = TextCtrl_Name->GetValue();
+    int idx = GetSubModelInfoIndex(s);
+    SubModelInfo *smi = (SubModelInfo)ListCtrl_SubModels->GetItemData(idx);
+    smi->name = s;
+    ListCtrl_SubModels->SetItemText(s);
+}
