@@ -95,6 +95,20 @@ EffectGridTouchBar::EffectGridTouchBar(xlTouchBarSupport &support, const EffectM
     
     items.push_back(new GroupTouchBarItem("Playback Controls", pbitems));
     
+    std::vector<ButtonTouchBarItem*> zitems;
+    
+    zitems.push_back(new ButtonTouchBarItem([mainSequencer]() {
+        mainSequencer->PanelTimeLine->ZoomIn();
+    },
+                                             "Zoom In",
+                                             wxArtProvider::GetBitmap("xlART_ZOOM_IN")));
+    zitems.push_back(new ButtonTouchBarItem([mainSequencer]() {
+        mainSequencer->PanelTimeLine->ZoomOut();
+    },
+                                             "Zoom Out",
+                                             wxArtProvider::GetBitmap("xlART_ZOOM_OUT")));
+    items.push_back(new GroupTouchBarItem("Zoom", zitems));
+    
 
     
     ButtonTouchBarItem *colorsButton = new ButtonTouchBarItem([support, cb]() {
