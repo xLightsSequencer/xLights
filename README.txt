@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Add House/Model preview and play controls to TouchBar
    -- update (dkulp) Change minimum OSX requirement to 10.10
    -- enh (dkulp)  Support exporting model to LOR S5 clipboard file
    -- enh (k.mojek) Add "Export House Preview Video" to File menu

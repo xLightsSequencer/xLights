@@ -35,7 +35,7 @@ void ObtainAccessToURL(const std::string &path) {
                              includingResourceValuesForKeys: nil
                                               relativeToURL: nil
                                                       error: &error];
-        NSString *base64 = [newData base64Encoding];
+        NSString *base64 = [newData base64EncodedStringWithOptions:0];
         const char *cstr = [base64 UTF8String];
         if (cstr != nullptr && *cstr) {
             data = cstr;
@@ -46,7 +46,7 @@ void ObtainAccessToURL(const std::string &path) {
     if (data.length() > 0) {
         NSString* dstr = [NSString stringWithCString:data.ToStdString().c_str()
                                             encoding:[NSString defaultCStringEncoding]];
-        NSData *nsdata = [[NSData alloc] initWithBase64Encoding:dstr];
+        NSData *nsdata = [[NSData alloc] initWithBase64EncodedString:dstr options:0];
         BOOL isStale = false;
     //options:(NSURLBookmarkResolutionOptions)options
     //relativeToURL:(NSURL *)relativeURL

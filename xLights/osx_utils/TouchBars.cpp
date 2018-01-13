@@ -2,16 +2,18 @@
 //  TouchBars.cpp
 //  xLights
 
+#include <wx/artprov.h>
+
 #include "TouchBars.h"
 #include "../sequencer/MainSequencer.h"
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
 
 #ifdef __WXOSX__
-void *initializeTouchBarSuppor(wxWindow *w);
+void *initializeTouchBarSupport(wxWindow *w);
 void setActiveTouchbar(void *controller, xlTouchBar *tb);
 #else 
-void *initializeTouchBarSuppor(wxWindow *w) { return nullptr;}
+void *initializeTouchBarSupport(wxWindow *w) { return nullptr;}
 void setActiveTouchbar(void *controller, xlTouchBar *tb) {}
 #endif
 
@@ -21,7 +23,7 @@ xlTouchBarSupport::xlTouchBarSupport() : window(nullptr), parent(nullptr), contr
 xlTouchBarSupport::~xlTouchBarSupport() {
 }
 void xlTouchBarSupport::Init(wxWindow *w) {
-    controller = initializeTouchBarSuppor(w);
+    controller = initializeTouchBarSupport(w);
     if (controller) {
         parent = new wxPanel(w->GetParent());
         parent->Hide();
@@ -36,7 +38,12 @@ void xlTouchBarSupport::SetActive(xlTouchBar *tb) {
 wxControlTouchBarItem::wxControlTouchBarItem(wxWindow *c) : TouchBarItem(c->GetName().ToStdString()), control(c) {
     
 }
-
+GroupTouchBarItem::~GroupTouchBarItem() {
+    for (int x = 0; x < items.size(); x++) {
+        delete items[x];
+    }
+    items.clear();
+}
 
 xlTouchBar::xlTouchBar(xlTouchBarSupport &s) : support(s) {
 }
@@ -52,6 +59,44 @@ xlTouchBar::~xlTouchBar() {
 EffectGridTouchBar::EffectGridTouchBar(xlTouchBarSupport &support, const EffectManager &m,
                                        MainSequencer *mainSequencer, ColorPanelTouchBar *cb)
 : xlTouchBar(support), manager(m), colorBar(cb) {
+    
+    std::vector<ButtonTouchBarItem*> pvitems;
+    
+    pvitems.push_back(new ButtonTouchBarItem([mainSequencer]() {
+        mainSequencer->ToggleHousePreview();
+    },
+                                             "Toggle House Preview",
+                                             wxArtProvider::GetBitmap("xlART_HOUSE_PREVIEW")));
+    pvitems.push_back(new ButtonTouchBarItem([mainSequencer]() {
+        mainSequencer->ToggleModelPreview();
+    },
+                                             "Toggle Model Preview",
+                                             wxArtProvider::GetBitmap("xlART_MODEL_PREVIEW")));
+    items.push_back(new GroupTouchBarItem("Previews", pvitems));
+    
+    
+    std::vector<ButtonTouchBarItem*> pbitems;
+    
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Play"); },
+                                             "Play",
+                                             wxArtProvider::GetBitmap("xlART_PLAY")));
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Pause"); },
+                                             "Pause",
+                                             wxArtProvider::GetBitmap("xlART_PAUSE")));
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Stop"); },
+                                             "Stop",
+                                             wxArtProvider::GetBitmap("xlART_STOP")));
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Forward"); },
+                                             "Forward",
+                                             wxArtProvider::GetBitmap("xlART_BACKWARD")));
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Back"); },
+                                             "Backward",
+                                             wxArtProvider::GetBitmap("xlART_FORWARD")));
+    
+    items.push_back(new GroupTouchBarItem("Playback Controls", pbitems));
+    
+
+    
     ButtonTouchBarItem *colorsButton = new ButtonTouchBarItem([support, cb]() {
         cb->SetActive();
     }, "NSTouchBarColorPickerFill", "Colors");
@@ -72,6 +117,7 @@ EffectGridTouchBar::EffectGridTouchBar(xlTouchBarSupport &support, const EffectM
         
         items.push_back(new wxControlTouchBarItem(b));
     }
+    
 }
 EffectGridTouchBar::~EffectGridTouchBar() {
 }
