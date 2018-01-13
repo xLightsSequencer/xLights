@@ -258,10 +258,12 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
                                      const wxSize& size) {
     if ("xlART_STOP_NOW" == id) {
         return effectBitmaps.get(24, false, id, stop_sign_16, stop_sign_24, stop_sign_32, stop_sign_48, stop_sign_64);
-    } else if ("xlART_OUTPUT_LIGHTS" == id) {
+    } else if ("xlART_LIGHTS_OFF" == id) {
         return effectBitmaps.get(24, false, id, output_lights_off_16, output_lights_off_24, output_lights_off_32, output_lights_off_48, output_lights_off_64);
     } else if ("xlART_OUTPUT_LIGHTS_ON" == id) {
         return effectBitmaps.get(24, false, id, output_lights_on_16, output_lights_on_24, output_lights_on_32, output_lights_on_48, output_lights_on_64);
+    } else if ("xlART_OUTPUT_LIGHTS" == id) {
+        return effectBitmaps.get(24, false, id, output_lights_16, output_lights_24, output_lights_32, output_lights_48, output_lights_64);
     } else if ("xlART_EFFECTS" == id) {
         return effectBitmaps.get(24, false, id, effects_16, effects_24, effects_32, effects_48, effects_64);
     } else if ("xlART_COLORS" == id) {
@@ -276,8 +278,6 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, house_preview_16, house_preview_24, house_preview_32, house_preview_48, house_preview_64);
-    } else if ("xlART_LIGHTS_OFF" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_16, output_lights_24, output_lights_32, output_lights_48, output_lights_64);
     } else if ("xlART_ZOOM_IN" == id) {
         return effectBitmaps.get(24, false, id, zoom_in_16, zoom_in_24, zoom_in_32, zoom_in_48, zoom_in_64);
     } else if ("xlART_ZOOM_OUT" == id) {
