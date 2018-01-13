@@ -16,39 +16,27 @@
 
 
 /*-----  Toolbar Art ----- */
-#include "../include/stop_sign_24.xpm"
-#include "../include/output_lights_24.xpm"
-#include "../include/output_lights_off_16.xpm"
-#include "../include/output_lights_off_24.xpm"
-#include "../include/output_lights_off_32.xpm"
-#include "../include/output_lights_off_48.xpm"
-#include "../include/output_lights_off_64.xpm"
-
-#include "../include/output_lights_on_16.xpm"
-#include "../include/output_lights_on_24.xpm"
-#include "../include/output_lights_on_32.xpm"
-#include "../include/output_lights_on_48.xpm"
-#include "../include/output_lights_on_64.xpm"
-
-#include "../include/effects.xpm"
-#include "../include/colors.xpm"
-#include "../include/layers.xpm"
-#include "../include/layers2.xpm"
-#include "../include/effsettings.xpm"
-#include "../include/model_preview_24.xpm"
-#include "../include/house_preview_24.xpm"
-#include "../include/lights_off_24.xpm"
-#include "../include/zoom-out-24.xpm"
-#include "../include/zoom-in-24.xpm"
-#include "../include/settings-24.xpm"
-#include "../include/paste-by-time-24.xpm"
-#include "../include/paste-by-cell-24.xpm"
+#include "../include/toolbar/toolbarImages.h"
 
 #include "../include/render-all-16.xpm"
 #include "../include/render-all-24.xpm"
 #include "../include/render-all-32.xpm"
 #include "../include/render-all-48.xpm"
 #include "../include/render-all-64.xpm"
+#include "../include/paste-by-time-24.xpm"
+#include "../include/paste-by-cell-24.xpm"
+#include "../include/fforward10-24.xpm"
+#include "../include/rewind10-24.xpm"
+
+
+#define paste_by_time_16_xpm paste_by_time_24_xpm
+#define paste_by_time_32_xpm paste_by_time_24_xpm
+#define paste_by_time_48_xpm paste_by_time_24_xpm
+#define paste_by_time_64_xpm paste_by_time_24_xpm
+#define paste_by_cell_16_xpm paste_by_cell_24_xpm
+#define paste_by_cell_32_xpm paste_by_cell_24_xpm
+#define paste_by_cell_48_xpm paste_by_cell_24_xpm
+#define paste_by_cell_64_xpm paste_by_cell_24_xpm
 
 #include "../include/select_show_folder-24.xpm"
 #include "../include/save-24.xpm"
@@ -56,70 +44,10 @@
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
 
-#include "../include/toolbar/stop-16.xpm"
-#include "../include/toolbar/stop-24.xpm"
-#include "../include/toolbar/stop-32.xpm"
-#include "../include/toolbar/stop-48.xpm"
-#include "../include/toolbar/stop-64.xpm"
-#include "../include/stop-24_off.xpm"
-#include "../include/trash-24.xpm"
-#include "../include/search-24.xpm"
-#include "../include/toolbar/replay-16.xpm"
-#include "../include/toolbar/replay-24.xpm"
-#include "../include/toolbar/replay-32.xpm"
-#include "../include/toolbar/replay-48.xpm"
-#include "../include/toolbar/replay-64.xpm"
-#include "../include/toolbar/play-16.xpm"
-#include "../include/toolbar/play-24.xpm"
-#include "../include/toolbar/play-32.xpm"
-#include "../include/toolbar/play-48.xpm"
-#include "../include/toolbar/play-64.xpm"
-#include "../include/play-24_off.xpm"
-#include "../include/toolbar/pause-16.xpm"
-#include "../include/toolbar/pause-24.xpm"
-#include "../include/toolbar/pause-32.xpm"
-#include "../include/toolbar/pause-48.xpm"
-#include "../include/toolbar/pause-64.xpm"
-#include "../include/pause-24_off.xpm"
-#include "../include/move-24.xpm"
-#include "../include/home-24.xpm"
-#include "../include/gears-24.xpm"
-#include "../include/toolbar/forward-16.xpm"
-#include "../include/toolbar/forward-24.xpm"
-#include "../include/toolbar/forward-32.xpm"
-#include "../include/toolbar/forward-48.xpm"
-#include "../include/toolbar/forward-64.xpm"
-#include "../include/fforward10-24.xpm"
-#include "../include/forward-24_off.xpm"
-#include "../include/eye-open-24.xpm"
-#include "../include/toolbar/backward-16.xpm"
-#include "../include/toolbar/backward-24.xpm"
-#include "../include/toolbar/backward-32.xpm"
-#include "../include/toolbar/backward-48.xpm"
-#include "../include/toolbar/backward-64.xpm"
-#include "../include/rewind10-24.xpm"
-#include "../include/backward-24_off.xpm"
-
 #include "../include/Dice-24.xpm"
 #include "../include/Dice-32.xpm"
 #include "../include/Dice-48.xpm"
 #include "../include/Dice-64.xpm"
-
-#include "../include/ACon.xpm"
-#include "../include/ACoff.xpm"
-#include "../include/ACenabled.xpm"
-#include "../include/ACdisabled.xpm"
-#include "../include/ACtwinkle.xpm"
-#include "../include/ACshimmer.xpm"
-#include "../include/ACintensity.xpm"
-#include "../include/ACrampup.xpm"
-#include "../include/ACrampdown.xpm"
-#include "../include/ACrampupdown.xpm"
-#include "../include/ACfill.xpm"
-#include "../include/ACcascade.xpm"
-#include "../include/ACforeground.xpm"
-#include "../include/ACbackground.xpm"
-#include "../include/ACselect.xpm"
 
 #include "../include/group-open-24.xpm"
 #include "../include/group-open-64.xpm"
@@ -161,8 +89,6 @@
 
 #include "../include/link-48.xpm"
 #include "../include/unlink-48.xpm"
-
-#include "../include/sequence_elements-24.xpm"
 
 #include "../include/point_1a-64.xpm"
 #include "../include/point_1b-64.xpm"
@@ -331,33 +257,33 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
                                      const wxArtClient& client,
                                      const wxSize& size) {
     if ("xlART_STOP_NOW" == id) {
-        return effectBitmaps.get(24, false, id, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm, stop_sign_24_xpm);
+        return effectBitmaps.get(24, false, id, stop_sign_16_xpm, stop_sign_24_xpm, stop_sign_32_xpm, stop_sign_48_xpm, stop_sign_64_xpm);
     } else if ("xlART_OUTPUT_LIGHTS" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_off_24, output_lights_off_24, output_lights_off_24, output_lights_off_24, output_lights_off_24);
+        return effectBitmaps.get(24, false, id, output_lights_off_16_xpm, output_lights_off_24_xpm, output_lights_off_32_xpm, output_lights_off_48_xpm, output_lights_off_64_xpm);
     } else if ("xlART_OUTPUT_LIGHTS_ON" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_on_24, output_lights_on_24, output_lights_on_24, output_lights_on_24, output_lights_on_24);
+        return effectBitmaps.get(24, false, id, output_lights_on_16_xpm, output_lights_on_24_xpm, output_lights_on_32_xpm, output_lights_on_48_xpm, output_lights_on_64_xpm);
     } else if ("xlART_EFFECTS" == id) {
-        return effectBitmaps.get(24, false, id, effects_xpm, effects_xpm, effects_xpm, effects_xpm, effects_xpm);
+        return effectBitmaps.get(24, false, id, effects_16_xpm, effects_24_xpm, effects_32_xpm, effects_48_xpm, effects_64_xpm);
     } else if ("xlART_COLORS" == id) {
-        return effectBitmaps.get(24, false, id, colors_xpm, colors_xpm, colors_xpm, colors_xpm, colors_xpm);
+        return effectBitmaps.get(24, false, id, colors_16_xpm, colors_24_xpm, colors_32_xpm, colors_48_xpm, colors_64_xpm);
     } else if ("xlART_LAYERS" == id) {
-        return effectBitmaps.get(24, false, id, layers_xpm, layers_xpm, layers_xpm, layers_xpm, layers_xpm);
+        return effectBitmaps.get(24, false, id, layers_16_xpm, layers_24_xpm, layers_32_xpm, layers_48_xpm, layers_64_xpm);
     } else if ("xlART_LAYERS2" == id) {
-        return effectBitmaps.get(24, false, id, layers2_xpm, layers2_xpm, layers2_xpm, layers2_xpm, layers2_xpm);
+        return effectBitmaps.get(24, false, id, layers2_16_xpm, layers2_24_xpm, layers2_32_xpm, layers2_48_xpm, layers2_64_xpm);
     } else if ("xlART_EFFECTSETTINGS" == id) {
-        return effectBitmaps.get(24, false, id, effsettings_xpm, effsettings_xpm, effsettings_xpm, effsettings_xpm, effsettings_xpm);
+        return effectBitmaps.get(24, false, id, effsettings_16_xpm, effsettings_24_xpm, effsettings_32_xpm, effsettings_48_xpm, effsettings_64_xpm);
     } else if ("xlART_MODEL_PREVIEW" == id) {
-        return effectBitmaps.get(24, false, id, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm, model_preview_xpm);
+        return effectBitmaps.get(24, false, id, model_preview_16_xpm, model_preview_24_xpm, model_preview_32_xpm, model_preview_48_xpm, model_preview_64_xpm);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
-        return effectBitmaps.get(24, false, id, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm, house_preview_xpm);
+        return effectBitmaps.get(24, false, id, house_preview_16_xpm, house_preview_24_xpm, house_preview_32_xpm, house_preview_48_xpm, house_preview_64_xpm);
     } else if ("xlART_LIGHTS_OFF" == id) {
-        return effectBitmaps.get(24, false, id, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm, lights_off_24_xpm);
+        return effectBitmaps.get(24, false, id, output_lights_16_xpm, output_lights_24_xpm, output_lights_32_xpm, output_lights_48_xpm, output_lights_64_xpm);
     } else if ("xlART_ZOOM_IN" == id) {
-        return effectBitmaps.get(24, false, id, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm, zoom_in_24_xpm);
+        return effectBitmaps.get(24, false, id, zoom_in_16_xpm, zoom_in_24_xpm, zoom_in_32_xpm, zoom_in_48_xpm, zoom_in_64_xpm);
     } else if ("xlART_ZOOM_OUT" == id) {
-        return effectBitmaps.get(24, false, id, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm);
+        return effectBitmaps.get(24, false, id, zoom_out_16_xpm, zoom_out_24_xpm, zoom_out_32_xpm, zoom_out_48_xpm, zoom_out_64_xpm);
     } else if ("xlART_SETTINGS" == id) {
-        return effectBitmaps.get(24, false, id, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm);
+        return effectBitmaps.get(24, false, id, settings_16_xpm, settings_24_xpm, settings_32_xpm, settings_48_xpm, settings_64_xpm);
     } else if ("xlART_PLAY" == id) {
         return effectBitmaps.get(24, false, id, play_16_xpm, play_24_xpm, play_32_xpm, play_48_xpm, play_64_xpm);
     } else if ("xlART_PAUSE" == id) {
@@ -379,41 +305,41 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_SEQUENCE_ELEMENTS" == id) {
-        return effectBitmaps.get(24, false, id, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm, sequence_elements_24_xpm);
+        return effectBitmaps.get(24, false, id, sequence_elements_16_xpm, sequence_elements_24_xpm, sequence_elements_32_xpm, sequence_elements_48_xpm, sequence_elements_64_xpm);
     } else if ("xlAC_ON" == id) {
-        return effectBitmaps.get(24, false, id, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm, ac_on_24_xpm);
+        return effectBitmaps.get(24, false, id, ACon_16_xpm, ACon_24_xpm, ACon_32_xpm, ACon_48_xpm, ACon_64_xpm);
     }  else if ("xlAC_OFF" == id) {
-        return effectBitmaps.get(24, false, id, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm, ac_off_24_xpm);
+        return effectBitmaps.get(24, false, id, ACoff_16_xpm, ACoff_24_xpm, ACoff_32_xpm, ACoff_48_xpm, ACoff_64_xpm);
     } else if ("xlAC_SELECT" == id) {
-        return effectBitmaps.get(24, false, id, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm, ac_select_24_xpm);
+        return effectBitmaps.get(24, false, id, ACselect_16_xpm, ACselect_24_xpm, ACselect_32_xpm, ACselect_48_xpm, ACselect_64_xpm);
     } else if ("xlAC_DISABLED" == id) {
-        return effectBitmaps.get(24, false, id, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm, ac_disabled_24_xpm);
+        return effectBitmaps.get(24, false, id, ACdisabled_16_xpm, ACdisabled_24_xpm, ACdisabled_32_xpm, ACdisabled_48_xpm, ACdisabled_64_xpm);
     } else if ("xlAC_ENABLED" == id) {
-        return effectBitmaps.get(24, false, id, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm, ac_enabled_24_xpm);
+        return effectBitmaps.get(24, false, id, ACenabled_16_xpm, ACenabled_24_xpm, ACenabled_32_xpm, ACenabled_48_xpm, ACenabled_64_xpm);
     } else if ("xlAC_SHIMMER" == id) {
-        return effectBitmaps.get(24, false, id, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm, ac_shimmer_24_xpm);
+        return effectBitmaps.get(24, false, id, ACshimmer_16_xpm, ACshimmer_24_xpm, ACshimmer_32_xpm, ACshimmer_48_xpm, ACshimmer_64_xpm);
     } else if ("xlAC_TWINKLE" == id) {
-        return effectBitmaps.get(24, false, id, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm, ac_twinkle_24_xpm);
+        return effectBitmaps.get(24, false, id, ACtwinkle_16_xpm, ACtwinkle_24_xpm, ACtwinkle_32_xpm, ACtwinkle_48_xpm, ACtwinkle_64_xpm);
     } else if ("xlAC_INTENSITY" == id) {
-        return effectBitmaps.get(24, false, id, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm, ac_intensity_24_xpm);
+        return effectBitmaps.get(24, false, id, ACintensity_16_xpm, ACintensity_24_xpm, ACintensity_32_xpm, ACintensity_48_xpm, ACintensity_64_xpm);
     } else if ("xlAC_RAMPUP" == id) {
-        return effectBitmaps.get(24, false, id, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm, ac_rampup_24_xpm);
+        return effectBitmaps.get(24, false, id, ACrampup_16_xpm, ACrampup_24_xpm, ACrampup_32_xpm, ACrampup_48_xpm, ACrampup_64_xpm);
     } else if ("xlAC_RAMPDOWN" == id) {
-        return effectBitmaps.get(24, false, id, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm, ac_rampdown_24_xpm);
+        return effectBitmaps.get(24, false, id, ACrampdown_16_xpm, ACrampdown_24_xpm, ACrampdown_32_xpm, ACrampdown_48_xpm, ACrampdown_64_xpm);
     } else if ("xlAC_RAMPUPDOWN" == id) {
-        return effectBitmaps.get(24, false, id, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm, ac_rampupdown_24_xpm);
+        return effectBitmaps.get(24, false, id, ACrampupdown_16_xpm, ACrampupdown_24_xpm, ACrampupdown_32_xpm, ACrampupdown_48_xpm, ACrampupdown_64_xpm);
     } else if ("xlAC_FILL" == id) {
-        return effectBitmaps.get(24, false, id, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm, ac_fill_24_xpm);
+        return effectBitmaps.get(24, false, id, ACfill_16_xpm, ACfill_24_xpm, ACfill_32_xpm, ACfill_48_xpm, ACfill_64_xpm);
     } else if ("xlAC_CASCADE" == id) {
-        return effectBitmaps.get(24, false, id, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm, ac_cascade_24_xpm);
+        return effectBitmaps.get(24, false, id, ACcascade_16_xpm, ACcascade_24_xpm, ACcascade_32_xpm, ACcascade_48_xpm, ACcascade_64_xpm);
     } else if ("xlAC_FOREGROUND" == id) {
-        return effectBitmaps.get(24, false, id, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm, ac_foreground_24_xpm);
+        return effectBitmaps.get(24, false, id, ACforeground_16_xpm, ACforeground_24_xpm, ACforeground_32_xpm, ACforeground_48_xpm, ACforeground_64_xpm);
     } else if ("xlAC_BACKGROUND" == id) {
-        return effectBitmaps.get(24, false, id, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm, ac_background_24_xpm);
+        return effectBitmaps.get(24, false, id, ACbackground_16_xpm, ACbackground_24_xpm, ACbackground_32_xpm, ACbackground_48_xpm, ACbackground_64_xpm);
     } else if ("xlART_PASTE_BY_TIME" == id) {
-        return effectBitmaps.get(24, false, id, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm, paste_by_time_24_xpm);
+        return effectBitmaps.get(24, false, id, paste_by_time_16_xpm, paste_by_time_24_xpm, paste_by_time_32_xpm, paste_by_time_48_xpm, paste_by_time_64_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {
-        return effectBitmaps.get(24, false, id, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm, paste_by_cell_24_xpm);
+        return effectBitmaps.get(24, false, id, paste_by_cell_16_xpm, paste_by_cell_24_xpm, paste_by_cell_32_xpm, paste_by_cell_48_xpm, paste_by_cell_64_xpm);
     } else if ("xlART_RENDER_ALL" == id) {
         return effectBitmaps.get(24, false, id, render_all_16_xpm, render_all_24_xpm, render_all_32_xpm, render_all_48_xpm, render_all_64_xpm);
     } else if ("xlART_GROUP_CLOSED" == id) {
@@ -426,8 +352,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, cane_icon_16_xpm, cane_icon_16_xpm, cane_icon_64_xpm, cane_icon_64_xpm, cane_icon_64_xpm);
     } else if ("xlART_CIRCLE_ICON" == id) {
         return effectBitmaps.get(16, false, id, circle_icon_16_xpm, circle_icon_16_xpm, circle_icon_64_xpm, circle_icon_64_xpm, circle_icon_64_xpm);
-    }
-    else if ("xlART_CHANNELBLOCK_ICON" == id) {
+    } else if ("xlART_CHANNELBLOCK_ICON" == id) {
         return effectBitmaps.get(16, false, id, channelblock_icon_16_xpm, channelblock_icon_16_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm);
     } else if ("xlART_CUSTOM_ICON" == id) {
         return effectBitmaps.get(16, false, id, custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm);
@@ -455,6 +380,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, wreath_icon_16_xpm, wreath_icon_16_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm);
     } else if ("xlART_DICE_ICON" == id) {
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);
+    } else if ("wxART_INFORMATION" == id) {
+        return effectBitmaps.get(24, false, id, tips_16_xpm, tips_24_xpm, tips_32_xpm, tips_48_xpm, tips_64_xpm);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {
@@ -469,6 +396,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
 #else
     } else if (wxART_TOOLBAR == client) {
+        //sprintf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
         return wxArtProvider::GetBitmap(id, wxART_OTHER);
 #endif
     }
