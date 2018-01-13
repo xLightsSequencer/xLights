@@ -1,0 +1,32 @@
+/* XPM */
+static const char *ACdisabled_16[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 10 1 ",
+"  c #887B50",
+". c #DDBB3F",
+"X c #E7C23D",
+"o c #F0C93B",
+"O c #A4914B",
+"+ c #AE9849",
+"@ c #B79F47",
+"# c #C1A645",
+"$ c #CAAD43",
+"% c None",
+/* pixels */
+"%%%%%%%%%%%%%%%%",
+"%%%%%%%%%%%%%%%%",
+"%%oooo%%%%oooo%%",
+"%%oooo%%%oo.ooo%",
+"%%oooo@%%ooO%oo+",
+"%ooooo$%oooO%oo$",
+"%oo$ooX%oooO%oo$",
+"%oo$ooo%oooO%%%%",
+"%oo+%oo%oooO%%%%",
+"%oo.%oo%oooO%oo$",
+"%oooooo%%ooO%oo@",
+"%oo..oo#%oo#%ooO",
+"oooO%oo$%oooooo%",
+"$$$%%$$$%%Xoo. %",
+"%%%%%%%%%%%%%%%%",
+"%%%%%%%%%%%%%%%%"
+};

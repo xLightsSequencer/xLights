@@ -257,33 +257,33 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
                                      const wxArtClient& client,
                                      const wxSize& size) {
     if ("xlART_STOP_NOW" == id) {
-        return effectBitmaps.get(24, false, id, stop_sign_16_xpm, stop_sign_24_xpm, stop_sign_32_xpm, stop_sign_48_xpm, stop_sign_64_xpm);
+        return effectBitmaps.get(24, false, id, stop_sign_16, stop_sign_24, stop_sign_32, stop_sign_48, stop_sign_64);
     } else if ("xlART_OUTPUT_LIGHTS" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_off_16_xpm, output_lights_off_24_xpm, output_lights_off_32_xpm, output_lights_off_48_xpm, output_lights_off_64_xpm);
+        return effectBitmaps.get(24, false, id, output_lights_off_16, output_lights_off_24, output_lights_off_32, output_lights_off_48, output_lights_off_64);
     } else if ("xlART_OUTPUT_LIGHTS_ON" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_on_16_xpm, output_lights_on_24_xpm, output_lights_on_32_xpm, output_lights_on_48_xpm, output_lights_on_64_xpm);
+        return effectBitmaps.get(24, false, id, output_lights_on_16, output_lights_on_24, output_lights_on_32, output_lights_on_48, output_lights_on_64);
     } else if ("xlART_EFFECTS" == id) {
-        return effectBitmaps.get(24, false, id, effects_16_xpm, effects_24_xpm, effects_32_xpm, effects_48_xpm, effects_64_xpm);
+        return effectBitmaps.get(24, false, id, effects_16, effects_24, effects_32, effects_48, effects_64);
     } else if ("xlART_COLORS" == id) {
-        return effectBitmaps.get(24, false, id, colors_16_xpm, colors_24_xpm, colors_32_xpm, colors_48_xpm, colors_64_xpm);
+        return effectBitmaps.get(24, false, id, colors_16, colors_24, colors_32, colors_48, colors_64);
     } else if ("xlART_LAYERS" == id) {
-        return effectBitmaps.get(24, false, id, layers_16_xpm, layers_24_xpm, layers_32_xpm, layers_48_xpm, layers_64_xpm);
+        return effectBitmaps.get(24, false, id, layers_16, layers_24, layers_32, layers_48, layers_64);
     } else if ("xlART_LAYERS2" == id) {
-        return effectBitmaps.get(24, false, id, layers2_16_xpm, layers2_24_xpm, layers2_32_xpm, layers2_48_xpm, layers2_64_xpm);
+        return effectBitmaps.get(24, false, id, layers2_16, layers2_24, layers2_32, layers2_48, layers2_64);
     } else if ("xlART_EFFECTSETTINGS" == id) {
-        return effectBitmaps.get(24, false, id, effsettings_16_xpm, effsettings_24_xpm, effsettings_32_xpm, effsettings_48_xpm, effsettings_64_xpm);
+        return effectBitmaps.get(24, false, id, effsettings_16, effsettings_24, effsettings_32, effsettings_48, effsettings_64);
     } else if ("xlART_MODEL_PREVIEW" == id) {
-        return effectBitmaps.get(24, false, id, model_preview_16_xpm, model_preview_24_xpm, model_preview_32_xpm, model_preview_48_xpm, model_preview_64_xpm);
+        return effectBitmaps.get(24, false, id, model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
-        return effectBitmaps.get(24, false, id, house_preview_16_xpm, house_preview_24_xpm, house_preview_32_xpm, house_preview_48_xpm, house_preview_64_xpm);
+        return effectBitmaps.get(24, false, id, house_preview_16, house_preview_24, house_preview_32, house_preview_48, house_preview_64);
     } else if ("xlART_LIGHTS_OFF" == id) {
-        return effectBitmaps.get(24, false, id, output_lights_16_xpm, output_lights_24_xpm, output_lights_32_xpm, output_lights_48_xpm, output_lights_64_xpm);
+        return effectBitmaps.get(24, false, id, output_lights_16, output_lights_24, output_lights_32, output_lights_48, output_lights_64);
     } else if ("xlART_ZOOM_IN" == id) {
-        return effectBitmaps.get(24, false, id, zoom_in_16_xpm, zoom_in_24_xpm, zoom_in_32_xpm, zoom_in_48_xpm, zoom_in_64_xpm);
+        return effectBitmaps.get(24, false, id, zoom_in_16, zoom_in_24, zoom_in_32, zoom_in_48, zoom_in_64);
     } else if ("xlART_ZOOM_OUT" == id) {
-        return effectBitmaps.get(24, false, id, zoom_out_16_xpm, zoom_out_24_xpm, zoom_out_32_xpm, zoom_out_48_xpm, zoom_out_64_xpm);
+        return effectBitmaps.get(24, false, id, zoom_out_16, zoom_out_24, zoom_out_32, zoom_out_48, zoom_out_64);
     } else if ("xlART_SETTINGS" == id) {
-        return effectBitmaps.get(24, false, id, settings_16_xpm, settings_24_xpm, settings_32_xpm, settings_48_xpm, settings_64_xpm);
+        return effectBitmaps.get(24, false, id, settings_16, settings_24, settings_32, settings_48, settings_64);
     } else if ("xlART_PLAY" == id) {
         return effectBitmaps.get(24, false, id, play_16_xpm, play_24_xpm, play_32_xpm, play_48_xpm, play_64_xpm);
     } else if ("xlART_PAUSE" == id) {
@@ -305,37 +305,37 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_UNLINK" == id) {
         return effectBitmaps.get(48, false, id, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm, unlink_48_xpm);
     } else if ("xlART_SEQUENCE_ELEMENTS" == id) {
-        return effectBitmaps.get(24, false, id, sequence_elements_16_xpm, sequence_elements_24_xpm, sequence_elements_32_xpm, sequence_elements_48_xpm, sequence_elements_64_xpm);
+        return effectBitmaps.get(24, false, id, sequence_elements_16, sequence_elements_24, sequence_elements_32, sequence_elements_48, sequence_elements_64);
     } else if ("xlAC_ON" == id) {
-        return effectBitmaps.get(24, false, id, ACon_16_xpm, ACon_24_xpm, ACon_32_xpm, ACon_48_xpm, ACon_64_xpm);
+        return effectBitmaps.get(24, false, id, ACon_16, ACon_24, ACon_32, ACon_48, ACon_64);
     }  else if ("xlAC_OFF" == id) {
-        return effectBitmaps.get(24, false, id, ACoff_16_xpm, ACoff_24_xpm, ACoff_32_xpm, ACoff_48_xpm, ACoff_64_xpm);
+        return effectBitmaps.get(24, false, id, ACoff_16, ACoff_24, ACoff_32, ACoff_48, ACoff_64);
     } else if ("xlAC_SELECT" == id) {
-        return effectBitmaps.get(24, false, id, ACselect_16_xpm, ACselect_24_xpm, ACselect_32_xpm, ACselect_48_xpm, ACselect_64_xpm);
+        return effectBitmaps.get(24, false, id, ACselect_16, ACselect_24, ACselect_32, ACselect_48, ACselect_64);
     } else if ("xlAC_DISABLED" == id) {
-        return effectBitmaps.get(24, false, id, ACdisabled_16_xpm, ACdisabled_24_xpm, ACdisabled_32_xpm, ACdisabled_48_xpm, ACdisabled_64_xpm);
+        return effectBitmaps.get(24, false, id, ACdisabled_16, ACdisabled_24, ACdisabled_32, ACdisabled_48, ACdisabled_64);
     } else if ("xlAC_ENABLED" == id) {
-        return effectBitmaps.get(24, false, id, ACenabled_16_xpm, ACenabled_24_xpm, ACenabled_32_xpm, ACenabled_48_xpm, ACenabled_64_xpm);
+        return effectBitmaps.get(24, false, id, ACenabled_16, ACenabled_24, ACenabled_32, ACenabled_48, ACenabled_64);
     } else if ("xlAC_SHIMMER" == id) {
-        return effectBitmaps.get(24, false, id, ACshimmer_16_xpm, ACshimmer_24_xpm, ACshimmer_32_xpm, ACshimmer_48_xpm, ACshimmer_64_xpm);
+        return effectBitmaps.get(24, false, id, ACshimmer_16, ACshimmer_24, ACshimmer_32, ACshimmer_48, ACshimmer_64);
     } else if ("xlAC_TWINKLE" == id) {
-        return effectBitmaps.get(24, false, id, ACtwinkle_16_xpm, ACtwinkle_24_xpm, ACtwinkle_32_xpm, ACtwinkle_48_xpm, ACtwinkle_64_xpm);
+        return effectBitmaps.get(24, false, id, ACtwinkle_16, ACtwinkle_24, ACtwinkle_32, ACtwinkle_48, ACtwinkle_64);
     } else if ("xlAC_INTENSITY" == id) {
-        return effectBitmaps.get(24, false, id, ACintensity_16_xpm, ACintensity_24_xpm, ACintensity_32_xpm, ACintensity_48_xpm, ACintensity_64_xpm);
+        return effectBitmaps.get(24, false, id, ACintensity_16, ACintensity_24, ACintensity_32, ACintensity_48, ACintensity_64);
     } else if ("xlAC_RAMPUP" == id) {
-        return effectBitmaps.get(24, false, id, ACrampup_16_xpm, ACrampup_24_xpm, ACrampup_32_xpm, ACrampup_48_xpm, ACrampup_64_xpm);
+        return effectBitmaps.get(24, false, id, ACrampup_16, ACrampup_24, ACrampup_32, ACrampup_48, ACrampup_64);
     } else if ("xlAC_RAMPDOWN" == id) {
-        return effectBitmaps.get(24, false, id, ACrampdown_16_xpm, ACrampdown_24_xpm, ACrampdown_32_xpm, ACrampdown_48_xpm, ACrampdown_64_xpm);
+        return effectBitmaps.get(24, false, id, ACrampdown_16, ACrampdown_24, ACrampdown_32, ACrampdown_48, ACrampdown_64);
     } else if ("xlAC_RAMPUPDOWN" == id) {
-        return effectBitmaps.get(24, false, id, ACrampupdown_16_xpm, ACrampupdown_24_xpm, ACrampupdown_32_xpm, ACrampupdown_48_xpm, ACrampupdown_64_xpm);
+        return effectBitmaps.get(24, false, id, ACrampupdown_16, ACrampupdown_24, ACrampupdown_32, ACrampupdown_48, ACrampupdown_64);
     } else if ("xlAC_FILL" == id) {
-        return effectBitmaps.get(24, false, id, ACfill_16_xpm, ACfill_24_xpm, ACfill_32_xpm, ACfill_48_xpm, ACfill_64_xpm);
+        return effectBitmaps.get(24, false, id, ACfill_16, ACfill_24, ACfill_32, ACfill_48, ACfill_64);
     } else if ("xlAC_CASCADE" == id) {
-        return effectBitmaps.get(24, false, id, ACcascade_16_xpm, ACcascade_24_xpm, ACcascade_32_xpm, ACcascade_48_xpm, ACcascade_64_xpm);
+        return effectBitmaps.get(24, false, id, ACcascade_16, ACcascade_24, ACcascade_32, ACcascade_48, ACcascade_64);
     } else if ("xlAC_FOREGROUND" == id) {
-        return effectBitmaps.get(24, false, id, ACforeground_16_xpm, ACforeground_24_xpm, ACforeground_32_xpm, ACforeground_48_xpm, ACforeground_64_xpm);
+        return effectBitmaps.get(24, false, id, ACforeground_16, ACforeground_24, ACforeground_32, ACforeground_48, ACforeground_64);
     } else if ("xlAC_BACKGROUND" == id) {
-        return effectBitmaps.get(24, false, id, ACbackground_16_xpm, ACbackground_24_xpm, ACbackground_32_xpm, ACbackground_48_xpm, ACbackground_64_xpm);
+        return effectBitmaps.get(24, false, id, ACbackground_16, ACbackground_24, ACbackground_32, ACbackground_48, ACbackground_64);
     } else if ("xlART_PASTE_BY_TIME" == id) {
         return effectBitmaps.get(24, false, id, paste_by_time_16_xpm, paste_by_time_24_xpm, paste_by_time_32_xpm, paste_by_time_48_xpm, paste_by_time_64_xpm);
     } else if ("xlART_PASTE_BY_CELL" == id) {
@@ -381,7 +381,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_DICE_ICON" == id) {
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);
     } else if ("wxART_INFORMATION" == id) {
-        return effectBitmaps.get(24, false, id, tips_16_xpm, tips_24_xpm, tips_32_xpm, tips_48_xpm, tips_64_xpm);
+        return effectBitmaps.get(24, false, id, tips_16, tips_24, tips_32, tips_48, tips_64);
 #ifndef __WXOSX__
         //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {
