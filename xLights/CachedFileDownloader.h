@@ -30,9 +30,9 @@ public:
     void Download();
     bool Exists() const { return wxFile::Exists(_fileName); }
     void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
-    void Delete() const { if (Exists()) wxRemoveFile(_fileName); }
+    void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
-    bool operator==(const wxURI& url) const { return _url.BuildURI() == url.BuildURI(); }
+    bool operator==(const wxURI& url) const;
     bool DownloadURL(wxURI url, wxFileName filename) const;
     std::string DownloadURLToTemp(wxURI url);
     void PurgeIfAged() const;

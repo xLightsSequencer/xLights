@@ -3129,21 +3129,33 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
         {
             xlights->SuspendAutoSave(true);
             VendorModelDialog dlg(xlights);
-            if (dlg.DlgInit() && dlg.ShowModal() == wxID_OK)
+            xlights->SetCursor(wxCURSOR_WAIT);
+            if (dlg.DlgInit())
             {
-                xlights->SuspendAutoSave(false);
-                last_model = dlg.GetModelFile();
-
-                if (last_model == "")
+                xlights->SetCursor(wxCURSOR_DEFAULT);
+                if (dlg.ShowModal() == wxID_OK)
                 {
-                    wxMessageBox("Failed to download model file.");
+                    xlights->SuspendAutoSave(false);
+                    last_model = dlg.GetModelFile();
 
+                    if (last_model == "")
+                    {
+                        wxMessageBox("Failed to download model file.");
+
+                        cancelled = true;
+                        return model;
+                    }
+                }
+                else
+                {
+                    xlights->SuspendAutoSave(false);
                     cancelled = true;
                     return model;
                 }
             }
             else
             {
+                xlights->SetCursor(wxCURSOR_DEFAULT);
                 xlights->SuspendAutoSave(false);
                 cancelled = true;
                 return model;

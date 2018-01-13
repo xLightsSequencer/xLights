@@ -32,6 +32,18 @@ public:
     {
     }
 
+    wxColor GetColour() const
+    {
+        if (_xmodelLink.BuildURI() == "")
+        {
+            return wxColour(255, 128, 0);
+        }
+        else
+        {
+            return *wxBLUE;
+        }
+    }
+
     void DownloadImages()
     {
         if (_imageFiles.size() != _images.size())
@@ -113,6 +125,7 @@ public:
     std::list<wxFileName> _imageFiles;
     std::string _notes;
     std::list<MModelWiring*> _wiring;
+    MVendor* _vendor;
 
     bool InCategory(std::string category)
     {
@@ -124,8 +137,22 @@ public:
         return false;
     }
 
-    MModel(wxXmlNode* n)
+    wxColor GetColour() const
     {
+        if (_wiring.size() == 0 || _wiring.front()->_xmodelLink.BuildURI() == "")
+        {
+            return wxColour(255, 128, 0);
+        }
+        else
+        {
+            return *wxBLUE;
+        }
+    }
+
+    MModel(wxXmlNode* n, MVendor* vendor)
+    {
+        _vendor = vendor;
+
         for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
         {
             wxString nn = l->GetName().Lower().ToStdString();
@@ -303,7 +330,7 @@ class MVendorCategory
             wxString nn = l->GetName().Lower().ToStdString();
             if (nn == "category")
             {
-                _categories.push_back(new MVendorCategory(l, this));
+                _categories.push_back(new MVendorCategory(l, this, _vendor));
             }
         }
     }
@@ -313,6 +340,7 @@ class MVendorCategory
         std::string _name;
         MVendorCategory* _parent;
         std::list<MVendorCategory*> _categories;
+        MVendor* _vendor;
 
     std::string GetPath() const
     {
@@ -326,8 +354,11 @@ class MVendorCategory
         }
     }
 
-    MVendorCategory(wxXmlNode* n, MVendorCategory* parent)
+    MVendor* GetVendor() const { return _vendor; }
+
+    MVendorCategory(wxXmlNode* n, MVendorCategory* parent, MVendor* vendor)
     {
+        _vendor = vendor;
         _parent = parent;
         for (wxXmlNode* e = n->GetChildren(); e != nullptr; e = e->GetNext())
         {
@@ -397,7 +428,7 @@ public:
             wxString nn = l->GetName().Lower().ToStdString();
             if (nn == "category")
             {
-                _categories.push_back(new MVendorCategory(l, nullptr));
+                _categories.push_back(new MVendorCategory(l, nullptr, this));
             }
         }
     }
@@ -517,7 +548,7 @@ public:
                                 models++;
                                 if (maxModels < 1 || models < _maxModels)
                                 {
-                                    _models.push_back(new MModel(m));
+                                    _models.push_back(new MModel(m, this));
                                 }
                             }
                         }
@@ -565,6 +596,17 @@ public:
 
 private:
     MVendor * _vendor;
+};
+
+class MCategoryTreeItemData : public VendorBaseTreeItemData
+{
+public:
+    MCategoryTreeItemData(MVendorCategory* category) : VendorBaseTreeItemData("Category"), _category(category) { }
+
+    MVendorCategory* GetCategory() const { return _category; }
+
+private:
+    MVendorCategory * _category;
 };
 
 class MModelTreeItemData : public VendorBaseTreeItemData
@@ -841,7 +883,7 @@ void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<
 {
     for (auto it = categories.begin(); it != categories.end(); ++it)
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, (*it)->_name);
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, (*it)->_name, -1, -1, new MCategoryTreeItemData(*it));
         AddHierachy(tid, vendor, (*it)->_categories);
         AddModels(tid, vendor, (*it)->_id);
     }
@@ -858,7 +900,8 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
             wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MModelTreeItemData(*it));
             for (auto it2 = (*it)->_wiring.begin(); it2 != (*it)->_wiring.end(); ++it2)
             {
-                TreeCtrl_Navigator->AppendItem(tid, (*it2)->_name, -1, -1, new MWiringTreeItemData(*it2));
+                wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, (*it2)->_name, -1, -1, new MWiringTreeItemData(*it2));
+                TreeCtrl_Navigator->SetItemTextColour(id, (*it)->GetColour());
             }
         }
         else
@@ -866,10 +909,12 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
             if ((*it)->_wiring.size() == 0)
             {
                 wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MModelTreeItemData(*it));
+                TreeCtrl_Navigator->SetItemTextColour(tid, (*it)->GetColour());
             }
             else
             {
                 wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MWiringTreeItemData((*it)->_wiring.front()));
+                TreeCtrl_Navigator->SetItemTextColour(tid, (*it)->GetColour());
             }
         }
     }
@@ -970,9 +1015,23 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
+    static bool busy = false;
+
+    if (busy)
+    {
+        return;
+    }
+
+    // Because this code triggers a web download this function can be re-entered and this is not good
+    busy = true;
+
+    wxTreeItemId startid = TreeCtrl_Navigator->GetSelection();
+
+    SetCursor(wxCURSOR_WAIT);
+
     if (TreeCtrl_Navigator->GetSelection().IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
 
         if (tid != nullptr)
         {
@@ -984,12 +1043,14 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(1)->Hide();
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MVendorTreeItemData*)tid)->GetVendor());
+                TreeCtrl_Navigator->SetFocus();
             }
             else if (type == "Model")
             {
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
+                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MModelTreeItemData*)tid)->GetModel());
             }
             else if (type == "Wiring")
@@ -997,12 +1058,16 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
+                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
             }
             else
             {
-                NotebookPanels->GetPage(0)->Hide();
+                NotebookPanels->GetPage(0)->Show();
                 NotebookPanels->GetPage(1)->Hide();
+                NotebookPanels->SetSelection(0);
+                PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->GetVendor());
+                TreeCtrl_Navigator->SetFocus();
             }
         }
         else
@@ -1018,6 +1083,16 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     }
 
     ValidateWindow();
+
+    SetCursor(wxCURSOR_DEFAULT);
+
+    busy = false;
+
+    if (startid != TreeCtrl_Navigator->GetSelection())
+    {
+        // selection changed while we were processing so lets try again
+        wxPostEvent(this, event);
+    }
 }
 
 void VendorModelDialog::OnHyperlinkCtrl_WebsiteClick(wxCommandEvent& event)
@@ -1136,11 +1211,13 @@ void VendorModelDialog::LoadImage(wxStaticBitmap* sb, wxImage* image) const
 {
     if (image->GetWidth() == 0 || image->GetHeight() == 0) return;
 
-    float x = (float)sb->GetSize().GetWidth() / (float)image->GetWidth();
-    float y = (float)sb->GetSize().GetHeight() / (float)image->GetHeight();
+    wxImage disp = image->Copy();
+
+    float x = (float)sb->GetSize().GetWidth() / (float)disp.GetWidth();
+    float y = (float)sb->GetSize().GetHeight() / (float)disp.GetHeight();
     float scale = std::min(x, y);
 
-    sb->SetBitmap(image->Copy().Rescale((float)image->GetWidth() * scale, (float)image->GetHeight() * scale));
+    sb->SetBitmap(disp.Rescale((float)disp.GetWidth() * scale, (float)disp.GetHeight() * scale));
 }
 
 void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int image)
@@ -1198,12 +1275,21 @@ void VendorModelDialog::PopulateModelPanel(MModel* model)
         StaticText5->Show();
         HyperlinkCtrl_ModelWebLink->Show();
         HyperlinkCtrl_ModelWebLink->SetURL(model->_webpage.BuildURI());
-        HyperlinkCtrl_ModelWebLink->SetLabel(model->_webpage.BuildURI());
+        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + model->_webpage.GetServer());
     }
     else
     {
         StaticText5->Hide();
         HyperlinkCtrl_ModelWebLink->Hide();
+    }
+
+    if (model->_wiring.size() == 0 || model->_wiring.front()->_xmodelLink.BuildURI() == "")
+    {
+        Button_InsertModel->Hide();
+    }
+    else
+    {
+        Button_InsertModel->Show();
     }
 
     Panel_Item->Layout();
@@ -1247,12 +1333,21 @@ void VendorModelDialog::PopulateModelPanel(MModelWiring* wiring)
         StaticText5->Show();
         HyperlinkCtrl_ModelWebLink->Show();
         HyperlinkCtrl_ModelWebLink->SetURL(wiring->_model->_webpage.BuildURI());
-        HyperlinkCtrl_ModelWebLink->SetLabel(wiring->_model->_webpage.BuildURI());
+        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + wiring->_model->_webpage.GetServer());
     }
     else
     {
         StaticText5->Hide();
         HyperlinkCtrl_ModelWebLink->Hide();
+    }
+
+    if (wiring->_xmodelLink.BuildURI() == "")
+    {
+        Button_InsertModel->Hide();
+    }
+    else
+    {
+        Button_InsertModel->Show();
     }
 
     Panel_Item->Layout();
@@ -1287,4 +1382,7 @@ void VendorModelDialog::OnResize(wxSizeEvent& event)
             }
         }
     }
+
+    ItemImagePanel->Refresh();
+    PanelVendor->Refresh();
 }

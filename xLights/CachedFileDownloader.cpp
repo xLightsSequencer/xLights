@@ -36,6 +36,21 @@ void FileCacheItem::Download()
     _fileName = DownloadURLToTemp(_url);
 }
 
+void FileCacheItem::Delete() const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (Exists())
+    {
+        logger_base.debug("Removing cached URL %s.", (const char*)_url.BuildURI().c_str());
+        wxRemoveFile(_fileName);
+    }
+}
+
+bool FileCacheItem::operator==(const wxURI& url) const
+{
+    return _url.BuildURI() == url.BuildURI();
+}
+
 // A major constraint of this function is that it does not support https
 bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename) const
 {
