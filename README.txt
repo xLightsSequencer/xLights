@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix cant double click on first song in a playlist to jump to it
    -- enh (keith)  Add number aware model name sorting (layout, display elements, import effects)
    -- enh (keith)  Enhance handling of invalid mappings loaded from mapping files so mappings are not lost when saved and invalid mappings are highlighted
+   -- enh (keith)  Add download of vendor custom models from licensed vendors
    —- enh (Billy)  Added Controller Status to xSchedule WebUI
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu

@@ -82,7 +82,6 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
     //EVT_TREELIST_ITEM_ACTIVATED(wxID_ANY, LayoutPanel::OnSelectionChanged)
 END_EVENT_TABLE()
 
-
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
@@ -338,7 +337,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel property grid created");
 
-
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
@@ -351,7 +349,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashPosition(msp);
     }
 
-    ToolSizer->SetCols(16);
+    ToolSizer->SetCols(17);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -368,9 +366,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Window Frame", frame);
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
+    AddModelButton("Download", download);
 
     logger_base.debug("LayoutPanel model buttons created");
-
 
     modelPreview->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCut, nullptr,this);
     modelPreview->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy, nullptr,this);
@@ -1829,15 +1827,15 @@ void LayoutPanel::FinalizeModel()
     m_polyline_active = false;
 
     if (newModel != nullptr) {
-        if (selectedButton->GetModelType() == "Import Custom")
+        if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
         {
             float min_x = (float)(newModel->GetModelScreenLocation().GetLeft()) / (float)(newModel->GetModelScreenLocation().previewW);
             float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
             float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             bool cancelled = false;
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled);
-            if( cancelled ) {
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
+            if (cancelled) {
                 newModel = nullptr;
                 m_over_handle = -1;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
@@ -2555,7 +2553,7 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
 Model *LayoutPanel::CreateNewModel(const std::string &type) const
 {
     std::string t = type;
-    if (t == "Import Custom")
+    if (t == "Import Custom" || t == "Download")
     {
         t = "Custom";
     }

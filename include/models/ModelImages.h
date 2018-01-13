@@ -17,4 +17,5 @@
 #include "icicles.xpm"
 #include "import.xpm"
 #include "polyline.xpm"
+#include "download.xpm"
 #endif

@@ -1006,6 +1006,11 @@
 					<handler function="OnMenuItem_File_Close_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
+				<object class="wxMenuItem" name="ID_EXPORT_VIDEO" variable="MenuItem_File_Export_Video" member="yes">
+					<label>Export House Preview Video</label>
+					<handler function="OnMenuItem_File_Export_VideoSelected" entry="EVT_MENU" />
+				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
 					<accel>F9</accel>
@@ -1116,6 +1121,10 @@
 				<object class="wxMenuItem" name="ID_MNU_XSCHEDULE" variable="MenuItem_xSchedule" member="yes">
 					<label>xSchedu&amp;le</label>
 					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="iD_MNU_VENDORCACHEPURGE" variable="MenuItem_PurgeVendorCache" member="yes">
+					<label>Purge Vendor Cache</label>
+					<handler function="OnMenuItem_PurgeVendorCacheSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_CrashXLights" member="yes">
 					<label>Crash xLights</label>

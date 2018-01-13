@@ -23,7 +23,6 @@
 #include <wx/protocol/http.h>
 #include <wx/textctrl.h>
 #include <wx/sstream.h>
-#include <wx/protocol/http.h>
 #include <wx/regex.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
@@ -74,6 +73,7 @@
 #include <cctype>
 #include "outputs/IPOutput.h"
 #include "GenerateLyricsDialog.h"
+#include "VendorModelDialog.h"
 
 
 //helper functions
@@ -206,6 +206,7 @@ const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
+const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
 const long xLightsFrame::ID_MNU_CRASH = wxNewId();
 const long xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
@@ -447,8 +448,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-
-xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
+xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
     layoutPanel(nullptr), color_mgr(this)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -463,6 +463,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     mCurrentPerpective = nullptr;
     MenuItemPreviews = nullptr;
     _renderMode = false;
+    _suspendAutoSave = false;
 	_sequenceViewManager.SetModelManager(&AllModels);
 
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
@@ -747,11 +748,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Close_Sequence);
     MenuItem_File_Close_Sequence->Enable(false);
-	 MenuFile->AppendSeparator();
-	 MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
-	 MenuFile->Append(MenuItem_File_Export_Video);
-	 MenuItem_File_Export_Video->Enable(false);
-	 MenuFile->AppendSeparator();
+    MenuFile->AppendSeparator();
+    MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItem_File_Export_Video);
+    MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
@@ -809,6 +809,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Menu1->Append(MenuItemBatchRender);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
+    MenuItem_PurgeVendorCache = new wxMenuItem(Menu1, iD_MNU_VENDORCACHEPURGE, _("Purge Vendor Cache"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_PurgeVendorCache);
     MenuItem_CrashXLights = new wxMenuItem(Menu1, ID_MNU_CRASH, _("Crash xLights"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_CrashXLights);
     MenuItem_LogRenderState = new wxMenuItem(Menu1, ID_MNU_DUMPRENDERSTATE, _("Log Render State"), wxEmptyString, wxITEM_NORMAL);
@@ -1119,7 +1121,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_Selected);
     Connect(ID_SAVE_AS_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected);
     Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
-	 Connect(ID_EXPORT_VIDEO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
+    Connect(ID_EXPORT_VIDEO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
@@ -1138,6 +1140,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id) : mSequenceElements(t
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
+    Connect(iD_MNU_VENDORCACHEPURGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeVendorCacheSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CrashXLightsSelected);
     Connect(ID_MNU_DUMPRENDERSTATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_LogRenderStateSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
@@ -3668,7 +3671,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     // dont save if currently playing or in render mode
-    if (playType != PLAY_TYPE_MODEL && !_renderMode) {
+    if (playType != PLAY_TYPE_MODEL && !_renderMode && !_suspendAutoSave) {
         logger_base.debug("Autosaving backup of sequence.");
         wxStopWatch sw;
         if (mSavedChangeCount != mSequenceElements.GetChangeCount())
@@ -3697,7 +3700,7 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
     }
     else
     {
-        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering.");
+        logger_base.debug("AutoSave skipped because sequence is playing or batch rendering or suspended.");
     }
 
     if (AutoSaveInterval > 0) {
@@ -7196,7 +7199,9 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             _renderMode = false;
         }
         else
+        {
             logger_base.info("BatchRender: No Sequences Selected.");
+        }
     }
 }
 
@@ -7327,8 +7332,13 @@ void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
     }
 }
 
-
 void xLightsFrame::OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event)
 {
     _snapToTimingMarks = MenuItem_SnapToTimingMarks->IsChecked();
+}
+
+void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
+{
+    VendorModelDialog::GetCache().ClearCache();
+    VendorModelDialog::GetCache().Save();
 }

@@ -410,7 +410,7 @@ private:
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
-	 void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
+     void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
@@ -526,6 +526,7 @@ private:
     void OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
     void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
+    void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
     //*)
 
     void OnIdle(wxIdleEvent& event);
@@ -622,7 +623,7 @@ private:
     static const long IS_SAVE_SEQ;
     static const long ID_SAVE_AS_SEQUENCE;
     static const long ID_CLOSE_SEQ;
-	 static const long ID_EXPORT_VIDEO;
+    static const long ID_EXPORT_VIDEO;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
     static const long ID_FILE_ALTBACKUP;
@@ -640,6 +641,7 @@ private:
     static const long ID_MNU_PACKAGESEQUENCE;
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
+    static const long iD_MNU_VENDORCACHEPURGE;
     static const long ID_MNU_CRASH;
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENUITEM5;
@@ -773,6 +775,7 @@ private:
     wxMenuItem* MenuItemGridNodeValuesOff;
     wxMenuItem* MenuItem_SD_40;
     wxMenuItem* MenuItem40;
+    wxMenuItem* MenuItem_PurgeVendorCache;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenu* ToolIconSizeMenu;
     wxMenuItem* MenuItem_File_Open_Sequence;
@@ -794,6 +797,7 @@ private:
     wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* MenuItemShiftEffects;
     wxMenuItem* MenuItem_Donate;
+    wxMenuItem* MenuItem_File_Export_Video;
     wxMenuItem* MenuItem36;
     wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItemCheckSequence;
@@ -802,7 +806,6 @@ private:
     wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
-	 wxMenuItem* MenuItem_File_Export_Video;
     wxPanel* AUIStatusBar;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
@@ -1032,6 +1035,7 @@ private:
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
     int _suppressDuplicateFrames;
+    bool _suspendAutoSave;
 
     // convert
 public:
@@ -1039,6 +1043,7 @@ public:
     unsigned int modelsChangeCount;
     bool _renderMode;
 
+    void SuspendAutoSave(bool dosuspend) { _suspendAutoSave = dosuspend; }
     void ClearLastPeriod();
     void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc

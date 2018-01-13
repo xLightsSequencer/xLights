@@ -117,7 +117,7 @@ void xLightsFrame::NewSequence()
     MenuItem_File_Save->Enable(true);
     MenuItem_File_SaveAs_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
-	 MenuItem_File_Export_Video->Enable(true);
+    MenuItem_File_Export_Video->Enable(true);
     MenuItem_PackageSequence->Enable(true);
     MenuItem_GenerateLyrics->Enable(true);
     MenuItem_ExportEffects->Enable(true);
@@ -129,7 +129,7 @@ void xLightsFrame::NewSequence()
         m *= max;
         m /= 1024; // ->kb
         m /= 1024; // ->mb
-        
+
         wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
                                       " a very large amount of memory used (%lu MB).", max, m), "Warning",
                      wxICON_WARNING | wxOK | wxCENTRE, this);
@@ -411,7 +411,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             m *= numChan;
             m /= 1024; // ->kb
             m /= 1024; // ->mb
-            
+
             wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
                                           " a very large amount of memory used (%lu MB).", numChan, m), "Warning",
                          wxICON_WARNING | wxOK | wxCENTRE, this);
@@ -1965,7 +1965,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     for (size_t i=0;i<mSequenceElements.GetElementCount();i++) {
         if (mSequenceElements.GetElement(i)->GetType() == ELEMENT_TYPE_MODEL) {
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
-            
+
             ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
             for (int x = 0; x < model->GetSubModelCount(); x++) {
                 std::string fname = model->GetSubModel(x)->GetFullName();

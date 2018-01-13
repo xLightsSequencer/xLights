@@ -504,6 +504,8 @@
 		<Unit filename="BulkEditControls.h" />
 		<Unit filename="BulkEditSliderDialog.cpp" />
 		<Unit filename="BulkEditSliderDialog.h" />
+		<Unit filename="CachedFileDownloader.cpp" />
+		<Unit filename="CachedFileDownloader.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="Color.cpp" />
@@ -693,6 +695,8 @@
 		<Unit filename="ValueCurveButton.h" />
 		<Unit filename="ValueCurveDialog.cpp" />
 		<Unit filename="ValueCurveDialog.h" />
+		<Unit filename="VendorModelDialog.cpp" />
+		<Unit filename="VendorModelDialog.h" />
 		<Unit filename="VideoExporter.cpp" />
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
@@ -1218,6 +1222,7 @@
 		<Unit filename="wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
+		<Unit filename="wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
@@ -1379,6 +1384,7 @@
 					<wxDialog wxs="wxsmith/BatchRenderDialog.wxs" src="BatchRenderDialog.cpp" hdr="BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

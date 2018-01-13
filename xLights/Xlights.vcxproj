@@ -163,6 +163,7 @@
     <ClCompile Include="BatchRenderDialog.cpp" />
     <ClCompile Include="BulkEditControls.cpp" />
     <ClCompile Include="BulkEditSliderDialog.cpp" />
+    <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
@@ -456,6 +457,7 @@
     <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
     <ClCompile Include="VideoExporter.cpp" />
+    <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
@@ -480,6 +482,7 @@
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
+    <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="controllers\Falcon.h" />
@@ -768,6 +771,7 @@
     <ClInclude Include="vamp-hostsdk\Window.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
     <ClInclude Include="VideoExporter.h" />
+    <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
