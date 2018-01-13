@@ -1053,8 +1053,10 @@ bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& da
 void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
 {
     wxString s = TextCtrl_Name->GetValue();
-    int idx = GetSubModelInfoIndex(s);
-    SubModelInfo *smi = (SubModelInfo)ListCtrl_SubModels->GetItemData(idx);
-    smi->name = s;
-    ListCtrl_SubModels->SetItemText(s);
+    int idx = GetSubModelInfoIndex(GetSelectedName());
+//    SubModelInfo sm = subModels.at(idx);
+//    sm.name = s;
+//    SubModelInfo *smi = (*SubModelInfo)ListCtrl_SubModels->GetItemData(idx);
+//    smi->name = s;
+//    ListCtrl_SubModels->SetItemText(idx, s);
 }
