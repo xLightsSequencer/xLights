@@ -268,7 +268,6 @@ SubModelsDialog::SubModelInfo &SubModelsDialog::GetSubModelInfo(const wxString &
 
 void SubModelsDialog::Setup(Model *m)
 {
-//    NameChoice->Clear();
     ListCtrl_SubModels->Freeze();
 
     ListCtrl_SubModels->ClearAll();
@@ -460,18 +459,17 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
     }
     // delete selected submodel
     RemoveSubModelFromList(name);
-//    subModels.erase(subModels.begin() + GetSubModelInfoIndex(name));
-//    // NameChoice->Delete(NameChoice->GetSelection());
-//    long id = ListCtrl_SubModels->FindItem(-1, name);
-//    ListCtrl_SubModels->DeleteItem(id);
-    // (validate window)?
-    // ValidateWindow();
-    //  select the top submodel in list or disable all action buttons
-    // if (ListCtrl_SubModels->GetItemCount() > 0) {
-    //     NameChoice->SetSelection(0);
-    //     Select(NameChoice->GetStringSelection());
-    // } else {
-        // NameChoice->Disable();
+    ValidateWindow();
+}
+
+void SubModelsDialog::ValidateWindow()
+{
+    if (ListCtrl_SubModels->GetItemCount() > 0) {
+        Select(ListCtrl_SubModels->GetItemText(0));
+        ListCtrl_SubModels->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    } else {
+        ListCtrl_SubModels->Disable();
+        TextCtrl_Name->Disable();
         DeleteButton->Disable();
         NodesGrid->Disable();
         LayoutCheckbox->Disable();
@@ -479,7 +477,7 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
         DeleteRowButton->Disable();
         subBufferPanel->Disable();
         TypeNotebook->Disable();
-    // }
+    }
 }
 
 void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
@@ -504,7 +502,6 @@ void SubModelsDialog::Select(const wxString &name) {
     NodesGrid->Enable();
     LayoutCheckbox->Enable();
     AddRowButton->Enable();
-
     subBufferPanel->Enable();
     TypeNotebook->Enable();
 
@@ -926,6 +923,7 @@ void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
     Select(name);
     ListCtrl_SubModels->SetItemState(indexTo, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 }
+
 void SubModelsDialog::OnDrop(wxCommandEvent& event)
 {
     wxArrayString parms = wxSplit(event.GetString(), ',');

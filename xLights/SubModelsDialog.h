@@ -166,6 +166,7 @@ private:
     wxString GetSelectedName();
     bool IsItemSelected(wxListCtrl* ctrl, int item);
     void MoveSelectedModelsTo(int indexTo);
+	void ValidateWindow();
 
 
     Model *model;
