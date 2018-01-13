@@ -1067,14 +1067,14 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                         // this should be updated every release by 1 until we decide to change a slider range for the first time
                         // at that point we are going to need to force people to go back to a version after .24 but before the
                         // first version with the change
-                        if (!::IsVersionOlder("2018.01", xlights_version_string.ToStdString()))
+                        if (!::IsVersionOlder("2018.1", xlights_version_string.ToStdString()))
                         {
                             static std::string warnedfile = "";
 
                             if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
                             {
                                 warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
-                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2017.24 before proceeding.");
+                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2017.45 before proceeding.");
                             }
                         }
                         FixChangedScale(oldmin, oldmax, _divisor);
