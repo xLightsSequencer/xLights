@@ -94,6 +94,16 @@ protected:
     xlColor backgroundColor;
 };
 
+class GroupTouchBarItem : public TouchBarItem {
+public:
+    GroupTouchBarItem(const std::string &n, const std::vector<ButtonTouchBarItem*> i) : TouchBarItem(n), items(i) {}
+    virtual ~GroupTouchBarItem();
+    
+    virtual const std::vector<ButtonTouchBarItem*> &GetItems() { return items; }
+protected:
+    std::vector<ButtonTouchBarItem*> items;
+};
+
 typedef std::function<void(xlColor)> ColorPickerItemChangedFunction;
 class ColorPickerItem : public TouchBarItem {
 public:

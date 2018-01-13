@@ -694,6 +694,33 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             break;
     }
 }
+void MainSequencer::ToggleHousePreview() {
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+        wxCommandEvent event;
+        mSequenceElements->GetXLightsFrame()->ShowHideHousePreview(event);
+    }
+}
+void MainSequencer::ToggleModelPreview() {
+    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+        wxCommandEvent event;
+        mSequenceElements->GetXLightsFrame()->ShowHideModelPreview(event);
+    }
+}
+void MainSequencer::TouchPlayControl(const std::string &evt) {
+    wxCommandEvent e;
+    if (evt == "Play") {
+        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemPlayButtonClick(e);
+    } else if (evt == "Pause") {
+        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemPauseButtonClick(e);
+    } else if (evt == "Stop") {
+        mSequenceElements->GetXLightsFrame()->OnAuiToolBarItemStopClick(e);
+    } else if (evt == "Back") {
+        mSequenceElements->GetXLightsFrame()->OnAuiToolBarFirstFrameClick(e);
+    } else if (evt == "Forward") {
+        mSequenceElements->GetXLightsFrame()->OnAuiToolBarLastFrameClick(e);
+    }
+}
+
 
 void MainSequencer::TouchButtonEvent(wxCommandEvent &event) {
     if (mSequenceElements != nullptr) {

@@ -32,6 +32,19 @@
 }
 @end
 
+@interface SegmentPasser : NSObject
+@property GroupTouchBarItem *item;
+@end
+
+@implementation SegmentPasser
+- (IBAction)buttonClicked:(id)sender
+{
+    int clickedSegment = [sender selectedSegment];
+    _item->GetItems()[clickedSegment]->Clicked();
+}
+@end
+
+
 @interface ColorPickerPasser : NSObject
 @property ColorPickerItem *button;
 @property (assign) NSColorPickerTouchBarItem *item;
@@ -116,6 +129,139 @@
     return nil;
 }
 
+- (nullable NSTouchBarItem *) createChildItem:(NSTouchBarItemIdentifier)identifier
+                                         item:(TouchBarItem *)it
+{
+    ButtonTouchBarItem *item = dynamic_cast<ButtonTouchBarItem*>(it);
+    if (item != nullptr) {
+        std::string label = item->GetLabel();
+        if (label == "") {
+            label = item->GetName();
+        }
+        NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
+        NSString *nm = [NSString stringWithCString:label.c_str()
+                                          encoding:[NSString defaultCStringEncoding]];
+        
+        ButtonPasser *bp = [ButtonPasser alloc];
+        bp.button = item;
+        
+        NSButton* theButton;
+        if (item->GetBitmap().IsOk()) {
+            theButton = [NSButton buttonWithImage:item->GetBitmap().GetNSImage() target:bp action:@selector(buttonClicked:)];
+            [theButton setImagePosition:NSImageOnly];
+            [theButton setBordered:NO];
+        } else if (item->GetName().substr(0, 10) == "NSTouchBar") {
+            //NSString *in2 = NSImageNameTouchBarColorPickerFill;
+            NSString *in = [NSString stringWithCString:item->GetName().c_str()
+                                              encoding:[NSString defaultCStringEncoding]];
+            NSImage *image = [NSImage imageNamed:in];
+            theButton = [NSButton buttonWithImage:image target:bp action:@selector(buttonClicked:)];
+            [theButton setImagePosition:NSImageOnly];
+            [theButton setBordered:NO];
+        } else {
+            theButton = [NSButton buttonWithTitle:nm target:bp action:@selector(buttonClicked:)];
+        }
+        ret.view = theButton;
+        ret.customizationLabel = nm;
+        
+        if (item->GetBackgroundColor().alpha > 0) {
+            xlColor c = item->GetBackgroundColor();
+            theButton.bezelColor = c.asWxColor().OSXGetNSColor();
+        }
+        
+        return ret;
+    }
+    
+    wxControlTouchBarItem *ctbi = dynamic_cast<wxControlTouchBarItem*>(it);
+    if (ctbi != nullptr) {
+        NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
+        
+        NSString *nm = [NSString stringWithCString:ctbi->GetName().c_str()
+                                          encoding:[NSString defaultCStringEncoding]];
+        
+        
+        
+        ret.view = (NSView*)ctbi->GetControl()->GetHandle();;
+        ret.customizationLabel = nm;
+        return ret;
+    }
+    
+    ColorPickerItem *cpi =  dynamic_cast<ColorPickerItem*>(it);
+    if (cpi != nullptr) {
+        NSColorPickerTouchBarItem *ret;
+        if (cpi->GetBitmap().IsOk()) {
+            ret = [NSColorPickerTouchBarItem colorPickerWithIdentifier:identifier buttonImage:cpi->GetBitmap().GetNSImage()];
+        } else {
+            ret = [NSColorPickerTouchBarItem colorPickerWithIdentifier:identifier];
+        }
+        ret.showsAlpha = false;
+        
+        NSString *nm = [NSString stringWithCString:cpi->GetName().c_str()
+                                          encoding:[NSString defaultCStringEncoding]];
+        ColorPickerPasser *bp = [ColorPickerPasser alloc];
+        bp.button = cpi;
+        bp.item = ret;
+        
+        [ret setTarget:bp];
+        [ret setAction:@selector(buttonClicked:)];
+        ret.customizationLabel = nm;
+        ret.color = cpi->GetColor().OSXGetNSColor();
+        [ret setColor:cpi->GetColor().OSXGetNSColor()];
+        return ret;
+    }
+    
+    SliderItem *slider = dynamic_cast<SliderItem*>(it);
+    if (slider != nullptr) {
+        NSSliderTouchBarItem *ret = [[NSSliderTouchBarItem alloc] initWithIdentifier:identifier];
+        NSString *nm = [NSString stringWithCString:slider->GetName().c_str()
+                                          encoding:[NSString defaultCStringEncoding]];
+        ret.customizationLabel = nm;
+        ret.slider.minValue = slider->GetMin();
+        ret.slider.maxValue = slider->GetMax();
+        ret.slider.intValue = slider->GetValue();
+        
+        SliderPasser *bp = [SliderPasser alloc];
+        bp.button = slider;
+        bp.item = ret;
+        [ret setTarget:bp];
+        [ret setAction:@selector(sliderChanged:)];
+        
+        return ret;
+    }
+    
+    GroupTouchBarItem *group = dynamic_cast<GroupTouchBarItem*>(it);
+    if (group != nullptr) {
+        NSMutableArray<NSImage *> *bi = [NSMutableArray arrayWithCapacity:group->GetItems().size()];
+        //fill
+        for (auto it2 : group->GetItems()) {
+            [bi addObject:(it2->GetBitmap().GetNSImage())];
+        }
+        
+        SegmentPasser *bp = [SegmentPasser alloc];
+        bp.item = group;
+
+        NSSegmentedControl *segmentedControl = [NSSegmentedControl segmentedControlWithImages: bi
+                                                                trackingMode: NSSegmentSwitchTrackingMomentary
+                                                                target: bp
+                                                                action: @selector(buttonClicked:)];
+        
+        for (int x = 0; x < group->GetItems().size(); x++) {
+            [segmentedControl setWidth:24 forSegment: x];
+        }
+        NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
+        NSString *nm = [NSString stringWithCString:group->GetName().c_str()
+                                          encoding:[NSString defaultCStringEncoding]];
+        
+        
+        
+        ret.view = segmentedControl;
+        ret.customizationLabel = nm;
+        return ret;
+    }
+    return nullptr;
+}
+
+
 - (nullable NSTouchBarItem *)touchBar:(NSTouchBar *)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier
 {
     std::string s = "org.xlights.TouchBar." + _window->GetName().ToStdString() + "." + _xltouchBar->GetName();
@@ -126,109 +272,14 @@
                                encoding:[NSString defaultCStringEncoding]];
         
         if ([identifier isEqualToString:n]) {
-            ButtonTouchBarItem *item = dynamic_cast<ButtonTouchBarItem*>(*it);
-            if (item != nullptr) {
-                std::string label = item->GetLabel();
-                if (label == "") {
-                    label = item->GetName();
-                }
-                NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
-                NSString *nm = [NSString stringWithCString:label.c_str()
-                                                  encoding:[NSString defaultCStringEncoding]];
-                
-                ButtonPasser *bp = [ButtonPasser alloc];
-                bp.button = item;
-                
-                NSButton* theButton;
-                if (item->GetBitmap().IsOk()) {
-                    theButton = [NSButton buttonWithImage:item->GetBitmap().GetNSImage() target:bp action:@selector(buttonClicked:)];
-                    [theButton setImagePosition:NSImageOnly];
-                    [theButton setBordered:NO];
-                } else if (item->GetName().substr(0, 10) == "NSTouchBar") {
-                    //NSString *in2 = NSImageNameTouchBarColorPickerFill;
-                    NSString *in = [NSString stringWithCString:item->GetName().c_str()
-                                                      encoding:[NSString defaultCStringEncoding]];
-                    NSImage *image = [NSImage imageNamed:in];
-                    theButton = [NSButton buttonWithImage:image target:bp action:@selector(buttonClicked:)];
-                    [theButton setImagePosition:NSImageOnly];
-                    [theButton setBordered:NO];
-                } else {
-                    theButton = [NSButton buttonWithTitle:nm target:bp action:@selector(buttonClicked:)];
-                }
-                ret.view = theButton;
-                ret.customizationLabel = nm;
-                
-                if (item->GetBackgroundColor().alpha > 0) {
-                    xlColor c = item->GetBackgroundColor();
-                    theButton.bezelColor = c.asWxColor().OSXGetNSColor();
-                }
-
-                return ret;
-            }
-            
-            wxControlTouchBarItem *ctbi = dynamic_cast<wxControlTouchBarItem*>(*it);
-            if (ctbi != nullptr) {
-                NSCustomTouchBarItem *ret = [[NSCustomTouchBarItem alloc] initWithIdentifier:identifier];
-                
-                NSString *nm = [NSString stringWithCString:ctbi->GetName().c_str()
-                                                  encoding:[NSString defaultCStringEncoding]];
-                
-                
-                
-                ret.view = (NSView*)ctbi->GetControl()->GetHandle();;
-                ret.customizationLabel = nm;
-                return ret;
-            }
-            
-            ColorPickerItem *cpi =  dynamic_cast<ColorPickerItem*>(*it);
-            if (cpi != nullptr) {
-                NSColorPickerTouchBarItem *ret;
-                if (cpi->GetBitmap().IsOk()) {
-                    ret = [NSColorPickerTouchBarItem colorPickerWithIdentifier:identifier buttonImage:cpi->GetBitmap().GetNSImage()];
-                } else {
-                    ret = [NSColorPickerTouchBarItem colorPickerWithIdentifier:identifier];
-                }
-                ret.showsAlpha = false;
-                
-                NSString *nm = [NSString stringWithCString:cpi->GetName().c_str()
-                                                  encoding:[NSString defaultCStringEncoding]];
-                ColorPickerPasser *bp = [ColorPickerPasser alloc];
-                bp.button = cpi;
-                bp.item = ret;
-
-                [ret setTarget:bp];
-                [ret setAction:@selector(buttonClicked:)];
-                ret.customizationLabel = nm;
-                ret.color = cpi->GetColor().OSXGetNSColor();
-                [ret setColor:cpi->GetColor().OSXGetNSColor()];
-                return ret;
-            }
-            
-            SliderItem *slider = dynamic_cast<SliderItem*>(*it);
-            if (slider != nullptr) {
-                NSSliderTouchBarItem *ret = [[NSSliderTouchBarItem alloc] initWithIdentifier:identifier];
-                NSString *nm = [NSString stringWithCString:slider->GetName().c_str()
-                                                  encoding:[NSString defaultCStringEncoding]];
-                ret.customizationLabel = nm;
-                ret.slider.minValue = slider->GetMin();
-                ret.slider.maxValue = slider->GetMax();
-                ret.slider.intValue = slider->GetValue();
-                
-                SliderPasser *bp = [SliderPasser alloc];
-                bp.button = slider;
-                bp.item = ret;
-                [ret setTarget:bp];
-                [ret setAction:@selector(sliderChanged:)];
-
-                return ret;
-            }
+            return [self createChildItem:identifier item:(*it) ];
         }
     }
     return nil;
 }
 @end
 
-void *initializeTouchBarSuppor(wxWindow *w) {
+void *initializeTouchBarSupport(wxWindow *w) {
     Class cls = NSClassFromString(@"NSTouchBar");
     if (cls == nil) {
         return nullptr;

@@ -59,6 +59,9 @@ class MainSequencer: public wxPanel
         void SetSmallWaveform();
 
         void TouchButtonEvent(wxCommandEvent &event);
+        void ToggleHousePreview();
+        void ToggleModelPreview();
+        void TouchPlayControl(const std::string &event);
         void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
 		//(*Declarations(MainSequencer)

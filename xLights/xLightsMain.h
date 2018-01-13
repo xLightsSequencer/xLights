@@ -361,7 +361,7 @@ public:
 
     EffectManager &GetEffectManager() { return effectManager; }
 
-private:
+
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset, bool average_colors,
                          int imageResizeType, const wxSize &modelSize);
@@ -398,6 +398,8 @@ private:
     void OnButtonClickSaveAs(wxCommandEvent& event);
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     void ChangeMediaDirectory(wxCommandEvent& event);
+    void ShowHideModelPreview(wxCommandEvent& event);
+    void ShowHideHousePreview(wxCommandEvent& event);
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemStopClick(wxCommandEvent& event);
@@ -410,16 +412,14 @@ private:
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
-     void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
+    void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
     void ShowHideEffectSettingsWindow(wxCommandEvent& event);
     void ShowHideColorWindow(wxCommandEvent& event);
     void ShowHideLayerTimingWindow(wxCommandEvent& event);
-    void ShowHideModelPreview(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
-    void ShowHideHousePreview(wxCommandEvent& event);
     void SetIconSize(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void SetToolIconSize(wxCommandEvent& event);
@@ -528,6 +528,7 @@ private:
     void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
     //*)
+private:
 
     void OnIdle(wxIdleEvent& event);
     void DoMenuAction(wxMenuEvent &evt);
