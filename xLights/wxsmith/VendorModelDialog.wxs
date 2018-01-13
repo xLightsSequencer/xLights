@@ -62,6 +62,7 @@
 												<object class="sizeritem">
 													<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap_VendorImage" member="yes">
 														<size>256,128</size>
+														<minsize>256,128</minsize>
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
@@ -90,7 +91,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Facebook" member="yes">
-																<label>http://www.codeblocks.org</label>
+																<label>http://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_FacebookClick" entry="EVT_HYPERLINK" />
 															</object>
@@ -108,7 +109,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL2" variable="HyperlinkCtrl_Website" member="yes">
-																<label>http://www.codeblocks.org</label>
+																<label>http://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
 															</object>
@@ -133,40 +134,43 @@
 												<growablecols>0</growablecols>
 												<growablerows>1</growablerows>
 												<object class="sizeritem">
-													<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-														<cols>3</cols>
-														<growablecols>1</growablecols>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON2" variable="Button_Prior" member="yes">
-																<label>&lt;</label>
-																<size>30,-1</size>
-																<handler function="OnButton_PriorClick" entry="EVT_BUTTON" />
+													<object class="wxPanel" name="ID_PANEL5" variable="ItemImagePanel" member="yes">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+															<cols>3</cols>
+															<growablecols>1</growablecols>
+															<growablerows>0</growablerows>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON2" variable="Button_Prior" member="yes">
+																	<label>&lt;</label>
+																	<size>30,-1</size>
+																	<handler function="OnButton_PriorClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxStaticBitmap" name="ID_STATICBITMAP2" variable="StaticBitmap_ModelImage" member="yes">
-																<size>256,256</size>
+															<object class="sizeritem">
+																<object class="wxStaticBitmap" name="ID_STATICBITMAP2" variable="StaticBitmap_ModelImage" member="yes">
+																	<size>256,256</size>
+																	<minsize>256,256</minsize>
+																</object>
+																<flag>wxALL|wxEXPAND</flag>
+																<border>5</border>
+																<option>1</option>
 															</object>
-															<flag>wxALL|wxEXPAND</flag>
-															<border>5</border>
-															<option>1</option>
-														</object>
-														<object class="sizeritem">
-															<object class="wxButton" name="ID_BUTTON3" variable="Button_Next" member="yes">
-																<label>&gt;</label>
-																<size>30,-1</size>
-																<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON3" variable="Button_Next" member="yes">
+																	<label>&gt;</label>
+																	<size>30,-1</size>
+																	<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
-															<option>1</option>
 														</object>
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
-													<border>5</border>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
@@ -191,7 +195,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL3" variable="HyperlinkCtrl_ModelWebLink" member="yes">
-																<label>http://www.codeblocks.org</label>
+																<label>http://xlights.org</label>
 																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
 																<handler function="OnHyperlinkCtrl_ModelWebLinkClick" entry="EVT_HYPERLINK" />
 															</object>

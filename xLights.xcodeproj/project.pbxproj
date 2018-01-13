@@ -406,6 +406,8 @@
 		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E42C1F1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */; };
 		67E5B5E41EAEDC5800735BF0 /* SubModelGenerateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */; };
+		67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E675062009993B000E930E /* CachedFileDownloader.cpp */; };
+		67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E675082009993C000E930E /* VendorModelDialog.cpp */; };
 		67E8F6501E513B380096546A /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
 		67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
@@ -1337,6 +1339,10 @@
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
 		67E5B5E11EAEDC5800735BF0 /* SubModelGenerateDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelGenerateDialog.cpp; sourceTree = "<group>"; };
 		67E5B5E21EAEDC5800735BF0 /* SubModelGenerateDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelGenerateDialog.h; sourceTree = "<group>"; };
+		67E675062009993B000E930E /* CachedFileDownloader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CachedFileDownloader.cpp; sourceTree = "<group>"; };
+		67E675072009993C000E930E /* CachedFileDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedFileDownloader.h; sourceTree = "<group>"; };
+		67E675082009993C000E930E /* VendorModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorModelDialog.cpp; sourceTree = "<group>"; };
+		67E675092009993D000E930E /* VendorModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VendorModelDialog.h; sourceTree = "<group>"; };
 		67E7086D17B51AB400A22034 /* xLights.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xLights.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67E7087017B51AB400A22034 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		67E7087317B51AB400A22034 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -2139,6 +2145,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67E675062009993B000E930E /* CachedFileDownloader.cpp */,
+				67E675072009993C000E930E /* CachedFileDownloader.h */,
+				67E675082009993C000E930E /* VendorModelDialog.cpp */,
+				67E675092009993D000E930E /* VendorModelDialog.h */,
 				67C31167200506B2005A12D0 /* UtilFunctions.h */,
 				67C31165200506B2005A12D0 /* VideoExporter.cpp */,
 				67C31166200506B2005A12D0 /* VideoExporter.h */,
@@ -2886,6 +2896,7 @@
 				676D0F7E1C72BEBD009C66FC /* kiss_fftr.c in Sources */,
 				679BD3391C37555C000539FE /* RenderableEffect.cpp in Sources */,
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
+				67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
@@ -3035,6 +3046,7 @@
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67B2CFD61C3A186A003C17CA /* SnowflakesEffect.cpp in Sources */,
 				67B2B22B1E1947BE0024F0BB /* LOROutput.cpp in Sources */,
+				67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */,
 				67B2CFF01C3A186A003C17CA /* FireEffect.cpp in Sources */,
 				670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */,
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,

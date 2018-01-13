@@ -65,6 +65,7 @@ class VendorModelDialog: public wxDialog
 		wxStaticText* StaticText2;
 		wxPanel* PanelVendor;
 		wxStaticText* StaticText6;
+		wxPanel* ItemImagePanel;
 		wxPanel* Panel1;
 		wxButton* Button_Prior;
 		wxStaticBitmap* StaticBitmap_ModelImage;
@@ -93,6 +94,7 @@ class VendorModelDialog: public wxDialog
 		static const long ID_BUTTON2;
 		static const long ID_STATICBITMAP2;
 		static const long ID_BUTTON3;
+		static const long ID_PANEL5;
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT7;
 		static const long ID_HYPERLINKCTRL3;
