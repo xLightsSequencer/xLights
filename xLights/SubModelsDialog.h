@@ -6,24 +6,22 @@
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
 
-wxDECLARE_EVENT(EVT_VMDROP, wxCommandEvent);
-
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
-class wxGridEvent;
-class wxTextCtrl;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxListCtrl;
-class wxButton;
-class wxStdDialogButtonSizer;
-class wxSplitterWindow;
-class wxSplitterEvent;
-class wxGrid;
-class wxNotebookEvent;
-class wxStaticText;
 class wxPanel;
+class wxGrid;
+class wxSplitterWindow;
+class wxStdDialogButtonSizer;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxSplitterEvent;
+class wxNotebook;
+class wxStaticText;
+class wxListCtrl;
+class wxFlexGridSizer;
+class wxButton;
+class wxGridEvent;
 //*)
 
 class Model;
@@ -31,26 +29,44 @@ class wxBookCtrlEvent;
 class ModelPreview;
 class SubBufferPanel;
 
+wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
+
 class SubModelTextDropTarget : public wxTextDropTarget
 {
-public:
-    SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
-	{
-		_owner = owner;
-		_list = list;
-		_type = type;
+	public:
+		SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
+		{
+			_owner = owner;
+			_list = list;
+			_type = type;
+		};
+
+		virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
+		virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+		wxWindow* _owner;
+		wxListCtrl* _list;
+		wxString _type;
 	};
-
-    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
-    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
-
-    wxWindow* _owner;
-    wxListCtrl* _list;
-    wxString _type;
-};
 
 class SubModelsDialog: public wxDialog
 {
+	class SubModelInfo {
+		public:
+			SubModelInfo() {}
+			SubModelInfo(const wxString &n) : name(n) {}
+
+			wxString name;
+			bool vertical;
+			bool isRanges;
+			wxString subBuffer;
+			std::vector<wxString> strands;
+	};
+
+	Model *model;
+	ModelPreview *modelPreview;
+	SubBufferPanel *subBufferPanel;
+	std::vector<SubModelInfo*> _subModels;
     int _sortOrder = 0;
     int _numSubModels = 0;
 
@@ -63,28 +79,28 @@ class SubModelsDialog: public wxDialog
         void Save();
 
 		//(*Declarations(SubModelsDialog)
-		wxButton* DeleteRowButton;
-		wxButton* Button_ReverseNodes;
+		wxCheckBox* LayoutCheckbox;
+		wxPanel* ModelPreviewPanelLocation;
+		wxFlexGridSizer* SubBufferSizer;
+		wxButton* Button_MoveUp;
+		wxButton* AddRowButton;
+		wxTextCtrl* TextCtrl_Name;
+		wxListCtrl* ListCtrl_SubModels;
+		wxPanel* SubBufferPanelHolder;
 		wxFlexGridSizer* PreviewSizer;
+		wxStaticText* StaticText1;
+		wxPanel* Panel3;
+		wxButton* Button_Generate;
+		wxStaticText* StaticTextName;
 		wxGrid* NodesGrid;
 		wxButton* AddButton;
+		wxNotebook* TypeNotebook;
 		wxButton* Button_MoveDown;
-		wxButton* AddRowButton;
-		wxFlexGridSizer* SubBufferSizer;
-		wxStaticText* StaticText1;
-		wxButton* Button_Generate;
 		wxPanel* Panel2;
 		wxButton* DeleteButton;
 		wxSplitterWindow* SplitterWindow1;
-		wxStaticText* StaticTextName;
-		wxTextCtrl* TextCtrl_Name;
-		wxPanel* Panel3;
-		wxPanel* ModelPreviewPanelLocation;
-		wxPanel* SubBufferPanelHolder;
-		wxNotebook* TypeNotebook;
-		wxCheckBox* LayoutCheckbox;
-		wxButton* Button_MoveUp;
-		wxListCtrl* ListCtrl_SubModels;
+		wxButton* Button_ReverseNodes;
+		wxButton* DeleteRowButton;
 		//*)
 
 	protected:
@@ -113,7 +129,21 @@ class SubModelsDialog: public wxDialog
 		static const long ID_PANEL1;
 		//*)
 
-	public:
+		void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
+		SubModelInfo *GetSubModelInfo(const wxString &str);
+		int GetSubModelInfoIndex(const wxString &str);
+		void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
+		void RemoveSubModelFromList(wxString name);
+		wxString GetSelectedName();
+		bool IsItemSelected(wxListCtrl* ctrl, int item);
+		void MoveSelectedModelsTo(int indexTo);
+		void ValidateWindow();
+		void SelectRow(int r);
+		void Select(const wxString &name);
+		void DisplayRange(const wxString &range);
+		void PopulateList();
+
+	private:
 
 		//(*Handlers(SubModelsDialog)
 		void OnAddButtonClick(wxCommandEvent& event);
@@ -140,41 +170,6 @@ class SubModelsDialog: public wxDialog
         void OnDrop(wxCommandEvent& event);
 
         DECLARE_EVENT_TABLE()
-
-
-private:
-    void SelectRow(int r);
-    void Select(const wxString &name);
-    void DisplayRange(const wxString &range);
-
-    class SubModelInfo {
-    public:
-        SubModelInfo() {}
-        SubModelInfo(const wxString &n) : name(n) {}
-
-        wxString name;
-        bool vertical;
-        bool isRanges;
-        wxString subBuffer;
-        std::vector<wxString> strands;
-    };
-
-    void GenerateSegment(SubModelInfo& sm, int segments, int segment, bool horizontal, int count);
-    SubModelInfo &GetSubModelInfo(const wxString &str);
-    int GetSubModelInfoIndex(const wxString &str);
-	void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
-    void RemoveSubModelFromList(wxString name);
-    wxString GetSelectedName();
-    bool IsItemSelected(wxListCtrl* ctrl, int item);
-    void MoveSelectedModelsTo(int indexTo);
-	void ValidateWindow();
-
-
-    Model *model;
-    ModelPreview *modelPreview;
-    SubBufferPanel *subBufferPanel;
-    std::vector<SubModelInfo> subModels;
-
 };
 
 #endif
