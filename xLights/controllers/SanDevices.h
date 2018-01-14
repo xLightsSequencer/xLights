@@ -4,7 +4,7 @@
 #include <wx/protocol/http.h>
 #include <list>
 #include <string>
-
+#include <map>
 
 
 class ModelManager;
@@ -27,26 +27,26 @@ class SanDevices
 {
     enum class FirmwareVersion { Unknown, Four, Five }; // enum class
 
-	SimpleHTTP _http;
-	std::string _ip;
+    SimpleHTTP _http;
+    std::string _ip;
     std::string _version;
     FirmwareVersion _eVersion;
     std::string _model;
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     char DecodeStringPortProtocol(std::string protocol);
-	char DecodeStringPortProtocolFive(std::string protocol);
-	char DecodeSerialPortProtocolFive(std::string protocol);
+    char DecodeStringPortProtocolFive(std::string protocol);
+    char DecodeSerialPortProtocolFive(std::string protocol);
     char DecodeUniverseSize(int universesize);
     bool UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
-	bool UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
-	void ResetStringOutputs();
+    bool UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
+    void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
     int GetOutputsPerPort() const;
     std::string ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start = 0);
     char EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected);
-	wxString DecodeOutputData(const wxString page, const std::string parameter);
+    wxString DecodeOutputData(const wxString page, const std::string parameter);
 
 public:
     SanDevices(const std::string& ip);
@@ -54,6 +54,8 @@ public:
     virtual ~SanDevices();
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    std::pair<int, int > DecodeOutputPort(const int output);
+    //std::map<int, std::string > ExtractUniverseMap(const std::string page);
 };
 
 #endif

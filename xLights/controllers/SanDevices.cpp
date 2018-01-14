@@ -10,6 +10,7 @@
 #include "models/ModelManager.h"
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
+#include <regex>
 
 class MyHTTPStream : public wxSocketInputStream
 {
@@ -761,7 +762,13 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         {
             if (!portdone[i])
             {
-                GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());
+                if (FirmwareVersion::Five == _eVersion)
+                {
+                    GetURL(wxString::Format("/%i?A=0", 'J' + i).ToStdString());
+                    wxSleep(10);
+                }
+                else
+                    GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());
             }
         }
     }
@@ -870,59 +877,87 @@ bool SanDevices::UploadStringPort(const std::string& page, int output, int outpu
 
 bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent)
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-	if (output > GetMaxStringOutputs())
-	{
-		logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
-		wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
-		return false;
-	}
+    if (output > GetMaxStringOutputs())
+    {
+        logger_base.warn("SanDevices Outputs Upload: SanDevices only supports %d outputs. Attempt to upload to output %d.", GetMaxStringOutputs(), output);
+        wxMessageBox("SanDevices only supports " + wxString::Format("%d", GetMaxStringOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid String Output", wxOK, parent);
+        return false;
+    }
 
-	wxString p(page);
-	int start = p.find("Output Configuration");
+    wxString p(page);
+    int start = p.find("Output Configuration");
 
-	std::string tofind = "";
+    std::pair<int, int> ports = DecodeOutputPort(output);
 
-	if (_model == "E682")
-	{
-		tofind = "<td>" + wxString::Format("%i-%i", port, subport) + "</td>";
-	}
-	else
-	{
-		tofind = "<td>" + wxString::Format("%i", output) + "</td>";
-	}
-	start = 0;// = p.find(tofind, start);
-	p = DecodeOutputData(p, tofind);
+    std::string tofind = "";
 
-	// extract the group size
-	std::string gs = ExtractFromPage(page, "D", "input", start);
+    if (_model == "E682")
+    {
+        tofind = "<td>" + wxString::Format("%i-%i", ports.first, ports.second) + "</td>";
+    }
+    else
+    {
+        tofind = "<td>" + wxString::Format("%i", output) + "</td>";
+    }
+    start = p.find(tofind, start);
+    //p = DecodeOutputData(p, tofind);
 
-	// extact the colour order
-	std::string co = ExtractFromPage(page, "E", "select", start);
+    //if (p.size() == 0)
+    //    return false;
 
-	// extract reverse
-	std::string rev = ExtractFromPage(page, "H", "checkbox", start);
+    //std::map<int, std::string > universes = ExtractUniverseMap(p);
 
-	// extract zig zag every
-	std::string zz = ExtractFromPage(page, "L", "input", start);
+    // extact the colour order
+    std::string co = ExtractFromPage(page, "E", "select", start);
 
-	// extract null pixels
-	std::string n = ExtractFromPage(page, "M", "input", start);
+    // extract reverse
+    std::string rev = ExtractFromPage(page, "N", "checkbox", start);
+    if (rev == "1")
+        rev = "&N=1";
+    else
+        rev = "";
 
-	std::string a = ExtractFromPage(page, "A", "checkbox", start);
-	//http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-	wxString request = wxString::Format("/%c?A=%d&B=%c&E=%s&F=%c&G=%d&H=%s&L=%s&M=%s",
-		output + 'J',
-		pixels,
-		gs,
-		co,
-		universe,
-		portstartchannel,
-		rev,
-		zz,
-		n);
-	return (GetURL(request.ToStdString()) != "");
+    // extract null pixels
+    std::string n = ExtractFromPage(page, "H", "input", start);
+
+    // extract the group size
+    std::string gs = ExtractFromPage(page, "B", "input", start);
+
+    // extract chase
+    std::string chase = ExtractFromPage(page, "F", "checkbox", start);
+    if (chase == "1")
+        chase = "&F=1";
+    else
+        chase = "";
+
+    // extract first zig zag 
+    std::string zz = ExtractFromPage(page, "I", "input", start);
+
+    // extract then zig zag every
+    std::string tzz = ExtractFromPage(page, "J", "input", start);
+
+    // extact the intensatiy
+    std::string intens = ExtractFromPage(page, "D", "select", start);
+
+    //std::string a = ExtractFromPage(page, "A", "checkbox", start);
+
+    //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
+    wxString request = wxString::Format("/%c?A=%d&E=%s&Z=%c&G=%d%s&H=%s&B=%s%s&I=%s&J=%s&D=%s",
+        output + 'J',
+        pixels,
+        co,
+        universe,
+        portstartchannel,
+        rev,
+        n,
+        gs,
+        chase,
+        zz,
+        tzz,
+        intens);
+    return (GetURL(request.ToStdString()) != "");
 }
 
 void SanDevices::ResetStringOutputs()
@@ -935,15 +970,53 @@ void SanDevices::ResetStringOutputs()
 
 wxString SanDevices::DecodeOutputData(const wxString page, const std::string parameter)
 {
-	//\<form\saction=\'([A-Z])\'\smethod=\'get\'\>(.*)(\d-\d)(.*)\</form\>
+    //\<form\saction=\'([A-Z])\'\smethod=\'get\'\>(.*)(\d-\d)(.*)\</form\>
 
-	wxString regex = "(\\<form\saction=\\'([A-Z])\\'\smethod=\\'get\\'\\>(.*)(" + parameter + ")(.*)\\</form\\>";
-	wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-	if (inputregex.Matches(wxString(page)))
-	{
-		std::string res = inputregex.GetMatch(wxString(page), 3).ToStdString();
-		return res;
-	}
-	return std::string();
+    wxString regex = "\\<form\\saction=\\'([A-Z])\\'\\smethod=\\'get\\'\\>(.*)(" + parameter + ")(.*)(?=\\<form)";
+    wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
+    if (inputregex.Matches(wxString(page)))
+    {
+        std::string res = inputregex.GetMatch(wxString(page), 4).ToStdString();
+        return res;
+    }
+    return std::string();
 }
+
+std::pair<int, int > SanDevices::DecodeOutputPort(const int output)
+{
+    int temp = (output - 1);
+    int temp2 = (temp / 4);
+    int temp3 = (temp2 + 1);
+    int port = ((output - 1) / 4) + 1;
+    int subport = output % 4;
+
+    return std::pair<int, int> (port, subport);
+}
+/*
+std::map<int, std::string > SanDevices::ExtractUniverseMap(const std::string page)
+{
+    std::map<int, std::string > universeMap;
+    
+    //<select name = \'Z\'
+    wxString regexSection = "\\<select\sname=\\'Z\\'>(.*)\\<input\\sname=\\'G\\'";
+    wxRegEx inputregex(regexSection, wxRE_ADVANCED | wxRE_NEWLINE);
+    if (inputregex.Matches(wxString(page)))
+    {
+        std::string section = inputregex.GetMatch(wxString(page), 1).ToStdString();
+        std::regex regexUniverse("\\<option\\svalue=\\'([A-F])\\'.*\>.*(\\d+)");
+
+        for (std::sregex_iterator i = std::sregex_iterator(section.begin(), section.end(), regexUniverse);
+            i != std::sregex_iterator();
+            ++i)
+        {
+            std::smatch m = *i;
+            if (m[1].matched && m[2].matched)
+            {
+                universeMap.insert(std::make_pair(std::stoi(m[2].str), m[1].str()));
+            }
+        }
+    }
+
+    return universeMap;
+}*/
 
