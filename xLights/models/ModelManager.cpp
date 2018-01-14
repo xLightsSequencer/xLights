@@ -114,8 +114,8 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
                 Model *m = createAndAddModel(e);
                 if (m != nullptr) {
                     m->SetMinMaxModelScreenCoordinates(previewW, previewH);
+                    countValid += m->CouldComputeStartChannel ? 1 : 0;
                 }
-                countValid += m->CouldComputeStartChannel ? 1 : 0;
             }
         }
     }
