@@ -5,6 +5,8 @@
 #include <list>
 #include <string>
 
+
+
 class ModelManager;
 class Output;
 class OutputManager;
@@ -23,20 +25,28 @@ public:
 
 class SanDevices
 {
+    enum class FirmwareVersion { Unknown, Four, Five }; // enum class
+
 	SimpleHTTP _http;
 	std::string _ip;
     std::string _version;
+    FirmwareVersion _eVersion;
     std::string _model;
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     char DecodeStringPortProtocol(std::string protocol);
+	char DecodeStringPortProtocolFive(std::string protocol);
+	char DecodeSerialPortProtocolFive(std::string protocol);
+    char DecodeUniverseSize(int universesize);
     bool UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
-    void ResetStringOutputs();
+	bool UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
+	void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
     int GetOutputsPerPort() const;
     std::string ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start = 0);
     char EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected);
+	wxString DecodeOutputData(const wxString page, const std::string parameter);
 
 public:
     SanDevices(const std::string& ip);
