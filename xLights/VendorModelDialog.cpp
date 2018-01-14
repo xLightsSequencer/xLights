@@ -868,6 +868,7 @@ bool VendorModelDialog::LoadTree()
     {
         wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, (*it)->_name, -1, -1, new MVendorTreeItemData(*it));
         AddHierachy(v, *it, (*it)->_categories);
+        TreeCtrl_Navigator->Expand(v);
     }
 
     if (_vendors.size() == 0)
@@ -885,6 +886,7 @@ void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<
     {
         wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, (*it)->_name, -1, -1, new MCategoryTreeItemData(*it));
         AddHierachy(tid, vendor, (*it)->_categories);
+        TreeCtrl_Navigator->Expand(tid);
         AddModels(tid, vendor, (*it)->_id);
     }
 }
