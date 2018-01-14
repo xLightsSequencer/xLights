@@ -4743,89 +4743,21 @@ void xLightsFrame::CheckSequence(bool display)
     warncountsave = warncount;
 
     LogAndWrite(f, "");
-    LogAndWrite(f, "Custom models with odd looking channels");
+    LogAndWrite(f, "Models with issues");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
-        if (it->second->GetDisplayAs() == "Custom")
+        std::list<std::string> warnings = it->second->CheckModelSettings();
+        for (auto s = warnings.begin(); s != warnings.end(); ++s)
         {
-            CustomModel* cm = dynamic_cast<CustomModel*>(it->second);
-            if (cm != nullptr)
+            LogAndWrite(f, *s);
+            if (s->find("WARN:") != std::string::npos)
             {
-                // check for no nodes
-                if (cm->GetNodeCount() == 0)
-                {
-                    wxString msg = wxString::Format("    ERR: Custom model '%s' has no nodes defined.", (const char *)cm->GetName().c_str());
-                    LogAndWrite(f, msg.ToStdString());
-                    errcount++;
-                }
-
-                // check for node gaps
-                int maxn = 0;
-                for (int ii = 0; ii < cm->GetNodeCount(); ii++)
-                {
-                    int nn = cm->GetNodeStringNumber(ii);
-                    if (nn > maxn) maxn = nn;
-                }
-                maxn++;
-                int chssize = (maxn+1) * sizeof(int);
-                //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
-                int* chs = (int*)malloc(chssize);
-                if (chs == nullptr)
-                {
-                    wxString msg = wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", (const char *)cm->GetName().c_str(), maxn);
-                    LogAndWrite(f, msg.ToStdString());
-                    warncount++;
-                }
-                else
-                {
-                    memset(chs, 0x00, chssize);
-
-                    for (int ii = 0; ii < cm->GetNodeCount(); ii++)
-                    {
-                        int nn = cm->GetNodeStringNumber(ii);
-                        chs[nn + 1]++;
-                    }
-
-                    for (int ii = 1; ii <= maxn; ii++)
-                    {
-                        if (chs[ii] == 0)
-                        {
-                            wxString msg = wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)cm->GetName().c_str(), ii);
-                            LogAndWrite(f, msg.ToStdString());
-                            warncount++;
-                        }
-                    }
-
-                    int multinodecount = 0;
-                    for (int ii = 0; ii < cm->GetNodeCount(); ii++)
-                    {
-                        std::vector<wxPoint> pts;
-                        cm->GetNodeCoords(ii, pts);
-                        if (pts.size() > 1)
-                        {
-                            multinodecount++;
-                        }
-                    }
-
-                    // >0% but less than 10% multi-nodes ... these may be accidental duplicates
-                    if (multinodecount > 0 && multinodecount < 0.1 * maxn)
-                    {
-                        for (int ii = 0; ii < cm->GetNodeCount(); ii++)
-                        {
-                            std::vector<wxPoint> pts;
-                            cm->GetNodeCoords(ii, pts);
-                            if (pts.size() > 1)
-                            {
-                                wxString msg = wxString::Format("    WARN: Custom model '%s' node %d has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)cm->GetName().c_str(), ii+1, (int)pts.size());
-                                LogAndWrite(f, msg.ToStdString());
-                                warncount++;
-                            }
-                        }
-                    }
-
-                    free(chs);
-                }
+                warncount++;
+            }
+            else if (s->find("ERR:") != std::string::npos)
+            {
+                errcount++;
             }
         }
     }

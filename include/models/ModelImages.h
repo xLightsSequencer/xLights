@@ -18,4 +18,5 @@
 #include "import.xpm"
 #include "polyline.xpm"
 #include "download.xpm"
+#include "image_model.xpm"
 #endif

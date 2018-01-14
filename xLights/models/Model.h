@@ -137,7 +137,7 @@ protected:
                         int &bufferWi, int &bufferHi) const;
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
-    void ApplyTransparency(xlColor &color, int transparency);
+    void ApplyTransparency(xlColor &color, int transparency) const;
 
     int BufferHt,BufferWi;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
@@ -257,6 +257,8 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
+    virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;
     void SaveModelState( std::vector<std::string>& state );

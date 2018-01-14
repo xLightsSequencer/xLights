@@ -257,6 +257,80 @@ std::string CustomModel::GetNodeName(size_t x, bool def) const {
     return "";
 }
 
+std::list<std::string> CustomModel::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    // check for no nodes
+    if (GetNodeCount() == 0)
+    {
+        res.push_back(wxString::Format("    ERR: Custom model '%s' has no nodes defined.", (const char *)GetName().c_str()).ToStdString());
+    }
+
+    // check for node gaps
+    int maxn = 0;
+    for (int ii = 0; ii < GetNodeCount(); ii++)
+    {
+        int nn = GetNodeStringNumber(ii);
+        if (nn > maxn) maxn = nn;
+    }
+    maxn++;
+    int chssize = (maxn + 1) * sizeof(int);
+    //logger_base.debug("    CheckSequence: Checking custom model %d nodes", maxn);
+    int* chs = (int*)malloc(chssize);
+    if (chs == nullptr)
+    {
+        res.push_back(wxString::Format("    WARN: Could not check Custom model '%s' for missing nodes. Error allocating memory for %d nodes.", (const char *)GetName().c_str(), maxn).ToStdString());
+    }
+    else
+    {
+        memset(chs, 0x00, chssize);
+
+        for (int ii = 0; ii < GetNodeCount(); ii++)
+        {
+            int nn = GetNodeStringNumber(ii);
+            chs[nn + 1]++;
+        }
+
+        for (int ii = 1; ii <= maxn; ii++)
+        {
+            if (chs[ii] == 0)
+            {
+                res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)GetName().c_str(), ii).ToStdString());
+            }
+        }
+
+        int multinodecount = 0;
+        for (int ii = 0; ii < GetNodeCount(); ii++)
+        {
+            std::vector<wxPoint> pts;
+            GetNodeCoords(ii, pts);
+            if (pts.size() > 1)
+            {
+                multinodecount++;
+            }
+        }
+
+        // >0% but less than 10% multi-nodes ... these may be accidental duplicates
+        if (multinodecount > 0 && multinodecount < 0.1 * maxn)
+        {
+            for (int ii = 0; ii < GetNodeCount(); ii++)
+            {
+                std::vector<wxPoint> pts;
+                GetNodeCoords(ii, pts);
+                if (pts.size() > 1)
+                {
+                    res.push_back(wxString::Format("    WARN: Custom model '%s' node %d has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)GetName().c_str(), ii + 1, (int)pts.size()).ToStdString());
+                }
+            }
+        }
+
+        free(chs);
+    }
+
+    return res;
+}
+
 std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
     std::vector<int> chmap;
