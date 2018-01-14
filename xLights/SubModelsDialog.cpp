@@ -293,6 +293,7 @@ void SubModelsDialog::Setup(Model *m)
     }
     PopulateList();
     ValidateWindow();
+    Select(_subModels.at(0)->name);
 }
 
 #pragma region helpers
@@ -727,24 +728,7 @@ void SubModelsDialog::ValidateWindow()
 
 void SubModelsDialog::Select(const wxString &name)
 {
-    // if (name == "") {
-    //     TextCtrl_Name->Disable();
-    //     DeleteButton->Disable();
-    //     NodesGrid->Disable();
-    //     LayoutCheckbox->Disable();
-    //     AddRowButton->Disable();
-    //     DeleteRowButton->Disable();
-    //     subBufferPanel->Disable();
-    //     TypeNotebook->Disable();
-    //     return;
-    // }
-    // TextCtrl_Name->Enable();
-    // DeleteButton->Enable();
-    // NodesGrid->Enable();
-    // LayoutCheckbox->Enable();
-    // AddRowButton->Enable();
-    // subBufferPanel->Enable();
-    // TypeNotebook->Enable();
+    if (name == "") { return; }
 
     SubModelInfo* sm = GetSubModelInfo(name);
     DeleteRowButton->Enable(sm->strands.size() > 1);
