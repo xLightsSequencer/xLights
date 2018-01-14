@@ -10,12 +10,11 @@
 #include "models/ModelManager.h"
 #include <wx/sckstrm.h>
 #include <wx/tokenzr.h>
-#include <regex>
 
 class MyHTTPStream : public wxSocketInputStream
 {
 public:
-    wxHTTP *m_http;
+    wxHTTP * m_http;
     size_t m_httpsize;
     unsigned long m_read_bytes;
 
@@ -276,10 +275,10 @@ int SanDevices::GetOutputsPerPort() const
 
 int SanDevices::GetMaxStringOutputs() const
 {
-	if (FirmwareVersion::Five == _eVersion && _model == "E682")
-	{
-		return 16;
-	}
+    if (FirmwareVersion::Five == _eVersion && _model == "E682")
+    {
+        return 16;
+    }
     return 4;
 }
 
@@ -297,7 +296,7 @@ std::string SanDevices::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString res;
-    
+
     _http.SetMethod("GET");
     wxString startResult;
     wxInputStream *httpStream = _http.GetInputStream(wxString(url), startResult);
@@ -407,7 +406,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
         request += "&H=" + ExtractFromPage(page, "H", "select");// += "&H=A"; //impossible to extract correctly because the are two fields called "H"
     else
         request += "&H=" + ExtractFromPage(page, "H", "input");
-        request += "&G=" + ExtractFromPage(page, "G", "input");
+    request += "&G=" + ExtractFromPage(page, "G", "input");
 
     if (FirmwareVersion::Five == _eVersion)
     {
@@ -456,7 +455,7 @@ bool SanDevices::SetInputUniverses(OutputManager* outputManager, std::list<int>&
         }
     }
 
-    if(FirmwareVersion::Five == _eVersion)
+    if (FirmwareVersion::Five == _eVersion)
         GetURL(requestUnvSize.ToStdString());
 
     return (GetURL(request.ToStdString()) != "");
@@ -702,31 +701,31 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                     {
                         for (int j = 0; j < numstrings; j++)
                         {
-							int outputPort = i + j;
-							if (portdone[outputPort])
-							{
-								logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort);
-								wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort));
-								success = false;
-							}
-							else
-							{
-								portdone[outputPort] = true;
-								//if (sendmessage != "") sendmessage = sendmessage + "&";
-								long startChannel;
-								Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-								if (FirmwareVersion::Five == _eVersion)
-									success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
-								else
-									success = UploadStringPort(page, outputPort, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
-							}
+                            int outputPort = i + j;
+                            if (portdone[outputPort])
+                            {
+                                logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort);
+                                wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), outputPort));
+                                success = false;
+                            }
+                            else
+                            {
+                                portdone[outputPort] = true;
+                                //if (sendmessage != "") sendmessage = sendmessage + "&";
+                                long startChannel;
+                                Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
+                                if (FirmwareVersion::Five == _eVersion)
+                                    success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
+                                else
+                                    success = UploadStringPort(page, outputPort, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
+                            }
                         }
                     }
                     else
                     {
                         if (portdone[i])
                         {
-                            logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
+                            logger_base.warn("SanDevices Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
                             success = false;
                         }
@@ -736,10 +735,10 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                             long startChannel;
                             Output* output = outputManager->GetOutput(portstart, startChannel);
                             wxASSERT(channelsperstring == portend - portstart + 1);
-							if (FirmwareVersion::Five == _eVersion)
-								success = UploadStringPortFirmwareFive(page, i, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
-							else
-								success = UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
+                            if (FirmwareVersion::Five == _eVersion)
+                                success = UploadStringPortFirmwareFive(page, i, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
+                            else
+                                success = UploadStringPort(page, i, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
                         }
                     }
                 }
@@ -758,15 +757,12 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
         }
 
         // disable the other ports
-        for (int i =1 ; i <= GetMaxStringOutputs(); i++)
+        for (int i = 1; i <= GetMaxStringOutputs(); i++)
         {
             if (!portdone[i])
             {
                 if (FirmwareVersion::Five == _eVersion)
-                {
-                    GetURL(wxString::Format("/%i?A=0", 'J' + i).ToStdString());
-                    wxSleep(10);
-                }
+                    GetURL(wxString::Format("/%c?A=0", 'J' + i).ToStdString());
                 else
                     GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());
             }
@@ -777,6 +773,9 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 
 char SanDevices::DecodeStringPortProtocol(std::string protocol)
 {
+    if (FirmwareVersion::Five == _eVersion)
+        return DecodeStringPortProtocolFive(protocol);
+
     if (protocol == "ws2811") return 'D';
     if (protocol == "tm18xx") return 'D';
     if (protocol == "ws2801") return 'B';
@@ -790,21 +789,23 @@ char SanDevices::DecodeStringPortProtocol(std::string protocol)
 
 char SanDevices::DecodeStringPortProtocolFive(std::string protocol)
 {
-	if (protocol == "ws2811") return 'A';
-	if (protocol == "tm18xx") return 'D';
-	if (protocol == "ws2801") return 'C';
-	if (protocol == "lpd6803") return 'B';
-	if (protocol == "gece") return 'O';
+    if (protocol == "ws2811") return 'A';
+    if (protocol == "tm18xx") return 'D';
+    if (protocol == "ws2801") return 'C';
+    if (protocol == "lpd6803") return 'B';
+    if (protocol == "gece") return 'O';
+    if (protocol == "dmx") return 'K';
+    if (protocol == "renard") return 'N';
 
-	return -1;
+    return -1;
 }
 
 char SanDevices::DecodeSerialPortProtocolFive(std::string protocol)
 {
-	if (protocol == "dmx") return 'K';
-	if (protocol == "renard") return 'N';
+    if (protocol == "dmx") return 'K';
+    if (protocol == "renard") return 'N';
 
-	return -1;
+    return -1;
 }
 
 char SanDevices::DecodeUniverseSize(int universesize)
@@ -847,7 +848,7 @@ bool SanDevices::UploadStringPort(const std::string& page, int output, int outpu
     std::string gs = ExtractFromPage(page, "D", "input", start);
 
     // extact the colour order
-    std::string co = ExtractFromPage(page, "E", "select", start); 
+    std::string co = ExtractFromPage(page, "E", "select", start);
 
     // extract reverse
     std::string rev = ExtractFromPage(page, "H", "checkbox", start);
@@ -861,17 +862,17 @@ bool SanDevices::UploadStringPort(const std::string& page, int output, int outpu
     std::string a = ExtractFromPage(page, "A", "checkbox", start);
 
     wxString request = wxString::Format("/%d?A=%d&B=%c&C=%d&D=%s&E=%s&F=%c&G=%d&H=%s&L=%s&M=%s",
-            output + 3,
-            outputsUsed,
-            protocol,
-            pixels,
-            gs,
-            co,
-            universe,
-            portstartchannel,
-            rev,
-            zz,
-            n);
+        output + 3,
+        outputsUsed,
+        protocol,
+        pixels,
+        gs,
+        co,
+        universe,
+        portstartchannel,
+        rev,
+        zz,
+        n);
     return (GetURL(request.ToStdString()) != "");
 }
 
@@ -902,12 +903,6 @@ bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int outpu
         tofind = "<td>" + wxString::Format("%i", output) + "</td>";
     }
     start = p.find(tofind, start);
-    //p = DecodeOutputData(p, tofind);
-
-    //if (p.size() == 0)
-    //    return false;
-
-    //std::map<int, std::string > universes = ExtractUniverseMap(p);
 
     // extact the colour order
     std::string co = ExtractFromPage(page, "E", "select", start);
@@ -941,8 +936,6 @@ bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int outpu
     // extact the intensatiy
     std::string intens = ExtractFromPage(page, "D", "select", start);
 
-    //std::string a = ExtractFromPage(page, "A", "checkbox", start);
-
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
     wxString request = wxString::Format("/%c?A=%d&E=%s&Z=%c&G=%d%s&H=%s&B=%s%s&I=%s&J=%s&D=%s",
         output + 'J',
@@ -968,20 +961,6 @@ void SanDevices::ResetStringOutputs()
     GetURL("/7?A=0");
 }
 
-wxString SanDevices::DecodeOutputData(const wxString page, const std::string parameter)
-{
-    //\<form\saction=\'([A-Z])\'\smethod=\'get\'\>(.*)(\d-\d)(.*)\</form\>
-
-    wxString regex = "\\<form\\saction=\\'([A-Z])\\'\\smethod=\\'get\\'\\>(.*)(" + parameter + ")(.*)(?=\\<form)";
-    wxRegEx inputregex(regex, wxRE_ADVANCED | wxRE_NEWLINE);
-    if (inputregex.Matches(wxString(page)))
-    {
-        std::string res = inputregex.GetMatch(wxString(page), 4).ToStdString();
-        return res;
-    }
-    return std::string();
-}
-
 std::pair<int, int > SanDevices::DecodeOutputPort(const int output)
 {
     int temp = (output - 1);
@@ -990,33 +969,5 @@ std::pair<int, int > SanDevices::DecodeOutputPort(const int output)
     int port = ((output - 1) / 4) + 1;
     int subport = output % 4;
 
-    return std::pair<int, int> (port, subport);
+    return std::pair<int, int>(port, subport);
 }
-/*
-std::map<int, std::string > SanDevices::ExtractUniverseMap(const std::string page)
-{
-    std::map<int, std::string > universeMap;
-    
-    //<select name = \'Z\'
-    wxString regexSection = "\\<select\sname=\\'Z\\'>(.*)\\<input\\sname=\\'G\\'";
-    wxRegEx inputregex(regexSection, wxRE_ADVANCED | wxRE_NEWLINE);
-    if (inputregex.Matches(wxString(page)))
-    {
-        std::string section = inputregex.GetMatch(wxString(page), 1).ToStdString();
-        std::regex regexUniverse("\\<option\\svalue=\\'([A-F])\\'.*\>.*(\\d+)");
-
-        for (std::sregex_iterator i = std::sregex_iterator(section.begin(), section.end(), regexUniverse);
-            i != std::sregex_iterator();
-            ++i)
-        {
-            std::smatch m = *i;
-            if (m[1].matched && m[2].matched)
-            {
-                universeMap.insert(std::make_pair(std::stoi(m[2].str), m[1].str()));
-            }
-        }
-    }
-
-    return universeMap;
-}*/
-

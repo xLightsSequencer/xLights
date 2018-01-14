@@ -23,6 +23,17 @@ public:
 };
 
 
+class SanFiveString
+{
+public:
+    char protocol;
+    int universe;
+    int startChannel;
+    int pixels;
+    int port;
+};
+
+
 class SanDevices
 {
     enum class FirmwareVersion { Unknown, Four, Five }; // enum class
@@ -46,7 +57,6 @@ class SanDevices
     int GetOutputsPerPort() const;
     std::string ExtractFromPage(const std::string page, const std::string parameter, const std::string type, int start = 0);
     char EncodeUniverse(int universe, OutputManager* outputManager, std::list<int>& selected);
-    wxString DecodeOutputData(const wxString page, const std::string parameter);
 
 public:
     SanDevices(const std::string& ip);
@@ -55,7 +65,6 @@ public:
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
     std::pair<int, int > DecodeOutputPort(const int output);
-    //std::map<int, std::string > ExtractUniverseMap(const std::string page);
 };
 
 #endif
