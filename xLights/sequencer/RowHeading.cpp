@@ -41,6 +41,7 @@ const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -263,6 +264,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (canPromote) {
             mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
         }
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Row Effects");
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
@@ -624,6 +627,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (layer_index < element->GetEffectLayerCount())
         {
             element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+        }
+    }
+    else if (id == ID_ROW_MNU_SELECT_ROW_EFFECTS) {
+        if (layer_index < element->GetEffectLayerCount())
+        {
+            element->GetEffectLayer(layer_index)->SelectAllEffects();
         }
     } else if (id == ID_ROW_MNU_DELETE_MODEL_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);

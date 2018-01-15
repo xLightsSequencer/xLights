@@ -1439,6 +1439,12 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
     return num_selected;
 }
 
+void SequenceElements::SelectAllEffectsInRow(int row)
+{
+    EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
+    effectLayer->SelectAllEffects();
+}
+
 void SequenceElements::UnSelectAllEffects()
 {
     for(size_t i=0;i<mRowInformation.size();i++)

@@ -59,6 +59,7 @@ class EffectLayer
         int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
         bool HasEffectsInTimeRange(int startTimeMS, int endTimeMS);
         void UnSelectAllEffects();
+        void SelectAllEffects();
 
         Element* GetParentElement();
         void SetParentElement(Element* parent);
