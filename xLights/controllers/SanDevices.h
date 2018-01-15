@@ -20,17 +20,23 @@ public:
     wxInputStream *GetInputStream(const wxString& path, wxString& startResult);
 };
 
-
 class SanDevices
 {
-	SimpleHTTP _http;
-	std::string _ip;
+    enum class FirmwareVersion { Unknown, Four, Five }; // enum class
+
+    SimpleHTTP _http;
+    std::string _ip;
     std::string _version;
+    FirmwareVersion _eVersion;
     std::string _model;
     bool _connected;
     std::string GetURL(const std::string& url, bool logresult = false);
     char DecodeStringPortProtocol(std::string protocol);
+    char DecodeStringPortProtocolFive(std::string protocol);
+    char DecodeSerialPortProtocolFive(std::string protocol);
+    char DecodeUniverseSize(int universesize);
     bool UploadStringPort(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
+    bool UploadStringPortFirmwareFive(const std::string& page, int output, int outputsUsed, char protocol, int portstartchannel, char universe, int pixels, const std::string& description, wxWindow* parent);
     void ResetStringOutputs();
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
@@ -44,6 +50,7 @@ public:
     virtual ~SanDevices();
     bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
+    std::pair<int, int > DecodeOutputPort(const int output);
 };
 
 #endif
