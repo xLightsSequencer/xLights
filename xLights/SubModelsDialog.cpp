@@ -218,14 +218,14 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
 
     SetSize(1200, 800);
-    _numSubModels = 0;
     wxPoint loc;
     wxSize sz;
-    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    if (loc.x != -1)
-    {
-        SetPosition(loc);
-    }
+    // LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    // if (loc.x != -1)
+    // {
+    //     SetPosition(loc);
+    //     SetSize(sz);
+    // }
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(150, 150));
@@ -259,7 +259,7 @@ SubModelsDialog::~SubModelsDialog()
         delete *a;
     }
     _subModels.clear();
-
+    
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
 }
 
@@ -293,7 +293,6 @@ void SubModelsDialog::Setup(Model *m)
     }
     PopulateList();
     ValidateWindow();
-    Select(_subModels.at(0)->name);
 }
 
 #pragma region helpers
@@ -315,9 +314,6 @@ bool SubModelsDialog::IsItemSelected(wxListCtrl* ctrl, int item)
 void SubModelsDialog::RemoveSubModelFromList(wxString name)
 {
     _subModels.erase(_subModels.begin() + GetSubModelInfoIndex(name));
-    long id = ListCtrl_SubModels->FindItem(-1, name);
-    ListCtrl_SubModels->DeleteItem(id);
-    --_numSubModels;
 }
 
 wxString SubModelsDialog::GetSelectedName()
@@ -330,6 +326,22 @@ wxString SubModelsDialog::GetSelectedName()
         }
     }
     return "";
+}
+
+wxString SubModelsDialog::GetSelectedNames()
+{
+    wxString names = "";
+    for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrl_SubModels, i) )
+        {
+            names+=ListCtrl_SubModels->GetItemText(i)+",";
+        }
+    }
+    if (names.EndsWith(",")) {
+        names = names.RemoveLast();
+    }
+    return names;
 }
 
 int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
@@ -382,41 +394,43 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
 
 void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
 {
-    wxTextEntryDialog dlg(this, "Enter name for sub model");
-    wxString name = "";
-    int id = wxID_OK;
-    while (name == "" && GetSubModelInfoIndex(name) == -1 && id == wxID_OK) {
-        id = dlg.ShowModal();
-        name= dlg.GetValue();
-    }
-    if (id == wxID_OK) {
-        SubModelInfo* sm = GetSubModelInfo(name);
-
-        sm->name = name;
-        sm->vertical = false;
-        sm->isRanges = true;
-        sm->strands.clear();
-        sm->strands.push_back("");
-        _subModels.push_back(sm);
-        PopulateList();
-        Select(name);
-    }
+    wxString name = wxString::Format("SubModel-%d",(int)_subModels.size());
+    SubModelInfo* sm = new SubModelInfo(name);
+    sm->vertical = false;
+    sm->strands.clear();
+    sm->strands.push_back("");
+    sm->isRanges = true;
+    _subModels.push_back(sm);
+    PopulateList();
+    ValidateWindow();
+    Select(name);
 }
 
 void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
 {
-    // get the current selected submodel
-    wxString name = GetSelectedName();
-    // ask user if they really want to delete it
-    int answer = wxMessageBox("Are you sure you want to delete sub model " + name + "?",
-                              "Delete Model",
-                              wxYES_NO, this);
+    wxString names = GetSelectedNames();
+    wxStringTokenizer tokenizer(names, ",");
+    wxString msg = "";
+    int count = tokenizer.CountTokens();
+    if ( count > 1) {
+        msg.Printf(wxT("Are you sure you want to delete %d sub models ?"), count);
+    } else {
+        msg = "Are you sure you want to delete sub model " + names + "?";
+    }
+    int answer = wxMessageBox(msg,
+                          "Delete Model",
+                          wxYES_NO, this);
     // no: return
     if (answer == wxNO) {
         return;
     }
+
     // delete selected submodel
-    RemoveSubModelFromList(name);
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken();
+        RemoveSubModelFromList(token);
+    }
+    PopulateList();
     ValidateWindow();
 }
 
@@ -516,13 +530,10 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
             }
             else
             {
-                SubModelInfo* sm = GetSubModelInfo(name);
-
-                sm->name = name;
+                SubModelInfo* sm = new SubModelInfo(name);
                 sm->vertical = false;
                 sm->strands.clear();
                 sm->strands.push_back("");
-                _subModels.insert(_subModels.end(), sm);
 
                 if (dialog.GetType() == "Vertical Slices")
                 {
@@ -570,7 +581,9 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
                         sm->strands[0] = wxString::Format("%i-%i", start, end);
                     }
                 }
+                _subModels.push_back(sm);
                 PopulateList();
+                ValidateWindow();
                 Select(name);
             }
         }
@@ -646,17 +659,43 @@ void SubModelsDialog::OnListCtrl_SubModelsColumnClick(wxListEvent& event)
 
 void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
 {
+    auto key = event.GetKeyCode();
+    if (key == WXK_DELETE || key == WXK_NUMPAD_DELETE)
+    {
+        int idx = GetSubModelInfoIndex(GetSelectedName());
+        OnDeleteButtonClick(event);
+        if (idx < _subModels.size()){
+            UnSelectAll();
+            Select(_subModels[idx]->name);
+        }
+    }
+    if (key == WXK_DOWN || key == WXK_NUMPAD_DOWN) {
+        int idx = GetSubModelInfoIndex(GetSelectedName());
+        if (idx + 1 < _subModels.size()){
+            UnSelectAll();
+            Select(_subModels[idx+1]->name);
+        }
+    }
+    if (key == WXK_UP || key == WXK_NUMPAD_UP) {
+        int idx = GetSubModelInfoIndex(GetSelectedName());
+        if (idx - 1 >= 0){
+            UnSelectAll();
+            Select(_subModels[idx-1]->name);
+        }
+    }
+    ValidateWindow();
 }
 
 void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
 {
-    wxString s = TextCtrl_Name->GetValue();
-    int idx = GetSubModelInfoIndex(GetSelectedName());
-//    SubModelInfo sm = _subModels.at(idx);
-//    sm.name = s;
-//    SubModelInfo *smi = (*SubModelInfo)ListCtrl_SubModels->GetItemData(idx);
-//    smi->name = s;
-//    ListCtrl_SubModels->SetItemText(idx, s);
+    wxString name = TextCtrl_Name->GetValue();
+    SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
+    if (sm == nullptr || name == sm->name) {
+        return;
+    }
+    sm->name = name;
+    PopulateList();
+    Select(name);
 }
 
 #pragma endregion actions
@@ -674,22 +713,13 @@ void SubModelsDialog::PopulateList()
     ListCtrl_SubModels->InsertColumn(1, nm0);
 
     for (int x = 0; x < _subModels.size(); x++) {
-        int idx = ListCtrl_SubModels->InsertItem(x, _subModels[x]->name);
-        ListCtrl_SubModels->SetItemPtrData(idx, (wxUIntPtr)&_subModels[x]);
+        ListCtrl_SubModels->InsertItem(x, _subModels[x]->name);
+        ListCtrl_SubModels->SetItemPtrData(x, (wxUIntPtr)&_subModels[x]);
     }
 
     ListCtrl_SubModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
     if (ListCtrl_SubModels->GetColumnWidth(0) < 100) {
         ListCtrl_SubModels->SetColumnWidth(0, 100);
-    }
-
-    wxPoint loc;
-    wxSize sz;
-    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    if (loc.x != -1)
-    {
-        SetPosition(loc);
-        SetSize(sz);
     }
 
     ListCtrl_SubModels->Thaw();
@@ -723,6 +753,22 @@ void SubModelsDialog::ValidateWindow()
         DeleteRowButton->Enable();
         subBufferPanel->Enable();
         TypeNotebook->Enable();
+    } else {
+        TextCtrl_Name->Disable();
+        DeleteButton->Disable();
+        NodesGrid->Disable();
+        LayoutCheckbox->Disable();
+        AddRowButton->Disable();
+        DeleteRowButton->Disable();
+        subBufferPanel->Disable();
+        TypeNotebook->Disable();
+    }
+}
+
+void SubModelsDialog::UnSelectAll()
+{
+    for(int i=0; i < ListCtrl_SubModels->GetItemCount(); ++i) {
+        ListCtrl_SubModels->SetItemState(i, 0, wxLIST_STATE_SELECTED);
     }
 }
 
@@ -733,10 +779,10 @@ void SubModelsDialog::Select(const wxString &name)
     SubModelInfo* sm = GetSubModelInfo(name);
     DeleteRowButton->Enable(sm->strands.size() > 1);
 
-    TextCtrl_Name->SetValue(name);
-    int idx = ListCtrl_SubModels->FindItem(-1, name);
+    int idx = GetSubModelInfoIndex(name);
     ListCtrl_SubModels->EnsureVisible(idx);
     ListCtrl_SubModels->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    TextCtrl_Name->SetValue(name);
 
     if (sm->isRanges) {
         TypeNotebook->SetSelection(0);

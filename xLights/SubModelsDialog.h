@@ -47,7 +47,7 @@ class SubModelTextDropTarget : public wxTextDropTarget
 		wxWindow* _owner;
 		wxListCtrl* _list;
 		wxString _type;
-	};
+};
 
 class SubModelsDialog: public wxDialog
 {
@@ -67,8 +67,6 @@ class SubModelsDialog: public wxDialog
 	ModelPreview *modelPreview;
 	SubBufferPanel *subBufferPanel;
 	std::vector<SubModelInfo*> _subModels;
-    int _sortOrder = 0;
-    int _numSubModels = 0;
 
     public:
 
@@ -129,19 +127,25 @@ class SubModelsDialog: public wxDialog
 		static const long ID_PANEL1;
 		//*)
 
-		void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
-		SubModelInfo *GetSubModelInfo(const wxString &str);
-		int GetSubModelInfoIndex(const wxString &str);
-		void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
-		void RemoveSubModelFromList(wxString name);
+
 		wxString GetSelectedName();
+        wxString GetSelectedNames();
+		int GetSubModelInfoIndex(const wxString &str);
+		SubModelInfo *GetSubModelInfo(const wxString &str);
 		bool IsItemSelected(wxListCtrl* ctrl, int item);
+
+		void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
 		void MoveSelectedModelsTo(int indexTo);
-		void ValidateWindow();
-		void SelectRow(int r);
-		void Select(const wxString &name);
-		void DisplayRange(const wxString &range);
+		void RemoveSubModelFromList(wxString name);
+
 		void PopulateList();
+		void ValidateWindow();
+		void Select(const wxString &name);
+		void UnSelectAll();
+
+		void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
+		void DisplayRange(const wxString &range);
+		void SelectRow(int r);
 
 	private:
 
