@@ -342,11 +342,11 @@ public:
                     }
                     LOG_GL_ERRORV(glEnableVertexAttribArray(tvattrib));
                     if (vattrib != tvattrib) {
-                        LOG_GL_ERRORV(glVertexAttribPointer(tvattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
+                        LOG_GL_ERRORV(glVertexAttribPointer(tvattrib, 2, GL_FLOAT, false, 0, va.vertices));
                     }
                     LOG_GL_ERRORV(glEnableVertexAttribArray(tattrib));
                     if (tattrib == cattrib || tattrib == vattrib) {
-                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, true, 0, &va.tvertices[0]));
+                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, true, 0, va.tvertices));
                     }
                     GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
                     glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
@@ -473,11 +473,11 @@ public:
         
         GLuint vattrib = glGetAttribLocation( ProgramIDtexture, "vertexPosition_modelspace" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
-        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, va.vertices));
         
         GLuint cattrib = glGetAttribLocation( ProgramIDtexture, "texturePos" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
-        LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 2, GL_FLOAT, true, 0, &va.tvertices[0]));
+        LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 2, GL_FLOAT, true, 0, va.tvertices));
         
         LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(ProgramIDtexture, "tex"), 0));
 

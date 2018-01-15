@@ -349,13 +349,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashPosition(msp);
     }
 
-    ToolSizer->SetCols(17);
+    ToolSizer->SetCols(18);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
     AddModelButton("Circle", circles);
     AddModelButton("Custom", custom);
     AddModelButton("DMX", dmx_xpm);
+    AddModelButton("Image", image_xpm);
     AddModelButton("Icicles", icicles_xpm);
     AddModelButton("Matrix", matrix);
     AddModelButton("Single Line", singleline);
@@ -445,6 +446,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_IMAGE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_LINE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_MATRIX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
@@ -790,13 +792,14 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_CandyCane;
         } else if( type == "Circle" ) {
             return Icon_Circle;
-        }
-        else if (type == "Channel Block") {
+        } else if (type == "Channel Block") {
             return Icon_ChannelBlock;
         } else if( type == "Custom" ) {
             return Icon_Custom;
         } else if( type == "DMX" ) {
             return Icon_Dmx;
+        } else if( type == "Image" ) {
+            return Icon_Image;
         } else if( type == "Icicles" ) {
             return Icon_Icicle;
         } else if( type == "Single Line" ) {
@@ -1604,16 +1607,16 @@ int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
     return found.size();
 }
 
-bool LayoutPanel::SelectSingleModel(int x,int y)
+bool LayoutPanel::SelectSingleModel(int x, int y)
 {
     std::vector<int> found;
-    int modelCount = FindModelsClicked(x,y,found);
+    int modelCount = FindModelsClicked(x, y, found);
     if (modelCount==0)
     {
         TreeListViewModels->UnselectAll();
         return false;
     }
-    else if(modelCount==1)
+    else if (modelCount == 1)
     {
         SelectModel(modelPreview->GetModels()[found[0]]);
         mHitTestNextSelectModelIndex = 0;

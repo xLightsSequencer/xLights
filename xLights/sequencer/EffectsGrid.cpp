@@ -5298,7 +5298,7 @@ void EffectsGrid::DrawEffects()
     }
     backgrounds.Finish(GL_TRIANGLES);
     DrawGLUtils::Draw(backgrounds);
-    for (auto it = textures.begin(); it != textures.end(); it++) {
+    for (auto it = textures.begin(); it != textures.end(); ++it) {
         it->second.id = it->first;
         DrawGLUtils::Draw(it->second, GL_TRIANGLES);
         it->second.Reset();

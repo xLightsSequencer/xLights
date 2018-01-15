@@ -130,7 +130,7 @@ public:
             if (it->textureId != -1) {
                 LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
                 if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &va.tvertices[0]));
+                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
                     textsBound = true;
                 }
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
@@ -214,8 +214,8 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
-        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &va.tvertices[0]));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
+        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, va.vertices));
         
         if (va.alpha != 255) {
             float intensity = va.alpha;
@@ -571,8 +571,10 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
         start = count;
         return;
     }
-    types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
-    start = count;
+    if (count != start) {
+        types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
+        start = count;
+    }
 }
 
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
@@ -596,21 +598,30 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
 }
 
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
-    PreAlloc(va.count);
+    PreAllocTexture(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
-
-    tvertices.resize((count + va.count)*2);
-    memcpy(&tvertices[count], &va.tvertices[0], va.count * sizeof(float) * 2);
+    memcpy(&tvertices[count*2], va.tvertices, sizeof(float)*va.count*2);
     count += va.count;
     FinishTextures(type, va.id, va.alpha, enableCapability);
 }
 
-void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
-    PreAlloc(1);
-    if (tvertices.size() < max) {
-        tvertices.resize(max);
+void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
+    DrawGLUtils::xlVertexColorAccumulator::DoRealloc(newMax);
+    if (tvertices != nullptr) {
+        tvertices = (float*)realloc(tvertices, sizeof(float)*newMax*2);
     }
+}
 
+void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
+    PreAlloc(i);
+    if (tvertices == nullptr) {
+        tvertices = (float*)malloc(sizeof(float)*max*2);
+    }
+}
+
+void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
+    PreAllocTexture(1);
+    
     int i = count*2;
     vertices[i] = x;
     tvertices[i] = tx;

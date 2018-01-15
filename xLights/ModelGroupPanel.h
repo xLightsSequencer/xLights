@@ -118,6 +118,7 @@ class ModelGroupPanel: public wxPanel
         void MoveSelectedModelsTo(int indexTo);
         void ClearSelections(wxListCtrl* listCtrl, long stateMask);
         int GetFirstSelectedModel(wxListCtrl* list);
+        void ResizeColumns();
 };
 
 #endif

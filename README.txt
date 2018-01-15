@@ -11,8 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-
    -- enh (scott)  Add Select Row Effects to Sequencer Row Right Click Menu.
+   -- enh (keith)  Add an image model
+   -- bug (keith)  Fix listbox column sizing in the model group panel
 2018.2 Jan 14, 2018
    -- enh (dkulp)  Add House/Model preview and play controls to TouchBar
    -- update (dkulp) Change minimum OSX requirement to 10.10

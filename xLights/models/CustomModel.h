@@ -39,6 +39,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
         virtual std::string GetNodeName(size_t x, bool def = false) const override;
+        virtual std::list<std::string> CheckModelSettings() override;
 
     protected:
         virtual void InitModel() override;
