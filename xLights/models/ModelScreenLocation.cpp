@@ -240,16 +240,15 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
     }
     PrepareToDraw();
 
-    float sx,sy;
     mMinScreenX = w;
     mMinScreenY = h;
     mMaxScreenX = 0;
     mMaxScreenY = 0;
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-        for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); coord++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
             // draw node on screen
-            sx=coord->screenX;
-            sy=coord->screenY;
+            float sx = coord->screenX;
+            float sy = coord->screenY;
 
             TranslatePoint(sx, sy);
 
@@ -430,9 +429,8 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     if (_locked) return 0;
 
     if (handle == OVER_ROTATE_HANDLE) {
-        int sx,sy;
-        sx = mouseX-centerx;
-        sy = mouseY-centery;
+        int sx = mouseX-centerx;
+        int sy = mouseY-centery;
         //Calculate angle of mouse from center.
         float tan = (float)sx/(float)sy;
         int angle = -toDegrees((float)atan(tan));
@@ -447,10 +445,8 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
             PreviewRotation = (int)(PreviewRotation/5) * 5;
         }
     } else {
-        // Get mouse point in model space/ not screen space
-        float sx,sy;
-        sx = float(mouseX)-centerx;
-        sy = float(mouseY)-centery;
+        float sx = float(mouseX)-centerx;
+        float sy = float(mouseY)-centery;
         float radians=-toRadians(PreviewRotation); // negative angle to reverse translation
         TranslatePointDoubles(radians,sx,sy,sx,sy);
         sx = fabs(sx) - RECT_HANDLE_WIDTH;

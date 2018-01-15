@@ -294,7 +294,8 @@ class LayoutPanel: public wxPanel
             Icon_SubModel,
             Icon_Tree,
             Icon_Window,
-            Icon_Wreath
+            Icon_Wreath,
+            Icon_Image
         };
 
         // Tree list columns.

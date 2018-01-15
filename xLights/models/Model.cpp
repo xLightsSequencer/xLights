@@ -1963,6 +1963,7 @@ std::string Model::GetNextName() {
     }
     return "";
 }
+
 // set size of Nodes vector and each Node's Coords vector
 void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::string &rgbOrder) {
     size_t n;
@@ -2538,7 +2539,8 @@ wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
 }
 
-void Model::ApplyTransparency(xlColor &color, int transparency) {
+void Model::ApplyTransparency(xlColor &color, int transparency) const
+{
     if (transparency) {
         float t = 100.0f - transparency;
         t *= 2.55f;

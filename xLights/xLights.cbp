@@ -953,6 +953,8 @@
 		<Unit filename="models/DmxModel.h" />
 		<Unit filename="models/IciclesModel.cpp" />
 		<Unit filename="models/IciclesModel.h" />
+		<Unit filename="models/ImageModel.cpp" />
+		<Unit filename="models/ImageModel.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
 		<Unit filename="models/Model.cpp" />

@@ -40,13 +40,12 @@ public:
     void setID(GLuint i) { ID = i; }
     bool hasAlpha() const { return mAlpha; }
     Image();
-    Image(wxString path);
-    Image(wxImage &path);
+    Image(wxString path, bool whiteIsAlphaIfNoAlpha = false);
+    Image(wxImage &img, bool whiteIsAlphaIfNoAlpha = false);
 
     ~Image();
-    void load(wxImage &path);
-    void load(wxString path);
-
+    void load(wxImage &path, bool whiteIsAlphaIfNoAlpha);
+    void load(wxString path, bool whiteIsAlphaIfNoAlpha);
 };
 
 
