@@ -312,6 +312,11 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 
+    ResizeColumns();
+}
+
+void ModelGroupPanel::ResizeColumns()
+{
     int w, h;
     ListBoxModelsInGroup->GetSize(&w, &h);
     ListBoxModelsInGroup->SetColumnWidth(0, wxLIST_AUTOSIZE);
@@ -783,6 +788,8 @@ void ModelGroupPanel::AddSelectedModels(int index)
         }
     }
     SaveGroupChanges();
+
+    ResizeColumns();
 }
 
 void ModelGroupPanel::RemoveSelectedModels()
@@ -807,6 +814,8 @@ void ModelGroupPanel::RemoveSelectedModels()
         }
     }
     SaveGroupChanges();
+
+    ResizeColumns();
 }
 
 void ModelGroupPanel::MoveSelectedModelsTo(int indexTo)
