@@ -430,12 +430,19 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
     return num_selected;
 }
 
-
 void EffectLayer::UnSelectAllEffects()
 {
     for(int i=0;i<mEffects.size();i++)
     {
         mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
+    }
+}
+
+void EffectLayer::SelectAllEffects()
+{
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        mEffects[i]->SetSelected(EFFECT_SELECTED);
     }
 }
 
