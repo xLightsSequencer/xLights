@@ -446,6 +446,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_IMAGE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_LINE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_MATRIX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
@@ -791,8 +792,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_CandyCane;
         } else if( type == "Circle" ) {
             return Icon_Circle;
-        }
-        else if (type == "Channel Block") {
+        } else if (type == "Channel Block") {
             return Icon_ChannelBlock;
         } else if( type == "Custom" ) {
             return Icon_Custom;

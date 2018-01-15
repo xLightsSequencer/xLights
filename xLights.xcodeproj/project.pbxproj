@@ -337,6 +337,7 @@
 		67BCD1561E6DB03E00F99935 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
 		67BCD1571E6DB06800F99935 /* GIFImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1501E6DAF4900F99935 /* GIFImage.cpp */; };
 		67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */; };
+		67BD732D200D0C000074208A /* ImageModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BD732B200D0C000074208A /* ImageModel.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
 		67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF51F278956002F118D /* SimpleFTP.cpp */; };
 		67BF80031F278956002F118D /* SanDevices.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF71F278956002F118D /* SanDevices.cpp */; };
@@ -1208,6 +1209,8 @@
 		67BCD1541E6DAF9100F99935 /* xLightsVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsVersion.h; sourceTree = "<group>"; };
 		67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UpdaterDialog.cpp; sourceTree = "<group>"; };
 		67BD44291FAB3B3C0007E083 /* UpdaterDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UpdaterDialog.h; sourceTree = "<group>"; };
+		67BD732B200D0C000074208A /* ImageModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageModel.cpp; path = models/ImageModel.cpp; sourceTree = "<group>"; };
+		67BD732C200D0C000074208A /* ImageModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImageModel.h; path = models/ImageModel.h; sourceTree = "<group>"; };
 		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
 		67BF7FF41F278956002F118D /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleFTP.h; path = controllers/SimpleFTP.h; sourceTree = "<group>"; };
@@ -1576,6 +1579,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				67BD732B200D0C000074208A /* ImageModel.cpp */,
+				67BD732C200D0C000074208A /* ImageModel.h */,
 				673F03661F322A9B0052A793 /* ChannelBlockModel.h */,
 				673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
@@ -2869,6 +2874,7 @@
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				67B2B2281E1947BE0024F0BB /* E131Dialog.cpp in Sources */,
 				675D404B1E896AFD0033C950 /* LiquidEffect.cpp in Sources */,
+				67BD732D200D0C000074208A /* ImageModel.cpp in Sources */,
 				6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */,
 				67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */,
 				67B2CF781C39D98A003C17CA /* GlediatorPanel.cpp in Sources */,

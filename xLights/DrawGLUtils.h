@@ -169,6 +169,9 @@ namespace DrawGLUtils
         xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
+        xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a) {
+            tvertices = (float*)malloc(sizeof(float)*max*2);
+        }
         xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
             tvertices = mv.tvertices;
             mv.tvertices = nullptr;
@@ -236,24 +239,31 @@ namespace DrawGLUtils
     
     class xlAccumulator : public xlVertexColorAccumulator {
     public:
-        xlAccumulator() : xlVertexColorAccumulator() { start = 0;}
-        xlAccumulator(unsigned int max) : xlVertexColorAccumulator(max) { start = 0;}
-        virtual ~xlAccumulator() {}
-        virtual void Reset() {
+        xlAccumulator() : xlVertexColorAccumulator(), tvertices(nullptr) { start = 0;}
+        xlAccumulator(unsigned int max) : xlVertexColorAccumulator(max), tvertices(nullptr) { start = 0;}
+        virtual ~xlAccumulator() {
+            if (tvertices) {
+                free(tvertices);
+                tvertices = nullptr;
+            }
+        }
+        virtual void Reset() override {
             xlVertexColorAccumulator::Reset();
             start = 0;
             types.clear();
-            tvertices.clear();
+            if (tvertices) {
+                free(tvertices);
+                tvertices = nullptr;
+            }
         }
+        
+        virtual void DoRealloc(int newMax) override;
 
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
         
         
-        void PreAllocTexture(int i) {
-            PreAlloc(i);
-            tvertices.reserve(max * 2);
-        }
+        void PreAllocTexture(int i);
         void AddTextureVertex(float x, float y, float tx, float ty);
         void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);
         
@@ -289,7 +299,7 @@ namespace DrawGLUtils
             uint8_t textureAlpha;
         };
         std::list<BufferRangeType> types;
-        std::vector<float> tvertices;
+        float *tvertices;
     private:
         int start;
     };

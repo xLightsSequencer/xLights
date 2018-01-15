@@ -86,6 +86,7 @@
 #include "../include/window-icon-64.xpm"
 #include "../include/wreath-icon-16.xpm"
 #include "../include/wreath-icon-64.xpm"
+#include "../include/models/image_model.xpm"
 
 #include "../include/link-48.xpm"
 #include "../include/unlink-48.xpm"
@@ -378,6 +379,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, window_icon_16_xpm, window_icon_16_xpm, window_icon_64_xpm, window_icon_64_xpm, window_icon_64_xpm);
     } else if ("xlART_WREATH_ICON" == id) {
         return effectBitmaps.get(16, false, id, wreath_icon_16_xpm, wreath_icon_16_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm);
+    } else if ("xlART_IMAGE_ICON" == id) {
+        return effectBitmaps.get(16, false, id, image_xpm, image_xpm, image_xpm, image_xpm, image_xpm);
     } else if ("xlART_DICE_ICON" == id) {
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);
     } else if ("wxART_INFORMATION" == id) {
@@ -396,7 +399,7 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
 #else
     } else if (wxART_TOOLBAR == client) {
-        //sprintf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
+        //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
         return wxArtProvider::GetBitmap(id, wxART_OTHER);
 #endif
     }

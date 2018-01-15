@@ -534,7 +534,7 @@ public:
                 textureProgram.UseProgram();
                 if (!tverticesBound) {
                     textureProgram.SetMatrix(*matrix);
-                    textureProgram.BindBuffer(2, &va.tvertices[0], va.tvertices.size() * sizeof(GLfloat));
+                    textureProgram.BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
                     LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     tverticesBound = true;
                 } else {
@@ -629,7 +629,7 @@ public:
         int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        textureProgram.BindBuffer(2, &va.tvertices[0], va.count*2*sizeof(GLfloat));
+        textureProgram.BindBuffer(2, va.tvertices, va.count*2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0

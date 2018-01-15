@@ -186,7 +186,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 		DrawModelOnWindow(preview, va, nullptr, x1, y1, x2, y2, x3, y3, x4, y4, true);
 
         DrawGLUtils::Draw(va);
-
+        maxVertexCount = va.count;
         preview->EndDrawing();
     }
 }
@@ -250,16 +250,16 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
 void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active)
 {
-    if (!wxFileExists(_imageFile)) return;
 
     if (_images.find(preview->GetName().ToStdString()) == _images.end())
     {
+        if (!wxFileExists(_imageFile)) return;
         _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
     }
 
     Image* image = _images[preview->GetName().ToStdString()];
 
-    va.PreAllocTexture(65536);
+    va.PreAllocTexture(6);
     float tx1 = 0;
     float tx2 = image->tex_coord_x;
 
@@ -279,7 +279,6 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumul
     }
 
     va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
-    va.Finish(GL_TRIANGLES);
 }
 
 int ImageModel::GetChannelValue(int channel)

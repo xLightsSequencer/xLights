@@ -286,6 +286,7 @@ class LayoutPanel: public wxPanel
             Icon_Custom,
             Icon_Dmx,
             Icon_Icicle,
+            Icon_Image,
             Icon_Line,
             Icon_Matrix,
             Icon_Poly,
@@ -294,8 +295,7 @@ class LayoutPanel: public wxPanel
             Icon_SubModel,
             Icon_Tree,
             Icon_Window,
-            Icon_Wreath,
-            Icon_Image
+            Icon_Wreath
         };
 
         // Tree list columns.
