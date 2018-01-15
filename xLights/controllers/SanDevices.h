@@ -4,8 +4,6 @@
 #include <wx/protocol/http.h>
 #include <list>
 #include <string>
-#include <map>
-
 
 class ModelManager;
 class Output;
@@ -21,18 +19,6 @@ public:
     virtual ~SimpleHTTP() { }
     wxInputStream *GetInputStream(const wxString& path, wxString& startResult);
 };
-
-
-class SanFiveString
-{
-public:
-    char protocol;
-    int universe;
-    int startChannel;
-    int pixels;
-    int port;
-};
-
 
 class SanDevices
 {

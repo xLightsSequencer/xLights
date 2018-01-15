@@ -715,7 +715,7 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                                 long startChannel;
                                 Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
                                 if (FirmwareVersion::Five == _eVersion)
-                                    success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), (portend - portstart + 1) / 3, first->GetName(), parent) && success;
+                                    success = UploadStringPortFirmwareFive(page, outputPort, outputsUsed, DecodeStringPortProtocolFive(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
                                 else
                                     success = UploadStringPort(page, outputPort, outputsUsed, DecodeStringPortProtocol(*protocol), startChannel, EncodeUniverse(output->GetUniverse(), outputManager, selected), channelsperstring / 3, first->GetName(), parent) && success;
                             }
@@ -762,7 +762,12 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             if (!portdone[i])
             {
                 if (FirmwareVersion::Five == _eVersion)
-                    GetURL(wxString::Format("/%c?A=0", 'J' + i).ToStdString());
+                {
+                    if (_model == "E682")
+                        GetURL(wxString::Format("/%c?A=0", 'J' + i).ToStdString());
+                    else
+                        GetURL(wxString::Format("/%c?A=0", 'J' + (((i - 1) * 4) + 1)).ToStdString());//skip every four letters for E6804
+                }
                 else
                     GetURL(wxString::Format("/%i?A=0", i + 3).ToStdString());
             }
@@ -890,39 +895,43 @@ bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int outpu
     wxString p(page);
     int start = p.find("Output Configuration");
 
-    std::pair<int, int> ports = DecodeOutputPort(output);
-
     std::string tofind = "";
 
     if (_model == "E682")
     {
+        std::pair<int, int> ports = DecodeOutputPort(output);
         tofind = "<td>" + wxString::Format("%i-%i", ports.first, ports.second) + "</td>";
     }
     else
     {
         tofind = "<td>" + wxString::Format("%i", output) + "</td>";
+        output = ((output - 1) * 4) + 1; //Skip every four letters for E6804
     }
     start = p.find(tofind, start);
 
     // extact the colour order
     std::string co = ExtractFromPage(page, "E", "select", start);
+    if(co != "") //Only Add to Request if it currently exists
+        co = wxString::Format("&E=%s",co);
 
     // extract reverse
     std::string rev = ExtractFromPage(page, "N", "checkbox", start);
-    if (rev == "1")
+    if (rev == "1") //if check add to request, based on my testing firmware will check if present reguardless of value
         rev = "&N=1";
     else
         rev = "";
 
     // extract null pixels
     std::string n = ExtractFromPage(page, "H", "input", start);
+    if (n != "")//Only Add to Request if it currently exists
+        n = wxString::Format("&H=%s", n);
 
     // extract the group size
     std::string gs = ExtractFromPage(page, "B", "input", start);
 
     // extract chase
     std::string chase = ExtractFromPage(page, "F", "checkbox", start);
-    if (chase == "1")
+    if (chase == "1") //if check add to request, based on my testing firmware will check if present reguardless of value
         chase = "&F=1";
     else
         chase = "";
@@ -937,7 +946,7 @@ bool SanDevices::UploadStringPortFirmwareFive(const std::string& page, int outpu
     std::string intens = ExtractFromPage(page, "D", "select", start);
 
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    wxString request = wxString::Format("/%c?A=%d&E=%s&Z=%c&G=%d%s&H=%s&B=%s%s&I=%s&J=%s&D=%s",
+    wxString request = wxString::Format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%s%s&I=%s&J=%s&D=%s",
         output + 'J',
         pixels,
         co,
@@ -963,11 +972,8 @@ void SanDevices::ResetStringOutputs()
 
 std::pair<int, int > SanDevices::DecodeOutputPort(const int output)
 {
-    int temp = (output - 1);
-    int temp2 = (temp / 4);
-    int temp3 = (temp2 + 1);
     int port = ((output - 1) / 4) + 1;
-    int subport = output % 4;
+    int subport = ((output - 1) % 4) + 1;
 
     return std::pair<int, int>(port, subport);
 }
