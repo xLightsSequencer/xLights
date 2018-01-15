@@ -454,22 +454,29 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
     //  <channel>
     //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     int maxCell = 0;
-    f.Write("    <cellDemarcations>\n");
-    for (p = 0, csec = 0; p < numPeriods; p++, csec += interval)
-    {
-        f.Write(string_format("\t<cellDemarcation centisecond=\"%d\"/>\n", csec));
+    f.Write("  <cellDemarcations>\n");
+    if (ver == 1) {
+        for (p = 0, csec = 0; p < numPeriods; p++, csec += interval)
+        {
+            f.Write(string_format("    <cellDemarcation centisecond=\"%d\" />\n", csec));
+            maxCell = csec * 10;
+        }
+    } else {
+        f.Write("    <cellDemarcation centisecond=\"0\"/>\n");
+        csec = numPeriods * interval;
         maxCell = csec * 10;
+        f.Write(string_format("    <cellDemarcation centisecond=\"%d\" />\n", csec));
     }
-    f.Write("    </cellDemarcations>\n");
+    f.Write("  </cellDemarcations>\n");
     //
     // LOR is BGR with high bits=0
     // Vix is RGB with high bits=1
-    f.Write("    <channels>\n");
+    f.Write("  <channels>\n");
     for (int ch = 0; ch < numChans; ch += cpn)
     {
         SetStatusText(wxString("Status: ") + string_format(" Channel %d ", ch));
 
-        f.Write("\t<channel>\n");
+        f.Write("    <channel>\n");
         xlColorVector colors;
         colors.resize(numPeriods);
         for (p = 0; p < numPeriods; p++)
@@ -488,33 +495,33 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             Effect *eff = layer.GetEffect(eidx);
             if (eff->GetStartTimeMS() != lastEndTime) {
                 //off from last effect to start of this effect
-                f.Write(string_format("\t\t<effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",
+                f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" />\n",
                                       lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
             }
 
-            f.Write(string_format("\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\"",
+            f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\"",
                                   eff->GetStartTimeMS() / 10, eff->GetEndTimeMS() / 10));
             if (eff->GetEffectName() == "On") {
                 int starti = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
                 int endi = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
 
                 
-                if (starti == endi) {
-                    f.Write(string_format(" intensity=\"%d\"", starti));
-                } else {
-                    f.Write(string_format(" startIntensity=\"%d\" endIntensity=\"%d\"", starti, endi));
-                }
                 if (cpn == 3) {
                     xlColor c = eff->GetPalette()[0];
                     std::stringstream stream;
                     stream << " startColor=\"FF"
                         << std::setfill ('0') << std::setw(6)
-                        << std::hex << c.GetRGB(false)
+                        << std::hex << std::uppercase << c.GetRGB(false)
                         << "\" endColor=\"FF"
                         << std::setfill ('0') << std::setw(6)
-                        << std::hex << c.GetRGB(false)
+                        << std::hex << std::uppercase << c.GetRGB(false)
                         << "\"";
                     f.Write(stream.str());
+                }
+                if (starti == endi) {
+                    f.Write(string_format(" intensity=\"%d\"", starti));
+                } else {
+                    f.Write(string_format(" startIntensity=\"%d\" endIntensity=\"%d\"", starti, endi));
                 }
             } else if (eff->GetEffectName() == "Color Wash") {
                 xlColor c1 = eff->GetPalette()[0];
@@ -524,29 +531,36 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
                     int endi = c1.asHSV().value * 100.0;
                     f.Write(string_format(" startIntensity=\"%d\" endIntensity=\"%d\"", starti, endi));
                 } else {
-                    f.Write(" intensity=\"100\"");
                     std::stringstream stream;
                     stream << " startColor=\"FF"
                             << std::setfill ('0') << std::setw(6)
-                            << std::hex << c1.GetRGB(false)
+                            << std::hex << std::uppercase << c1.GetRGB(false)
                             << "\" endColor=\"FF"
                             << std::setfill ('0') << std::setw(6)
-                            << std::hex << c2.GetRGB(false)
-                            << "\"";
+                            << std::hex << std::uppercase << c2.GetRGB(false)
+                            << "\" intensity=\"100\"";
                     f.Write(stream.str());
                 }
             }
-            f.Write("/>\n");
+            if (ver == 1) {
+                f.Write(" type=\"intensity\" />\n");
+            } else {
+                f.Write(" type=\"INTENSITY\" />\n");
+            }
             lastEndTime = eff->GetEndTimeMS();
         }
         
         if (lastEndTime < maxCell) {
-            f.Write(string_format("\t\t<effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",
-                                  lastEndTime / 10, maxCell / 10, 0));
+            f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"0\"",
+                                  lastEndTime / 10, maxCell / 10));
+            if (ver == 2) {
+                f.Write(" type=\"INTENSITY\"");
+            }
+            f.Write(" />\n");
         }
-        f.Write("\t</channel>\n");
+        f.Write("    </channel>\n");
     }
-    f.Write("    </channels>\n");
+    f.Write("  </channels>\n");
     f.Write("</channelsClipboard>\n");
     f.Close();
 }
