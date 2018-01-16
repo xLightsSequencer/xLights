@@ -40,8 +40,7 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         bool _whiteAsAlpha;
         std::string _imageFile;
         std::map<std::string, Image*> _images;
-
-    private:
+        int _offBrightness;
 };
 
 #endif // IMAGEMODEL_H

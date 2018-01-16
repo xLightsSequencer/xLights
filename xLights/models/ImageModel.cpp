@@ -7,10 +7,12 @@
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include <log4cpp/Category.hh>
 
 ImageModel::ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     _whiteAsAlpha = false;
+    _offBrightness = 80;
     _imageFile = "";
     SetFromXml(node, zeroBased);
 }
@@ -20,6 +22,7 @@ ImageModel::ImageModel(const ModelManager &manager) : ModelWithScreenLocation(ma
     //ctor
     _imageFile = "";
     _whiteAsAlpha = false;
+    _offBrightness = 80;
 }
 
 ImageModel::~ImageModel()
@@ -52,6 +55,11 @@ void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {
                                              "Image",
                                              _imageFile));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
+
+    p = grid->Append(new wxUIntProperty("Off Brightness", "OffBrightness", _offBrightness));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 200);
+    p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxBoolProperty("Read White As Alpha",
         "WhiteAsAlpha",
@@ -128,11 +136,18 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
+    else if ("OffBrightness" == event.GetPropertyName()) {
+        _offBrightness = event.GetValue().GetInteger();
+        ModelXml->DeleteAttribute("OffBrightness");
+        ModelXml->AddAttribute("OffBrightness", wxString::Format("%d", _offBrightness));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    }
 
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void ImageModel::InitModel() 
+void ImageModel::InitModel()
 {
     DisplayAs = "Image";
     parm2 = 1;
@@ -140,6 +155,7 @@ void ImageModel::InitModel()
 
 	_imageFile = FixFile("", ModelXml->GetAttribute("Image", ""));
 	_whiteAsAlpha = ModelXml->GetAttribute("WhiteAsAlpha", "False") == "True";
+	_offBrightness = wxAtoi(ModelXml->GetAttribute("OffBrightness", "80"));
 
     SetNodeCount(1, 1, rgbOrder);
 	Nodes[0]->ActChan = stringStartChan[0];
@@ -190,7 +206,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) 
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected)
 {
     GetModelScreenLocation().PrepareToDraw();
 
@@ -245,6 +261,8 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
 void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool exists = false;
     if (_images.find(preview->GetName().ToStdString()) == _images.end())
     {
@@ -266,9 +284,17 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumul
         }
         else
         {
+            logger_base.debug("Loading image model %s file %s for preview %s.",
+                              (const char *)GetName().c_str(),
+                              (const char *)_imageFile.c_str(),
+                              (const char *)preview->GetName().c_str());
             _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
             exists = true;
         }
+    }
+    else
+    {
+        exists = true;
     }
 
     if (exists)
@@ -317,5 +343,5 @@ int ImageModel::GetChannelValue(int channel)
 
     xlColor c;
     Nodes[channel]->GetColor(c);
-    return std::max(c.red, std::max(c.green, c.blue));
+    return std::max(std::max(c.red, std::max(c.green, c.blue)), (uint8_t)_offBrightness);
 }
