@@ -5732,7 +5732,14 @@ std::string AddFileToZipFile(const std::string& baseDirectory, const std::string
             if (zip.PutNextEntry(tgt))
             {
                 wxFileInputStream fis(filetoactuallyzip);
-                zip.Write(fis);
+                if (fis.IsOk())
+                {
+                    zip.Write(fis);
+                }
+                else
+                {
+                    logger_base.warn("Error adding %s to %s due to failure to create input stream.", (const char*)file.c_str(), (const char *)tgt.c_str());
+                }
                 zip.CloseEntry();
             }
             else
@@ -5891,23 +5898,24 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     prog.Update(10);
 
-    // Add any faces images
-    std::list<std::string> facefiles;
+    // Add any model images
+    std::list<std::string> modelfiles;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
-        facefiles.merge((*it).second->GetFaceFiles());
+        modelfiles.merge((*it).second->GetFaceFiles());
+        modelfiles.merge((*it).second->GetFileReferences());
     }
-    facefiles.sort();
-    facefiles.unique();
+    modelfiles.sort();
+    modelfiles.unique();
 
     float i = 0;
-    for (auto f = facefiles.begin(); f != facefiles.end(); ++f)
+    for (auto f = modelfiles.begin(); f != modelfiles.end(); ++f)
     {
         i++;
         wxFileName fnf(*f);
         if (fnf.Exists())
         {
-            prog.Update(10 + (int)(10.0 * i / (float)facefiles.size()), fnf.GetFullName());
+            prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
             lost = AddFileToZipFile(CurrentDir.ToStdString(), fnf.GetFullPath().ToStdString(), zip);
             if (lost != "")
             {
@@ -5916,7 +5924,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
         }
         else
         {
-            prog.Update(10 + (int)(10.0 * i / (float)facefiles.size()));
+            prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()));
         }
     }
 

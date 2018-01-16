@@ -157,8 +157,6 @@ void ImageModel::InitModel()
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 {
-    if (!wxFileExists(_imageFile)) return;
-
     bool success = preview->StartDrawing(pointSize);
 
     if(success) {
@@ -196,27 +194,24 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
 {
     GetModelScreenLocation().PrepareToDraw();
 
-    if (wxFileExists(_imageFile))
-    {
-        int w, h;
-        preview->GetVirtualCanvasSize(w, h);
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
 
-        float x1 = -0.5;
-        float x2 = -0.5;
-        float x3 = 0.5;
-        float x4 = 0.5;
-        float y1 = -0.5;
-        float y2 = 0.5;
-        float y3 = 0.5;
-        float y4 = -0.5;
+    float x1 = -0.5;
+    float x2 = -0.5;
+    float x3 = 0.5;
+    float x4 = 0.5;
+    float y1 = -0.5;
+    float y2 = 0.5;
+    float y3 = 0.5;
+    float y4 = -0.5;
 
-        GetModelScreenLocation().TranslatePoint(x1, y1);
-        GetModelScreenLocation().TranslatePoint(x2, y2);
-        GetModelScreenLocation().TranslatePoint(x3, y3);
-        GetModelScreenLocation().TranslatePoint(x4, y4);
+    GetModelScreenLocation().TranslatePoint(x1, y1);
+    GetModelScreenLocation().TranslatePoint(x2, y2);
+    GetModelScreenLocation().TranslatePoint(x3, y3);
+    GetModelScreenLocation().TranslatePoint(x4, y4);
 
-        DrawModelOnWindow(preview, va, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
-    }
+    DrawModelOnWindow(preview, va, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
 
     if (Selected && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
@@ -250,35 +245,70 @@ std::list<std::string> ImageModel::CheckModelSettings()
 
 void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active)
 {
-
+    bool exists = false;
     if (_images.find(preview->GetName().ToStdString()) == _images.end())
     {
-        if (!wxFileExists(_imageFile)) return;
-        _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
+        if (!wxFileExists(_imageFile))
+        {
+            va.AddVertex(x1, y1, *wxRED);
+            va.AddVertex(x2, y2, *wxRED);
+            va.AddVertex(x2, y2, *wxRED);
+            va.AddVertex(x3, y3, *wxRED);
+            va.AddVertex(x3, y3, *wxRED);
+            va.AddVertex(x4, y4, *wxRED);
+            va.AddVertex(x4, y4, *wxRED);
+            va.AddVertex(x1, y1, *wxRED);
+            va.AddVertex(x1, y1, *wxRED);
+            va.AddVertex(x3, y3, *wxRED);
+            va.AddVertex(x2, y2, *wxRED);
+            va.AddVertex(x4, y4, *wxRED);
+            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+        }
+        else
+        {
+            _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
+            exists = true;
+        }
     }
 
-    Image* image = _images[preview->GetName().ToStdString()];
-
-    va.PreAllocTexture(6);
-    float tx1 = 0;
-    float tx2 = image->tex_coord_x;
-
-    va.AddTextureVertex(x1, y1, tx1, -0.5 / (image->textureHeight));
-    va.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
-    va.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
-
-    va.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
-    va.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
-    va.AddTextureVertex(x3, y3, tx2, image->tex_coord_y);
-
-    int brightness = (100.0 - transparency) * 255.0 / 100.0;
-
-    if (active)
+    if (exists)
     {
-        brightness = (float)brightness * (float)GetChannelValue(0) / 255.0;
+        Image* image = _images[preview->GetName().ToStdString()];
+
+        va.PreAllocTexture(6);
+        float tx1 = 0;
+        float tx2 = image->tex_coord_x;
+
+        va.AddTextureVertex(x1, y1, tx1, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
+
+        va.AddTextureVertex(x2, y2, tx1, image->tex_coord_y);
+        va.AddTextureVertex(x4, y4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x3, y3, tx2, image->tex_coord_y);
+
+        int brightness = (100.0 - transparency) * 255.0 / 100.0;
+
+        if (active)
+        {
+            brightness = (float)brightness * (float)GetChannelValue(0) / 255.0;
+        }
+
+        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
     }
 
-    va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+    if (c != nullptr && (c->red != c->green || c->red != c->blue))
+    {
+        va.AddVertex(x1 - 2, y1 - 2, *c);
+        va.AddVertex(x2 - 2, y2 + 2, *c);
+        va.AddVertex(x2 - 2, y2 + 2, *c);
+        va.AddVertex(x3 + 2, y3 + 2, *c);
+        va.AddVertex(x3 + 2, y3 + 2, *c);
+        va.AddVertex(x4 + 2, y4 - 2, *c);
+        va.AddVertex(x4 + 2, y4 - 2, *c);
+        va.AddVertex(x1 - 2, y1 - 2, *c);
+        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+    }
 }
 
 int ImageModel::GetChannelValue(int channel)
