@@ -413,6 +413,9 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString sn = root->GetAttribute("StrandNames");
             wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");
+            wxString pc = root->GetAttribute("PixelCount");
+            wxString pt = root->GetAttribute("PixelType");
+            wxString psp = root->GetAttribute("PixelSpacing");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -427,6 +430,9 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             SetProperty("Antialias", a);
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
+            SetProperty("PixelCount", pc);
+            SetProperty("PixelType", pt);
+            SetProperty("PixelSpacing", psp);
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 

@@ -423,6 +423,9 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             wxString nn = root->GetAttribute("NodeNames");
             wxString v = root->GetAttribute("SourceVersion");
             wxString da = root->GetAttribute("DisplayAs");
+            wxString pc = root->GetAttribute("PixelCount");
+            wxString pt = root->GetAttribute("PixelType");
+            wxString psp = root->GetAttribute("PixelSpacing");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -441,6 +444,9 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
             SetProperty("DisplayAs", da);
+            SetProperty("PixelCount", pc);
+            SetProperty("PixelType", pt);
+            SetProperty("PixelSpacing", psp);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

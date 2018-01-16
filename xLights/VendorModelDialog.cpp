@@ -60,13 +60,7 @@ public:
         }
     }
 
-    void DownloadXModel()
-    {
-        if (!_xmodelFile.Exists())
-        {
-            _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG);
-        }
-    }
+    void DownloadXModel();
 
     MModelWiring(wxXmlNode* n, MModel* m)
     {
@@ -119,6 +113,7 @@ public:
     std::string _width;
     std::string _height;
     std::string _pixelCount;
+    std::string _pixelSpacing;
     std::string _pixelDescription;
     wxURI _webpage;
     std::list<wxURI> _images;
@@ -191,6 +186,10 @@ public:
             else if (nn == "pixelcount")
             {
                 _pixelCount = l->GetNodeContent().ToStdString();
+            }
+            else if (nn == "pixelspacing")
+            {
+                _pixelSpacing = l->GetNodeContent().ToStdString();
             }
             else if (nn == "pixeldescription")
             {
@@ -271,6 +270,10 @@ public:
         {
             desc += PadTitle("Pixel Count:") + _pixelCount + "\n";
         }
+        if (_pixelSpacing != "")
+        {
+            desc += PadTitle("Minimum Pixel Spacing:") + _pixelSpacing + "\n";
+        }
         if (_pixelDescription != "")
         {
             desc += PadTitle("Pixel Description:") + _pixelDescription + "\n";
@@ -301,6 +304,34 @@ public:
         }
     }
 };
+
+void MModelWiring::DownloadXModel()
+{
+    if (!_xmodelFile.Exists())
+    {
+        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink, CACHEFOR::CACHETIME_LONG);
+
+        wxXmlDocument d;
+        d.Load(_xmodelFile.GetFullPath());
+        if (d.IsOk())
+        {
+            wxXmlNode* root = d.GetRoot();
+            if (_model->_pixelDescription != "")
+            {
+                root->AddAttribute("PixelType", _model->_pixelDescription);
+            }
+            if (wxAtoi(_model->_pixelSpacing) != 0)
+            {
+                root->AddAttribute("PixelMinimumSpacingInches", wxString::Format("%d", wxAtoi(_model->_pixelSpacing)));
+            }
+            if (wxAtoi(_model->_pixelCount) != 0)
+            {
+                root->AddAttribute("PixelCount", wxString::Format("%d", wxAtoi(_model->_pixelCount)));
+            }
+            d.Save(_xmodelFile.GetFullPath());
+        }
+    }
+}
 
 std::string MModelWiring::GetDescription()
 {

@@ -681,6 +681,9 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             wxString pts = root->GetAttribute("NumPoints");
             wxString point_data = root->GetAttribute("PointData");
             wxString cpoint_data = root->GetAttribute("cPointData");
+            wxString pc = root->GetAttribute("PixelCount");
+            wxString pt = root->GetAttribute("PixelType");
+            wxString psp = root->GetAttribute("PixelSpacing");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -697,6 +700,9 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             SetProperty("Dir", dir);
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);
+            SetProperty("PixelCount", pc);
+            SetProperty("PixelType", pt);
+            SetProperty("PixelSpacing", psp);
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             SetProperty("name", newname, true);
 

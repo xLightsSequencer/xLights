@@ -217,6 +217,10 @@ public:
     std::string ModelStartChannel;
     bool CouldComputeStartChannel;
     bool Overlapping=false;
+    std::string _pixelCount = "";
+    std::string _pixelType = "";
+    std::string _pixelSpacing = "";
+
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
     size_t GetNodeCount() const;

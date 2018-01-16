@@ -1229,6 +1229,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     DisplayAs=ModelNode->GetAttribute("DisplayAs").ToStdString();
     controller_connection = ModelNode->GetAttribute("ControllerConnection").ToStdString();
     StringType=ModelNode->GetAttribute("StringType").ToStdString();
+    _pixelCount = ModelNode->GetAttribute("PixelCount", "").ToStdString();
+    _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
+    _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
@@ -2357,6 +2360,10 @@ void Model::ExportAsCustomXModel() const {
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString pc = ModelXml->GetAttribute("PixelCount");
+    wxString pt = ModelXml->GetAttribute("PixelType");
+    wxString psp = ModelXml->GetAttribute("PixelSpacing");
+
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -2369,6 +2376,12 @@ void Model::ExportAsCustomXModel() const {
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    if (pc != "")
+        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
+    if (pt != "")
+        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
+    if (psp != "")
+        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
     f.Write("CustomModel=\"");
     f.Write(cm);
     f.Write("\" ");
