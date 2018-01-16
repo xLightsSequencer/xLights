@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Ctrl-A to Selects all Effects in a Sequence.
    -- enh (scott)  Add Select Row Effects to Sequencer Row Right Click Menu.
    -- enh (keith)  Add an image model
    -- bug (keith)  Fix listbox column sizing in the model group panel

@@ -692,6 +692,17 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
+        case 'a':
+        case 'A':
+        case WXK_CONTROL_A:
+            if (event.CmdDown() || event.ControlDown()) {
+                if (mSequenceElements != nullptr) {
+                    mSequenceElements->SelectAllEffects();
+                    PanelEffectGrid->Refresh();
+                }
+                event.StopPropagation();
+            }
+            break;
     }
 }
 void MainSequencer::ToggleHousePreview() {
