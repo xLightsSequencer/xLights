@@ -2564,6 +2564,27 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     if (xlights->AllModels[lastModelName] != nullptr) {
         startChannel = ">" + lastModelName + ":1";
     }
+    else
+    {
+        long highestch = 0;
+        Model* highest = nullptr;
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+        {
+            if (it->second->GetDisplayAs() != "ModelGroup")
+            {
+                if (it->second->GetLastChannel() > highestch)
+                {
+                    highestch = it->second->GetLastChannel();
+                    highest = it->second;
+                }
+            }
+        }
+
+        if (highest != nullptr)
+        {
+            startChannel = ">" + highest->GetName() + ":1";
+        }
+    }
     Model* m = xlights->AllModels.CreateDefaultModel(t, startChannel);
 
     return m;
