@@ -1439,6 +1439,15 @@ int SequenceElements::SelectEffectsInRowAndColumnRange(int startRow, int endRow,
     return num_selected;
 }
 
+void SequenceElements::SelectAllEffects()
+{
+    for (size_t i = 0; i < mRowInformation.size(); i++)
+    {
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        effectLayer->SelectAllEffects();
+    }
+}
+
 void SequenceElements::SelectAllEffectsInRow(int row)
 {
     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
@@ -1456,7 +1465,7 @@ void SequenceElements::UnSelectAllEffects()
 
 void SequenceElements::UnSelectAllElements()
 {
-    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
+    for(size_t i=0; i < mAllViews[mCurrentView].size(); i++)
     {
         if(mAllViews[mCurrentView][i]->GetType() == ELEMENT_TYPE_MODEL) {
             dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(false);

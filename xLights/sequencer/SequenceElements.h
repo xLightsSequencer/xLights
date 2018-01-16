@@ -150,6 +150,7 @@ class SequenceElements : public ChangeListener
         int SelectEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
+        void SelectAllEffects();
         void SelectAllEffectsInRow(int row);
         void UnSelectAllEffects();
         void UnSelectAllElements();
