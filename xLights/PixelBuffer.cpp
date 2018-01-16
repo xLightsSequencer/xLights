@@ -1597,18 +1597,13 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
     }
 
 }
-static inline bool IsInRange(const std::list<NodeRange> &restrictRange, size_t start) {
-    if (restrictRange.empty()) {
+static inline bool IsInRange(const std::vector<bool> &restrictRange, size_t start) {
+    if (start >= restrictRange.size()) {
         return true;
     }
-    for (const auto &r : restrictRange) {
-        if (start >= r.start && start <= r.end) {
-            return true;
-        }
-    }
-    return false;
+    return restrictRange[start];
 }
-void PixelBufferClass::GetColors(unsigned char *fdata, const std::list<NodeRange> &restrictRange) {
+void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange) {
 
     // KW ... I think this needs to be optimised
 

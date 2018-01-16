@@ -159,7 +159,7 @@ void StarModel::InitModel() {
     // It needs more testing and late november is not a good time to be doing it. So throwing an assertion in
     // If this fires for us a lot when there is nothing wrong with our models then we will know the code is bad and we wont implement it.
     // Maybe you can help fix the condition at that time ... rather than just commenting out the assert.
-    wxASSERT(starSizes.size() <= Nodes.size());
+    // wxASSERT(starSizes.size() <= Nodes.size());
     //if (starSizes.size() > Nodes.size())
     //{
     //    starSizes.resize(Nodes.size());
