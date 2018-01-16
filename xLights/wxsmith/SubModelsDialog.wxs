@@ -19,7 +19,7 @@
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 							<minsize>10</minsize>
 							<orientation>vertical</orientation>
-							<minsize>1000,400</minsize>
+							<minsize>950,400</minsize>
 							<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 									<cols>1</cols>

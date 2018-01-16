@@ -88,7 +88,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
+	SplitterWindow1->SetMinSize(wxSize(950,400));
 	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
@@ -220,12 +220,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     SetSize(1200, 800);
     wxPoint loc;
     wxSize sz;
-    // LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    // if (loc.x != -1)
-    // {
-    //     SetPosition(loc);
-    //     SetSize(sz);
-    // }
+    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    if (loc.x != -1)
+    {
+        SetPosition(loc);
+        SetSize(sz);
+    }
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(150, 150));
@@ -234,7 +234,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 
     subBufferPanel = new SubBufferPanel(SubBufferPanelHolder, false, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    wxSize s(50,50);
+    wxSize s(100,100);
     subBufferPanel->SetMinSize(s);
     SubBufferSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
     SubBufferSizer->Fit(SubBufferPanelHolder);
@@ -259,7 +259,6 @@ SubModelsDialog::~SubModelsDialog()
         delete *a;
     }
     _subModels.clear();
-    
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
 }
 
