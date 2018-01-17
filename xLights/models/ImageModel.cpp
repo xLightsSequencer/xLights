@@ -317,7 +317,7 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumul
 
         if (active)
         {
-            brightness = (float)brightness * (float)GetChannelValue(0) / 255.0;
+            brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
         }
 
         va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
@@ -343,5 +343,5 @@ int ImageModel::GetChannelValue(int channel)
 
     xlColor c;
     Nodes[channel]->GetColor(c);
-    return std::max(std::max(c.red, std::max(c.green, c.blue)), (uint8_t)_offBrightness);
+    return std::max(c.red, std::max(c.green, c.blue));
 }
