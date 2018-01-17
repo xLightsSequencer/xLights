@@ -8,8 +8,8 @@
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", (ms) / 60000, ((ms) % 60000) / 1000, (ms) % 1000).c_str()
 
 // Consolidated set of utility functions
-bool IsVersionOlder(const std::string compare, const std::string version);
-std::string UnXmlSafe(wxString s);
+bool IsVersionOlder(const std::string &compare, const std::string &version);
+std::string UnXmlSafe(const wxString &s);
 std::string XmlSafe(const std::string& s);
 bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
@@ -38,8 +38,8 @@ inline double rand01()
 
 void SaveWindowPosition(const std::string tag, wxWindow* window);
 void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position);
-int NumberAwareStringCompare(std::string a, std::string b);
-inline int NumberAwareStringCompareRev(std::string a, std::string b) { return NumberAwareStringCompare(b, a); }
+int NumberAwareStringCompare(const std::string &a, const std::string &b);
+inline int NumberAwareStringCompareRev(const std::string &a, const std::string &b) { return NumberAwareStringCompare(b, a); }
 inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
 inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
 #endif

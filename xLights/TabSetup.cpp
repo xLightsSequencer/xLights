@@ -360,6 +360,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
 
     GridNetwork->Freeze();
     GridNetwork->DeleteAllItems();
+
     for (auto e = outputs.begin(); e != outputs.end(); ++e)
     {
         long newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format(wxT("%i"), (*e)->GetOutputNumber()));

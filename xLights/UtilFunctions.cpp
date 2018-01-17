@@ -155,19 +155,21 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 	return rc;
 }
 
-std::string UnXmlSafe(wxString res)
+std::string UnXmlSafe(const wxString &res)
 {
     if (res.Contains('&')) {
+        wxString r2(res);
         for (int i = 0; i< 32; ++i)
         {
             wxString ss = wxString::Format("&#%d;", i);
-            res.Replace(ss, wxString::Format("%c", i));
+            r2.Replace(ss, wxString::Format("%c", i));
         }
-        res.Replace("&lt;", "<");
-        res.Replace("&gt;", ">");
-        res.Replace("&apos;", "'");
-        res.Replace("&quot;", "\"");
-        res.Replace("&amp;", "&");
+        r2.Replace("&lt;", "<");
+        r2.Replace("&gt;", ">");
+        r2.Replace("&apos;", "'");
+        r2.Replace("&quot;", "\"");
+        r2.Replace("&amp;", "&");
+        return r2.ToStdString();
     }
     return res.ToStdString();
 }
@@ -330,7 +332,7 @@ wxString base64_encode(SequenceData& SeqData)
     return ret;
 }
 
-bool IsVersionOlder(const std::string compare, const std::string version)
+bool IsVersionOlder(const std::string &compare, const std::string &version)
 {
     wxArrayString compare_parts = wxSplit(compare, '.');
     wxArrayString version_parts = wxSplit(version, '.');
@@ -391,7 +393,7 @@ void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
     }
 }
 
-std::string AfterFirstInt(std::string s)
+std::string AfterFirstInt(const std::string &s)
 {
     std::string res = "";
     int i = 0;
@@ -413,7 +415,7 @@ std::string AfterFirstInt(std::string s)
     return res;
 }
 
-std::string GetFirstInt(std::string s)
+std::string GetFirstInt(const std::string &s)
 {
     std::string res = "";
     int i = 0;
@@ -430,7 +432,7 @@ std::string GetFirstInt(std::string s)
     return res;
 }
 
-wxString StripLeadingChars(wxString s, wxString chars)
+wxString StripLeadingChars(const wxString &s, const wxString &chars)
 {
     wxString res = s;
 
@@ -452,7 +454,7 @@ wxString StripLeadingChars(wxString s, wxString chars)
     return res;
 }
 
-int NumberAwareStringCompare(std::string a, std::string b)
+int NumberAwareStringCompare(const std::string &a, const std::string &b)
 {
     // first replace all the numbers with zeros and compare
     wxString A = wxString(a);
@@ -489,11 +491,13 @@ int NumberAwareStringCompare(std::string a, std::string b)
 
     if (AA == BB)
     {
+        std::string aa = a;
+        std::string bb = b;
         while (true)
         {
-            std::string ai = GetFirstInt(a);
+            std::string ai = GetFirstInt(aa);
             int ia = wxAtoi(ai);
-            int ib = wxAtoi(GetFirstInt(b));
+            int ib = wxAtoi(GetFirstInt(bb));
 
             if (ia == ib)
             {
@@ -503,8 +507,8 @@ int NumberAwareStringCompare(std::string a, std::string b)
                 }
                 else
                 {
-                    a = AfterFirstInt(a);
-                    b = AfterFirstInt(b);
+                    aa = AfterFirstInt(aa);
+                    bb = AfterFirstInt(bb);
                 }
             }
             else
