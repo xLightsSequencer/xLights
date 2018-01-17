@@ -1,7 +1,7 @@
 #include "../xLightsMain.h"
 #include "MainSequencer.h"
 #include "TimeLine.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 #include "../xLightsVersion.h"

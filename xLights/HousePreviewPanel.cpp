@@ -3,11 +3,11 @@
 #include "ModelPreview.h"
 #include <wx/artprov.h>
 #include "xLightsXmlFile.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(HousePreviewPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "SequenceCheck.h"
 //*)
 
 //(*IdInit(HousePreviewPanel)

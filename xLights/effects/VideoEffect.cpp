@@ -9,7 +9,7 @@
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include <log4cpp/Category.hh>
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/video-16.xpm"
 #include "../../include/video-24.xpm"

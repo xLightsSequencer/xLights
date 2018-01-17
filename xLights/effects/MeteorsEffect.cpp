@@ -6,7 +6,7 @@
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/meteors-16.xpm"
 #include "../../include/meteors-24.xpm"

@@ -13,7 +13,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include "../FontManager.h"
 
 #include "../../include/text-16.xpm"

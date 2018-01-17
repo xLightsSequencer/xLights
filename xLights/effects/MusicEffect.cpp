@@ -7,7 +7,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/music-16.xpm"
 #include "../../include/music-24.xpm"

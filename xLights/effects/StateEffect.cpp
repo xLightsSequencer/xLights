@@ -8,7 +8,7 @@
 #include "../xLightsMain.h" //xLightsFrame
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include <wx/tokenzr.h>
 

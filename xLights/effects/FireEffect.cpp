@@ -6,7 +6,7 @@
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include "../../include/fire-16.xpm"
 #include "../../include/fire-24.xpm"

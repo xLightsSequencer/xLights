@@ -15,9 +15,8 @@
 #include "ValueCurve.h"
 #include <log4cpp/Category.hh>
 #include "xLightsVersion.h"
-#include "SequenceCheck.h"
+#include "UtilFunctions.h"
 #include "xLightsApp.h"
-#include "xLightsMain.h"
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
     EVT_MOTION(ValueCurvePanel::mouseMoved)

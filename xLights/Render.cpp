@@ -21,6 +21,7 @@
 #define END_OF_RENDER_FRAME INT_MAX
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 //other common strings
 static const std::string STR_EMPTY("");
@@ -406,6 +407,19 @@ public:
 
     std::string GetStatus() override {
         return GetwxStatus().ToStdString();
+    }
+
+    wxString GetStatusForUser()
+    {
+        int lastIdx = 0;
+        Effect* effect = findEffectForFrame(this->statusLayer, GetCurrentFrame(), lastIdx);
+
+        if (effect != nullptr)
+        {
+            return wxString::Format("Effect: %s Start: %s End %s", effect->GetEffectName(), FORMATTIME(effect->GetStartTimeMS()), FORMATTIME(effect->GetEndTimeMS()));
+        }
+
+        return "";
     }
 
     wxString GetwxStatus() {
@@ -944,6 +958,7 @@ void xLightsFrame::UpdateRenderStatus() {
                         wxGauge *g = rpi->jobs[row]->GetGauge();
                         if (g != nullptr && g->GetValue() != val) {
                             g->SetValue(val);
+                            g->SetToolTip(rpi->jobs[row]->GetStatusForUser());
                         }
                     }
                     countFrames += i;

@@ -6,7 +6,7 @@
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include "../sequencer/SequenceElements.h"
 
 #include "../../include/fireworks-16.xpm"
@@ -14,7 +14,6 @@
 #include "../../include/fireworks-32.xpm"
 #include "../../include/fireworks-48.xpm"
 #include "../../include/fireworks-64.xpm"
-#include "../UtilFunctions.h"
 
 FireworksEffect::FireworksEffect(int id) : RenderableEffect(id, "Fireworks", fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_64)
 {

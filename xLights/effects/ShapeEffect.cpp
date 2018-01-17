@@ -7,14 +7,13 @@
 #include "../models/Model.h"
 #include "../sequencer/SequenceElements.h"
 #include "UtilFunctions.h"
-#include "SequenceCheck.h"
+#include "AudioManager.h"
 
 #include "../../include/shape-16.xpm"
 #include "../../include/shape-24.xpm"
 #include "../../include/shape-32.xpm"
 #include "../../include/shape-48.xpm"
 #include "../../include/shape-64.xpm"
-#include "AudioManager.h"
 
 #define REPEATTRIGGER 20
 

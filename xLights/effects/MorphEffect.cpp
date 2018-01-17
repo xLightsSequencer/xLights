@@ -10,7 +10,7 @@
 
 #include "../../include/morph-16.xpm"
 #include "../../include/morph-64.xpm"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 
 MorphEffect::MorphEffect(int id) : RenderableEffect(id, "Morph", morph_16, morph_64, morph_64, morph_64, morph_64)

@@ -12,7 +12,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
 #include <wx/stdpaths.h>
-#include "SequenceCheck.h"
+#include "UtilFunctions.h"
 #include "xLightsApp.h"
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);

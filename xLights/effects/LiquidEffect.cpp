@@ -7,7 +7,6 @@
 #include "../UtilClasses.h"
 #include "../AudioManager.h"
 #include <UtilFunctions.h>
-#include <SequenceCheck.h>
 #include "../models/Model.h"
 
 #include "../../include/liquid-16.xpm"

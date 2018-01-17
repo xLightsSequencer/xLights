@@ -21,7 +21,7 @@
 #include "../RenderCommandEvent.h"
 #include "../BitmapCache.h"
 #include "../effects/RenderableEffect.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include "../xLightsXmlFile.h"
 #include "EffectTimingDialog.h"
 

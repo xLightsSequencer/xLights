@@ -5,7 +5,7 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
 

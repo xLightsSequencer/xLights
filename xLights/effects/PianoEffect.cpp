@@ -7,7 +7,7 @@
 #include "../UtilClasses.h"
 #include "../xLightsMain.h"
 #include "../xLightsXmlFile.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 
 #include <vector>
 

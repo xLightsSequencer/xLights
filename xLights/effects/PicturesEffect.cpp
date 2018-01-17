@@ -9,7 +9,7 @@
 #include "../xLightsXmlFile.h"
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include <log4cpp/Category.hh>
 #include "GIFImage.h"
 

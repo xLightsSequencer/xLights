@@ -7,9 +7,8 @@
 #include "../effects/EffectManager.h"
 #include "../ColorCurve.h"
 #include <log4cpp/Category.hh>
-#include "../../include/globals.h"
 #include <unordered_map>
-#include "../SequenceCheck.h"
+#include "../UtilFunctions.h"
 #include "../ValueCurve.h"
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
