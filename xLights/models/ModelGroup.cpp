@@ -104,20 +104,26 @@ bool ModelGroup::Reset(bool zeroBased) {
     modelNames.clear();
     changeCount = 0;
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+    int nc = 0;
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
             modelNames.push_back(c->GetFullName());
             models.push_back(c);
             changeCount += c->GetChangeCount();
-            
-            int bw, bh;
-            LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
+            nc += c->GetNodeCount();
         } else {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Model group '%s' contains model '%s' that does not exist.", (const char *)GetFullName().c_str(), (const char *)mn[x].c_str());
             return false;
         }
+    }
+    if (nc) {
+        Nodes.reserve(nc);
+    }
+    for (Model *c : models) {
+        int bw, bh;
+        LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
     }
 
     //now have all the nodes for all the models

@@ -277,15 +277,14 @@ bool xLightsFrame::SetDir(const wxString& newdir)
 //~    EffectsPanel1->SetDefaultPalette();
 //~    EffectsPanel2->SetDefaultPalette();
     UpdateNetworkList(false);
-    LoadEffectsFile();
-
+    
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
-
+    
+    LoadEffectsFile();
     EnableSequenceControls(true);
-    layoutPanel->RefreshLayout();
 
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");

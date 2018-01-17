@@ -13,7 +13,7 @@ TestPreset::TestPreset(const std::string& name)
 
 TestPreset::TestPreset(wxXmlNode* node)
 {
-	_name = UnXmlSafe(node->GetAttribute("name", "").ToStdString());
+	_name = UnXmlSafe(node->GetAttribute("name", ""));
 	
 	for (wxXmlNode* e = node->GetChildren(); e != nullptr; e = e->GetNext())
 	{

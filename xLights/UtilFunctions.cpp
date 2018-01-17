@@ -155,20 +155,20 @@ wxString FixEffectFileParameter(const wxString& paramname, const wxString& param
 	return rc;
 }
 
-std::string UnXmlSafe(const std::string& s)
+std::string UnXmlSafe(wxString res)
 {
-    wxString res = s;
-
-    for (int i = 0; i< 32; ++i)
-    {
-        wxString ss = wxString::Format("&#%d;", i);
-        res.Replace(ss, wxString::Format("%c", i));
+    if (res.Contains('&')) {
+        for (int i = 0; i< 32; ++i)
+        {
+            wxString ss = wxString::Format("&#%d;", i);
+            res.Replace(ss, wxString::Format("%c", i));
+        }
+        res.Replace("&lt;", "<");
+        res.Replace("&gt;", ">");
+        res.Replace("&apos;", "'");
+        res.Replace("&quot;", "\"");
+        res.Replace("&amp;", "&");
     }
-    res.Replace("&lt;", "<");
-    res.Replace("&gt;", ">");
-    res.Replace("&apos;", "'");
-    res.Replace("&quot;", "\"");
-    res.Replace("&amp;", "&");
     return res.ToStdString();
 }
 

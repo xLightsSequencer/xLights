@@ -1235,7 +1235,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
     rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
-    description = UnXmlSafe(ModelNode->GetAttribute("Description").ToStdString());
+    description = UnXmlSafe(ModelNode->GetAttribute("Description"));
 
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);

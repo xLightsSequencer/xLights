@@ -161,19 +161,42 @@ int CustomModel::NodesPerString()
     return GetChanCount() / GetChanCountPerNode();
 }
 
+inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
+{
+    size_t splitAt;
+    // Loop infinitely - break is internal.
+    while(true) {
+        splitAt = frag.find(splitBy);
+        // If we didn't find a new split point...
+        if (splitAt == std::string::npos) {
+            tokens.push_back(frag);
+            break;
+        }
+        tokens.push_back(frag.substr(0, splitAt));
+        frag.erase(0, splitAt + 1);
+    }
+}
+
 int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 {
-    long maxval = 0;
+    int maxval = 0;
 
-    wxArrayString rows=wxSplit(customModel,';');
-    for(size_t row=0; row < rows.size(); row++) {
-        wxArrayString cols = wxSplit(rows[row],',');
-        for(size_t col=0; col < cols.size(); col++) {
-            wxString valstr = cols[col];
-            if (!valstr.IsEmpty() && valstr != "0") {
-                long val;
-                valstr.ToLong(&val);
-                maxval=std::max(val,maxval);
+    std::vector<std::string> rows;
+    std::vector<std::string> cols;
+    rows.reserve(100);
+    cols.reserve(100);
+    split(customModel, ';', rows);
+    
+    for (auto row: rows) {
+        cols.clear();
+        split(row, ',', cols);
+        for (auto col : cols) {
+            if (col != "") {
+                try {
+                    maxval=std::max(std::stoi(col),maxval);
+                } catch (...) {
+                    // not a number, treat as 0
+                }
             }
         }
     }
@@ -181,25 +204,34 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 }
 
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
-    wxString value;
-    wxArrayString cols;
     int width=1;
     std::vector<int> nodemap;
 
-    wxArrayString rows=wxSplit(customModel,';');
-    int height=rows.size();
     int cpn = -1;
+    std::vector<std::string> rows;
+    std::vector<std::string> cols;
+    rows.reserve(100);
+    cols.reserve(100);
+    split(customModel, ';', rows);
+    int height=rows.size();
 
-    for(size_t row=0; row < rows.size(); row++) {
-        cols=wxSplit(rows[row],',');
+    int row = 0;
+    for (auto rv : rows) {
+        cols.clear();
+        split(rv, ',', cols);
         if (cols.size() > width) width=cols.size();
-        for(size_t col=0; col < cols.size(); col++) {
-            value=cols[col];
-            value.Trim(true);
-            value.Trim(false);
+        int col = 0;
+        for (auto value : cols) {
+            while (value.length() > 0 && value[0] == ' ') {
+                value = value.substr(1);
+            }
             long idx = -1;
-            if (!value.IsEmpty() && value != "0") {
-                value.ToLong(&idx);
+            if (value != "") {
+                try {
+                    idx = std::stoi(value);
+                } catch (...) {
+                    // not a number, treat as 0
+                }
             }
             if (idx > 0) {
                 // increase nodemap size if necessary
@@ -221,7 +253,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     if (idx < nodeNames.size() && nodeNames[idx] != "") {
                         Nodes.back()->SetName(nodeNames[idx]);
                     } else {
-                        Nodes.back()->SetName(wxString::Format("Node %ld", (idx + 1)).ToStdString());
+                        Nodes.back()->SetName("Node "  + std::to_string(idx + 1));
                     }
 
                     Nodes.back()->AddBufCoord(col,height - row - 1);
@@ -230,7 +262,9 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
                 }
             }
+            col++;
         }
+        row++;
     }
     for (int x = 0; x < Nodes.size(); x++) {
         for (int y = x+1; y < Nodes.size(); y++) {
