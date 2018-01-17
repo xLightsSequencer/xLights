@@ -685,11 +685,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand = nullptr;
         if (channelColors.find(subModel->GetName()) != channelColors.end())
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", channelColors.find(subModel->GetName())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", true, channelColors.find(subModel->GetName())->second.asWxColor());
         }
         else
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", true, *wxWHITE);
         }
         lastmodel->Append(laststrand);
     }
@@ -702,11 +702,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand = nullptr;
         if (channelColors.find(sn.ToStdString()) != channelColors.end())
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", channelColors.find(sn.ToStdString())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", true, channelColors.find(sn.ToStdString())->second.asWxColor());
         }
         else
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", true, *wxWHITE);
         }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); n++)
@@ -719,11 +719,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             xLightsImportModelNode* lastnode = nullptr;
             if (channelColors.find(nn.ToStdString()) != channelColors.end())
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", channelColors.find(nn.ToStdString())->second.asWxColor());
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, channelColors.find(nn.ToStdString())->second.asWxColor());
             }
             else
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", *wxWHITE);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, *wxWHITE);
             }
             laststrand->Insert(lastnode, n);
         }
