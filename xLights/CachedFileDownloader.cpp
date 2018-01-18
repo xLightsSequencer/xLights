@@ -25,8 +25,8 @@ FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor)
 
 void FileCacheItem::Save(wxFile& f)
 {
-    f.Write("  <item URI=\"" + _url.BuildURI() + 
-        "\" FileName=\"" + _fileName + 
+    f.Write("  <item URI=\"" + _url.BuildURI() +
+        "\" FileName=\"" + _fileName +
         "\" CacheFor=\"" + wxString::Format("%d", _cacheFor) +
         "\"/>\n");
 }
@@ -281,6 +281,9 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _initialised = false;
+    #ifdef LINUX
+    _cacheFile="";
+    #else
     _cacheDir = cacheDir;
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
     {
@@ -296,6 +299,8 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
     {
         logger_base.warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
     }
+    #endif // LINUX
+
 
     LoadCache();
     PurgeAgedItems();
