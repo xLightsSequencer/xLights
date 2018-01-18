@@ -3,6 +3,7 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 
 #include <wx/wfstream.h>
@@ -13,7 +14,6 @@
 //(*InternalHeaders(xLightsImportChannelMapDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "UtilFunctions.h"
 //*)
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
@@ -134,7 +134,7 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
         return false;
 
     bool set = false;
-    
+
     if (!node->_mappingExists)
     {
         attr.SetBackgroundColour(*wxRED);
@@ -146,7 +146,7 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
         attr.SetColour(*wxBLUE);
         set = true;
     }
-    
+
     return set;
 }
 
