@@ -643,11 +643,11 @@ wxWindow* GetAssociatedWindow(wxWindow* w, wxString ourName, wxString ourType, w
     name2.Replace(ourType, desiredType);
     if (name2.StartsWith("IDD"))
     {
-        name2.Replace("IDD", "ID");
+        name2.Replace("IDD", "ID", false);
     }
-    else
+    else if (name2.StartsWith("ID"))
     {
-        name2.Replace("ID", "IDD");
+        name2.Replace("ID", "IDD", false);
     }
 
     wxWindow* res = w->FindWindowByName(name1);
