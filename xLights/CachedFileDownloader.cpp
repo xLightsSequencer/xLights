@@ -282,7 +282,10 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
 
     _initialised = false;
     #ifdef LINUX
+    // On linux we disable caching because GetTempDir() fails spectacularly probably due to 
+    // a lack of wxWidgets initialisation when creating static objects
     _cacheFile="";
+    logger_base.warn("CachedFileDownloaded disabled on Linux.");
     #else
     _cacheDir = cacheDir;
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
@@ -300,7 +303,6 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
         logger_base.warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
     }
     #endif // LINUX
-
 
     LoadCache();
     PurgeAgedItems();

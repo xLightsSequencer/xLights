@@ -273,11 +273,10 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     ShowDirectoryLabel->SetLabel(showDirectory);
     ShowDirectoryLabel->GetParent()->Layout();
 
-    // load sequence effects
-//~    EffectsPanel1->SetDefaultPalette();
-//~    EffectsPanel2->SetDefaultPalette();
+    logger_base.debug("Updating networks on setup tab.");
     UpdateNetworkList(false);
-    
+    logger_base.debug("    Networks updated.");
+
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
@@ -352,8 +351,6 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 
 void xLightsFrame::UpdateNetworkList(bool updateModels)
 {
-    long newidx;
-
     if (updateModels) _setupChanged = true;
 
     int item = GridNetwork->GetTopItem() + GridNetwork->GetCountPerPage() - 1;
@@ -365,7 +362,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
     GridNetwork->DeleteAllItems();
     for (auto e = outputs.begin(); e != outputs.end(); ++e)
     {
-        newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format(wxT("%i"), (*e)->GetOutputNumber()));
+        long newidx = GridNetwork->InsertItem(GridNetwork->GetItemCount(), wxString::Format(wxT("%i"), (*e)->GetOutputNumber()));
         GridNetwork->SetItem(newidx, 1, (*e)->GetType());
         if ((*e)->IsIpOutput())
         {
@@ -388,7 +385,6 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
             GridNetwork->SetItem(newidx, 6, "No");
         }
         GridNetwork->SetItem(newidx, 7, (*e)->GetDescription());
-        GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
         GridNetwork->SetItem(newidx, 8, (*e)->IsSuppressDuplicateFrames() ? "Y" : "");
         if (!(*e)->IsEnabled())
         {
@@ -396,6 +392,7 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
         }
     }
 
+    GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(2, _outputManager.GetOutputCount() > 0 ? wxLIST_AUTOSIZE : 100);
 
     // try to ensure what should be visible is visible in roughly the same part of the screen

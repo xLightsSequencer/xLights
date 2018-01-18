@@ -70,6 +70,7 @@ void xLightsFrame::CreateSequencer()
     effectsPnl->BitmapButtonSelectedEffect->SetEffect(effectManager[0], mIconSize);
 
     logger_base.debug("        Effect settings.");
+    // This step takes about 5 seconds to create all the effects panels
     EffectsPanel1 = new EffectsPanel(effectsPnl, &effectManager);
     EffectsPanel1->SetSequenceElements(&mSequenceElements);
     effectsPnl->EffectSizer->Add(EffectsPanel1, wxEXPAND);
