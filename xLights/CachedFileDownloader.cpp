@@ -185,6 +185,11 @@ void CachedFileDownloader::SaveCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (!_initialised)
+    {
+        return;
+    }
+
     logger_base.debug("Saving File Cache %s.", (const char *)_cacheFile.c_str());
 
     wxFile f;
@@ -220,8 +225,14 @@ void CachedFileDownloader::LoadCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    logger_base.debug("Loading File Cache %s.", (const char *)_cacheFile.c_str());
     _cacheItems.empty();
+
+    if (!_initialised)
+    {
+        return;
+    }
+
+    logger_base.debug("Loading File Cache %s.", (const char *)_cacheFile.c_str());
 
     if (wxFile::Exists(_cacheFile) && wxFileName(_cacheFile).GetSize() > 0)
     {
@@ -267,13 +278,24 @@ FileCacheItem* CachedFileDownloader::Find(wxURI url)
 
 CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _initialised = false;
     _cacheDir = cacheDir;
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
     {
         _cacheDir = wxFileName::GetTempDir();
     }
 
-    _cacheFile = _cacheDir + "/xLightsCache.xml";
+    if (_cacheDir != "")
+    {
+        _cacheFile = _cacheDir + "/xLightsCache.xml";
+        _initialised = true;
+    }
+    else
+    {
+        logger_base.warn("CachedFileDownloaded unable to find a temp directory to use. Caching disabled.");
+    }
 
     LoadCache();
     PurgeAgedItems();
@@ -310,6 +332,12 @@ void CachedFileDownloader::PurgeAgedItems()
 std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_initialised)
+    {
+        // because we dont have a valid place to save the cache we cant cache anything beyond this session
+        cacheFor = CACHEFOR::CACHETIME_SESSION;
+    }
 
     FileCacheItem* fci = Find(url);
     if (fci == nullptr)

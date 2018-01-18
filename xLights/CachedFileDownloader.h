@@ -44,6 +44,7 @@ class CachedFileDownloader
     std::string _cacheDir;
     std::list<FileCacheItem*> _cacheItems;
     std::string _cacheFile;
+    bool _initialised;
 
     void PurgeAgedItems();
     void SaveCache();
