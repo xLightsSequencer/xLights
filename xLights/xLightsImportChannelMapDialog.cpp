@@ -154,10 +154,30 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
 {
     if (column == 0)
     {
-        if (ascending)
-            return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+        xLightsImportModelNode *node1 = (xLightsImportModelNode*)item1.GetID();
+        xLightsImportModelNode *node2 = (xLightsImportModelNode*)item2.GetID();
+
+        if (node1->_node != "" && node2->_node != "")
+        {
+            if (ascending)
+                return NumberAwareStringCompare(node1->_node.ToStdString(), node2->_node.ToStdString());
+            else
+                return NumberAwareStringCompareRev(node1->_node.ToStdString(), node2->_node.ToStdString());
+        }
+        else if (node1->_strand != "" && node2->_strand != "")
+        {
+            if (ascending)
+                return NumberAwareStringCompare(node1->_strand.ToStdString(), node2->_strand.ToStdString());
+            else
+                return NumberAwareStringCompareRev(node1->_strand.ToStdString(), node2->_strand.ToStdString());
+        }
         else
-            return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+        {
+            if (ascending)
+                return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+            else
+                return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+        }
     }
 
     return 0;
