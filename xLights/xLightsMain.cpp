@@ -3479,6 +3479,8 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
 }
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, "xLightsProblem.zip", "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
@@ -3491,6 +3493,46 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 
     // check the curent sequence to ensure this analysis is in the log
     CheckSequence(false);
+
+    logger_base.debug("Dumping registry configuration:");
+    wxConfigBase* config = wxConfigBase::Get();
+    wxString key;
+    long index;
+    bool ce = config->GetFirstEntry(key, index);
+
+    while (ce)
+    {
+        wxString value = "<UNKNOWN>";
+        wxString type = "<UNREAD>";
+        switch(config->GetEntryType(key))
+        {
+        case wxConfigBase::EntryType::Type_String:
+            type = "String";
+            config->Read(key, &value);
+            break;
+        case wxConfigBase::EntryType::Type_Boolean:
+            type = "Boolean";
+            value = wxString::Format("%s", config->ReadBool(key, false) ? "True" : "False");
+            break;
+        case wxConfigBase::EntryType::Type_Integer: // long
+            type = "Integer";
+            value = wxString::Format("%ld", config->ReadLong(key, 0));
+            break;
+        case wxConfigBase::EntryType::Type_Float: // double
+            type = "Float";
+            value = wxString::Format("%f", config->ReadDouble(key, 0.0));
+            break;
+        case wxConfigBase::EntryType::Type_Unknown:
+            type = "Unknown";
+            break;
+        default:
+            break;
+        }
+        
+        logger_base.debug("      '%s' (%s) ='%s'", (const char*)key.c_str(), (const char*)type.c_str(), (const char*)value.c_str());
+
+        ce = config->GetNextEntry(key, index);
+    }
 
     wxDebugReportCompress report;
     report.SetCompressedFileBaseName(wxFileName(fd.GetFilename()).GetName());
@@ -3984,64 +4026,73 @@ void xLightsFrame::ExportModels(wxString filename)
         }
     }
 
-    int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
-    memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
-
     int bulbs = 0;
-    for (auto m = AllModels.begin(); m != AllModels.end(); m++)
-    {
-        Model* model = m->second;
-        if (model->GetDisplayAs() != "ModelGroup")
-        {
-            wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-            int endch = ch + model->GetChanCount() - 1;
-
-            int uniquechannels = 0;
-            for (int i = ch; i <= endch; i++)
-            {
-                if (chused[i - minchannel] == 0)
-                {
-                    uniquechannels++;
-                }
-                chused[i - minchannel]++;
-            }
-
-            if (wxString(model->GetStringType()).StartsWith("Single Color"))
-            {
-                bulbs += uniquechannels * model->GetCoordCount(0);
-            }
-            else if (wxString(model->GetStringType()).StartsWith("3 Channel"))
-            {
-                bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetCoordCount(0);
-            }
-            else if (wxString(model->GetStringType()).StartsWith("4 Channel"))
-            {
-                bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetCoordCount(0);
-            }
-            else if (wxString(model->GetStringType()).StartsWith("Strobes"))
-            {
-                bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
-            }
-            else
-            {
-                int den = model->GetChanCountPerNode();
-                if (den == 0) den = 1;
-                bulbs += uniquechannels / den * model->GetLightsPerNode();
-            }
-        }
-    }
-
     int usedchannels = 0;
-    for (int i = 0; i < (maxchannel - minchannel + 1); i++)
+    if (minchannel == 99999999)
     {
-        if (chused[i] > 0)
-        {
-            usedchannels++;
-        }
+        // No channels so we dont do this 
+        minchannel = 0;
+        maxchannel = 0;
     }
+    else
+    {
+        int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
+        memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-    free(chused);
+        for (auto m = AllModels.begin(); m != AllModels.end(); m++)
+        {
+            Model* model = m->second;
+            if (model->GetDisplayAs() != "ModelGroup")
+            {
+                wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+                int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+                int endch = ch + model->GetChanCount() - 1;
+
+                int uniquechannels = 0;
+                for (int i = ch; i <= endch; i++)
+                {
+                    if (chused[i - minchannel] == 0)
+                    {
+                        uniquechannels++;
+                    }
+                    chused[i - minchannel]++;
+                }
+
+                if (wxString(model->GetStringType()).StartsWith("Single Color"))
+                {
+                    bulbs += uniquechannels * model->GetCoordCount(0);
+                }
+                else if (wxString(model->GetStringType()).StartsWith("3 Channel"))
+                {
+                    bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetCoordCount(0);
+                }
+                else if (wxString(model->GetStringType()).StartsWith("4 Channel"))
+                {
+                    bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetCoordCount(0);
+                }
+                else if (wxString(model->GetStringType()).StartsWith("Strobes"))
+                {
+                    bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
+                }
+                else
+                {
+                    int den = model->GetChanCountPerNode();
+                    if (den == 0) den = 1;
+                    bulbs += uniquechannels / den * model->GetLightsPerNode();
+                }
+            }
+        }
+
+        for (int i = 0; i < (maxchannel - minchannel + 1); i++)
+        {
+            if (chused[i] > 0)
+            {
+                usedchannels++;
+            }
+        }
+
+        free(chused);
+    }
 
     f.Write("\n");
 
