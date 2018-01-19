@@ -185,6 +185,23 @@ public:
         double db = blue * a + bc.blue * (1.0 - a);
         return xlColor((uint8_t)dr, (uint8_t)dg, (uint8_t)db);
     }
+    
+    /** AlphaBlend the fg color onto this color **/
+    void AlphaBlendForgroundOnto(const xlColor &fc) {
+        if (fc.alpha == 0) return;
+        if (fc.alpha == 255) {
+            *this = fc;
+            return;
+        }
+        double a = fc.alpha;
+        a /= 255; // 0 (transparent) - 1.0 (opague)
+        double dr = fc.red * a + red * (1.0 - a);
+        double dg = fc.green * a + green * (1.0 - a);
+        double db = fc.blue * a + blue * (1.0 - a);
+        red = (uint8_t)dr;
+        green = (uint8_t)dg;
+        blue = (uint8_t)db;
+    }
 
     void SetFromString(const std::string &str);
     operator std::string() const;

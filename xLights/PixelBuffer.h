@@ -204,7 +204,8 @@ private:
     int CurrentLayer;
 
     void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
-    xlColor mixColors(const wxCoord &x, const wxCoord &y, const xlColor &c0, const xlColor &c1, int layer);
+    //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
+    void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);
     void reset(int layers, int timing);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);

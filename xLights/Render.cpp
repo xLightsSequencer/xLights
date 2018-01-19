@@ -1677,7 +1677,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
 
         if (m != nullptr)
         {
-            if (wxString(m->GetStringType()).StartsWith("Single Color"))
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0)
             {
                 colorMask = buffer.GetNodeMaskColor(0);
 
