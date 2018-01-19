@@ -1228,55 +1228,40 @@ void xLightsImportChannelMapDialog::OnResize(wxSizeEvent& event)
 
 wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewItem item) const
 {
-    bool next = false;
+    int bottom = TreeListCtrl_Mapping->GetItemRect(item).GetBottom();
+
     wxDataViewItemArray models;
     dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
-        if (next)
+        int mtop = TreeListCtrl_Mapping->GetItemRect(models[i]).GetTop();
+        if (mtop == bottom + 1)
         {
             return models[i];
         }
 
-        if (models[i] == item)
+        if (TreeListCtrl_Mapping->IsExpanded(models[i]))
         {
-            // we are on this model
-            next = true;
-        }
-        else
-        {
-            if (TreeListCtrl_Mapping->IsExpanded(models[i]))
+            wxDataViewItemArray strands;
+            dataModel->GetChildren(models[i], strands);
+            for (size_t j = 0; j < strands.size(); j++)
             {
-                wxDataViewItemArray strands;
-                dataModel->GetChildren(models[i], strands);
-                for (size_t j = 0; j < strands.size(); j++)
+                int stop = TreeListCtrl_Mapping->GetItemRect(strands[j]).GetTop();
+                if (stop == bottom + 1)
                 {
-                    if (next)
-                    {
-                        return strands[j];
-                    }
+                    return strands[j];
+                }
 
-                    if (strands[j] == item)
+                if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
+                {
+                    wxDataViewItemArray nodes;
+                    dataModel->GetChildren(strands[j], nodes);
+                    for (size_t k = 0; k < nodes.size(); k++)
                     {
-                        // we are on this model
-                        next = true;
-                    }
-
-                    if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
-                    {
-                        wxDataViewItemArray nodes;
-                        dataModel->GetChildren(strands[j], nodes);
-                        for (size_t k = 0; k < nodes.size(); k++)
+                        int ntop = TreeListCtrl_Mapping->GetItemRect(nodes[k]).GetTop();
+                        if (ntop == bottom + 1)
                         {
-                            if (next)
-                            {
-                                return nodes[k];
-                            }
-
-                            if (nodes[k] == item)
-                            {
-                                next = true;
-                            }
+                            return nodes[k];
                         }
                     }
                 }
@@ -1288,45 +1273,40 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
 
 wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewItem item) const
 {
-    wxDataViewItem last = wxDataViewItem(nullptr);
+    int top = TreeListCtrl_Mapping->GetItemRect(item).GetTop();
+    if (top == 0) top = -2;
 
     wxDataViewItemArray models;
     dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
-        if (models[i] == item)
+        int mbottom = TreeListCtrl_Mapping->GetItemRect(models[i]).GetBottom();
+        if (top == mbottom - 1)
         {
-            // we are on this model
-            return last;
+            return models[i];
         }
-        else
+        if (TreeListCtrl_Mapping->IsExpanded(models[i]))
         {
-            last = models[i];
-
-            if (TreeListCtrl_Mapping->IsExpanded(models[i]))
+            wxDataViewItemArray strands;
+            dataModel->GetChildren(models[i], strands);
+            for (size_t j = 0; j < strands.size(); j++)
             {
-                wxDataViewItemArray strands;
-                dataModel->GetChildren(models[i], strands);
-                for (size_t j = 0; j < strands.size(); j++)
+                int sbottom = TreeListCtrl_Mapping->GetItemRect(strands[j]).GetBottom();
+                if (top == sbottom - 1)
                 {
-                    if (strands[j] == item)
-                    {
-                        // we are on this model
-                        return last;
-                    }
-                    last = strands[j];
+                    return strands[j];
+                }
 
-                    if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
+                if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
+                {
+                    wxDataViewItemArray nodes;
+                    dataModel->GetChildren(strands[j], nodes);
+                    for (size_t k = 0; k < nodes.size(); k++)
                     {
-                        wxDataViewItemArray nodes;
-                        dataModel->GetChildren(strands[j], nodes);
-                        for (size_t k = 0; k < nodes.size(); k++)
+                        int nbottom = TreeListCtrl_Mapping->GetItemRect(nodes[k]).GetBottom();
+                        if (top == nbottom - 1)
                         {
-                            if (nodes[k] == item)
-                            {
-                                return last;
-                            }
-                            last = nodes[k];
+                            return nodes[k];
                         }
                     }
                 }
@@ -1341,7 +1321,7 @@ void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     if (_dirty)
     {
-        if (wxMessageBox("Are you sure you dont want to save your changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
+        if (wxMessageBox("Are you sure you want to exit WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES)
         {
             EndDialog(wxID_OK);
         }
