@@ -189,6 +189,10 @@ public:
         return PreviewScaleY;
     }
 
+    int GetRotation() const {
+        return PreviewRotation;
+    }
+
     void SetScaleX(float scaleX)
     {
         PreviewScaleX = scaleX;

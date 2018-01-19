@@ -860,6 +860,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     float old_pan_angle = 0.0f;
     float old_tilt_angle = 0.0f;
     long old_ms = 0;
+    float rot_angle = (float)(((BoxedScreenLocation)screenLocation).GetRotation());
 
     std::vector<std::string> old_state = GetModelState();
     if( old_state.size() > 0  && active ) {
@@ -1098,12 +1099,13 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         pan_angle_raw = 360.0f - pan_angle_raw;
         bool facing_right = pan_angle_raw <= 90.0f || pan_angle_raw >= 270.0f;
 
+        float combined_angle = tilt_angle + rot_angle;
         if( shutter_open ) {
-            dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-            dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-            dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, tilt_angle);
-            dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, tilt_angle);
-            dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, tilt_angle);
+            dmxPoint3 p1(beam_length_displayed,-5,-5, sx, sy, scale, pan_angle_raw, combined_angle);
+            dmxPoint3 p2(beam_length_displayed,-5,5, sx, sy, scale, pan_angle_raw, combined_angle);
+            dmxPoint3 p3(beam_length_displayed,5,-5, sx, sy, scale, pan_angle_raw, combined_angle);
+            dmxPoint3 p4(beam_length_displayed,5,5, sx, sy, scale, pan_angle_raw, combined_angle);
+            dmxPoint3 p0(0,0,0, sx, sy, scale, pan_angle_raw, combined_angle);
 
 
             if( facing_right ) {
@@ -1136,13 +1138,13 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         }
 
         if( facing_right ) {
-            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw);
-            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, tilt_angle);
-            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw);
+            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw, rot_angle);
+            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, combined_angle);
+            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw, rot_angle);
         } else {
-            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw);
-            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, tilt_angle);
-            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw);
+            Draw3DDMXBaseLeft(va, base_color, sx, sy, scale, pan_angle_raw, rot_angle);
+            Draw3DDMXHead(va, base_color2, sx, sy, scale, pan_angle_raw, combined_angle);
+            Draw3DDMXBaseRight(va, base_color, sx, sy, scale, pan_angle_raw, rot_angle);
         }
     }
 
@@ -1463,15 +1465,15 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     va.Finish(GL_TRIANGLES);
 }
 
-void DmxModel::Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle)
+void DmxModel::Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float& rot_angle)
 {
-    dmxPoint3 p10(-3,-1,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p11(3,-1,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p12(-3,-5,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p13(3,-5,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p14(0,-1,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p15(-1,1,-5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p16(1,1,-5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p10(-3,-1,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p11(3,-1,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p12(-3,-5,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p13(3,-5,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p14(0,-1,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p15(-1,1,-5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p16(1,1,-5, sx, sy, scale, pan_angle, rot_angle);
 
     va.AddVertex(p10.x, p10.y, c);
     va.AddVertex(p11.x, p11.y, c);
@@ -1489,13 +1491,13 @@ void DmxModel::Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &
     va.AddVertex(p14.x, p14.y, c);
     va.AddVertex(p16.x, p16.y, c);
 
-    dmxPoint3 p210(-3,-1,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p211(3,-1,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p212(-3,-5,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p213(3,-5,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p214(0,-1,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p215(-1,1,-3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p216(1,1,-3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p210(-3,-1,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p211(3,-1,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p212(-3,-5,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p213(3,-5,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p214(0,-1,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p215(-1,1,-3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p216(1,1,-3, sx, sy, scale, pan_angle, rot_angle);
 
     va.AddVertex(p210.x, p210.y, c);
     va.AddVertex(p211.x, p211.y, c);
@@ -1545,15 +1547,15 @@ void DmxModel::Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &
     va.AddVertex(p11.x, p11.y, c);
 }
 
-void DmxModel::Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle)
+void DmxModel::Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float& rot_angle)
 {
-    dmxPoint3 p20(-3,-1,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p21(3,-1,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p22(-3,-5,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p23(3,-5,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p24(0,-1,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p25(-1,1,5, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p26(1,1,5, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p20(-3,-1,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p21(3,-1,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p22(-3,-5,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p23(3,-5,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p24(0,-1,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p25(-1,1,5, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p26(1,1,5, sx, sy, scale, pan_angle, rot_angle);
 
     va.AddVertex(p20.x, p20.y, c);
     va.AddVertex(p21.x, p21.y, c);
@@ -1571,13 +1573,13 @@ void DmxModel::Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor 
     va.AddVertex(p24.x, p24.y, c);
     va.AddVertex(p26.x, p26.y, c);
 
-    dmxPoint3 p220(-3,-1,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p221(3,-1,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p222(-3,-5,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p223(3,-5,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p224(0,-1,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p225(-1,1,3, sx, sy, scale, pan_angle, 0);
-    dmxPoint3 p226(1,1,3, sx, sy, scale, pan_angle, 0);
+    dmxPoint3 p220(-3,-1,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p221(3,-1,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p222(-3,-5,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p223(3,-5,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p224(0,-1,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p225(-1,1,3, sx, sy, scale, pan_angle, rot_angle);
+    dmxPoint3 p226(1,1,3, sx, sy, scale, pan_angle, rot_angle);
 
     va.AddVertex(p220.x, p220.y, c);
     va.AddVertex(p221.x, p221.y, c);

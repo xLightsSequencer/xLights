@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice
    -- enh (scott)  Added Ctrl-A to Selects all Effects in a Sequence.
    -- enh (scott)  Add Select Row Effects to Sequencer Row Right Click Menu.
+   -- enh (gil)    Allow the rotate handle to Spin the DMX Model when in 3D mode.
    -- enh (keith)  Add an image model
    -- bug (keith)  Fix listbox column sizing in the model group panel
    -- bug (keith)  Fix issues with mapping dialog
@@ -22,7 +23,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Fix default model start channel to always be 1 channel after the model with the highest ending channel
    -- bug (keith)  Fix some text controls not updating associated sliders
    -- enh (keith)  Display in tooltip current effect being rendered in render progress dialog ... if it gets stuck you will know which effect is to blame
-   
+
 2018.2 Jan 14, 2018
    -- enh (dkulp)  Add House/Model preview and play controls to TouchBar
    -- update (dkulp) Change minimum OSX requirement to 10.10
