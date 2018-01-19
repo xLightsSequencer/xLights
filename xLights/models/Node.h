@@ -34,8 +34,8 @@ public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct
     {
-        unsigned short bufX, bufY;
-        float screenX, screenY;
+        unsigned short bufX, bufY, bufZ;
+        float screenX, screenY, screenZ;
     };
 
     unsigned int ActChan = 0;   // 0 is the first channel
@@ -420,7 +420,7 @@ public:
         chanCnt = NODE_RGBW_CHAN_CNT;
         SetName(n);
     }
-    
+
     virtual void SetFromChannels(const unsigned char *buf) override {
         if (buf[0] != 0) {
             c[0] = c[1] = c[2] = buf[0];

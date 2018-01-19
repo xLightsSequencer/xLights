@@ -139,7 +139,7 @@ protected:
                             int &bufferWi, int &bufferHi) const;
     void ApplyTransparency(xlColor &color, int transparency) const;
 
-    int BufferHt,BufferWi;  // size of the default buffer
+    int BufferHt,BufferWi,BufferDp;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
     const ModelManager &modelManager;
@@ -289,7 +289,7 @@ public:
     virtual xlColor GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor &c);
     wxChar GetChannelColorLetter(wxByte chidx);
-    
+
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     void ExportAsCustomXModel() const;
     bool IsCustom(void);
