@@ -3229,6 +3229,29 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model->Selected = true;
             return model;
         }
+        else if (root->GetName() == "archesmodel") {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
+            int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
+            int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
+            int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
+
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
+
+            int h1 = 1;
+            model->InitializeLocation(h1, l, b);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r-l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t-b) / (float)std::abs(r-l));
+            model->SetLayoutGroup(model->GetLayoutGroup());
+            model->Selected = true;
+            return model;
+        }
         else if (root->GetName() == "starmodel") {
 
             // grab the attributes I want to keep
