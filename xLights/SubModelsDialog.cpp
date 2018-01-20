@@ -521,7 +521,8 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
         int last = 0;
         for (int i = 0; i < dialog.GetCount(); i++)
         {
-            wxString name = wxString::Format("%s-%i", dialog.GetBaseName(), i + 1);
+            wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
+            wxString name = wxString::Format("%s-%i", basename, i + 1);
 
             if (GetSubModelInfoIndex(name) != -1)
             {
@@ -687,7 +688,7 @@ void SubModelsDialog::OnListCtrl_SubModelsKeyDown(wxListEvent& event)
 
 void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
 {
-    wxString name = TextCtrl_Name->GetValue();
+    wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     if (sm == nullptr || name == sm->name) {
         return;
