@@ -61,6 +61,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void InitVMatrix(int firstExportStrand = 0);
         void InitHMatrix();
 
+        void DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
         void DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
         void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
         int GetChannelValue( int channel );

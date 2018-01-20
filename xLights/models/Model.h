@@ -289,7 +289,7 @@ public:
     virtual xlColor GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor &c);
     wxChar GetChannelColorLetter(wxByte chidx);
-    
+
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     void ExportAsCustomXModel() const;
     bool IsCustom(void);
