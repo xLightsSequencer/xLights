@@ -233,7 +233,7 @@ public:
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     unsigned int GetLastChannel();
-    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
     bool IsValidStartChannelString() const;
     unsigned int GetFirstChannel();

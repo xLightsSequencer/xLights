@@ -1024,6 +1024,7 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '>' || parts[0][0] == '@')
     {
         if ((parts.size() == 2) &&
+            (parts[0].substr(1) != GetName()) && // self referencing
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             // dont bother checking the model name ... other processes will check for that
@@ -1090,23 +1091,31 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             int returnChannel = wxAtoi(sc);
             bool fromStart = start[0] == '@';
             start = start.substr(1, start.size());
-            dependsonmodel = start;
-            Model *m = modelManager[start];
-            if (m != nullptr && m->CouldComputeStartChannel) {
-                if (fromStart) {
-                    int i = m->GetFirstChannel();
-                    if (i == -1 && m == this && stringStartChan.size() > 0) {
-                        i = stringStartChan[0];
-                    }
-                    return i + returnChannel;
-                }
-                else {
-                    return m->GetLastChannel() + returnChannel + 1;
-                }
-            }
-            else {
+            if (start == GetName())
+            {
                 valid = false;
                 output = 1;
+            }
+            else
+            {
+                dependsonmodel = start;
+                Model *m = modelManager[start];
+                if (m != nullptr && m->CouldComputeStartChannel) {
+                    if (fromStart) {
+                        int i = m->GetFirstChannel();
+                        if (i == -1 && m == this && stringStartChan.size() > 0) {
+                            i = stringStartChan[0];
+                        }
+                        return i + returnChannel;
+                    }
+                    else {
+                        return m->GetLastChannel() + returnChannel + 1;
+                    }
+                }
+                else {
+                    valid = false;
+                    output = 1;
+                }
             }
         }
         else if (start[0] == '#') {
@@ -1473,8 +1482,16 @@ std::string Model::GetStartChannelInDisplayFormat()
     }
 }
 
-std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
+std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels)
 {
+    bool allocated = false;
+    if (visitedModels == nullptr)
+    {
+        allocated = true;
+        visitedModels = new std::list<std::string>();
+    }
+    visitedModels->push_back(GetName());
+
     std::string modelFormat = ModelStartChannel;
     char firstChar = ModelStartChannel[0];
 
@@ -1485,9 +1502,9 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
         std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
         Model *m = modelManager[referencedModel];
 
-        if (m != nullptr)
+        if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
         {
-            std::string end = m->GetLastChannelInStartChannelFormat(outputManager);
+            std::string end = m->GetLastChannelInStartChannelFormat(outputManager, visitedModels);
             if (end != "")
             {
                 if (end[0] == '#')
@@ -1502,6 +1519,11 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
                 }
             }
         }
+    }
+
+    if (allocated)
+    {
+        delete visitedModels;
     }
 
     if (firstChar == '#')
