@@ -18,6 +18,10 @@
 /*-----  Toolbar Art ----- */
 #include "../include/toolbar/toolbarImages.h"
 
+
+#include "../include/fforward10-24.xpm"
+#include "../include/rewind10-24.xpm"
+/*
 #include "../include/render-all-16.xpm"
 #include "../include/render-all-24.xpm"
 #include "../include/render-all-32.xpm"
@@ -25,9 +29,6 @@
 #include "../include/render-all-64.xpm"
 #include "../include/paste-by-time-24.xpm"
 #include "../include/paste-by-cell-24.xpm"
-#include "../include/fforward10-24.xpm"
-#include "../include/rewind10-24.xpm"
-
 
 #define paste_by_time_16_xpm paste_by_time_24_xpm
 #define paste_by_time_32_xpm paste_by_time_24_xpm
@@ -43,6 +44,7 @@
 #include "../include/save-as-24.xpm"
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
+ */
 
 #include "../include/Dice-24.xpm"
 #include "../include/Dice-32.xpm"
@@ -385,23 +387,16 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);
     } else if ("wxART_INFORMATION" == id) {
         return effectBitmaps.get(24, false, id, tips_16, tips_24, tips_32, tips_48, tips_64);
-#ifndef __WXOSX__
-        //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {
-        return effectBitmaps.get(24, false, id, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm);
+        return effectBitmaps.get(24, false, id, select_show_folder_16_xpm, select_show_folder_24_xpm, select_show_folder_32_xpm, select_show_folder_48_xpm, select_show_folder_64_xpm);
     } else if (wxART_NEW == id) {
-        return effectBitmaps.get(24, false, id, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm);
+        return effectBitmaps.get(24, false, id, file_new_16_xpm, file_new_24_xpm, file_new_32_xpm, file_new_48_xpm, file_new_64_xpm);
     } else if (wxART_FILE_OPEN == id) {
-        return effectBitmaps.get(24, false, id, folder_xpm, folder_xpm, folder_xpm, folder_xpm, folder_xpm);
+        return effectBitmaps.get(24, false, id, open_16_xpm, open_24_xpm, open_32_xpm, open_48_xpm, open_64_xpm);
     } else if (wxART_FILE_SAVE == id) {
-        return effectBitmaps.get(24, false, id, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm);
+        return effectBitmaps.get(24, false, id, save_16_xpm, save_24_xpm, save_32_xpm, save_48_xpm, save_64_xpm);
     } else if (wxART_FILE_SAVE_AS == id) {
-        return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
-#else
-    } else if (wxART_TOOLBAR == client) {
-        //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
-        return wxArtProvider::GetBitmap(id, wxART_OTHER);
-#endif
+        return effectBitmaps.get(24, false, id, save_as_16_xpm, save_as_24_xpm, save_as_32_xpm, save_as_48_xpm, save_as_64_xpm);
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;
