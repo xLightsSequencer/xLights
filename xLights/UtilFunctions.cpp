@@ -432,6 +432,18 @@ std::string GetFirstInt(const std::string &s)
     return res;
 }
 
+std::string BeforeFirstInt(const std::string &s)
+{
+    std::string res = "";
+    int i = 0;
+    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    {
+        res += s[i++];
+    }
+
+    return res;
+}
+
 wxString StripLeadingChars(const wxString &s, const wxString &chars)
 {
     wxString res = s;
@@ -456,59 +468,26 @@ wxString StripLeadingChars(const wxString &s, const wxString &chars)
 
 int NumberAwareStringCompare(const std::string &a, const std::string &b)
 {
-    // first replace all the numbers with zeros and compare
-    wxString A = wxString(a);
-    A.Replace("0", "");
-    A.Replace("1", "");
-    A.Replace("2", "");
-    A.Replace("3", "");
-    A.Replace("4", "");
-    A.Replace("5", "");
-    A.Replace("6", "");
-    A.Replace("7", "");
-    A.Replace("8", "");
-    A.Replace("9", "");
-    wxString AA = A;
-    AA.Replace("-", "");
-    AA.Replace("_", "");
-    AA.Replace(" ", "");
-
-    wxString B = wxString(b);
-    B.Replace("0", "");
-    B.Replace("1", "");
-    B.Replace("2", "");
-    B.Replace("3", "");
-    B.Replace("4", "");
-    B.Replace("5", "");
-    B.Replace("6", "");
-    B.Replace("7", "");
-    B.Replace("8", "");
-    B.Replace("9", "");
-    wxString BB = B;
-    BB.Replace("-", "");
-    BB.Replace("_", "");
-    BB.Replace(" ", "");
-
-    if (AA == BB)
+    std::string aa = a;
+    std::string bb = b;
+    while(true)
     {
-        std::string aa = a;
-        std::string bb = b;
-        while (true)
+        std::string abi = BeforeFirstInt(aa);
+        std::string bbi = BeforeFirstInt(bb);
+
+        if (abi == bbi)
         {
-            std::string ai = GetFirstInt(aa);
-            int ia = wxAtoi(ai);
+            int ia = wxAtoi(GetFirstInt(aa));
             int ib = wxAtoi(GetFirstInt(bb));
 
             if (ia == ib)
             {
-                if (ai == "")
+                aa = AfterFirstInt(aa);
+                bb = AfterFirstInt(bb);
+
+                if (aa == bb)
                 {
                     return 0;
-                }
-                else
-                {
-                    aa = AfterFirstInt(aa);
-                    bb = AfterFirstInt(bb);
                 }
             }
             else
@@ -520,20 +499,13 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
                 return 1;
             }
         }
-    }
-    else
-    {
-        A = StripLeadingChars(A, " -_");
-        B = StripLeadingChars(B, " -_");
-
-        if (A < B)
+        else
         {
-            return -1;
+            if (abi < bbi)
+            {
+                return -1;
+            }
+            return 1;
         }
-        if (A == B)
-        {
-            return 0;
-        }
-        return 1;
     }
 }
