@@ -536,14 +536,19 @@ bool xLightsApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    if ( wxsOK )
+    if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(0);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr);
+        if (Frame->CurrentDir == "")
+        {
+            return false;
+        }
     	Frame->Show();
     	SetTopWindow(Frame);
     }
     //*)
-    topFrame = (xLightsFrame* )GetTopWindow();
+
+    topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
     if (parser.Found("r")) {

@@ -34,8 +34,6 @@
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
 #include "models/ModelGroup.h"
-#include "models/SubModel.h"
-#include "models/CustomModel.h"
 #include "TestDialog.h"
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
@@ -1716,19 +1714,28 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     if (ok && !dir.IsEmpty())
     {
         if (!SetDir(dir)) {
-            while (!PromptForShowDirectory()) {}
+            if (!PromptForShowDirectory())
+            {
+                CurrentDir = "";
+                splash.Hide();
+                return;
+            }
         }
     }
     else
     {
-        while (!PromptForShowDirectory()) {}
+        if (!PromptForShowDirectory())
+        {
+            CurrentDir = "";
+            splash.Hide();
+            return;
+        }
     }
 
     MixTypeChanged=true;
 
     Notebook1->ChangeSelection(SETUPTAB);
     EnableNetworkChanges();
-
 
     wxImage::AddHandler(new wxGIFHandler);
 
@@ -2293,6 +2300,8 @@ xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!QuitMenuItem->IsEnabled()) {
         return;
     }
@@ -2303,7 +2312,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     inClose = true;
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	logger_base.info("xLights Closing");
 
 	StopNow();
