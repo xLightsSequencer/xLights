@@ -34,7 +34,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions" variable="BitmapButton_FireworksNumberExplosions" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions" variable="BitmapButton_FireworksNumberExplosions" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -183,7 +183,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Fireworks_UseMusic" variable="BitmapButton_Fireworks_UseMusic" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic" variable="BitmapButton_Fireworks_UseMusic" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -221,7 +221,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Fireworks_Sensitivity" variable="BitmapButton_Fireworks_Sensitivity" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity" variable="BitmapButton_Fireworks_Sensitivity" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -252,7 +252,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FIRETIMING" variable="BitmapButton1" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FIRETIMING" variable="BitmapButton1" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

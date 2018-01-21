@@ -3,12 +3,12 @@
 
 //(*Headers(StrobePanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,19 +22,19 @@ class StrobePanel: public wxPanel
 
 		//(*Declarations(StrobePanel)
 		wxBitmapButton* BitmapButton_StrobeDuration;
-		BulkEditSlider* Slider_Strobe_Duration;
-		wxStaticText* StaticText111;
-		wxStaticText* StaticText110;
+		wxBitmapButton* BitmapButton_Strobe_Music;
 		BulkEditSlider* Slider_Number_Strobes;
 		BulkEditTextCtrl* TextCtrl_Strobe_Type;
-		wxBitmapButton* BitmapButton_Strobe_Type;
+		wxStaticText* StaticText111;
 		BulkEditTextCtrl* TextCtrl_Strobe_Duration;
-		wxBitmapButton* BitmapButton_Strobe_Music;
+		BulkEditSlider* Slider_Strobe_Type;
+		BulkEditSlider* Slider_Strobe_Duration;
 		wxStaticText* StaticText112;
 		wxBitmapButton* BitmapButton_NumberStrobes;
-		BulkEditCheckBox* CheckBox_Strobe_Music;
+		wxStaticText* StaticText110;
 		BulkEditTextCtrl* TextCtrl_Number_Strobes;
-		BulkEditSlider* Slider_Strobe_Type;
+		wxBitmapButton* BitmapButton_Strobe_Type;
+		BulkEditCheckBox* CheckBox_Strobe_Music;
 		//*)
 
 	protected:
@@ -43,17 +43,17 @@ class StrobePanel: public wxPanel
 		static const long ID_STATICTEXT_Number_Strobes;
 		static const long ID_SLIDER_Number_Strobes;
 		static const long IDD_TEXTCTRL_Number_Strobes;
-		static const long ID_BITMAPBUTTON49;
+		static const long ID_BITMAPBUTTON_SLIDER_Number_Strobes;
 		static const long ID_STATICTEXT_Strobe_Duration;
 		static const long ID_SLIDER_Strobe_Duration;
 		static const long IDD_TEXTCTRL_Strobe_Duration;
-		static const long ID_BITMAPBUTTON51;
+		static const long ID_BITMAPBUTTON_SLIDER_Strobe_Duration;
 		static const long ID_STATICTEXT_Strobe_Type;
 		static const long ID_SLIDER_Strobe_Type;
 		static const long IDD_TEXTCTRL_Strobe_Type;
-		static const long ID_BITMAPBUTTON50;
+		static const long ID_BITMAPBUTTON_SLIDER_Strobe_Type;
 		static const long ID_CHECKBOX_Strobe_Music;
-		static const long ID_BITMAPBUTTON_Strobe_Music;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Strobe_Music;
 		//*)
 
 	public:

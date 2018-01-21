@@ -7,7 +7,7 @@
 class wxCommandEvent;
 class wxScrollEvent;
 class wxPanel;
-
+class wxControl;
 class wxWindow;
 class wxString;
 class wxButton;
@@ -23,8 +23,9 @@ public:
 
     static void SetLock(wxButton* button);
     static bool IsLocked(std::string name);
+    static bool IsLockable(wxControl* ctl);
 private:
-    static std::map<std::string, bool> buttonStates;    
+    static std::map<std::string, bool> buttonStates;
 };
 
 #define PANEL_EVENT_HANDLERS(cls) \
@@ -36,5 +37,5 @@ void cls::OnVCButtonClick(wxCommandEvent& event) { \
 } \
 void cls::OnVCChanged(wxCommandEvent& event) { \
         EffectPanelUtils::OnVCChanged(event); \
-} 
+}
 #endif

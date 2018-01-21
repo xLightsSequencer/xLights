@@ -41,7 +41,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_PinwheelNumberArms" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Arms" variable="BitmapButton_PinwheelNumberArms" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -101,7 +101,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON16" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_ArmSize" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -161,7 +161,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_PinwheelTwist" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Twist" variable="BitmapButton_PinwheelTwist" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -218,7 +218,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON18" variable="BitmapButton_PinwheelThickness" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Thickness" variable="BitmapButton_PinwheelThickness" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -278,7 +278,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON26" variable="BitmapButton7" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed" variable="BitmapButton_PinwheelSpeed" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -341,7 +341,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Pinwheel_Rotation" variable="BitmapButton_PinwheelRotation" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
 									<size>13,13</size>
 									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -383,7 +383,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Pinwheel3D" variable="BitmapButton_Pinwheel3D" member="yes">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pinwheel_3D" variable="BitmapButton_Pinwheel3D" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
 									<size>13,13</size>
 									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

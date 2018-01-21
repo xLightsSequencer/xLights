@@ -3,14 +3,14 @@
 
 //(*Headers(PinwheelPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
-class wxBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxBoxSizer;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,38 +24,38 @@ class PinwheelPanel: public wxPanel
 
 		//(*Declarations(PinwheelPanel)
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
-		ValueCurveButton* BitmapButton_PinwheelYCVC;
-		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
-		wxStaticText* StaticText74;
-		wxStaticText* StaticText75;
-		wxStaticText* StaticText76;
-		wxStaticText* StaticText82;
-		BulkEditChoice* Choice_Pinwheel_Style;
-		wxStaticText* StaticText81;
-		BulkEditValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
-		wxBitmapButton* BitmapButton_PinwheelTwist;
-		wxStaticText* StaticText84;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Pinwheel_ArmSize;
-		BulkEditSlider* Slider_Pinwheel_Arms;
+		BulkEditSlider* Slider_PinwheelYC;
+		BulkEditValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
+		wxBitmapButton* BitmapButton_Pinwheel3D;
+		BulkEditSlider* Slider_Pinwheel_Speed;
 		BulkEditCheckBox* CheckBox_Pinwheel_Rotation;
 		BulkEditSlider* Slider_Pinwheel_Twist;
-		wxBitmapButton* BitmapButton_Pinwheel3D;
-		wxBitmapButton* BitmapButton_PinwheelRotation;
-		BulkEditSlider* Slider_PinwheelYC;
-		BulkEditSlider* Slider_PinwheelXC;
-		wxBitmapButton* BitmapButton7;
-		BulkEditValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
-		wxBitmapButton* BitmapButton_PinwheelThickness;
-		BulkEditValueCurveButton* BitmapButton_Pinwheel_TwistVC;
+		BulkEditValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
+		wxStaticText* StaticText76;
 		BulkEditSlider* Slider_Pinwheel_Thickness;
-		BulkEditChoice* Choice_Pinwheel_3D;
-		ValueCurveButton* BitmapButton_PinwheelXCVC;
-		wxBitmapButton* BitmapButton_PinwheelNumberArms;
-		BulkEditSlider* Slider_Pinwheel_Speed;
 		wxStaticText* StaticText63;
-		wxStaticText* StaticText184;
+		BulkEditSlider* Slider_PinwheelXC;
+		wxBitmapButton* BitmapButton_PinwheelNumberArms;
+		BulkEditChoice* Choice_Pinwheel_3D;
+		BulkEditSlider* Slider_Pinwheel_ArmSize;
 		wxStaticText* StaticText77;
+		ValueCurveButton* BitmapButton_PinwheelYCVC;
+		ValueCurveButton* BitmapButton_PinwheelXCVC;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText184;
+		wxBitmapButton* BitmapButton_PinwheelThickness;
+		wxBitmapButton* BitmapButton_PinwheelRotation;
+		wxStaticText* StaticText75;
+		wxBitmapButton* BitmapButton_PinwheelSpeed;
+		BulkEditSlider* Slider_Pinwheel_Arms;
+		wxBitmapButton* BitmapButton_PinwheelTwist;
+		wxStaticText* StaticText84;
+		wxStaticText* StaticText81;
+		BulkEditValueCurveButton* BitmapButton_Pinwheel_TwistVC;
+		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
+		BulkEditChoice* Choice_Pinwheel_Style;
+		wxStaticText* StaticText74;
+		wxStaticText* StaticText82;
 		//*)
 
 	protected:
@@ -64,35 +64,35 @@ class PinwheelPanel: public wxPanel
 		static const long ID_STATICTEXT_Pinwheel_Arms;
 		static const long ID_SLIDER_Pinwheel_Arms;
 		static const long IDD_TEXTCTRL_Pinwheel_Arms;
-		static const long ID_BITMAPBUTTON11;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Arms;
 		static const long ID_STATICTEXT_Pinwheel_ArmSize;
 		static const long ID_SLIDER_Pinwheel_ArmSize;
 		static const long ID_VALUECURVE_Pinwheel_ArmSize;
 		static const long IDD_TEXTCTRL_Pinwheel_ArmSize;
-		static const long ID_BITMAPBUTTON16;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_ArmSize;
 		static const long ID_STATICTEXT_Pinwheel_Twist;
 		static const long ID_SLIDER_Pinwheel_Twist;
 		static const long ID_VALUECURVE_Pinwheel_Twist;
 		static const long IDD_TEXTCTRL_Pinwheel_Twist;
-		static const long ID_BITMAPBUTTON12;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Twist;
 		static const long ID_STATICTEXT_Pinwheel_Thickness;
 		static const long ID_SLIDER_Pinwheel_Thickness;
 		static const long ID_VALUECURVE_Pinwheel_Thickness;
 		static const long IDD_TEXTCTRL_Pinwheel_Thickness;
-		static const long ID_BITMAPBUTTON18;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Thickness;
 		static const long ID_STATICTEXT_Pinwheel_Speed;
 		static const long ID_SLIDER_Pinwheel_Speed;
 		static const long ID_VALUECURVE_Pinwheel_Speed;
 		static const long IDD_TEXTCTRL_Pinwheel_Speed;
-		static const long ID_BITMAPBUTTON26;
+		static const long ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed;
 		static const long ID_STATICTEXT_Pinwheel_Style;
 		static const long ID_CHOICE_Pinwheel_Style;
 		static const long ID_STATICTEXT78;
 		static const long ID_CHECKBOX_Pinwheel_Rotation;
-		static const long ID_BITMAPBUTTON19;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Pinwheel_Rotation;
 		static const long ID_STATICTEXT_Pinwheel_3D;
 		static const long ID_CHOICE_Pinwheel_3D;
-		static const long ID_BITMAPBUTTON_Pinwheel3D;
+		static const long ID_BITMAPBUTTON_CHOICE_Pinwheel_3D;
 		static const long ID_STATICTEXT_PinwheelXC;
 		static const long ID_SLIDER_PinwheelXC;
 		static const long ID_VALUECURVE_PinwheelXC;

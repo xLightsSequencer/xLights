@@ -52,10 +52,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_DutyFactor" variable="BitmapButton_Shimmer_Duty_Factor" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shimmer_Duty_Factor" variable="BitmapButton_Shimmer_Duty_Factor" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -108,10 +109,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton5" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shimmer_Cycles" variable="BitmapButton_ShimmerCycles" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -140,10 +142,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ShimmerUseAllColors" variable="BitmapButton_Shimmer_Use_All_Colors" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Shimmer_Use_All_Colors" variable="BitmapButton_Shimmer_Use_All_Colors" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

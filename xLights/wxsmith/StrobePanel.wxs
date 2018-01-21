@@ -38,10 +38,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON49" variable="BitmapButton_NumberStrobes" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Strobes" variable="BitmapButton_NumberStrobes" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -76,10 +77,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON51" variable="BitmapButton_StrobeDuration" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Strobe_Duration" variable="BitmapButton_StrobeDuration" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -115,10 +117,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON50" variable="BitmapButton_Strobe_Type" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Strobe_Type" variable="BitmapButton_Strobe_Type" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -144,10 +147,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Strobe_Music" variable="BitmapButton_Strobe_Music" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Strobe_Music" variable="BitmapButton_Strobe_Music" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -42,6 +42,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	BitmapButtonRandomize = new wxBitmapButton(this, ID_BITMAPBUTTON_RANDOMIZE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_DICE_ICON")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_RANDOMIZE"));
+	BitmapButtonRandomize->SetToolTip(_("Randomize color and effect settings without a Lock"));
 	FlexGridSizer5->Add(BitmapButtonRandomize, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonUpdateEffect = new wxButton(this, ID_BUTTON_UpdateEffect, _("Update (F5)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UpdateEffect"));
 	FlexGridSizer5->Add(ButtonUpdateEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

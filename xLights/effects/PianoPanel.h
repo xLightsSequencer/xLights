@@ -3,15 +3,15 @@
 
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
-class wxSpinEvent;
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
-class wxSpinCtrl;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSpinEvent;
+class wxBitmapButton;
+class wxSlider;
+class wxSpinCtrl;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include <wx/progdlg.h>
@@ -28,27 +28,23 @@ public:
         void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(PianoPanel)
-		wxStaticText* StaticText9;
-		BulkEditTextCtrl* TextCtrl_Piano_XOffset;
-		BulkEditTextCtrl* TextCtrl_Piano_Scale;
-		BulkEditSlider* Slider_Piano_XOffset;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText_Piano_NumKeys;
-		BulkEditCheckBox* CheckBox_Piano_ShowSharps;
-		wxBitmapButton* BitmapButton_Piano_StartMIDI;
-		BulkEditValueCurveButton* BitmapButton_Piano_ScaleVC;
-		wxStaticText* StaticText8;
-		wxBitmapButton* BitmapButton_Piano_EndMIDI;
-		wxStaticText* StaticText1;
-		wxBitmapButton* BitmapButton_Piano_XOffset;
-		wxStaticText* StaticText7;
-		wxBitmapButton* BitmapButton_Piano_scale;
-		BulkEditSpinCtrl* SpinCtrl_Piano_StartMIDI;
-		BulkEditSlider* Slider_Piano_Scale;
-		BulkEditSpinCtrl* SpinCtrl_Piano_EndMIDI;
-		BulkEditChoice* Choice_Piano_Type;
 		BulkEditChoice* Choice_Piano_MIDITrack_APPLYLAST;
+		BulkEditCheckBox* CheckBox_Piano_ShowSharps;
+		BulkEditSpinCtrl* SpinCtrl_Piano_EndMIDI;
 		wxBitmapButton* BitmapButton_Piano_ShowSharps;
+		BulkEditSlider* Slider_Piano_XOffset;
+		BulkEditSpinCtrl* SpinCtrl_Piano_StartMIDI;
+		BulkEditTextCtrl* TextCtrl_Piano_XOffset;
+		wxStaticText* StaticText_Piano_NumKeys;
+		wxStaticText* StaticText1;
+		BulkEditSlider* Slider_Piano_Scale;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText7;
+		BulkEditValueCurveButton* BitmapButton_Piano_ScaleVC;
+		BulkEditChoice* Choice_Piano_Type;
+		wxStaticText* StaticText2;
+		BulkEditTextCtrl* TextCtrl_Piano_Scale;
+		wxStaticText* StaticText9;
 		//*)
 
 	protected:
@@ -58,10 +54,8 @@ public:
 		static const long ID_CHOICE_Piano_Type;
 		static const long ID_STATICTEXT_Piano_StartMIDI;
 		static const long ID_SPINCTRL_Piano_StartMIDI;
-		static const long ID_BITMAPBUTTON_Piano_StartMIDI;
 		static const long ID_STATICTEXT_Piano_EndMIDI;
 		static const long ID_SPINCTRL_Piano_EndMIDI;
-		static const long ID_BITMAPBUTTON_Piano_EndMIDI;
 		static const long ID_CHECKBOX_Piano_ShowSharps;
 		static const long ID_BITMAPBUTTON_Piano_ShowSharps;
 		static const long ID_STATICTEXT_Piano_MIDITrack_APPLYLAST;
@@ -70,11 +64,9 @@ public:
 		static const long ID_SLIDER_Piano_Scale;
 		static const long ID_VALUECURVE_Piano_Scale;
 		static const long IDD_TEXTCTRL_Piano_Scale;
-		static const long ID_BITMAPBUTTON_Piano_Scale;
 		static const long ID_STATICTEXT_Piano_XOffset;
 		static const long ID_SLIDER_Piano_XOffset;
 		static const long IDD_TEXTCTRL_Piano_XOffset;
-		static const long ID_BITMAPBUTTON_Piano_XOffset;
 		//*)
 
 	public:

@@ -3,15 +3,15 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SnowstormPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SnowstormPanel)
@@ -26,6 +26,7 @@ const long SnowstormPanel::ID_BITMAPBUTTON_SLIDER_Snowstorm_Length = wxNewId();
 const long SnowstormPanel::ID_STATICTEXT_Snowstorm_Speed = wxNewId();
 const long SnowstormPanel::ID_SLIDER_Snowstorm_Speed = wxNewId();
 const long SnowstormPanel::IDD_TEXTCTRL_Snowstorm_Speed = wxNewId();
+const long SnowstormPanel::ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SnowstormPanel,wxPanel)
@@ -36,10 +37,10 @@ END_EVENT_TABLE()
 SnowstormPanel::SnowstormPanel(wxWindow* parent)
 {
 	//(*Initialize(SnowstormPanel)
-	BulkEditTextCtrl* TextCtrl55;
+	BulkEditTextCtrl* TextCtrl54;
 	BulkEditTextCtrl* TextCtrl53;
 	wxFlexGridSizer* FlexGridSizer44;
-	BulkEditTextCtrl* TextCtrl54;
+	BulkEditTextCtrl* TextCtrl55;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer44 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -69,12 +70,15 @@ SnowstormPanel::SnowstormPanel(wxWindow* parent)
 	TextCtrl55 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowstorm_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowstorm_Speed"));
 	TextCtrl55->SetMaxLength(3);
 	FlexGridSizer44->Add(TextCtrl55, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SnowstormSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed"));
+	FlexGridSizer44->Add(BitmapButton_SnowstormSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer44);
 	FlexGridSizer44->Fit(this);
 	FlexGridSizer44->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowstormPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowstormPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowstormPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_SNOWSTORM");
 

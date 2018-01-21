@@ -4,10 +4,10 @@
 //(*Headers(SnowstormPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -20,14 +20,15 @@ class SnowstormPanel: public wxPanel
 		virtual ~SnowstormPanel();
 
 		//(*Declarations(SnowstormPanel)
-		wxStaticText* StaticText45;
-		wxStaticText* StaticText180;
 		wxBitmapButton* BitmapButton_SnowstormCount;
-		BulkEditSlider* Slider_Snowstorm_Speed;
-		wxBitmapButton* BitmapButton_SnowstormLength;
 		BulkEditSlider* Slider_Snowstorm_Count;
+		wxBitmapButton* BitmapButton_SnowstormLength;
+		wxStaticText* StaticText45;
+		BulkEditSlider* Slider_Snowstorm_Speed;
+		wxBitmapButton* BitmapButton_SnowstormSpeed;
 		BulkEditSlider* Slider_Snowstorm_Length;
 		wxStaticText* StaticText51;
+		wxStaticText* StaticText180;
 		//*)
 
 	protected:
@@ -44,6 +45,7 @@ class SnowstormPanel: public wxPanel
 		static const long ID_STATICTEXT_Snowstorm_Speed;
 		static const long ID_SLIDER_Snowstorm_Speed;
 		static const long IDD_TEXTCTRL_Snowstorm_Speed;
+		static const long ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed;
 		//*)
 
 	public:

@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MeteorsPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(MeteorsPanel)
@@ -42,15 +42,15 @@ const long MeteorsPanel::IDD_TEXTCTRL_Meteors_Speed = wxNewId();
 const long MeteorsPanel::ID_STATICTEXT_Meteors_XOffset = wxNewId();
 const long MeteorsPanel::IDD_SLIDER_Meteors_XOffset = wxNewId();
 const long MeteorsPanel::ID_TEXTCTRL_Meteors_XOffset = wxNewId();
-const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_XOffset = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_XOffset = wxNewId();
 const long MeteorsPanel::ID_STATICTEXT_Meteors_YOffset = wxNewId();
 const long MeteorsPanel::IDD_SLIDER_Meteors_YOffset = wxNewId();
 const long MeteorsPanel::ID_TEXTCTRL_Meteors_YOffset = wxNewId();
-const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_YOffset = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_YOffset = wxNewId();
 const long MeteorsPanel::ID_CHECKBOX_Meteors_UseMusic = wxNewId();
-const long MeteorsPanel::ID_BITMAPBUTTON_Meteors_UseMusic = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_CHECKBOX_Meteors_UseMusic = wxNewId();
 const long MeteorsPanel::ID_CHECKBOX_FadeWithDistance = wxNewId();
-const long MeteorsPanel::ID_BITMAPBUTTON_FadeWithDistance = wxNewId();
+const long MeteorsPanel::ID_BITMAPBUTTON_CHECKBOX_FadeWithDistance = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MeteorsPanel,wxPanel)
@@ -64,8 +64,8 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	BulkEditTextCtrl* TextCtrl52;
 	wxFlexGridSizer* FlexGridSizer41;
 	BulkEditTextCtrl* TextCtrl49;
-	BulkEditTextCtrl* TextCtrl50;
 	BulkEditTextCtrl* TextCtrl51;
+	BulkEditTextCtrl* TextCtrl50;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer41 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -142,7 +142,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	TextCtrl_Meteors_XOffset = new BulkEditTextCtrl(this, ID_TEXTCTRL_Meteors_XOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Meteors_XOffset"));
 	TextCtrl_Meteors_XOffset->SetMaxLength(4);
 	FlexGridSizer41->Add(TextCtrl_Meteors_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Meteors_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Meteors_XOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Meteors_XOffset"));
+	BitmapButton_Meteors_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Meteors_XOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Meteors_XOffset"));
 	BitmapButton_Meteors_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_Meteors_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_Meteors_YOffset, _("Vertical Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Meteors_YOffset"));
@@ -152,7 +152,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	TextCtrl_Meteors_Yoffset = new BulkEditTextCtrl(this, ID_TEXTCTRL_Meteors_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Meteors_YOffset"));
 	TextCtrl_Meteors_Yoffset->SetMaxLength(4);
 	FlexGridSizer41->Add(TextCtrl_Meteors_Yoffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Meteors_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_Meteors_YOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Meteors_YOffset"));
+	BitmapButton_Meteors_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Meteors_YOffset, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Meteors_YOffset"));
 	BitmapButton_Meteors_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_Meteors_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -160,7 +160,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	CheckBox_Meteors_UseMusic->SetValue(false);
 	FlexGridSizer41->Add(CheckBox_Meteors_UseMusic, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Meteors_UseMusic = new wxBitmapButton(this, ID_BITMAPBUTTON_Meteors_UseMusic, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Meteors_UseMusic"));
+	BitmapButton_Meteors_UseMusic = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Meteors_UseMusic, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Meteors_UseMusic"));
 	BitmapButton_Meteors_UseMusic->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_Meteors_UseMusic, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -168,7 +168,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	CheckBox_FadeWithDistance->SetValue(false);
 	FlexGridSizer41->Add(CheckBox_FadeWithDistance, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_FadeWithDistance = new wxBitmapButton(this, ID_BITMAPBUTTON_FadeWithDistance, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FadeWithDistance"));
+	BitmapButton_FadeWithDistance = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_FadeWithDistance, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FadeWithDistance"));
 	BitmapButton_FadeWithDistance->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer41->Add(BitmapButton_FadeWithDistance, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SetSizer(FlexGridSizer41);
@@ -181,10 +181,10 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_Meteors_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_Meteors_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_Meteors_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_FadeWithDistance,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHECKBOX_Meteors_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHECKBOX_FadeWithDistance,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MeteorsPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_METEORS");
 

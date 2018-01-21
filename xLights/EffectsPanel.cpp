@@ -281,7 +281,13 @@ void EffectsPanel::setlock(wxButton* button) //, EditState& islocked)
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
 bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
 {
-    return !EffectPanelUtils::IsLocked(std::string(ctl->GetName()));
+    if (!EffectPanelUtils::IsLockable(ctl)) {
+        return false;
+    }
+    if (!EffectPanelUtils::IsLocked(std::string(ctl->GetName()))) {
+        return true;
+    }
+    return false;
 }
 bool EffectsPanel::isRandom_(void)
 {

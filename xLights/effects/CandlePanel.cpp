@@ -4,17 +4,17 @@
 #include "CandleEffect.h"
 
 //(*InternalHeaders(CandlePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(CandlePanel)
@@ -27,17 +27,17 @@ const long CandlePanel::ID_STATICTEXT_Candle_WindBaseline = wxNewId();
 const long CandlePanel::IDD_SLIDER_Candle_WindBaseline = wxNewId();
 const long CandlePanel::ID_VALUECURVE_Candle_WindBaseline = wxNewId();
 const long CandlePanel::ID_TEXTCTRL_Candle_WindBaseline = wxNewId();
-const long CandlePanel::ID_BITMAPBUTTON_SLIDER_Cande_WindBaseline = wxNewId();
+const long CandlePanel::ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline = wxNewId();
 const long CandlePanel::ID_STATICTEXT_Candle_WindVariability = wxNewId();
 const long CandlePanel::IDD_SLIDER_Candle_WindVariability = wxNewId();
 const long CandlePanel::ID_VALUECURVE_Candle_WindVariability = wxNewId();
 const long CandlePanel::ID_TEXTCTRL_Candle_WindVariability = wxNewId();
-const long CandlePanel::ID_BITMAPBUTTON_CHECKBOX_Cande_WindVariability = wxNewId();
+const long CandlePanel::ID_BITMAPBUTTON_SLIDER_Candle_WindVariability = wxNewId();
 const long CandlePanel::ID_STATICTEXT_Candle_WindCalmness = wxNewId();
 const long CandlePanel::IDD_SLIDER_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_VALUECURVE_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_TEXTCTRL_Candle_WindCalmness = wxNewId();
-const long CandlePanel::ID_BITMAPBUTTON_Candle_WindCalmness = wxNewId();
+const long CandlePanel::ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness = wxNewId();
 const long CandlePanel::ID_CHECKBOX_PerNode = wxNewId();
 //*)
 
@@ -49,11 +49,11 @@ END_EVENT_TABLE()
 CandlePanel::CandlePanel(wxWindow* parent)
 {
 	//(*Initialize(CandlePanel)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer38;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer38 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -85,7 +85,7 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	TextCtrl_Candle_WindBaseline = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindBaseline, _("30"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindBaseline"));
 	TextCtrl_Candle_WindBaseline->SetMaxLength(3);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindBaseline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Cande_WindBaseline = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Cande_WindBaseline, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Cande_WindBaseline"));
+	BitmapButton_Cande_WindBaseline = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline"));
 	BitmapButton_Cande_WindBaseline->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer38->Add(BitmapButton_Cande_WindBaseline, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText30 = new wxStaticText(this, ID_STATICTEXT_Candle_WindVariability, _("Wind Variability"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Candle_WindVariability"));
@@ -100,7 +100,7 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	TextCtrl_Candle_WindVariability = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindVariability, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindVariability"));
 	TextCtrl_Candle_WindVariability->SetMaxLength(2);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindVariability, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_Cande_WinfVariability = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Cande_WindVariability, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Cande_WindVariability"));
+	BitmapButton_Cande_WinfVariability = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindVariability, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindVariability"));
 	BitmapButton_Cande_WinfVariability->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer38->Add(BitmapButton_Cande_WinfVariability, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Candle_WindCalmness, _("Wind Calmness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Candle_WindCalmness"));
@@ -115,7 +115,7 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	TextCtrl_Candle_WindCalmness = new BulkEditTextCtrl(this, ID_TEXTCTRL_Candle_WindCalmness, _("2"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Candle_WindCalmness"));
 	TextCtrl_Candle_WindCalmness->SetMaxLength(2);
 	FlexGridSizer38->Add(TextCtrl_Candle_WindCalmness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Candle_WindCalmness = new wxBitmapButton(this, ID_BITMAPBUTTON_Candle_WindCalmness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Candle_WindCalmness"));
+	BitmapButton_Candle_WindCalmness = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness"));
 	BitmapButton_Candle_WindCalmness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer38->Add(BitmapButton_Candle_WindCalmness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer38->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -131,11 +131,11 @@ CandlePanel::CandlePanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Candle_WindBaseline,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Cande_WindBaseline,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Candle_WindVariability,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_CHECKBOX_Cande_WindVariability,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Candle_WindVariability,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Candle_WindCalmness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_Candle_WindCalmness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CandlePanel::OnLockButtonClick);
 	//*)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&CandlePanel::OnVCChanged, 0, this);

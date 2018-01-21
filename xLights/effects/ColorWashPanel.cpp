@@ -4,17 +4,17 @@
 #include "ColorWashEffect.h"
 
 //(*InternalHeaders(ColorWashPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(ColorWashPanel)
@@ -22,7 +22,7 @@ const long ColorWashPanel::ID_STATICTEXT_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::IDD_SLIDER_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::ID_VALUECURVE_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::ID_TEXTCTRL_ColorWash_Cycles = wxNewId();
-const long ColorWashPanel::ID_BITMAPBUTTON_SLIDER_ColorWash_Count = wxNewId();
+const long ColorWashPanel::ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_VFade = wxNewId();
 const long ColorWashPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade = wxNewId();
 const long ColorWashPanel::ID_CHECKBOX_ColorWash_HFade = wxNewId();
@@ -39,12 +39,12 @@ END_EVENT_TABLE()
 ColorWashPanel::ColorWashPanel(wxWindow* parent)
 {
 	//(*Initialize(ColorWashPanel)
-	wxFlexGridSizer* FlexGridSizer37;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer124;
-	wxFlexGridSizer* FlexGridSizer114;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer124;
 	wxFlexGridSizer* FlexGridSizer75;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer37;
+	wxFlexGridSizer* FlexGridSizer114;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer37 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -63,7 +63,7 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	CyclesTextCtrl = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_ColorWash_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_ColorWash_Cycles"));
 	CyclesTextCtrl->SetMaxLength(3);
 	FlexGridSizer9->Add(CyclesTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_ColorWashCount = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_ColorWash_Count, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Count"));
+	BitmapButton_ColorWashCount = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles"));
 	BitmapButton_ColorWashCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer9->Add(BitmapButton_ColorWashCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer37->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 2);
@@ -98,7 +98,7 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	FlexGridSizer37->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_ColorWash_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorWashPanel::OnLockButtonClick);
 	//*)

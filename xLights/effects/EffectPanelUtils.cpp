@@ -36,7 +36,10 @@ void EffectPanelUtils::OnLockButtonClick(wxCommandEvent& event) {
 
 void EffectPanelUtils::SetLock(wxButton *button) {
     wxString parent = button->GetName();
-    if (parent.StartsWith("ID_BITMAPBUTTON_")) parent = "ID_" + parent.substr(16);
+    if (parent.StartsWith("ID_BITMAPBUTTON_")) {
+        parent = "ID_" + parent.substr(16);
+        parent = parent.BeforeLast('_');
+    }
     bool islocked = buttonStates[std::string(parent)];
     if (islocked) {
         buttonStates[std::string(parent)] = false;
@@ -49,6 +52,80 @@ void EffectPanelUtils::SetLock(wxButton *button) {
 
 bool EffectPanelUtils::IsLocked(std::string name) {
     return buttonStates[name];
+}
+
+bool EffectPanelUtils::IsLockable(wxControl* ctl) {
+    wxString name = ctl->GetName();
+    if (!name.StartsWith("ID_") && !name.StartsWith("IDD_")) {
+        return false;
+    }
+    wxWindow* w;
+    // check for the locks on effect setting
+    if (name.StartsWith("ID_SLIDER_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(3);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("IDD_SLIDER_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(4);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("ID_CHOICE_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(3);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("IDD_CHOICE_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(4);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("ID_CHECKBOX_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(3);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("IDD_CHECKBOX_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(4);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("ID_TEXTCTRL_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(3);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    if (name.StartsWith("IDD_TEXTCTRL_")){
+        name = "ID_BITMAPBUTTON_" + name.substr(4);
+        w = ctl->GetParent()->FindWindowByName(name);
+        if (w == nullptr) {
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
