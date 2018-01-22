@@ -109,7 +109,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON34" variable="BitmapButton16" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed" variable="BitmapButton_SnowflakesSpeed" member="yes">
 					<size>13,13</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -148,7 +148,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Falling" variable="BitmapButton_Falling" member="yes">
 					<size>13,13</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />

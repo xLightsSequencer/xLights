@@ -4,10 +4,10 @@
 //(*Headers(SpirographPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -20,30 +20,30 @@ class SpirographPanel: public wxPanel
 		virtual ~SpirographPanel();
 
 		//(*Declarations(SpirographPanel)
-		BulkEditValueCurveButton* BitmapButton_Spirograph_LengthVC;
-		wxBitmapButton* BitmapButton15;
-		wxBitmapButton* BitmapButton_Spirographd;
-		BulkEditSlider* Slider_Spirograph_r;
-		BulkEditSlider* Slider_Spirograph_d;
-		wxStaticText* StaticText87;
-		wxStaticText* StaticText90;
-		wxBitmapButton* BitmapButton14;
+		wxStaticText* StaticText89;
 		BulkEditSlider* Slider_Spirograph_Length;
-		wxBitmapButton* BitmapButton_SpirographAnimate;
+		BulkEditSlider* Slider_Spirograph_Animate;
+		wxBitmapButton* BitmapButton_Spirographr;
+		wxStaticText* StaticText88;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_SpeedrVC;
+		wxBitmapButton* BitmapButton_SpirographLength;
+		wxStaticText* StaticText92;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_AnimateVC;
 		BulkEditValueCurveButton* BitmapButton_Spirograph_rVC;
 		BulkEditValueCurveButton* BitmapButton_Spirograph_RVC;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_AnimateVC;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_SpeedrVC;
-		wxStaticText* StaticText191;
-		wxBitmapButton* BitmapButton_Spirographr;
 		wxStaticText* StaticText190;
-		BulkEditSlider* Slider_Spirograph_Animate;
-		wxStaticText* StaticText92;
-		wxStaticText* StaticText88;
-		BulkEditSlider* Slider_Spirograph_Speed;
-		wxStaticText* StaticText89;
+		wxStaticText* StaticText87;
+		wxBitmapButton* BitmapButton_SpirographAnimate;
+		wxBitmapButton* BitmapButton_SpirographSpeed;
+		wxStaticText* StaticText191;
+		BulkEditSlider* Slider_Spirograph_d;
 		wxBitmapButton* BitmapButton_SpirographR;
+		BulkEditSlider* Slider_Spirograph_Speed;
+		wxBitmapButton* BitmapButton_Spirographd;
+		BulkEditSlider* Slider_Spirograph_r;
 		BulkEditValueCurveButton* BitmapButton_Spirograph_dVC;
+		wxStaticText* StaticText90;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_LengthVC;
 		BulkEditSlider* Slider_Spirograph_R;
 		//*)
 
@@ -54,7 +54,7 @@ class SpirographPanel: public wxPanel
 		static const long IDD_SLIDER_Spirograph_Speed;
 		static const long ID_VALUECURVE_Spirograph_Speed;
 		static const long ID_TEXTCTRL_Spirograph_Speed;
-		static const long ID_BITMAPBUTTON32;
+		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_Speed;
 		static const long ID_STATICTEXT_Spirograph_R;
 		static const long ID_SLIDER_Spirograph_R;
 		static const long ID_VALUECURVE_Spirograph_R;
@@ -74,12 +74,12 @@ class SpirographPanel: public wxPanel
 		static const long IDD_SLIDER_Spirograph_Animate;
 		static const long ID_VALUECURVE_Spirograph_Animate;
 		static const long ID_TEXTCTRL_Spirograph_Animate;
-		static const long ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate;
+		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_Animate;
 		static const long ID_STATICTEXT_Spirograph_Length;
 		static const long IDD_SLIDER_Spirograph_Length;
 		static const long ID_VALUECURVE_Spirograph_Length;
 		static const long ID_TEXTCTRL_Spirograph_Length;
-		static const long ID_BITMAPBUTTON33;
+		static const long ID_BITMAPBUTTON_SLIDER_Spirograph_Length;
 		static const long ID_STATICTEXT91;
 		//*)
 

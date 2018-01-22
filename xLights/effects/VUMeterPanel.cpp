@@ -5,25 +5,25 @@
 #include "VUMeterEffect.h"
 
 //(*InternalHeaders(VUMeterPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(VUMeterPanel)
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_Bars = wxNewId();
-const long VUMeterPanel::ID_BITMAPBUTTON_CHOICE_VUMeter_Bars = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_Bars = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_Type = wxNewId();
 const long VUMeterPanel::ID_CHOICE_VUMeter_Type = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT5 = wxNewId();
@@ -47,20 +47,20 @@ const long VUMeterPanel::ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls = wxNewI
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_StartNote = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_StartNote = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_StartNote = wxNewId();
-const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_StartNote = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_EndNote = wxNewId();
-const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_XOffset = wxNewId();
-const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_XOffset = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::ID_VALUECURVE_VUMeter_YOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_YOffset = wxNewId();
-const long VUMeterPanel::ID_BITMAPBUTTON_VUMeter_YOffset = wxNewId();
+const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(VUMeterPanel,wxPanel)
@@ -71,11 +71,11 @@ END_EVENT_TABLE()
 VUMeterPanel::VUMeterPanel(wxWindow* parent)
 {
 	//(*Initialize(VUMeterPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer42;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer31;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -92,7 +92,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Bars = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_Bars"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Bars"));
+	BitmapButton_VUMeter_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Bars"));
 	BitmapButton_VUMeter_Bars->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Type, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Type"));
@@ -193,7 +193,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Slider_VUMeter_StartNote, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_StartNote = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_StartNote, _("36"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_StartNote"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_StartNote"));
+	BitmapButton_VUMeter_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote"));
 	BitmapButton_VUMeter_StartNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT_VUMeter_EndNote, _("End Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_EndNote"));
@@ -202,7 +202,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Slider_VUMeter_EndNote, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_EndNote = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_EndNote, _("84"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_EndNote"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_EndNote"));
+	BitmapButton_VUMeter_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT_VUMeter_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_XOffset"));
@@ -214,7 +214,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_XOffset = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_XOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_XOffset"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_XOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_XOffset"));
+	BitmapButton_VUMeter_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset"));
 	BitmapButton_VUMeter_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText14 = new wxStaticText(this, ID_STATICTEXT_VUMeter_YOffset, _("Vertical Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_YOffset"));
@@ -228,7 +228,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_YOffset = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_YOffset"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_VUMeter_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_VUMeter_YOffset"));
+	BitmapButton_VUMeter_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset"));
 	BitmapButton_VUMeter_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
@@ -236,7 +236,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
-	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_Bars,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_VUMeter_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
@@ -246,13 +246,13 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_VUMeter_StartNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated);
 	Connect(IDD_TEXTCTRL_VUMeter_StartNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText);
-	Connect(ID_BITMAPBUTTON_VUMeter_StartNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_SLIDER_VUMeter_EndNote,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnSlider_VUMeter_StartNoteCmdSliderUpdated);
 	Connect(IDD_TEXTCTRL_VUMeter_EndNote,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VUMeterPanel::OnTextCtrl_VUMeter_StartNoteText);
-	Connect(ID_BITMAPBUTTON_VUMeter_EndNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_VUMeter_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_VUMeter");
 

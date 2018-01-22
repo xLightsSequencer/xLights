@@ -4,18 +4,18 @@
 #include "GalaxyEffect.h"
 
 //(*InternalHeaders(GalaxyPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -86,23 +86,23 @@ END_EVENT_TABLE()
 GalaxyPanel::GalaxyPanel(wxWindow* parent)
 {
 	//(*Initialize(GalaxyPanel)
-	wxFlexGridSizer* FlexGridSizer108;
-	wxFlexGridSizer* GridBagSizerGalaxyOptions;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Angle;
-	wxFlexGridSizer* GridBagSizerGalaxyEnd;
-	wxPanel* Panel8;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Radius;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Accel;
 	wxPanel* Panel6;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Duration;
-	BulkEditTextCtrl* TextCtrl_Galaxy_End_Radius;
 	wxPanel* Panel7;
-	BulkEditTextCtrlF360* TextCtrl_Galaxy_Revolutions;
-	BulkEditTextCtrl* TextCtrl_Galaxy_CenterY;
 	BulkEditTextCtrl* TextCtrl_Galaxy_CenterX;
 	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Width;
+	wxFlexGridSizer* GridBagSizerGalaxyOptions;
 	BulkEditTextCtrl* TextCtrl_Galaxy_End_Width;
+	wxFlexGridSizer* FlexGridSizer108;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Angle;
+	wxPanel* Panel8;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Accel;
+	BulkEditTextCtrlF360* TextCtrl_Galaxy_Revolutions;
+	BulkEditTextCtrl* TextCtrl_Galaxy_CenterY;
 	wxFlexGridSizer* GridBagSizerGalaxyStart;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Radius;
+	wxFlexGridSizer* GridBagSizerGalaxyEnd;
+	BulkEditTextCtrl* TextCtrl_Galaxy_End_Radius;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Duration;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer108 = new wxFlexGridSizer(0, 1, 0, 0);

@@ -23,6 +23,7 @@
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_RANDOMIZE" variable="BitmapButtonRandomize" member="yes">
 											<bitmap stock_id="xlART_DICE_ICON" stock_client="wxART_BUTTON" />
+											<tooltip>Randomize color and effect settings without a Lock</tooltip>
 											<handler function="OnButtonRandomizeEffectClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

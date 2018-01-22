@@ -169,7 +169,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON21" variable="BitmapButton2" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Speed" variable="BitmapButton2" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,14</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -305,7 +305,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CirclesBubbles" variable="BitmapButton_CirclesBubbles" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Bubbles" variable="BitmapButton_CirclesBubbles" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

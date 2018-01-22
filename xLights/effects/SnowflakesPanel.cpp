@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(SnowflakesPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SnowflakesPanel)
@@ -27,11 +27,11 @@ const long SnowflakesPanel::ID_BITMAPBUTTON_SLIDER_Snowflakes_Type = wxNewId();
 const long SnowflakesPanel::ID_STATICTEXT_Snowflakes_Speed = wxNewId();
 const long SnowflakesPanel::ID_SLIDER_Snowflakes_Speed = wxNewId();
 const long SnowflakesPanel::IDD_TEXTCTRL_Snowflakes_Speed = wxNewId();
-const long SnowflakesPanel::ID_BITMAPBUTTON34 = wxNewId();
+const long SnowflakesPanel::ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed = wxNewId();
 const long SnowflakesPanel::ID_STATICTEXT_Falling = wxNewId();
 const long SnowflakesPanel::ID_CHOICE_Falling = wxNewId();
 const long SnowflakesPanel::ID_STATICTEXT2 = wxNewId();
-const long SnowflakesPanel::ID_BITMAPBUTTON1 = wxNewId();
+const long SnowflakesPanel::ID_BITMAPBUTTON_CHOICE_Falling = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SnowflakesPanel,wxPanel)
@@ -42,10 +42,10 @@ END_EVENT_TABLE()
 SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 {
 	//(*Initialize(SnowflakesPanel)
-	BulkEditTextCtrl* TextCtrl58;
 	BulkEditTextCtrl* TextCtrl57;
-	BulkEditTextCtrl* TextCtrl56;
 	wxFlexGridSizer* FlexGridSizer43;
+	BulkEditTextCtrl* TextCtrl58;
+	BulkEditTextCtrl* TextCtrl56;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer43 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -75,8 +75,8 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	TextCtrl58 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Snowflakes_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Snowflakes_Speed"));
 	TextCtrl58->SetMaxLength(3);
 	FlexGridSizer43->Add(TextCtrl58, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton16 = new wxBitmapButton(this, ID_BITMAPBUTTON34, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON34"));
-	FlexGridSizer43->Add(BitmapButton16, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SnowflakesSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed"));
+	FlexGridSizer43->Add(BitmapButton_SnowflakesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Falling, _("Falling"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Falling"));
 	FlexGridSizer43->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Falling = new BulkEditChoice(this, ID_CHOICE_Falling, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Falling"));
@@ -86,16 +86,16 @@ SnowflakesPanel::SnowflakesPanel(wxWindow* parent)
 	FlexGridSizer43->Add(Choice_Falling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer43->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-	FlexGridSizer43->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Falling = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Falling, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Falling"));
+	FlexGridSizer43->Add(BitmapButton_Falling, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer43);
 	FlexGridSizer43->Fit(this);
 	FlexGridSizer43->SetSizeHints(this);
 
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON34,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHOICE_Falling,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SnowflakesPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_SNOWFLAKES");
 }

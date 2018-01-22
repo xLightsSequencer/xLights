@@ -3,12 +3,12 @@
 
 //(*Headers(SpiralsPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
 class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -33,30 +33,30 @@ class SpiralsPanel: public wxPanel
 		virtual ~SpiralsPanel();
 
 		//(*Declarations(SpiralsPanel)
-		BulkEditValueCurveButton* BitmapButton_VCSpirals_Movement;
-		wxStaticText* StaticText40;
-		BulkEditCheckBox* CheckBox_Spirals_3D;
-		wxBitmapButton* BitmapButton_Spirals3D;
-		wxStaticText* StaticText38;
-		wxBitmapButton* BitmapButton_SpiralsShrink;
-		BulkEditValueCurveButton* BitmapButton_VCSpirals_Rotation;
-		BulkEditSlider* Slider_Spirals_Count;
-		BulkEditCheckBox* CheckBox_Spirals_Blend;
-		wxBitmapButton* BitmapButton_SpiralsGrow;
-		BulkEditSliderF1* Slider_Spirals_Rotation;
-		wxStaticText* StaticText34;
-		wxBitmapButton* BitmapButton_SpiralsBlend;
-		wxBitmapButton* BitmapButton_SpiralsThickness;
-		BulkEditValueCurveButton* BitmapButton_VCSpiralsCount;
-		BulkEditCheckBox* CheckBox_Spirals_Grow;
 		BulkEditSlider* Slider_Spirals_Thickness;
+		BulkEditSliderF1* Slider_Spirals_Rotation;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Rotation;
+		wxBitmapButton* BitmapButton_SpiralsRotation;
+		BulkEditCheckBox* CheckBox_Spirals_Grow;
+		BulkEditValueCurveButton* BitmapButton_VCSpiralsCount;
+		wxBitmapButton* BitmapButton_SpiralsDirection;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Movement;
+		wxBitmapButton* BitmapButton_SpiralsGrow;
+		wxBitmapButton* BitmapButton_SpiralsShrink;
+		BulkEditSlider* Slider_Spirals_Count;
+		wxBitmapButton* BitmapButton_Spirals3D;
+		BulkEditCheckBox* CheckBox_Spirals_3D;
+		wxBitmapButton* BitmapButton_SpiralsCount;
+		wxStaticText* StaticText34;
+		wxStaticText* StaticText38;
+		BulkEditSliderF1* Slider_Spirals_Movement;
+		wxStaticText* StaticText40;
 		BulkEditCheckBox* CheckBox_Spirlas_Shrink;
 		BulkEditValueCurveButton* BitmapButton_VCSpirals_Thickness;
-		wxBitmapButton* BitmapButton_SpiralsDirection;
-		wxBitmapButton* BitmapButton_SpiralsCount;
-		BulkEditSliderF1* Slider_Spirals_Movement;
-		wxBitmapButton* BitmapButton_SpiralsRotation;
 		wxStaticText* StaticText36;
+		wxBitmapButton* BitmapButton_SpiralsThickness;
+		BulkEditCheckBox* CheckBox_Spirals_Blend;
+		wxBitmapButton* BitmapButton_SpiralsBlend;
 		//*)
 
 	protected:
@@ -81,7 +81,7 @@ class SpiralsPanel: public wxPanel
 		static const long IDD_SLIDER_Spirals_Movement;
 		static const long ID_VALUECURVE_Spirals_Movement;
 		static const long ID_TEXTCTRL_Spirals_Movement;
-		static const long ID_BITMAPBUTTON_SLIDER_Spirals_Direction;
+		static const long ID_BITMAPBUTTON_SLIDER_Spirals_Movement;
 		static const long ID_CHECKBOX_Spirals_Blend;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend;
 		static const long ID_CHECKBOX_Spirals_3D;

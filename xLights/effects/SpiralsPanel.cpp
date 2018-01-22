@@ -4,17 +4,17 @@
 #include "SpiralsEffect.h"
 
 //(*InternalHeaders(SpiralsPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/checkbox.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SpiralsPanel)
@@ -37,7 +37,7 @@ const long SpiralsPanel::ID_STATICTEXT_Spirals_Movement = wxNewId();
 const long SpiralsPanel::IDD_SLIDER_Spirals_Movement = wxNewId();
 const long SpiralsPanel::ID_VALUECURVE_Spirals_Movement = wxNewId();
 const long SpiralsPanel::ID_TEXTCTRL_Spirals_Movement = wxNewId();
-const long SpiralsPanel::ID_BITMAPBUTTON_SLIDER_Spirals_Direction = wxNewId();
+const long SpiralsPanel::ID_BITMAPBUTTON_SLIDER_Spirals_Movement = wxNewId();
 const long SpiralsPanel::ID_CHECKBOX_Spirals_Blend = wxNewId();
 const long SpiralsPanel::ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend = wxNewId();
 const long SpiralsPanel::ID_CHECKBOX_Spirals_3D = wxNewId();
@@ -56,16 +56,16 @@ END_EVENT_TABLE()
 SpiralsPanel::SpiralsPanel(wxWindow* parent)
 {
 	//(*Initialize(SpiralsPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer45;
 	BulkEditTextCtrlF1* TextCtrl39;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer130;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer129;
-	BulkEditTextCtrlF1* TextCtrl37;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer130;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer129;
+	wxFlexGridSizer* FlexGridSizer3;
+	BulkEditTextCtrlF1* TextCtrl37;
 	BulkEditTextCtrl* TextCtrl36;
+	wxFlexGridSizer* FlexGridSizer45;
 	BulkEditTextCtrl* TextCtrl38;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -131,7 +131,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	TextCtrl39 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Spirals_Movement, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Spirals_Movement"));
 	TextCtrl39->SetMaxLength(5);
 	FlexGridSizer129->Add(TextCtrl39, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_SpiralsDirection = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirals_Direction, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirals_Direction"));
+	BitmapButton_SpiralsDirection = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirals_Movement, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirals_Movement"));
 	BitmapButton_SpiralsDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer129->Add(BitmapButton_SpiralsDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer45->Add(FlexGridSizer129, 1, wxALL|wxEXPAND, 0);
@@ -176,7 +176,7 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Spirals_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirals_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Spirals_Movement,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpiralsPanel::OnLockButtonClick);

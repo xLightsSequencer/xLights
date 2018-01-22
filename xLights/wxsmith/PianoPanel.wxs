@@ -52,15 +52,9 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_StartMIDI" variable="BitmapButton_Piano_StartMIDI" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -78,17 +72,6 @@
 							<handler function="OnSpinCtrl_Piano_EndMIDIChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_EndMIDI" variable="BitmapButton_Piano_EndMIDI" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -115,6 +98,11 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -188,15 +176,9 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_Scale" variable="BitmapButton_Piano_scale" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -208,8 +190,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Piano_XOffset" subclass="BulkEditSlider" variable="Slider_Piano_XOffset" member="yes">
-						</object>
+						<object class="wxSlider" name="ID_SLIDER_Piano_XOffset" subclass="BulkEditSlider" variable="Slider_Piano_XOffset" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -223,13 +204,7 @@
 						<border>2</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_XOffset" variable="BitmapButton_Piano_XOffset" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-						</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

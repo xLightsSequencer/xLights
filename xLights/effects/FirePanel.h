@@ -3,13 +3,13 @@
 
 //(*Headers(FirePanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,23 +24,23 @@ class FirePanel: public wxPanel
 
 		//(*Declarations(FirePanel)
 		wxStaticText* StaticText193;
-		wxBitmapButton* BitmapButton_FireWidth;
-		wxStaticText* StaticText83;
-		wxStaticText* StaticText30;
-		BulkEditValueCurveButton* BitmapButton_Fire_HueShiftVC;
-		BulkEditTextCtrlF1* TextCtrl_Fire_GrowthCycles;
-		BulkEditSlider* Slider_Fire_Height;
-		BulkEditSliderF1* Slider_Fire_GrowthCycles;
+		wxStaticText* StaticText132;
 		wxBitmapButton* BitmapButton_FireGrow;
 		BulkEditValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
-		BulkEditSlider* Slider_Fire_HueShift;
+		BulkEditSliderF1* Slider_Fire_GrowthCycles;
+		BulkEditValueCurveButton* BitmapButton_Fire_HeightVC;
+		wxStaticText* StaticText83;
+		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
+		BulkEditSlider* Slider_Fire_Height;
+		BulkEditValueCurveButton* BitmapButton_Fire_HueShiftVC;
 		BulkEditCheckBox* CheckBox_Fire_GrowWithMusic;
 		BulkEditTextCtrl* TextCtrl_Fire_Height;
-		wxStaticText* StaticText132;
+		wxStaticText* StaticText30;
+		BulkEditSlider* Slider_Fire_HueShift;
+		wxBitmapButton* BitmapButton_FireWidth;
 		BulkEditChoice* Choice_Fire_Location;
-		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
 		wxBitmapButton* BitmapButton_FireHeight;
-		BulkEditValueCurveButton* BitmapButton_Fire_HeightVC;
+		BulkEditTextCtrlF1* TextCtrl_Fire_GrowthCycles;
 		//*)
 
 	protected:
@@ -60,9 +60,9 @@ class FirePanel: public wxPanel
 		static const long IDD_SLIDER_Fire_GrowthCycles;
 		static const long ID_VALUECURVE_Fire_GrowthCycles;
 		static const long ID_TEXTCTRL_Fire_GrowthCycles;
-		static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire;
+		static const long ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles;
 		static const long ID_CHECKBOX_Fire_GrowWithMusic;
-		static const long ID_BITMAPBUTTON_Fire_GrowWithMusic;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic;
 		static const long ID_STATICTEXT_Fire_Location;
 		static const long ID_CHOICE_Fire_Location;
 		//*)

@@ -3,13 +3,13 @@
 
 //(*Headers(LightningPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,36 +22,36 @@ class LightningPanel: public wxPanel
 		virtual ~LightningPanel();
 
 		//(*Declarations(LightningPanel)
-		BulkEditSlider* Slider_Lightning_TopX;
-		BulkEditValueCurveButton* BitmapButton_Lightning_TopXVC;
-		wxStaticText* StaticText203;
-		BulkEditTextCtrl* TextCtrl88;
-		BulkEditSlider* Slider_Lightning_TopY;
-		wxBitmapButton* BitmapButton22;
-		BulkEditTextCtrl* TextCtrl90;
-		wxStaticText* StaticText209;
-		BulkEditTextCtrl* TextCtrl86;
-		wxStaticText* StaticText205;
-		wxBitmapButton* BitmapButton26;
-		wxBitmapButton* BitmapButton20;
-		wxStaticText* StaticText208;
 		BulkEditSlider* Slider_Number_Bolts;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Lightning_BOTX;
-		wxBitmapButton* BitmapButton28;
-		BulkEditChoice* CHOICE_Lightning_Direction;
-		BulkEditValueCurveButton* BitmapButton_Number_SegmentsVC;
-		wxStaticText* StaticText210;
 		BulkEditSlider* Slider_Lightning_BOTY;
-		BulkEditValueCurveButton* BitmapButton_Number_BoltsVC;
-		wxStaticText* StaticText206;
-		wxBitmapButton* BitmapButton23;
+		BulkEditValueCurveButton* BitmapButton_Lightning_TopXVC;
+		wxStaticText* StaticText205;
+		BulkEditCheckBox* CheckBox_ForkedLightning;
+		wxStaticText* StaticText210;
+		wxBitmapButton* BitmapButton_LightningBOTX;
+		BulkEditSlider* Slider_Lightning_TopX;
+		wxStaticText* StaticText208;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton_NumberBolts;
 		BulkEditValueCurveButton* BitmapButton_Lightning_TopYVC;
 		BulkEditTextCtrl* TextCtrl89;
+		BulkEditSlider* Slider_Lightning_BOTX;
+		BulkEditTextCtrl* TextCtrl90;
+		wxBitmapButton* BitmapButton_NumberSegments;
+		BulkEditChoice* CHOICE_Lightning_Direction;
+		wxBitmapButton* BitmapButton_ForkedLightning;
+		wxBitmapButton* BitmapButton_LightningTopY;
+		wxBitmapButton* BitmapButton_LightningBOTY;
 		wxStaticText* StaticText207;
-		BulkEditCheckBox* CheckBox_ForkedLightning;
-		wxBitmapButton* BitmapButton27;
-		wxBitmapButton* BitmapButton25;
+		BulkEditValueCurveButton* BitmapButton_Number_BoltsVC;
+		BulkEditValueCurveButton* BitmapButton_Number_SegmentsVC;
+		BulkEditTextCtrl* TextCtrl86;
+		wxBitmapButton* BitmapButton_LightningTopX;
+		BulkEditTextCtrl* TextCtrl88;
+		wxStaticText* StaticText203;
+		wxStaticText* StaticText209;
+		wxStaticText* StaticText206;
+		BulkEditSlider* Slider_Lightning_TopY;
 		BulkEditSlider* Slider_Number_Segments;
 		//*)
 
@@ -62,33 +62,33 @@ class LightningPanel: public wxPanel
 		static const long ID_SLIDER_Number_Bolts;
 		static const long ID_VALUECURVE_Number_Bolts;
 		static const long IDD_TEXTCTRL_Number_Bolts;
-		static const long ID_BITMAPBUTTON38;
+		static const long ID_BITMAPBUTTON_SLIDER_Number_Bolts;
 		static const long ID_STATICTEXT_Number_Segments;
 		static const long ID_SLIDER_Number_Segments;
 		static const long ID_VALUECURVE_Number_Segments;
 		static const long IDD_TEXTCTRL_Number_Segments;
-		static const long ID_BITMAPBUTTON40;
+		static const long ID_BITMAPBUTTON_SLIDER_Number_Segments;
 		static const long ID_STATICTEXT_ForkedLightning;
 		static const long ID_CHECKBOX_ForkedLightning;
-		static const long ID_BITMAPBUTTON41;
+		static const long ID_BITMAPBUTTON_CHECKBOX_ForkedLightning;
 		static const long ID_STATICTEXT_Lightning_TopX;
 		static const long ID_SLIDER_Lightning_TopX;
 		static const long ID_VALUECURVE_Lightning_TopX;
 		static const long IDD_TEXTCTRL_Lightning_TopX;
-		static const long ID_BITMAPBUTTON42;
+		static const long ID_BITMAPBUTTON_SLIDER_Lightning_TopX;
 		static const long ID_STATICTEXT_Lightning_TopY;
 		static const long ID_SLIDER_Lightning_TopY;
 		static const long ID_VALUECURVE_Lightning_TopY;
 		static const long IDD_TEXTCTRL_Lightning_TopY;
-		static const long ID_BITMAPBUTTON43;
+		static const long ID_BITMAPBUTTON_SLIDER_Lightning_TopY;
 		static const long ID_STATICTEXT_Lightning_BOTX;
 		static const long ID_SLIDER_Lightning_BOTX;
 		static const long IDD_TEXTCTRL_Lightning_BOTX;
-		static const long ID_BITMAPBUTTON45;
+		static const long ID_BITMAPBUTTON_SLIDER_Lightning_BOTX;
 		static const long ID_STATICTEXT_Lightning_BOTY;
 		static const long ID_SLIDER_Lightning_BOTY;
 		static const long IDD_TEXTCTRL_Lightning_BOTY;
-		static const long ID_BITMAPBUTTON52;
+		static const long ID_BITMAPBUTTON_SLIDER_Lightning_BOTY;
 		static const long ID_STATICTEXT_Lightning_Direction;
 		static const long ID_CHOICE_Lightning_Direction;
 		//*)

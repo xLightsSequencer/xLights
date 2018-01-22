@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(LifePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(LifePanel)
@@ -37,9 +37,9 @@ END_EVENT_TABLE()
 LifePanel::LifePanel(wxWindow* parent)
 {
 	//(*Initialize(LifePanel)
-	BulkEditTextCtrl* TextCtrl31;
 	BulkEditTextCtrl* TextCtrl30;
 	wxFlexGridSizer* FlexGridSizer40;
+	BulkEditTextCtrl* TextCtrl31;
 	BulkEditTextCtrl* TextCtrl32;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));

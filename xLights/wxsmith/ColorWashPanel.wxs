@@ -55,7 +55,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ColorWash_Count" variable="BitmapButton_ColorWashCount" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles" variable="BitmapButton_ColorWashCount" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

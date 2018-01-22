@@ -4,16 +4,16 @@
 #include "SpirographEffect.h"
 
 //(*InternalHeaders(SpirographPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
-#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/string.h>
+#include <wx/slider.h>
+#include <wx/intl.h>
+#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <wx/textctrl.h>
+#include <wx/image.h>
 //*)
 
 //(*IdInit(SpirographPanel)
@@ -21,7 +21,7 @@ const long SpirographPanel::ID_STATICTEXT_Spirograph_Speed = wxNewId();
 const long SpirographPanel::IDD_SLIDER_Spirograph_Speed = wxNewId();
 const long SpirographPanel::ID_VALUECURVE_Spirograph_Speed = wxNewId();
 const long SpirographPanel::ID_TEXTCTRL_Spirograph_Speed = wxNewId();
-const long SpirographPanel::ID_BITMAPBUTTON32 = wxNewId();
+const long SpirographPanel::ID_BITMAPBUTTON_SLIDER_Spirograph_Speed = wxNewId();
 const long SpirographPanel::ID_STATICTEXT_Spirograph_R = wxNewId();
 const long SpirographPanel::ID_SLIDER_Spirograph_R = wxNewId();
 const long SpirographPanel::ID_VALUECURVE_Spirograph_R = wxNewId();
@@ -41,12 +41,12 @@ const long SpirographPanel::ID_STATICTEXT_Spirograph_Animate = wxNewId();
 const long SpirographPanel::IDD_SLIDER_Spirograph_Animate = wxNewId();
 const long SpirographPanel::ID_VALUECURVE_Spirograph_Animate = wxNewId();
 const long SpirographPanel::ID_TEXTCTRL_Spirograph_Animate = wxNewId();
-const long SpirographPanel::ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate = wxNewId();
+const long SpirographPanel::ID_BITMAPBUTTON_SLIDER_Spirograph_Animate = wxNewId();
 const long SpirographPanel::ID_STATICTEXT_Spirograph_Length = wxNewId();
 const long SpirographPanel::IDD_SLIDER_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_VALUECURVE_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_TEXTCTRL_Spirograph_Length = wxNewId();
-const long SpirographPanel::ID_BITMAPBUTTON33 = wxNewId();
+const long SpirographPanel::ID_BITMAPBUTTON_SLIDER_Spirograph_Length = wxNewId();
 const long SpirographPanel::ID_STATICTEXT91 = wxNewId();
 //*)
 
@@ -58,19 +58,19 @@ END_EVENT_TABLE()
 SpirographPanel::SpirographPanel(wxWindow* parent)
 {
 	//(*Initialize(SpirographPanel)
-	BulkEditTextCtrl* TextCtrl81;
-	BulkEditTextCtrl* TextCtrl83;
-	wxFlexGridSizer* FlexGridSizer132;
-	BulkEditTextCtrl* TextCtrl82;
-	wxFlexGridSizer* FlexGridSizer134;
-	wxFlexGridSizer* FlexGridSizer133;
-	BulkEditTextCtrl* TextCtrl22;
 	BulkEditTextCtrl* TextCtrl21;
 	wxFlexGridSizer* FlexGridSizer127;
-	wxFlexGridSizer* FlexGridSizer125;
-	BulkEditTextCtrl* TextCtrl23;
 	wxFlexGridSizer* FlexGridSizer72;
+	BulkEditTextCtrl* TextCtrl82;
+	BulkEditTextCtrl* TextCtrl23;
+	wxFlexGridSizer* FlexGridSizer132;
 	wxFlexGridSizer* FlexGridSizer126;
+	BulkEditTextCtrl* TextCtrl81;
+	BulkEditTextCtrl* TextCtrl83;
+	wxFlexGridSizer* FlexGridSizer125;
+	BulkEditTextCtrl* TextCtrl22;
+	wxFlexGridSizer* FlexGridSizer133;
+	wxFlexGridSizer* FlexGridSizer134;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer72 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -87,9 +87,9 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	TextCtrl81->SetMaxLength(3);
 	FlexGridSizer132->Add(TextCtrl81, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer132, 1, wxALL|wxEXPAND, 2);
-	BitmapButton14 = new wxBitmapButton(this, ID_BITMAPBUTTON32, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON32"));
-	BitmapButton14->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer72->Add(BitmapButton14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SpirographSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_Speed"));
+	BitmapButton_SpirographSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer72->Add(BitmapButton_SpirographSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText87 = new wxStaticText(this, ID_STATICTEXT_Spirograph_R, _("R - Radius of outer circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Spirograph_R"));
 	FlexGridSizer72->Add(StaticText87, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer125 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -147,7 +147,7 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	TextCtrl82->SetMaxLength(3);
 	FlexGridSizer133->Add(TextCtrl82, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer133, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Spirographd = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate"));
+	BitmapButton_Spirographd = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_Animate, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_Animate"));
 	BitmapButton_Spirographd->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer72->Add(BitmapButton_Spirographd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText191 = new wxStaticText(this, ID_STATICTEXT_Spirograph_Length, _("Length"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Spirograph_Length"));
@@ -162,9 +162,9 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	TextCtrl83->SetMaxLength(3);
 	FlexGridSizer134->Add(TextCtrl83, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer72->Add(FlexGridSizer134, 1, wxALL|wxEXPAND, 2);
-	BitmapButton15 = new wxBitmapButton(this, ID_BITMAPBUTTON33, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
-	BitmapButton15->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer72->Add(BitmapButton15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_SpirographLength = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Spirograph_Length, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Spirograph_Length"));
+	BitmapButton_SpirographLength->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer72->Add(BitmapButton_SpirographLength, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText90 = new wxStaticText(this, ID_STATICTEXT91, _("Note: r should be <= R"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT91"));
 	FlexGridSizer72->Add(StaticText90, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	SetSizer(FlexGridSizer72);
@@ -172,7 +172,7 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	FlexGridSizer72->SetSizeHints(this);
 
 	Connect(ID_VALUECURVE_Spirograph_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON32,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirograph_R,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_R,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirograph_r,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
@@ -180,9 +180,9 @@ SpirographPanel::SpirographPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Spirograph_d,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_d,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Animate,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Spirograph_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON33,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Spirograph_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SpirographPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_SPIROGRAPH");
 

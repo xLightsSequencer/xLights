@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.4
+   -- enh (craig)  Randomize only effect settings with a lock available.
 2018.3 Jan 21, 2018
    -- enh (dkulp)  Bunch of render optimizations, particularly for groups with large number of models
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice
