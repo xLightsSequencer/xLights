@@ -15,14 +15,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice
    -- enh (scott)  Added Ctrl-A to Selects all Effects in a Sequence.
    -- enh (scott)  Add Select Row Effects to Sequencer Row Right Click Menu.
+   -- enh (gil)    Added a DMX Flood option to the DMX Model.
    -- enh (gil)    Allow the rotate handle to Spin the DMX Model when in 3D mode.
+   -- bug (gil)    Fixed a LOR S4 clipboard export model issue.
    -- enh (keith)  Add an image model
    -- bug (keith)  Fix listbox column sizing in the model group panel
    -- bug (keith)  Fix issues with mapping dialog
    -- bug (keith)  Fix performance issue with setup tab when contains large number of universes
    -- enh (keith)  Fix default model start channel to always be 1 channel after the model with the highest ending channel
    -- bug (keith)  Fix some text controls not updating associated sliders
-   -- enh (keith)  Display in tooltip current effect being rendered in render progress dialog ... if it gets stuck you will know 
+   -- enh (keith)  Display in tooltip current effect being rendered in render progress dialog ... if it gets stuck you will know
                    which effect is to blame
    -- enh (keith)  Fix #1010 - If user cancels nominating a valid show directory xLights should exit.
    -- bug (keith)  Fix xSchedule incorrectly calculates virtual model end when checking if it fits within channel range

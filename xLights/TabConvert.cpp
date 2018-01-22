@@ -444,7 +444,7 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.ToStdString().c_str()));
-    
+
     if (ver == 1) {
         //old version only supports single channels
         cpn = 1;
@@ -495,8 +495,13 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             Effect *eff = layer.GetEffect(eidx);
             if (eff->GetStartTimeMS() != lastEndTime) {
                 //off from last effect to start of this effect
-                f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" />\n",
-                                      lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                if (ver == 1) {
+                    f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" type=\"intensity\" />\n",
+                                          lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                } else {
+                    f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" />\n",
+                                          lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                }
             }
 
             f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\"",
@@ -505,7 +510,7 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
                 int starti = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
                 int endi = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
 
-                
+
                 if (cpn == 3) {
                     xlColor c = eff->GetPalette()[0];
                     std::stringstream stream;
@@ -549,10 +554,13 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             }
             lastEndTime = eff->GetEndTimeMS();
         }
-        
+
         if (lastEndTime < maxCell) {
             f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"0\"",
                                   lastEndTime / 10, maxCell / 10));
+            if (ver == 1) {
+                f.Write(" type=\"intensity\"");
+            }
             if (ver == 2) {
                 f.Write(" type=\"INTENSITY\"");
             }
@@ -1288,7 +1296,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
             break;
         }
     }
-    
+
     f.Close();
     free(buf);
 }
