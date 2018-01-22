@@ -38,7 +38,6 @@ void EffectPanelUtils::SetLock(wxButton *button) {
     wxString parent = button->GetName();
     if (parent.StartsWith("ID_BITMAPBUTTON_")) {
         parent = "ID_" + parent.substr(16);
-        parent = parent.BeforeLast('_');
     }
     bool islocked = buttonStates[std::string(parent)];
     if (islocked) {
