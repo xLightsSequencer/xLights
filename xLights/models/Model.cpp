@@ -1091,14 +1091,16 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             int returnChannel = wxAtoi(sc);
             bool fromStart = start[0] == '@';
             start = start.substr(1, start.size());
-            if (start == GetName())
+            if (start == GetName() && !CouldComputeStartChannel)
             {
                 valid = false;
                 output = 1;
             }
             else
             {
-                dependsonmodel = start;
+                if (start != GetName()) {
+                    dependsonmodel = start;
+                }
                 Model *m = modelManager[start];
                 if (m != nullptr && m->CouldComputeStartChannel) {
                     if (fromStart) {
