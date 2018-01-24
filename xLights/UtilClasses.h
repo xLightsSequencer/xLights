@@ -118,9 +118,12 @@ public:
         }
         return i->second;
     }
-    void erase(const char *ckey) {
+    size_type erase(const char *ckey) {
         std::string key(ckey);
-        std::map<std::string,std::string>::erase(key);
+        return std::map<std::string,std::string>::erase(key);
+    }
+    size_type erase(const std::string &key) {
+        return std::map<std::string,std::string>::erase(key);
     }
 
 

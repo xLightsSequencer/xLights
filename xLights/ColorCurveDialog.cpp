@@ -193,9 +193,9 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
     {
         wxFileName fn(directory.GetNameWithSep() + filename);
         bool found = false;
-        for (auto it = existing.begin(); it != existing.end(); ++it)
+        for (auto it : existing)
         {
-            if (it.m_node->GetData()->GetWindow()->GetLabel() == fn.GetFullPath())
+            if (it->GetWindow()->GetLabel() == fn.GetFullPath())
             {
                 // already there
                 found = true;

@@ -799,7 +799,7 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
     }
 }
 
-void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
+void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -822,6 +822,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     av_register_all();
 
+    const char *filename = filenames.ToStdString().c_str();
     AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
     if (!fmt)
     {
@@ -961,7 +962,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     /* open the output file, if needed */
     if (!(fmt->flags & AVFMT_NOFILE)) {
         if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-            logger_base.error("   Could open file %s.", static_cast<const char *>(filename.c_str()));
+            logger_base.error("   Could open file %s.", static_cast<const char *>(filename));
             return;
         }
     }

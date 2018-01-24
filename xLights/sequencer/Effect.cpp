@@ -247,7 +247,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         }
         else
         {
-            mPaletteMap.erase(wxString(vcid));
+            mPaletteMap.erase(vcid);
             mPaletteMap[id] = value;
         }
     }
@@ -259,7 +259,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         }
         else
         {
-            mSettings.erase(wxString(vcid));
+            mSettings.erase(vcid);
             mSettings[id] = value;
         }
     }

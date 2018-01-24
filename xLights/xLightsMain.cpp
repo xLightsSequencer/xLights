@@ -2877,7 +2877,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 	);
 
    captureHelper.SetActive( true );
-	bool exportStatus = videoExporter.Export(path);
+	bool exportStatus = videoExporter.Export(path.ToStdString().c_str());
 	captureHelper.SetActive(false);
 
    mainSequencer->SetPlayStatus( playStatus );

@@ -541,6 +541,7 @@ LayoutPanel::~LayoutPanel()
     if (background != nullptr) {
         delete background;
     }
+    TreeListViewModels->SetItemComparator(nullptr);
     TreeListViewModels->DeleteAllItems();
     delete m_imageList;
 	//(*Destroy(LayoutPanel)
@@ -911,14 +912,22 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
     if (full_refresh) {
         int width = 0;
-
         TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
-
+        //delete all items will atempt to resort as each item is deleted, however, our Model pointers
+        //stored in the items may be invalid
+        TreeListViewModels->SetItemComparator(nullptr);
+        wxTreeListItem child = TreeListViewModels->GetFirstItem();
+        while (child.IsOk()) {
+            TreeListViewModels->DeleteItem(child);
+            child = TreeListViewModels->GetFirstItem();
+        }
         TreeListViewModels->DeleteAllItems();
-        // add all the model groups
+        TreeListViewModels->SetItemComparator(&comparator);
+
         wxTreeListItem root = TreeListViewModels->GetRootItem();
+        // add all the model groups
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
             if (model->GetDisplayAs() == "ModelGroup") {
@@ -958,10 +967,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
-#ifdef __WXOSX__
-        //work around http://trac.wxwidgets.org/ticket/17409
-        TreeListViewModels->GetDataView()->SetIndent(8);
-#endif
     }
     modelPreview->SetModels(models);
     UpdatePreview();
@@ -1547,11 +1552,13 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     Model* a = data1->GetModel();
     Model* b = data2->GetModel();
 
-    if( a == nullptr || b == nullptr ) return 0;
+    if( a == nullptr || b == nullptr ) {
+        return 0;
+    }
 
     if( a->GetDisplayAs() == "ModelGroup" ) {
         if( b->GetDisplayAs() == "ModelGroup" ) {
-            return 0;
+            return NumberAwareStringCompare(a->name, b->name);
         } else {
             return -1;
         }
@@ -1560,22 +1567,13 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     }
 
     if (sortColumn == 1) {
-        if( a->GetDisplayAs() == "ModelGroup" ) {
-            if( b->GetDisplayAs() == "ModelGroup" ) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else if( b->GetDisplayAs() == "ModelGroup" ) {
-            return -1;
-        }
         int ia = data1->startingChannel;
         int ib = data2->startingChannel;
         if (ia > ib)
             return 1;
         if (ia < ib)
             return -1;
-        return 0;
+        return NumberAwareStringCompare(a->name, b->name);
     } else if (sortColumn == 2) {
         int ia = data1->endingChannel;
         int ib = data2->endingChannel;
@@ -1583,11 +1581,9 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return 1;
         if (ia < ib)
             return -1;
-        return 0;
-    } else {
         return NumberAwareStringCompare(a->name, b->name);
     }
-    return 0;
+    return NumberAwareStringCompare(a->name, b->name);
 }
 
 int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
