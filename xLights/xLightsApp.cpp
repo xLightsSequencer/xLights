@@ -248,7 +248,6 @@ void handleCrash(void *data) {
     #ifndef __WXMSW__
         // dont call these for windows as they dont seem to do anything.
         report->AddAll(wxDebugReport::Context_Exception);
-        report->AddAll(wxDebugReport::Context_Current);
     #endif
 
     wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
