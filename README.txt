@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2018.4
+   -- bug (dkulp)  CheckSequence erroneously flags 172.16 networks as broadcast. Fixes #1084
    -- bug (dkulp)  Fix problem with individual start channels on strings cannot self reference
    -- enh (craig)  Randomize only effect settings with a lock available.
 2018.3 Jan 21, 2018

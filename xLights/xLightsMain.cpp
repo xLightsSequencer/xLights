@@ -4429,17 +4429,25 @@ void xLightsFrame::CheckSequence(bool display)
 
                     if (ip1 == 10)
                     {
-                        // this is valid
+                        if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                        // else this is valid
                     }
                     else if (ip1 == 192 && ip2 == 168)
                     {
-                        // this is valid
+                        if (ip3 == 255 && ip4 == 255) {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                        // else this is valid
                     }
-                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
+                    else if (ip1 == 172 && ip2 == 16)
                     {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
+                        // this is valid
                     }
                     else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
                     {
