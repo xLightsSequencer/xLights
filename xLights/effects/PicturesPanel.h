@@ -4,16 +4,16 @@
 //(*Headers(PicturesPanel)
 #include <wx/panel.h>
 class wxFilePickerCtrl;
-class wxTextCtrl;
-class wxChoice;
-class wxNotebook;
-class wxFlexGridSizer;
-class wxBitmapButton;
-class wxSlider;
 class wxGridBagSizer;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxTextCtrl;
+class wxNotebookEvent;
+class wxNotebook;
+class wxStaticText;
+class wxSlider;
+class wxBitmapButton;
+class wxFlexGridSizer;
+class wxChoice;
 //*)
 
 #include <wx/filepicker.h>
@@ -45,34 +45,34 @@ class PicturesPanel: public wxPanel
 		virtual ~PicturesPanel();
 
 		//(*Declarations(PicturesPanel)
-		BulkEditSlider* Slider_PicturesEndYC;
-		wxBitmapButton* BitmapButton_PicturesDirection;
 		BulkEditSliderF1* Slider_Pictures_Speed;
-		wxStaticText* StaticText_Pictures_YC;
-		BulkEditSlider* Slider_PicturesYC;
-		BulkEditSliderF1* Slider_Pictures_FR;
-		xlPictureFilePickerCtrl* FilePickerCtrl1;
-		wxStaticText* StaticText161;
-		wxStaticText* StaticText_Pictures_XC;
-		wxBitmapButton* BitmapButton_PicturesSpeed;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_PicturesEndXC;
-		BulkEditSlider* Slider_Pictures_EndScale;
-		BulkEditSlider* Slider_PicturesXC;
-		wxStaticText* StaticText46;
-		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
-		wxBitmapButton* BitmapButton_PicturesFrameRateAdj;
-		wxStaticText* StaticText68;
-		BulkEditCheckBox* CheckBox_Pictures_WrapX;
-		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
-		wxPanel* PictureEndPositionPanel;
-		wxStaticText* StaticText160;
 		wxStaticText* StaticText2;
-		BulkEditChoice* Choice_Scaling;
 		BulkEditCheckBox* CheckBox_LoopGIF;
 		BulkEditSlider* Slider_Pictures_StartScale;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton_PicturesDirection;
+		wxStaticText* StaticText_Pictures_YC;
+		wxBitmapButton* BitmapButton_PicturesSpeed;
+		xlPictureFilePickerCtrl* FilePickerCtrl1;
+		BulkEditChoice* Choice_Scaling;
+		wxBitmapButton* BitmapButton_PicturesFrameRateAdj;
+		BulkEditSliderF1* Slider_Pictures_FR;
+		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
+		BulkEditSlider* Slider_Pictures_EndScale;
 		BulkEditChoice* Choice_Pictures_Direction;
 		wxStaticText* StaticText96;
+		wxPanel* PictureEndPositionPanel;
+		BulkEditSlider* Slider_PicturesYC;
+		BulkEditSlider* Slider_PicturesEndYC;
+		wxStaticText* StaticText68;
+		wxStaticText* StaticText160;
+		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
+		wxStaticText* StaticText_Pictures_XC;
+		BulkEditSlider* Slider_PicturesEndXC;
+		BulkEditSlider* Slider_PicturesXC;
+		wxStaticText* StaticText161;
+		BulkEditCheckBox* CheckBox_Pictures_WrapX;
+		wxStaticText* StaticText46;
 		//*)
 
 	protected:

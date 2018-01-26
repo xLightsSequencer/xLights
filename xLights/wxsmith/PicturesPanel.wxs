@@ -107,7 +107,6 @@
 							<value>1.0</value>
 							<maxlength>4</maxlength>
 							<size>20,-1d</size>
-							<handler function="UpdateLinkedSliderFloat" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -146,8 +145,6 @@
 							<value>1.0</value>
 							<maxlength>4</maxlength>
 							<size>20,-1d</size>
-							<style>wxTE_CENTRE</style>
-							<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -216,7 +213,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -242,7 +238,6 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="ID_SLIDER_PicturesXC" subclass="BulkEditSlider" variable="Slider_PicturesXC" member="yes">
 														<min>-100</min>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
@@ -262,7 +257,6 @@
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -291,7 +285,6 @@
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<col>0</col>
 													<row>2</row>
@@ -303,7 +296,6 @@
 													<object class="wxSlider" name="ID_SLIDER_PicturesYC" subclass="BulkEditSlider" variable="Slider_PicturesYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<rowspan>4</rowspan>
 													<col>1</col>
@@ -342,7 +334,6 @@
 												<object class="sizeritem">
 													<object class="wxSlider" name="ID_SLIDER_PicturesEndXC" subclass="BulkEditSlider" variable="Slider_PicturesEndXC" member="yes">
 														<min>-100</min>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
@@ -359,7 +350,6 @@
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
@@ -388,7 +378,6 @@
 														<maxlength>4</maxlength>
 														<size>20,-1d</size>
 														<style>wxTE_CENTRE</style>
-														<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 													</object>
 													<col>0</col>
 													<row>2</row>
@@ -400,7 +389,6 @@
 													<object class="wxSlider" name="ID_SLIDER_PicturesEndYC" subclass="BulkEditSlider" variable="Slider_PicturesEndYC" member="yes">
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
-														<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<rowspan>4</rowspan>
 													<col>1</col>
@@ -435,7 +423,6 @@
 											<object class="wxSlider" name="ID_SLIDER_Pictures_StartScale" subclass="BulkEditSlider" variable="Slider_Pictures_StartScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -447,7 +434,6 @@
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -474,7 +460,6 @@
 											<object class="wxSlider" name="ID_SLIDER_Pictures_EndScale" subclass="BulkEditSlider" variable="Slider_Pictures_EndScale" member="yes">
 												<value>100</value>
 												<max>1000</max>
-												<handler function="UpdateLinkedTextCtrl" entry="EVT_COMMAND_SLIDER_UPDATED" />
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -486,7 +471,6 @@
 												<maxlength>4</maxlength>
 												<size>25,-1d</size>
 												<style>wxTE_CENTRE</style>
-												<handler function="UpdateLinkedSlider" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -498,12 +482,10 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>

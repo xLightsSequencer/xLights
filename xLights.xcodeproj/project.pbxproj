@@ -143,6 +143,7 @@
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
+		676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */; };
 		676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
 		676C5EAC1C99D6F00031A033 /* liblog4cpp.5.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		676C5EAF1C99D8AF0031A033 /* CandyCaneModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */; };
@@ -859,6 +860,8 @@
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
+		676AE41A201BDB6200EA14F8 /* SelectTimingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectTimingsDialog.h; sourceTree = "<group>"; };
+		676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectTimingsDialog.cpp; sourceTree = "<group>"; };
 		676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblog4cpp.5.dylib; path = lib/osx/liblog4cpp.5.dylib; sourceTree = "<group>"; };
 		676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CandyCaneModel.cpp; path = models/CandyCaneModel.cpp; sourceTree = "<group>"; };
 		676C5EAE1C99D8AF0031A033 /* CandyCaneModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CandyCaneModel.h; path = models/CandyCaneModel.h; sourceTree = "<group>"; };
@@ -2140,6 +2143,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */,
+				676AE41A201BDB6200EA14F8 /* SelectTimingsDialog.h */,
 				67E675062009993B000E930E /* CachedFileDownloader.cpp */,
 				67E675072009993C000E930E /* CachedFileDownloader.h */,
 				67E675082009993C000E930E /* VendorModelDialog.cpp */,
@@ -2949,6 +2954,7 @@
 				67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */,
 				6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
+				676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
