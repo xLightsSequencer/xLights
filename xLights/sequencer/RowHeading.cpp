@@ -6,6 +6,7 @@
 #include "../BitmapCache.h"
 #include <wx/numdlg.h>
 #include "models/ModelGroup.h"
+#include "../SelectTimingsDialog.h"
 
 #define ICON_SPACE 25
 
@@ -550,23 +551,59 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         TimingElement *te = dynamic_cast<TimingElement *>(element);
         if (fn.GetExt().Lower() == "xtiming")
         {
-            wxFile f(filename);
-            logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
-            if (!f.Create(filename, true) || !f.IsOpened())
+            SelectTimingsDialog dlg(this);
+
+            for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); i++)
             {
-                logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-                wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-                return;
+                dlg.CheckListBox_Timings->Insert(mSequenceElements->GetElement(i)->GetName(), i);
+                if (mSequenceElements->GetElement(i)->GetName() == element->GetName())
+                {
+                    dlg.CheckListBox_Timings->Check(i);
+                }
             }
-            wxString name = wxFileName(filename).GetName();
-            wxString td = wxString(te->GetExport().c_str());
-            wxString v = xlights_version_string;
-            f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
-            f.Write(wxString::Format("name=\"%s\" ", name));
-            f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
-            f.Write(td);
-            f.Write("</timing>\n");
-            f.Close();
+
+            if (mSequenceElements->GetNumberOfTimingElements() == 1  || dlg.ShowModal() == wxID_OK)
+            {
+                wxArrayInt sel;
+                dlg.CheckListBox_Timings->GetCheckedItems(sel);
+
+                if (sel.size() > 0)
+                {
+                    wxFile f(filename);
+                    logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
+                    if (!f.Create(filename, true) || !f.IsOpened())
+                    {
+                        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
+                        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                        return;
+                    }
+                    wxString v = xlights_version_string;
+                    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+                    if (sel.size() > 1)
+                    {
+                        f.Write("<timings>\n");
+                    }
+                    for (int i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
+                    {
+                        if (dlg.CheckListBox_Timings->IsChecked(i))
+                        {
+                            TimingElement *tee = dynamic_cast<TimingElement *>(mSequenceElements->GetElement(dlg.CheckListBox_Timings->GetString(i).ToStdString()));
+
+                            wxString td = wxString(tee->GetExport().c_str());
+                            f.Write("<timing ");
+                            f.Write(wxString::Format("name=\"%s\" ", tee->GetName()));
+                            f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
+                            f.Write(td);
+                            f.Write("</timing>\n");
+                        }
+                    }
+                    if (sel.size() > 1)
+                    {
+                        f.Write("</timings>\n");
+                    }
+                    f.Close();
+                }
+            }
         }
         else if (fn.GetExt().Lower() == "pgo")
         {

@@ -1728,6 +1728,70 @@ wxString xLightsXmlFile::UniqueTimingName(xLightsFrame* xLightsParent, wxString 
     return testname;
 }
 
+void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent)
+{
+    wxString name = node->GetAttribute("name");
+    wxString v = node->GetAttribute("SourceVersion");
+
+    name = UniqueTimingName(xLightsParent, name);
+
+    Element* element = nullptr;
+    EffectLayer* effectLayer = nullptr;
+    wxXmlNode* layer = nullptr;
+    wxXmlNode* timing = nullptr;
+    if (sequence_loaded)
+    {
+        element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+    }
+    else
+    {
+        AddTimingDisplayElement(name, "1", "0");
+        timing = AddElement(name, "timing");
+    }
+
+    int l = 0;
+    for (wxXmlNode* layers = node->GetChildren(); layers != nullptr; layers = layers->GetNext())
+    {
+        if (layers->GetName() == "EffectLayer")
+        {
+            l++;
+            if (sequence_loaded)
+            {
+                if (l == 1)
+                {
+                    effectLayer = element->GetEffectLayer(0);
+                }
+                else
+                {
+                    effectLayer = element->AddEffectLayer();
+                }
+            }
+            else
+            {
+                layer = AddChildXmlNode(timing, "EffectLayer");
+            }
+
+            for (wxXmlNode* effects = layers->GetChildren(); effects != nullptr; effects = effects->GetNext())
+            {
+                if (effects->GetName() == "Effect")
+                {
+                    wxString label = effects->GetAttribute("label");
+                    wxString start = effects->GetAttribute("starttime");
+                    wxString end = effects->GetAttribute("endtime");
+                    if (sequence_loaded)
+                    {
+                        effectLayer->AddEffect(0, std::string(label.c_str()), "", "", wxAtoi(start), wxAtoi(end), EFFECT_NOT_SELECTED, false);
+                    }
+                    else
+                    {
+                        AddTimingEffect(layer, std::string(label.c_str()), "0", "0", start, end);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
@@ -1760,64 +1824,15 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
         if (e->GetName() == "timing")
         {
-            wxString name = e->GetAttribute("name");
-            wxString v = e->GetAttribute("SourceVersion");
-
-            name = UniqueTimingName(xLightsParent, name);
-
-            Element* element = nullptr;
-            EffectLayer* effectLayer = nullptr;
-            wxXmlNode* layer = nullptr;
-            wxXmlNode* timing = nullptr;
-            if (sequence_loaded)
+            ProcessXTiming(e, xLightsParent);
+        }
+        else if (e->GetName() == "timings")
+        {
+            for (wxXmlNode* node = e->GetChildren(); node != nullptr; node = node->GetNext())
             {
-                element = xLightsParent->AddTimingElement(std::string(name.c_str()));
-            }
-            else
-            {
-                AddTimingDisplayElement(name, "1", "0");
-                timing = AddElement(name, "timing");
-            }
-
-            int l = 0;
-            for (wxXmlNode* layers = e->GetChildren(); layers != nullptr; layers = layers->GetNext())
-            {
-                if (layers->GetName() == "EffectLayer")
+                if (node->GetName() == "timing")
                 {
-                    l++;
-                    if (sequence_loaded)
-                    {
-                        if (l == 1)
-                        {
-                            effectLayer = element->GetEffectLayer(0);
-                        }
-                        else
-                        {
-                            effectLayer = element->AddEffectLayer();
-                        }
-                    }
-                    else
-                    {
-                        layer = AddChildXmlNode(timing, "EffectLayer");
-                    }
-
-                    for (wxXmlNode* effects = layers->GetChildren(); effects != nullptr; effects = effects->GetNext())
-                    {
-                        if (effects->GetName() == "Effect")
-                        {
-                            wxString label = effects->GetAttribute("label");
-                            wxString start = effects->GetAttribute("starttime");
-                            wxString end = effects->GetAttribute("endtime");
-                            if (sequence_loaded)
-                            {
-                                effectLayer->AddEffect(0, std::string(label.c_str()), "", "", wxAtoi(start), wxAtoi(end), EFFECT_NOT_SELECTED, false);
-                            }
-                            else
-                            {
-                                AddTimingEffect(layer, std::string(label.c_str()), "0", "0", start, end);
-                            }
-                        }
-                    }
+                    ProcessXTiming(node, xLightsParent);
                 }
             }
         }

@@ -98,6 +98,7 @@ class xLightsXmlFile : public wxFileName
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent);
         void ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
