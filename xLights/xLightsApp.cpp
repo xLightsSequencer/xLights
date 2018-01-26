@@ -25,6 +25,8 @@
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
 
+#include <stdlib.h>     /* srand */
+#include <time.h>       /* time */
 
 #ifdef LINUX
 #include <GL/glut.h>
@@ -209,6 +211,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file

@@ -675,7 +675,7 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
         Model *model = dynamic_cast<Model*>(*it2);
         ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
         SubModel *sm = dynamic_cast<SubModel*>(*it2);
-        
+
         if (sm != nullptr) {
             model = sm->GetParent();
         }
@@ -1161,16 +1161,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 //void djdebug(const char* fmt, ...); //_DJ
 std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::string &palette)
 {
-    int eff1;
-    if (EffectsPanel1->isRandom_()) { //avoid a few types of random effects
-        eff1 = ChooseRandomEffect();
-    } else {
-        eff1 = EffectsPanel1->EffectChoicebook->GetSelection();
-    }
-
+    int eff1 = ChooseRandomEffect();
     settings = EffectsPanel1->GetRandomEffectString(eff1);
-
-
     palette = colorPanel->GetRandomColorString();
     return effectManager[eff1]->Name();
 }
