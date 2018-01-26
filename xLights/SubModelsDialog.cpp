@@ -369,6 +369,7 @@ void SubModelsDialog::Save()
         }
     }
     for (auto a = subModels.begin(); a != subModels.end(); ++a) {
+        // todo (cp16net) need to potentially rename submodel here across groups and current sequence
         child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
         child->AddAttribute("name", (*a)->name);
         child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
