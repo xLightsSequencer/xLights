@@ -1,6 +1,7 @@
 #include "ScheduleOptions.h"
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
+#include <wx/dir.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include "UserButton.h"
@@ -116,10 +117,10 @@ void ScheduleOptions::AddProjector(const std::string& name, const std::string& i
 void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
 {
     if (_audioDevice != audioDevice) {
-        _audioDevice = audioDevice; 
+        _audioDevice = audioDevice;
         AudioManager::SetAudioDevice(_audioDevice);
         _changeCount++;
-    } 
+    }
 }
 
 void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color)
@@ -310,7 +311,7 @@ std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const 
                     res += ",";
                 }
                 first = false;
-                res += "{\"label\":\"" + 
+                res += "{\"label\":\"" +
                     (*it)->GetLabel() + "\",\"color\":\"" +
                     (*it)->GetColorName() + "\",\"id\":\"" +
                     wxString::Format("%i", (*it)->GetId()).ToStdString() + "\"}";
