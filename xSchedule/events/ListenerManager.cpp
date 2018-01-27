@@ -4,8 +4,6 @@
 #include "../ScheduleOptions.h"
 #include <log4cpp/Category.hh>
 #include "EventBase.h"
-#include "EventE131.h"
-#include "EventARTNet.h"
 #include "EventSerial.h"
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
@@ -13,7 +11,6 @@
 #include "ListenerSerial.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
-#include "EventFPP.h"
 
 ListenerManager::ListenerManager(ScheduleManager* scheduleManager)
 {
@@ -184,7 +181,6 @@ void ListenerManager::StartListeners()
     {
         if ((*it3)->GetType() == "E131")
         {
-            EventE131* e = (EventE131*)(*it3);
             bool e131Exists = false;
             for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
             {
@@ -203,7 +199,6 @@ void ListenerManager::StartListeners()
         }
         else if ((*it3)->GetType() == "ARTNet")
         {
-            EventARTNet* e = (EventARTNet*)(*it3);
             bool artnetExists = false;
             for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
             {
@@ -222,7 +217,6 @@ void ListenerManager::StartListeners()
         }
         else if ((*it3)->GetType() == "FPP")
         {
-            EventFPP* e = (EventFPP*)(*it3);
             bool fppExists = false;
             for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
             {

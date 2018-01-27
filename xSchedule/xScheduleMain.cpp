@@ -42,7 +42,7 @@
 #include "EventsDialog.h"
 #include "../xLights/outputs/IPOutput.h"
 
-#include "../include/xs_xyzzy.xpm"
+//#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
 #include "../include/xs_otloff.xpm"
@@ -816,7 +816,7 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDPLAYLIST, "Add Playlist");
     if (!__schedule->GetOptions()->IsAdvancedMode())
     {
-        wxMenuItem* addadv = mnu.Append(ID_MNU_ADDADVPLAYLIST, "Add Advanced Playlist");
+        mnu.Append(ID_MNU_ADDADVPLAYLIST, "Add Advanced Playlist");
     }
     wxMenuItem* sched = mnu.Append(ID_MNU_SCHEDULEPLAYLIST, "Schedule");
     if (!IsPlayList(treeitem))
@@ -827,12 +827,11 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemMenu(wxTreeEvent& event)
     wxMenuItem* del = mnu.Append(ID_MNU_DELETE, "Delete");
     wxMenuItem* duplicate = mnu.Append(ID_MNU_DUPLICATEPLAYLIST, "Duplicate");
     wxMenuItem* edit = mnu.Append(ID_MNU_EDIT, "Edit");
-    wxMenuItem* editadv = nullptr;
     if (!__schedule->GetOptions()->IsAdvancedMode())
     {
         if (IsPlayList(treeitem))
         {
-            editadv = mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
+            mnu.Append(ID_MNU_EDITADV, "Edit Advanced");
         }
     }
 

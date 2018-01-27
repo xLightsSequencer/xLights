@@ -95,7 +95,7 @@ void ListenerARTNet::StopProcess()
 
 void ListenerARTNet::Poll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr)
     {
@@ -135,8 +135,7 @@ void ListenerARTNet::Poll()
                 wxByte hours = buffer[17];
                 wxByte mode = buffer[18];
 
-                long ms = 0;
-                ms = ((hours * 60 + mins) * 60 + secs) * 1000;
+                long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
                 switch (mode)
                 {
                 case 0:
@@ -154,6 +153,8 @@ void ListenerARTNet::Poll()
                 case 3:
                     //30 fps
                     ms += frames * 1000 / 30;
+                    break;
+                default:
                     break;
                 }
                 // TODO add sync using ARTNet timecode packets

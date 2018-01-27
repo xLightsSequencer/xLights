@@ -107,11 +107,6 @@ void ListenerFPP::Poll()
 
         if (IsValidHeader(buffer))
         {
-            uint8_t packetType = -1;
-            std::string fileName = "";
-            uint32_t frameNumber = 999999999;
-            float secondsElapsed = -1;
-
             ControlPkt* cp = (ControlPkt*)&buffer[0];
             if (cp->pktType == CTRL_PKT_SYNC)
             {
@@ -119,10 +114,9 @@ void ListenerFPP::Poll()
 
                 if (sp->fileType == SYNC_FILE_SEQ)
                 {
-                    packetType = sp->pktType;
-                    fileName = std::string(sp->filename);
-                    frameNumber = sp->frameNumber;
-                    secondsElapsed = sp->secondsElapsed;
+                    uint8_t packetType = sp->pktType;
+                    std::string fileName = std::string(sp->filename);
+                    uint32_t frameNumber = sp->frameNumber;
                     long ms = frameNumber * _frameMS;
 
                     if (packetType != -1)
@@ -147,6 +141,8 @@ void ListenerFPP::Poll()
                             _listenerManager->Sync(fileName, ms, GetType());
                         }
                         break;
+                        default:
+                            break;
                         }
                     }
                     else

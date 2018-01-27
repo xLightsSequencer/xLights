@@ -1,7 +1,6 @@
 #include "PlayListItemFPPEvent.h"
 #include "PlayListItemFPPEventPanel.h"
 #include "PlayList.h"
-#include "PlayListStep.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
@@ -131,22 +130,22 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
             wxASSERT(sizeof(ControlPkt) == 7); // ensure data is packed correctly
 
             std::string eventstring = GetEventString();
-            int bufsize = sizeof(ControlPkt) + eventstring.size() + 1;
-            unsigned char* buffer = (unsigned char*)malloc(bufsize);
-            memset(buffer, 0x00, bufsize);
+            int dbufsize = sizeof(ControlPkt) + eventstring.size() + 1;
+            unsigned char* dbuffer = (unsigned char*)malloc(dbufsize);
+            memset(dbuffer, 0x00, dbufsize);
 
-            if (buffer != nullptr)
+            if (dbuffer != nullptr)
             {
-                ControlPkt* cp = (ControlPkt*)buffer;
+                ControlPkt* cp = (ControlPkt*)dbuffer;
                 strncpy(cp->fppd, "FPPD", 4);
                 cp->pktType = CTRL_PKT_EVENT;
-                cp->extraDataLen = bufsize - sizeof(ControlPkt);
-                strcpy((char*)(buffer + sizeof(ControlPkt)), eventstring.c_str());
+                cp->extraDataLen = dbufsize - sizeof(ControlPkt);
+                strcpy((char*)(dbuffer + sizeof(ControlPkt)), eventstring.c_str());
 
-                socket->SendTo(remoteAddr, buffer, bufsize);
+                socket->SendTo(remoteAddr, dbuffer, dbufsize);
                 logger_base.info("FPP Event sent %s.", (const char *)eventstring.c_str());
 
-                free(buffer);
+                free(dbuffer);
             }
 
             logger_base.info("FPP Event send datagram closed.");

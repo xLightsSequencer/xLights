@@ -98,7 +98,7 @@ void ListenerE131::StopProcess()
 
 void ListenerE131::Poll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr)
     {

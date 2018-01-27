@@ -113,7 +113,15 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
         int cur = 0;
         for (int y=0; y < NumArches; y++) {
             for(int x=0; x<SegmentsPerArch; x++) {
-                int idx = y * SegmentsPerArch + x;
+                int idx = 0;
+                if (IsLtoR)
+                {
+                    idx = y * SegmentsPerArch + x;
+                }
+                else
+                {
+                    idx = (y + 1) * SegmentsPerArch - x - 1;
+                }
                 newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
                 for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
                     newNodes[cur]->Coords[c].bufX=cur;
@@ -129,6 +137,12 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
 }
 
 void ArchesModel::InitModel() {
+
+    if (!IsLtoR)
+    {
+        isBotToTop = false;
+    }
+
     int NumArches=parm1;
     int SegmentsPerArch=parm2;
     arc = wxAtoi(ModelXml->GetAttribute("arc", "180"));

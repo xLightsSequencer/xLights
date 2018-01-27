@@ -94,7 +94,7 @@ void ListenerFPPUnicast::StopProcess()
 
 void ListenerFPPUnicast::Poll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr)
     {
@@ -130,7 +130,7 @@ void ListenerFPPUnicast::Poll()
 
                 if (components.size() >= 5)
                 {
-                    uint8_t packetType = wxAtoi(components[3]);
+                    //uint8_t packetType = wxAtoi(components[3]);
                     std::string fileName = components[4].ToStdString();
                     if (components.size() >= 7)
                     {

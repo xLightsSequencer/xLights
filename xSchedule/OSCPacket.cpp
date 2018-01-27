@@ -16,6 +16,8 @@ std::string OSCPacket::GetTypeChar(OSCTYPE type)
         return "f";
     case OSCTYPE::OSCSTRING:
         return "s";
+    default:
+        break;
     }
 
     return "i";
@@ -50,7 +52,7 @@ std::string OSCPacket::GetP(int p) const
                 *((int8_t*)&f + 3) = *pcur++;
                 *((int8_t*)&f + 2) = *pcur++;
                 *((int8_t*)&f + 1) = *pcur++;
-                *((int8_t*)&f) = *pcur++;
+                *((int8_t*)&f) = *pcur;
                 return wxString::Format("%f", f).ToStdString();
                 break;
             case 'i':
@@ -58,11 +60,13 @@ std::string OSCPacket::GetP(int p) const
                 *((int8_t*)&ii + 3) = *pcur++;
                 *((int8_t*)&ii + 2) = *pcur++;
                 *((int8_t*)&ii + 1) = *pcur++;
-                *((int8_t*)&ii) = *pcur++;
+                *((int8_t*)&ii) = *pcur;
                 return wxString::Format("%d", ii).ToStdString();
                 break;
             case 's':
                 return std::string((char*)pcur);
+                break;
+            default:
                 break;
             }
         }
@@ -78,6 +82,8 @@ std::string OSCPacket::GetP(int p) const
                 break;
             case 's':
                 pcur += roundTo4(strlen((char*)pcur));
+                break;
+            default:
                 break;
             }
         }
@@ -322,6 +328,8 @@ void OSCPacket::AddParameter(OSCTYPE type, const std::string value)
         strcpy((char*)&_buffer[obuffsize], value.c_str());
     }
     break;
+    default:
+        break;
     }
 }
 

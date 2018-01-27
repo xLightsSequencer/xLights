@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)  CheckSequence erroneously flags 172.16 networks as broadcast. Fixes #1084
    -- bug (dkulp)  Fix problem with individual start channels on strings cannot self reference
    -- enh (craig)  Randomize only effect settings with a lock available.
+   -- bug (keith)  Fix the arches model when start is set to the blue square
    -- enh (keith)  Force xtimging import to round down timing mark times if they occur between frames
    -- enh (keith)  Add the ability to include multiple timings in a single xTiming file
    -- enh (keith)  Add event triggers to scheduler which trigger command execution. Triggers available:

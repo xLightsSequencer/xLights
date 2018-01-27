@@ -50,4 +50,3 @@ public:
     virtual void* Entry() override;
 };
 #endif
-

@@ -1,7 +1,6 @@
 #include "DMXOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 DMXOutput::DMXOutput(SerialOutput* output) : SerialOutput(output)

@@ -2,10 +2,7 @@
 #define VIDEOCACHE_H
 
 #include <mutex>
-
 #include <wx/wx.h>
-#include <wx/thread.h>
-
 #include <string>
 #include <list>
 #include <map>

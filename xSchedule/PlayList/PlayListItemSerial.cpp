@@ -10,6 +10,7 @@
 #include "../RunningSchedule.h"
 #include "../xLights/outputs/serial.h"
 #include "../../xLights/outputs/SerialOutput.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemSerial::PlayListItemSerial(wxXmlNode* node) : PlayListItem(node)
 {
@@ -27,7 +28,7 @@ void PlayListItemSerial::Load(wxXmlNode* node)
     _commPort = node->GetAttribute("CommPort", "COM1");
     _configuration = node->GetAttribute("Configuration", "8N1");
     _speed = wxAtoi(node->GetAttribute("Speed", "19200"));
-    _data = node->GetAttribute("Data", "");
+    _data = UnXmlSafe(node->GetAttribute("Data", ""));
 }
 
 PlayListItemSerial::PlayListItemSerial() : PlayListItem()
@@ -59,7 +60,7 @@ wxXmlNode* PlayListItemSerial::Save()
     node->AddAttribute("CommPort", _commPort);
     node->AddAttribute("Configuration", _configuration);
     node->AddAttribute("Speed", wxString::Format("%d", _speed));
-    node->AddAttribute("Data", _data);
+    node->AddAttribute("Data", XmlSafe(_data));
 
     PlayListItem::Save(node);
 
@@ -262,7 +263,7 @@ void PlayListItemSerial::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
 
                 if (serial != nullptr && serial->IsOpen())
                 {
-                    int written = serial->Write((char *)dbuffer, dbuffsize);
+                    serial->Write((char *)dbuffer, dbuffsize);
 
                     int i = 0;
                     while (serial->WaitingToWrite() != 0 && (i < 10))
