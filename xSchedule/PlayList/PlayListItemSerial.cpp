@@ -91,7 +91,7 @@ std::string PlayListItemSerial::GetTooltip()
 
 bool isHexChar(char c)
 {
-    return c >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f';
+    return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
 }
 
 char HexToChar(char c)
@@ -151,7 +151,7 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 
 	unsigned char* buffer = (unsigned char*)malloc(working.size());
 	used = 0;
-	
+
 	for (int i = 0; i < working.size(); i++)
 	{
 		if (working[i] == '\\')
@@ -161,7 +161,7 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 				if (working[i+1] == '\\')
 				{
 					buffer[used++] = working[i];
-					i++; // skip the second '\\' 
+					i++; // skip the second '\\'
 				}
 				if (working[i+1] == 'x' || working[i+1] == 'X')
 				{

@@ -56,7 +56,7 @@ void ListenerManager::StartListeners()
             {
                 if ((*it2)->GetType() == "Serial" && l->GetCommPort() == ((EventSerial*)(*it2))->GetCommPort())
                 {
-                    if (l->GetSpeed() == ((EventSerial*)(*it2))->GetSpeed() && 
+                    if (l->GetSpeed() == ((EventSerial*)(*it2))->GetSpeed() &&
                         l->GetProtocol() == ((EventSerial*)(*it2))->GetProtocol())
                     {
                         found = true;
@@ -382,10 +382,10 @@ void ListenerManager::SetRemoteArtNet()
 
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
-    if (_sync == 3 && type == "ARTNet" ||
-        _sync == 4 && type == "FPP Unicast" ||
-        _sync == 2 && type == "OSC" ||
-        _sync == 1 && type == "FPP")
+    if ((_sync == 3 && type == "ARTNet") ||
+        (_sync == 4 && type == "FPP Unicast") ||
+        (_sync == 2 && type == "OSC") ||
+        (_sync == 1 && type == "FPP"))
     {
         return _scheduleManager->Sync(filename, ms);
     }

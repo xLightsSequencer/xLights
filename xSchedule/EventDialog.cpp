@@ -295,9 +295,9 @@ void EventDialog::ValidateWindow()
     }
 
     EventPanel* panel = (EventPanel*)Choicebook_EventType->GetPage(Choicebook_EventType->GetSelection());
-    if (TextCtrl_P1->IsEnabled() && TextCtrl_P1->GetValue().Trim().Trim(false) == "" ||
-        TextCtrl_P2->IsEnabled() && TextCtrl_P2->GetValue().Trim().Trim(false) == "" ||
-        TextCtrl_P3->IsEnabled() && TextCtrl_P3->GetValue().Trim().Trim(false) == "" ||
+    if ((TextCtrl_P1->IsEnabled() && TextCtrl_P1->GetValue().Trim().Trim(false) == "") ||
+        (TextCtrl_P2->IsEnabled() && TextCtrl_P2->GetValue().Trim().Trim(false) == "") ||
+        (TextCtrl_P3->IsEnabled() && TextCtrl_P3->GetValue().Trim().Trim(false) == "") ||
         TextCtrl_Name->GetValue().Trim().Trim(false) == "" ||
         !panel->ValidateWindow()
     )
