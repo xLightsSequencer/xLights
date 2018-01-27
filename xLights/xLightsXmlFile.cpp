@@ -1780,7 +1780,18 @@ void xLightsXmlFile::ProcessXTiming(wxXmlNode* node, xLightsFrame* xLightsParent
                     wxString end = effects->GetAttribute("endtime");
                     if (sequence_loaded)
                     {
-                        effectLayer->AddEffect(0, std::string(label.c_str()), "", "", wxAtoi(start), wxAtoi(end), EFFECT_NOT_SELECTED, false);
+                        int s = wxAtoi(start);
+                        int e = wxAtoi(end);
+
+                        if (s % GetFrameMS() != 0)
+                        {
+                            s -= s % GetFrameMS();
+                        }
+                        if (e % GetFrameMS() != 0)
+                        {
+                            e -= e % GetFrameMS();
+                        }
+                        effectLayer->AddEffect(0, std::string(label.c_str()), "", "", s, e, EFFECT_NOT_SELECTED, false);
                     }
                     else
                     {
