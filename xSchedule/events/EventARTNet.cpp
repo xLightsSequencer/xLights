@@ -39,3 +39,8 @@ void EventARTNet::Process(int universe, wxByte* buffer, long buffersize, Schedul
         }
     }
 }
+
+std::string EventARTNet::GetParmToolTip()
+{
+    return EventBase::DefaultParmTooltip();
+}

@@ -20,6 +20,7 @@ class EventARTNet: public EventBase
         int GetUniverse() const { return _universe; }
         int GetChannel() const { return _channel; }
         virtual void Process(int universe, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) override;
+        static std::string GetParmToolTip();
 };
 
 #endif

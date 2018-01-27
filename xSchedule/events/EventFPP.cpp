@@ -69,3 +69,8 @@ void EventFPP::Process(const std::string& id, ScheduleManager* scheduleManager)
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
+
+std::string EventFPP::GetParmToolTip()
+{
+    return "Available:\n\n   %MAJOR% - FPP major event id 01-24\n   %MINOR% - FPP minor event id 01-24\n   %ID% - FPP event id MAJOR_MINOR";
+}

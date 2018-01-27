@@ -238,6 +238,44 @@ void EventDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
 {
+    std::string type = Choicebook_EventType->GetPageText(event.GetSelection()).ToStdString();
+
+    if (type == "E131")
+    {
+        TextCtrl_P1->SetToolTip(EventE131::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventE131::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventE131::GetParmToolTip());
+    }
+    else if (type == "Data")
+    {
+        TextCtrl_P1->SetToolTip(EventData::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventData::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventData::GetParmToolTip());
+    }
+    else if (type == "Serial")
+    {
+        TextCtrl_P1->SetToolTip(EventSerial::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventSerial::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventSerial::GetParmToolTip());
+    }
+    else if (type == "OSC")
+    {
+        TextCtrl_P1->SetToolTip(EventOSC::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventOSC::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventOSC::GetParmToolTip());
+    }
+    else if (type == "FPP")
+    {
+        TextCtrl_P1->SetToolTip(EventFPP::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventFPP::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventFPP::GetParmToolTip());
+    }
+    else if (type == "ARTNet")
+    {
+        TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventARTNet::GetParmToolTip());
+    }
 }
 
 void EventDialog::OnChoice_CommandSelect(wxCommandEvent& event)

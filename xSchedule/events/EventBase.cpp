@@ -49,6 +49,11 @@ void EventBase::Save(wxXmlNode* node)
     node->AddAttribute("Threshold", wxString::Format("%d", _threshold));
 }
 
+std::string EventBase::DefaultParmTooltip()
+{
+    return "Available:\n\n   %CHVALUE% - Channel value\n   %CHVALUE100% - Channel value scaled from 0-255 to 0-100\n   %CHVALUE255% - Channel value scaled from 0-100 to 0-255";
+}
+
 void EventBase::ProcessCommand(wxByte value, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

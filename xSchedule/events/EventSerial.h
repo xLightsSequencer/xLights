@@ -26,6 +26,7 @@ class EventSerial: public EventBase
         int GetSpeed() const { return _speed; }
         int GetChannel() const { return _channel; }
         virtual void Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) override;
+        static std::string GetParmToolTip();
 };
 
 #endif

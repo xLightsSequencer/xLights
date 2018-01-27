@@ -37,3 +37,8 @@ void EventE131::Process(int universe, wxByte* buffer, long buffersize, ScheduleM
         }
     }
 }
+
+std::string EventE131::GetParmToolTip()
+{
+    return EventBase::DefaultParmTooltip();
+}

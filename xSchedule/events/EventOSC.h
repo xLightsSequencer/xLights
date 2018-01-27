@@ -25,6 +25,7 @@ class EventOSC: public EventBase
         std::string GetParm2Type() const { return _oscParm2Type; }
         std::string GetParm3Type() const { return _oscParm3Type; }
         virtual void Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager) override;
+        static std::string GetParmToolTip();
 };
 
 #endif

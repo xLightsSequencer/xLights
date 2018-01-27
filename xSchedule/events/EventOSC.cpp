@@ -113,6 +113,16 @@ void EventOSC::Process(const std::string& path, const std::string& p1, const std
     pp2.Replace("%P3F255%", pf255);
     pp3.Replace("%P3F255%", pf255);
 
+    auto paths = wxSplit(_path, '/');
+    int j = 1;
+    for (auto it = paths.begin(); it != paths.end(); ++it)
+    {
+        auto var = wxString::Format("%%PATH%d%%", j++);
+        pp1.Replace(var, *it);
+        pp2.Replace(var, *it);
+        pp3.Replace(var, *it);
+    }
+
     std::string parameters = pp1.ToStdString();
     if (pp2 != "") parameters += "," + pp2.ToStdString();
     if (pp3 != "") parameters += "," + pp3.ToStdString();
@@ -124,4 +134,9 @@ void EventOSC::Process(const std::string& path, const std::string& p1, const std
     std::string msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
+}
+
+std::string EventOSC::GetParmToolTip()
+{
+    return "Available:\n\n   %P1% - %P3% - Raw values of OSC parameters\n   %Pxy100% - OSC parameter x of type y (I - integer or F - float) scaled from I - 0-255 F 0.0-1.0 to 0-100. eg %P1I100%\n   %Pxy255% - OSC parameter x of type y (I - integer or F - float) scaled from I - 0-100/F - 0.0-1.0 to 0-255. eg %P2F255%\n   %PATHx% - components of the OSC path where x is 1 to the number of path components";
 }

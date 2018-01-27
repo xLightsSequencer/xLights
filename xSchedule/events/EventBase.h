@@ -67,5 +67,6 @@ class EventBase
         std::string GetCondition() const { return _condition; }
         int GetThreshold() const { return _threshold; }
         bool EvaluateCondition(wxByte value);
+        static std::string EventBase::DefaultParmTooltip();
 };
 #endif

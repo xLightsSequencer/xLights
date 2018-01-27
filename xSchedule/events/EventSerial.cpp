@@ -58,3 +58,8 @@ void EventSerial::Process(const std::string& commPort, wxByte* buffer, long buff
     }
 }
 
+std::string EventSerial::GetParmToolTip()
+{
+    return EventBase::DefaultParmTooltip();
+}
+

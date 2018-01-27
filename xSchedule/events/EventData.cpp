@@ -37,3 +37,8 @@ void EventData::Process(wxByte* buffer, long buffersize, ScheduleManager* schedu
     }
 }
 
+std::string EventData::GetParmToolTip()
+{
+    return EventBase::DefaultParmTooltip();
+}
+

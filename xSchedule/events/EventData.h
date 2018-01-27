@@ -18,6 +18,7 @@ class EventData: public EventBase
         void SetChannel(std::string channel) { if (_channel != channel) { _channel = channel; _changeCount++; } }
         std::string GetChannel() const { return _channel; }
         virtual void Process(wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) override;
+        static std::string GetParmToolTip();
 };
 
 #endif
