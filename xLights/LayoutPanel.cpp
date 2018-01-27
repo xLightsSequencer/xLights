@@ -735,6 +735,9 @@ void LayoutPanel::clearPropGrid() {
 }
 
 void LayoutPanel::refreshModelList() {
+
+    TreeListViewModels->Freeze();
+
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextItem(item) )
@@ -767,6 +770,8 @@ void LayoutPanel::refreshModelList() {
             }
         }
     }
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
@@ -889,6 +894,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
+
+    TreeListViewModels->Freeze();
+
     if (full_refresh) {
         UnSelectAllModels();
     }
@@ -970,6 +978,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
     modelPreview->SetModels(models);
     UpdatePreview();
+
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
@@ -3532,6 +3543,8 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
+    TreeListViewModels->Freeze();
+
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
@@ -3596,6 +3609,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
         TreeListViewModels->GetRootItem();
         AddModelToTree(*a, &root);
     }
+
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 CopyPasteModel::~CopyPasteModel()

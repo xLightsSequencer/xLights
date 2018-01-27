@@ -234,8 +234,8 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         if (m != nullptr) {
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
             if (grp != nullptr) {
-                for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
-                    if (!canAddToGroup(g, models, *it, modelGroupsInGroup)) {
+                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
+                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup)) {
                         return false;
                     }
                 }
@@ -249,9 +249,11 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
 {
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
+    ListBoxModelsInGroup->Freeze();
     ListBoxModelsInGroup->ClearAll();
     ListBoxModelsInGroup->AppendColumn("Models");
 
+    ListBoxAddToModelGroup->Freeze();
     ListBoxAddToModelGroup->ClearAll();
     ListBoxAddToModelGroup->AppendColumn("Models");
 
@@ -313,6 +315,11 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     SizeSpinCtrl->SetValue(wxAtoi(e->GetAttribute("GridSize", "400")));
 
     ResizeColumns();
+
+    ListBoxModelsInGroup->Thaw();
+    ListBoxModelsInGroup->Refresh();
+    ListBoxAddToModelGroup->Thaw();
+    ListBoxAddToModelGroup->Refresh();
 }
 
 void ModelGroupPanel::ResizeColumns()
@@ -768,6 +775,8 @@ int ModelGroupPanel::GetSelectedModelCount()
 
 void ModelGroupPanel::AddSelectedModels(int index)
 {
+    ListBoxModelsInGroup->Freeze();
+    ListBoxAddToModelGroup->Freeze();
     ClearSelections(ListBoxModelsInGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
     if (index == -1) index = ListBoxModelsInGroup->GetItemCount();
     int added = 0;
@@ -790,10 +799,18 @@ void ModelGroupPanel::AddSelectedModels(int index)
     SaveGroupChanges();
 
     ResizeColumns();
+
+    ListBoxModelsInGroup->Thaw();
+    ListBoxModelsInGroup->Refresh();
+    ListBoxAddToModelGroup->Thaw();
+    ListBoxAddToModelGroup->Refresh();
 }
 
 void ModelGroupPanel::RemoveSelectedModels()
 {
+    ListBoxModelsInGroup->Freeze();
+    ListBoxAddToModelGroup->Freeze();
+
     ClearSelections(ListBoxAddToModelGroup, wxLIST_STATE_SELECTED | wxLIST_STATE_DROPHILITED);
     for (size_t i = 0; i < ListBoxModelsInGroup->GetItemCount(); ++i)
     {
@@ -816,10 +833,18 @@ void ModelGroupPanel::RemoveSelectedModels()
     SaveGroupChanges();
 
     ResizeColumns();
+
+    ListBoxModelsInGroup->Thaw();
+    ListBoxModelsInGroup->Refresh();
+    ListBoxAddToModelGroup->Thaw();
+    ListBoxAddToModelGroup->Refresh();
 }
 
 void ModelGroupPanel::MoveSelectedModelsTo(int indexTo)
 {
+    ListBoxModelsInGroup->Freeze();
+    ListBoxAddToModelGroup->Freeze();
+
     std::list<std::string> moved;
 
     int adj = 0;
@@ -858,6 +883,11 @@ void ModelGroupPanel::MoveSelectedModelsTo(int indexTo)
     }
 
     SaveGroupChanges();
+
+    ListBoxModelsInGroup->Thaw();
+    ListBoxModelsInGroup->Refresh();
+    ListBoxAddToModelGroup->Thaw();
+    ListBoxAddToModelGroup->Refresh();
 }
 
 void ModelGroupPanel::ClearSelections(wxListCtrl* listCtrl, long stateMask)

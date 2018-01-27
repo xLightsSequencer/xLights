@@ -684,6 +684,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     ListCtrl_Available->SortItems(MyCompareFunctionAsc, (wxIntPtr)ListCtrl_Available);
 
     ListCtrl_Available->Thaw();
+    ListCtrl_Available->Update();
 }
 
 void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
