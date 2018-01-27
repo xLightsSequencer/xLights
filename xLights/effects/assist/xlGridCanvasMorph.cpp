@@ -423,7 +423,6 @@ void xlGridCanvasMorph::DrawMorphEffect()
     xlColor yellowLine = xlYELLOW;
     xlColor redLine = xlRED;
 
-
     DrawGLUtils::xlVertexColorAccumulator va;
     va.PreAlloc(8);
 
