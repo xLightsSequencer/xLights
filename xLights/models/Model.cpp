@@ -381,6 +381,21 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     return lg;
 }
 
+void Model::SetStartChannel(std::string startChannel, bool suppressRecalc)
+{
+    ModelXml->DeleteAttribute("StartChannel");
+    ModelXml->AddAttribute("StartChannel", startChannel);
+    if (ModelXml->GetAttribute("Advanced") == "1") {
+        ModelXml->DeleteAttribute(StartChanAttrName(0));
+        ModelXml->AddAttribute(StartChanAttrName(0), startChannel);
+    }
+    if (!suppressRecalc)
+    {
+        RecalcStartChannels();
+    }
+    IncrementChangeCount();
+}
+
 void Model::SetProperty(wxString property, wxString value, bool apply)
 {
     wxString val = ModelXml->GetAttribute(property);

@@ -100,6 +100,7 @@ public:
     static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
+    void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 

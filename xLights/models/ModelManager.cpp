@@ -102,6 +102,30 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     return false;
 }
 
+bool ModelManager::IsModelOverlapping(Model* model)
+{
+    long start = model->GetNumberFromChannelString(model->ModelStartChannel);
+    long end = start + model->GetChanCount() - 1;
+    //long sstart = model->GetFirstChannel() + 1;
+    //wxASSERT(sstart == start);
+    //long send = model->GetLastChannel() + 1;
+    //wxASSERT(send == end);
+    for (auto it = this->begin(); it != this->end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup" && it->second->GetName() != model->GetName())
+        {
+            long s = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
+            long e = s + it->second->GetChanCount() - 1;
+            //long ss = it->second->GetFirstChannel() + 1;
+            //wxASSERT(ss == s);
+            //long se = it->second->GetLastChannel() + 1;
+            //wxASSERT(se == e);
+            if (start <= e && end >= s) return true;
+        }
+    }
+    return false;
+}
+
 void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) {
     clear();
     previewWidth = previewW;

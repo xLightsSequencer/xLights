@@ -112,6 +112,9 @@ const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
+const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
+const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
@@ -281,7 +284,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
-
 
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, xlights->PreviewModels, xlights->LayoutGroups, true);
@@ -3078,7 +3080,117 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
     }
-    else if(id == ID_MNU_RENAME_MODEL_GROUP)
+    else if (id == ID_MNU_MAKEALLSCVALID)
+    {
+        if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            Model* lastModel = nullptr;
+            long lastModelEndChannel = 0;
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetLastChannel() > lastModelEndChannel)
+                {
+                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    {
+                        lastModelEndChannel = it->second->GetLastChannel();
+                        lastModel = it->second;
+                    }
+                }
+            }
+
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetDisplayAs() != "ModelGroup" && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+                {
+                    if (lastModel == nullptr)
+                    {
+                        it->second->SetStartChannel("1", true);
+                        lastModel = it->second;
+                    }
+                    else
+                    {
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        lastModel = it->second;
+                    }
+                }
+            }
+            //xlights->RecalcModels(true);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+        }
+    }
+    else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING)
+    {
+        if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            Model* lastModel = nullptr;
+            long lastModelEndChannel = 0;
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetLastChannel() > lastModelEndChannel)
+                {
+                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    {
+                        lastModelEndChannel = it->second->GetLastChannel();
+                        lastModel = it->second;
+                    }
+                }
+            }
+
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it->second))
+                {
+                    if (lastModel == nullptr)
+                    {
+                        it->second->SetStartChannel("1", true);
+                        lastModel = it->second;
+                    }
+                    else
+                    {
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        lastModel = it->second;
+                    }
+                }
+            }
+            //xlights->RecalcModels(true);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+        }
+    }
+    else if (id == ID_MNU_MAKESCVALID)
+    {
+        if (wxMessageBox("While this will make your start channel valid and not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            if (selectedModel != nullptr)
+            {
+                Model* lastModel = nullptr;
+                long lastModelEndChannel = 0;
+                for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+                {
+                    if (it->second->GetLastChannel() > lastModelEndChannel)
+                    {
+                        if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                        {
+                            lastModelEndChannel = it->second->GetLastChannel();
+                            lastModel = it->second;
+                        }
+                    }
+                }
+                if (lastModel == nullptr)
+                {
+                    selectedModel->SetStartChannel("1", true);
+                }
+                else
+                {
+                    selectedModel->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                }
+                xlights->UpdateModelsList();
+                xlights->MarkEffectsFileDirty(true);
+            }
+        }
+    }
+    else if (id == ID_MNU_RENAME_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if( mSelectedGroup.IsOk() ) {
@@ -3204,8 +3316,6 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
 }
-
-
 
 void LayoutPanel::PreviewSaveImage()
 {
@@ -3481,11 +3591,53 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
         mnuContext.AppendSeparator();
     }
+
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
     if( mSelectedGroup.IsOk() ) {
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
+
+    bool foundInvalid = false;
+    bool foundOverlapping = false;
+    if (selectedModel != nullptr && selectedModel->GetDisplayAs() != "SubModel" && selectedModel->GetDisplayAs() != "ModelGroup")
+    {
+        if (!selectedModel->CouldComputeStartChannel || !selectedModel->IsValidStartChannelString())
+        {
+            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
+            foundInvalid = true;
+        }
+        if (xlights->AllModels.IsModelOverlapping(selectedModel))
+        {
+            foundOverlapping = true;
+            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+        }
+    }
+
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            if (!foundInvalid && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+            {
+                foundInvalid = true;
+            }
+            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it->second))
+            {
+                foundOverlapping = true;
+            }
+        }
+    }
+
+    if (foundInvalid)
+    {
+        mnuContext.Append(ID_MNU_MAKEALLSCVALID, "Make All Start Channels Valid");
+    }
+    if (foundOverlapping)
+    {
+        mnuContext.Append(ID_MNU_MAKEALLSCNOTOVERLAPPING, "Make All Start Channels Not Overlapping");
+    }
+
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
     PopupMenu(&mnuContext);
 }

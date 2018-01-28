@@ -29,6 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 	-- enh (keith) Add ability to send a FPP Event in a playlist step
 	-- enh (keith) Add ability to send to a serial device in a playlist step
 	-- enh (keith) Rework FPP/OSC remote so it works correctly with new event model and add ARTNet timecode support
+	-- enh (keith) Add magic fixes for overlapping channels and illegal start channels
 2018.3 Jan 21, 2018
    -- enh (dkulp)  Bunch of render optimizations, particularly for groups with large number of models
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice
