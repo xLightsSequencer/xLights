@@ -509,10 +509,9 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             if (eff->GetEffectName() == "On") {
                 int starti = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
                 int endi = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
-
+                xlColor c = eff->GetPalette()[0];
 
                 if (cpn == 3) {
-                    xlColor c = eff->GetPalette()[0];
                     std::stringstream stream;
                     stream << " startColor=\"FF"
                         << std::setfill ('0') << std::setw(6)
@@ -522,6 +521,11 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
                         << std::hex << std::uppercase << c.GetRGB(false)
                         << "\"";
                     f.Write(stream.str());
+                } else {
+                    starti *= c.red;
+                    starti /= 255;
+                    endi *= c.red;
+                    endi /= 255;
                 }
                 if (starti == endi) {
                     f.Write(string_format(" intensity=\"%d\"", starti));
