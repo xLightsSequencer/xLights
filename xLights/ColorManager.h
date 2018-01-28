@@ -35,6 +35,7 @@ class ColorManager
             COLOR_MODEL_SELECTED,
             COLOR_MODEL_OVERLAP,
             COLOR_LAYOUT_DASHES,
+            COLOR_EFFECT_SELECTED_LOCKED,
             NUM_COLORS
         };
 
@@ -99,7 +100,8 @@ class ColorManager
             {COLOR_MODEL_DEFAULT,       "ModelDefault",      "Model Default",       xlLIGHT_GREY,           COLOR_CAT_LAYOUT_TAB},
             {COLOR_MODEL_SELECTED,      "ModelSelected",     "Model Selected",      xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
             {COLOR_MODEL_OVERLAP,       "ModelOverlap",      "Model Overlap",       xlRED,                  COLOR_CAT_LAYOUT_TAB},
-            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB}
+            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
+            {COLOR_EFFECT_SELECTED_LOCKED, "EffectSelectedLocked",      "Locked Effects",      xlRED,      COLOR_CAT_EFFECT_GRID}
         };
 
     protected:

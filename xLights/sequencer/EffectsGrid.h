@@ -185,6 +185,7 @@ private:
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
     bool OneCellSelected();
+    void LockEffects(bool lock);
     void ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
     void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
     void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);
@@ -215,6 +216,7 @@ private:
     Effect* mSelectedEffect;
 
     DrawGLUtils::xlVertexAccumulator lines;
+    DrawGLUtils::xlVertexAccumulator selectedLinesLocked;
     DrawGLUtils::xlVertexAccumulator timingEffLines;
     DrawGLUtils::xlVertexColorAccumulator timingLines;
     DrawGLUtils::xlVertexTextAccumulator texts;
@@ -261,6 +263,8 @@ private:
     static const long ID_GRID_MNU_DELETE;
     static const long ID_GRID_MNU_RANDOM_EFFECTS;
     static const long ID_GRID_MNU_DESCRIPTION;
+    static const long ID_GRID_MNU_LOCK;
+    static const long ID_GRID_MNU_UNLOCK;
     static const long ID_GRID_MNU_TIMING;
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;

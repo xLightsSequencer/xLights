@@ -1866,6 +1866,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
     else if (name.StartsWith("X_"))
     {
+        // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
         return;
     }
     else

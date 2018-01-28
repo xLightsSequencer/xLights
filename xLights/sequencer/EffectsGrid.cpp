@@ -51,6 +51,8 @@ const long EffectsGrid::ID_GRID_MNU_PASTE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DELETE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_RANDOM_EFFECTS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DESCRIPTION = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_LOCK = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_UNLOCK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_TIMING = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_UNDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
@@ -286,9 +288,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
 
         wxMenuItem* menu_effect_description = mnuLayer.Append(ID_GRID_MNU_DESCRIPTION, "Description");
+        wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
+        wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
         if (mSelectedEffect == nullptr && !MultipleEffectsSelected())
         {
             menu_effect_description->Enable(false);
+            menu_effect_unlock->Enable(false);
+            menu_effect_lock->Enable(false);
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
@@ -321,6 +327,14 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
                 }
             }
             mSelectedEffect = selectedEffect;
+        }
+        mnuLayer.AppendSeparator();
+        wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
+        wxMenuItem* menu_effect_unlock = mnuLayer.Append(ID_GRID_MNU_UNLOCK, "Unlock");
+        if (mSelectedEffect == nullptr && !MultipleEffectsSelected())
+        {
+            menu_effect_unlock->Enable(false);
+            menu_effect_lock->Enable(false);
         }
         mnuLayer.AppendSeparator();
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
@@ -375,6 +389,16 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         logger_base.debug("OnGridPopup - DESCRIPTION");
         SetEffectsDescription();
+    }
+    else if (id == ID_GRID_MNU_LOCK)
+    {
+        logger_base.debug("OnGridPopup - LOCK");
+        LockEffects(true);
+    }
+    else if (id == ID_GRID_MNU_UNLOCK)
+    {
+        logger_base.debug("OnGridPopup - UNLOCK");
+        LockEffects(false);
     }
     else if (id == ID_GRID_MNU_TIMING)
     {
@@ -845,27 +869,42 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
         int position = GetClippedPositionFromTimeMS(ms);
         int mid = (startPos + endPos) / 2;
 
-        if ((endPos - startPos) < 8) {
-            //too small to really differentiate, just
-            //provide ability to make the effect larger
-            if (position < mid) {
-                selectionType = HitLocation::LEFT_EDGE;
-            } else {
+        if (!eff->IsLocked())
+        {
+            if ((endPos - startPos) < 8) {
+                //too small to really differentiate, just
+                //provide ability to make the effect larger
+                if (position < mid) {
+                    selectionType = HitLocation::LEFT_EDGE;
+                }
+                else {
+                    selectionType = HitLocation::RIGHT_EDGE;
+                }
+            }
+            else if (position > endPos - 6) {
                 selectionType = HitLocation::RIGHT_EDGE;
             }
-        } else if(position > endPos - 6) {
-            selectionType = HitLocation::RIGHT_EDGE;
-        } else if(position > endPos - 12) {
-            selectionType = HitLocation::RIGHT_EDGE_DISCONNECT;
-        } else if(position > mid + 8) {
-            selectionType = HitLocation::RIGHT;
-        } else if(position < startPos + 6) {
-            selectionType = HitLocation::LEFT_EDGE;
-        } else if(position < startPos + 12) {
-            selectionType = HitLocation::LEFT_EDGE_DISCONNECT;
-        } else if(position < mid - 8) {
-            selectionType = HitLocation::LEFT;
-        } else {
+            else if (position > endPos - 12) {
+                selectionType = HitLocation::RIGHT_EDGE_DISCONNECT;
+            }
+            else if (position > mid + 8) {
+                selectionType = HitLocation::RIGHT;
+            }
+            else if (position < startPos + 6) {
+                selectionType = HitLocation::LEFT_EDGE;
+            }
+            else if (position < startPos + 12) {
+                selectionType = HitLocation::LEFT_EDGE_DISCONNECT;
+            }
+            else if (position < mid - 8) {
+                selectionType = HitLocation::LEFT;
+            }
+            else {
+                selectionType = HitLocation::CENTER;
+            }
+        }
+        else
+        {
             selectionType = HitLocation::CENTER;
         }
     }
@@ -3409,11 +3448,53 @@ std::list<Effect*> EffectsGrid::GetSelectedEffects()
     return res;
 }
 
+void EffectsGrid::LockEffects(bool lock)
+{
+    if (mSequenceElements == nullptr) return;
+
+    if (mSelectedEffect != nullptr || MultipleEffectsSelected())
+    {
+        auto efs = GetSelectedEffects();
+        // add in the selected effect if we didnt get it
+        if (mSelectedEffect != nullptr)
+        {
+            bool found = false;
+            for (auto it = efs.begin(); it != efs.end(); ++it)
+            {
+                if ((*it) == mSelectedEffect)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                efs.push_back(mSelectedEffect);
+            }
+        }
+
+        if (efs.size() > 0)
+        {
+            for (auto it = efs.begin(); it != efs.end(); ++it)
+            {
+                SettingsMap& smt = (*it)->GetSettings();
+                if (lock)
+                {
+                    smt["X_Effect_Locked"] = "True";
+                }
+                else
+                {
+                    smt.erase("X_Effect_Locked");
+                }
+            }
+        }
+    }
+}
+
 void EffectsGrid::SetEffectsDescription()
 {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+    if (mSequenceElements == nullptr) return;
 
     bool oktocont = true;
     if (mSelectedEffect != nullptr || MultipleEffectsSelected())
@@ -5103,6 +5184,7 @@ void EffectsGrid::DrawEffects()
                 continue;
             }
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLinesLocked.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectFocusLines.PreAlloc(16);
 
@@ -5175,18 +5257,29 @@ void EffectsGrid::DrawEffects()
                 if( e == mSelectedEffect )
                 {
                     linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectFocusLines;
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectFocusLines;
                     linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&lines:&selectFocusLines;
-                    linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectFocusLines:&lines;
+                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectFocusLines;
+                    linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectFocusLines : &lines;
                 }
                 else
                 {
-                    linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&lines:&selectedLines;
-                    linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&lines:&selectedLines;
-                    linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&lines;
+                    if (effectLayer->GetEffect(effectIndex)->IsLocked())
+                    {
+                        linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectedLinesLocked;
+                        linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectedLinesLocked;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLinesLocked : &lines;
+                    }
+                    else
+                    {
+                        linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &lines : &selectedLines;
+                        linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &lines : &selectedLines;
+                        linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED ? &selectedLines : &lines;
+                    }
                 }
 
                 int drawIcon = 1;
@@ -5250,7 +5343,7 @@ void EffectsGrid::DrawEffects()
                                 linesRight->AddVertex((x1+x2)/2.0+sz,y);
                                 linesRight->AddVertex(x2,y);
 
-                                lines.AddLinesRect(xl-0.4, y-sz, xr + 0.4, y + sz);
+                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
                             }
                             else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                             {
@@ -5265,7 +5358,7 @@ void EffectsGrid::DrawEffects()
 
                                 textures[m_EffectTextures[e->GetEffectIndex()]].AddFullTexture(xl, y-sz, xr, y+sz);
 
-                                lines.AddLinesRect(xl-0.4, y-sz, xr + 0.4, y + sz);
+                                lines.AddLinesRect(xl - 0.4, y - sz, xr + 0.4, y + sz);
                             }
                             else
                             {
@@ -5305,6 +5398,7 @@ void EffectsGrid::DrawEffects()
     DrawGLUtils::Draw(lines, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_DEFAULT), GL_LINES);
     DrawGLUtils::Draw(selectedLines, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED), GL_LINES);
     DrawGLUtils::Draw(selectFocusLines, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT), GL_LINES);
+    DrawGLUtils::Draw(selectedLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_LOCKED), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
     DrawGLUtils::Draw(timingEffLines, xlights->color_mgr.GetColor(ColorManager::COLOR_TIMING_DEFAULT), GL_LINES);
@@ -5323,6 +5417,7 @@ void EffectsGrid::DrawEffects()
     textBackgrounds.Reset();
     timingLines.Reset();
     timingEffLines.Reset();
+    selectedLinesLocked.Reset();
     texts.Reset();
     backgrounds.Reset();
     selectedBoxes.Reset();
@@ -5356,11 +5451,24 @@ void EffectsGrid::DrawTimingEffects(int row)
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
                                              effectLayer->GetEffect(effectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
 
-        DrawGLUtils::xlVertexAccumulator* linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                                       effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&timingEffLines:&selectedLines;
-        DrawGLUtils::xlVertexAccumulator* linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                                                        effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&timingEffLines:&selectedLines;
-        //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+        DrawGLUtils::xlVertexAccumulator* linesLeft;
+        DrawGLUtils::xlVertexAccumulator* linesRight;
+        if (effectLayer->GetEffect(effectIndex)->IsLocked())
+        {
+            linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLinesLocked;
+            linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLinesLocked;
+            //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLinesLocked:&timingEffLines;
+        }
+        else
+        {
+            linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLines;
+            linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLines;
+            //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+        }
 
         if(mode!=SCREEN_L_R_OFF) {
             // Draw Left line
