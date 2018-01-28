@@ -345,7 +345,7 @@ bool xLightsImportTreeModel::IsContainer(const wxDataViewItem &item) const
 unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     wxDataViewItemArray &array) const
 {
-    unsigned int count = 0;
+    unsigned int count;
     xLightsImportModelNode *node = (xLightsImportModelNode*)parent.GetID();
     if (!node)
     {
@@ -703,7 +703,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
 
     for (int s = 0; s < m->GetNumSubModels(); s++) {
         Model *subModel = m->GetSubModel(s);
-        xLightsImportModelNode* laststrand = nullptr;
+        xLightsImportModelNode* laststrand;
         if (channelColors.find(subModel->GetName()) != channelColors.end())
         {
             laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", true, channelColors.find(subModel->GetName())->second.asWxColor());
@@ -720,7 +720,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         if (sn == "") {
             sn = wxString::Format("Strand %d", s + 1);
         }
-        xLightsImportModelNode* laststrand = nullptr;
+        xLightsImportModelNode* laststrand;
         if (channelColors.find(sn.ToStdString()) != channelColors.end())
         {
             laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", true, channelColors.find(sn.ToStdString())->second.asWxColor());
@@ -737,7 +737,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             {
                 nn = wxString::Format("Node %d", n + 1);
             }
-            xLightsImportModelNode* lastnode = nullptr;
+            xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end())
             {
                 lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, channelColors.find(nn.ToStdString())->second.asWxColor());

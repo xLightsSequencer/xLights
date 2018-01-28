@@ -170,8 +170,7 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 
     wxConfigBase* config = wxConfigBase::Get();
     wxString dir;
-    bool ok = true;
-    ok = config->Read("LastDir", &dir);
+    bool ok = config->Read("LastDir", &dir);
     wxString ConvertDir;
     ConvertDir.clear();
     if (ok && !config->Read("ConvertDir", &ConvertDir))
@@ -315,26 +314,19 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     wxString ChannelName, TestName;
     int32_t ChannelColor;
     long TotalTime = SeqData.TotalTime();
-    wxXmlNode *node, *chparent, *textnode;
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "Program");
     doc.SetRoot(root);
 
     // add nodes to root in reverse order
-
-
-
-    node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, base64_encode(SeqData));
-
+    wxXmlNode *node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
+    wxXmlNode *textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, base64_encode(SeqData));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Audio");
     node->AddAttribute("filename", mediaFilename);
     node->AddAttribute("duration", string_format("%ld", TotalTime));
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "Music");
-
-    chparent = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Channels");
-
+    wxXmlNode *chparent = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Channels");
 
     for (int ch = 0; ch < SeqData.NumChannels(); ch++)
     {
@@ -834,7 +826,7 @@ wxString ConvertDialog::getAttributeValueSafe(SP_XmlStartTagEvent* stagEvent, co
 
 void ConvertDialog::ReadVixFile(const wxString& filename)
 {
-    wxString NodeName, NodeValue, msg;
+    wxString NodeValue, msg;
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
@@ -881,7 +873,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii(stagEvent->getName());
+                wxString NodeName = FromAscii(stagEvent->getName());
                 context.push_back(NodeName);
                 cnt++;
                 //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
@@ -959,6 +951,8 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
                 cnt = context.size();
                 break;
             }
+            default:
+                break;
             }
             delete event;
         }
@@ -1146,6 +1140,8 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 cnt = context.size();
                 break;
             }
+            default:
+                break;
             }
             delete event;
         }
@@ -1343,6 +1339,8 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 cnt = context.size();
                 break;
             }
+            default: 
+                break;
             }
             delete event;
         }
@@ -1565,6 +1563,8 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                     RemoveAt(context, cnt - 1);
                 }
                 cnt = context.size();
+                break;
+            default:
                 break;
             }
             delete event;

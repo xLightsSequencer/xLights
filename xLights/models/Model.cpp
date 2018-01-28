@@ -53,6 +53,14 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml
     StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     splitRGB(false)
 {
+    // These member vars were not initialised so give them some defaults.
+    BufferHt = 0;
+    BufferWi = 0;
+    IsLtoR = true;
+    isBotToTop = true;
+    SingleNode = false;
+    zeroBased = false;
+    SingleChannel = false;
 }
 
 Model::~Model() {
@@ -271,6 +279,8 @@ public:
             return new StatesDialogAdapter(m_model);
         case 5:
             return new SubModelsDialogAdapter(m_model);
+        default:
+            break;
         }
         return nullptr;
     }
@@ -915,11 +925,10 @@ std::string Model::ComputeStringStartChannel(int i) {
         return ModelXml->GetAttribute("StartChannel", "1").ToStdString();
     }
     wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
-    wxString sNet = "";
     int ChannelsPerString = CalcCannelsPerString();
     long StringStartChanLong = 0;
     if (stch.Contains(":")) {
-        sNet = stch.SubString(0, stch.Find(":")-1);
+        wxString sNet = stch.SubString(0, stch.Find(":")-1);
         stch = stch.SubString(stch.Find(":") + 1, stch.size());
         long startNetwork;
         if (sNet.ToLong(&startNetwork) && startNetwork > 0) {
@@ -1123,13 +1132,11 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
         else if (start[0] == '#') {
             wxString ss = wxString(str);
             wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
-            int returnChannel = 1;
-            int returnUniverse = 1;
             if (cs.Count() == 3)
             {
                 // #ip:universe:channel
-                returnUniverse = wxAtoi(cs[1]);
-                returnChannel = wxAtoi(cs[2]);
+                int returnUniverse = wxAtoi(cs[1]);
+                int returnChannel = wxAtoi(cs[2]);
 
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
                 if (res <= 0)
@@ -1142,8 +1149,8 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             else if (cs.Count() == 2)
             {
                 // #universe:channel
-                returnChannel = wxAtoi(sc);
-                returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
+                int returnChannel = wxAtoi(sc);
+                int returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
@@ -1675,8 +1682,9 @@ const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 
-NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) {
-    NodeBaseClass *ret = nullptr;
+NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const
+{
+    NodeBaseClass *ret;
     if (StringType=="Single Color Red" || StringType == "R") {
         ret = new NodeClassRed(ns, NodesPerString);
     } else if (StringType=="Single Color Green" || StringType == "G") {
@@ -2626,7 +2634,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     bool left = true;
 
     while (first < last) {
-        int n = 0;
+        int n;
         if (left) {
             n = first;
             first++;
@@ -2807,12 +2815,11 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             maxVertexCount = vcount;
         }
         DrawGLUtils::xlAccumulator va(maxVertexCount);
-        float sx,sy;
         int first = 0; int last = NodeCount;
         int buffFirst = -1; int buffLast = -1;
         bool left = true;
         while (first < last) {
-            int n = 0;
+            int n;
             if (left) {
                 n = first;
                 first++;
@@ -2848,8 +2855,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX;
-                sy=Nodes[n]->Coords[c].screenY;
+                float sx = Nodes[n]->Coords[c].screenX;
+                float sy = Nodes[n]->Coords[c].screenY;
 
                 if (!GetModelScreenLocation().IsCenterBased()) {
                     sx -= GetModelScreenLocation().RenderWi / 2.0;

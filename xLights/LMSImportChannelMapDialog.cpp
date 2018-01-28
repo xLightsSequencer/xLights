@@ -6,6 +6,7 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
+#include <wx/colordlg.h>
 
 //(*InternalHeaders(LMSImportChannelMapDialog)
 #include <wx/intl.h>

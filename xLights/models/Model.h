@@ -144,7 +144,7 @@ protected:
 
     const ModelManager &modelManager;
 
-    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
+    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const;
 
 
     virtual void InitModel();

@@ -4,8 +4,6 @@
 #include "wx/wx.h"
 #include "xlGLCanvas.h"
 #include "sequencer/Effect.h"
-#include "Image.h"
-#include "XlightsDrawable.h"
 
 class Model;  // forward declaration
 
@@ -33,12 +31,12 @@ class xlGridCanvas : public xlGLCanvas
         virtual void InitializeGLCanvas() = 0;
 
         void DrawBaseGrid();
-        void DrawEffect();
+        //void DrawEffect();
         int GetRowCenter(int percent);
         int GetColumnCenter(int percent);
         int SetRowCenter(int position);
         int SetColumnCenter(int position);
-        int GetCellFromPosition(int position);
+        int GetCellFromPosition(int position) const;
         int calcCellFromPercent(int value, int base);
         int calcPercentFromCell(int value, int base);
 

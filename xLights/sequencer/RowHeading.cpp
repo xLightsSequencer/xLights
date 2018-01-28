@@ -956,7 +956,6 @@ void RowHeading::Draw()
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row = 0;
-    int startY = 0;
     int endY = 0;
 
     for (int i = 0; i< mSequenceElements->GetVisibleRowInformationSize(); i++)
@@ -973,7 +972,7 @@ void RowHeading::Draw()
         }
         wxBrush brush2(GetHeaderColor(rowInfo).asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
-        startY = DEFAULT_ROW_HEADING_HEIGHT*row;
+        int startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);

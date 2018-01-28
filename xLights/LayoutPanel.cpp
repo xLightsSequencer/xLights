@@ -2900,13 +2900,13 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             UnSelectAllModels();
         } else if (undoBuffer[sz].type == "ModelProperty") {
             SelectModel(undoBuffer[sz].model);
-            wxPropertyGridEvent event;
-            event.SetPropertyGrid(propertyEditor);
+            wxPropertyGridEvent event2;
+            event2.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Model", undoBuffer[sz].key, undoBuffer[sz].data);
-            event.SetProperty(&wsp);
+            event2.SetProperty(&wsp);
             wxVariant value(undoBuffer[sz].data);
-            event.SetPropertyValue(value);
-            OnPropertyGridChange(event);
+            event2.SetPropertyValue(value);
+            OnPropertyGridChange(event2);
             xlights->MarkEffectsFileDirty(true);
             resetPropertyGrid();
         } else if (undoBuffer[sz].type == "SingleModel") {

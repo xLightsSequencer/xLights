@@ -42,6 +42,9 @@
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
 {
+    CurrentLayer = 0;
+    frameTimeInMs = 50;
+    model = nullptr;
     numLayers = 0;
     zbModel = nullptr;
     ssModel = nullptr;
@@ -578,7 +581,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 }
 
                 
-                float ha = 0.0;
+                float ha;
                 if (thelayer->HueAdjustValueCurve.IsActive())
                 {
                     ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
@@ -587,7 +590,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 {
                     ha = (float)thelayer->hueadjust / 100.0;
                 }
-                float sa = 0.0;
+                float sa;
                 if (thelayer->SaturationAdjustValueCurve.IsActive())
                 {
                     sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
@@ -597,7 +600,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
                 
-                float va = 0.0;
+                float va;
                 if (thelayer->ValueAdjustValueCurve.IsActive())
                 {
                     va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
@@ -697,10 +700,12 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     case 4:
                         color.Set(255, 255, 255);
                         break;
+                    default:
+                        break;
                     }
                     sparkle++;
                 }
-                int b = 0;
+                int b;
                 if (thelayer->BrightnessValueCurve.IsActive())
                 {
                     b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
@@ -786,6 +791,8 @@ static void boxesForGauss(int d, int n, std::vector<float> &boxes)  // standard 
         case 14:
         case 15:
             boxes.push_back(9.0);
+            break;
+        default:
             break;
     }
     float b = boxes.back();
@@ -992,7 +999,7 @@ static inline int roundInt(float r) {
 }
 void PixelBufferClass::Blur(LayerInfo* layer, float offset)
 {
-    int b = 0;
+    int b;
     if (layer->BlurValueCurve.IsActive())
     {
         b = (int)layer->BlurValueCurve.GetOutputValueAt(offset);
@@ -1029,8 +1036,8 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
         delete [] input;
         delete [] tmp;
     } else {
-        int d = 0;
-        int u = 0;
+        int d;
+        int u;
         if (b % 2 == 0)
         {
             d = b / 2;
@@ -1821,7 +1828,6 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)
 {
     xlColor color;
-    HSVValue hsv;
     int curStep;
 
     // blur all the layers if necessary ... before the merge?
@@ -1979,7 +1985,7 @@ void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     int x2 = BufferWi / 2 + step;
     for (int x = 0; x < BufferWi; x++)
     {
-        uint8_t c = m1;
+        uint8_t c;
         if (x < x1) {
             c = m1;
         } else if (x < x2) {
@@ -2231,13 +2237,13 @@ void PixelBufferClass::LayerInfo::createBlindsMask(bool out) {
 }
 
 void PixelBufferClass::LayerInfo::createBlendMask(bool out) {
-    bool reverse = inTransitionReverse;
+    //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
-        reverse = outTransitionReverse;
+        //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
     }
@@ -2365,13 +2371,13 @@ void PixelBufferClass::LayerInfo::createSlideChecksMask(bool out) {
     }
 }
 void PixelBufferClass::LayerInfo::createSlideBarsMask(bool out) {
-    bool reverse = inTransitionReverse;
+    //bool reverse = inTransitionReverse;
     float factor = inMaskFactor;
     int adjust = inTransitionAdjust;
     uint8_t m1 = 255;
     uint8_t m2 = 0;
     if (out) {
-        reverse = outTransitionReverse;
+        //reverse = outTransitionReverse;
         factor = outMaskFactor;
         adjust = outTransitionAdjust;
     }

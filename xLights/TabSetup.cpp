@@ -1820,6 +1820,8 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
             }
         }
         break;
+    default:
+        break;
     }
 }
 

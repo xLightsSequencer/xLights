@@ -63,7 +63,6 @@
 #include "ModelPreview.h"
 #include "EffectAssist.h"
 #include "SequenceData.h"
-#include "UtilClasses.h"
 #include "PhonemeDictionary.h"
 
 #include "sequencer/EffectsGrid.h"
@@ -1076,7 +1075,7 @@ private:
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
 
-    void DisplayXlightsFilename(const wxString& filename);
+    void DisplayXlightsFilename(const wxString& filename) const;
     int ChooseRandomEffect();
 
 public:
@@ -1130,7 +1129,7 @@ public:
     void SetXmlSetting(const wxString& settingName,const wxString& value);
     unsigned int GetMaxNumChannels();
 
-    bool GetSnapToTimingMarks() { return _snapToTimingMarks; }
+    bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
 
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
@@ -1275,13 +1274,9 @@ private:
     int _acParm2RampDown;
     int _acParm1RampUpDown;
     int _acParm2RampUpDown;
-
     wxXmlNode* mCurrentPerpective;
     std::map<wxString, bool> savedPaneShown;
-
-    // New Sequencer variables and methods
     SequenceElements mSequenceElements;
-
     MainSequencer* mainSequencer;
     ModelPreview * _modelPreviewPanel;
     HousePreviewPanel *_housePreviewPanel;
@@ -1293,14 +1288,18 @@ private:
     EffectIconPanel *effectPalettePanel;
     BufferPanel *bufferPanel;
     ViewsModelsPanel *displayElementsPanel;
-
-
+    TopEffectsPanel* effectsPnl;
+    EffectsPanel* EffectsPanel1;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
-    // Methods
-    void InitSequencer();
-    void CreateSequencer();
-    void DoStopSequence();
+    wxFlexGridSizer* FlexGridEffects;
+    std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
+                                 //add lock/unlock/random state flags -DJ
+                                 //these could be used to make fields read-only, but initially they are just used for partially random effects
+                                 //#include <unordered_map>
+    typedef enum { Normal, Locked, Random } EditState;
+    std::unordered_map<std::string, EditState> buttonState;
+
     // Events
     void Zoom( wxCommandEvent& event);
     void Scroll( wxCommandEvent& event);
@@ -1337,14 +1336,22 @@ private:
     void ShowDisplayElements(wxCommandEvent& event);
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
-    void ShowHideSync();
-    void ValidateWindow();
-    void DoDonate();
-    void AutoShowHouse();
-    bool CheckForUpdate(bool force);
-    void check32AppOn64Machine();
-    void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
 
+    std::string GetEffectTextFromWindows(std::string &palette);
+    bool isRandom_(wxControl* ctl, const char*debug);
+    void SetSyncUniverse(int syncUniverse);
+
+    void EnableToolbarButton(wxAuiToolBar* toolbar, int id, bool enable);
+    void CheckForAndCreateDefaultPerpective();
+    void ResizeAndMakeEffectsScroll();
+    void ResizeMainSequencer();
+    void LoadSequencer(xLightsXmlFile& xml_file);
+    void DoLoadPerspective(wxXmlNode *p);
+    void CheckForValidModels();
+    void ExportModels(wxString filename);
+    void ExportEffects(wxString filename);
+    int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
+    int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
     std::map<int, std::list<float>> LoadPolyphonicTranscription(AudioManager* audio, int intervalMS);
     std::map<int, std::list<float>> LoadAudacityFile(std::string file, int intervalMS);
     std::map<int, std::list<float>> LoadMIDIFile(std::string file, int intervalMS, int speedAdjust, int startAdjustMS, std::string track);
@@ -1355,35 +1362,16 @@ private:
     void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName);
     void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node = false);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
-
-    void CheckForValidModels();
-    void ExportModels(wxString filename);
-    void ExportEffects(wxString filename);
-    int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
-    int ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
-
-    void LoadSequencer(xLightsXmlFile& xml_file);
-    void DoLoadPerspective(wxXmlNode *p);
-
-    void CheckForAndCreateDefaultPerpective();
-    void ResizeAndMakeEffectsScroll();
-    void ResizeMainSequencer();
-    std::string GetEffectTextFromWindows(std::string &palette);
-    void SetSyncUniverse(int syncUniverse);
-
-    void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
-    // Panels
-    TopEffectsPanel* effectsPnl;
-    EffectsPanel* EffectsPanel1;
-    wxFlexGridSizer* FlexGridEffects;
-    std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
-
-//add lock/unlock/random state flags -DJ
-//these could be used to make fields read-only, but initially they are just used for partially random effects
-//#include <unordered_map>
-    typedef enum { Normal, Locked, Random } EditState;
-    std::unordered_map<std::string, EditState> buttonState;
-    bool isRandom_(wxControl* ctl, const char*debug);
+    void ShowHideSync();
+    void ValidateWindow();
+    void DoDonate();
+    void AutoShowHouse();
+    bool CheckForUpdate(bool force);
+    void check32AppOn64Machine();
+    void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
+    void InitSequencer();
+    void CreateSequencer();
+    void DoStopSequence();
 
     wxMenu* MenuItemPreviews;
     wxMenuItem* MenuItemPreviewSeparator;
@@ -1425,22 +1413,23 @@ private:
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
+
 public:
     std::vector<Model *> PreviewModels;
     std::vector<LayoutGroup *> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
-    static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
-
     ColorManager color_mgr;
+    EffectTreeDialog *EffectTreeDlg;
 
-    wxString GetSeqXmlFileName();
-	void DoPlaySequence();
+    static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
     static std::string DecodeMidi(int midi);
-    void RecalcModels(bool force = false);
+
     int GetPlayStatus() const { return playType; }
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
+    wxString GetSeqXmlFileName();
 
-    EffectTreeDialog *EffectTreeDlg;
+	void DoPlaySequence();
+    void RecalcModels(bool force = false);
 };
 #endif // XLIGHTSMAIN_H

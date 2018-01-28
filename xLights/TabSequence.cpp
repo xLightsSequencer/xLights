@@ -12,12 +12,12 @@
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
-#include "BufferPanel.h"
 #include <wx/config.h>
+#include "BufferPanel.h"
 
-void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
+void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
-    xlightsFilename=filename;
+    xlightsFilename = filename;
     FileNameText->SetLabel(filename);
 }
 
@@ -45,11 +45,10 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
         ReadFalconFile(filename, nullptr);
     }
     DisplayXlightsFilename(fn.GetFullPath());
-    SeqBaseChannel=1;
-    SeqChanCtrlBasic=false;
-    SeqChanCtrlColor=false;
+    SeqBaseChannel = 1;
+    SeqChanCtrlBasic = false;
+    SeqChanCtrlColor = false;
 }
-
 
 void xLightsFrame::ResetEffectsXml()
 {
@@ -775,6 +774,8 @@ void xLightsFrame::UpdateModelsList()
                             if (e == nullptr) {
                                 break;
                             }
+                            break;
+                        default:
                             break;
                     }
                 } while (!done);

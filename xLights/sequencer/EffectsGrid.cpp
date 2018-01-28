@@ -1428,7 +1428,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
 
     if ((actualStart == -1 && actualEnd == -1) || startRow == endRow) return;
 
-    int spaceToCascade = 0;
+    int spaceToCascade;
     int dirFactor = 1;
     if (startCol > endCol)
     {
@@ -2700,7 +2700,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
 void EffectsGrid::CheckForPartialCell(int x_pos)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     mPartialCellSelected = false;
     // make sure a valid row and column is selected
@@ -2762,12 +2762,10 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
             {
                 if( tel->GetEffectCount() > 0 )
                 {
-                    Effect* eff1 = nullptr;
-                    Effect* eff2 = nullptr;
                     int pos1 = -1000;
                     int pos2 = 100000000;
                     // see if inside an effect
-                    eff1 = tel->GetEffectAtTime(time);
+                    Effect* eff1 = tel->GetEffectAtTime(time);
                     if (eff1 != nullptr)
                     {
                         pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetStartTimeMS());
@@ -2788,7 +2786,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
                     else
                     {
                         eff1 = tel->GetEffectBeforeTime(time);
-                        eff2 = tel->GetEffectAfterTime(time);
+                        Effect* eff2 = tel->GetEffectAfterTime(time);
 
                         if (eff1 != nullptr )
                         {
@@ -4065,7 +4063,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 	int selected_start_column = 0;
 	int number_of_timing_rows = mSequenceElements->GetNumberOfTimingRows();
     int selectedrows = mRangeEndRow - mRangeStartRow + 1;
-    int rowstopaste = 0;
     int timestopaste = 1;
 
     if( number_of_timings > 0 && number_of_effects > 0 )
@@ -4153,7 +4150,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             // clear the region if AC mode
             if( xlights->IsACActive() ) {
                 int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
-                rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
+                int rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
                 if (rowstopaste == 1)
                 {
                     timestopaste = selectedrows;
@@ -5357,11 +5354,11 @@ void EffectsGrid::DrawTimingEffects(int row)
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
                                              effectLayer->GetEffect(effectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
 
-        DrawGLUtils::xlVertexAccumulator * linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+        DrawGLUtils::xlVertexAccumulator* linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                                                        effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?&timingEffLines:&selectedLines;
-        DrawGLUtils::xlVertexAccumulator * linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
+        DrawGLUtils::xlVertexAccumulator* linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                                                         effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?&timingEffLines:&selectedLines;
-        DrawGLUtils::xlVertexAccumulator * linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+        //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
 
         if(mode!=SCREEN_L_R_OFF) {
             // Draw Left line

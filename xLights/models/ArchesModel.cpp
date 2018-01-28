@@ -113,7 +113,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
         int cur = 0;
         for (int y=0; y < NumArches; y++) {
             for(int x=0; x<SegmentsPerArch; x++) {
-                int idx = 0;
+                int idx;
                 if (IsLtoR)
                 {
                     idx = y * SegmentsPerArch + x;

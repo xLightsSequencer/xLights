@@ -336,14 +336,14 @@ class LayoutPanel: public wxPanel
         int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string new_name);
-        int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
+        //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator
         {
         public:
-            ModelListComparator() {};
+            ModelListComparator() { xlights = nullptr; };
             virtual ~ModelListComparator() {};
-            virtual int Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second);
+            virtual int Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second) override;
             int SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
             void SetFrame(xLightsFrame* frame) {xlights = frame;}
        private:

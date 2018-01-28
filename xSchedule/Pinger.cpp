@@ -120,14 +120,13 @@ std::string APinger::GetName() const
 
 void APinger::Stop()
 {
-    _output = nullptr;
-
     // tell it to stop ... but it may take a bit of time to stop
     if (_pingThread != nullptr)
     {
         _pingThread->Stop();
         _pingThread = nullptr;
     }
+    _output = nullptr;
 }
 
 std::string GetID(Output* output)

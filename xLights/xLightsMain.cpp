@@ -1602,22 +1602,24 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     logger_base.debug("Icon size: %d.", mIconSize);
 
     config->Read("AutoSaveInterval", &AutoSaveInterval, 3);
-    id = ID_MENUITEM_AUTOSAVE_0;
+    long mid = ID_MENUITEM_AUTOSAVE_0;
     switch (AutoSaveInterval) {
         case 3:
-            id = ID_MENUITEM_AUTOSAVE_3;
+            mid = ID_MENUITEM_AUTOSAVE_3;
             break;
         case 10:
-            id = ID_MENUITEM_AUTOSAVE_10;
+            mid = ID_MENUITEM_AUTOSAVE_10;
             break;
         case 15:
-            id = ID_MENUITEM_AUTOSAVE_15;
+            mid = ID_MENUITEM_AUTOSAVE_15;
             break;
         case 30:
-            id = ID_MENUITEM_AUTOSAVE_30;
+            mid = ID_MENUITEM_AUTOSAVE_30;
+            break;
+        default:
             break;
     }
-    wxCommandEvent asEvent(wxEVT_NULL, id);
+    wxCommandEvent asEvent(wxEVT_NULL, mid);
     AutoSaveIntervalSelected(asEvent);
     logger_base.debug("Autosave interval: %d.", AutoSaveInterval);
 
@@ -2252,8 +2254,12 @@ void xLightsFrame::StopNow(void)
     switch (actTab)
     {
     case NEWSEQUENCER:
-        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-        wxPostEvent(this, playEvent);
+        {
+            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+            wxPostEvent(this, playEvent);
+        }
+        break;
+    default:
         break;
     }
 }
@@ -2793,9 +2799,9 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
-	int frameCount;
+	int frameCount = SeqData.NumFrames();
 
-	if (CurrentSeqXmlFile == nullptr || (frameCount = SeqData.NumFrames()) == 0)
+	if (CurrentSeqXmlFile == nullptr || frameCount == 0)
 		return;
 
     bool visible = m_mgr->GetPane("HousePreview").IsShown();
@@ -4252,8 +4258,6 @@ void xLightsFrame::CheckSequence(bool display)
 
     int errcount = 0;
     int warncount = 0;
-    int errcountsave = 0;
-    int warncountsave = 0;
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
@@ -4313,8 +4317,8 @@ void xLightsFrame::CheckSequence(bool display)
         delete testSocket;
     }
 
-    errcountsave = errcount;
-    warncountsave = warncount;
+    int errcountsave = errcount;
+    int warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Working in a backup directory");
@@ -5875,10 +5879,7 @@ std::string FixFile(const std::string& showdir, const std::string& sourcefile, c
 
 std::string StripPresets(const std::string& sourcefile)
 {
-    std::string newfile = "";
-
-    // create a temporary file
-    newfile = wxFileName::CreateTempFileName("rgbe").ToStdString();
+    std::string newfile = wxFileName::CreateTempFileName("rgbe").ToStdString();
 
     // read all of the existing file into memory
     wxFile in(sourcefile);
@@ -7152,7 +7153,8 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                 {
                     if (lastEffect != nullptr && lastPhenome == it->first)
                     {
-                        lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());                        phenomeFound = true;
+                        lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());                        
+                        phenomeFound = true;
                     }
                     else
                     {
@@ -7335,6 +7337,8 @@ void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
              break;
          case NEWSEQUENCER:
              SaveSequence();
+             break;
+         default:
              break;
     }
 }

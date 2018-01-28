@@ -332,6 +332,8 @@ static void HandleChoices(xLightsFrame *frame,
                 case 3:
                     ignore.push_back(element);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -1306,7 +1308,7 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -1348,7 +1350,7 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -1392,7 +1394,7 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -2834,16 +2836,15 @@ std::string xLightsFrame::DecodeMidi(int midi)
         note = 'G';
         sharp = true;
         break;
+    default:
+        break;
     }
 
     if (sharp)
     {
         return wxString::Format("%c#%d", note, o).ToStdString();
     }
-    else
-    {
-        return wxString::Format("%c%d", note, o).ToStdString();
-    }
+    return wxString::Format("%c%d", note, o).ToStdString();
 }
 
 std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
