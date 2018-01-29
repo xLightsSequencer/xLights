@@ -109,7 +109,7 @@ public:
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col) const;
-    Element* GetActiveTimingElement();
+    Element* GetActiveTimingElement() const;
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -146,31 +146,31 @@ private:
 
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
-    void DrawLines();
+    void DrawLines() const;
     void DrawSelectedCells();
 
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
                              int x1, int y1, int x2, int y2,
-                             DrawGLUtils::xlAccumulator &backgrounds);
+                             DrawGLUtils::xlAccumulator &backgrounds) const;
 
     void DrawTimingEffects(int row);
     void DrawEffects();
-    void DrawPlayMarker();
+    void DrawPlayMarker() const;
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset, bool control);
     void RunMouseOverHitTests(int rowIndex, int x,int y);
-    void UpdateTimePosition(int time);
-    void UpdateMousePosition(int time);
-    void UpdateZoomPosition(int time);
+    void UpdateTimePosition(int time) const;
+    void UpdateMousePosition(int time) const;
+    void UpdateZoomPosition(int time) const;
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();
     void CheckForPartialCell(int x_pos);
-    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true);
-    void RaiseEffectDropped(int x, int y);
-    void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
+    void RaiseEffectDropped(int x, int y) const;
+    void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
     bool MultipleEffectsSelected() const;
-    std::list<Effect*> GetSelectedEffects();
+    std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
@@ -178,10 +178,10 @@ private:
     void ButtUpResizeMoveMultipleEffects(bool right);
     void StretchMultipleEffectsByTime(int delta);
     void ButtUpStretchMultipleEffects(bool right);
-    void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight);
-    void MoveAllSelectedEffects(int deltaMS, bool offset);
-    void StretchAllSelectedEffects(int deltaMS, bool offset);
-    int GetRow(int y);
+    void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const;
+    void MoveAllSelectedEffects(int deltaMS, bool offset) const;
+    void StretchAllSelectedEffects(int deltaMS, bool offset) const;
+    int GetRow(int y) const;
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
     bool OneCellSelected();
@@ -222,6 +222,7 @@ private:
     DrawGLUtils::xlVertexTextAccumulator texts;
     DrawGLUtils::xlVertexAccumulator selectedLines;
     DrawGLUtils::xlVertexAccumulator selectFocusLines;
+    DrawGLUtils::xlVertexAccumulator selectFocusLinesLocked;
     DrawGLUtils::xlAccumulator backgrounds;
     DrawGLUtils::xlVertexColorAccumulator textBackgrounds;
     DrawGLUtils::xlVertexColorAccumulator selectedBoxes;

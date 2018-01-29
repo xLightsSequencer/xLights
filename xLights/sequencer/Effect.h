@@ -56,6 +56,7 @@ class Effect
         bool GetProtected() const;
         void SetProtected(bool Protected);
         bool IsLocked() const;
+        void SetLocked(bool lock);
 
         EffectLayer* GetParentEffectLayer() const;
         void SetParentEffectLayer(EffectLayer* parent);

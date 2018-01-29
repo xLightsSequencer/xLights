@@ -361,6 +361,18 @@ bool Effect::IsLocked() const
     return mSettings.Contains("X_Effect_Locked");
 }
 
+void Effect::SetLocked(bool lock)
+{
+    if (lock)
+    {
+        mSettings["X_Effect_Locked"] = "True";
+    }
+    else
+    {
+        mSettings.erase("X_Effect_Locked");
+    }
+}
+
 int Effect::GetStartTimeMS() const
 {
     return mStartTime;
