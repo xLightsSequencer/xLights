@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2018.4
+   -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame
+   -- bug (dkulp)  Fix problems with LOR v4 lcb only outputting 100% effect values
+   -- bug (dkulp)  Convert To Effects only working for first node in model
+   -- bug (dkulp)  CandyCane tops are chopped off in Model preview
    -- bug (dkulp)  CheckSequence erroneously flags 172.16 networks as broadcast. Fixes #1084
    -- bug (dkulp)  Fix problem with individual start channels on strings cannot self reference
    -- enh (craig)  Randomize only effect settings with a lock available.

@@ -2965,11 +2965,15 @@ bool isOnLineColor(const xlColor &v1, const xlColor &v2, const xlColor &v3,
 }
 int RampLenColor(int start, std::vector<xlColor> &colors) {
 
-    for (int s = start + 2; s < colors.size(); s++) {
+    int s = start + 2;
+    for (; s < colors.size(); s++) {
         if (!isOnLineColor(colors[start], colors[s-1], colors[s],
                       start, s-1, s)) {
             return s - start;
         }
+    }
+    if (s == colors.size()) {
+        return s - start;
     }
     return 0;
 }
@@ -2984,10 +2988,12 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {
+                HSVValue v1 = colors[x].asHSV();
+                HSVValue v2 = colors[x + len - 1].asHSV();
 
                 int stime = x * frameTime;
                 int etime = (x+len)*frameTime;
-                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
+                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
                     HSVValue c = colors[x].asHSV();
                     if (colors[x] == xlBLACK) {
                         c = colors[x + len - 1].asHSV();
@@ -2995,8 +3001,8 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                     c.value = 1.0;
                     xlColor c2(c);
 
-                    int i = colors[x].asHSV().value * 100.0;
-                    int i2 = colors[x + len - 1].asHSV().value * 100.0;
+                    int i = v1.value * 100.0;
+                    int i2 = v2.value * 100.0;
                     std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime))
@@ -3041,17 +3047,25 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     StrandElement *el = dynamic_cast<StrandElement*>((Element*)event.GetClientData());
     int node = event.GetInt() & 0xFFFF;
+    int strand = (event.GetInt() >> 16) & 0xFFFF;
     EffectLayer *layer = el->GetNodeLayer(node);
 
     xlColorVector colors;
+    colors.reserve(SeqData.NumFrames());
     PixelBufferClass ncls(this);
     Model *model = GetModel(el->GetModelName());
-    for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-        model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
-        xlColor c = model->GetNodeColor(0);
-        colors.push_back(c);
+    if (model != nullptr) {
+        SingleLineModel *ssModel = new SingleLineModel(model->GetModelManager());
+        ssModel->Reset(1, *model, strand, node);
+        
+        for (size_t f = 0; f < SeqData.NumFrames(); f++) {
+            ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+            xlColor c = ssModel->GetNodeColor(0);
+            colors.push_back(c);
+        }
+        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+        delete ssModel;
     }
-    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
 }
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)

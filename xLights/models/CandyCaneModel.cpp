@@ -245,14 +245,14 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 }
 
 void CandyCaneModel::SetCaneCoord() {
-	int NumCanes = parm1;
-	size_t SegmentsPerCane = parm2;
-	int LightsPerNode = parm3;
+    int NumCanes = parm1;
+    size_t SegmentsPerCane = parm2;
+    int LightsPerNode = parm3;
     
-	int lightspercane = SegmentsPerCane * LightsPerNode;
+    int lightspercane = SegmentsPerCane * LightsPerNode;
     float angle = toRadians(screenLocation.GetAngle());
     
-	double height;
+    double height;
     double width;
     
     
@@ -266,8 +266,7 @@ void CandyCaneModel::SetCaneCoord() {
     width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
     height = lightspercane - widthPerCane/2.0;
     
-	if (_sticks)
-	{
+    if (_sticks) {
         height = lightspercane * caneheight;
         for (int i = 0; i < NumCanes; i++){
             int y = 0;
@@ -284,7 +283,7 @@ void CandyCaneModel::SetCaneCoord() {
                 }
             }
         }
-	} else {
+    } else {
         int arclights = lightspercane - upright;
         for (int i = 0; i < NumCanes; i++) {
             // draw the uprights
@@ -360,7 +359,11 @@ void CandyCaneModel::SetCaneCoord() {
             max = std::max(max, it2->screenY);
         }
     }
-    screenLocation.SetRenderSize(width, height);
+    if (_sticks) {
+        screenLocation.SetRenderSize(width, height);
+    } else {
+        screenLocation.SetRenderSize(width, max - min + 1);
+    }
     screenLocation.SetYMinMax(min, max);
     
 }
