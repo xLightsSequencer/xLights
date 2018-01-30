@@ -2599,12 +2599,15 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 {
                     adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
                     adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
-                    if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && mResizeEffectIndex > 0) {
+                    if (mSelectedEffect != nullptr && 
+                        mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && 
+                        mResizeEffectIndex > 0) {
                         //also have to re-render the effect to the left
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
-                    } else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED
-                               && mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
+                    } else if (mSelectedEffect != nullptr && 
+                               mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED && 
+                               mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
                     }
@@ -2622,12 +2625,12 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
         // if dragging an effect endpoint move the selection point with it so it will
         // focus on that spot if you zoom afterwards.
-        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
+        if (mSelectedEffect != nullptr && mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetStartTimeMS());
             UpdateZoomPosition(selected_time);
         }
-        else if( mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
+        else if (mSelectedEffect != nullptr &&  mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetEndTimeMS());
             UpdateZoomPosition(selected_time);
@@ -3643,17 +3646,19 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                     if( align_start >= ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
                         all_clear = true;
                     } else {
+                        // time for check excludes the time of the effect we are adjusting
+                        // otherwise the check for a clash always fails
                         if( align_end > ef->GetStartTimeMS() && align_end <= ef->GetEndTimeMS() ) {
-                            end_time_for_check = std::min(mSelectedEffect->GetStartTimeMS(), ef->GetStartTimeMS());
+                            end_time_for_check = std::min(mSelectedEffect->GetEndTimeMS(), ef->GetStartTimeMS());
                         } else if( align_start >= ef->GetStartTimeMS() && align_start < ef->GetEndTimeMS() ) {
-                            str_time_for_check = std::max(mSelectedEffect->GetEndTimeMS(), ef->GetEndTimeMS());
+                            str_time_for_check = std::max(mSelectedEffect->GetStartTimeMS(), ef->GetEndTimeMS());
                         }
                     }
                 }
 
-                if( all_clear || el->GetRangeIsClearMS( str_time_for_check, end_time_for_check) ) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved( el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(),
-                                                                              ef->GetStartTimeMS(), ef->GetEndTimeMS() );
+                if (all_clear || el->GetRangeIsClearMS(str_time_for_check, end_time_for_check) ) {
+                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(),
+                        ef->GetStartTimeMS(), ef->GetEndTimeMS());
                     ef->SetStartTimeMS(align_start);
                     ef->SetEndTimeMS(align_end);
                 } else if (mSequenceElements->GetRowInformation(i)->nodeIndex != -1) {
@@ -3692,7 +3697,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
     xlights->DoForceSequencerRefresh();
 }
 
-bool EffectsGrid::PapagayoEffectsSelected()
+bool EffectsGrid::PapagayoEffectsSelected() const
 {
     for(int i=0;i<mSequenceElements->GetVisibleRowInformationSize();i++)
     {
@@ -3711,7 +3716,7 @@ bool EffectsGrid::PapagayoEffectsSelected()
     return false;
 }
 
-bool EffectsGrid::MultipleEffectsSelected()
+bool EffectsGrid::MultipleEffectsSelected() const
 {
     int count=0;
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
@@ -3758,9 +3763,8 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
 			}
 			else
 			{
-				int drop_time_offset, new_start_time, new_end_time, column_start_time;
-				column_start_time = wxAtoi(eff1data[6]);
-				drop_time_offset = wxAtoi(eff1data[3]);
+			    int column_start_time = wxAtoi(eff1data[6]);
+				int drop_time_offset = wxAtoi(eff1data[3]);
 				EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
 				if (column_start_time < 0 || tel == nullptr)
 				{
@@ -3780,8 +3784,8 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
 					if (efdata.size() < 7) {
 						break;
 					}
-					new_start_time = wxAtoi(efdata[3]);
-					new_end_time = wxAtoi(efdata[4]);
+					int new_start_time = wxAtoi(efdata[3]);
+					int new_end_time = wxAtoi(efdata[4]);
 					new_start_time += drop_time_offset;
 					new_end_time += drop_time_offset;
 					int eff_row = wxAtoi(efdata[5]);
@@ -3998,7 +4002,7 @@ void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersio
     Refresh();
 }
 
-int EffectsGrid::GetMSFromColumn(int col)
+int EffectsGrid::GetMSFromColumn(int col) const
 {
     if (col < 0) return 0;
     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -4087,7 +4091,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             if (eff1data.size() < 7) {
                 return;
             }
-            int drop_time_offset, new_start_time, new_end_time, column_start_time;
+            int drop_time_offset, column_start_time;
             column_start_time = wxAtoi(eff1data[6]);
             if( xlights->IsACActive() ) {
                 column_start_time = wxAtoi(banner_data[9]);
@@ -4179,7 +4183,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
 
-
             for (int rpts = 0; rpts < timestopaste; ++rpts)
             {
                 for (size_t i = 1; i < all_efdata.size() - 1; i++)
@@ -4189,8 +4192,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         break;
                     }
                     bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
-                    new_start_time = wxAtoi(efdata[3]);
-                    new_end_time = wxAtoi(efdata[4]);
+                    int new_start_time = wxAtoi(efdata[3]);
+                    int new_end_time = wxAtoi(efdata[4]);
                     if (paste_by_cell && !is_timing_effect && !row_paste)
                     {
                         int eff_start_column = wxAtoi(efdata[7]);
@@ -4352,7 +4355,6 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             }
             else
             {
-                int start_time, end_time;
                 mSequenceElements->get_undo_mgr().CreateUndoStep();
                 int row1 = mRangeStartRow;
                 int row2 = mRangeEndRow;
@@ -4373,12 +4375,12 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                         logger_base.info("No start time");
                         break;
                     }
-                    start_time = tel->GetEffect(col1)->GetStartTimeMS();
+                    int start_time = tel->GetEffect(col1)->GetStartTimeMS();
                     if (tel->GetEffect(col2) == nullptr) {
                         logger_base.info("No end time");
                         break;
                     }
-                    end_time = tel->GetEffect(col2)->GetEndTimeMS();
+                    int end_time = tel->GetEffect(col2)->GetEndTimeMS();
                     if( !paste_by_cell )  // use original effect length if paste by time
                     {
                         int drop_time_offset = wxAtoi(efdata[3]);
