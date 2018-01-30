@@ -302,7 +302,7 @@ bool HttpConnection::WebSocketHandshake(HttpRequest &request)
 	uint8_t     sha[20] = { 0 };
 
 	SHA1Reset(&ctx);
-	SHA1Input(&ctx, (unsigned char *)(const char *)handshake, handshake.Length());
+	SHA1Input(&ctx, (unsigned char *)(const char *)handshake.ToStdString().c_str(), handshake.Length());
 	SHA1Result(&ctx, sha);
 
 	HttpResponse response(*this, request, HttpStatus::SwitchingProtocols);

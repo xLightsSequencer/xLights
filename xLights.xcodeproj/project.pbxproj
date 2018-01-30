@@ -377,6 +377,35 @@
 		67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */; };
 		67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */; };
 		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
+		67D75E2D2020ED1B005BAC6E /* EventE131Panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1C2020ED17005BAC6E /* EventE131Panel.cpp */; };
+		67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1D2020ED17005BAC6E /* EventDialog.cpp */; };
+		67D75E2F2020ED1B005BAC6E /* EventOSCPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E1E2020ED17005BAC6E /* EventOSCPanel.cpp */; };
+		67D75E302020ED1B005BAC6E /* EventFPPPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E212020ED18005BAC6E /* EventFPPPanel.cpp */; };
+		67D75E312020ED1B005BAC6E /* EventARTNetPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E262020ED19005BAC6E /* EventARTNetPanel.cpp */; };
+		67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E272020ED19005BAC6E /* EventDataPanel.cpp */; };
+		67D75E332020ED1B005BAC6E /* EventsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E282020ED19005BAC6E /* EventsDialog.cpp */; };
+		67D75E342020ED1B005BAC6E /* EventSerialPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E2C2020ED1A005BAC6E /* EventSerialPanel.cpp */; };
+		67D75E542020ED60005BAC6E /* EventBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E382020ED5E005BAC6E /* EventBase.cpp */; };
+		67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E3A2020ED5E005BAC6E /* ListenerFPPUnicast.cpp */; };
+		67D75E562020ED60005BAC6E /* EventARTNet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E3D2020ED5E005BAC6E /* EventARTNet.cpp */; };
+		67D75E572020ED60005BAC6E /* ListenerBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E3E2020ED5E005BAC6E /* ListenerBase.cpp */; };
+		67D75E582020ED60005BAC6E /* ListenerARTNet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E3F2020ED5E005BAC6E /* ListenerARTNet.cpp */; };
+		67D75E592020ED60005BAC6E /* EventFPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E412020ED5E005BAC6E /* EventFPP.cpp */; };
+		67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E432020ED5F005BAC6E /* ListenerOSC.cpp */; };
+		67D75E5B2020ED60005BAC6E /* ListenerManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E452020ED5F005BAC6E /* ListenerManager.cpp */; };
+		67D75E5C2020ED60005BAC6E /* ListenerE131.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E462020ED5F005BAC6E /* ListenerE131.cpp */; };
+		67D75E5D2020ED60005BAC6E /* EventE131.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E482020ED5F005BAC6E /* EventE131.cpp */; };
+		67D75E5E2020ED60005BAC6E /* EventData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E4A2020ED5F005BAC6E /* EventData.cpp */; };
+		67D75E5F2020ED60005BAC6E /* EventOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E4B2020ED5F005BAC6E /* EventOSC.cpp */; };
+		67D75E602020ED60005BAC6E /* EventSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E4D2020ED60005BAC6E /* EventSerial.cpp */; };
+		67D75E612020ED60005BAC6E /* ListenerFPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E512020ED60005BAC6E /* ListenerFPP.cpp */; };
+		67D75E622020ED60005BAC6E /* ListenerSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E532020ED60005BAC6E /* ListenerSerial.cpp */; };
+		67D75E6C2020ED96005BAC6E /* PlayListItemSerialPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E642020ED94005BAC6E /* PlayListItemSerialPanel.cpp */; };
+		67D75E6D2020ED96005BAC6E /* PlayListItemFPPEventPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */; };
+		67D75E6E2020ED96005BAC6E /* PlayListItemSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */; };
+		67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */; };
+		67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179520167D4A001E7A8B /* DDPOutput.cpp */; };
+		67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DD179720167D4B001E7A8B /* DDPDialog.cpp */; };
 		67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D7DD031B23C586007A3F20 /* UndoManager.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
@@ -1287,6 +1316,62 @@
 		67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFSEQVideoPanel.h; path = PlayList/PlayListItemFSEQVideoPanel.h; sourceTree = "<group>"; };
 		67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListSimpleDialog.h; path = PlayList/PlayListSimpleDialog.h; sourceTree = "<group>"; };
 		67D678FC1A7E628400421B05 /* tmGridCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tmGridCell.cpp; sourceTree = "<group>"; };
+		67D75E1C2020ED17005BAC6E /* EventE131Panel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventE131Panel.cpp; sourceTree = "<group>"; };
+		67D75E1D2020ED17005BAC6E /* EventDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventDialog.cpp; sourceTree = "<group>"; };
+		67D75E1E2020ED17005BAC6E /* EventOSCPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventOSCPanel.cpp; sourceTree = "<group>"; };
+		67D75E1F2020ED17005BAC6E /* EventFPPPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventFPPPanel.h; sourceTree = "<group>"; };
+		67D75E202020ED18005BAC6E /* EventDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventDialog.h; sourceTree = "<group>"; };
+		67D75E212020ED18005BAC6E /* EventFPPPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventFPPPanel.cpp; sourceTree = "<group>"; };
+		67D75E222020ED18005BAC6E /* EventE131Panel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventE131Panel.h; sourceTree = "<group>"; };
+		67D75E232020ED18005BAC6E /* EventARTNetPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventARTNetPanel.h; sourceTree = "<group>"; };
+		67D75E242020ED18005BAC6E /* EventOSCPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventOSCPanel.h; sourceTree = "<group>"; };
+		67D75E252020ED19005BAC6E /* EventSerialPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventSerialPanel.h; sourceTree = "<group>"; };
+		67D75E262020ED19005BAC6E /* EventARTNetPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventARTNetPanel.cpp; sourceTree = "<group>"; };
+		67D75E272020ED19005BAC6E /* EventDataPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventDataPanel.cpp; sourceTree = "<group>"; };
+		67D75E282020ED19005BAC6E /* EventsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventsDialog.cpp; sourceTree = "<group>"; };
+		67D75E292020ED19005BAC6E /* EventsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventsDialog.h; sourceTree = "<group>"; };
+		67D75E2A2020ED19005BAC6E /* EventPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventPanel.h; sourceTree = "<group>"; };
+		67D75E2B2020ED1A005BAC6E /* EventDataPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventDataPanel.h; sourceTree = "<group>"; };
+		67D75E2C2020ED1A005BAC6E /* EventSerialPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventSerialPanel.cpp; sourceTree = "<group>"; };
+		67D75E362020ED5D005BAC6E /* EventARTNet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventARTNet.h; path = events/EventARTNet.h; sourceTree = "<group>"; };
+		67D75E372020ED5D005BAC6E /* ListenerFPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerFPP.h; path = events/ListenerFPP.h; sourceTree = "<group>"; };
+		67D75E382020ED5E005BAC6E /* EventBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventBase.cpp; path = events/EventBase.cpp; sourceTree = "<group>"; };
+		67D75E392020ED5E005BAC6E /* ListenerARTNet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerARTNet.h; path = events/ListenerARTNet.h; sourceTree = "<group>"; };
+		67D75E3A2020ED5E005BAC6E /* ListenerFPPUnicast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerFPPUnicast.cpp; path = events/ListenerFPPUnicast.cpp; sourceTree = "<group>"; };
+		67D75E3B2020ED5E005BAC6E /* EventOSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventOSC.h; path = events/EventOSC.h; sourceTree = "<group>"; };
+		67D75E3C2020ED5E005BAC6E /* EventBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventBase.h; path = events/EventBase.h; sourceTree = "<group>"; };
+		67D75E3D2020ED5E005BAC6E /* EventARTNet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventARTNet.cpp; path = events/EventARTNet.cpp; sourceTree = "<group>"; };
+		67D75E3E2020ED5E005BAC6E /* ListenerBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerBase.cpp; path = events/ListenerBase.cpp; sourceTree = "<group>"; };
+		67D75E3F2020ED5E005BAC6E /* ListenerARTNet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerARTNet.cpp; path = events/ListenerARTNet.cpp; sourceTree = "<group>"; };
+		67D75E402020ED5E005BAC6E /* EventData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventData.h; path = events/EventData.h; sourceTree = "<group>"; };
+		67D75E412020ED5E005BAC6E /* EventFPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventFPP.cpp; path = events/EventFPP.cpp; sourceTree = "<group>"; };
+		67D75E422020ED5E005BAC6E /* EventFPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventFPP.h; path = events/EventFPP.h; sourceTree = "<group>"; };
+		67D75E432020ED5F005BAC6E /* ListenerOSC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerOSC.cpp; path = events/ListenerOSC.cpp; sourceTree = "<group>"; };
+		67D75E442020ED5F005BAC6E /* ListenerSerial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerSerial.h; path = events/ListenerSerial.h; sourceTree = "<group>"; };
+		67D75E452020ED5F005BAC6E /* ListenerManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerManager.cpp; path = events/ListenerManager.cpp; sourceTree = "<group>"; };
+		67D75E462020ED5F005BAC6E /* ListenerE131.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerE131.cpp; path = events/ListenerE131.cpp; sourceTree = "<group>"; };
+		67D75E472020ED5F005BAC6E /* ListenerBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerBase.h; path = events/ListenerBase.h; sourceTree = "<group>"; };
+		67D75E482020ED5F005BAC6E /* EventE131.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventE131.cpp; path = events/EventE131.cpp; sourceTree = "<group>"; };
+		67D75E492020ED5F005BAC6E /* ListenerManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerManager.h; path = events/ListenerManager.h; sourceTree = "<group>"; };
+		67D75E4A2020ED5F005BAC6E /* EventData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventData.cpp; path = events/EventData.cpp; sourceTree = "<group>"; };
+		67D75E4B2020ED5F005BAC6E /* EventOSC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventOSC.cpp; path = events/EventOSC.cpp; sourceTree = "<group>"; };
+		67D75E4C2020ED60005BAC6E /* EventE131.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventE131.h; path = events/EventE131.h; sourceTree = "<group>"; };
+		67D75E4D2020ED60005BAC6E /* EventSerial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventSerial.cpp; path = events/EventSerial.cpp; sourceTree = "<group>"; };
+		67D75E4E2020ED60005BAC6E /* EventSerial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventSerial.h; path = events/EventSerial.h; sourceTree = "<group>"; };
+		67D75E4F2020ED60005BAC6E /* ListenerE131.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerE131.h; path = events/ListenerE131.h; sourceTree = "<group>"; };
+		67D75E502020ED60005BAC6E /* ListenerFPPUnicast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerFPPUnicast.h; path = events/ListenerFPPUnicast.h; sourceTree = "<group>"; };
+		67D75E512020ED60005BAC6E /* ListenerFPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerFPP.cpp; path = events/ListenerFPP.cpp; sourceTree = "<group>"; };
+		67D75E522020ED60005BAC6E /* ListenerOSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerOSC.h; path = events/ListenerOSC.h; sourceTree = "<group>"; };
+		67D75E532020ED60005BAC6E /* ListenerSerial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerSerial.cpp; path = events/ListenerSerial.cpp; sourceTree = "<group>"; };
+		67D75E632020ED94005BAC6E /* PlayListItemFPPEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFPPEvent.h; path = PlayList/PlayListItemFPPEvent.h; sourceTree = "<group>"; };
+		67D75E642020ED94005BAC6E /* PlayListItemSerialPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSerialPanel.cpp; path = PlayList/PlayListItemSerialPanel.cpp; sourceTree = "<group>"; };
+		67D75E652020ED94005BAC6E /* PlayListItemSerialSend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemSerialSend.h; path = PlayList/PlayListItemSerialSend.h; sourceTree = "<group>"; };
+		67D75E662020ED95005BAC6E /* PlayListItemFPPEventPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFPPEventPanel.h; path = PlayList/PlayListItemFPPEventPanel.h; sourceTree = "<group>"; };
+		67D75E672020ED95005BAC6E /* PlayListItemSerialPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemSerialPanel.h; path = PlayList/PlayListItemSerialPanel.h; sourceTree = "<group>"; };
+		67D75E682020ED95005BAC6E /* PlayListItemSerial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemSerial.h; path = PlayList/PlayListItemSerial.h; sourceTree = "<group>"; };
+		67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFPPEventPanel.cpp; path = PlayList/PlayListItemFPPEventPanel.cpp; sourceTree = "<group>"; };
+		67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSerial.cpp; path = PlayList/PlayListItemSerial.cpp; sourceTree = "<group>"; };
+		67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFPPEvent.cpp; path = PlayList/PlayListItemFPPEvent.cpp; sourceTree = "<group>"; };
 		67D7DD031B23C586007A3F20 /* UndoManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UndoManager.cpp; path = sequencer/UndoManager.cpp; sourceTree = "<group>"; };
 		67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DimDialog.cpp; sourceTree = "<group>"; };
 		67DA0AE91E39C8EB00E2A859 /* DimDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DimDialog.h; sourceTree = "<group>"; };
@@ -2015,6 +2100,43 @@
 			name = Controllers;
 			sourceTree = "<group>";
 		};
+		67D75E352020ED4B005BAC6E /* events */ = {
+			isa = PBXGroup;
+			children = (
+				67D75E3D2020ED5E005BAC6E /* EventARTNet.cpp */,
+				67D75E362020ED5D005BAC6E /* EventARTNet.h */,
+				67D75E382020ED5E005BAC6E /* EventBase.cpp */,
+				67D75E3C2020ED5E005BAC6E /* EventBase.h */,
+				67D75E4A2020ED5F005BAC6E /* EventData.cpp */,
+				67D75E402020ED5E005BAC6E /* EventData.h */,
+				67D75E482020ED5F005BAC6E /* EventE131.cpp */,
+				67D75E4C2020ED60005BAC6E /* EventE131.h */,
+				67D75E412020ED5E005BAC6E /* EventFPP.cpp */,
+				67D75E422020ED5E005BAC6E /* EventFPP.h */,
+				67D75E4B2020ED5F005BAC6E /* EventOSC.cpp */,
+				67D75E3B2020ED5E005BAC6E /* EventOSC.h */,
+				67D75E4D2020ED60005BAC6E /* EventSerial.cpp */,
+				67D75E4E2020ED60005BAC6E /* EventSerial.h */,
+				67D75E3F2020ED5E005BAC6E /* ListenerARTNet.cpp */,
+				67D75E392020ED5E005BAC6E /* ListenerARTNet.h */,
+				67D75E3E2020ED5E005BAC6E /* ListenerBase.cpp */,
+				67D75E472020ED5F005BAC6E /* ListenerBase.h */,
+				67D75E462020ED5F005BAC6E /* ListenerE131.cpp */,
+				67D75E4F2020ED60005BAC6E /* ListenerE131.h */,
+				67D75E512020ED60005BAC6E /* ListenerFPP.cpp */,
+				67D75E372020ED5D005BAC6E /* ListenerFPP.h */,
+				67D75E3A2020ED5E005BAC6E /* ListenerFPPUnicast.cpp */,
+				67D75E502020ED60005BAC6E /* ListenerFPPUnicast.h */,
+				67D75E452020ED5F005BAC6E /* ListenerManager.cpp */,
+				67D75E492020ED5F005BAC6E /* ListenerManager.h */,
+				67D75E432020ED5F005BAC6E /* ListenerOSC.cpp */,
+				67D75E522020ED60005BAC6E /* ListenerOSC.h */,
+				67D75E532020ED60005BAC6E /* ListenerSerial.cpp */,
+				67D75E442020ED5F005BAC6E /* ListenerSerial.h */,
+			);
+			name = events;
+			sourceTree = "<group>";
+		};
 		67DAFDCD1CA1A62B004B3237 /* MIDI */ = {
 			isa = PBXGroup;
 			children = (
@@ -2427,6 +2549,24 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67D75E352020ED4B005BAC6E /* events */,
+				67D75E262020ED19005BAC6E /* EventARTNetPanel.cpp */,
+				67D75E232020ED18005BAC6E /* EventARTNetPanel.h */,
+				67D75E272020ED19005BAC6E /* EventDataPanel.cpp */,
+				67D75E2B2020ED1A005BAC6E /* EventDataPanel.h */,
+				67D75E1D2020ED17005BAC6E /* EventDialog.cpp */,
+				67D75E202020ED18005BAC6E /* EventDialog.h */,
+				67D75E1C2020ED17005BAC6E /* EventE131Panel.cpp */,
+				67D75E222020ED18005BAC6E /* EventE131Panel.h */,
+				67D75E212020ED18005BAC6E /* EventFPPPanel.cpp */,
+				67D75E1F2020ED17005BAC6E /* EventFPPPanel.h */,
+				67D75E1E2020ED17005BAC6E /* EventOSCPanel.cpp */,
+				67D75E242020ED18005BAC6E /* EventOSCPanel.h */,
+				67D75E2A2020ED19005BAC6E /* EventPanel.h */,
+				67D75E282020ED19005BAC6E /* EventsDialog.cpp */,
+				67D75E292020ED19005BAC6E /* EventsDialog.h */,
+				67D75E2C2020ED1A005BAC6E /* EventSerialPanel.cpp */,
+				67D75E252020ED19005BAC6E /* EventSerialPanel.h */,
 				67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */,
 				67F4145B1FFEE239009F2E74 /* OutputProcessThreeToFour.h */,
 				67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */,
@@ -2572,6 +2712,15 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */,
+				67D75E632020ED94005BAC6E /* PlayListItemFPPEvent.h */,
+				67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */,
+				67D75E662020ED95005BAC6E /* PlayListItemFPPEventPanel.h */,
+				67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */,
+				67D75E682020ED95005BAC6E /* PlayListItemSerial.h */,
+				67D75E642020ED94005BAC6E /* PlayListItemSerialPanel.cpp */,
+				67D75E672020ED95005BAC6E /* PlayListItemSerialPanel.h */,
+				67D75E652020ED94005BAC6E /* PlayListItemSerialSend.h */,
 				6763C55E1F701E87006616FF /* PlayListItemFilePanel.h */,
 				6763C55F1F701E87006616FF /* PlayListItemFilePanel.cpp */,
 				6763C5601F701E87006616FF /* PlayListItemFile.h */,
@@ -3146,7 +3295,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
+				67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */,
 				3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */,
+				67D75E542020ED60005BAC6E /* EventBase.cpp in Sources */,
 				3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */,
 				3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */,
 				3D585F2B1E7E50A200A3F84F /* jsonval.cpp in Sources */,
@@ -3157,18 +3309,26 @@
 				67F240291E32A0C900F8B985 /* kiss_fftndr.c in Sources */,
 				67F2402A1E32A0C900F8B985 /* kiss_fftnd.c in Sources */,
 				67DA0AFB1E39C8EB00E2A859 /* OutputProcessDim.cpp in Sources */,
+				67D75E312020ED1B005BAC6E /* EventARTNetPanel.cpp in Sources */,
+				67D75E5B2020ED60005BAC6E /* ListenerManager.cpp in Sources */,
 				67F2402B1E32A0C900F8B985 /* kfc.c in Sources */,
+				67D75E342020ED1B005BAC6E /* EventSerialPanel.cpp in Sources */,
 				67F2402C1E32A0C900F8B985 /* kiss_fft.c in Sources */,
 				67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */,
 				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
+				67D75E332020ED1B005BAC6E /* EventsDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
+				67D75E582020ED60005BAC6E /* ListenerARTNet.cpp in Sources */,
 				1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
+				67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */,
+				67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */,
 				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				67F2401D1E32A09E00F8B985 /* Files.cpp in Sources */,
 				67DA0AFF1E39C8EB00E2A859 /* OutputProcessSet.cpp in Sources */,
+				67D75E302020ED1B005BAC6E /* EventFPPPanel.cpp in Sources */,
 				67F2401E1E32A09E00F8B985 /* host-c.cpp in Sources */,
 				67F2401F1E32A09E00F8B985 /* PluginChannelAdapter.cpp in Sources */,
 				67F240201E32A09E00F8B985 /* PluginHostAdapter.cpp in Sources */,
@@ -3179,6 +3339,7 @@
 				67F240251E32A09E00F8B985 /* RealTime.cpp in Sources */,
 				67F240261E32A09E00F8B985 /* VideoReader.cpp in Sources */,
 				67F240271E32A09E00F8B985 /* xLightsTimer.cpp in Sources */,
+				67D75E562020ED60005BAC6E /* EventARTNet.cpp in Sources */,
 				67DA0AFD1E39C8EB00E2A859 /* OutputProcessingDialog.cpp in Sources */,
 				67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */,
 				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
@@ -3188,11 +3349,13 @@
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
 				67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */,
+				67D75E5E2020ED60005BAC6E /* EventData.cpp in Sources */,
 				67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */,
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
 				67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */,
 				67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */,
+				67D75E6D2020ED96005BAC6E /* PlayListItemFPPEventPanel.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
 				67F2400E1E32A03F00F8B985 /* NullOutputDialog.cpp in Sources */,
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
@@ -3211,10 +3374,12 @@
 				6763C5621F701E87006616FF /* PlayListItemFilePanel.cpp in Sources */,
 				67F240191E32A03F00F8B985 /* TestPreset.cpp in Sources */,
 				67F2401A1E32A03F00F8B985 /* AudioManager.cpp in Sources */,
+				67D75E5C2020ED60005BAC6E /* ListenerE131.cpp in Sources */,
 				67F23F5E1E329AD800F8B985 /* ButtonDetailsDialog.cpp in Sources */,
 				67F23FA41E329E3300F8B985 /* request.cpp in Sources */,
 				67C5814B1E4B95A400932DFA /* ColourOrderDialog.cpp in Sources */,
 				67F23FE91E329E7400F8B985 /* PlayListItem.cpp in Sources */,
+				67D75E2F2020ED1B005BAC6E /* EventOSCPanel.cpp in Sources */,
 				67D640F21E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp in Sources */,
 				67D640E91E41168F00381DDA /* BackgroundPlaylistDialog.cpp in Sources */,
 				67F240011E329E7400F8B985 /* PlayListStep.cpp in Sources */,
@@ -3225,6 +3390,7 @@
 				67F23FF71E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp in Sources */,
 				67DA0AFC1E39C8EB00E2A859 /* OutputProcessDimWhite.cpp in Sources */,
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
+				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
@@ -3234,6 +3400,8 @@
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
 				67C581541E4B95A400932DFA /* OutputProcessColourOrder.cpp in Sources */,
 				67F23FF91E329E7400F8B985 /* PlayListItemRDSPanel.cpp in Sources */,
+				67D75E2D2020ED1B005BAC6E /* EventE131Panel.cpp in Sources */,
+				67D75E6E2020ED96005BAC6E /* PlayListItemSerial.cpp in Sources */,
 				67F4145C1FFEE239009F2E74 /* OutputProcessThreeToFour.cpp in Sources */,
 				6763C5631F701E87006616FF /* PlayListItemFile.cpp in Sources */,
 				1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */,
@@ -3246,11 +3414,14 @@
 				67F23F671E329AD800F8B985 /* ProjectorDetailsDialog.cpp in Sources */,
 				67F23F5B1E329AD800F8B985 /* ScheduleManager.cpp in Sources */,
 				1ECB4F7C1FF635EE006D57AA /* PlayListItemOSCPanel.cpp in Sources */,
+				67D75E5D2020ED60005BAC6E /* EventE131.cpp in Sources */,
 				67F23FF81E329E7400F8B985 /* PlayListItemRDS.cpp in Sources */,
 				67F23F661E329AD800F8B985 /* md5.cpp in Sources */,
+				67D75E602020ED60005BAC6E /* EventSerial.cpp in Sources */,
 				67F240001E329E7400F8B985 /* PlayListPanel.cpp in Sources */,
 				67F23FFF1E329E7400F8B985 /* PlayListItemVideoPanel.cpp in Sources */,
 				67DA0B071E39C96F00E2A859 /* SetDialog.cpp in Sources */,
+				67D75E622020ED60005BAC6E /* ListenerSerial.cpp in Sources */,
 				67F23FFD1E329E7400F8B985 /* PlayListItemRunProcessPanel.cpp in Sources */,
 				67F23FED1E329E7400F8B985 /* PlayListItemAudioPanel.cpp in Sources */,
 				67F23F5A1E329AD800F8B985 /* ScheduleDialog.cpp in Sources */,
@@ -3274,14 +3445,21 @@
 				67DA0AF81E39C8EB00E2A859 /* DimDialog.cpp in Sources */,
 				67F23FA11E329E3300F8B985 /* context.cpp in Sources */,
 				67F23F631E329AD800F8B985 /* ScheduleOptions.cpp in Sources */,
+				67D75E572020ED60005BAC6E /* ListenerBase.cpp in Sources */,
 				67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */,
+				67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */,
+				67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */,
 				67F23FEF1E329E7400F8B985 /* PlayListItemDelayPanel.cpp in Sources */,
 				67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */,
 				67F240031E329E7400F8B985 /* VideoWindowPositionDialog.cpp in Sources */,
+				67D75E5F2020ED60005BAC6E /* EventOSC.cpp in Sources */,
+				67D75E612020ED60005BAC6E /* ListenerFPP.cpp in Sources */,
 				67DA0AFA1E39C8EB00E2A859 /* OutputProcess.cpp in Sources */,
 				67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */,
 				67F23FF41E329E7400F8B985 /* PlayListItemImage.cpp in Sources */,
+				67D75E6C2020ED96005BAC6E /* PlayListItemSerialPanel.cpp in Sources */,
 				67F23FA51E329E3300F8B985 /* response.cpp in Sources */,
+				67D75E592020ED60005BAC6E /* EventFPP.cpp in Sources */,
 				67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */,
 				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
