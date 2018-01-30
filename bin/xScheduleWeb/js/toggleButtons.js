@@ -92,6 +92,9 @@ function updateNavStatus() {
       "btn btn-success glyphicon glyphicon-eye-open");
   }
 
+  //update xlights version
+  $("#version").html("xScheduler " + playingStatus['version']);
+
 
 }
 

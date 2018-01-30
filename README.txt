@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (Billy)  Fixed xScheduleWeb to display proper version number
 2018.4
    -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame
    -- bug (dkulp)  Fix problems with LOR v4 lcb only outputting 100% effect values
