@@ -31,7 +31,7 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 AppName=xLights
-AppVersion=2018.3
+AppVersion=2018.4
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
@@ -40,7 +40,7 @@ UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights64_2017_x
+OutputBaseFilename=xLights64_2018_x
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone

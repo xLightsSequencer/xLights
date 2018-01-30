@@ -22,7 +22,7 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName=xLights
-AppVersion=2018.3
+AppVersion=2018.4
 DefaultDirName={pf32}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -31,7 +31,7 @@ UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights32_2017_x
+OutputBaseFilename=xLights32_2018_x
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
