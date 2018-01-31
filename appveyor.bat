@@ -69,32 +69,24 @@ rem =========================================== 32 BIT GCC =====================
 :x86ReleaseGCC
 
 set COMSPEC=C:\Windows\system32\cmd.exe
-set SHELL=%COMSPEC%
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
-set PATH=%SHELL%;%MINGWPATH%;%PATH%
-set
+set PATH=%MINGWPATH%;%PATH%
 
 cd ..\wxWidgets\build\msw
 
-rem copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
+copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
 
-rem sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
-rem if %ERRORLEVEL% NEQ 0 exit 1
+sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
+if %ERRORLEVEL% NEQ 0 exit 1
 
-rem mkdir ..\..\lib\gcc_dll
-rem mkdir ..\..\lib\gcc_dll\mswu
-rem mkdir ..\..\lib\gcc_dll\mswu\wx
-rem mkdir ..\..\lib\gcc_dll\mswu\wx\msw
-rem copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
+mkdir ..\..\lib\gcc_dll
+mkdir ..\..\lib\gcc_dll\mswu
+mkdir ..\..\lib\gcc_dll\mswu\wx
+mkdir ..\..\lib\gcc_dll\mswu\wx\msw
+copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
-
-dir ..\..\lib
-dir ..\..\lib\gcc_dll
-dir ..\..\lib\gcc_dll\mswu
-dir ..\..\lib\gcc_dll\mswu\wx
-dir ..\..\lib\gcc_dll\mswu\wx\msw
 
 if %ERRORLEVEL% NEQ 0 exit 1
 
@@ -138,7 +130,7 @@ exit 0
 rem =========================================== 64 BIT GCC ===========================================
 :x64ReleaseGCC
 
-set ComSpec=C:\Windows\system32\cmd.exe
+set COMSPEC=C:\Windows\system32\cmd.exe
 set MINGWPATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin
 set PATH=%PATH%;%MINGWPATH%
 
@@ -156,7 +148,7 @@ mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
-mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
+mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 
 if %ERRORLEVEL% NEQ 0 exit 1
 
