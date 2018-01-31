@@ -68,6 +68,7 @@ exit 0
 rem =========================================== 32 BIT GCC ===========================================
 :x86ReleaseGCC
 
+set ComSpec=C:\Windows\system32\cmd.exe
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
@@ -135,6 +136,7 @@ exit 0
 rem =========================================== 64 BIT GCC ===========================================
 :x64ReleaseGCC
 
+set ComSpec=C:\Windows\system32\cmd.exe
 set MINGWPATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin
 set PATH=%PATH%;%MINGWPATH%
 
