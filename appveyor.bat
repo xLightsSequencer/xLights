@@ -6,8 +6,11 @@ dir "\program files (x86)\windows kits\10\bin\"
 
 set "xlightsdir=%cd%"
 
-git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
+rem git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
+7z x -o\projects\wxWidgets wxWidgets-3.1.0.zip
 if %ERRORLEVEL% NEQ 0 exit 1
+
+dir \projects\wxWidgets
 
 sed -i 's/bool IsKindOf(const wxClassInfo *info) const/bool __attribute__((optimize("O0"))) IsKindOf(const wxClassInfo *info) const/g' \projects\wxWidgets\include\wx\rtti.h
 if %ERRORLEVEL% NEQ 0 exit 1
