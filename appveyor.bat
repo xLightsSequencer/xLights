@@ -81,6 +81,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 mkdir ..\..\lib\gcc_dll
 mkdir ..\..\lib\gcc_dll\mswu
 mkdir ..\..\lib\gcc_dll\mswu\wx
+mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
@@ -139,6 +140,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 mkdir ..\..\lib\gcc_dll
 mkdir ..\..\lib\gcc_dll\mswu
 mkdir ..\..\lib\gcc_dll\mswu\wx
+mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
