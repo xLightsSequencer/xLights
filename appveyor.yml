@@ -19,16 +19,16 @@ environment:
     #  configuration: Debug
     #  PLATFORMTOOLSET: 140
     #  BUILDTYPE: X64DEBUGVS
-    # gcc 64 bit release
-    - platform: x64
-      configuration: 64bit  MinGW_Release
-      PLATFORMTOOLSET: 140
-      BUILDTYPE: X64RELEASEGCC
     # gcc 32 bit release
     - platform: x86
       configuration: mingw_release
       PLATFORMTOOLSET: 140
       BUILDTYPE: X86RELEASEGCC
+    # gcc 64 bit release
+    - platform: x64
+      configuration: 64bit  MinGW_Release
+      PLATFORMTOOLSET: 140
+      BUILDTYPE: X64RELEASEGCC
   
 notifications:
   - provider: Email
