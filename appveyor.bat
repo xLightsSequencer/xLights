@@ -69,7 +69,7 @@ rem =========================================== 32 BIT GCC =====================
 :x86ReleaseGCC
 
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
-set PATH=%PATH%;%MINGWPATH%
+set PATH=%MINGWPATH%;%PATH%
 
 cd ..\wxWidgets\build\msw
 
