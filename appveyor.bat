@@ -2,7 +2,7 @@ rem I need to rework this so it works for mingw builds as well
 
 echo on
 
-dir "\program files (x86)\windows kits\10\bin\"
+rem dir "\program files (x86)\windows kits\10\bin\"
 
 set "xlightsdir=%cd%"
 
@@ -10,7 +10,7 @@ rem git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \pro
 7z x -o\projects\wxWidgets wxWidgets-3.1.0.zip
 if %ERRORLEVEL% NEQ 0 exit 1
 
-dir \projects\wxWidgets
+rem dir \projects\wxWidgets
 
 sed -i 's/bool IsKindOf(const wxClassInfo *info) const/bool __attribute__((optimize("O0"))) IsKindOf(const wxClassInfo *info) const/g' \projects\wxWidgets\include\wx\rtti.h
 if %ERRORLEVEL% NEQ 0 exit 1
@@ -87,8 +87,6 @@ mkdir ..\..\lib\gcc_dll\mswu
 mkdir ..\..\lib\gcc_dll\mswu\wx
 mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
-
-dir ..\..\src\zlib
 
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
