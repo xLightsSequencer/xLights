@@ -116,6 +116,11 @@ if %ERRORLEVEL% NEQ 0 exit 1
 mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
 if %ERRORLEVEL% NEQ 0 exit 1
 
+cd ..
+
+rem build the install file
+\projects\inno\iscc.exe "xLights_4_32bit.iss"
+
 exit 0
 
 rem =========================================== 64 BIT GCC ===========================================
@@ -164,5 +169,12 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 64bit__mingw_release
 if %ERRORLEVEL% NEQ 0 exit 1
+
+cd ..
+
+rem build the install file
+\projects\inno\iscc.exe "xLights_4_64bit.iss"
+
+dir
 
 exit 0
