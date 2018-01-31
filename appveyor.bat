@@ -87,6 +87,8 @@ copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
 
+if %ERRORLEVEL% NEQ 0 exit 1
+
 cd %xlightsdir%
 
 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
@@ -145,6 +147,8 @@ copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
+
+if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %xlightsdir%
 
