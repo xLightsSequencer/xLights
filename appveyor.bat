@@ -72,7 +72,7 @@ rem =========================================== 32 BIT GCC =====================
 :x86ReleaseGCC
 
 rem set COMSPEC=cmd.exe
-set COMSPEC=sh.exe
+set COMSPEC=bash.exe
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
