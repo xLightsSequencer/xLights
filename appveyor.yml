@@ -41,6 +41,7 @@ notifications:
 build_script:
   - ps: Start-FileDownload 'https://downloads.sourceforge.net/project/cbp2make/cbp2make-stl-rev147-all.tar.7z'
   - ps: Start-FileDownload 'http://www.jrsoftware.org/download.php/is.exe?site=1'
+  - ps: Start-FileDownload 'https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.zip'
   - appveyor.bat
   
 #deploy:
