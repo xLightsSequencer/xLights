@@ -87,6 +87,12 @@ copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
 
+dir ..\..\lib
+dir ..\..\lib\gcc_dll
+dir ..\..\lib\gcc_dll\mswu
+dir ..\..\lib\gcc_dll\mswu\wx
+dir ..\..\lib\gcc_dll\mswu\wx\msw
+
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %xlightsdir%
