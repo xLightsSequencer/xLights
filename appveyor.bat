@@ -71,7 +71,7 @@ rem =========================================== 32 BIT GCC =====================
 set COMSPEC=C:\Windows\system32\cmd.exe
 set SHELL=%COMSPEC%
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
-set PATH=%MINGWPATH%;%PATH%
+set PATH=%SHELL%;%MINGWPATH%;%PATH%
 set
 
 cd ..\wxWidgets\build\msw
