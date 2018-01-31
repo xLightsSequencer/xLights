@@ -28,6 +28,9 @@
 #include <wx/file.h>
 #include "../DrawGLUtils.h"
 #include <log4cpp/Category.hh>
+#include "ColorManager.h"
+#include "../xLightsApp.h"
+#include "../xLightsMain.h"
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);
@@ -58,6 +61,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mStartPixelOffset = 0;
     mFrequency = 40;
     _media = nullptr;
+    mTimeline = nullptr;
 }
 
 Waveform::~Waveform()
@@ -99,13 +103,13 @@ void Waveform::UpdatePlayMarker()
     renderGL();
 }
 
-void Waveform::CheckNeedToScroll()
+void Waveform::CheckNeedToScroll() const
 {
     int StartTime;
     int EndTime;
     mTimeline->GetViewableTimeRange(StartTime, EndTime);
     int scroll_point = mTimeline->GetPositionFromTimeMS(EndTime) * 0.99;
-    if(mTimeline->GetPlayMarker() > scroll_point)
+    if (mTimeline->GetPlayMarker() > scroll_point)
     {
         wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
         wxPostEvent(mParent, eventScroll);
@@ -114,13 +118,14 @@ void Waveform::CheckNeedToScroll()
 
 void Waveform::mouseLeftDown( wxMouseEvent& event)
 {
-    if(!mIsInitialized){return;}
-    if( !m_dragging )
+    if(!mIsInitialized) return;
+
+    if (!m_dragging)
     {
         m_dragging = true;
         CaptureMouse();
     }
-    if( m_drag_mode == DRAG_NORMAL )
+    if (m_drag_mode == DRAG_NORMAL)
     {
         mTimeline->SetSelectedPositionStart(event.GetX());
     }
@@ -319,7 +324,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
-    xlColor color(212,208,200);
+    //xlColor color(212,208,200);
+    xlColor color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);
@@ -344,7 +350,9 @@ void Waveform::DrawWaveView(const WaveView &wv)
     // draw shaded region if needed
     if( selected_x1 != -1 && selected_x2 != -1)
     {
-        color.Set(0, 0, 200, 45);
+        //color.Set(0, 0, 200, 45);
+        color = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_SELECTED);
+        color.SetAlpha(45);
         vac.AddVertex(selected_x1, 1, color);
         vac.AddVertex(selected_x2, 1, color);
         vac.AddVertex(selected_x2, mWindowHeight-1, color);
@@ -354,7 +362,8 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     if(_media != nullptr)
     {
-        xlColor c(130,178,207,255);
+        //xlColor c(130,178,207,255);
+        xlColor c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
 
         int max = std::min(mWindowWidth, wv.MinMaxs.size());
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {
@@ -366,15 +375,14 @@ void Waveform::DrawWaveView(const WaveView &wv)
             std::vector<double> vertexes;
             vertexes.resize((mWindowWidth + 2));
 
-            for (size_t x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
+            for (size_t x = 0; x < mWindowWidth && x < wv.MinMaxs.size(); x++)
             {
                 int index = x;
                 index += mStartPixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size())
                 {
-                    double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                    double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-
+                    double y1 = ((wv.MinMaxs[index].min * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
+                    double y2 = ((wv.MinMaxs[index].max * (float)(max_wave_ht / 2))+ (mWindowHeight / 2));
 
                     wv.background.AddVertex(x, y1);
                     wv.background.AddVertex(x, y2);
@@ -383,7 +391,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
                     vertexes[x] = y2;
                 }
             }
-            for(int x=mWindowWidth;x >= 0 ; x--) {
+            for (int x = mWindowWidth; x >= 0; x--) {
                 int index = x;
                 index += mStartPixelOffset;
                 if (index >= 0 && index < wv.MinMaxs.size()) {
@@ -401,16 +409,16 @@ void Waveform::DrawWaveView(const WaveView &wv)
     }
 
     // draw selection line if not a range
-    if( selected_x1 != -1 && selected_x2 == -1 )
+    if (selected_x1 != -1 && selected_x2 == -1)
     {
         color.Set(0, 0, 0, 128);
         vac.AddVertex(selected_x1, 1, color);
-        vac.AddVertex(selected_x1, mWindowHeight-1, color);
+        vac.AddVertex(selected_x1, mWindowHeight - 1, color);
     }
 
     // draw mouse position line
     int mouse_marker = mTimeline->GetMousePosition();
-    if( mouse_marker != -1 )
+    if (mouse_marker != -1)
     {
         color.Set(0, 0, 255, 255);
         vac.AddVertex(mouse_marker, 1, color);
@@ -419,7 +427,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     // draw play marker line
     int play_marker = mTimeline->GetPlayMarker();
-    if( play_marker != -1 )
+    if (play_marker != -1)
     {
         color.Set(0, 0, 0, 255);
         vac.AddVertex(play_marker, 1, color);
@@ -437,12 +445,12 @@ void Waveform::SetZoomLevel(int level)
 {
     mZoomLevel = level;
 
-    if(!mIsInitialized){return;}
+    if (!mIsInitialized) return;
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    for(size_t i=0;i<views.size();i++)
+    for (size_t i = 0; i < views.size(); i++)
     {
-        if(views[i].GetZoomLevel() == mZoomLevel)
+        if (views[i].GetZoomLevel() == mZoomLevel)
         {
             mCurrentWaveView = i;
         }
@@ -452,7 +460,7 @@ void Waveform::SetZoomLevel(int level)
         float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
         WaveView wv(mZoomLevel, samplesPerLine, _media);
         views.push_back(wv);
-        mCurrentWaveView = views.size()-1;
+        mCurrentWaveView = views.size() - 1;
     }
 }
 

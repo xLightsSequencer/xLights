@@ -50,7 +50,7 @@ class Waveform : public xlGLCanvas
         void SetTimeline(TimeLine* timeLine);
 
         void UpdatePlayMarker();
-        void CheckNeedToScroll();
+        void CheckNeedToScroll() const;
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
@@ -75,13 +75,13 @@ class Waveform : public xlGLCanvas
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel) const;
 		TimeLine* mTimeline;
         wxPanel* mParent;
-        wxWindow* mMainWindow;
+        //wxWindow* mMainWindow;
         int mStartPixelOffset;
         int mCurrentWaveView;
-        int mMediaTrackSize;
+        //int mMediaTrackSize;
         int mFrequency;
         int mZoomLevel;
-        bool mPointSize;
+        //bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;
 		AudioManager* _media;

@@ -118,7 +118,12 @@ public:
         alpha = a;
     }
 
-    bool IsNilColor()
+    void SetAlpha(uint8_t a)
+    {
+        alpha = a;
+    }
+
+    bool IsNilColor() const
     {
         return (red == 0 && green == 0 && blue == 0 && alpha == 0);
     }
