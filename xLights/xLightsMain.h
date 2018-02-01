@@ -526,6 +526,10 @@ public:
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
     void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
+    void OnMenuItem_LoudVolSelected(wxCommandEvent& event);
+    void OnMenuItem_MedVolSelected(wxCommandEvent& event);
+    void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
+    void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -673,6 +677,10 @@ private:
     static const long ID_PLAY_3_4;
     static const long ID_PLAY_1_2;
     static const long ID_PLAY_1_4;
+    static const long ID_MNU_LOUDVOLUME;
+    static const long ID_MNU_MEDVOLUME;
+    static const long ID_MNU_QUIET;
+    static const long ID_MNU_SUPERQUIET;
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
@@ -780,6 +788,7 @@ private:
     wxMenu* ToolIconSizeMenu;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxAuiManager* m_mgr;
+    wxMenuItem* MenuItem_VQuietVol;
     wxMenuItem* MenuItem49;
     wxMenuItem* MenuItem50;
     wxMenuItem* MenuItem_ExportEffects;
@@ -843,6 +852,7 @@ private:
     wxButton* ButtonNetworkChange;
     wxMenuItem* MenuItem_Help_Facebook;
     wxButton* ButtonAddNull;
+    wxMenuItem* MenuItem_QuietVol;
     wxMenu* AutoSaveMenu;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* Menu_Settings_Sequence;
@@ -868,6 +878,7 @@ private:
     wxTimer Timer_AutoSave;
     wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItemColorManager;
+    wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem51;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
@@ -908,6 +919,7 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuBar* MenuBar;
     wxMenuItem* MenuItem_LogRenderState;
+    wxMenuItem* MenuItem_MedVol;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
     xlAuiToolBar* ACToolbar;
     //*)
@@ -1215,6 +1227,7 @@ private:
     int playEndTime;
     bool replaySection;
     double playSpeed;
+    int playVolume;
     bool playAnimation;
 
     std::string selectedEffectName;

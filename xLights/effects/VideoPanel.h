@@ -20,6 +20,8 @@ class wxChoice;
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v"
 
+wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
+
 class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
 public:
 	xlVideoFilePickerCtrl(wxWindow *parent,
@@ -41,12 +43,12 @@ public:
 class VideoPanel: public wxPanel
 {
     void ValidateWindow();
+    void AddVideoTime(std::string fn, unsigned long ms);
 
 	public:
 
 		VideoPanel(wxWindow* parent);
 		virtual ~VideoPanel();
-        void addVideoTime(std::string fn, unsigned long ms);
 
         //(*Declarations(VideoPanel)
         BulkEditTextCtrl* TextCtrl_Video_CropBottom;
@@ -104,11 +106,12 @@ protected:
 		//(*Handlers(VideoPanel)
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
-		void OnSlider_Video_StarttimeCmdSliderUpdated(wxScrollEvent& event);
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
 		//*)
+
+        void SetVideoDetails(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

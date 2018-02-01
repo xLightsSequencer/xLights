@@ -8,17 +8,17 @@
     #include <GL/gl.h>
 #endif
 
-#include "wx/sizer.h"
+//#include "wx/sizer.h"
 #include "wx/glcanvas.h"
 #define INBUFF  16384
 #define OUTBUFF 32768
 
 #include <wx/event.h>
 #include "../xLightsTimer.h"
-#include <wx/artprov.h>
+//#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/settings.h>
-#include <wx/font.h>
+//#include <wx/settings.h>
+//#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
@@ -27,10 +27,10 @@
 #include "TimeLine.h"
 #include <wx/file.h>
 #include "../DrawGLUtils.h"
-#include <log4cpp/Category.hh>
 #include "ColorManager.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WAVE_FORM_HIGHLIGHT, wxCommandEvent);

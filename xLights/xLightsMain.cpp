@@ -236,6 +236,10 @@ const long xLightsFrame::ID_MNU_4SPEED = wxNewId();
 const long xLightsFrame::ID_PLAY_3_4 = wxNewId();
 const long xLightsFrame::ID_PLAY_1_2 = wxNewId();
 const long xLightsFrame::ID_PLAY_1_4 = wxNewId();
+const long xLightsFrame::ID_MNU_LOUDVOLUME = wxNewId();
+const long xLightsFrame::ID_MNU_MEDVOLUME = wxNewId();
+const long xLightsFrame::ID_MNU_QUIET = wxNewId();
+const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
@@ -883,6 +887,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     AudioMenu->Append(MenuItem30);
     MenuItem31 = new wxMenuItem(AudioMenu, ID_PLAY_1_4, _("Play 1/4 Speed"), wxEmptyString, wxITEM_RADIO);
     AudioMenu->Append(MenuItem31);
+    AudioMenu->AppendSeparator();
+    MenuItem_LoudVol = new wxMenuItem(AudioMenu, ID_MNU_LOUDVOLUME, _("Loud"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem_LoudVol);
+    MenuItem_MedVol = new wxMenuItem(AudioMenu, ID_MNU_MEDVOLUME, _("Medium"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem_MedVol);
+    MenuItem_QuietVol = new wxMenuItem(AudioMenu, ID_MNU_QUIET, _("Quiet"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem_QuietVol);
+    MenuItem_VQuietVol = new wxMenuItem(AudioMenu, ID_MNU_SUPERQUIET, _("Very Quiet"), wxEmptyString, wxITEM_RADIO);
+    AudioMenu->Append(MenuItem_VQuietVol);
     MenuBar->Append(AudioMenu, _("&Audio"));
     Menu2 = new wxMenu();
     MenuItem_ImportEffects = new wxMenuItem(Menu2, ID_IMPORT_EFFECTS, _("Import Effects"), wxEmptyString, wxITEM_NORMAL);
@@ -1170,6 +1183,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_PLAY_3_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_1_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
     Connect(ID_PLAY_1_4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetPlaySpeed);
+    Connect(ID_MNU_LOUDVOLUME,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_LoudVolSelected);
+    Connect(ID_MNU_MEDVOLUME,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MedVolSelected);
+    Connect(ID_MNU_QUIET,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_QuietVolSelected);
+    Connect(ID_MNU_SUPERQUIET,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VQuietVolSelected);
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
@@ -1350,6 +1367,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     playModel = nullptr;
 	mLoopAudio = false;
     playSpeed = 1.0;
+    playVolume = 100;
     playAnimation = false;
     UnsavedNetworkChanges = false;
 
@@ -3542,7 +3560,7 @@ void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
         default:
             break;
         }
-        
+
         logger_base.debug("      '%s' (%s) ='%s'", (const char*)key.c_str(), (const char*)type.c_str(), (const char*)value.c_str());
 
         ce = config->GetNextEntry(key, index);
@@ -4044,7 +4062,7 @@ void xLightsFrame::ExportModels(wxString filename)
     int usedchannels = 0;
     if (minchannel == 99999999)
     {
-        // No channels so we dont do this 
+        // No channels so we dont do this
         minchannel = 0;
         maxchannel = 0;
     }
@@ -7153,7 +7171,7 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                 {
                     if (lastEffect != nullptr && lastPhenome == it->first)
                     {
-                        lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());                        
+                        lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());
                         phenomeFound = true;
                     }
                     else
@@ -7352,4 +7370,28 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
 {
     VendorModelDialog::GetCache().ClearCache();
     VendorModelDialog::GetCache().Save();
+}
+
+void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
+{
+    playVolume = 100;
+    SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::OnMenuItem_MedVolSelected(wxCommandEvent& event)
+{
+    playVolume = 66;
+    SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::OnMenuItem_QuietVolSelected(wxCommandEvent& event)
+{
+    playVolume = 33;
+    SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
+{
+    playVolume = 10;
+    SDL::SetGlobalVolume(playVolume);
 }

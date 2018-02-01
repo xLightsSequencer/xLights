@@ -1279,6 +1279,27 @@
 					<handler function="SetPlaySpeed" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_LOUDVOLUME" variable="MenuItem_LoudVol" member="yes">
+					<label>Loud</label>
+					<handler function="OnMenuItem_LoudVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_MEDVOLUME" variable="MenuItem_MedVol" member="yes">
+					<label>Medium</label>
+					<handler function="OnMenuItem_MedVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_QUIET" variable="MenuItem_QuietVol" member="yes">
+					<label>Quiet</label>
+					<handler function="OnMenuItem_QuietVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_SUPERQUIET" variable="MenuItem_VQuietVol" member="yes">
+					<label>Very Quiet</label>
+					<handler function="OnMenuItem_VQuietVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Import</label>

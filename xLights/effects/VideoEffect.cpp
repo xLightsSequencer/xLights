@@ -8,7 +8,6 @@
 #include "../xLightsXmlFile.h"
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
-#include <log4cpp/Category.hh>
 #include "../UtilFunctions.h"
 
 #include "../../include/video-16.xpm"
@@ -16,7 +15,8 @@
 #include "../../include/video-32.xpm"
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
-#include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -306,6 +306,16 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 if (videolen == 0)
                 {
                     logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
+                }
+
+                VideoPanel *fp = static_cast<VideoPanel*>(panel);
+                if (fp != nullptr)
+                {
+                    wxCommandEvent event(EVT_VIDEODETAILS);
+                    event.SetInt(videolen);
+                    event.SetString(filename);
+                    wxPostEvent(fp, event);
+                    //fp->addVideoTime(filename, videolen);
                 }
 
                 if (starttime != 0)
