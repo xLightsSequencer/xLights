@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="MatrixFaceDownloadDialog">
+		<size>800,600</size>
+		<minsize>800,400</minsize>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
+		<handler function="OnClose" entry="EVT_CLOSE" />
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
+					<orientation>vertical</orientation>
+					<minsize>10,10</minsize>
+					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_Navigator" member="yes">
+									<image_list>&lt;none&gt;</image_list>
+									<tree_items>
+										<item>TreeCtrl_Navigator</item>
+										<item>&lt;none&gt;</item>
+									</tree_items>
+									<items_text>
+										<item2>TreeCtrl_Navigator</item2>
+										<item2>&lt;none&gt;</item2>
+									</items_text>
+									<size>200,-1</size>
+									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
+									<handler function="OnTreeCtrl_NavigatorItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
+									<handler function="OnTreeCtrl_NavigatorSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="NotebookPanels" member="yes">
+									<handler function="OnNotebookPanelsPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL2" variable="PanelVendor" member="yes">
+											<pos>43,60</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap_VendorImage" member="yes">
+														<size>256,128</size>
+														<minsize>256,128</minsize>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_VendorDetails" member="yes">
+														<style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+														<cols>2</cols>
+														<growablecols>1</growablecols>
+														<growablerows>0</growablerows>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText6" member="yes">
+																<label>Facebook:</label>
+															</object>
+															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Facebook" member="yes">
+																<label>http://xlights.org</label>
+																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
+																<handler function="OnHyperlinkCtrl_FacebookClick" entry="EVT_HYPERLINK" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText2" member="yes">
+																<label>Website:</label>
+															</object>
+															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL2" variable="HyperlinkCtrl_Website" member="yes">
+																<label>http://xlights.org</label>
+																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
+																<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Vendor</label>
+									</object>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL4" variable="Panel_Item" member="yes">
+											<pos>41,9</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>1</growablerows>
+												<object class="sizeritem">
+													<object class="wxPanel" name="ID_PANEL5" variable="ItemImagePanel" member="yes">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+															<cols>3</cols>
+															<growablecols>1</growablecols>
+															<growablerows>0</growablerows>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON2" variable="Button_Prior" member="yes">
+																	<label>&lt;</label>
+																	<size>30,-1</size>
+																	<handler function="OnButton_PriorClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticBitmap" name="ID_STATICBITMAP2" variable="StaticBitmap_ModelImage" member="yes">
+																	<size>256,256</size>
+																	<minsize>256,256</minsize>
+																</object>
+																<flag>wxALL|wxEXPAND</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON3" variable="Button_Next" member="yes">
+																	<label>&gt;</label>
+																	<size>30,-1</size>
+																	<handler function="OnButton_NextClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_ModelDetails" member="yes">
+														<style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+														<cols>2</cols>
+														<growablecols>1</growablecols>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText5" member="yes">
+																<label>Web Link:</label>
+															</object>
+															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL3" variable="HyperlinkCtrl_ModelWebLink" member="yes">
+																<label>http://xlights.org</label>
+																<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
+																<handler function="OnHyperlinkCtrl_ModelWebLinkClick" entry="EVT_HYPERLINK" />
+															</object>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON1" variable="Button_InsertModel" member="yes">
+														<label>Insert Model</label>
+														<handler function="OnButton_InsertModelClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+										</object>
+										<label>Item</label>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

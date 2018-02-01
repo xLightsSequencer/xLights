@@ -48,6 +48,7 @@ const long ModelFaceDialog::ID_GRID3 = wxNewId();
 const long ModelFaceDialog::ID_PANEL6 = wxNewId();
 const long ModelFaceDialog::ID_PANEL7 = wxNewId();
 const long ModelFaceDialog::ID_CHOICE2 = wxNewId();
+const long ModelFaceDialog::ID_BUTTON1 = wxNewId();
 const long ModelFaceDialog::ID_GRID1 = wxNewId();
 const long ModelFaceDialog::ID_PANEL3 = wxNewId();
 const long ModelFaceDialog::ID_CHOICEBOOK1 = wxNewId();
@@ -214,6 +215,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	MatrixImagePlacementChoice->SetSelection( MatrixImagePlacementChoice->Append(_("Centered")) );
 	MatrixImagePlacementChoice->Append(_("Scaled"));
 	FlexGridSizer6->Add(MatrixImagePlacementChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_DownloadImages = new wxButton(Matrix, ID_BUTTON1, _("Download Images"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer6->Add(Button_DownloadImages, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer10->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MatrixModelsGrid = new wxGrid(Matrix, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
 	MatrixModelsGrid->CreateGrid(10,2);
@@ -281,6 +284,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Connect(ID_GRID3,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelFaceDialog::OnNodeRangeGridCellSelect);
 	Panel_Matrix->Connect(wxEVT_PAINT,(wxObjectEventFunction)&ModelFaceDialog::Paint,0,this);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelFaceDialog::OnMatricImagePlacementChoiceSelect);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelFaceDialog::OnButton_DownloadImagesClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick1);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelFaceDialog::OnMatrixModelsGridCellChange);
@@ -447,7 +451,7 @@ void ModelFaceDialog::SelectFaceModel(const std::string &name) {
             }
         }
 
-        std::string w = "Centered";        
+        std::string w = "Centered";
         if (faceData[name].find("ImagePlacement") != faceData[name].end())
         {
             w = faceData[name]["ImagePlacement"];
@@ -968,4 +972,8 @@ void ModelFaceDialog::Paint(wxPaintEvent& event)
         }
         y += grid->GetRowHeight(i);
     }
+}
+
+void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
+{
 }

@@ -46,6 +46,7 @@ class ModelFaceDialog: public wxDialog
 		wxGrid* MatrixModelsGrid;
 		wxGrid* SingleNodeGrid;
 		wxStaticText* StaticText3;
+		wxButton* Button_DownloadImages;
 		wxPanel* Matrix;
 		wxCheckBox* CustomColorSingleNode;
 		wxButton* DeleteButton;
@@ -73,6 +74,7 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_PANEL6;
 		static const long ID_PANEL7;
 		static const long ID_CHOICE2;
+		static const long ID_BUTTON1;
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
 		static const long ID_CHOICEBOOK1;
@@ -101,6 +103,7 @@ class ModelFaceDialog: public wxDialog
 		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		void Paint(wxPaintEvent& event);
+		void OnButton_DownloadImagesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
