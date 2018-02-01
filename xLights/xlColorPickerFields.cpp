@@ -2,9 +2,9 @@
 #include <algorithm>
 
 //(*InternalHeaders(xlColorPickerFields)
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(xlColorPickerFields)
@@ -22,7 +22,7 @@ const long xlColorPickerFields::ID_RADIOBUTTON_Green = wxNewId();
 const long xlColorPickerFields::ID_RADIOBUTTON_Blue = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Hue = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Saturation = wxNewId();
-const long xlColorPickerFields::ID_TEXTCTRL_Brightness = wxNewId();
+const long xlColorPickerFields::ID_TEXTCTRL_BrightnessCPF = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Red = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Green = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Blue = wxNewId();
@@ -107,7 +107,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	wxFont TextCtrl_SaturationFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Saturation->SetFont(TextCtrl_SaturationFont);
 	GridBagSizer1->Add(TextCtrl_Saturation, wxGBPosition(5, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
-	TextCtrl_Brightness = new wxTextCtrl(this, ID_TEXTCTRL_Brightness, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Brightness"));
+	TextCtrl_Brightness = new wxTextCtrl(this, ID_TEXTCTRL_BrightnessCPF, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_BrightnessCPF"));
 	TextCtrl_Brightness->SetMinSize(wxSize(40,23));
 	wxFont TextCtrl_BrightnessFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Brightness->SetFont(TextCtrl_BrightnessFont);
@@ -174,7 +174,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Connect(ID_RADIOBUTTON_Blue,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xlColorPickerFields::OnRadioButton_ModeSelect);
 	Connect(ID_TEXTCTRL_Hue,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Saturation,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
-	Connect(ID_TEXTCTRL_Brightness,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
+	Connect(ID_TEXTCTRL_BrightnessCPF,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Red,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Green,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Blue,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
@@ -399,7 +399,7 @@ void xlColorPickerFields::OnTextCtrl_Text(wxCommandEvent& event)
         Panel_Slider->SetHSV(hsv);
         Panel_Palette->SetHSV(hsv);
     }
-    else if (name.Contains("ID_TEXTCTRL_Brightness")) {
+    else if (name.Contains("ID_TEXTCTRL_BrightnessCPF")) {
         int val = RangeLimit( TextCtrl_Brightness, 0, 100 );
         hsv.value = double(val) / 100.0;
         Panel_Slider->SetHSV(val);

@@ -542,6 +542,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        SetValue(wxString::Format("%d", s->GetValue()));
+                    }
                 }
             }
             break;
@@ -551,6 +555,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        SetValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                    }
                 }
             }
             break;
@@ -560,6 +568,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        SetValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                    }
                 }
             }
             break;
@@ -569,6 +581,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        SetValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                    }
                 }
             }
             break;

@@ -212,7 +212,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL_Brightness" variable="TextCtrl_Brightness" member="yes">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_BrightnessCPF" variable="TextCtrl_Brightness" member="yes">
 					<value>100</value>
 					<font>
 						<size>12</size>

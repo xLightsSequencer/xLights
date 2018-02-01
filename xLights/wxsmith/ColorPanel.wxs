@@ -263,7 +263,6 @@
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" subclass="BulkEditTextCtrl" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>20,-1d</size>
-													<validator>__brightness</validator>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>

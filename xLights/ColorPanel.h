@@ -41,7 +41,6 @@ class ColorPanel: public wxPanel
     void OnVCChanged(wxCommandEvent& event);
     void OnCCChanged(wxCommandEvent& event);
 
-    int __brightness;
     std::list<std::string> _loadedPalettes;
     wxString _lastShowDir;
     bool _supportslinear;

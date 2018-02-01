@@ -2,12 +2,12 @@
 #define XLCOLORPICKERFIELDS_H
 
 //(*Headers(xlColorPickerFields)
-#include <wx/bmpbuttn.h>
-#include <wx/radiobut.h>
-#include <wx/panel.h>
-#include <wx/slider.h>
-#include <wx/gbsizer.h>
 #include <wx/textctrl.h>
+#include <wx/radiobut.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
 //*)
 
 #include "xlColorPicker.h"
@@ -28,33 +28,33 @@ class xlColorPickerFields: public xlColorPicker
         virtual void NotifyColorChange();
 
 		//(*Declarations(xlColorPickerFields)
-		wxBitmapButton* BitmapButton_Swatch3;
-		wxRadioButton* RadioButton_Brightness;
-		wxBitmapButton* BitmapButton_Swatch5;
-		wxBitmapButton* BitmapButton_Swatch1;
-		wxPanel* Panel_CurrentColor;
-		wxTextCtrl* TextCtrl_Red;
-		wxBitmapButton* BitmapButton_Swatch2;
-		xlSlider* SliderLeft;
+		wxBitmapButton* BitmapButton_Swatch8;
 		wxTextCtrl* TextCtrl_Blue;
+		wxRadioButton* RadioButton_Red;
+		wxBitmapButton* BitmapButton_Swatch2;
+		wxTextCtrl* TextCtrl_Hue;
+		wxBitmapButton* BitmapButton_Swatch3;
 		xlSlider* SliderRight;
-		wxRadioButton* RadioButton_Hue;
-		wxTextCtrl* TextCtrl_Brightness;
-		wxRadioButton* RadioButton_Green;
-		xlColorCanvas* Panel_Palette;
-		wxBitmapButton* BitmapButton_Swatch7;
+		xlSlider* SliderLeft;
 		wxGridBagSizer* GridBagSizer1;
 		wxRadioButton* RadioButton_SwatchMarker;
-		wxBitmapButton* BitmapButton_Swatch8;
-		wxRadioButton* RadioButton_Red;
-		xlColorCanvas* Panel_Slider;
-		wxTextCtrl* TextCtrl_Hue;
-		wxRadioButton* RadioButton_Blue;
-		wxTextCtrl* TextCtrl_Saturation;
-		wxBitmapButton* BitmapButton_Swatch6;
 		wxBitmapButton* BitmapButton_Swatch4;
 		wxTextCtrl* TextCtrl_Green;
+		xlColorCanvas* Panel_Slider;
+		wxBitmapButton* BitmapButton_Swatch7;
+		wxTextCtrl* TextCtrl_Brightness;
+		wxTextCtrl* TextCtrl_Saturation;
 		wxRadioButton* RadioButton_Saturation;
+		wxPanel* Panel_CurrentColor;
+		wxRadioButton* RadioButton_Green;
+		wxRadioButton* RadioButton_Brightness;
+		xlColorCanvas* Panel_Palette;
+		wxBitmapButton* BitmapButton_Swatch6;
+		wxRadioButton* RadioButton_Blue;
+		wxBitmapButton* BitmapButton_Swatch1;
+		wxBitmapButton* BitmapButton_Swatch5;
+		wxRadioButton* RadioButton_Hue;
+		wxTextCtrl* TextCtrl_Red;
 		//*)
 
 	protected:
@@ -74,7 +74,7 @@ class xlColorPickerFields: public xlColorPicker
 		static const long ID_RADIOBUTTON_Blue;
 		static const long ID_TEXTCTRL_Hue;
 		static const long ID_TEXTCTRL_Saturation;
-		static const long ID_TEXTCTRL_Brightness;
+		static const long ID_TEXTCTRL_BrightnessCPF;
 		static const long ID_TEXTCTRL_Red;
 		static const long ID_TEXTCTRL_Green;
 		static const long ID_TEXTCTRL_Blue;
