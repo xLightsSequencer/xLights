@@ -740,11 +740,11 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     float ba = b;
                     ba /= 100.0f;
                     float f = color.red * ba;
-                    color.red = f;
+                    color.red = std::min((int)f, 255);
                     f = color.green * ba;
-                    color.green = f;
+                    color.green = std::min((int)f, 255);
                     f = color.blue * ba;
-                    color.blue = f;
+                    color.blue = std::min((int)f, 255);
                 }
 
                 if (cnt > 0) {
