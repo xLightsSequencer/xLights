@@ -308,12 +308,6 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     logger_base.warn("VideoEffect: Video %s was read as 0 length.", (const char *)filename.c_str());
                 }
 
-                VideoPanel *fp = static_cast<VideoPanel*>(panel);
-                if (fp != nullptr)
-                {
-                    fp->addVideoTime(filename, videolen);
-                }
-
                 if (starttime != 0)
                 {
                     logger_base.debug("Video effect initialising ... seeking to start location for the video %f.", (float)starttime);
