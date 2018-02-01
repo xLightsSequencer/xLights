@@ -944,10 +944,13 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 picture = model_info->faceInfo[definition][key + "Open"];
             }
         }
-        std::string i = "none"; /*RENDER_PICTURE_NONE*/
+        std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/
+        std::string stf = "Scale To Fit";
         if (model_info->faceInfo[definition]["ImagePlacement"] == "Centered") {
-            i = "none"; /*RENDER_PICTURE_NONE */
-        }        PicturesEffect::Render(buffer, i, picture, 0, 0, 0, 0, 0, 0, 100, 100, "Scale To Fit", false, false, false, false);  // set for scale to fit
+            dirstr = "none"; /*RENDER_PICTURE_NONE */
+            stf = "No Scaling";
+        }        
+        PicturesEffect::Render(buffer, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, false);  // set for scale to fit
     }
     for (size_t t = 0; t < todo.size(); t++) {
         std::string channels = model_info->faceInfo[definition][todo[t]];

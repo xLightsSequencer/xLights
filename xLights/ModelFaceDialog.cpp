@@ -446,9 +446,11 @@ void ModelFaceDialog::SelectFaceModel(const std::string &name) {
                 MatrixModelsGrid->SetCellValue(r, c, faceData[name][key.ToStdString()]);
             }
         }
-        std::string w = faceData[name]["ImagePlacement"];
-        if (w == "") {
-            w = "Centered";
+
+        std::string w = "Centered";        
+        if (faceData[name].find("ImagePlacement") != faceData[name].end())
+        {
+            w = faceData[name]["ImagePlacement"];
         }
         MatrixImagePlacementChoice->SetStringSelection(w);
     }
