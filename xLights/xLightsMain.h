@@ -526,6 +526,7 @@ public:
     void OnMenuItem_File_Save_Selected(wxCommandEvent& event);
     void OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event);
+    void OnButtonAddLORClick(wxCommandEvent& event);
     void OnMenuItem_LoudVolSelected(wxCommandEvent& event);
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
@@ -605,6 +606,7 @@ private:
     static const long ID_BUTTON_ADD_E131;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
+    static const long ID_BUTTON_ADD_LOR;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -825,6 +827,7 @@ private:
     xLightsTimer Timer1;
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
+    wxButton* ButtonAddLOR;
     xlAuiToolBar* PlayToolBar;
     wxMenu* Menu1;
     wxFlexGridSizer* GaugeSizer;
@@ -1000,6 +1003,7 @@ private:
     void SetupDongle(Output* e, int after = -1);
     void SetupE131(Output* e, int after = -1);
     void SetupArtNet(Output* e, int after = -1);
+    void SetupLOR(Output* e, int after = -1);
     void SetupDDP(Output* e, int after = -1);
     void SetupNullOutput(Output* e, int after = -1);
     bool SaveNetworksFile();
@@ -1395,6 +1399,7 @@ private:
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDE131;
     static const long ID_NETWORK_ADDARTNET;
+    static const long ID_NETWORK_ADDLOR;
     static const long ID_NETWORK_ADDDDP;
     static const long ID_NETWORK_BEIPADDR;
     static const long ID_NETWORK_BECHANNELS;

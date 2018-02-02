@@ -128,6 +128,7 @@ void LOROutput::AllOff()
     }
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
+    wxMilliSleep(50);
 }
 #pragma endregion Data Setting
 

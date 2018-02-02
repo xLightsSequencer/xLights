@@ -1002,7 +1002,22 @@
     <ClCompile Include="models\ImageModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="outputs\LOROptimisedOutput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SelectTimingsDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorControllerDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorControllers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="outputs\LorOptimisedDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1952,7 +1967,22 @@
     <ClInclude Include="models\ImageModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="outputs\LOROptimisedOutput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="SelectTimingsDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorControllerDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorControllers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="outputs\LorOptimisedDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

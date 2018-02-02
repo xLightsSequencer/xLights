@@ -113,6 +113,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -367,6 +369,11 @@
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
+    <ClCompile Include="outputs\LorController.cpp" />
+    <ClCompile Include="outputs\LorControllerDialog.cpp" />
+    <ClCompile Include="outputs\LorControllers.cpp" />
+    <ClCompile Include="outputs\LorOptimisedDialog.cpp" />
+    <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
@@ -676,6 +683,11 @@
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
+    <ClInclude Include="outputs\LorController.h" />
+    <ClInclude Include="outputs\LorControllerDialog.h" />
+    <ClInclude Include="outputs\LorControllers.h" />
+    <ClInclude Include="outputs\LorOptimisedDialog.h" />
+    <ClInclude Include="outputs\LOROptimisedOutput.h" />
     <ClInclude Include="outputs\NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />

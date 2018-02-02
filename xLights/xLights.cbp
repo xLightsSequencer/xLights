@@ -41,6 +41,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -116,6 +117,7 @@
 					<Add directory="effects/assist" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -188,6 +190,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -250,6 +253,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -310,6 +314,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -352,6 +357,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -398,6 +404,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -458,6 +465,7 @@
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx64)/include" />
@@ -1012,8 +1020,18 @@
 		<Unit filename="outputs/E131Output.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
+		<Unit filename="outputs/LOROptimisedOutput.cpp" />
+		<Unit filename="outputs/LOROptimisedOutput.h" />
 		<Unit filename="outputs/LOROutput.cpp" />
 		<Unit filename="outputs/LOROutput.h" />
+		<Unit filename="outputs/LorController.cpp" />
+		<Unit filename="outputs/LorController.h" />
+		<Unit filename="outputs/LorControllerDialog.cpp" />
+		<Unit filename="outputs/LorControllerDialog.h" />
+		<Unit filename="outputs/LorControllers.cpp" />
+		<Unit filename="outputs/LorControllers.h" />
+		<Unit filename="outputs/LorOptimisedDialog.cpp" />
+		<Unit filename="outputs/LorOptimisedDialog.h" />
 		<Unit filename="outputs/NullOutput.cpp" />
 		<Unit filename="outputs/NullOutput.h" />
 		<Unit filename="outputs/NullOutputDialog.cpp" />
@@ -1164,7 +1182,9 @@
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
+		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
+		<Unit filename="wxsmith/LorOptimisedDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
@@ -1391,6 +1411,8 @@
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

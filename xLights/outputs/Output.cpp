@@ -8,6 +8,7 @@
 #include "DDPOutput.h"
 #include "NullOutput.h"
 #include "LOROutput.h"
+#include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "DMXOutput.h"
 #include "PixelNetOutput.h"
@@ -163,6 +164,10 @@ Output* Output::Create(wxXmlNode* node)
     {
         return new LOROutput(node);
     }
+    else if (type == OUTPUT_LOR_OPT)
+    {
+        return new LOROptimisedOutput(node);
+    }
     else if (type == OUTPUT_DLIGHT)
     {
         return new DLightOutput(node);
@@ -268,8 +273,8 @@ void Output::SetManyChannels(long channel, unsigned char data[], long size)
 
 void Output::FrameOutput()
 {
-    _lastOutputTime = wxGetUTCTimeMillis(); 
-    _skippedFrames = 0; 
-    _changed = false; 
+    _lastOutputTime = wxGetUTCTimeMillis();
+    _skippedFrames = 0;
+    _changed = false;
     OutputManager::RegisterSentPacket();
 }

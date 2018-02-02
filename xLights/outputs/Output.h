@@ -17,6 +17,7 @@ class OutputManager;
 #define OUTPUT_PIXELNET "Pixelnet"
 #define OUTPUT_OPENPIXELNET "Pixelnet-Open"
 #define OUTPUT_LOR "LOR"
+#define OUTPUT_LOR_OPT "LOR Optimised"
 #define OUTPUT_DLIGHT "D-Light"
 #define OUTPUT_RENARD "Renard"
 #define OUTPUT_OPENDMX "OpenDMX"
@@ -29,7 +30,7 @@ typedef enum
     PING_OPEN,
     PING_OPENED,
     PING_ALLFAILED,
-    PING_UNAVAILABLE, 
+    PING_UNAVAILABLE,
     PING_UNKNOWN
 } PINGSTATE;
 
@@ -126,9 +127,9 @@ public:
     #pragma region Operators
     bool operator==(const Output& output) const;
     #pragma endregion Operators
-        
+
     virtual wxXmlNode* Save();
-    
+
     #pragma region Start and Stop
     virtual bool Open();
     virtual void Close() = 0;
@@ -148,7 +149,7 @@ public:
     virtual void SetManyChannels(long channel, unsigned char data[], long size);
     virtual void AllOff() = 0;
     #pragma endregion Data Setting
-    
+
     virtual void SendHeartbeat() const {}
 
     #pragma region UI

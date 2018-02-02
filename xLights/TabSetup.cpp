@@ -31,6 +31,7 @@
 #include "outputs/ArtNetOutput.h"
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
+#include "outputs/LOROptimisedOutput.h"
 
 // Process Setup Panel Events
 
@@ -40,6 +41,7 @@ const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDLOR = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
@@ -206,7 +208,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
 
     ObtainAccessToURL(newdir.ToStdString());
-    
+
     // update UI
     CheckBoxLightOutput->SetValue(false);
     _outputManager.StopOutput();
@@ -281,7 +283,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
-    
+
     LoadEffectsFile();
     EnableSequenceControls(true);
 
@@ -1084,9 +1086,42 @@ void xLightsFrame::SetupDongle(Output* e, int after)
     }
 }
 
+void xLightsFrame::SetupLOR(Output* e, int after)
+{
+    Output* serial = e;
+    if (serial == nullptr) serial = new LOROptimisedOutput();
+    _outputManager.AddOutput(serial, after);
+
+    Output* newoutput = serial->Configure(this, &_outputManager);
+
+    if (newoutput == nullptr)
+    {
+        if (e != serial)
+        {
+            _outputManager.DeleteOutput(serial);
+        }
+    }
+    else if (newoutput != serial)
+    {
+        _outputManager.Replace(serial, newoutput);
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+    else
+    {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+}
+
 void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
 {
     SetupDongle(nullptr);
+}
+
+void xLightsFrame::OnButtonAddLORClick(wxCommandEvent& event)
+{
+    SetupLOR(nullptr);
 }
 
 void xLightsFrame::NetworkChange()
@@ -1216,6 +1251,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
@@ -1699,6 +1735,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     else if (id == ID_NETWORK_ADDARTNET)
     {
         SetupArtNet(nullptr, item+1);
+    }
+    else if (id == ID_NETWORK_ADDLOR)
+    {
+        SetupLOR(nullptr, item+1);
     }
     else if (id == ID_NETWORK_ADDDDP)
     {

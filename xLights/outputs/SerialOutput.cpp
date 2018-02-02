@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include "SerialPortWithRate.h"
 #include "LOROutput.h"
+#include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "RenardOutput.h"
 #include "DMXOutput.h"
@@ -398,6 +399,10 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
     else if (newtype == OUTPUT_LOR)
     {
         return new LOROutput(this);
+    }
+    else if (newtype == OUTPUT_LOR_OPT)
+    {
+        return new LOROptimisedOutput(this);
     }
     else if (newtype == OUTPUT_DLIGHT)
     {
