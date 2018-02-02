@@ -1020,6 +1020,9 @@
     <ClCompile Include="outputs\LorOptimisedDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MatrixFaceDownloadDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="effects\BarsEffect.h">
@@ -1983,6 +1986,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="outputs\LorOptimisedDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixFaceDownloadDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

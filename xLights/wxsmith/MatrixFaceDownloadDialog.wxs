@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="MatrixFaceDownloadDialog">
+		<size>800,600</size>
+		<minsize>800,400</minsize>
+		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
+		<handler function="OnClose" entry="EVT_CLOSE" />
+		<handler function="OnResize" entry="EVT_SIZE" />
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
+					<orientation>vertical</orientation>
+					<minsize>10,10</minsize>
+					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_Navigator" member="yes">
+									<image_list>&lt;none&gt;</image_list>
+									<tree_items>
+										<item>TreeCtrl_Navigator</item>
+										<item>&lt;none&gt;</item>
+									</tree_items>
+									<items_text>
+										<item2>TreeCtrl_Navigator</item2>
+										<item2>&lt;none&gt;</item2>
+									</items_text>
+									<size>200,-1</size>
+									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
+									<handler function="OnTreeCtrl_NavigatorItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
+									<handler function="OnTreeCtrl_NavigatorSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_FilterUnsuitable" member="yes">
+									<label>Filter Unsuitable Faces</label>
+									<checked>1</checked>
+									<handler function="OnCheckBox_FilterUnsuitableClick" entry="EVT_CHECKBOX" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap_FaceImage" member="yes">
+									<size>256,128</size>
+									<minsize>256,128</minsize>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_FaceDetails" member="yes">
+									<size>-1,170</size>
+									<style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON1" variable="Button_InsertFace" member="yes">
+									<label>Insert Face</label>
+									<handler function="OnButton_InsertFaceClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

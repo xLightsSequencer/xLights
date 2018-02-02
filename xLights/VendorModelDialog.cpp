@@ -1183,6 +1183,12 @@ void VendorModelDialog::ValidateWindow()
             }
         }
     }
+    else
+    {
+        Button_Next->Disable();
+        Button_Prior->Disable();
+        Button_InsertModel->Disable();
+    }
 }
 
 void VendorModelDialog::PopulateVendorPanel(MVendor* vendor)
