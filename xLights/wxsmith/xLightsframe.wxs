@@ -1231,6 +1231,10 @@
 						<label>Effect Assist</label>
 						<handler function="ShowHideEffectAssistWindow" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_SELECT_EFFECT" variable="MenuItemSelectEffect" member="yes">
+						<label>Select Effect</label>
+						<handler function="OnMenuItemSelectEffectSelected" entry="EVT_MENU" />
+					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>

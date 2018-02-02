@@ -1,6 +1,7 @@
 #include "wx/wx.h"
 #include <wx/utils.h>
 #include <algorithm>
+#include <regex>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 
@@ -140,6 +141,50 @@ EffectLayer* SequenceElements::GetEffectLayer(int row) {
 EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     if(row==-1) return nullptr;
     return GetEffectLayer(GetVisibleRowInformation(row));
+}
+
+std::vector < Element*> SequenceElements::SearchForElements(const std::string &regex, int view) const
+{
+    std::vector < Element*> foundModels;
+    if (mAllViews.size() == 0) return foundModels;
+
+    std::regex reg(regex);
+
+    for (size_t i = 0; i < mAllViews[view].size(); ++i)
+    {
+        Element *el = mAllViews[view][i];
+        if (el->GetFullName().empty()) continue;
+        if (std::regex_match(el->GetFullName(), reg))
+        {
+            foundModels.push_back( mAllViews[view][i]);
+        }
+        if (el->GetType() == ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            if (mel != nullptr)
+            {
+                for (int x = 0; x < mel->GetSubModelCount(); ++x)
+                {
+                    SubModelElement* sme = mel->GetSubModel(x);
+                    if (sme != nullptr)
+                    {
+                        if (sme->GetFullName().empty()) continue;
+                        if (std::regex_match(sme->GetFullName(), reg)) {
+                            foundModels.push_back(sme);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return foundModels;
+}
+
+std::vector < Element*> SequenceElements::GetAllElements(int view) const
+{
+    if (mAllViews.size() == 0) return std::vector < Element*>();
+    if (mAllViews.size() <= view || view < 0) return std::vector < Element*>();
+    return mAllViews[view];
 }
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
@@ -1448,6 +1493,17 @@ void SequenceElements::SelectAllEffects()
     }
 }
 
+void SequenceElements::SelectAllEffectsNoTiming()
+{
+    for (size_t i = 0; i < mRowInformation.size(); i++)
+    {
+        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING)
+            continue;
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        effectLayer->SelectAllEffects();
+    }
+}
+
 void SequenceElements::SelectAllEffectsInRow(int row)
 {
     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
@@ -1460,6 +1516,16 @@ void SequenceElements::UnSelectAllEffects()
     {
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
         effectLayer->UnSelectAllEffects();
+    }
+}
+
+void SequenceElements::SelectAllElements()
+{
+    for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
+    {
+        if (mAllViews[mCurrentView][i]->GetType() == ELEMENT_TYPE_MODEL) {
+            dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(true);
+        }
     }
 }
 

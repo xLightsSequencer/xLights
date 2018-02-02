@@ -82,6 +82,7 @@
 #include <log4cpp/Category.hh>
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "SelectPanel.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -89,6 +90,7 @@ class ConvertLogDialog;
 class wxDebugReport;
 class RenderTreeData;
 class HousePreviewPanel;
+class SelectPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -531,6 +533,7 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -667,6 +670,7 @@ private:
     static const long ID_MENUITEM9;
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
+    static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -818,6 +822,7 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxPanel* AUIStatusBar;
+    wxMenuItem* MenuItemSelectEffect;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxMenuItem* MenuItem_BackupOnLaunch;
@@ -1307,6 +1312,7 @@ private:
     ViewsModelsPanel *displayElementsPanel;
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
+    SelectPanel *_selectPanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects;
