@@ -3,6 +3,9 @@
 #include "NodesGridCellEditor.h"
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
+#include "UtilFunctions.h"
+#include "MatrixFaceDownloadDialog.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ModelFaceDialog)
 #include <wx/intl.h>
@@ -17,6 +20,8 @@
 #include <wx/filedlg.h>
 #include <wx/colordlg.h>
 #include <wx/tokenzr.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
 
 #include "../include/AI.xpm"
 #include "../include/E.xpm"
@@ -28,7 +33,6 @@
 #include "../include/REST.xpm"
 #include "../include/U.xpm"
 #include "../include/WQ.xpm"
-#include "UtilFunctions.h"
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1
@@ -645,9 +649,8 @@ std::list<std::string> GetPhonemes(std::string key)
 
 void ModelFaceDialog::DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name)
 {
-    std::list<std::string> phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ"};
     int i = 0;
-    for (auto it = phonemes.begin(); it != phonemes.end(); ++it)
+    for (auto it = _phonemes.begin(); it != _phonemes.end(); ++it)
     {
         DoSetPhonemes(fn, actualkey, key, count, i++, col, name, GetPhonemes(*it), *it);
     }
@@ -696,6 +699,29 @@ void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key,
             }
         }
     }
+}
+
+bool ModelFaceDialog::IsValidPhoneme(const std::string phoneme) const
+{
+    for (auto it = _phonemes.begin(); it != _phonemes.end(); ++it)
+    {
+        if (wxString(*it).Lower() == wxString(phoneme).Lower()) return true;
+    }
+
+    return false;
+}
+
+int ModelFaceDialog::GetRowForPhoneme(const std::string phoneme) const
+{
+    int row = 0;
+
+    for (auto it = _phonemes.begin(); it != _phonemes.end(); ++it)
+    {
+        if (wxString(*it).Lower() == wxString(phoneme).Lower()) return row;
+        row++;
+    }
+
+    return -1;
 }
 
 void ModelFaceDialog::OnMatricImagePlacementChoiceSelect(wxCommandEvent& event)
@@ -974,6 +1000,98 @@ void ModelFaceDialog::Paint(wxPaintEvent& event)
     }
 }
 
+std::string FixPhonemeCase(const std::string p)
+{
+    wxString pp = wxString(p).Lower();
+
+    if (pp == "ai") return "AI";
+    if (pp == "etc") return "etc";
+    if (pp == "fv") return "FV";
+    if (pp == "wq") return "WQ";
+    if (pp == "rest") return "rest";
+    if (pp == "u") return "U";
+    if (pp == "o") return "O";
+    if (pp == "mbp") return "MBP";
+    if (pp == "e") return "E";
+    if (pp == "l") return "L";
+
+    return "";
+}
+
 void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    MatrixFaceDownloadDialog dlg(this);
+    if (dlg.DlgInit(model->GetDefaultBufferWi(), model->GetDefaultBufferHt()))
+    {
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            std::string faceZip = dlg.GetFaceFile();
+
+            // create folder if necessary
+            std::string dir = xLightsFrame::CurrentDir.ToStdString() + "/DownloadedFaces";
+            if (!wxDir::Exists(dir))
+            {
+                wxMkDir(dir);
+            }
+
+            std::list<std::string> files;
+
+            // extract all the files in the zip file into that directory
+            wxFileInputStream fin(faceZip);
+            wxZipInputStream zin(fin);
+            wxZipEntry *ent = zin.GetNextEntry();
+            while (ent != nullptr)
+            {
+                std::string filename = dir + "/" + ent->GetName().ToStdString();
+                files.push_back(filename);
+
+                if (!wxFile::Exists(filename))
+                {
+                    wxFileOutputStream fout(filename);
+                    zin.Read(fout);
+                }
+                ent = zin.GetNextEntry();
+            }
+
+            std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+
+            bool error = false;
+            for (auto it = files.begin(); it != files.end(); ++it)
+            {
+                wxFileName fn(*it);
+                wxString basefn = fn.GetName().Lower();
+                bool eyesclosed = false;
+                if (basefn.EndsWith("_eo"))
+                {
+                    basefn = basefn.SubString(0, basefn.Length() - 4);
+                    eyesclosed = false;
+                }
+                else if (basefn.EndsWith("_ec"))
+                {
+                    basefn = basefn.SubString(0, basefn.Length() - 4);
+                    eyesclosed = true;
+                }
+
+                std::string phoneme = FixPhonemeCase(basefn.AfterLast('_').ToStdString());
+
+                if (phoneme == "" || !IsValidPhoneme(phoneme))
+                {
+                    logger_base.warn("Phoneme '%s' was not known. File %s ignored.", (const char *)phoneme.c_str(), (const char *)it->c_str());
+                    error = true;
+                }
+                else
+                {
+                    std::string key = "Mouth-" + phoneme + "-" + (eyesclosed ? "EyesClosed" : "EyesOpen");
+                    faceData[name][key] = *it;
+                    MatrixModelsGrid->SetCellValue(GetRowForPhoneme(phoneme), (eyesclosed ? 1 : 0), *it);
+                }
+            }
+
+            if (error)
+            {
+                wxMessageBox("One or more images could not be mapped to the model due to issues with the names of files within the zip file. See log for details.");
+            }
+        }
+    }
 }

@@ -8,11 +8,10 @@
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
+#include <wx/log.h>
 #include <log4cpp/Category.hh>
 
 CachedFileDownloader MatrixFaceDownloadDialog::_cache;
-
-class MFace;
 
 class MFace
 {
@@ -23,6 +22,7 @@ public:
     std::string _description;
     std::string _artist;
     std::string _copyright;
+    std::string _notes;
     wxURI _faceLink;
     wxFileName _faceFile;
     std::string _id;
@@ -31,8 +31,6 @@ public:
     int _height;
     int _minwidth;
     int _minheight;
-
-    std::string GetDescription();
 
     ~MFace()
     {
@@ -47,7 +45,24 @@ public:
 		}
     }
 
-    void DownloadFile();
+    bool IsMinimumSizeOK(int width, int height) const
+    {
+        if (_minheight <= 0 && _minwidth <= 0) return true;
+        if (width <= 0 && height <= 0) return true;
+
+        bool ok = true;
+        if (ok && width > 0 && _minwidth > 0)
+        {
+            ok = width >= _minwidth;
+        }
+
+        if (ok && height > 0 && _minheight > 0)
+        {
+            ok = height >= _minheight;
+        }
+
+        return ok;
+    }
 
     MFace(wxXmlNode* n)
     {
@@ -55,65 +70,68 @@ public:
 		_height = -1;
 		_minwidth = -1;
 		_minheight = -1;
-		
+
         for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
         {
-            wxString nn = l->GetName().Lower().ToStdString();
-            if (nn == "name")
+            if (l->GetType() != wxXML_COMMENT_NODE)
             {
-                _name = l->GetNodeContent().ToStdString();
-            }
-            else if (nn == "description")
-            {
-				_description = l->GetNodeContent().ToStdString();
-            }
-            else if (nn == "artist")
-            {
-				_artist = l->GetNodeContent().ToStdString();
-            }
-            else if (nn == "copyright")
-            {
-				_copyright = l->GetNodeContent().ToStdString();
-            }
-            else if (nn == "facelink")
-            {
-                _faceLink = wxURI(l->GetNodeContent());
-            }
-            else if (nn == "faceimage")
-            {
-                _image = wxURI(l->GetNodeContent());
-            }
-            else if (nn == "id")
-            {
-                _id = l->GetNodeContent().ToStdString();
-            }
-            else if (nn == "categoryid")
-            {
-                _categoryIds.push_back(l->GetNodeContent().ToStdString());
-            }
-            else if (nn == "width")
-            {
-                _width = wxAtoi(l->GetNodeContent());
-            }
-            else if (nn == "height")
-            {
-                _height = wxAtoi(l->GetNodeContent());
-            }
-            else if (nn == "minwidth")
-            {
-                _minwidth = wxAtoi(l->GetNodeContent());
-            }
-            else if (nn == "minheight")
-            {
-                _minheight = wxAtoi(l->GetNodeContent());
-            }
-            else if (nn == "notes")
-            {
-                _notes = l->GetNodeContent().ToStdString();
-            }
-            else
-            {
-                wxASSERT(false);
+                wxString nn = l->GetName().Lower().ToStdString();
+                if (nn == "name")
+                {
+                    _name = l->GetNodeContent().ToStdString();
+                }
+                else if (nn == "description")
+                {
+                    _description = l->GetNodeContent().ToStdString();
+                }
+                else if (nn == "artist")
+                {
+                    _artist = l->GetNodeContent().ToStdString();
+                }
+                else if (nn == "copyright")
+                {
+                    _copyright = l->GetNodeContent().ToStdString();
+                }
+                else if (nn == "facelink")
+                {
+                    _faceLink = wxURI(l->GetNodeContent());
+                }
+                else if (nn == "faceimage")
+                {
+                    _image = wxURI(l->GetNodeContent());
+                }
+                else if (nn == "id")
+                {
+                    _id = l->GetNodeContent().ToStdString();
+                }
+                else if (nn == "categoryid")
+                {
+                    _categoryIds.push_back(l->GetNodeContent().ToStdString());
+                }
+                else if (nn == "width")
+                {
+                    _width = wxAtoi(l->GetNodeContent());
+                }
+                else if (nn == "height")
+                {
+                    _height = wxAtoi(l->GetNodeContent());
+                }
+                else if (nn == "minwidth")
+                {
+                    _minwidth = wxAtoi(l->GetNodeContent());
+                }
+                else if (nn == "minheight")
+                {
+                    _minheight = wxAtoi(l->GetNodeContent());
+                }
+                else if (nn == "notes")
+                {
+                    _notes = l->GetNodeContent().ToStdString();
+                }
+                else
+                {
+                    wxASSERT(false);
+                }
             }
         }
     }
@@ -143,6 +161,10 @@ public:
         {
             desc += PadTitle("Name:") + _name + "\n\n";
         }
+        if (_description != "")
+        {
+            desc += PadTitle("Description:") + _description + "\n\n";
+        }
         if (_artist != "")
         {
             desc += PadTitle("Artist:") + _artist + "\n\n";
@@ -151,19 +173,19 @@ public:
         {
             desc += PadTitle("Copyright:") + _copyright + "\n\n";
         }
-		if (_width != -1)
+		if (_width > 0)
 		{
 			desc += PadTitle("Width:") + wxString::Format("%d", _width) + "\n";
 		}
-		if (_height != -1)
+		if (_height > 0)
 		{
 			desc += PadTitle("Height:") + wxString::Format("%d", _height) + "\n";
 		}
-		if (_minwidth != -1)
+		if (_minwidth > 0)
 		{
 			desc += PadTitle("Minimum Width:") + wxString::Format("%d", _minwidth) + "\n";
 		}
-		if (_height != -1)
+		if (_minheight > 0)
 		{
 			desc += PadTitle("Minimum Height:") + wxString::Format("%d", _minheight) + "\n";
 		}
@@ -174,16 +196,15 @@ public:
 
         return desc;
     }
-};
 
-
-void MFace::DownloadFace()
-{
-    if (!_faceFile.Exists())
+    void DownloadFace()
     {
-        _faceFile = MatrixFaceDownloadDialog::GetCache().GetFile(_faceLink, CACHEFOR::CACHETIME_LONG);
+        if (!_faceFile.Exists())
+        {
+            _faceFile = MatrixFaceDownloadDialog::GetCache().GetFile(_faceLink, CACHEFOR::CACHETIME_LONG);
+        }
     }
-}
+};
 
 class MFaceCategory
 {
@@ -194,7 +215,7 @@ class MFaceCategory
             wxString nn = l->GetName().Lower().ToStdString();
             if (nn == "category")
             {
-                _categories.push_back(new MVendorCategory(l, this, _vendor));
+                _categories.push_back(new MFaceCategory(l, this));
             }
         }
     }
@@ -285,24 +306,11 @@ private:
 
 //(*IdInit(MatrixFaceDownloadDialog)
 const long MatrixFaceDownloadDialog::ID_TREECTRL1 = wxNewId();
+const long MatrixFaceDownloadDialog::ID_CHECKBOX1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_PANEL3 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_STATICBITMAP1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_TEXTCTRL1 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_STATICTEXT8 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_HYPERLINKCTRL4 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_STATICTEXT4 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_HYPERLINKCTRL2 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_PANEL2 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_BUTTON2 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_STATICBITMAP2 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_BUTTON3 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_PANEL5 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_TEXTCTRL2 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_STATICTEXT7 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_HYPERLINKCTRL3 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_BUTTON1 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_PANEL4 = wxNewId();
-const long MatrixFaceDownloadDialog::ID_NOTEBOOK1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_PANEL1 = wxNewId();
 const long MatrixFaceDownloadDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
@@ -312,21 +320,18 @@ BEGIN_EVENT_TABLE(MatrixFaceDownloadDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _width = -1;
+    _height = -1;
+
 	//(*Initialize(MatrixFaceDownloadDialog)
-	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxSize(800,600));
-	Move(wxDefaultPosition);
 	SetMinSize(wxSize(800,400));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -341,6 +346,9 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent,wxWindowID i
 	FlexGridSizer2->AddGrowableRow(0);
 	TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
 	FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
+	CheckBox_FilterUnsuitable = new wxCheckBox(Panel3, ID_CHECKBOX1, _("Filter Unsuitable Faces"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_FilterUnsuitable->SetValue(true);
+	FlexGridSizer2->Add(CheckBox_FilterUnsuitable, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel3);
 	FlexGridSizer2->SetSizeHints(Panel3);
@@ -348,67 +356,13 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent,wxWindowID i
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
-	NotebookPanels = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-	PanelVendor = new wxPanel(NotebookPanels, ID_PANEL2, wxPoint(43,60), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer4->AddGrowableRow(1);
-	StaticBitmap_VendorImage = new wxStaticBitmap(PanelVendor, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
-	StaticBitmap_VendorImage->SetMinSize(wxSize(256,128));
-	FlexGridSizer4->Add(StaticBitmap_VendorImage, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_VendorDetails = new wxTextCtrl(PanelVendor, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer4->Add(TextCtrl_VendorDetails, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer5->AddGrowableCol(1);
-	FlexGridSizer5->AddGrowableRow(0);
-	StaticText6 = new wxStaticText(PanelVendor, ID_STATICTEXT8, _("Facebook:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HyperlinkCtrl_Facebook = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL4, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL4"));
-	FlexGridSizer5->Add(HyperlinkCtrl_Facebook, 1, wxALL|wxEXPAND, 5);
-	StaticText2 = new wxStaticText(PanelVendor, ID_STATICTEXT4, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer5->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HyperlinkCtrl_Website = new wxHyperlinkCtrl(PanelVendor, ID_HYPERLINKCTRL2, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL2"));
-	FlexGridSizer5->Add(HyperlinkCtrl_Website, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
-	PanelVendor->SetSizer(FlexGridSizer4);
-	FlexGridSizer4->Fit(PanelVendor);
-	FlexGridSizer4->SetSizeHints(PanelVendor);
-	Panel_Item = new wxPanel(NotebookPanels, ID_PANEL4, wxPoint(41,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer6->AddGrowableCol(0);
-	FlexGridSizer6->AddGrowableRow(1);
-	ItemImagePanel = new wxPanel(Panel_Item, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer7->AddGrowableCol(1);
-	FlexGridSizer7->AddGrowableRow(0);
-	Button_Prior = new wxButton(ItemImagePanel, ID_BUTTON2, _("<"), wxDefaultPosition, wxSize(30,-1), 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer7->Add(Button_Prior, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBitmap_ModelImage = new wxStaticBitmap(ItemImagePanel, ID_STATICBITMAP2, wxNullBitmap, wxDefaultPosition, wxSize(256,256), wxSIMPLE_BORDER, _T("ID_STATICBITMAP2"));
-	StaticBitmap_ModelImage->SetMinSize(wxSize(256,256));
-	FlexGridSizer7->Add(StaticBitmap_ModelImage, 1, wxALL|wxEXPAND, 5);
-	Button_Next = new wxButton(ItemImagePanel, ID_BUTTON3, _(">"), wxDefaultPosition, wxSize(30,-1), 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer7->Add(Button_Next, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ItemImagePanel->SetSizer(FlexGridSizer7);
-	FlexGridSizer7->Fit(ItemImagePanel);
-	FlexGridSizer7->SetSizeHints(ItemImagePanel);
-	FlexGridSizer6->Add(ItemImagePanel, 1, wxALL|wxEXPAND, 0);
-	TextCtrl_ModelDetails = new wxTextCtrl(Panel_Item, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-	FlexGridSizer6->Add(TextCtrl_ModelDetails, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer8->AddGrowableCol(1);
-	StaticText5 = new wxStaticText(Panel_Item, ID_STATICTEXT7, _("Web Link:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-	FlexGridSizer8->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	HyperlinkCtrl_ModelWebLink = new wxHyperlinkCtrl(Panel_Item, ID_HYPERLINKCTRL3, _("http://xlights.org"), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER, _T("ID_HYPERLINKCTRL3"));
-	FlexGridSizer8->Add(HyperlinkCtrl_ModelWebLink, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
-	Button_InsertModel = new wxButton(Panel_Item, ID_BUTTON1, _("Insert Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer6->Add(Button_InsertModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Panel_Item->SetSizer(FlexGridSizer6);
-	FlexGridSizer6->Fit(Panel_Item);
-	FlexGridSizer6->SetSizeHints(Panel_Item);
-	NotebookPanels->AddPage(PanelVendor, _("Vendor"), false);
-	NotebookPanels->AddPage(Panel_Item, _("Item"), false);
-	FlexGridSizer3->Add(NotebookPanels, 1, wxALL|wxEXPAND, 5);
+	StaticBitmap_FaceImage = new wxStaticBitmap(Panel1, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(256,128), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap_FaceImage->SetMinSize(wxSize(256,128));
+	FlexGridSizer3->Add(StaticBitmap_FaceImage, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_FaceDetails = new wxTextCtrl(Panel1, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(-1,170), wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer3->Add(TextCtrl_FaceDetails, 1, wxALL|wxEXPAND, 5);
+	Button_InsertFace = new wxButton(Panel1, ID_BUTTON1, _("Insert Face"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer3->Add(Button_InsertFace, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel1);
 	FlexGridSizer3->SetSizeHints(Panel1);
@@ -420,13 +374,8 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent,wxWindowID i
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnTreeCtrl_NavigatorItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged);
-	Connect(ID_HYPERLINKCTRL4,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnHyperlinkCtrl_FacebookClick);
-	Connect(ID_HYPERLINKCTRL2,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnHyperlinkCtrl_WebsiteClick);
-	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnButton_PriorClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnButton_NextClick);
-	Connect(ID_HYPERLINKCTRL3,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnHyperlinkCtrl_ModelWebLinkClick);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnButton_InsertModelClick);
-	Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnNotebookPanelsPageChanged);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnCheckBox_FilterUnsuitableClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnButton_InsertFaceClick);
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnClose);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&MatrixFaceDownloadDialog::OnResize);
 	//*)
@@ -436,14 +385,16 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent,wxWindowID i
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("File cache size: %d", _cache.size());
 
-    PopulateModelPanel((MModel*)nullptr);
-    PopulateVendorPanel(nullptr);
+    PopulateFacePanel((MFace*)nullptr);
 
     ValidateWindow();
 }
 
-bool MatrixFaceDownloadDialog::DlgInit()
+bool MatrixFaceDownloadDialog::DlgInit(int width, int height)
 {
+    _width = width;
+    _height = height;
+
     if (LoadTree())
     {
         ValidateWindow();
@@ -468,8 +419,21 @@ wxXmlDocument* MatrixFaceDownloadDialog::GetXMLFromURL(wxURI url, std::string& f
 
 bool MatrixFaceDownloadDialog::LoadTree()
 {
-    //const std::string facelink = "http://nutcracker123.com/xlights/faces/xlights_faces.xml";
-    const std::string facelink = "http://localhost/xlights/faces/xlights_faces.xml";
+    TreeCtrl_Navigator->DeleteAllItems();
+    while (_faces.size() > 0)
+    {
+        delete _faces.front();
+        _faces.pop_front();
+    }
+
+    while (_categories.size() > 0)
+    {
+        delete _categories.front();
+        _categories.pop_front();
+    }
+
+    const std::string facelink = "http://nutcracker123.com/xlights/faces/xlights_faces.xml";
+    //const std::string facelink = "http://localhost:3000/xlights/faces/xlights_faces.xml";
 
     std::string filename;
     wxXmlDocument* vd = GetXMLFromURL(wxURI(facelink), filename);
@@ -481,13 +445,27 @@ bool MatrixFaceDownloadDialog::LoadTree()
         {
             if (v->GetName().Lower() == "face")
             {
-				MFace* f = new MFace(v);
-				_faces.push_back(f);
+                MFace* f = new MFace(v);
+                if (!CheckBox_FilterUnsuitable->IsChecked() || f->IsMinimumSizeOK(_width, _height))
+                {
+                    _faces.push_back(f);
+                }
+                else
+                {
+                    delete f;
+                }
             }
 			else if (v->GetName().Lower() == "categories")
 			{
-				LoadCategories(v);
-			}
+                for (wxXmlNode* l = v->GetChildren(); l != nullptr; l = l->GetNext())
+                {
+                    wxString nn = l->GetName().Lower().ToStdString();
+                    if (nn == "category")
+                    {
+                        _categories.push_back(new MFaceCategory(l, nullptr));
+                    }
+                }
+            }
         }
     }
     if (vd != nullptr)
@@ -495,14 +473,8 @@ bool MatrixFaceDownloadDialog::LoadTree()
         delete vd;
     }
 
-    TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Faces");
 	AddHierachy(root, _categories);
-    for (auto it = _faces.begin(); it != _faces.end(); ++it)
-    {
-        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, (*it)->_name, -1, -1, new MFaceTreeItemData(*it));
-        TreeCtrl_Navigator->Expand(v);
-    }
 
     if (_faces.size() == 0)
     {
@@ -526,7 +498,7 @@ void MatrixFaceDownloadDialog::AddHierachy(wxTreeItemId id, std::list<MFaceCateg
 
 void MatrixFaceDownloadDialog::AddFaces(wxTreeItemId v, std::string categoryId)
 {
-    auto faces = vendor->GetFaces(categoryId);
+    auto faces = GetFaces(categoryId);
 
     for (auto it = faces.begin(); it != faces.end(); ++it)
     {
@@ -541,9 +513,16 @@ MatrixFaceDownloadDialog::~MatrixFaceDownloadDialog()
 
     _cache.Save();
 
-    for (auto it = _faces.begin(); it != _faces.end(); ++it)
+    while (_faces.size() > 0)
     {
-        delete *it;
+        delete _faces.front();
+        _faces.pop_front();
+    }
+
+    while (_categories.size() > 0)
+    {
+        delete _categories.front();
+        _categories.pop_front();
     }
 }
 
@@ -553,7 +532,7 @@ void MatrixFaceDownloadDialog::OnButton_InsertFaceClick(wxCommandEvent& event)
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
 
-        if (tid != nullptr && ((VendorBaseTreeItemData*)tid)->GetType() == "Face")
+        if (tid != nullptr && ((FaceBaseTreeItemData*)tid)->GetType() == "Face")
         {
             ((MFaceTreeItemData*)tid)->GetFace()->DownloadFace();
             _faceFile = ((MFaceTreeItemData*)tid)->GetFace()->_faceFile.GetFullPath();
@@ -594,24 +573,22 @@ void MatrixFaceDownloadDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent&
 
             if (type == "Face")
             {
-                NotebookPanels->GetPage(0)->Show();
-                NotebookPanels->SetSelection(0);
                 TreeCtrl_Navigator->SetFocus();
-                PopulateFacePanel(((MModelTreeItemData*)tid)->GetModel());
+                PopulateFacePanel(((MFaceTreeItemData*)tid)->GetFace());
             }
             else
             {
-                NotebookPanels->GetPage(0)->Hide();
+                PopulateFacePanel(nullptr);
             }
         }
         else
         {
-            NotebookPanels->GetPage(0)->Hide();
+            PopulateFacePanel(nullptr);
         }
     }
     else
     {
-        NotebookPanels->GetPage(0)->Hide();
+        PopulateFacePanel(nullptr);
     }
 
     ValidateWindow();
@@ -635,7 +612,6 @@ void MatrixFaceDownloadDialog::ValidateWindow()
 
         if (tid != nullptr)
         {
-            int imageCount = 0;
             std::string type = ((FaceBaseTreeItemData*)tid)->GetType();
 
             if (type == "Face")
@@ -647,6 +623,10 @@ void MatrixFaceDownloadDialog::ValidateWindow()
                 Button_InsertFace->Disable();
             }
         }
+    }
+    else
+    {
+        Button_InsertFace->Disable();
     }
 }
 
@@ -663,11 +643,26 @@ void MatrixFaceDownloadDialog::LoadImage(wxStaticBitmap* sb, wxImage* image) con
     sb->SetBitmap(disp.Rescale((float)disp.GetWidth() * scale, (float)disp.GetHeight() * scale));
 }
 
-void MatrixFaceDownloadDialog::LoadFaceImage(imageFile)
+std::list<MFace*> MatrixFaceDownloadDialog::GetFaces(const std::string& categoryId)
 {
-    if (imageFile->Exists())
+    std::list<MFace*> res;
+
+    for (auto it = _faces.begin(); it != _faces.end(); ++it)
     {
-        _faceImage.LoadFile(imageFile->GetFullPath());
+        if ((*it)->InCategory(categoryId))
+        {
+            res.push_back(*it);
+        }
+    }
+
+    return res;
+}
+
+void MatrixFaceDownloadDialog::LoadFaceImage(wxFileName imageFile)
+{
+    if (imageFile.Exists())
+    {
+        _faceImage.LoadFile(imageFile.GetFullPath());
         if (_faceImage.IsOk())
         {
             LoadImage(StaticBitmap_FaceImage, &_faceImage);
@@ -677,19 +672,19 @@ void MatrixFaceDownloadDialog::LoadFaceImage(imageFile)
 
 void MatrixFaceDownloadDialog::PopulateFacePanel(MFace* face)
 {
+    wxLogNull logNo; //kludge: avoid log dialog
     if (face == nullptr)
     {
         StaticBitmap_FaceImage->Hide();
         TextCtrl_FaceDetails->Hide();
-        NotebookPanels->GetPage(0)->Hide();
         return;
     }
 
     face->DownloadImages();
-    if (face->_imageFile.GetPath != "")
+    if (face->_imageFile.Exists())
     {
         StaticBitmap_FaceImage->Show();
-        LoadFaceImage(face->_faceFile);
+        LoadFaceImage(face->_imageFile);
     }
     else
     {
@@ -708,7 +703,7 @@ void MatrixFaceDownloadDialog::PopulateFacePanel(MFace* face)
         Button_InsertFace->Show();
     }
 
-    Panel_Item->Layout();
+    Panel1->Layout();
 }
 
 void MatrixFaceDownloadDialog::OnClose(wxCloseEvent& event)
@@ -728,5 +723,11 @@ void MatrixFaceDownloadDialog::OnResize(wxSizeEvent& event)
 		}
 	}
 
-    ItemImagePanel->Refresh();
+    Panel1->Refresh();
+}
+
+void MatrixFaceDownloadDialog::OnCheckBox_FilterUnsuitableClick(wxCommandEvent& event)
+{
+    LoadTree();
+    ValidateWindow();
 }
