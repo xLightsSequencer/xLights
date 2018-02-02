@@ -1032,7 +1032,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
             std::string dir = xLightsFrame::CurrentDir.ToStdString() + "/DownloadedFaces";
             if (!wxDir::Exists(dir))
             {
-                wxMkDir(dir);
+                wxMkDir(dir, wxS_DIR_DEFAULT);
             }
 
             std::list<std::string> files;
