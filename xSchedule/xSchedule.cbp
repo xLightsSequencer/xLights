@@ -322,6 +322,12 @@
 		<Unit filename="../xLights/outputs/LOROptimisedOutput.h" />
 		<Unit filename="../xLights/outputs/LOROutput.cpp" />
 		<Unit filename="../xLights/outputs/LOROutput.h" />
+		<Unit filename="../xLights/outputs/LorController.cpp" />
+		<Unit filename="../xLights/outputs/LorController.h" />
+		<Unit filename="../xLights/outputs/LorControllerDialog.cpp" />
+		<Unit filename="../xLights/outputs/LorControllerDialog.h" />
+		<Unit filename="../xLights/outputs/LorControllers.cpp" />
+		<Unit filename="../xLights/outputs/LorControllers.h" />
 		<Unit filename="../xLights/outputs/LorOptimisedDialog.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.h" />
