@@ -1,5 +1,5 @@
 #include "LOROptimisedOutput.h"
-#include "LOROptimisedDialog.h"
+#include "LorOptimisedDialog.h"
 
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
