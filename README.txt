@@ -11,9 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2018.4 Jan 30, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
+   -- bug (dkulp)  Fix brightness if contrast isnt set
+   -- enh (keith)  Add matrix face downloader
+   -- enh (keith)  Add the ability to lock effects. This will prevent moving and resizing only.
+   -- bug (keith)  Fix face centred not working all the time
+   -- bug (keith)  Fix brightness slider does not work with pictures effect
+   -- enh (keith)  Add some course grained volume controls to Audio menu
+   -- enh (keith)  Add waveform colours to the colour manager
+2018.4 Jan 30, 2018
    -- bug (Billy)  Fixed xScheduleWeb to display proper version number
    -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame
    -- bug (dkulp)  Fix problems with LOR v4 lcb only outputting 100% effect values
