@@ -52,27 +52,20 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-    size_t idx = 0;  // running index for placing next byte
     int cur_channel = channel;
-    wxByte d[4096];
-    int controller_offset = 0;
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
-        int channel_count = (*it)->GetNumChannels();
+		int channel_count = (*it)->GetNumChannels();
         int unit_id = (*it)->GetUnitId();
-        LorController::AddressMode addr_mode = (*it)->GetAddressMode();
 
         int controller_channels_to_process = channel_count;
         int channels_per_pass = controller_channels_to_process;
-        if( addr_mode == LorController::LOR_ADDR_MODE_LEGACY ) {
-            channels_per_pass = 16;
-        }
-        else if( addr_mode == LorController::LOR_ADDR_MODE_SPLIT ) {
-            channels_per_pass = channel_count/2;
-        }
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
 
         while( controller_channels_to_process > 0 ) {
+            size_t idx = 0;  // running index for placing next byte
+            wxByte d[1024];
             std::vector< std::vector<LORDataPair> > lorBankData;
             lorBankData.resize((channels_per_pass/16)+1);
 
@@ -196,9 +189,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
             if (_serial != nullptr && frame_changed)
             {
-                _serial->Write((char *)(&d[controller_offset]), idx);
+                _serial->Write((char *)d, idx);
             }
-            controller_offset = idx;
 
             for (int bank = 0; bank < lorBankData.size(); bank++) {
                 lorBankData[bank].clear();
@@ -261,26 +253,19 @@ void LOROptimisedOutput::AllOff()
 {
     int channels_to_process = _channels;
     int bank = 0;
-    wxByte d[4096];
-    size_t idx = 0;
-    int controller_offset = 0;
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
-        LorController::AddressMode addr_mode = (*it)->GetAddressMode();
         int unit_id = (*it)->GetUnitId();
 
         int channel_count = (*it)->GetNumChannels();
         int controller_channels_to_process = channel_count;
         int channels_per_pass = controller_channels_to_process;
-        if( addr_mode == LorController::LOR_ADDR_MODE_LEGACY ) {
-            channels_per_pass = 16;
-        }
-        else if( addr_mode == LorController::LOR_ADDR_MODE_SPLIT ) {
-            channels_per_pass = channel_count/2;
-        }
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
 
         while( controller_channels_to_process > 0 ) {
+            size_t idx = 0;
+            wxByte d[1024];
             int channels_to_process = channels_per_pass;
             while (channels_to_process > 0) {
                 d[idx++] = 0;
@@ -300,9 +285,8 @@ void LOROptimisedOutput::AllOff()
 
             if (_serial != nullptr)
             {
-                _serial->Write((char *)(&d[controller_offset]), idx);
+                _serial->Write((char *)d, idx);
             }
-            controller_offset = idx;
             controller_channels_to_process -= channels_per_pass;
             unit_id++;
         }
@@ -344,12 +328,42 @@ Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputMan
 #endif
 #pragma endregion UI
 
+void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl )
+{
+	LorController::AddressMode addr_mode = cntrl->GetAddressMode();
+	controller_channels_to_process = channel_count;
+	channels_per_pass = controller_channels_to_process;
+	std::string type = cntrl->GetType();
+	if ((type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
+		std::size_t found = type.find("Pixie");
+		if (found != std::string::npos) {
+			int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
+			channels_per_pass = channel_count;
+			channel_count = outputs_per_card * channels_per_pass;
+			controller_channels_to_process = channel_count;
+		}
+	}
+	else {
+		if (addr_mode == LorController::LOR_ADDR_MODE_LEGACY) {
+			channels_per_pass = 16;
+		}
+		else if (addr_mode == LorController::LOR_ADDR_MODE_SPLIT) {
+			channels_per_pass = channel_count / 2;
+		}
+	}
+}
+
 void LOROptimisedOutput::CalcTotalChannels()
 {
+	int total_channels = 0;
     int channel_count = 0;
+	int controller_channels_to_process = 0;
+	int channels_per_pass = 0;
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
-        channel_count += (*it)->GetNumChannels();
+        channel_count = (*it)->GetNumChannels();
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
+		total_channels += channel_count;
     }
-    _channels = channel_count;
+    _channels = total_channels;
 }

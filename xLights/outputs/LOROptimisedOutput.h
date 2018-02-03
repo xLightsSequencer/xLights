@@ -25,6 +25,7 @@ class LOROptimisedOutput : public LOROutput
 
     virtual void Save(wxXmlNode* node) override;
     void CalcTotalChannels();
+	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
 
 public:
 

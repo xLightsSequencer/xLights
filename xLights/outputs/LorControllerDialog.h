@@ -26,6 +26,7 @@ class LorControllerDialog: public wxDialog
 
 		//(*Declarations(LorControllerDialog)
 		wxButton* Button_Ok;
+		wxStaticText* StaticText_PerOutput;
 		wxTextCtrl* TextCtrl_Description;
 		wxSpinCtrl* SpinCtrl_Channels;
 		wxStaticText* StaticText2;
@@ -33,11 +34,12 @@ class LorControllerDialog: public wxDialog
 		wxSpinCtrl* SpinCtrl_UnitID;
 		wxChoice* Choice_Mode;
 		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxStaticText* StaticText5;
+		wxStaticText* StaticText_Channels;
 		wxStaticText* StaticText_Hex;
 		wxButton* Button_Cancel;
 		wxChoice* Choice_Type;
+		wxFlexGridSizer* FlexGridSizer_PerOutput;
 		wxStaticText* StaticText4;
 		//*)
 
@@ -48,6 +50,7 @@ class LorControllerDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE_TYPE;
 		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL_CHANNELS;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL_UNITID;

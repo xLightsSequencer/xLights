@@ -12,6 +12,7 @@ const long LorControllerDialog::ID_STATICTEXT1 = wxNewId();
 const long LorControllerDialog::ID_STATICTEXT2 = wxNewId();
 const long LorControllerDialog::ID_CHOICE_TYPE = wxNewId();
 const long LorControllerDialog::ID_STATICTEXT3 = wxNewId();
+const long LorControllerDialog::ID_STATICTEXT7 = wxNewId();
 const long LorControllerDialog::ID_SPINCTRL_CHANNELS = wxNewId();
 const long LorControllerDialog::ID_STATICTEXT4 = wxNewId();
 const long LorControllerDialog::ID_SPINCTRL_UNITID = wxNewId();
@@ -52,10 +53,17 @@ LorControllerDialog::LorControllerDialog(wxWindow* parent, LorController* contro
 	Choice_Type->Append(_("RGB Controller"));
 	Choice_Type->Append(_("CCR"));
 	Choice_Type->Append(_("CCB"));
+	Choice_Type->Append(_("Pixie4"));
+	Choice_Type->Append(_("Pixie8"));
+	Choice_Type->Append(_("Pixie16"));
 	FlexGridSizer2->Add(Choice_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("# Channels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_PerOutput = new wxFlexGridSizer(0, 1, 0, 0);
+	StaticText_Channels = new wxStaticText(this, ID_STATICTEXT3, _("# Channels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer_PerOutput->Add(StaticText_Channels, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_PerOutput = new wxStaticText(this, ID_STATICTEXT7, _("(per output)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer_PerOutput->Add(StaticText_PerOutput, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer_PerOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	SpinCtrl_Channels = new wxSpinCtrl(this, ID_SPINCTRL_CHANNELS, _T("16"), wxDefaultPosition, wxDefaultSize, 0, 1, 10000, 16, _T("ID_SPINCTRL_CHANNELS"));
 	SpinCtrl_Channels->SetValue(_T("16"));
 	FlexGridSizer2->Add(SpinCtrl_Channels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -119,6 +127,9 @@ LorControllerDialog::~LorControllerDialog()
 
 void LorControllerDialog::OnChoice_TypeSelect(wxCommandEvent& event)
 {
+    ValidateWindow();
+    Fit();
+    Layout();
 }
 
 void LorControllerDialog::OnSpinCtrl_UnitIDChange(wxSpinEvent& event)
@@ -142,6 +153,15 @@ void LorControllerDialog::ValidateWindow()
 {
     wxString label = wxString::Format("0x%X", SpinCtrl_UnitID->GetValue());
     StaticText_Hex->SetLabel(label);
+    std::string type = Choice_Type->GetStringSelection().ToStdString();
+    if( (type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16") ) {
+        StaticText_PerOutput->Show();
+        Choice_Mode->SetSelection(0);
+        Choice_Mode->Enable(false);
+    } else {
+        StaticText_PerOutput->Hide();
+        Choice_Mode->Enable(true);
+    }
 }
 
 void LorControllerDialog::OnButton_OkClick(wxCommandEvent& event)
