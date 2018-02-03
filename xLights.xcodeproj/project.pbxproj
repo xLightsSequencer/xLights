@@ -27,6 +27,17 @@
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */; };
+		670827F62024C19D0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
+		670827F72024C19D0002B617 /* LorControllers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EE2024C19A0002B617 /* LorControllers.cpp */; };
+		670827F82024C19D0002B617 /* LorOptimisedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */; };
+		670827F92024C19D0002B617 /* LorControllerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827F22024C19B0002B617 /* LorControllerDialog.cpp */; };
+		670827FA2024C19D0002B617 /* LorController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827F42024C19C0002B617 /* LorController.cpp */; };
+		670827FD2024C2D50002B617 /* MatrixFaceDownloadDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */; };
+		670827FE2024C39C0002B617 /* LorController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827F42024C19C0002B617 /* LorController.cpp */; };
+		670827FF2024C39C0002B617 /* LorControllerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827F22024C19B0002B617 /* LorControllerDialog.cpp */; };
+		670828002024C39C0002B617 /* LorControllers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EE2024C19A0002B617 /* LorControllers.cpp */; };
+		670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */; };
+		670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
 		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
 		670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827F1C45C48B000AA5D8 /* StarModel.cpp */; };
@@ -658,6 +669,18 @@
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceViewManager.cpp; sourceTree = "<group>"; };
 		6706BB091E9CFD8E00B44278 /* SequenceViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceViewManager.h; sourceTree = "<group>"; };
+		670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LOROptimisedOutput.cpp; path = outputs/LOROptimisedOutput.cpp; sourceTree = "<group>"; };
+		670827ED2024C19A0002B617 /* LorController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LorController.h; path = outputs/LorController.h; sourceTree = "<group>"; };
+		670827EE2024C19A0002B617 /* LorControllers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LorControllers.cpp; path = outputs/LorControllers.cpp; sourceTree = "<group>"; };
+		670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LorOptimisedDialog.cpp; path = outputs/LorOptimisedDialog.cpp; sourceTree = "<group>"; };
+		670827F02024C19B0002B617 /* LorControllerDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LorControllerDialog.h; path = outputs/LorControllerDialog.h; sourceTree = "<group>"; };
+		670827F12024C19B0002B617 /* LOROptimisedOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LOROptimisedOutput.h; path = outputs/LOROptimisedOutput.h; sourceTree = "<group>"; };
+		670827F22024C19B0002B617 /* LorControllerDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LorControllerDialog.cpp; path = outputs/LorControllerDialog.cpp; sourceTree = "<group>"; };
+		670827F32024C19C0002B617 /* LorControllers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LorControllers.h; path = outputs/LorControllers.h; sourceTree = "<group>"; };
+		670827F42024C19C0002B617 /* LorController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LorController.cpp; path = outputs/LorController.cpp; sourceTree = "<group>"; };
+		670827F52024C19C0002B617 /* LorOptimisedDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LorOptimisedDialog.h; path = outputs/LorOptimisedDialog.h; sourceTree = "<group>"; };
+		670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MatrixFaceDownloadDialog.cpp; sourceTree = "<group>"; };
+		670827FC2024C2D40002B617 /* MatrixFaceDownloadDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatrixFaceDownloadDialog.h; sourceTree = "<group>"; };
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
 		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
@@ -2029,6 +2052,16 @@
 		67B2B1F51E19478D0024F0BB /* Outputs */ = {
 			isa = PBXGroup;
 			children = (
+				670827F42024C19C0002B617 /* LorController.cpp */,
+				670827ED2024C19A0002B617 /* LorController.h */,
+				670827F22024C19B0002B617 /* LorControllerDialog.cpp */,
+				670827F02024C19B0002B617 /* LorControllerDialog.h */,
+				670827EE2024C19A0002B617 /* LorControllers.cpp */,
+				670827F32024C19C0002B617 /* LorControllers.h */,
+				670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */,
+				670827F52024C19C0002B617 /* LorOptimisedDialog.h */,
+				670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */,
+				670827F12024C19B0002B617 /* LOROptimisedOutput.h */,
 				67DD179720167D4B001E7A8B /* DDPDialog.cpp */,
 				67DD179620167D4B001E7A8B /* DDPDialog.h */,
 				67DD179520167D4A001E7A8B /* DDPOutput.cpp */,
@@ -2265,6 +2298,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */,
+				670827FC2024C2D40002B617 /* MatrixFaceDownloadDialog.h */,
 				676AE41B201BDB6200EA14F8 /* SelectTimingsDialog.cpp */,
 				676AE41A201BDB6200EA14F8 /* SelectTimingsDialog.h */,
 				67E675062009993B000E930E /* CachedFileDownloader.cpp */,
@@ -3073,6 +3108,7 @@
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				670827F72024C19D0002B617 /* LorControllers.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
 				67B2B2291E1947BE0024F0BB /* E131Output.cpp in Sources */,
 				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
@@ -3100,6 +3136,7 @@
 				67BC8BBB1D2152EC009B660F /* NodesGridCellEditor.cpp in Sources */,
 				67AB294B1D649008007F7CF3 /* WiringDialog.cpp in Sources */,
 				675AC53D1C987AA700C4AFE9 /* CustomModelDialog.cpp in Sources */,
+				670827F92024C19D0002B617 /* LorControllerDialog.cpp in Sources */,
 				67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */,
 				6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
@@ -3152,6 +3189,7 @@
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
 				67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */,
+				670827F62024C19D0002B617 /* LOROptimisedOutput.cpp in Sources */,
 				67B2B22A1E1947BE0024F0BB /* IPOutput.cpp in Sources */,
 				6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */,
 				675AB4281B5ACEDA00853A28 /* Files.cpp in Sources */,
@@ -3185,6 +3223,7 @@
 				671130B41E4EB18100AF09A7 /* VsaImportDialog.cpp in Sources */,
 				67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */,
 				675AB42E1B5ACEDA00853A28 /* PluginSummarisingAdapter.cpp in Sources */,
+				670827FA2024C19D0002B617 /* LorController.cpp in Sources */,
 				670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */,
 				67B2CF751C39D98A003C17CA /* FireworksPanel.cpp in Sources */,
 				67B2CF7C1C39D98A003C17CA /* MeteorsPanel.cpp in Sources */,
@@ -3202,6 +3241,7 @@
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
 				67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */,
+				670827F82024C19D0002B617 /* LorOptimisedDialog.cpp in Sources */,
 				6760D8551FA3C6AD00458894 /* BatchRenderDialog.cpp in Sources */,
 				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
@@ -3244,6 +3284,7 @@
 				679BD3371C37555C000539FE /* BarsPanel.cpp in Sources */,
 				67C31168200506B3005A12D0 /* VideoExporter.cpp in Sources */,
 				67E0BB981E08460400C07EF7 /* ControllerConnectionDialog.cpp in Sources */,
+				670827FD2024C2D50002B617 /* MatrixFaceDownloadDialog.cpp in Sources */,
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
@@ -3295,6 +3336,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
+				670827FF2024C39C0002B617 /* LorControllerDialog.cpp in Sources */,
+				670828002024C39C0002B617 /* LorControllers.cpp in Sources */,
+				670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */,
+				670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */,
 				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
 				67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */,
 				3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */,
