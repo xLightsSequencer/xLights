@@ -82,21 +82,6 @@ Effect* EffectLayer::GetEffectFromID(int id)
     return eff;
 }
 
-std::vector<Effect*> EffectLayer::GetEffectsByType(const std::string &type) 
-{
-    std::vector<Effect*> effs = std::vector<Effect*>();
-
-    std::for_each(mEffects.begin(), mEffects.end(),
-        [&](auto const& ef)
-    {
-        if (ef->GetEffectName() == type)
-        {
-            effs.push_back(ef);
-        }
-    });
-    return effs;
-}
-
 void EffectLayer::RemoveEffect(int index)
 {
     std::unique_lock<std::recursive_mutex> locker(lock);

@@ -2,13 +2,13 @@
 #define SELECTPANEL_H
 
 //(*Headers(SelectPanel)
+#include <wx/button.h>
+#include <wx/combobox.h>
+#include <wx/listbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/listbox.h>
-#include <wx/panel.h>
-#include <wx/button.h>
-#include <wx/combobox.h>
 //*)
 
 class MainSequencer;
@@ -26,22 +26,22 @@ class SelectPanel: public wxPanel
         void ReloadModels();
 
 		//(*Declarations(SelectPanel)
-		wxTextCtrl* TextCtrl_Select_StartTime;
-		wxListBox* ListBox_Select_Types;
-		wxButton* Button_Select_Refresh;
-		wxStaticText* StaticText2;
-		wxButton* Button_Select_Search;
-		wxStaticText* StaticText6;
-		wxButton* Button_Select_Effect_All;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxComboBox* ComboBox_Select_Models;
-		wxStaticText* StaticText5;
-		wxTextCtrl* TextCtrl_Select_EndTime;
-		wxStaticText* StaticText4;
 		wxButton* Button_Select_All_Time;
+		wxButton* Button_Select_Effect_All;
 		wxButton* Button_Select_Model_All;
+		wxButton* Button_Select_Refresh;
+		wxButton* Button_Select_Search;
+		wxComboBox* ComboBox_Select_Models;
 		wxListBox* ListBox_Select_Found;
+		wxListBox* ListBox_Select_Types;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl_Select_EndTime;
+		wxTextCtrl* TextCtrl_Select_StartTime;
 		//*)
 
 	protected:
@@ -79,7 +79,6 @@ class SelectPanel: public wxPanel
         std::pair< int, int > GetStartAndEndTime();
 
 		//(*Handlers(SelectPanel)
-		void OnComboBox_Select_ModelsTextUpdated(wxCommandEvent& event);
 		void OnListBox_Select_TypesSelect(wxCommandEvent& event);
 		void OnButton_Select_RefreshClick(wxCommandEvent& event);
 		void OnComboBox_Select_ModelsTextEnter(wxCommandEvent& event);
@@ -90,6 +89,7 @@ class SelectPanel: public wxPanel
 		void OnTextCtrl_Select_StartTimeText(wxCommandEvent& event);
 		void OnTextCtrl_Select_EndTimeText(wxCommandEvent& event);
 		void OnButton_Select_All_TimeClick(wxCommandEvent& event);
+		void OnComboBox_Select_ModelsSelected(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

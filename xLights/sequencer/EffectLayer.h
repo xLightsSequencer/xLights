@@ -33,9 +33,6 @@ class EffectLayer
         void RemoveAllEffects(UndoManager *undo_mgr);
         std::list<std::string> GetFileReferences(EffectManager& em) const;
 
-        std::vector<Effect*> GetEffectsByType(const std::string &type );
-        std::vector<Effect*> GetAllEffects() { return mEffects; };
-
         int EffectLayer::SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);

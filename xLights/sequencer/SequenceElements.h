@@ -63,7 +63,6 @@ class SequenceElements : public ChangeListener
         void Clear();
         void PrepareViews(xLightsXmlFile& xml_file);
         std::vector < Element*> SearchForElements(const std::string &regex, int view = MASTER_VIEW) const;
-        std::vector < Element*> GetAllElements(int view = MASTER_VIEW) const;
         Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const std::string &name) const;
@@ -72,8 +71,6 @@ class SequenceElements : public ChangeListener
         size_t GetElementCount(int view = MASTER_VIEW) const;
         Row_Information_Struct* GetVisibleRowInformation(size_t index);
         Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
-        std::vector<Row_Information_Struct>* GetAllRowInformation() { return &mRowInformation; }
-        std::vector<Row_Information_Struct>* GetAllVisibleRowInformation() { return &mVisibleRowInformation;}
         size_t GetVisibleRowInformationSize();
         Row_Information_Struct* GetRowInformation(size_t index);
         Row_Information_Struct* GetRowInformationFromRow(int row_number);

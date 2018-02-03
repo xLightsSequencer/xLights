@@ -180,13 +180,6 @@ std::vector < Element*> SequenceElements::SearchForElements(const std::string &r
     return foundModels;
 }
 
-std::vector < Element*> SequenceElements::GetAllElements(int view) const
-{
-    if (mAllViews.size() == 0) return std::vector < Element*>();
-    if (mAllViews.size() <= view || view < 0) return std::vector < Element*>();
-    return mAllViews[view];
-}
-
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
                               bool visible,bool collapsed,bool active, bool selected,
                               xLightsFrame *xframe) {

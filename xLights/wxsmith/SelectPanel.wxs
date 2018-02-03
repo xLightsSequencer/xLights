@@ -19,7 +19,6 @@
 			<object class="sizeritem">
 				<object class="wxComboBox" name="ID_COMBOBOX_SELECT_MODELS" variable="ComboBox_Select_Models" member="yes">
 					<style>wxCB_SORT|wxTE_PROCESS_ENTER</style>
-					<handler function="OnComboBox_Select_ModelsTextUpdated" entry="EVT_TEXT" />
 					<handler function="OnComboBox_Select_ModelsTextEnter" entry="EVT_TEXT_ENTER" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
