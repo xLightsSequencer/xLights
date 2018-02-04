@@ -14,6 +14,7 @@
 #include "events/EventSerial.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
+#include "events/EventMIDI.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
 
@@ -77,6 +78,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
                 else if (n2->GetName() == "EventFPP")
                 {
                     _events.push_back(new EventFPP(n2));
+                }
+                else if (n2->GetName() == "EventMIDI")
+                {
+                    _events.push_back(new EventMIDI(n2));
                 }
                 else if (n2->GetName() == "EventSerial")
                 {

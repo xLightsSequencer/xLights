@@ -7,10 +7,12 @@
 #include "EventSerial.h"
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
+#include "ListenerMIDI.h"
 #include "ListenerFPPUnicast.h"
 #include "ListenerSerial.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
+#include "EventMIDI.h"
 
 ListenerManager::ListenerManager(ScheduleManager* scheduleManager)
 {
@@ -61,6 +63,28 @@ void ListenerManager::StartListeners()
                     {
                         found = true;
                     }
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else if ((*it)->GetType() == "MIDI")
+        {
+            ListenerMIDI* l = (ListenerMIDI*)(*it);
+            bool found = false;
+            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            {
+                if ((*it2)->GetType() == "MIDI")
+                {
+                    found = true;
                 }
             }
             if (!found)
@@ -252,6 +276,25 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
+        else if ((*it3)->GetType() == "MIDI")
+        {
+            EventMIDI* e = (EventMIDI*)(*it3);
+            bool midiExists = false;
+            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            {
+                if ((*it2)->GetType() == "MIDI")
+                {
+                    midiExists = true;
+                    break;
+                }
+            }
+
+            if (!midiExists && e->GetDeviceId() >= 0)
+            {
+                _listeners.push_back(new ListenerMIDI(e->GetDeviceId(), this));
+                _listeners.back()->Start();
+            }
+        }
         else if ((*it3)->GetType() == "OSC")
         {
             bool oscExists = false;
@@ -433,6 +476,19 @@ void ListenerManager::ProcessPacket(const std::string& source, int universe, wxB
         if ((*it)->GetType() == source)
         {
             (*it)->Process(universe, buffer, buffsize, _scheduleManager);
+        }
+    }
+}
+
+void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2)
+{
+    if (_pause || _stop) return;
+
+    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    {
+        if ((*it)->GetType() == source)
+        {
+            (*it)->Process(status, channel, data1, data2, _scheduleManager);
         }
     }
 }
