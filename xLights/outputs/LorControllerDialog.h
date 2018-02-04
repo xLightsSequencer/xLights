@@ -17,7 +17,7 @@ class LorControllerDialog: public wxDialog
 {
 	public:
 
-		LorControllerDialog(wxWindow* parent, LorController* controller, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LorControllerDialog(wxWindow* parent, LorController* controller, int avail_id, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LorControllerDialog();
 
         LorController* GetController() { return _controller; }

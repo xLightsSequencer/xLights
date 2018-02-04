@@ -30,7 +30,7 @@ BEGIN_EVENT_TABLE(LorControllerDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-LorControllerDialog::LorControllerDialog(wxWindow* parent, LorController* controller, wxWindowID id,const wxPoint& pos,const wxSize& size)
+LorControllerDialog::LorControllerDialog(wxWindow* parent, LorController* controller, int avail_id, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _controller = controller;
 
@@ -113,6 +113,8 @@ LorControllerDialog::LorControllerDialog(wxWindow* parent, LorController* contro
     	SpinCtrl_Channels->SetValue(_controller->GetNumChannels());
     	Choice_Mode->SetSelection((int)(_controller->GetAddressMode()));
     	TextCtrl_Description->SetValue(_controller->GetDescription());
+	} else {
+    	SpinCtrl_UnitID->SetValue(avail_id);
 	}
 
     ValidateWindow();

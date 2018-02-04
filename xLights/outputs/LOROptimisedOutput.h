@@ -20,6 +20,7 @@ class LOROptimisedOutput : public LOROutput
     #pragma region Member Variables
     wxByte _unit_id = 0x01;
     bool banks_changed[32];
+    bool unit_id_in_use[256];
     LorControllers _controllers;
     #pragma endregion Member Variables
 

@@ -312,7 +312,7 @@ Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputMan
 {
     LOROptimisedOutput* result = this;
 
-    LorOptimisedDialog dlg(parent, &result, &_controllers, outputManager);
+    LorOptimisedDialog dlg(parent, &result, &_controllers, outputManager, unit_id_in_use);
 
     int res = dlg.ShowModal();
 
@@ -334,6 +334,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
 	controller_channels_to_process = channel_count;
 	channels_per_pass = controller_channels_to_process;
 	std::string type = cntrl->GetType();
+    int unit_id = cntrl->GetUnitId();
 	if ((type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
 		std::size_t found = type.find("Pixie");
 		if (found != std::string::npos) {
@@ -341,14 +342,26 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
 			channels_per_pass = channel_count;
 			channel_count = outputs_per_card * channels_per_pass;
 			controller_channels_to_process = channel_count;
+            for(int i = 0; i < outputs_per_card; i++) {
+                unit_id_in_use[unit_id+i] = true;
+            }
 		}
 	}
 	else {
 		if (addr_mode == LorController::LOR_ADDR_MODE_LEGACY) {
 			channels_per_pass = 16;
+			int num_ids = channel_count / channels_per_pass;
+			if( (num_ids * channels_per_pass) < channel_count ) {
+                num_ids++;
+			}
+            for(int i = 0; i < num_ids; i++) {
+                unit_id_in_use[unit_id+i] = true;
+            }
 		}
 		else if (addr_mode == LorController::LOR_ADDR_MODE_SPLIT) {
 			channels_per_pass = channel_count / 2;
+			unit_id_in_use[unit_id] = true;
+			unit_id_in_use[unit_id+1] = true;
 		}
 	}
 }
@@ -359,9 +372,15 @@ void LOROptimisedOutput::CalcTotalChannels()
     int channel_count = 0;
 	int controller_channels_to_process = 0;
 	int channels_per_pass = 0;
+    for( size_t i=0; i < 255; ++i ) {
+        unit_id_in_use[i] = false;
+    }
+    unit_id_in_use[0] = true;  // we don't use id 0
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
         channel_count = (*it)->GetNumChannels();
+        int unit_id = (*it)->GetUnitId();
+        unit_id_in_use[unit_id] = true;
 		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
 		total_channels += channel_count;
     }
