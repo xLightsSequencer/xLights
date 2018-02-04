@@ -825,6 +825,13 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 
 void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active)
 {
+    if( red_channel > NodeCount ||
+        green_channel > NodeCount ||
+        blue_channel > NodeCount )
+    {
+        return;
+    }
+
 	xlColor color;
 	xlColor ecolor;
 	xlColor beam_color(xlWHITE);

@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
+   -- bug (gil)    Protect against crash if user sets DMX flood light channel values higher than total changes.
    -- bug (dkulp)  Fix brightness if contrast isnt set
    -- enh (keith)  Add matrix face downloader
    -- enh (keith)  Add the ability to lock effects. This will prevent moving and resizing only.
