@@ -72,6 +72,7 @@ class xScheduleFrame : public wxFrame
     bool _suspendOTL;
     Pinger* _pinger;
 
+    void AddIPs();
     void LoadShowDir();
     void SaveShowDir() const;
     void UpdateTree() const;

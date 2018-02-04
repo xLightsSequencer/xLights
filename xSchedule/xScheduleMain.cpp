@@ -41,6 +41,8 @@
 #include "Pinger.h"
 #include "EventsDialog.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "Projector.h"
+#include "PlayList/PlayListItemOSC.h"
 
 //#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -746,9 +748,43 @@ void xScheduleFrame::LoadSchedule()
         StaticText_ShowDir->SetForegroundColour(*wxRED);
     }
 
+    AddIPs();
+
     UpdateTree();
 
     CreateButtons();
+}
+
+void xScheduleFrame::AddIPs()
+{
+    _pinger->RemoveNonOutputIPs();
+
+    auto projectors = __schedule->GetOptions()->GetProjectors();
+    for (auto it = projectors.begin(); it != projectors.end(); ++it)
+    {
+        _pinger->AddIP((*it)->GetIP(), "Projector");
+    }
+
+    auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
+    for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
+    {
+        _pinger->AddIP(*it, "FPPRemote");
+    }
+
+    if (__schedule->GetOptions()->GetOSCOptions() != nullptr)
+    {
+        _pinger->AddIP(__schedule->GetOptions()->GetOSCOptions()->GetIPAddress(), "OSCTarget");
+    }
+
+    auto plis = __schedule->GetPlayListIps();
+    for (auto it = plis.begin(); it != plis.end(); ++it)
+    {
+        if ((*it)->GetTitle() == "OSC")
+        {
+            PlayListItemOSC* osc = (PlayListItemOSC*)*it;
+            _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
+        }
+    }
 }
 
 xScheduleFrame::~xScheduleFrame()
@@ -1333,6 +1369,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
         CreateButtons();
     }
+
+    AddIPs();
 
     UpdateUI();
     ValidateWindow();
@@ -2180,6 +2218,7 @@ void xScheduleFrame::AddPlayList(bool forceadvanced)
         TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
         __schedule->AddPlayList(playlist);
     }
+    AddIPs();
 }
 
 void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
@@ -2224,6 +2263,8 @@ void xScheduleFrame::EditSelectedItem(bool forceadvanced)
             if (rs != nullptr) rs->Reset();
         }
     }
+
+    AddIPs();
 }
 
 void xScheduleFrame::OnMenu_OutputProcessingSelected(wxCommandEvent& event)
@@ -2460,6 +2501,24 @@ void xScheduleFrame::UpdateUI()
                 }
             }
         }
+
+        // remove anything in the tree which isnt in the results
+        for (int i = 0; i < ListView_Ping->GetItemCount(); i ++)
+        {
+            bool found = false;
+            for (auto it = pingresults.begin(); !found && it != pingresults.end(); ++it)
+            {
+                if (ListView_Ping->GetItemText(i) == (*it)->GetName())
+                {
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                ListView_Ping->DeleteItem(i);
+                i--;
+            }
+        }
     }
 
     ValidateWindow();
@@ -2620,6 +2679,8 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER) {
         __schedule->OpenFPPSyncSendSocket();
     }
+
+    AddIPs();
 }
 
 void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
@@ -2635,6 +2696,8 @@ void xScheduleFrame::OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event)
         ConfigureOSC dlg(this, __schedule->GetOptions()->GetOSCOptions());
         dlg.ShowModal();
     }
+
+    AddIPs();
 }
 
 void xScheduleFrame::OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event)

@@ -40,6 +40,7 @@ public:
     
     virtual wxXmlNode* Save() override;
     PINGSTATE Ping() const override;
+    static PINGSTATE Ping(const std::string ip);
     bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop

@@ -13,14 +13,14 @@ class PlayListItemOSC : public PlayListItem
 {
 protected:
 
-    #pragma region Member Variables
+#pragma region Member Variables
     std::string _path;
     std::string _ip;
     int _port;
     bool _started;
-	OSCTYPE _types[MAXOSCPARMS];
-	std::string _values[MAXOSCPARMS];
-    #pragma endregion Member Variables
+    OSCTYPE _types[MAXOSCPARMS];
+    std::string _values[MAXOSCPARMS];
+#pragma endregion Member Variables
 
     OSCTYPE EncodeType(const std::string type) const;
     std::string DecodeType(OSCTYPE type) const;
@@ -28,16 +28,18 @@ protected:
 
 public:
 
-	static int GetMaxParams() { return MAXOSCPARMS; }
+    static int GetMaxParams() { return MAXOSCPARMS; }
 
-    #pragma region Constructors and Destructors
+#pragma region Constructors and Destructors
     PlayListItemOSC(wxXmlNode* node);
     PlayListItemOSC();
     virtual ~PlayListItemOSC() {};
     virtual PlayListItem* Copy() const override;
-    #pragma endregion Constructors and Destructors
+#pragma endregion Constructors and Destructors
 
-    #pragma region Getters and Setters
+#pragma region Getters and Setters
+    virtual bool HasIP() const override { return true; }
+    std::string GetIP() const { return _ip; }
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
     std::string GetRawName() const { return _name; }

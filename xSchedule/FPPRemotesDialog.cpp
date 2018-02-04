@@ -184,7 +184,7 @@ void FPPRemotesDialog::ValidateWindow()
     }
     else
     {
-        Button_Delete->Enable(true);
-        Button_Edit->Enable(true);
+        Button_Delete->Enable(false);
+        Button_Edit->Enable(false);
     }
 }

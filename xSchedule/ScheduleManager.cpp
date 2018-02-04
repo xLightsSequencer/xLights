@@ -430,6 +430,29 @@ ScheduleManager::~ScheduleManager()
     logger_base.info("Closed schedule.");
 }
 
+std::list<PlayListItem*> ScheduleManager::GetPlayListIps() const
+{
+    std::list<PlayListItem*> res;
+
+    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+    {
+        auto steps = (*it)->GetSteps();
+        for (auto it2 = steps.begin(); it2 != steps.end(); ++it2)
+        {
+            auto plis = (*it2)->GetItems();
+            for (auto it3 = plis.begin(); it3 != plis.end(); ++it3)
+            {
+                if ((*it3)->HasIP())
+                {
+                    res.push_back(*it3);
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
 bool ScheduleManager::GetWebRequestToggle()
 {
     static bool last = false;
