@@ -101,6 +101,8 @@
 		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
+		674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */; };
+		674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
 		674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
@@ -815,6 +817,10 @@
 		67447D9B1C6666A00095CDB5 /* SphereModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SphereModel.cpp; path = models/SphereModel.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		674ACA7B1C5ADE4000B54B32 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = models/Node.cpp; sourceTree = "<group>"; };
+		674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMapPanel.h; path = PlayList/PlayListItemScreenMapPanel.h; sourceTree = "<group>"; };
+		674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMap.cpp; path = PlayList/PlayListItemScreenMap.cpp; sourceTree = "<group>"; };
+		674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMapPanel.cpp; path = PlayList/PlayListItemScreenMapPanel.cpp; sourceTree = "<group>"; };
+		674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMap.h; path = PlayList/PlayListItemScreenMap.h; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -2747,6 +2753,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */,
+				674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */,
+				674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */,
+				674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */,
 				67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */,
 				67D75E632020ED94005BAC6E /* PlayListItemFPPEvent.h */,
 				67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */,
@@ -3339,6 +3349,7 @@
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
 				670827FF2024C39C0002B617 /* LorControllerDialog.cpp in Sources */,
 				670828002024C39C0002B617 /* LorControllers.cpp in Sources */,
+				674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */,
 				670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */,
 				670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */,
 				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
@@ -3519,6 +3530,7 @@
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
+				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
