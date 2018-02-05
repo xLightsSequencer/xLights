@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix brightness slider does not work with pictures effect
    -- enh (keith)  Add some course grained volume controls to Audio menu
    -- enh (keith)  Add waveform colours to the colour manager
+   -- enh (keith)  Add a screen mapper playlist item ... in theory this lets you do real time video on an element ... amongst other things.
 2018.4 Jan 30, 2018
    -- bug (Billy)  Fixed xScheduleWeb to display proper version number
    -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame

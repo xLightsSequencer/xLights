@@ -16,7 +16,6 @@ class PlayListItemRDS;
 class PlayListItemRDSPanel: public wxPanel
 {
     PlayListItemRDS* _rds;
-    void SetChoiceFromString(wxChoice* choice, std::string value);
     void ValidateWindow();
 
 	public:

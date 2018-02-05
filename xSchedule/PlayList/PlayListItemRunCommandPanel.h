@@ -14,7 +14,6 @@ class PlayListItemRunCommand;
 class PlayListItemRunCommandPanel: public wxPanel
 {
     PlayListItemRunCommand* _Command;
-    void SetChoiceFromString(wxChoice* choice, std::string value);
     void ValidateWindow();
 
 	public:

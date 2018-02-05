@@ -8,6 +8,7 @@
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
+#include "PlayListItemScreenMap.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
@@ -139,6 +140,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIText")
         {
             _items.push_back(new PlayListItemText(n));
+        }
+        else if (n->GetName() == "PLIScreenMap")
+        {
+            _items.push_back(new PlayListItemScreenMap(n));
         }
         else if (n->GetName() == "PLIAudio")
         {

@@ -33,23 +33,6 @@ BEGIN_EVENT_TABLE(MatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-void MatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, std::string& startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _orientation(orientation), _startChannel(startChannel), _startingLocation(startingLocation), _strandsPerString(strandsPerString), _strings(strings), _stringLength(stringLength)
 {
     _outputManager = outputManager;
@@ -124,8 +107,8 @@ MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::
 	//*)
 
     TextCtrl_Name->SetValue(_name);
-    SetChoiceFromString(Choice_Orientation, _orientation);
-    SetChoiceFromString(Choice_StartLocation, _startingLocation);
+    Choice_Orientation->SetStringSelection(_orientation);
+    Choice_StartLocation->SetStringSelection(_startingLocation);
     TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_StrandsPerString->SetValue(_strandsPerString);
     SpinCtrl_StringLength->SetValue(_stringLength);

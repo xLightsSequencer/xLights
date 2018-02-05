@@ -23,7 +23,6 @@ class MatrixDialog: public wxDialog
     std::string& _startChannel;
     std::string& _orientation;
     std::string& _startingLocation;
-    void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 

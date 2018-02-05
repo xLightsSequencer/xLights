@@ -18,7 +18,6 @@ class PlayListItemTestPanel: public wxPanel
     OutputManager* _outputManager;
     PlayListItemTest* _test;
     void ValidateWindow();
-    void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 

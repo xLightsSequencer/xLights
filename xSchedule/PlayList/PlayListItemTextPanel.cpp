@@ -51,24 +51,6 @@ BEGIN_EVENT_TABLE(PlayListItemTextPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemTextPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
-
 PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText* text,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _text = text;
@@ -179,12 +161,12 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
     SpinCtrl_Speed->SetValue(text->GetSpeed());
     FontPickerCtrl1->SetSelectedFont(*text->GetFont());
     FontPickerCtrl1->SetSelectedColour(text->GetColour());
-    SetChoiceFromString(Choice_Orientation, text->GetOrientation());
-    SetChoiceFromString(Choice_Movement, text->GetMovement());
-    SetChoiceFromString(Choice_Type, text->GetType());
+    Choice_Orientation->SetStringSelection(text->GetOrientation());
+    Choice_Movement->SetStringSelection(text->GetMovement());
+    Choice_Type->SetStringSelection(text->GetType());
     TextCtrl_Duration->SetValue(wxString::Format(wxT("%.3f"), (float)text->GetDuration() / 1000.0));
     Choice_BlendMode->SetSelection(text->GetBlendMode());
-    SetChoiceFromString(Choice_Matrices, text->GetMatrix());
+    Choice_Matrices->SetStringSelection(text->GetMatrix());
     SpinCtrl_X->SetValue(_text->GetX());
     SpinCtrl_Y->SetValue(_text->GetY());
     SpinCtrl_Priority->SetValue(_text->GetPriority());

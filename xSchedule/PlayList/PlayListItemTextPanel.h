@@ -18,7 +18,6 @@ class PlayListItemTextPanel: public wxPanel
 {
     PlayListItemText* _text;
     void ValidateWindow();
-    void SetChoiceFromString(wxChoice* choice, std::string value);
 
     public:
 

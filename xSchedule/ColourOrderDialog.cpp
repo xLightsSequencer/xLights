@@ -28,23 +28,6 @@ BEGIN_EVENT_TABLE(ColourOrderDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-void ColourOrderDialog::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 void ColourOrderDialog::ValidateWindow()
 {
     long sc = _outputManager->DecodeStartChannel(TextCtrl_StartChannel->GetValue().ToStdString());
@@ -126,7 +109,7 @@ ColourOrderDialog::ColourOrderDialog(wxWindow* parent, OutputManager* outputMana
 
     TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Nodes->SetValue(_nodes);
-    SetChoiceFromString(Choice1, wxString::Format(wxT("%ld"), (long)_colourOrder).ToStdString());
+    Choice1->SetStringSelection(wxString::Format(wxT("%ld"), (long)_colourOrder).ToStdString());
     TextCtrl_Description->SetValue(_description);
     CheckBox_Enabled->SetValue(_enabled);
 
