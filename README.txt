@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.5 Feb 05, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
    -- bug (gil)    Protect against crash if user sets DMX flood light channel values higher than total changes.
