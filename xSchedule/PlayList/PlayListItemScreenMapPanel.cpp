@@ -159,14 +159,10 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
     wxScreenDC screenDC;
     int w, h;
     screenDC.GetSize(&w, &h);
-    SpinCtrl_X->SetMin(0);
-    SpinCtrl_Y->SetMin(0);
-    SpinCtrl_Width->SetMin(1);
-    SpinCtrl_Height->SetMin(1);
-    SpinCtrl_X->SetMax(w);
-    SpinCtrl_Y->SetMax(h);
-    SpinCtrl_Width->SetMax(w);
-    SpinCtrl_Height->SetMax(h);
+    SpinCtrl_X->SetRange(0, w);
+    SpinCtrl_Y->SetRange(0, h);
+    SpinCtrl_Width->SetRange(1, w);
+    SpinCtrl_Height->SetRange(1, h);
 
     PopulateBlendModes(Choice_BlendMode);
     Choice_BlendMode->SetSelection(0);
