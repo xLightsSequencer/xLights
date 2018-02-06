@@ -4471,7 +4471,7 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         // else this is valid
                     }
-                    else if (ip1 == 172 && ip2 == 16)
+                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
                     {
                         // this is valid
                     }
