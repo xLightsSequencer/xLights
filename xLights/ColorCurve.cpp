@@ -83,6 +83,7 @@ void ColorCurve::Deserialise(const std::string& s)
         _values.push_back(ccSortableColorPoint(0.5, *wxBLACK));
     }
 }
+
 std::string ColorCurve::Serialise()
 {
     std::string res = "";
@@ -156,7 +157,6 @@ void ColorCurve::SetSerialisedValue(std::string k, std::string s)
         }
 
     _values.sort();
-    //_active = true;
 }
 
 void ColorCurve::SetType(std::string type)
@@ -281,9 +281,8 @@ xlColor ColorCurve::GetValueAt(float offset) const
             if (offset == pt->x) return c1;
         }
 
-        xlColor c2 = xlBLACK;
+        xlColor c2;
         pt = GetNextActivePoint(offset, d);
-
         if (pt == nullptr)
         {
             const ccSortableColorPoint* ptp = GetActivePoint(offset, d);
