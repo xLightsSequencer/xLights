@@ -97,6 +97,7 @@
 					<value>0</value>
 					<min>-1000</min>
 					<max>1000</max>
+					<handler function="OnSpinCtrl_PosChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -115,6 +116,7 @@
 					<value>0</value>
 					<min>-1000</min>
 					<max>1000</max>
+					<handler function="OnSpinCtrl_PosChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -132,6 +134,7 @@
 				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Width" member="yes">
 					<value>100</value>
 					<min>1</min>
+					<handler function="OnSpinCtrl_PosChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -149,6 +152,7 @@
 				<object class="wxSpinCtrl" name="ID_SPINCTRL5" variable="SpinCtrl_Height" member="yes">
 					<value>100</value>
 					<min>1</min>
+					<handler function="OnSpinCtrl_PosChange" entry="EVT_SPINCTRL" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

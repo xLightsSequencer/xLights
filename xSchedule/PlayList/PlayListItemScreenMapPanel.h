@@ -12,10 +12,12 @@
 //*)
 
 class PlayListItemScreenMap;
+class OutlineWindow;
 
 class PlayListItemScreenMapPanel: public wxPanel
 {
     PlayListItemScreenMap* _screenMap;
+    OutlineWindow* _outlineWindow;
     void ValidateWindow();
 
     public:
@@ -78,7 +80,7 @@ class PlayListItemScreenMapPanel: public wxPanel
 		//(*Handlers(PlayListItemScreenMapPanel)
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		void OnCheckBox_RescaleClick(wxCommandEvent& event);
-		void OnCheckBox_RescaleClick1(wxCommandEvent& event);
+		void OnSpinCtrl_PosChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -43,6 +43,44 @@ BEGIN_EVENT_TABLE(PlayListItemScreenMapPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
+class OutlineWindow : public wxTopLevelWindow
+{
+public:
+
+    OutlineWindow(wxWindow* parent, int x, int y, int w, int h) : wxTopLevelWindow(parent, wxNewId(), "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE | wxSTAY_ON_TOP)
+    {
+        SetTransparent(128);
+        Connect(wxEVT_PAINT, (wxObjectEventFunction)&OutlineWindow::OnPaint);
+
+        DoSetSize(x, y, w, h);
+    }
+
+    void DoSetSize(int x, int y, int w, int h)
+    {
+        SetSize(x - 1, y - 1, w + 2, h + 2);
+        Refresh();
+        Update();
+    }
+
+    void OnPaint(wxPaintEvent& event)
+    {
+        wxPaintDC dc(this);
+
+        int w, h;
+        GetSize(&w, &h);
+
+        wxPoint points[] = { wxPoint(0, 0),
+            wxPoint(w - 1, 0),
+            wxPoint(w - 1, h - 1),
+            wxPoint(0, h - 1),
+            wxPoint(0, 0)
+        };
+
+        dc.SetPen(*wxRED_PEN);
+        dc.DrawLines(5, points);
+    }
+};
+
 PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayListItemScreenMap* screenMap, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _screenMap = screenMap;
@@ -112,7 +150,23 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnCheckBox_RescaleClick);
+	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
+	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
+	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
+	Connect(ID_SPINCTRL5,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	//*)
+
+    wxScreenDC screenDC;
+    int w, h;
+    screenDC.GetSize(&w, &h);
+    SpinCtrl_X->SetMin(0);
+    SpinCtrl_Y->SetMin(0);
+    SpinCtrl_Width->SetMin(1);
+    SpinCtrl_Height->SetMin(1);
+    SpinCtrl_X->SetMax(w);
+    SpinCtrl_Y->SetMax(h);
+    SpinCtrl_Width->SetMax(w);
+    SpinCtrl_Height->SetMax(h);
 
     PopulateBlendModes(Choice_BlendMode);
     Choice_BlendMode->SetSelection(0);
@@ -136,6 +190,9 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
     SpinCtrl_Priority->SetValue(_screenMap->GetPriority());
     CheckBox_Rescale->SetValue(_screenMap->GetRescale());
 
+    _outlineWindow = new OutlineWindow(this, _screenMap->GetX(), _screenMap->GetY(), _screenMap->GetWidth(), _screenMap->GetHeight());
+    _outlineWindow->Show();
+
     ValidateWindow();
 }
 
@@ -143,6 +200,12 @@ PlayListItemScreenMapPanel::~PlayListItemScreenMapPanel()
 {
 	//(*Destroy(PlayListItemScreenMapPanel)
 	//*)
+
+    if (_outlineWindow != nullptr)
+    {
+        _outlineWindow->Close();
+        delete _outlineWindow;
+    }
 
     _screenMap->SetDuration(wxAtof(TextCtrl_Duration->GetValue()) * 1000);
     _screenMap->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
@@ -184,3 +247,7 @@ void PlayListItemScreenMapPanel::OnCheckBox_RescaleClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void PlayListItemScreenMapPanel::OnSpinCtrl_PosChange(wxSpinEvent& event)
+{
+    _outlineWindow->DoSetSize(SpinCtrl_X->GetValue(), SpinCtrl_Y->GetValue(), SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue());
+}
