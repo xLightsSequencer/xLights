@@ -1132,7 +1132,7 @@
 					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="iD_MNU_VENDORCACHEPURGE" variable="MenuItem_PurgeVendorCache" member="yes">
-					<label>Purge Vendor Cache</label>
+					<label>Purge Download Cache</label>
 					<handler function="OnMenuItem_PurgeVendorCacheSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_CrashXLights" member="yes">
