@@ -110,6 +110,7 @@ public:
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -166,7 +167,6 @@ private:
     void UpdateSelectionRectangle();
     void UpdateSelectedEffects();
     void CheckForPartialCell(int x_pos);
-    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
     bool MultipleEffectsSelected() const;

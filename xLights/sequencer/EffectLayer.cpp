@@ -433,6 +433,111 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
     return num_selected;
 }
 
+int EffectLayer::SelectEffectsByType(const std::string & type)
+{
+    int num_selected = 0;
+
+    std::for_each(mEffects.begin(), mEffects.end(), [&](auto const& ef)
+    {
+        if (ef->GetEffectName() == type)
+        {
+            ef->SetSelected(EFFECT_SELECTED);
+            num_selected++;
+        }
+    });
+
+    return num_selected;
+}
+
+std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS) 
+{
+    std::vector<Effect*> effs = std::vector<Effect*>();
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetEffectName() == type)
+        {
+            int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
+            if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
+            {
+                effs.push_back(mEffects[i]);
+            }
+            else if (mEffects[i]->GetEndTimeMS() <= endTimeMS && mEffects[i]->GetEndTimeMS() > startTimeMS)
+            {
+                effs.push_back(mEffects[i]);
+            }
+            else if (mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
+            {
+                effs.push_back(mEffects[i]);
+            }
+        }
+    }
+    return effs;
+}
+
+int EffectLayer::SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS)
+{
+    int num_selected = 0;
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetEffectName() == type)
+        {
+            int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
+            if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
+            {
+                if (endTimeMS < midpoint)
+                {
+                    mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
+                }
+                else
+                {
+                    mEffects[i]->SetSelected(EFFECT_SELECTED);
+                }
+                num_selected++;
+            }
+            else if (mEffects[i]->GetEndTimeMS() <= endTimeMS && mEffects[i]->GetEndTimeMS() > startTimeMS)
+            {
+                if (startTimeMS > midpoint)
+                {
+                    mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
+                }
+                else
+                {
+                    mEffects[i]->SetSelected(EFFECT_SELECTED);
+                }
+                num_selected++;
+            }
+            else if (mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
+            {
+                mEffects[i]->SetSelected(EFFECT_SELECTED);
+                num_selected++;
+            }
+        }
+    }
+    return num_selected;
+}
+
+std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTimeMS)
+{
+    std::vector<Effect*> effs = std::vector<Effect*>();
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
+        if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
+        {
+            effs.push_back(mEffects[i]);
+        }
+        else if (mEffects[i]->GetEndTimeMS() <= endTimeMS && mEffects[i]->GetEndTimeMS() > startTimeMS)
+        {
+            effs.push_back(mEffects[i]);
+        }
+        else if (mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
+        {
+            effs.push_back(mEffects[i]);
+        }
+    }
+    return effs;
+}
+
 void EffectLayer::UnSelectAllEffects()
 {
     for(int i=0;i<mEffects.size();i++)

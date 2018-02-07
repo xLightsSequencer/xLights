@@ -649,6 +649,8 @@
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
+		<Unit filename="SelectPanel.cpp" />
+		<Unit filename="SelectPanel.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
 		<Unit filename="SelectTimingsDialog.cpp" />
@@ -1217,6 +1219,7 @@
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
+		<Unit filename="wxsmith/SelectPanel.wxs" />
 		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
@@ -1417,6 +1420,7 @@
 					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
