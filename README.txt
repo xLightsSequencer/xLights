@@ -12,6 +12,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott)  Add Effect Select Panel.
+   -- enh (keith)  xSchedule will now stop at the end of the FSEQ if it is shorter than the audio file
+   -- bug (keith)  Fix vendor model download only allows model to be used once
+   -- bug (keith)  When layout panel first opened models wont select
+   -- bug (keith)  Fix 172.17.*.* - 172.31.*.* ip addresses incorrectly reported as internet routable
+   -- enh (keith)  When configuring screen map in xSchedule show the area being mapped
+   -- enh (keith)  Increase Value Curve/Colour curve resolution from 40 to 100
+   -- enh (keith)  Improve the speed of number aware sort
 2018.5 Feb 05, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
