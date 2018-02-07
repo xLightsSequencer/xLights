@@ -40,6 +40,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    virtual bool HasIP() const { return false; }
     wxUint32 GetId() const { return _id; }
     virtual size_t GetDurationMS() const { return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }

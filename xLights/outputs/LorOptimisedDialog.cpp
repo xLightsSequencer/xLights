@@ -32,12 +32,14 @@ BEGIN_EVENT_TABLE(LorOptimisedDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** serial, LorControllers* lorControllers, OutputManager* outputManager, wxWindowID id, const wxPoint& pos, const wxSize& size)
+LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** serial, LorControllers* lorControllers, OutputManager* outputManager, bool id_in_use[],
+                                       wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     _lorControllers = lorControllers;
     _original = *serial;
     _serial = serial;
     _outputManager = outputManager;
+    _unit_id_in_use = id_in_use;
 
 	//(*Initialize(LorOptimisedDialog)
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -202,6 +204,8 @@ void LorOptimisedDialog::OnButton_DeleteClick(wxCommandEvent& event)
             _lorControllers->GetControllers()->remove(*it);
             delete todelete;
             _lorControllers->SetDirty();
+            int unit_id = (*it)->GetUnitId();
+            _unit_id_in_use[unit_id] = false;
             LoadList();
             break;
         }
@@ -219,21 +223,26 @@ void LorOptimisedDialog::EditSelected()
 {
     int id = ListView_Controllers->GetItemData(ListView_Controllers->GetFirstSelected());
     LorController* e = nullptr;
+    int old_unit_id = 1;
     for (auto it = _lorControllers->GetControllers()->begin(); it != _lorControllers->GetControllers()->end(); ++it)
     {
         if ((*it)->GetUnitId() == id)
         {
             e = *it;
+            old_unit_id = e->GetUnitId();
             break;
         }
     }
 
     if (e != nullptr)
     {
-        LorControllerDialog dlg(this, e);
+        LorControllerDialog dlg(this, e, 1);
         if (dlg.ShowModal() == wxID_OK)
         {
             // update should have occurred in the dialog
+            int unit_id = e->GetUnitId();
+            _unit_id_in_use[old_unit_id] = false;
+            _unit_id_in_use[unit_id] = true;
         }
     }
 
@@ -244,11 +253,21 @@ void LorOptimisedDialog::EditSelected()
 
 void LorOptimisedDialog::OnButton_AddClick(wxCommandEvent& event)
 {
-    LorControllerDialog dlg(this, nullptr);
+    int avail_id = 1;
+    for(int i = 0; i < 256; i++) {
+        if( !_unit_id_in_use[i] ) {
+            avail_id = i;
+            break;
+        }
+    }
+
+    LorControllerDialog dlg(this, nullptr, avail_id);
     if (dlg.ShowModal() == wxID_OK)
     {
         // update should have occurred in the dialog
         _lorControllers->GetControllers()->push_back(dlg.GetController());
+        int unit_id = dlg.GetController()->GetUnitId();
+        _unit_id_in_use[unit_id] = true;
     }
 
     LoadList();

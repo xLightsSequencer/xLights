@@ -188,8 +188,11 @@ void handleCrash(void *data) {
         report->SetCompressedFileDirectory(xScheduleFrame::GetScheduleManager()->GetShowDir());
     }
 
+#ifndef __WXMSW__
+    // dont call these for windows as they dont seem to do anything.
     report->AddAll(wxDebugReport::Context_Exception);
-    report->AddAll(wxDebugReport::Context_Current);
+    //report->AddAll(wxDebugReport::Context_Current);
+#endif
 
     if (xScheduleFrame::GetScheduleManager() != nullptr)
     {

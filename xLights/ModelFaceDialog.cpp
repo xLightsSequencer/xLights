@@ -78,8 +78,7 @@ enum {
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-
-ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelFaceDialog)
 	wxFlexGridSizer* FlexGridSizer4;

@@ -173,6 +173,13 @@
     <ClCompile Include="PlayList\PlayListItemFPPEvent.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerialPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerial.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorOptimisedDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorController.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -328,6 +335,13 @@
     <ClInclude Include="PlayList\PlayListItemFPPEvent.h" />
     <ClInclude Include="PlayList\PlayListItemSerialPanel.h" />
     <ClInclude Include="PlayList\PlayListItemSerial.h" />
+    <ClInclude Include="..\xLights\outputs\LorOptimisedDialog.h" />
+    <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />
+    <ClInclude Include="..\xLights\outputs\LorControllers.h" />
+    <ClInclude Include="..\xLights\outputs\LorController.h" />
+    <ClInclude Include="..\xLights\outputs\LorControllerDialog.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

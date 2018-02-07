@@ -24,10 +24,12 @@ class LorOptimisedDialog: public wxDialog
     void ValidateWindow();
     void LoadList();
     void EditSelected();
+    bool* _unit_id_in_use;
 
 public:
 
-    LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** serial, LorControllers* lorControllers, OutputManager* outputManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** serial, LorControllers* lorControllers, OutputManager* outputManager, bool id_in_use[],
+                       wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~LorOptimisedDialog();
 
     //(*Declarations(LorOptimisedDialog)

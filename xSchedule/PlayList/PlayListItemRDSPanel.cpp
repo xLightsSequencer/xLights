@@ -32,23 +32,6 @@ BEGIN_EVENT_TABLE(PlayListItemRDSPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemRDSPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rds, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _rds = rds;
@@ -140,9 +123,9 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     TextCtrl_Text->SetToolTip(PlayListItemRDS::GetTooltip());
     SpinCtrl_StationDuration->SetValue(_rds->GetStationDuration());
     SpinCtrl_TextDuration->SetValue(_rds->GetLineDuration());
-    SetChoiceFromString(Choice_CommPort, _rds->GetCommPort());
-    SetChoiceFromString(Choice_ScrollMode, _rds->GetMode());
-    SetChoiceFromString(Choice_SerialSpeed, wxString::Format(wxT("%i"), _rds->GetSerialSpeed()).ToStdString());
+    Choice_CommPort->SetStringSelection(_rds->GetCommPort());
+    Choice_ScrollMode->SetStringSelection(_rds->GetMode());
+    Choice_SerialSpeed->SetStringSelection(wxString::Format(wxT("%i"), _rds->GetSerialSpeed()).ToStdString());
     CheckBox_HighSpeed->SetValue(_rds->GetHighSpeed());
     CheckBox_MRDS->SetValue(_rds->GetMRDS());
 

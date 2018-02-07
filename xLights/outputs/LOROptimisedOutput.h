@@ -20,11 +20,13 @@ class LOROptimisedOutput : public LOROutput
     #pragma region Member Variables
     wxByte _unit_id = 0x01;
     bool banks_changed[32];
+    bool unit_id_in_use[256];
     LorControllers _controllers;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node) override;
     void CalcTotalChannels();
+	void CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl);
 
 public:
 

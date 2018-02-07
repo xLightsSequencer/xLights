@@ -35,6 +35,9 @@
 								<item>RGB Controller</item>
 								<item>CCR</item>
 								<item>CCB</item>
+								<item>Pixie4</item>
+								<item>Pixie8</item>
+								<item>Pixie16</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_TypeSelect" entry="EVT_CHOICE" />
@@ -49,11 +52,26 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-							<label># Channels:</label>
+						<object class="wxFlexGridSizer" variable="FlexGridSizer_PerOutput" member="yes">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_Channels" member="yes">
+									<label># Channels:</label>
+								</object>
+								<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText_PerOutput" member="yes">
+									<label>(per output)</label>
+								</object>
+								<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

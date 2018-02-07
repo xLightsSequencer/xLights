@@ -753,6 +753,10 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     //need to fade the first here as we're not mixing anything
                     HSVValue hsv = color.asHSV();
                     hsv.value *= thelayer->fadeFactor;
+                    if (color.alpha != 255) {
+                        hsv.value *= color.alpha;
+                        hsv.value /= 255.0f;
+                    }
                     c = hsv;
                 } else {
                     c.AlphaBlendForgroundOnto(color);

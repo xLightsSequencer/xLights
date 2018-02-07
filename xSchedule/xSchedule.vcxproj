@@ -173,6 +173,11 @@
     <ClCompile Include="..\xLights\outputs\E131Dialog.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
     <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorController.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
+    <ClCompile Include="..\xLights\outputs\LorOptimisedDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp" />
@@ -259,6 +264,8 @@
     <ClCompile Include="PlayList\PlayListItemFPPEventPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerial.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerialPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemText.cpp" />
@@ -344,6 +351,11 @@
     <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
     <ClInclude Include="..\xLights\outputs\E131Output.h" />
     <ClInclude Include="..\xLights\outputs\IPOutput.h" />
+    <ClInclude Include="..\xLights\outputs\LorController.h" />
+    <ClInclude Include="..\xLights\outputs\LorControllerDialog.h" />
+    <ClInclude Include="..\xLights\outputs\LorControllers.h" />
+    <ClInclude Include="..\xLights\outputs\LorOptimisedDialog.h" />
+    <ClInclude Include="..\xLights\outputs\LOROptimisedOutput.h" />
     <ClInclude Include="..\xLights\outputs\LOROutput.h" />
     <ClInclude Include="..\xLights\outputs\NullOutput.h" />
     <ClInclude Include="..\xLights\outputs\OpenDMXOutput.h" />
@@ -421,6 +433,8 @@
     <ClInclude Include="PlayList\PlayListItemFPPEventPanel.h" />
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
     <ClInclude Include="PlayList\PlayListItemSerial.h" />
     <ClInclude Include="PlayList\PlayListItemSerialPanel.h" />
     <ClInclude Include="PlayList\PlayListItemTextPanel.h" />

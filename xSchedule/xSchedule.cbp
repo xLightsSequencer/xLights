@@ -510,6 +510,10 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
+		<Unit filename="PlayList/PlayListItemScreenMap.cpp" />
+		<Unit filename="PlayList/PlayListItemScreenMap.h" />
+		<Unit filename="PlayList/PlayListItemScreenMapPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemScreenMapPanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -658,6 +662,7 @@
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemScreenMapPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -725,6 +730,7 @@
 					<wxDialog wxs="wxsmith/MatricesDialog1.wxs" src="MatricesDialog.cpp" hdr="MatricesDialog.h" fwddecl="0" i18n="1" name="MatricesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VirtualMatrixDialog.wxs" src="VirtualMatrixDialog.cpp" hdr="VirtualMatrixDialog.h" fwddecl="0" i18n="1" name="VirtualMatrixDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VirtualMatricesDialog1.wxs" src="VirtualMatricesDialog.cpp" hdr="VirtualMatricesDialog.h" fwddecl="0" i18n="1" name="VirtualMatricesDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemScreenMapPanel.wxs" src="PlayList/PlayListItemScreenMapPanel.cpp" hdr="PlayList/PlayListItemScreenMapPanel.h" fwddecl="0" i18n="1" name="PlayListItemScreenMapPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
