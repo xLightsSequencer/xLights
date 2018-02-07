@@ -1045,7 +1045,6 @@ private:
     wxArrayInt ChannelColors;
     long seekPoint;
 
-    int mHitTestNextSelectModelIndex;
     wxString mBackgroundImage;
     int mBackgroundBrightness;
     bool mScaleBackgroundImage = false;
