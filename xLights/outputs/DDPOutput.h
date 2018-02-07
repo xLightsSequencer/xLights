@@ -36,6 +36,7 @@ class DDPOutput : public IPOutput
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
     int _channelsPerPacket;
+    bool _keepChannelNumbers;
     wxByte* _fulldata;
 
     // These are used for DDP sync
@@ -64,6 +65,8 @@ public:
     virtual std::string GetChannelMapping(long ch) const override;
     virtual int GetMaxChannels() const override { return 1000000; }
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
+    virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
+    virtual void KeepChannelNumber(bool b = true) { _keepChannelNumbers = b;}
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop

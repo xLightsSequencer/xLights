@@ -486,7 +486,6 @@ public:
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
     void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
-    void OnButton_DDPClick(wxCommandEvent& event);
     void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     void OnMenuItemColorManagerSelected(wxCommandEvent& event);
@@ -534,6 +533,7 @@ public:
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
+    void OnButtonAddDDPClick(wxCommandEvent& event);
     //*)
 private:
 
@@ -610,6 +610,7 @@ private:
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON_ADD_LOR;
+    static const long ID_BUTTON_ADD_DDP;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -895,6 +896,7 @@ private:
     wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
     wxMenu* MenuItem29;
+    wxButton* ButtonAddDDP;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenu* MenuItemPerspectives;

@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Bunch of updates to DDP output to allow future enhanced output to FPP
+   -- bug (dkulp)  Fix some render issues and crashes that occur after making changes to setup tab
    -- enh (scott)  Add Effect Select Panel.
    -- enh (keith)  xSchedule will now stop at the end of the FSEQ if it is shorter than the audio file
    -- bug (keith)  Fix vendor model download only allows model to be used once
