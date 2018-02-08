@@ -141,7 +141,7 @@ void DDPDialog::OnButtonCancelClick(wxCommandEvent& event)
 
 void DDPDialog::ValidateWindow()
 {
-    wxString ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true);
+    std::string ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true).ToStdString();
     if (ips == "")
     {
         ButtonOk->Disable();
