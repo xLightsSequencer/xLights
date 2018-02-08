@@ -189,7 +189,9 @@ public:
     }
 
     std::string GetStrandName() const {
-        return wxString::Format("Strand %d", mStrand + 1).ToStdString();
+        if(GetName() == "")
+            return wxString::Format("Strand %d", mStrand + 1).ToStdString();
+        return GetName();
     }
 
     virtual std::string GetFullName() const override;
