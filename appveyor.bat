@@ -86,7 +86,8 @@ dir ..\..\include\wx\msw
 
 rem copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
 
-mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
+rem mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
+mingw32-make setup_h -f makefile.gcc --debug SHELL=%COMSPEC%
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
