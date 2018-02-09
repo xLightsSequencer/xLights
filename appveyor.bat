@@ -77,7 +77,7 @@ set COMSPEC=c:\cygwin64\bin\bash.exe
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
-set
+rem set
 
 cd ..\wxWidgets\build\msw
 
@@ -94,7 +94,7 @@ copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
 sed -i "s/\.\.\\\.\./c:\\\\projects\\\\wxWidgets/g" makefile.gcc
-type makefile.gcc
+rem type makefile.gcc
 
 rem mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
