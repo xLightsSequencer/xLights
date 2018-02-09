@@ -78,20 +78,17 @@ rem set
 
 cd ..\wxWidgets\build\msw
 
+rem make the header files
 mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
-
-dir \projects\wxWidgets\include\wx\msw
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
-rem sed -i 's/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g' makefile.gcc
-sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
-
+rem solve for linker command line length issues
+sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\tsed -i 's\/\\\\\\\\\/\\\\\/\/g' objs.txt\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
 if %ERRORLEVEL% NEQ 0 exit 1
 
-remtype makefile.gcc
-
+rem make wxWidgets
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 
 if %ERRORLEVEL% NEQ 0 exit 1
