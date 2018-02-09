@@ -84,19 +84,21 @@ cd ..\wxWidgets\build\msw
 dir ..\..
 dir ..\..\include\wx\msw
 
-copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
+rem copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
+
+mingw32-make -f makefile.gcc setup_h --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
-mkdir ..\..\lib\gcc_dll
-mkdir ..\..\lib\gcc_dll\mswu
-mkdir ..\..\lib\gcc_dll\mswu\wx
-mkdir ..\..\lib\gcc_dll\mswu\wx\msw
-copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
+rem mkdir ..\..\lib\gcc_dll
+rem mkdir ..\..\lib\gcc_dll\mswu
+rem mkdir ..\..\lib\gcc_dll\mswu\wx
+rem mkdir ..\..\lib\gcc_dll\mswu\wx\msw
+rem copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
 rem build wxWidgets
-sed -i "s/\.\.\\\.\.\\\\/\.\.\/\.\.\//g" makefile.gcc
+rem sed -i "s/\.\.\\\.\.\\\\/\.\.\/\.\.\//g" makefile.gcc
 rem type makefile.gcc
 
 rem mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
