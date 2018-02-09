@@ -92,9 +92,10 @@ mkdir ..\..\lib\gcc_dll\mswu\wx
 mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
-dir c:\defs.h /s
-
 rem build wxWidgets
+sed -i "s/\.\.\\\.\./c:\\projects\\wxWidgets/g" makefile.gcc
+type makefile.gcc
+
 rem mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
 
