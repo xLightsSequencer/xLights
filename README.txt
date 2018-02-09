@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Don't draw DMX head beams as white when color is black unless in Layout.
+   -- bug (gil)    Fix DMX Flood not drawing in correct location.  Fixes #1092.
    -- enh (dkulp)  Bunch of updates to DDP output to allow future enhanced output to FPP
    -- bug (dkulp)  Fix some render issues and crashes that occur after making changes to setup tab
    -- enh (scott)  Add Effect Select Panel.
