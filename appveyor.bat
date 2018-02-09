@@ -86,7 +86,7 @@ sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 
 if %ERRORLEVEL% NEQ 0 exit 1
 
 rem sed -i 's/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g' makefile.gcc
-sed -i "s/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g" makefile.gcc
+sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
 
 if %ERRORLEVEL% NEQ 0 exit 1
 
