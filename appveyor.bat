@@ -81,6 +81,9 @@ rem set
 
 cd ..\wxWidgets\build\msw
 
+dir ..\..
+dir ..\..\include\wx\msw
+
 copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
