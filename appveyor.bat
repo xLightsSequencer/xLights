@@ -85,13 +85,9 @@ dir \projects\wxWidgets\include\wx\msw
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
-rem mkdir ..\..\lib\gcc_dll
-rem mkdir ..\..\lib\gcc_dll\mswu
-rem mkdir ..\..\lib\gcc_dll\mswu\wx
-rem mkdir ..\..\lib\gcc_dll\mswu\wx\msw
-rem copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
+sed -i 's/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g' makefile.gcc
 
-dir ..\..\lib\gcc_dll\mswu\wx
+type makefile.gcc
 
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 
