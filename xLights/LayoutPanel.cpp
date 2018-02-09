@@ -1060,7 +1060,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
 void LayoutPanel::BulkEditDimmingCurves()
 {
-    // get the first dimming curve    
+    // get the first dimming curve
     ModelDimmingCurveDialog dlg(this);
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -3695,14 +3695,14 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
-    TreeListViewModels->Freeze();
-
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
 
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;
+
+    TreeListViewModels->Freeze();
 
     std::vector<Model *> modelsToAdd(models);
 
