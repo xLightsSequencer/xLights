@@ -86,11 +86,11 @@ sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 
 if %ERRORLEVEL% NEQ 0 exit 1
 
 rem sed -i 's/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g' makefile.gcc
-sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\r\n        $(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
+sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
 
 if %ERRORLEVEL% NEQ 0 exit 1
 
-type makefile.gcc
+remtype makefile.gcc
 
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 
