@@ -85,7 +85,7 @@ sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 
 if %ERRORLEVEL% NEQ 0 exit 1
 
 rem solve for linker command line length issues
-sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\tsed -i 's\/\\\\\\\\\\\\\\\\\/\\\\\\\\\/\/g' objs.txt\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
+sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\tsed -i 's\/\\\\\\\\\\\\\\\\\/\\\\\\\\\/\/g' objs.txt\n\tcat objs.txt\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
 if %ERRORLEVEL% NEQ 0 exit 1
 
 rem make wxWidgets
