@@ -69,11 +69,8 @@ exit 0
 rem =========================================== 32 BIT GCC ===========================================
 :x86ReleaseGCC
 
-rem dir c:\bash.exe /s
-rem dir c:\sh.exe /s
-
-rem set COMSPEC=cmd.exe
-set COMSPEC=c:\cygwin64\bin\bash.exe
+rem This has to be cmd.exe because the makefile uses \ in paths and bash and sh dont understand them
+set COMSPEC=cmd.exe
 set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
@@ -81,12 +78,9 @@ rem set
 
 cd ..\wxWidgets\build\msw
 
-dir ..\..
-dir ..\..\include\wx\msw
-
-rem copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
-
 mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
+
+dir \projects\wxWidgets\include\wx\msw
 
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
@@ -97,9 +91,7 @@ rem mkdir ..\..\lib\gcc_dll\mswu\wx
 rem mkdir ..\..\lib\gcc_dll\mswu\wx\msw
 rem copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
 
-rem build wxWidgets
-rem sed -i "s/\.\.\\\.\.\\\\/\.\.\/\.\.\//g" makefile.gcc
-rem type makefile.gcc
+dir ..\..\lib\gcc_dll\mswu\wx
 
 rem mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
