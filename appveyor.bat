@@ -85,7 +85,10 @@ dir \projects\wxWidgets\include\wx\msw
 sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
-sed -i "'s/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g'" makefile.gcc
+rem sed -i 's/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g' makefile.gcc
+sed -i "s/\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o \$@ \$\(MONODLL_OBJECTS\)/\$\(file >objs\.txt,\$^\)\n\$\(CXX\) \$\(LINK_DLL_FLAGS\) -fPIC -o $@ @objs.txt/g" makefile.gcc
+
+if %ERRORLEVEL% NEQ 0 exit 1
 
 type makefile.gcc
 
