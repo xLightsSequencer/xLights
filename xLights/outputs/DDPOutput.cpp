@@ -234,8 +234,8 @@ void DDPOutput::EndFrame(int suppressFrames)
             tosend -= thissend;
             index += thissend;
             chan += thissend;
-            FrameOutput();
         }
+        FrameOutput();
     }
     else
     {

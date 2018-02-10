@@ -1900,6 +1900,9 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
 
+    //definitely not outputting data anymore
+    config->Write("OutputActive", false);
+
     config->Flush();
 
     wxFileName kbf;
