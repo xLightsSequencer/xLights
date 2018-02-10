@@ -5237,7 +5237,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, wxString::Format("%sStrand %d", se->GetFullName(), j+1).ToStdString(), e->GetName());
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName());
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5383,6 +5383,50 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
         for (int k = 0; k < el->GetEffectCount(); k++)
         {
             Effect* ef = el->GetEffect(k);
+
+            // Check there are nodes to actually render on
+            Model* m = AllModels[modelName];
+            if (m != nullptr)
+            {
+                if (e->GetType() == ELEMENT_TYPE_MODEL)
+                {
+                    if (m->GetNodeCount() == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                            name, j + 1);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+                else if (e->GetType() == ELEMENT_TYPE_STRAND)
+                {
+                    StrandElement* se = (StrandElement*)e;
+                    if (m->GetStrandLength(se->GetStrand()) == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                            name, j + 1);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+                else if (e->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    Model* se = AllModels[name];
+                    if (se != nullptr)
+                    {
+                        if (se->GetNodeCount() == 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                name, j + 1);
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
+                }
+            }
 
             CheckEffect(ef, f, errcount, warncount, name, modelName);
         }
