@@ -106,6 +106,7 @@ void ListenerMIDI::Poll()
             {
             case 0xF0: // Begin System Exclusive	0xF0
             case 0xF1: // MIDI Time Code	0xF1
+                break;
             case 0xF2: // Song Position Pointer	0xF2
             case 0xF3: // Song Select	0xF3
             case 0xF4: // Tune Request	0xF6
