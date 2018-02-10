@@ -487,6 +487,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("parm1", "16");
         node->DeleteAttribute("parm3");
         node->AddAttribute("parm3", "16");
+        node->AddAttribute("Rotation", "CW");
         model = new WindowFrameModel(node, *this, false);
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, false);

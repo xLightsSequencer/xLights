@@ -24,6 +24,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  When configuring screen map in xSchedule show the area being mapped
    -- enh (keith)  Increase Value Curve/Colour curve resolution from 40 to 100
    -- enh (keith)  Improve the speed of number aware sort
+   -- enh (keith)  Rework the window frame model to allow it to go CW and CCW. This may break some existing models
+   -- enh (keith)  Check sequence to detect effects dropped on strands, submodels and models with no nodes
    -- bug (scott)  Fixed FPP Connect USB Drive Upload
 2018.5 Feb 05, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other

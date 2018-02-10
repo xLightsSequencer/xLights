@@ -1251,7 +1251,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     subModels.clear();
 
     wxString tempstr,channelstr;
-    long StartChannel;
 
     zeroBased = zb;
     ModelXml=ModelNode;
@@ -1309,9 +1308,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     CouldComputeStartChannel = false;
     std::string  dependsonmodel;
-    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
+    long StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr=ModelNode->GetAttribute("Dir");
-    IsLtoR=tempstr != "R";
+    IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
         tempstr=ModelNode->GetAttribute("StartSide");
         isBotToTop = (tempstr == "B");

@@ -22,6 +22,7 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
     private:
         void InitFrame();
+        int rotation;
 };
 
 #endif // WINDOWFRAMEMODEL_H
