@@ -34,23 +34,6 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-void VirtualMatrixDialog::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality)
 {
     _outputManager = outputManager;
@@ -132,8 +115,8 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
 	//*)
 
     TextCtrl_Name->SetValue(_name);
-    SetChoiceFromString(Choice_Rotation, _rotation);
-    SetChoiceFromString(Choice_Quality, _quality);
+    Choice_Rotation->SetStringSelection(_rotation);
+    Choice_Quality->SetStringSelection(_quality);
     TextCtrl_StartChannel->SetValue(_startChannel);
     SpinCtrl_Width->SetValue(_width);
     SpinCtrl_Height->SetValue(_height);

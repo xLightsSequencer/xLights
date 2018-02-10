@@ -183,6 +183,8 @@
     <ClCompile Include="EventMIDIPanel.cpp" />
     <ClCompile Include="wxMIDI\src\wxMidi.cpp" />
     <ClCompile Include="wxMIDI\src\wxMidiDatabase.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -346,6 +348,8 @@
     <ClInclude Include="events\EventMIDI.h" />
     <ClInclude Include="events\ListenerMIDI.h" />
     <ClInclude Include="EventMIDIPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

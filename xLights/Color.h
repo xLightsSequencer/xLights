@@ -183,11 +183,11 @@ public:
     xlColor AlphaBlend(const xlColor &bc) const {
         if (alpha == 0) return bc;
         if (alpha == 255) return *this;
-        double a = alpha;
+        float a = alpha;
         a /= 255; // 0 (transparent) - 1.0 (opague)
-        double dr = red * a + bc.red * (1.0 - a);
-        double dg = green * a + bc.green * (1.0 - a);
-        double db = blue * a + bc.blue * (1.0 - a);
+        float dr = red * a + bc.red * (1.0f - a);
+        float dg = green * a + bc.green * (1.0f - a);
+        float db = blue * a + bc.blue * (1.0f - a);
         return xlColor((uint8_t)dr, (uint8_t)dg, (uint8_t)db);
     }
     
@@ -198,11 +198,11 @@ public:
             *this = fc;
             return;
         }
-        double a = fc.alpha;
+        float a = fc.alpha;
         a /= 255; // 0 (transparent) - 1.0 (opague)
-        double dr = fc.red * a + red * (1.0 - a);
-        double dg = fc.green * a + green * (1.0 - a);
-        double db = fc.blue * a + blue * (1.0 - a);
+        float dr = fc.red * a + red * (1.0f - a);
+        float dg = fc.green * a + green * (1.0f - a);
+        float db = fc.blue * a + blue * (1.0f - a);
         red = (uint8_t)dr;
         green = (uint8_t)dg;
         blue = (uint8_t)db;

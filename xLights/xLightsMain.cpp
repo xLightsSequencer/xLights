@@ -165,6 +165,7 @@ const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_LOR = wxNewId();
+const long xLightsFrame::ID_BUTTON_ADD_DDP = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
@@ -225,6 +226,7 @@ const long xLightsFrame::ID_MENUITEM16 = wxNewId();
 const long xLightsFrame::ID_MENUITEM9 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
+const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -671,6 +673,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     BoxSizer1->Add(ButtonArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonAddLOR = new wxButton(PanelSetup, ID_BUTTON_ADD_LOR, _("Add LOR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_LOR"));
     BoxSizer1->Add(ButtonAddLOR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonAddDDP = new wxButton(PanelSetup, ID_BUTTON_ADD_DDP, _("Add DDP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_DDP"));
+    BoxSizer1->Add(ButtonAddDDP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonNetworkChange = new wxButton(PanelSetup, ID_BUTTON_NETWORK_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_CHANGE"));
     BoxSizer1->Add(ButtonNetworkChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDelete = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE"));
@@ -814,7 +818,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItemBatchRender);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_xSchedule);
-    MenuItem_PurgeVendorCache = new wxMenuItem(Menu1, iD_MNU_VENDORCACHEPURGE, _("Purge Vendor Cache"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_PurgeVendorCache = new wxMenuItem(Menu1, iD_MNU_VENDORCACHEPURGE, _("Purge Download Cache"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PurgeVendorCache);
     MenuItem_CrashXLights = new wxMenuItem(Menu1, ID_MNU_CRASH, _("Crash xLights"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_CrashXLights);
@@ -864,6 +868,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItem25);
     MenuItemEffectAssistWindow = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemEffectAssistWindow);
+    MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItemSelectEffect);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1114,6 +1120,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddNullClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonArtNETClick);
     Connect(ID_BUTTON_ADD_LOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddLORClick);
+    Connect(ID_BUTTON_ADD_DDP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDDPClick);
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
@@ -1176,6 +1183,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM9,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
+    Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -4471,7 +4479,7 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         // else this is valid
                     }
-                    else if (ip1 == 172 && ip2 == 16)
+                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
                     {
                         // this is valid
                     }
@@ -5229,7 +5237,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, wxString::Format("%sStrand %d", se->GetFullName(), j+1).ToStdString(), e->GetName());
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName());
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5375,6 +5383,50 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
         for (int k = 0; k < el->GetEffectCount(); k++)
         {
             Effect* ef = el->GetEffect(k);
+
+            // Check there are nodes to actually render on
+            Model* m = AllModels[modelName];
+            if (m != nullptr)
+            {
+                if (e->GetType() == ELEMENT_TYPE_MODEL)
+                {
+                    if (m->GetNodeCount() == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                            name, j + 1);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+                else if (e->GetType() == ELEMENT_TYPE_STRAND)
+                {
+                    StrandElement* se = (StrandElement*)e;
+                    if (m->GetStrandLength(se->GetStrand()) == 0)
+                    {
+                        wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                            ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                            name, j + 1);
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+                }
+                else if (e->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    Model* se = AllModels[name];
+                    if (se != nullptr)
+                    {
+                        if (se->GetNodeCount() == 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: Effect %s (%s-%s) on Model '%s' layer %d Has no nodes and wont do anything.",
+                                ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), FORMATTIME(ef->GetEndTimeMS()),
+                                name, j + 1);
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
+                }
+            }
 
             CheckEffect(ef, f, errcount, warncount, name, modelName);
         }
@@ -7399,3 +7451,18 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
     playVolume = 10;
     SDL::SetGlobalVolume(playVolume);
 }
+
+void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
+    if (visible)
+    {
+        m_mgr->GetPane("SelectEffect").Hide();
+    }
+    else
+    {
+        m_mgr->GetPane("SelectEffect").Show();
+    }
+    m_mgr->Update();
+}
+

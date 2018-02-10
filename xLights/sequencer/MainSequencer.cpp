@@ -697,7 +697,10 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_A:
             if (event.CmdDown() || event.ControlDown()) {
                 if (mSequenceElements != nullptr) {
-                    mSequenceElements->SelectAllEffects();
+                    if (event.ShiftDown())
+                        mSequenceElements->SelectAllEffects();
+                    else
+                        mSequenceElements->SelectAllEffectsNoTiming();
                     PanelEffectGrid->Refresh();
                 }
                 event.StopPropagation();

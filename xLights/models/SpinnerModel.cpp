@@ -186,9 +186,9 @@ void SpinnerModel::InitModel() {
             int segmentnum = x % armsperstring;
             for (size_t y = 0; y < nodesperarm; y++)
             {
-                size_t idx = stringnum * pixelsperstring + segmentnum * nodesperarm + y;
+                size_t idx = x * nodesperarm + y;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * 3 + y * 3;
-                Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? x : armcount - x - 1;
+                Nodes[idx]->Coords[0].bufX = IsLtoR ? x : armcount - x - 1;
                 if (!zigzag)
                 {
                     Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
@@ -370,4 +370,8 @@ int SpinnerModel::CalcCannelsPerString() {
         return GetNodeChannelCount(StringType);
     }
     return GetNodeChannelCount(StringType) * parm2 * parm3;
+}
+
+int SpinnerModel::NodesPerString() {
+    return SingleNode ? 1 : parm2 * parm3;
 }

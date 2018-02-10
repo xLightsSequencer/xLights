@@ -35,6 +35,7 @@ class DDPDialog: public wxDialog
 		wxTextCtrl* TextCtrlDescription;
 		wxButton* ButtonCancel;
 		wxStaticText* StaticText7;
+		wxCheckBox* CheckBoxKeepChannels;
 		wxButton* ButtonOk;
 		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrlChannels;
@@ -50,6 +51,7 @@ class DDPDialog: public wxDialog
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT4;
 		static const long ID_SPINCTRL_ChannelsPerPacket;
+		static const long ID_CHECKBOX_KEEPCHANNELS;
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL2;
 		static const long ID_CHECKBOX1;

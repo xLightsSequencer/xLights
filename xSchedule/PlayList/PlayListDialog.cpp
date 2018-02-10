@@ -17,6 +17,7 @@
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
+#include "PlayListItemScreenMap.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
@@ -62,6 +63,7 @@ const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEXT = wxNewId();
+const long PlayListDialog::ID_MNU_ADDSCREENMAP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFILE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEST = wxNewId();
@@ -559,6 +561,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
     mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
     mnu.Append(ID_MNU_ADDOSC, "Add OSC");
+    mnu.Append(ID_MNU_ADDSCREENMAP, "Add Screen Map");
     mnu.Append(ID_MNU_ADDTEXT, "Add Text");
     mnu.Append(ID_MNU_ADDFILE, "Add File");
 
@@ -657,6 +660,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDTEXT)
     {
         PlayListItemText* pli = new PlayListItemText();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDSCREENMAP)
+    {
+        PlayListItemScreenMap* pli = new PlayListItemScreenMap();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDFILE)

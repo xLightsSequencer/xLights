@@ -391,76 +391,34 @@ void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
     }
 }
 
-std::string AfterFirstInt(const std::string &s)
+// Extract all chars before the first number in the string ... strip it from the input string
+std::string BeforeInt(std::string& s)
 {
-    std::string res = "";
     int i = 0;
-    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    while (i < s.size() && (s[i] > '9' || s[i] < '0'))
+    {
+        i++;
+    }
+    if (i == 0) return "";
+
+    std::string res = s.substr(0, i);
+    s = s.substr(i);
+    return res;
+}
+
+// Extract any leading number ... strip it from the input string
+int ExtractInt(std::string& s)
+{
+    int i = 0;
+    while (i < s.size() && s[i] <= '9' && s[i] >= '0')
     {
         i++;
     }
 
-    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
-    {
-        i++;
-    }
+    if (i == 0) return -1;
 
-    while (i < s.size())
-    {
-        res += s[i++];
-    }
-
-    return res;
-}
-
-std::string GetFirstInt(const std::string &s)
-{
-    std::string res = "";
-    int i = 0;
-    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
-    {
-        i++;
-    }
-
-    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
-    {
-        res += s[i++];
-    }
-
-    return res;
-}
-
-std::string BeforeFirstInt(const std::string &s)
-{
-    std::string res = "";
-    int i = 0;
-    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
-    {
-        res += s[i++];
-    }
-
-    return res;
-}
-
-wxString StripLeadingChars(const wxString &s, const wxString &chars)
-{
-    wxString res = s;
-
-    bool found = true;
-    while(found && s.size() != 0)
-    {
-        found = false;
-        for (int i = 0; i < chars.size(); i++)
-        {
-            if (res[0] == chars[i])
-            {
-                res = res.substr(1);
-                found = true;
-                break;
-            }
-        }
-    }
-
+    int res = wxAtoi(s.substr(0, i));
+    s = s.substr(i);
     return res;
 }
 
@@ -468,21 +426,19 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
 {
     std::string aa = a;
     std::string bb = b;
-    while(true)
+
+    while (true)
     {
-        std::string abi = BeforeFirstInt(aa);
-        std::string bbi = BeforeFirstInt(bb);
+        std::string abi = BeforeInt(aa);
+        std::string bbi = BeforeInt(bb);
 
         if (abi == bbi)
         {
-            int ia = wxAtoi(GetFirstInt(aa));
-            int ib = wxAtoi(GetFirstInt(bb));
+            int ia = ExtractInt(aa);
+            int ib = ExtractInt(bb);
 
             if (ia == ib)
             {
-                aa = AfterFirstInt(aa);
-                bb = AfterFirstInt(bb);
-
                 if (aa == bb)
                 {
                     return 0;

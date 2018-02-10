@@ -1836,7 +1836,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
     // want to see if i can catch something that causes this to crash
     if (firstNode + Nodes.size() <= 0 || firstNode + Nodes.size() > 50000)
     {
-        logger_base.warn("XXX Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld.", (long)firstNode + Nodes.size());
+        // This seems to happen when an effect is dropped on a strand with zero pixels
+        // Like a polyline segment with no nodes
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld. %s::'%s'. This commonly happens on a polyline segement with zero pixels but with effects dropped on it.", (long)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
     }
 
     newNodes.reserve(firstNode + Nodes.size());
@@ -2001,10 +2003,21 @@ void Model::InitRenderBufferNodes(const std::string &type,
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
     }
-    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
 
-    //wxASSERT(bufferWi != 0);
-    //wxASSERT(bufferHt != 0);
+    // Zero buffer sizes are bad
+    // This can happen when a strand is zero length ... maybe also a custom model with no nodes
+    if (BufferHt == 0)
+    {
+        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overidden to be 1.");
+        bufferHt = 1;
+    }
+    if (BufferWi == 0)
+    {
+        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overidden to be 1.");
+        bufferWi = 1;
+    }
+
+    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
 }
 
 std::string Model::GetNextName() {

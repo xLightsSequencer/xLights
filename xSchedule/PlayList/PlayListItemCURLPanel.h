@@ -14,7 +14,6 @@ class PlayListItemCURL;
 class PlayListItemCURLPanel: public wxPanel
 {
     PlayListItemCURL* _curl;
-    void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 

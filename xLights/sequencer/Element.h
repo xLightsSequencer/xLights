@@ -187,6 +187,12 @@ public:
     int GetNodeLayerCount() const {
         return mNodeLayers.size();
     }
+
+    std::string GetStrandName() const {
+        return wxString::Format("Strand %d", mStrand + 1).ToStdString();
+    }
+
+    virtual std::string GetFullName() const override;
     
     virtual void CleanupAfterRender() override;
 

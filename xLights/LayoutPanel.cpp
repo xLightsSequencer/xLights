@@ -207,7 +207,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false)
+    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1060,7 +1060,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
 void LayoutPanel::BulkEditDimmingCurves()
 {
-    // get the first dimming curve    
+    // get the first dimming curve
     ModelDimmingCurveDialog dlg(this);
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -1606,9 +1606,9 @@ int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned
 
 int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if(modelPreview->GetModels()[i]->HitTest(modelPreview,x,y))
+        if (modelPreview->GetModels()[i]->HitTest(modelPreview, x, y))
         {
             found.push_back(i);
         }
@@ -1620,7 +1620,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
 {
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
-    if (modelCount==0)
+    if (modelCount == 0)
     {
         TreeListViewModels->UnselectAll();
         return false;
@@ -1633,7 +1633,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     }
     else if (modelCount>1)
     {
-        for (int i=0; i<modelCount; i++)
+        for (int i = 0; i < modelCount; i++)
         {
             if (mHitTestNextSelectModelIndex == i)
             {
@@ -1795,7 +1795,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if(SelectSingleModel(event.GetX(), y))
+        if (SelectSingleModel(event.GetX(), y))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
@@ -1817,7 +1817,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
     int y = event.GetY();
 
-    if(m_creating_bound_rect)
+    if (m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
         m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
@@ -3695,14 +3695,14 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
-    TreeListViewModels->Freeze();
-
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
 
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;
+
+    TreeListViewModels->Freeze();
 
     std::vector<Model *> modelsToAdd(models);
 

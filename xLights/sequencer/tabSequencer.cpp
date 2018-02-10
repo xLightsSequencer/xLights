@@ -115,6 +115,11 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
                    Left().Layer(1));
 
+    logger_base.debug("CreateSequencer: Adding Select Effects Panel.");
+    _selectPanel = new SelectPanel(&mSequenceElements, mainSequencer, PanelSequencer);
+    m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
+        Left().Layer(1));
+
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0));
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
@@ -140,6 +145,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
     m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
     m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("SelectEffect").Caption("SelectEffect").Dock().Left().Layer(1).Hide();
 
     m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Show();
     m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
@@ -618,6 +624,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
     m_mgr->Update();
+    _selectPanel->ReloadModels();
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -2070,6 +2077,7 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 void xLightsFrame::DoForceSequencerRefresh()
 {
     mSequenceElements.PopulateRowInformation();
+    _selectPanel->ReloadModels();
     ResizeMainSequencer();
 }
 

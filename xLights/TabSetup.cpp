@@ -963,14 +963,13 @@ void xLightsFrame::OnButtonAddE131Click(wxCommandEvent& event)
     SetupE131(nullptr);
 }
 
+void xLightsFrame::OnButtonAddDDPClick(wxCommandEvent& event)
+{
+    SetupDDP(nullptr);
+}
 void xLightsFrame::OnButtonArtNETClick(wxCommandEvent& event)
 {
     SetupArtNet(nullptr);
-}
-
-void xLightsFrame::OnButton_DDPClick(wxCommandEvent& event)
-{
-    SetupDDP(nullptr);
 }
 
 void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)

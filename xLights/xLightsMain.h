@@ -82,6 +82,7 @@
 #include <log4cpp/Category.hh>
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "SelectPanel.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -89,6 +90,7 @@ class ConvertLogDialog;
 class wxDebugReport;
 class RenderTreeData;
 class HousePreviewPanel;
+class SelectPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -484,7 +486,6 @@ public:
     void OnMenuItem_xScheduleSelected(wxCommandEvent& event);
     void OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event);
     void OnMenuItem_VideoTutorialsSelected(wxCommandEvent& event);
-    void OnButton_DDPClick(wxCommandEvent& event);
     void OnMenuItem_ExcludePresetsFromPackagedSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_ExcludeAudioPackagedSequenceSelected(wxCommandEvent& event);
     void OnMenuItemColorManagerSelected(wxCommandEvent& event);
@@ -531,6 +532,8 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
+    void OnButtonAddDDPClick(wxCommandEvent& event);
     //*)
 private:
 
@@ -607,6 +610,7 @@ private:
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON_ADD_LOR;
+    static const long ID_BUTTON_ADD_DDP;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
@@ -667,6 +671,7 @@ private:
     static const long ID_MENUITEM9;
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
+    static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -818,6 +823,7 @@ private:
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxPanel* AUIStatusBar;
+    wxMenuItem* MenuItemSelectEffect;
     xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem37;
     wxMenuItem* MenuItem_BackupOnLaunch;
@@ -890,6 +896,7 @@ private:
     wxMenuItem* MenuItem_e131sync;
     wxButton* ButtonSaveSetup;
     wxMenu* MenuItem29;
+    wxButton* ButtonAddDDP;
     wxMenuItem* MenuItem_ShowACRamps;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenu* MenuItemPerspectives;
@@ -1045,7 +1052,6 @@ private:
     wxArrayInt ChannelColors;
     long seekPoint;
 
-    int mHitTestNextSelectModelIndex;
     wxString mBackgroundImage;
     int mBackgroundBrightness;
     bool mScaleBackgroundImage = false;
@@ -1307,6 +1313,7 @@ private:
     ViewsModelsPanel *displayElementsPanel;
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
+    SelectPanel *_selectPanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects;

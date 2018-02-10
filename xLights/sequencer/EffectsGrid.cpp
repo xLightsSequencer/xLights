@@ -4874,8 +4874,16 @@ void EffectsGrid::EstablishSelectionRectangle()
 {
     mSequenceElements->UnSelectAllEffects();
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
-    int row1 =  GetRow(mDragStartY) + first_row;
-    int row2 =  GetRow(mDragEndY) + first_row;
+    int row1 = GetRow(mDragStartY);
+    if (row1 >= mSequenceElements->GetNumberOfTimingRows())
+    {
+        row1 += first_row;
+    }
+    int row2 = GetRow(mDragEndY);
+    if (row2 >= mSequenceElements->GetNumberOfTimingRows())
+    {
+        row2 += first_row;
+    }
     if( row1 > row2 ) {
         std::swap(row1, row2);
     }
@@ -4928,7 +4936,16 @@ void EffectsGrid::EstablishSelectionRectangle()
 void EffectsGrid::UpdateSelectionRectangle()
 {
     mSequenceElements->UnSelectAllEffects();
-    mRangeEndRow = GetRow(mDragEndY) + mSequenceElements->GetFirstVisibleModelRow();
+
+    if (GetRow(mDragEndY) < mSequenceElements->GetNumberOfTimingRows())
+    {
+        mRangeEndRow = GetRow(mDragEndY);
+    }
+    else
+    {
+        mRangeEndRow = GetRow(mDragEndY) + mSequenceElements->GetFirstVisibleModelRow();
+    }
+
     if( mRangeEndRow >= mSequenceElements->GetRowInformationSize() )
     {
        mRangeEndRow = mSequenceElements->GetRowInformationSize() - 1;

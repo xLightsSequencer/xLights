@@ -17,6 +17,7 @@ const long DDPDialog::ID_STATICTEXT7 = wxNewId();
 const long DDPDialog::ID_SPINCTRL4 = wxNewId();
 const long DDPDialog::ID_STATICTEXT4 = wxNewId();
 const long DDPDialog::ID_SPINCTRL_ChannelsPerPacket = wxNewId();
+const long DDPDialog::ID_CHECKBOX_KEEPCHANNELS = wxNewId();
 const long DDPDialog::ID_STATICTEXT3 = wxNewId();
 const long DDPDialog::ID_TEXTCTRL2 = wxNewId();
 const long DDPDialog::ID_CHECKBOX1 = wxNewId();
@@ -57,21 +58,25 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
-	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Num Channels"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
 	FlexGridSizer4->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrlChannels = new wxSpinCtrl(this, ID_SPINCTRL4, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1000000, 512, _T("ID_SPINCTRL4"));
 	SpinCtrlChannels->SetValue(_T("512"));
 	FlexGridSizer4->Add(SpinCtrlChannels, 1, wxALL|wxEXPAND, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Channels per packet"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer4->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_ChannelsPerPacket = new wxSpinCtrl(this, ID_SPINCTRL_ChannelsPerPacket, _T("512"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 512, _T("ID_SPINCTRL_ChannelsPerPacket"));
-	SpinCtrl_ChannelsPerPacket->SetValue(_T("512"));
+	SpinCtrl_ChannelsPerPacket = new wxSpinCtrl(this, ID_SPINCTRL_ChannelsPerPacket, _T("1440"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 1440, _T("ID_SPINCTRL_ChannelsPerPacket"));
+	SpinCtrl_ChannelsPerPacket->SetValue(_T("1440"));
 	FlexGridSizer4->Add(SpinCtrl_ChannelsPerPacket, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBoxKeepChannels = new wxCheckBox(this, ID_CHECKBOX_KEEPCHANNELS, _("Keep Channel Numbers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_KEEPCHANNELS"));
+	CheckBoxKeepChannels->SetValue(true);
+	FlexGridSizer4->Add(CheckBoxKeepChannels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Description"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrlDescription = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer4->Add(TextCtrlDescription, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox1 = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress duplicate frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox1->SetValue(false);
 	FlexGridSizer4->Add(CheckBox1, 1, wxALL|wxEXPAND, 5);
@@ -95,6 +100,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
 
     SpinCtrlChannels->SetValue(DDP->GetChannels());
     SpinCtrl_ChannelsPerPacket->SetValue(DDP->GetChannelsPerPacket());
+    CheckBoxKeepChannels->SetValue(DDP->IsKeepChannelNumbers());
     TextCtrlDescription->SetValue(DDP->GetDescription());
     TextCtrlIPAddress->SetValue(DDP->GetIP());
     CheckBox1->SetValue(DDP->IsSuppressDuplicateFrames());
@@ -123,6 +129,7 @@ void DDPDialog::OnButtonOkClick(wxCommandEvent& event)
     _DDP->SetChannelsPerPacket(SpinCtrl_ChannelsPerPacket->GetValue());
     _DDP->SetDescription(TextCtrlDescription->GetValue().ToStdString());
     _DDP->SetSuppressDuplicateFrames(CheckBox1->IsChecked());
+    _DDP->KeepChannelNumber(CheckBoxKeepChannels->IsChecked());
 
     EndDialog(wxID_OK);
 }
@@ -134,16 +141,14 @@ void DDPDialog::OnButtonCancelClick(wxCommandEvent& event)
 
 void DDPDialog::ValidateWindow()
 {
-    wxString ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true);
+    std::string ips = TextCtrlIPAddress->GetValue().Trim(false).Trim(true).ToStdString();
     if (ips == "")
     {
         ButtonOk->Disable();
     }
     else
     {
-        wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-
-        if (regxIPAddr.Matches(ips))
+        if (IPOutput::IsIPValidOrHostname(ips, true))
         {
             ButtonOk->Enable();
         }

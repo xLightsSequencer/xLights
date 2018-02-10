@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix model list in layout freezing.  Fixes #1090.
+   -- enh (gil)    Don't draw DMX head beams as white when color is black unless in Layout.
+   -- bug (gil)    Fix DMX Flood not drawing in correct location.  Fixes #1092.
+   -- enh (dkulp)  Bunch of updates to DDP output to allow future enhanced output to FPP
+   -- bug (dkulp)  Fix some render issues and crashes that occur after making changes to setup tab
+   -- enh (scott)  Add Effect Select Panel.
+   -- enh (keith)  xSchedule will now stop at the end of the FSEQ if it is shorter than the audio file
+   -- bug (keith)  Fix vendor model download only allows model to be used once
+   -- bug (keith)  When layout panel first opened models wont select
+   -- bug (keith)  Fix 172.17.*.* - 172.31.*.* ip addresses incorrectly reported as internet routable
+   -- enh (keith)  When configuring screen map in xSchedule show the area being mapped
+   -- enh (keith)  Increase Value Curve/Colour curve resolution from 40 to 100
+   -- enh (keith)  Improve the speed of number aware sort
+   -- bug (scott)  Fixed FPP Connect USB Drive Upload
+2018.5 Feb 05, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
    -- bug (gil)    Protect against crash if user sets DMX flood light channel values higher than total changes.
@@ -21,6 +36,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix brightness slider does not work with pictures effect
    -- enh (keith)  Add some course grained volume controls to Audio menu
    -- enh (keith)  Add waveform colours to the colour manager
+   -- enh (keith)  Add a screen mapper playlist item ... in theory this lets you do real time video on an element ... amongst other things.
 2018.4 Jan 30, 2018
    -- bug (Billy)  Fixed xScheduleWeb to display proper version number
    -- bug (dkulp)  Fix convert to effects not recognizing down ramps that hit the last frame

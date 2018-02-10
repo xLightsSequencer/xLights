@@ -616,7 +616,7 @@ bool FPPConnectDialog::USBUpload()
 #ifdef __WXMSW__
     wxString tgtdir = Choice_Drives->GetStringSelection();
 #else
-    wxString tgtdir = DirPickerCtrl_FPPMedia->GetPath();
+    wxString tgtdir = DirPickerCtrl_FPPMedia->GetPath() + wxFileName::GetPathSeparator();
 #endif
 
     if (!wxDir::Exists(tgtdir))
@@ -638,7 +638,7 @@ bool FPPConnectDialog::USBUpload()
     {
         FPP fpp(_outputManager);
         std::string file = fpp.SaveFPPUniverses("", std::list<int>(), false);
-        cancelled = CopyFile(file, std::string(tgtdir + "/universes"), true, progress, 0, 1000 / total);
+        cancelled = CopyFile(file, std::string(tgtdir + "universes"), true, progress, 0, 1000 / total);
         count++;
     }
 
@@ -646,7 +646,7 @@ bool FPPConnectDialog::USBUpload()
     {
         FPP fpp(_outputManager);
         std::string file = fpp.SaveFPPChannelMemoryMaps(&frame->AllModels);
-        cancelled = CopyFile(file, std::string(tgtdir + "/channelmemorymaps"), true, progress, 0, 1000 / total);
+        cancelled = CopyFile(file, std::string(tgtdir +"channelmemorymaps"), true, progress, 0, 1000 / total);
         count++;
     }
 
@@ -679,7 +679,7 @@ bool FPPConnectDialog::USBUpload()
             }
         }
         wxFileName fn(file);
-        wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
+        wxString fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
         int start = count * 1000 / total;
         count++;
@@ -691,14 +691,19 @@ bool FPPConnectDialog::USBUpload()
 
         if (!cancelled && wxFile::Exists(fseq))
         {
-            cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "/sequences/" + fn.GetName() + ".fseq"), false, progress, start, mid);
+            if (!wxDirExists(std::string(tgtdir + "sequences")))
+                wxMkdir(std::string(tgtdir + "sequences"));
+
+            cancelled = CopyFile(std::string(fseq), std::string(tgtdir + "sequences" + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq"), false, progress, start, mid);
         }
 
         if (!cancelled && media != "")
         {
+            if (!wxDirExists(std::string(tgtdir + "music")))
+                wxMkdir(std::string(tgtdir + "music"));
             media = FixFile("", media);
             wxFileName fnmedia(media);
-            cancelled = CopyFile(std::string(media), std::string(tgtdir + "/music/" + fnmedia.GetName() + "." + fnmedia.GetExt()), false, progress, mid, end);
+            cancelled = CopyFile(std::string(media), std::string(tgtdir + "music" + wxFileName::GetPathSeparator() + fnmedia.GetName() + "." + fnmedia.GetExt()), false, progress, mid, end);
         }
     }
 

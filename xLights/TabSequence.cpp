@@ -696,6 +696,7 @@ void xLightsFrame::UpdateModelsList()
     PreviewModels.clear();
     layoutPanel->GetMainPreview()->GetModels().clear();
 
+    modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
