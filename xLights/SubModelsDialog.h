@@ -28,6 +28,8 @@ class Model;
 class wxBookCtrlEvent;
 class ModelPreview;
 class SubBufferPanel;
+class xLightsFrame;
+class LayoutPanel;
 
 wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -54,9 +56,10 @@ class SubModelsDialog: public wxDialog
 	class SubModelInfo {
 		public:
 			SubModelInfo() {}
-			SubModelInfo(const wxString &n) : name(n) {}
+			SubModelInfo(const wxString &n) : name(n), oldName(n) {}
 
 			wxString name;
+            wxString oldName;
 			bool vertical;
 			bool isRanges;
 			wxString subBuffer;
@@ -66,9 +69,9 @@ class SubModelsDialog: public wxDialog
 	Model *model;
 	ModelPreview *modelPreview;
 	SubBufferPanel *subBufferPanel;
-	std::vector<SubModelInfo*> _subModels;
 
     public:
+        std::vector<SubModelInfo*> _subModels;
 
 		SubModelsDialog(wxWindow* parent);
 		virtual ~SubModelsDialog();
@@ -170,6 +173,9 @@ class SubModelsDialog: public wxDialog
 		void OnListCtrl_SubModelsKeyDown(wxListEvent& event);
 		void OnTextCtrl_NameText_Change(wxCommandEvent& event);
 		//*)
+
+        wxWindow* _parent;
+		xLightsFrame* xlights;
 
         void OnDrop(wxCommandEvent& event);
 

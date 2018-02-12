@@ -11,6 +11,9 @@
 #include "SubBufferPanel.h"
 #include "SubModelGenerateDialog.h"
 #include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+#include "LayoutPanel.h"
 
 //(*InternalHeaders(SubModelsDialog)
 #include <wx/listctrl.h>
@@ -217,6 +220,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
 
+    _parent = parent;
+
     SetSize(1200, 800);
     wxPoint loc;
     wxSize sz;
@@ -273,6 +278,7 @@ void SubModelsDialog::Setup(Model *m)
             wxString name = child->GetAttribute("name");
             SubModelInfo *sm = new SubModelInfo(name);
             sm->name = name;
+            sm->oldName = name;
             sm->isRanges = child->GetAttribute("type", "ranges") == "ranges";
             sm->vertical = child->GetAttribute("layout") == "vertical";
             sm->subBuffer = child->GetAttribute("subBuffer");
@@ -354,8 +360,40 @@ int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
 
 #pragma endregion helpers
 
+// rename seems to be a pain in the ass here....
+// maybe a better way to handle this is to not do the save here but in the model.cpp where this was called from
+// and allow a method to get the submodel name map or something that can be better handled upstream than here.
+
+// i need to be able to access the layoutPanel and update the names. cant do that here right now.
+// option 1 might be to try to send in the layout panel from models? and do that update here.
+// option 2 might be to just all a method to get the data out of this class back to models where it *might*? have acess to layoutPanel?
+// either way i need layoutPanel...
+
+// [X] need to save the old model names in a list/map
+// [ ]
+
+// GOAL 1. need to update the submodel names in the layout groups
+//    should be very similar to the model rename code that i pasted here...
+
+// from LayoutPanel.cpp Line 602
+//        RenameModelInTree(selectedModel, safename);
+//        selectedModel = nullptr;
+//        xlights->RenameModel(oldname, (*a)->name);
+//        if (oldname == lastModelName) {
+//            lastModelName = safename;
+//        }
+//        SelectModel(safename);
+//        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+//        xlights->MarkEffectsFileDirty(true);
+
+// GOAL 2. update the current sequence submodel names.
+//    This might be handled in one of the submodel rename methods that might be available like xlights->RenameModel(old,new)
+//    NEED to keep a list of all the old model names in a variable on create/setup of dialog.
+
 void SubModelsDialog::Save()
 {
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    ModelManager allmodels = xlights->AllModels;
     wxXmlNode * root = model->GetModelXml();
     wxXmlNode * child = root->GetChildren();
     while (child != nullptr) {
@@ -374,6 +412,7 @@ void SubModelsDialog::Save()
         child->AddAttribute("name", (*a)->name);
         child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
         child->AddAttribute("type", (*a)->isRanges ? "ranges" : "subbuffer");
+        xlights->RenameModel((*a)->oldName.ToStdString(), (*a)->name.ToStdString());
         if ((*a)->isRanges) {
             for (int x = 0; x < (*a)->strands.size(); x++) {
                 child->AddAttribute(wxString::Format("line%d", x), (*a)->strands[x]);
@@ -383,6 +422,8 @@ void SubModelsDialog::Save()
         }
         root->AddChild(child);
     }
+//    CallAfter(&LayoutPanel::RefreshLayout);
+//    xlights->MarkEffectsFileDirty(true);
 }
 
 #pragma region actions
