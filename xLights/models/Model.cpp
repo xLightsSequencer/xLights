@@ -1477,6 +1477,43 @@ wxChar Model::GetChannelColorLetter(wxByte chidx) {
     return rgbOrder[chidx];
 }
 
+char Model::EncodeColour(const xlColor& c)
+{
+	if (c.red > 0 && c.green == 0 && c.blue == 0)
+	{
+		return 'R';
+	}
+	if (c.red == 0 && c.green > 0 && c.blue == 0)
+	{
+		return 'G';
+	}
+	if (c.red == 0 && c.green == 0 && c.blue > 0)
+	{
+		return 'B';
+	}
+	if (c.red > 0 && c.red == c.green && c.red == c.blue)
+	{
+		return 'W';
+	}
+
+	return 'X';
+}
+
+// Accepts any absolute channel number and if it happens to be used by this model a single character representing the channel colour is returned.
+// If the channel does not map to the model this returns ' '
+char Model::GetAbsoluteChannelColorLetter(long absoluteChannel)
+{
+    long fc = GetFirstChannel();
+    if (absoluteChannel < fc + 1 || absoluteChannel > GetLastChannel() + 1) return ' ';
+
+    if (SingleChannel)
+    {
+        return EncodeColour(GetNodeMaskColor(0));
+    }
+
+    return GetChannelColorLetter((absoluteChannel - fc - 1) % GetChanCountPerNode());
+}
+
 int CountChar(const std::string& s, char c)
 {
     int count = 0;
@@ -1613,6 +1650,7 @@ unsigned int Model::GetLastChannel() {
     }
     return LastChan;
 }
+
 unsigned int Model::GetFirstChannel() {
     unsigned int LastChan=-1;
     size_t NodeCount=GetNodeCount();

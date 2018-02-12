@@ -39,7 +39,7 @@ bool OpenDMXOutput::Open()
 #pragma region Frame Handling
 void OpenDMXOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _serial == nullptr || !_ok) return;
+    if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {

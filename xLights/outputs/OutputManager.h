@@ -68,6 +68,7 @@ public:
     int GetOutputCount() const { return _outputs.size(); }
     bool Discover(); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
+    void SuspendAll(bool suspend);
     #pragma endregion Output Management
 
     void SomethingChanged() const;

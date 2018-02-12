@@ -47,6 +47,7 @@ protected:
     int _baudRate;
     int _universe;
     bool _enabled;
+    bool _suspend;
     Controller* _controller;
     int _outputNumber; // cached ordinal of this output ... may change when reordered or other output are changed
     int _nullNumber; // cached ordinal of null controllers ... may change when reordered or other output are changed
@@ -81,6 +82,7 @@ public:
     void ClearDirty() { _dirty = false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
+    void Suspend(bool suspend) { _suspend = suspend; }
     virtual long GetEndChannel() const { return _startChannel + _channels - 1; }
     std::string GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { _description = description; _dirty = true; }

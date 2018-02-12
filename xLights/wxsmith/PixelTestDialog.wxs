@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="TestDialog">
+	<object class="wxDialog" name="PixelTestDialog">
 		<title>Test Lights</title>
 		<centered>1</centered>
 		<size>300,200</size>
@@ -24,30 +24,69 @@
 						<pos>95,46</pos>
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>1</cols>
-							<rows>2</rows>
 							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
+							<growablerows>0</growablerows>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-									<cols>3</cols>
-									<growablecols>2</growablecols>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_Load" variable="Button_Load" member="yes">
-											<label>Load</label>
-											<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
+								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+									<minsize>300,300</minsize>
+									<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL3" variable="Panel_Outputs" member="yes">
+											<pos>42,57</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer_Outputs" member="yes">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<object class="sizeritem">
+													<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+														<cols>2</cols>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_Load" variable="Button_Load" member="yes">
+																<label>Load</label>
+																<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>2</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_Save" variable="Button_Save" member="yes">
+																<label>Save</label>
+																<handler function="OnButton_SaveClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>2</border>
-										<option>1</option>
+										<label>Outputs</label>
 									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_Save" variable="Button_Save" member="yes">
-											<label>Save</label>
-											<handler function="OnButton_SaveClick" entry="EVT_BUTTON" />
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL6" variable="Panel_ModelGroups" member="yes">
+											<pos>50,5</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer_ModelGroups" member="yes">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
+											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
+										<label>Model Groups</label>
+									</object>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL7" variable="Panel_Models" member="yes">
+											<pos>124,13</pos>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer_Models" member="yes">
+												<cols>1</cols>
+												<growablecols>0</growablecols>
+												<growablerows>0</growablerows>
+											</object>
+										</object>
+										<label>Models</label>
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -64,11 +103,20 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
-									<cols>3</cols>
+									<cols>1</cols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX_OutputToLights" variable="CheckBox_OutputToLights" member="yes">
 											<label>Output to lights</label>
 											<handler function="OnCheckBox_OutputToLightsClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_SuppressUnusedOutputs" member="yes">
+											<label>Don&apos;t send data to unused outputs</label>
+											<handler function="OnCheckBox_SuppressUnusedOutputsClick" entry="EVT_CHECKBOX" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
@@ -107,7 +155,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Off" variable="RadioButton_Standard_Off" member="yes">
 																<label>Off</label>
-																<handler function="OnRadioButton_Standard_OffSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -116,7 +163,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Chase" variable="RadioButton_Standard_Chase" member="yes">
 																<label>Chase</label>
-																<handler function="OnRadioButton_Standard_ChaseSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -125,7 +171,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Chase13" variable="RadioButton_Standard_Chase13" member="yes">
 																<label>Chase 1/3</label>
-																<handler function="OnRadioButton_Standard_Chase13Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -134,7 +179,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Chase14" variable="RadioButton_Standard_Chase14" member="yes">
 																<label>Chase 1/4</label>
-																<handler function="OnRadioButton_Standard_Chase14Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -143,7 +187,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Chase15" variable="RadioButton_Standard_Chase15" member="yes">
 																<label>Chase 1/5</label>
-																<handler function="OnRadioButton_Standard_Chase15Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -152,7 +195,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Alternate" variable="RadioButton_Standard_Alternate" member="yes">
 																<label>Alternate</label>
-																<handler function="OnRadioButton_Standard_AlternateSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -161,7 +203,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Twinke5" variable="RadioButton_Standard_Twinkle5" member="yes">
 																<label>Twinkle 5%</label>
-																<handler function="OnRadioButton_Standard_Twinkle5Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -170,7 +211,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Twinkle10" variable="RadioButton_Standard_Twinkle10" member="yes">
 																<label>Twinkle 10%</label>
-																<handler function="OnRadioButton_Standard_Twinkle10Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -179,7 +219,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Twinkle25" variable="RadioButton_Standard_Twinkle25" member="yes">
 																<label>Twinkle 25%</label>
-																<handler function="OnRadioButton_Standard_Twinkle25Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -188,7 +227,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Twinkle50" variable="RadioButton_Standard_Twinkle50" member="yes">
 																<label>Twinkle 50%</label>
-																<handler function="OnRadioButton_Standard_Twinkle50Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -197,7 +235,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Shimmer" variable="RadioButton_Standard_Shimmer" member="yes">
 																<label>Shimmer</label>
-																<handler function="OnRadioButton_Standard_ShimmerSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -206,7 +243,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_Standard_Background" variable="RadioButton_Standard_Background" member="yes">
 																<label>Background Only</label>
-																<handler function="OnRadioButton_Standard_BackgroundSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -320,7 +356,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Off" variable="RadioButton_RGB_Off" member="yes">
 																<label>Off</label>
-																<handler function="OnRadioButton_RGB_OffSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -329,7 +364,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Chase" variable="RadioButton_RGB_Chase" member="yes">
 																<label>Chase</label>
-																<handler function="OnRadioButton_RGB_ChaseSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -338,7 +372,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Chase13" variable="RadioButton_RGB_Chase13" member="yes">
 																<label>Chase 1/3</label>
-																<handler function="OnRadioButton_RGB_Chase13Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -347,7 +380,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Chase14" variable="RadioButton_RGB_Chase14" member="yes">
 																<label>Chase 1/4</label>
-																<handler function="OnRadioButton_RGB_Chase14Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -356,7 +388,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Chase15" variable="RadioButton_RGB_Chase15" member="yes">
 																<label>Chase 1/5</label>
-																<handler function="OnRadioButton_RGB_Chase15Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -365,7 +396,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Alternate" variable="RadioButton_RGB_Alternate" member="yes">
 																<label>Alternate</label>
-																<handler function="OnRadioButton_RGB_AlternateSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -374,7 +404,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Twinkle5" variable="RadioButton_RGB_Twinkle5" member="yes">
 																<label>Twinkle 5%</label>
-																<handler function="OnRadioButton_RGB_Twinkle5Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -383,7 +412,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Twinkle10" variable="RadioButton_RGB_Twinkle10" member="yes">
 																<label>Twinkle 10%</label>
-																<handler function="OnRadioButton_RGB_Twinkle10Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -392,7 +420,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Twinkle25" variable="RadioButton_RGB_Twinkle25" member="yes">
 																<label>Twinkle 25%</label>
-																<handler function="OnRadioButton_RGB_Twinkle25Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -401,7 +428,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Twinkle50" variable="RadioButton_RGB_Twinkle50" member="yes">
 																<label>Twinkle 50%</label>
-																<handler function="OnRadioButton_RGB_Twinkle50Select" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -410,7 +436,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Shimmer" variable="RadioButton_RGB_Shimmer" member="yes">
 																<label>Shimmer</label>
-																<handler function="OnRadioButton_RGB_ShimmerSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -419,7 +444,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGB_Background" variable="RadioButton_RGB_Background" member="yes">
 																<label>Background Only</label>
-																<handler function="OnRadioButton_RGB_BackgroundSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -554,7 +578,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_Off" variable="RadioButton_RGBCycle_Off" member="yes">
 																<label>Off</label>
-																<handler function="OnRadioButton_RGBCycle_OffSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -563,7 +586,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_ABC" variable="RadioButton_RGBCycle_ABC" member="yes">
 																<label>A-B-C</label>
-																<handler function="OnRadioButton_RGBCycle_ABCSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -572,7 +594,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_ABCAll" variable="RadioButton_RGBCycle_ABCAll" member="yes">
 																<label>A-B-C-All</label>
-																<handler function="OnRadioButton_RGBCycle_ABCAllSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -581,7 +602,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_ABCAllNone" variable="RadioButton_RGBCycle_ABCAllNone" member="yes">
 																<label>A-B-C-All-None</label>
-																<handler function="OnRadioButton_RGBCycle_ABCAllNoneSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -590,7 +610,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_MixedColors" variable="RadioButton_RGBCycle_MixedColors" member="yes">
 																<label>Mixed Colors</label>
-																<handler function="OnRadioButton_RGBCycle_MixedColorsSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -599,7 +618,6 @@
 														<object class="sizeritem">
 															<object class="wxRadioButton" name="ID_RADIOBUTTON_RGBCycle_RGBW" variable="RadioButton_RGBCycle_RGBW" member="yes">
 																<label>R-G-B-W</label>
-																<handler function="OnRadioButton_RGBCycle_RGBWSelect" entry="EVT_RADIOBUTTON" />
 															</object>
 															<flag>wxALL|wxEXPAND</flag>
 															<border>5</border>
@@ -634,7 +652,6 @@
 									<object class="sizeritem">
 										<object class="wxSlider" name="ID_SLIDER_Speed" variable="Slider_Speed" member="yes">
 											<value>50</value>
-											<handler function="OnSlider_SpeedCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>

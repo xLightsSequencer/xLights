@@ -21,6 +21,7 @@
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
@@ -42,6 +43,7 @@ Output::Output(Output* output)
 
 Output::Output(wxXmlNode* node)
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
@@ -72,6 +74,7 @@ Output::Output(wxXmlNode* node)
 
 Output::Output()
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;

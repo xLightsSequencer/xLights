@@ -48,7 +48,7 @@ bool DMXOutput::Open()
 #pragma region Frame Handling
 void DMXOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _serial == nullptr || !_ok) return;
+    if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {

@@ -34,7 +34,7 @@
 #include "effects/RenderableEffect.h"
 #include "LayoutPanel.h"
 #include "models/ModelGroup.h"
-#include "TestDialog.h"
+#include "PixelTestDialog.h"
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
 #include "UtilFunctions.h"
@@ -3361,7 +3361,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	SetCursor(wxCURSOR_WAIT);
 
 	// display the test dialog
-    TestDialog dialog(this, &_outputManager, networkFile, &AllModels);
+    PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
     dialog.ShowModal();
 

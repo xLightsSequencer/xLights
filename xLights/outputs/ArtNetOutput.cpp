@@ -234,7 +234,7 @@ bool ArtNetOutput::Open()
 #pragma region Frame Handling
 void ArtNetOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _datagram == nullptr) return;
+    if (!_enabled || _suspend || _datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {

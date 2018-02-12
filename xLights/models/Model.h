@@ -290,6 +290,9 @@ public:
     virtual xlColor GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor &c);
     wxChar GetChannelColorLetter(wxByte chidx);
+    std::string GetRGBOrder() const { return rgbOrder; }
+    static char EncodeColour(const xlColor& c);
+    char GetAbsoluteChannelColorLetter(long absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     void ExportAsCustomXModel() const;
