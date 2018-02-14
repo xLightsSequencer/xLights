@@ -12,12 +12,12 @@
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
 
-ListenerManager::ListenerManager(ScheduleManager* scheduleManager)
+ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
+    _scheduleManager(scheduleManager),
+    _pause(false),
+    _stop(false),
+    _sync(0)
 {
-    _sync = 0;
-    _pause = false;
-    _stop = false;
-    _scheduleManager = scheduleManager;
     StartListeners();
 }
 

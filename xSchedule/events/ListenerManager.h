@@ -12,10 +12,10 @@ class ListenerManager
 {
     protected:
 		std::list<ListenerBase*> _listeners;
+        int _sync;
 	    bool _stop;
 		bool _pause;
         ScheduleManager* _scheduleManager;
-        int _sync;
 	
 	public:
         ListenerManager(ScheduleManager* scheduleManager);
