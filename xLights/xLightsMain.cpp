@@ -6006,7 +6006,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
-    std::string filename = fn.GetFullPath().Left(fn.GetFullPath().Length() - fn.GetExt().length()).ToStdString() + "zip";
+    std::string filename = fn.GetName() + ".zip";
 
     wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip)|*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 

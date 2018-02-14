@@ -3809,7 +3809,6 @@
 					"$(PROJECT_DIR)/lib/osx",
 					/usr/lib,
 					/opt/local/libdbg,
-					/opt/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -3824,6 +3823,7 @@
 					"-D__WXOSX__",
 					"-D__WXOSX_COCOA__",
 					"-D_LIBCPP_DISABLE_AVAILABILITY",
+					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 					"-ferror-limit=0",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;
@@ -3871,7 +3871,6 @@
 					"$(PROJECT_DIR)/lib/osx",
 					/usr/lib,
 					/opt/local/lib,
-					/opt/local/libdbg,
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
@@ -3886,6 +3885,7 @@
 					"-D__WXOSX__",
 					"-D_LIBCPP_DISABLE_AVAILABILITY",
 					"-D__WXOSX_COCOA__",
+					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 					"-DNDEBUG",
 					"-ferror-limit=0",
 				);
