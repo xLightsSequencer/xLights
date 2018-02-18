@@ -91,6 +91,7 @@ class wxDebugReport;
 class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
+class SequenceVideoPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -932,6 +933,7 @@ private:
     wxMenuItem* MenuItem_MedVol;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
     xlAuiToolBar* ACToolbar;
+    wxPanel* SequenceVideoPanel;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;

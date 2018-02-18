@@ -672,6 +672,8 @@
 		<Unit filename="SequenceCheck.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
+		<Unit filename="SequenceVideoPanel.cpp" />
+		<Unit filename="SequenceVideoPanel.h" />
 		<Unit filename="SequenceViewManager.cpp" />
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
@@ -1229,6 +1231,7 @@
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
@@ -1424,6 +1427,7 @@
 					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
