@@ -44,6 +44,7 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
+#include "SequenceVideoPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -562,7 +563,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     EditToolBar->Realize();
     MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    SequenceVideoPanel = nullptr;
+    PanelSequenceVideoPanel = new SequenceVideoPanel( this );
     ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
     ChoiceParm1->SetSelection( ChoiceParm1->Append(_("0")) );
     ChoiceParm1->Append(_("10"));

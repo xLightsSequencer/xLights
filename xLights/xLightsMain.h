@@ -933,7 +933,7 @@ private:
     wxMenuItem* MenuItem_MedVol;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
     xlAuiToolBar* ACToolbar;
-    wxPanel* SequenceVideoPanel;
+    wxPanel* PanelSequenceVideoPanel;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
