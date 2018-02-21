@@ -9,13 +9,14 @@ class SerialPort;
 
 class ListenerSerial : public ListenerBase
 {
-    std::string _commPort;
-    SerialPort* _serial;
-    std::string _serialConfig;
-    int _baudRate;
-    std::string _protocol;
-    unsigned char _buffer[2048];
-    int _valid; // how many chars in buffer are valid
+    protected:
+        std::string _commPort;
+        SerialPort* _serial;
+        std::string _serialConfig;
+        int _baudRate;
+        std::string _protocol;
+        unsigned char _buffer[2048];
+        int _valid; // how many chars in buffer are valid
 
 	public:
         ListenerSerial(ListenerManager* _listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol);

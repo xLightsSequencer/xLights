@@ -112,6 +112,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -220,6 +222,7 @@
     <ClCompile Include="EventDialog.cpp" />
     <ClCompile Include="EventE131Panel.cpp" />
     <ClCompile Include="EventFPPPanel.cpp" />
+    <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="EventOSCPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
@@ -228,6 +231,7 @@
     <ClCompile Include="events\EventData.cpp" />
     <ClCompile Include="events\EventE131.cpp" />
     <ClCompile Include="events\EventFPP.cpp" />
+    <ClCompile Include="events\EventLor.cpp" />
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
@@ -235,6 +239,7 @@
     <ClCompile Include="events\ListenerE131.cpp" />
     <ClCompile Include="events\ListenerFPP.cpp" />
     <ClCompile Include="events\ListenerFPPUnicast.cpp" />
+    <ClCompile Include="events\ListenerLor.cpp" />
     <ClCompile Include="events\ListenerManager.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
@@ -388,6 +393,7 @@
     <ClInclude Include="EventDialog.h" />
     <ClInclude Include="EventE131Panel.h" />
     <ClInclude Include="EventFPPPanel.h" />
+    <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="EventOSCPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
@@ -396,6 +402,7 @@
     <ClInclude Include="events\EventData.h" />
     <ClInclude Include="events\EventE131.h" />
     <ClInclude Include="events\EventFPP.h" />
+    <ClInclude Include="events\EventLor.h" />
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventSerial.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
@@ -403,6 +410,7 @@
     <ClInclude Include="events\ListenerE131.h" />
     <ClInclude Include="events\ListenerFPP.h" />
     <ClInclude Include="events\ListenerFPPUnicast.h" />
+    <ClInclude Include="events\ListenerLor.h" />
     <ClInclude Include="events\ListenerManager.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />

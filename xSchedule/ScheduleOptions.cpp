@@ -12,6 +12,7 @@
 #include "events/EventBase.h"
 #include "events/EventARTNet.h"
 #include "events/EventSerial.h"
+#include "events/EventLor.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventE131.h"
@@ -81,6 +82,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
                 else if (n2->GetName() == "EventSerial")
                 {
                     _events.push_back(new EventSerial(n2));
+                }
+                else if (n2->GetName() == "EventLor")
+                {
+                    _events.push_back(new EventLor(n2));
                 }
                 else if (n2->GetName() == "EventARTNet")
                 {

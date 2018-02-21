@@ -5,10 +5,11 @@
 
 class EventSerial: public EventBase
 {
-    std::string _protocol;
-    std::string _commPort;
-    int _speed;
-    int _channel;
+    protected:
+        std::string _protocol;
+        std::string _commPort;
+        int _speed;
+        int _channel;
 
 	public:
 		EventSerial();

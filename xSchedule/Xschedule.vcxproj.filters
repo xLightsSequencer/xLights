@@ -180,6 +180,9 @@
     <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
+    <ClCompile Include="events\EventLor.cpp" />
+    <ClCompile Include="events\ListenerLor.cpp" />
+    <ClCompile Include="EventLorPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -342,6 +345,9 @@
     <ClInclude Include="..\xLights\outputs\LorControllerDialog.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
+    <ClInclude Include="events\EventLor.h" />
+    <ClInclude Include="events\ListenerLor.h" />
+    <ClInclude Include="EventLorPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

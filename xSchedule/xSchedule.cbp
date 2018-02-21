@@ -397,6 +397,8 @@
 		<Unit filename="EventE131Panel.h" />
 		<Unit filename="EventFPPPanel.cpp" />
 		<Unit filename="EventFPPPanel.h" />
+		<Unit filename="EventLorPanel.cpp" />
+		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventSerialPanel.cpp" />
@@ -454,10 +456,6 @@
 		<Unit filename="PlayList/PlayListItemCURL.h" />
 		<Unit filename="PlayList/PlayListItemCURLPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemCURLPanel.h" />
-		<Unit filename="PlayList/PlayListItemSerial.cpp" />
-		<Unit filename="PlayList/PlayListItemSerial.h" />
-		<Unit filename="PlayList/PlayListItemSerialPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemSerialPanel.h" />
 		<Unit filename="PlayList/PlayListItemDelay.cpp" />
 		<Unit filename="PlayList/PlayListItemDelay.h" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.cpp" />
@@ -506,14 +504,18 @@
 		<Unit filename="PlayList/PlayListItemRunProcess.h" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.h" />
-		<Unit filename="PlayList/PlayListItemTest.cpp" />
-		<Unit filename="PlayList/PlayListItemTest.h" />
-		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemTestPanel.h" />
 		<Unit filename="PlayList/PlayListItemScreenMap.cpp" />
 		<Unit filename="PlayList/PlayListItemScreenMap.h" />
 		<Unit filename="PlayList/PlayListItemScreenMapPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemScreenMapPanel.h" />
+		<Unit filename="PlayList/PlayListItemSerial.cpp" />
+		<Unit filename="PlayList/PlayListItemSerial.h" />
+		<Unit filename="PlayList/PlayListItemSerialPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemSerialPanel.h" />
+		<Unit filename="PlayList/PlayListItemTest.cpp" />
+		<Unit filename="PlayList/PlayListItemTest.h" />
+		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemTestPanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -577,6 +579,8 @@
 		<Unit filename="events/EventE131.h" />
 		<Unit filename="events/EventFPP.cpp" />
 		<Unit filename="events/EventFPP.h" />
+		<Unit filename="events/EventLor.cpp" />
+		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventSerial.cpp" />
@@ -591,6 +595,8 @@
 		<Unit filename="events/ListenerFPP.h" />
 		<Unit filename="events/ListenerFPPUnicast.cpp" />
 		<Unit filename="events/ListenerFPPUnicast.h" />
+		<Unit filename="events/ListenerLor.cpp" />
+		<Unit filename="events/ListenerLor.h" />
 		<Unit filename="events/ListenerManager.cpp" />
 		<Unit filename="events/ListenerManager.h" />
 		<Unit filename="events/ListenerOSC.cpp" />
@@ -635,6 +641,7 @@
 		<Unit filename="wxsmith/EventDialog.wxs" />
 		<Unit filename="wxsmith/EventE131Panel.wxs" />
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
+		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
@@ -648,7 +655,6 @@
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFPPEventPanel.wxs" />
@@ -661,8 +667,9 @@
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemScreenMapPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -745,6 +752,7 @@
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

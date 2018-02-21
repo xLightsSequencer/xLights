@@ -3,6 +3,7 @@
 #include "EventE131Panel.h"
 #include "EventDataPanel.h"
 #include "EventSerialPanel.h"
+#include "EventLorPanel.h"
 #include "EventARTNetPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
@@ -15,6 +16,7 @@
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventSerial.h"
+#include "events/EventLor.h"
 
 //(*InternalHeaders(EventDialog)
 #include <wx/intl.h>
@@ -141,6 +143,7 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         Choicebook_EventType->AddPage(new EventOSCPanel(Choicebook_EventType), "OSC", false);
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
+        Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
     }
     else
     {
@@ -168,6 +171,10 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         else if (type == "ARTNet")
         {
             Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", true);
+        }
+        else if (type == "LOR")
+        {
+            Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", true);
         }
         ((EventPanel*)Choicebook_EventType->GetPage(0))->Load(_eventBase);
         Choice_Command->SetStringSelection(_eventBase->GetCommand());
@@ -217,6 +224,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "ARTNet")
         {
             _eventBase = new EventARTNet();
+        }
+        else if (type == "LOR")
+        {
+            _eventBase = new EventLor();
         }
     }
 
@@ -275,6 +286,12 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
         TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventARTNet::GetParmToolTip());
+    }
+    else if (type == "LOR")
+    {
+        TextCtrl_P1->SetToolTip(EventLor::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventLor::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventLor::GetParmToolTip());
     }
 }
 

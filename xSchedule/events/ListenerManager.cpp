@@ -5,10 +5,12 @@
 #include <log4cpp/Category.hh>
 #include "EventBase.h"
 #include "EventSerial.h"
+#include "EventLor.h"
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
 #include "ListenerFPPUnicast.h"
 #include "ListenerSerial.h"
+#include "ListenerLor.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
 
@@ -58,6 +60,32 @@ void ListenerManager::StartListeners()
                 {
                     if (l->GetSpeed() == ((EventSerial*)(*it2))->GetSpeed() &&
                         l->GetProtocol() == ((EventSerial*)(*it2))->GetProtocol())
+                    {
+                        found = true;
+                    }
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else if ((*it)->GetType() == "LOR")
+        {
+            ListenerLor* l = (ListenerLor*)(*it);
+            bool found = false;
+            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            {
+                if ((*it2)->GetType() == "LOR" && l->GetCommPort() == ((EventLor*)(*it2))->GetCommPort())
+                {
+                    if (l->GetSpeed() == ((EventLor*)(*it2))->GetSpeed() &&
+                        l->GetProtocol() == ((EventLor*)(*it2))->GetProtocol())
                     {
                         found = true;
                     }
@@ -249,6 +277,25 @@ void ListenerManager::StartListeners()
             if (!portExists)
             {
                 _listeners.push_back(new ListenerSerial(this, e->GetCommPort(), e->GetSerialConfig(), e->GetSpeed(), e->GetProtocol()));
+                _listeners.back()->Start();
+            }
+        }
+        else if ((*it3)->GetType() == "LOR")
+        {
+            EventLor* e = (EventLor*)(*it3);
+            bool portExists = false;
+            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            {
+                if ((*it2)->GetType() == "LOR" && ((ListenerLor*)(*it2))->GetCommPort() == e->GetCommPort())
+                {
+                    portExists = true;
+                    break;
+                }
+            }
+
+            if (!portExists)
+            {
+                _listeners.push_back(new ListenerLor(this, e->GetCommPort(), e->GetSerialConfig(), e->GetSpeed(), e->GetProtocol(), e->GetUnitId()));
                 _listeners.back()->Start();
             }
         }
