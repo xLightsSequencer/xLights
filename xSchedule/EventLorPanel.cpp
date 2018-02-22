@@ -349,7 +349,7 @@ void EventLorPanel::Save(EventBase* event)
 void EventLorPanel::Load(EventBase* event)
 {
     EventLor* e = (EventLor*)event;
-    Choice_UnitId->SetStringSelection(e->GetUnitId());
+    Choice_UnitId->SetStringSelection(e->GetUnitIdString());
     Choice_CommPort->SetStringSelection(e->GetCommPort());
     Choice_Test->SetStringSelection(e->GetCondition());
     Choice_Speed->SetStringSelection(wxString::Format("%d", e->GetSpeed()));

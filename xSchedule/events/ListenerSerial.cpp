@@ -118,7 +118,7 @@ void ListenerSerial::Poll()
         wxASSERT(_buffer[4] == 0x00);
         wxASSERT(_buffer[5 + len] == 0xE7);
 
-        _listenerManager->ProcessPacket(GetType(), _commPort, &_buffer[5], len);
+        _listenerManager->ProcessPacket(GetType(), _commPort, &_buffer[5], len, 0);
         memmove(_buffer, _buffer + 5 + len + 1, sizeof(_buffer) -5 - len - 1);
         _valid -= (5 + len + 1);
     }
@@ -140,7 +140,7 @@ void ListenerSerial::Poll()
         wxASSERT(_buffer[0] == 0x00);
 
         int len = std::min(512, _valid - 1);
-        _listenerManager->ProcessPacket(GetType(), _commPort, &_buffer[1], len);
+        _listenerManager->ProcessPacket(GetType(), _commPort, &_buffer[1], len, 0);
         memmove(_buffer, _buffer + len + 1, sizeof(_buffer) - len - 1);
         _valid -= (len + 1);
     }

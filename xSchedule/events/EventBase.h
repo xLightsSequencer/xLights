@@ -47,6 +47,7 @@ class EventBase
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }
         std::string GetName() const { return _name; }
         virtual std::string GetType() const = 0;
+        virtual int GetSubType() const { return 0; }
         std::string GetCommand() const { return _command; }
         std::string GetP1() const { return _parm1; }
         std::string GetP2() const { return _parm2; }

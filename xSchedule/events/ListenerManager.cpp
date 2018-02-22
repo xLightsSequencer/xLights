@@ -205,6 +205,8 @@ void ListenerManager::StartListeners()
         }
     }
 
+    bool update_lor_unit_ids = false;
+
     for (auto it3 = _scheduleManager->GetOptions()->GetEvents()->begin(); it3 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it3)
     {
         if ((*it3)->GetType() == "E131")
@@ -289,14 +291,18 @@ void ListenerManager::StartListeners()
                 if ((*it2)->GetType() == "LOR" && ((ListenerLor*)(*it2))->GetCommPort() == e->GetCommPort())
                 {
                     portExists = true;
+                    ((ListenerLor*)(*it2))->AddNewUnitId(e->GetUnitId());
+                    update_lor_unit_ids = true;
                     break;
                 }
             }
 
             if (!portExists)
             {
-                _listeners.push_back(new ListenerLor(this, e->GetCommPort(), e->GetSerialConfig(), e->GetSpeed(), e->GetProtocol(), e->GetUnitId()));
+                _listeners.push_back(new ListenerLor(this, e->GetCommPort(), e->GetSerialConfig(), e->GetSpeed(), e->GetProtocol(), e->GetUnitIdString()));
                 _listeners.back()->Start();
+                ((ListenerLor*)(_listeners.back()))->AddNewUnitId(e->GetUnitId());
+                update_lor_unit_ids = true;
             }
         }
         else if ((*it3)->GetType() == "OSC")
@@ -320,6 +326,18 @@ void ListenerManager::StartListeners()
         else if ((*it3)->GetType() == "Data")
         {
             // No listener required
+        }
+    }
+
+    // need to tell LOR listeners to update Unit Ids they need to poll
+    if( update_lor_unit_ids )
+    {
+        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        {
+            if ((*it2)->GetType() == "LOR")
+            {
+                ((ListenerLor*)(*it2))->EndUnitIdList();
+            }
         }
     }
 
@@ -484,13 +502,13 @@ void ListenerManager::ProcessPacket(const std::string& source, int universe, wxB
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize)
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize, int subtype)
 {
     if (_pause || _stop) return;
 
     for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
     {
-        if ((*it)->GetType() == source)
+        if (((*it)->GetType() == source) && (subtype == (*it)->GetSubType()))
         {
             (*it)->Process(commPort, buffer, buffsize, _scheduleManager);
         }

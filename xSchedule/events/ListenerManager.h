@@ -16,14 +16,14 @@ class ListenerManager
 	    bool _stop;
 		bool _pause;
         ScheduleManager* _scheduleManager;
-	
+
 	public:
         ListenerManager(ScheduleManager* scheduleManager);
 		virtual ~ListenerManager();
 		void Pause(bool pause = true);
 		void ProcessFrame(wxByte* buffer, long buffsize);
 		void ProcessPacket(const std::string& source, int universe, wxByte* buffer, long buffsize);
-		void ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize);
+		void ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize, int subtype);
 		void ProcessPacket(const std::string& source, const std::string& id);
         void ProcessPacket(const std::string& source, const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3);
         void Stop();
