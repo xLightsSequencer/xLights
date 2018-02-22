@@ -149,7 +149,7 @@ function populateTableIdle(status, query) {
     dataType: "json",
     indexValue: status,
     success: function(response) {
-      populatePlaylistBox('playlists', 'Avalible Playlists');
+      populatePlaylistBox('playlists', 'Available Playlists');
 
       for (var i = 0; i < response.playlists.length; i++) {
 
