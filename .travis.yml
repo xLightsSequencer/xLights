@@ -6,7 +6,7 @@ git:
   depth: 3
 script:
 - docker pull debenham/xlights
-- travis_wait docker run --name buildvm debenham/xlights /bin/bash Recipe
+- docker run --name buildvm debenham/xlights /bin/bash Recipe
 notifications:
   email:
     recipients:
