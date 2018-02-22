@@ -337,6 +337,9 @@
 		67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */; };
 		67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */; };
 		67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */; };
+		67BAE10D203F1D68000EA088 /* EventLor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE108203F1D67000EA088 /* EventLor.cpp */; };
+		67BAE10E203F1D68000EA088 /* EventLorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE109203F1D67000EA088 /* EventLorPanel.cpp */; };
+		67BAE10F203F1D68000EA088 /* ListenerLor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BAE10B203F1D67000EA088 /* ListenerLor.cpp */; };
 		67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */; };
 		67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB01D2152C5009B660F /* StateEffect.cpp */; };
 		67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC8BB11D2152C5009B660F /* StatePanel.cpp */; };
@@ -1244,6 +1247,12 @@
 		67B94CE11B82129600B5FB0D /* osxMacUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxMacUtils.h; sourceTree = "<group>"; };
 		67BA42A51C93B78500D17518 /* StartChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StartChannelDialog.h; sourceTree = "<group>"; };
 		67BA42A61C93B78500D17518 /* StartChannelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StartChannelDialog.cpp; sourceTree = "<group>"; };
+		67BAE107203F1D66000EA088 /* EventLor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventLor.h; path = events/EventLor.h; sourceTree = "<group>"; };
+		67BAE108203F1D67000EA088 /* EventLor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventLor.cpp; path = events/EventLor.cpp; sourceTree = "<group>"; };
+		67BAE109203F1D67000EA088 /* EventLorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventLorPanel.cpp; sourceTree = "<group>"; };
+		67BAE10A203F1D67000EA088 /* ListenerLor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerLor.h; path = events/ListenerLor.h; sourceTree = "<group>"; };
+		67BAE10B203F1D67000EA088 /* ListenerLor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerLor.cpp; path = events/ListenerLor.cpp; sourceTree = "<group>"; };
+		67BAE10C203F1D67000EA088 /* EventLorPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventLorPanel.h; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
 		67BBF2A71E0C147D0054D264 /* BufferSizeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferSizeDialog.cpp; sourceTree = "<group>"; };
 		67BBF2A81E0C147D0054D264 /* BufferSizeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferSizeDialog.h; sourceTree = "<group>"; };
@@ -2145,6 +2154,12 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				67BAE108203F1D67000EA088 /* EventLor.cpp */,
+				67BAE107203F1D66000EA088 /* EventLor.h */,
+				67BAE109203F1D67000EA088 /* EventLorPanel.cpp */,
+				67BAE10C203F1D67000EA088 /* EventLorPanel.h */,
+				67BAE10B203F1D67000EA088 /* ListenerLor.cpp */,
+				67BAE10A203F1D67000EA088 /* ListenerLor.h */,
 				67D75E3D2020ED5E005BAC6E /* EventARTNet.cpp */,
 				67D75E362020ED5D005BAC6E /* EventARTNet.h */,
 				67D75E382020ED5E005BAC6E /* EventBase.cpp */,
@@ -3485,6 +3500,7 @@
 				67F23FFF1E329E7400F8B985 /* PlayListItemVideoPanel.cpp in Sources */,
 				67DA0B071E39C96F00E2A859 /* SetDialog.cpp in Sources */,
 				67D75E622020ED60005BAC6E /* ListenerSerial.cpp in Sources */,
+				67BAE10D203F1D68000EA088 /* EventLor.cpp in Sources */,
 				67F23FFD1E329E7400F8B985 /* PlayListItemRunProcessPanel.cpp in Sources */,
 				67F23FED1E329E7400F8B985 /* PlayListItemAudioPanel.cpp in Sources */,
 				67F23F5A1E329AD800F8B985 /* ScheduleDialog.cpp in Sources */,
@@ -3492,8 +3508,10 @@
 				67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */,
 				67F23FF31E329E7400F8B985 /* PlayListItemFSEQPanel.cpp in Sources */,
 				67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */,
+				67BAE10E203F1D68000EA088 /* EventLorPanel.cpp in Sources */,
 				67BCD14F1E6DADFC00F99935 /* Blend.cpp in Sources */,
 				67F23FA71E329E3300F8B985 /* sha1.cpp in Sources */,
+				67BAE10F203F1D68000EA088 /* ListenerLor.cpp in Sources */,
 				67F23F621E329AD800F8B985 /* Schedule.cpp in Sources */,
 				67F23F601E329AD800F8B985 /* OptionsDialog.cpp in Sources */,
 				67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */,
