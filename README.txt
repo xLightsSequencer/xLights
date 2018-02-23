@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Rework test dialog to better support large shows
+   -- enh (keith)  Add submodels to test dialog
+   -- enh (keith)  Add option to suppress outputs not under test in the test dialog
+   -- enh (keith)  Add to xSchedule MIDI events
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.

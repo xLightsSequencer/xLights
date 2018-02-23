@@ -101,7 +101,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -118,7 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,7 +136,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;iphlpapi.lib;%(AdditionalDependencies);ImageHlp.Lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-static.lib;iphlpapi.lib;%(AdditionalDependencies);ImageHlp.Lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
     </Link>
@@ -157,7 +157,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <Profile>true</Profile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-static.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -223,6 +223,7 @@
     <ClCompile Include="EventE131Panel.cpp" />
     <ClCompile Include="EventFPPPanel.cpp" />
     <ClCompile Include="EventLorPanel.cpp" />
+    <ClCompile Include="EventMIDIPanel.cpp" />
     <ClCompile Include="EventOSCPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
@@ -232,6 +233,7 @@
     <ClCompile Include="events\EventE131.cpp" />
     <ClCompile Include="events\EventFPP.cpp" />
     <ClCompile Include="events\EventLor.cpp" />
+    <ClCompile Include="events\EventMIDI.cpp" />
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
@@ -241,6 +243,7 @@
     <ClCompile Include="events\ListenerFPPUnicast.cpp" />
     <ClCompile Include="events\ListenerLor.cpp" />
     <ClCompile Include="events\ListenerManager.cpp" />
+    <ClCompile Include="events\ListenerMIDI.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
@@ -339,6 +342,8 @@
     <ClCompile Include="wxHTTPServer\status.cpp" />
     <ClCompile Include="wxJSON\jsonreader.cpp" />
     <ClCompile Include="wxJSON\jsonval.cpp" />
+    <ClCompile Include="wxMIDI\src\wxMidi.cpp" />
+    <ClCompile Include="wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="xScheduleApp.cpp" />
     <ClCompile Include="xScheduleMain.cpp" />
     <ClCompile Include="MatrixDialog.cpp" />
@@ -394,6 +399,7 @@
     <ClInclude Include="EventE131Panel.h" />
     <ClInclude Include="EventFPPPanel.h" />
     <ClInclude Include="EventLorPanel.h" />
+    <ClInclude Include="EventMIDIPanel.h" />
     <ClInclude Include="EventOSCPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
@@ -403,6 +409,7 @@
     <ClInclude Include="events\EventE131.h" />
     <ClInclude Include="events\EventFPP.h" />
     <ClInclude Include="events\EventLor.h" />
+    <ClInclude Include="events\EventMIDI.h" />
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventSerial.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
@@ -412,6 +419,7 @@
     <ClInclude Include="events\ListenerFPPUnicast.h" />
     <ClInclude Include="events\ListenerLor.h" />
     <ClInclude Include="events\ListenerManager.h" />
+    <ClInclude Include="events\ListenerMIDI.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
     <ClInclude Include="FPPRemotesDialog.h" />

@@ -178,6 +178,11 @@
     <ClCompile Include="..\xLights\outputs\LorControllers.cpp" />
     <ClCompile Include="..\xLights\outputs\LorController.cpp" />
     <ClCompile Include="..\xLights\outputs\LorControllerDialog.cpp" />
+    <ClCompile Include="events\EventMIDI.cpp" />
+    <ClCompile Include="events\ListenerMIDI.cpp" />
+    <ClCompile Include="EventMIDIPanel.cpp" />
+    <ClCompile Include="wxMIDI\src\wxMidi.cpp" />
+    <ClCompile Include="wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
     <ClCompile Include="events\EventLor.cpp" />
@@ -343,6 +348,9 @@
     <ClInclude Include="..\xLights\outputs\LorControllers.h" />
     <ClInclude Include="..\xLights\outputs\LorController.h" />
     <ClInclude Include="..\xLights\outputs\LorControllerDialog.h" />
+    <ClInclude Include="events\EventMIDI.h" />
+    <ClInclude Include="events\ListenerMIDI.h" />
+    <ClInclude Include="EventMIDIPanel.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
     <ClInclude Include="events\EventLor.h" />

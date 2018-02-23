@@ -60,6 +60,7 @@ class EventBase
         void ProcessCommand(wxByte value, ScheduleManager* scheduleManager);
         virtual void Process(wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
         virtual void Process(int universe, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
+        virtual void Process(wxByte stats, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& id, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager) {}

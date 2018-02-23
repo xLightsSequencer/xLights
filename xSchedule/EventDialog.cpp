@@ -7,6 +7,7 @@
 #include "EventARTNetPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
+#include "EventMIDIPanel.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include "CommandManager.h"
@@ -15,6 +16,7 @@
 #include "events/EventData.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
+#include "events/EventMIDI.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
 
@@ -144,6 +146,7 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
         Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
+        Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", false);
     }
     else
     {
@@ -175,6 +178,10 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         else if (type == "LOR")
         {
             Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", true);
+        }
+        else if (type == "MIDI")
+        {
+            Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", true);
         }
         ((EventPanel*)Choicebook_EventType->GetPage(0))->Load(_eventBase);
         Choice_Command->SetStringSelection(_eventBase->GetCommand());
@@ -228,6 +235,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "LOR")
         {
             _eventBase = new EventLor();
+		}
+        else if (type == "MIDI")
+        {
+            _eventBase = new EventMIDI();
         }
     }
 

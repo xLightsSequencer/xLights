@@ -92,6 +92,8 @@
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -145,6 +147,8 @@
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -267,6 +271,8 @@
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
+					<Add library="../lib/windows64/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -399,6 +405,8 @@
 		<Unit filename="EventFPPPanel.h" />
 		<Unit filename="EventLorPanel.cpp" />
 		<Unit filename="EventLorPanel.h" />
+		<Unit filename="EventMIDIPanel.cpp" />
+		<Unit filename="EventMIDIPanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventSerialPanel.cpp" />
@@ -581,6 +589,8 @@
 		<Unit filename="events/EventFPP.h" />
 		<Unit filename="events/EventLor.cpp" />
 		<Unit filename="events/EventLor.h" />
+		<Unit filename="events/EventMIDI.cpp" />
+		<Unit filename="events/EventMIDI.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventSerial.cpp" />
@@ -597,6 +607,8 @@
 		<Unit filename="events/ListenerFPPUnicast.h" />
 		<Unit filename="events/ListenerLor.cpp" />
 		<Unit filename="events/ListenerLor.h" />
+		<Unit filename="events/ListenerMIDI.cpp" />
+		<Unit filename="events/ListenerMIDI.h" />
 		<Unit filename="events/ListenerManager.cpp" />
 		<Unit filename="events/ListenerManager.h" />
 		<Unit filename="events/ListenerOSC.cpp" />
@@ -628,6 +640,9 @@
 		<Unit filename="wxJSON/jsonreader.h" />
 		<Unit filename="wxJSON/jsonval.cpp" />
 		<Unit filename="wxJSON/jsonval.h" />
+		<Unit filename="wxMIDI/src/wxMidi.cpp" />
+		<Unit filename="wxMIDI/src/wxMidi.h" />
+		<Unit filename="wxMIDI/src/wxMidiDatabase.cpp" />
 		<Unit filename="wxsmith/AddReverseDialog.wxs" />
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
@@ -642,6 +657,7 @@
 		<Unit filename="wxsmith/EventE131Panel.wxs" />
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
+		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
@@ -749,6 +765,7 @@
 					<wxPanel wxs="wxsmith/EventE131Panel.wxs" src="EventE131Panel.cpp" hdr="EventE131Panel.h" fwddecl="0" i18n="1" name="EventE131Panel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventARTNetPanel.wxs" src="EventARTNetPanel.cpp" hdr="EventARTNetPanel.h" fwddecl="0" i18n="1" name="EventARTNetPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventSerialPanel.wxs" src="EventSerialPanel.cpp" hdr="EventSerialPanel.h" fwddecl="0" i18n="1" name="EventSerialPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventMIDIPanel.wxs" src="EventMIDIPanel.cpp" hdr="EventMIDIPanel.h" fwddecl="0" i18n="1" name="EventMIDIPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
