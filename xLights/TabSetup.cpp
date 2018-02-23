@@ -347,7 +347,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
     }
     else
     {
-        return wxString::Format("Channel %i could not be mapped to a controller.", channel).ToStdString();
+        return wxString::Format("Channel %ld could not be mapped to a controller.", channel).ToStdString();
     }
 }
 
