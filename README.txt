@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.
    -- bug (gil)    Fix model list in layout freezing.  Fixes #1090.
