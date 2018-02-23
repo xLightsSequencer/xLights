@@ -203,6 +203,14 @@ void OutputManager::SetShowDir(const std::string& showDir)
     _filename = fn.GetFullPath();
 }
 
+void OutputManager::SuspendAll(bool suspend)
+{
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        (*it)->Suspend(suspend);
+    }
+}
+
 // get an output based on an absolute channel number
 Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 {

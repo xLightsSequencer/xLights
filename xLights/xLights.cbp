@@ -602,6 +602,8 @@
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
 		<Unit filename="MSWStackWalk.h" />
+		<Unit filename="MatrixFaceDownloadDialog.cpp" />
+		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
@@ -633,6 +635,8 @@
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
+		<Unit filename="PixelTestDialog.cpp" />
+		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
@@ -649,10 +653,10 @@
 		<Unit filename="ResizeImageDialog.h" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SOIL.h" />
-		<Unit filename="SelectPanel.cpp" />
-		<Unit filename="SelectPanel.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
+		<Unit filename="SelectPanel.cpp" />
+		<Unit filename="SelectPanel.h" />
 		<Unit filename="SelectTimingsDialog.cpp" />
 		<Unit filename="SelectTimingsDialog.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
@@ -687,8 +691,6 @@
 		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
-		<Unit filename="TestDialog.cpp" />
-		<Unit filename="TestDialog.h" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
@@ -709,8 +711,6 @@
 		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VendorModelDialog.cpp" />
 		<Unit filename="VendorModelDialog.h" />
-		<Unit filename="MatrixFaceDownloadDialog.cpp" />
-		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="VideoExporter.cpp" />
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
@@ -1192,6 +1192,7 @@
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
+		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1211,6 +1212,7 @@
 		<Unit filename="wxsmith/PicturesPanel.wxs" />
 		<Unit filename="wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
+		<Unit filename="wxsmith/PixelTestDialog.wxs" />
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
@@ -1242,7 +1244,6 @@
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
-		<Unit filename="wxsmith/TestDialog.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
@@ -1253,7 +1254,6 @@
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
-		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
@@ -1381,7 +1381,7 @@
 					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/TestDialog.wxs" src="TestDialog.cpp" hdr="TestDialog.h" fwddecl="0" i18n="1" name="TestDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PixelTestDialog.wxs" src="PixelTestDialog.cpp" hdr="PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />

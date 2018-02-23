@@ -399,6 +399,7 @@
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -444,7 +445,6 @@
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
-    <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
@@ -717,6 +717,7 @@
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
@@ -759,7 +760,6 @@
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
-    <ClInclude Include="TestDialog.h" />
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />

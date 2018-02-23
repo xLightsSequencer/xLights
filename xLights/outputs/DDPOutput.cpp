@@ -187,7 +187,7 @@ bool DDPOutput::Open()
 #pragma region Frame Handling
 void DDPOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _datagram == nullptr) return;
+    if (!_enabled || _suspend || _datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {

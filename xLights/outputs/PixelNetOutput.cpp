@@ -42,7 +42,7 @@ bool PixelNetOutput::Open()
 #pragma region Frame Handling
 void PixelNetOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _serial == nullptr || !_ok) return;
+    if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {
