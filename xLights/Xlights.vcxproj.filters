@@ -569,7 +569,6 @@
     <ClInclude Include="SeqElementMismatchDialog.h" />
     <ClInclude Include="SeqExportDialog.h" />
     <ClInclude Include="SeqSettingsDialog.h" />
-    <ClInclude Include="SequenceCheck.h" />
     <ClInclude Include="SequenceData.h" />
     <ClInclude Include="sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="sequencer\Effect.h" />
