@@ -147,36 +147,39 @@ std::vector < Element*> SequenceElements::SearchForElements(const std::string &r
 {
     std::vector < Element*> foundModels;
     if (mAllViews.size() == 0) return foundModels;
-
-    std::regex reg(regex);
-
-    for (size_t i = 0; i < mAllViews[view].size(); ++i)
+    try
     {
-        Element *el = mAllViews[view][i];
-        if (el->GetFullName().empty()) continue;
-        if (std::regex_match(el->GetFullName(), reg))
+        std::regex reg(regex);
+
+        for (size_t i = 0; i < mAllViews[view].size(); ++i)
         {
-            foundModels.push_back( mAllViews[view][i]);
-        }
-        if (el->GetType() == ELEMENT_TYPE_MODEL) {
-            ModelElement* mel = dynamic_cast<ModelElement*>(el);
-            if (mel != nullptr)
+            Element *el = mAllViews[view][i];
+            if (el->GetFullName().empty()) continue;
+            if (std::regex_match(el->GetFullName(), reg))
             {
-                for (int x = 0; x < mel->GetSubModelCount(); ++x)
+                foundModels.push_back(mAllViews[view][i]);
+            }
+            if (el->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(el);
+                if (mel != nullptr)
                 {
-                    SubModelElement* sme = mel->GetSubModel(x);
-                    if (sme != nullptr)
+                    for (int x = 0; x < mel->GetSubModelCount(); ++x)
                     {
-                        if (sme->GetFullName().empty()) continue;
-                        if (std::regex_match(sme->GetFullName(), reg)) {
-                            foundModels.push_back(sme);
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr)
+                        {
+                            if (sme->GetFullName().empty()) continue;
+                            if (std::regex_match(sme->GetFullName(), reg)) {
+                                foundModels.push_back(sme);
+                            }
                         }
                     }
                 }
             }
         }
     }
-
+    catch (std::regex_error& e)
+    { }
     return foundModels;
 }
 
