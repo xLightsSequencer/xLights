@@ -294,6 +294,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
+					<Add option="-std=c++14" />
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
