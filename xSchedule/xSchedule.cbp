@@ -185,7 +185,7 @@
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
-					<Add option="-lportmidi" />
+					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
 				</Linker>
 			</Target>
@@ -220,7 +220,7 @@
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
-					<Add option="-lportmidi" />
+					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
 				</Linker>
 			</Target>

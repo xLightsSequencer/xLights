@@ -46,7 +46,7 @@ RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xSchedule
@@ -57,7 +57,7 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lportmidi -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -lporttime -lportmidi -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xSchedule
