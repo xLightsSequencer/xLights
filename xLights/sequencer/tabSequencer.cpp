@@ -21,6 +21,7 @@
 #include "../MusicXML.h"
 #include "../osxMacUtils.h"
 #include "../SeqElementMismatchDialog.h"
+#include "../SequenceVideoPanel.h"
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
 #include <wx/config.h>
@@ -124,6 +125,10 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
+
+    logger_base.debug( "        Sequence Video." );
+    PanelSequenceVideoPanel = new SequenceVideoPanel(this);
+    m_mgr->AddPane(PanelSequenceVideoPanel,wxAuiPaneInfo().Name(wxT("SequenceVideo")).Caption(wxT("Sequence Video")).Float().Hide() );
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 

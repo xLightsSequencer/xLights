@@ -534,6 +534,7 @@ public:
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
+    void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
     //*)
 private:
