@@ -23,7 +23,7 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
 
   a) Install Code::Blocks for Windows (currently using version 16.01)
 
-     Download and install the codeblocks-16.01-setup.exe file from here:
+     Download and install the codeblocks-17.12-setup.exe file from here:
         http://www.codeblocks.org/downloads/binaries
 
   b) Install MinGW for Windows (currently using version 5.3)
@@ -98,7 +98,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
 
   a) Install Code::Blocks for Windows (currently using version 16.01)
 
-     Download and install the codeblocks-16.01-setup.exe file from here:
+     Download and install the codeblocks-17.12-setup.exe file from here:
         http://www.codeblocks.org/downloads/binaries
 
   b) Install MinGW for Windows (currently using version 5.3)
