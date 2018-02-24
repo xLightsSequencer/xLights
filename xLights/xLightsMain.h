@@ -673,6 +673,7 @@ private:
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
+    static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -890,6 +891,7 @@ private:
     wxMenuItem* MenuItemColorManager;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem51;
+    wxMenuItem* MenuItem52;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
