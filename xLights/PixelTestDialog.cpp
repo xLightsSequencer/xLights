@@ -1143,11 +1143,9 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
 #ifdef __WXOSX__
-	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrl1ItemActivated);
-	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrl1ItemActivated);
-	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrl1ItemActivated);
-    //work around http://trac.wxwidgets.org/ticket/17409
-    TreeListCtrl_Channels->GetDataView()->SetIndent(8);
+	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
+	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
+	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
 #endif
 
 	PopulateControllerTree(_outputManager);

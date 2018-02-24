@@ -108,7 +108,8 @@ void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data
         {
             if (IsAnyData1() || data1 == GetData1Byte())
             {
-                logger_base.debug("Event fired %s:%s -> %02x", (const char *)GetType().c_str(), (const char *)GetName().c_str(), _status);
+                int st = status;
+                logger_base.debug("Event fired %s:%s -> %02x", (const char *)GetType().c_str(), (const char *)GetName().c_str(), st);
                 ProcessMIDICommand(data1, data2, scheduleManager);
                 logger_base.debug("    Event processed.");
             }

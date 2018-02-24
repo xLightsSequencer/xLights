@@ -69,7 +69,6 @@
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
-		67229EDE1C95DDF000D34024 /* TestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67229EDD1C95DDF000D34024 /* TestDialog.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */; };
 		6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */; };
@@ -330,6 +329,15 @@
 		67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD21C3A186A003C17CA /* FacesEffect.cpp */; };
 		67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD41C3A186A003C17CA /* DMXEffect.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
+		67B6F3252040BF6C00B847E0 /* PixelTestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */; };
+		67B6F3332040F59500B847E0 /* ListenerMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3302040F59400B847E0 /* ListenerMIDI.cpp */; };
+		67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3312040F59500B847E0 /* EventMIDI.cpp */; };
+		67B6F3372040F5A600B847E0 /* EventMIDIPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */; };
+		67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */; };
+		67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33A2040F66500B847E0 /* wxMidi.cpp */; };
+		67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F33E2040FB5100B847E0 /* libportmidi.a */; };
+		67B6F3412040FB7900B847E0 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3402040FB7800B847E0 /* CoreMIDI.framework */; };
+		67B6F3432040FBB600B847E0 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67B71D241EC09FDB00690109 /* ColorManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B71D201EC09FDB00690109 /* ColorManager.cpp */; };
 		67B71D251EC09FDB00690109 /* ColorManagerDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B71D221EC09FDB00690109 /* ColorManagerDialog.cpp */; };
 		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
@@ -748,8 +756,6 @@
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
-		67229EDC1C95DDF000D34024 /* TestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestDialog.h; sourceTree = "<group>"; };
-		67229EDD1C95DDF000D34024 /* TestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDialog.cpp; sourceTree = "<group>"; };
 		6725FAE41F943AD7007F2D7C /* GammaDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GammaDialog.h; sourceTree = "<group>"; };
 		6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPRemotesDialog.cpp; sourceTree = "<group>"; };
 		6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GammaDialog.cpp; sourceTree = "<group>"; };
@@ -1235,6 +1241,20 @@
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
 		67B4C92117B53D960006B951 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelTestDialog.h; sourceTree = "<group>"; };
+		67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelTestDialog.cpp; sourceTree = "<group>"; };
+		67B6F32F2040F59400B847E0 /* ListenerMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerMIDI.h; path = events/ListenerMIDI.h; sourceTree = "<group>"; };
+		67B6F3302040F59400B847E0 /* ListenerMIDI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ListenerMIDI.cpp; path = events/ListenerMIDI.cpp; sourceTree = "<group>"; };
+		67B6F3312040F59500B847E0 /* EventMIDI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventMIDI.cpp; path = events/EventMIDI.cpp; sourceTree = "<group>"; };
+		67B6F3322040F59500B847E0 /* EventMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventMIDI.h; path = events/EventMIDI.h; sourceTree = "<group>"; };
+		67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventMIDIPanel.cpp; sourceTree = "<group>"; };
+		67B6F3362040F5A600B847E0 /* EventMIDIPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventMIDIPanel.h; sourceTree = "<group>"; };
+		67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxMidiDatabase.cpp; path = wxMIDI/src/wxMidiDatabase.cpp; sourceTree = "<group>"; };
+		67B6F33A2040F66500B847E0 /* wxMidi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxMidi.cpp; path = wxMIDI/src/wxMidi.cpp; sourceTree = "<group>"; };
+		67B6F33B2040F66500B847E0 /* wxMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wxMidi.h; path = wxMIDI/src/wxMidi.h; sourceTree = "<group>"; };
+		67B6F33E2040FB5100B847E0 /* libportmidi.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libportmidi.a; path = lib/osx/libportmidi.a; sourceTree = "<group>"; };
+		67B6F3402040FB7800B847E0 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
+		67B6F3422040FBB600B847E0 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		67B71D201EC09FDB00690109 /* ColorManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorManager.cpp; sourceTree = "<group>"; };
 		67B71D211EC09FDB00690109 /* ColorManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorManager.h; sourceTree = "<group>"; };
 		67B71D221EC09FDB00690109 /* ColorManagerDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorManagerDialog.cpp; sourceTree = "<group>"; };
@@ -1672,6 +1692,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B6F3432040FBB600B847E0 /* CoreAudio.framework in Frameworks */,
+				67B6F3412040FB7900B847E0 /* CoreMIDI.framework in Frameworks */,
+				67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */,
 				67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */,
 				67F23F8B1E329DF500F8B985 /* libavformat.57.dylib in Frameworks */,
 				67F23F8C1E329DF500F8B985 /* libavutil.55.dylib in Frameworks */,
@@ -2130,6 +2153,16 @@
 			name = Outputs;
 			sourceTree = "<group>";
 		};
+		67B6F3382040F63E00B847E0 /* wxMIDI */ = {
+			isa = PBXGroup;
+			children = (
+				67B6F33A2040F66500B847E0 /* wxMidi.cpp */,
+				67B6F33B2040F66500B847E0 /* wxMidi.h */,
+				67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */,
+			);
+			name = wxMIDI;
+			sourceTree = "<group>";
+		};
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -2154,6 +2187,10 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				67B6F3312040F59500B847E0 /* EventMIDI.cpp */,
+				67B6F3322040F59500B847E0 /* EventMIDI.h */,
+				67B6F3302040F59400B847E0 /* ListenerMIDI.cpp */,
+				67B6F32F2040F59400B847E0 /* ListenerMIDI.h */,
 				67BAE108203F1D67000EA088 /* EventLor.cpp */,
 				67BAE107203F1D66000EA088 /* EventLor.h */,
 				67BAE109203F1D67000EA088 /* EventLorPanel.cpp */,
@@ -2257,6 +2294,9 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67B6F3422040FBB600B847E0 /* CoreAudio.framework */,
+				67B6F3402040FB7800B847E0 /* CoreMIDI.framework */,
+				67B6F33E2040FB5100B847E0 /* libportmidi.a */,
 				675D404D1E896C620033C950 /* libliquidfun.a */,
 				67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib */,
 				67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib */,
@@ -2322,6 +2362,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */,
+				67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */,
 				673930DD202B6103000A33B4 /* SelectPanel.cpp */,
 				673930DE202B6103000A33B4 /* SelectPanel.h */,
 				670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */,
@@ -2479,8 +2521,6 @@
 				67E491B317C45BAF00FE40EA /* TabSequence.cpp */,
 				6784F9261A5653670018EC0C /* tabSequencer.cpp */,
 				673E425917F0D23E00F4BC76 /* TabSetup.cpp */,
-				67229EDD1C95DDF000D34024 /* TestDialog.cpp */,
-				67229EDC1C95DDF000D34024 /* TestDialog.h */,
 				6784F9271A5653670018EC0C /* TimeLine.cpp */,
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
 				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
@@ -2610,6 +2650,9 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67B6F3382040F63E00B847E0 /* wxMIDI */,
+				67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */,
+				67B6F3362040F5A600B847E0 /* EventMIDIPanel.h */,
 				67D75E352020ED4B005BAC6E /* events */,
 				67D75E262020ED19005BAC6E /* EventARTNetPanel.cpp */,
 				67D75E232020ED18005BAC6E /* EventARTNetPanel.h */,
@@ -3193,7 +3236,6 @@
 				67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */,
 				67B2CF911C39D98A003C17CA /* CirclesPanel.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
-				67229EDE1C95DDF000D34024 /* TestDialog.cpp in Sources */,
 				67B2CF771C39D98A003C17CA /* GarlandsPanel.cpp in Sources */,
 				6719BF521CCB1DAB00899A4B /* ConvertLogDialog.cpp in Sources */,
 				67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */,
@@ -3275,6 +3317,7 @@
 				670827F82024C19D0002B617 /* LorOptimisedDialog.cpp in Sources */,
 				6760D8551FA3C6AD00458894 /* BatchRenderDialog.cpp in Sources */,
 				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
+				67B6F3252040BF6C00B847E0 /* PixelTestDialog.cpp in Sources */,
 				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67B2CF791C39D98A003C17CA /* LifePanel.cpp in Sources */,
 				67B2CFE01C3A186A003C17CA /* ShockwaveEffect.cpp in Sources */,
@@ -3405,6 +3448,7 @@
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				67F2401D1E32A09E00F8B985 /* Files.cpp in Sources */,
+				67B6F3332040F59500B847E0 /* ListenerMIDI.cpp in Sources */,
 				67DA0AFF1E39C8EB00E2A859 /* OutputProcessSet.cpp in Sources */,
 				67D75E302020ED1B005BAC6E /* EventFPPPanel.cpp in Sources */,
 				67F2401E1E32A09E00F8B985 /* host-c.cpp in Sources */,
@@ -3471,7 +3515,9 @@
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
+				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
+				67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */,
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
 				6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */,
 				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
@@ -3517,6 +3563,7 @@
 				67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */,
 				67F23F5C1E329AD800F8B985 /* xScheduleApp.cpp in Sources */,
 				67F23FE71E329E7400F8B985 /* PlayList.cpp in Sources */,
+				67B6F3372040F5A600B847E0 /* EventMIDIPanel.cpp in Sources */,
 				67F23FEB1E329E7400F8B985 /* PlayListItemAllOffPanel.cpp in Sources */,
 				67C581501E4B95A400932DFA /* VirtualMatricesDialog.cpp in Sources */,
 				67F23FF21E329E7400F8B985 /* PlayListItemFSEQ.cpp in Sources */,
@@ -3552,6 +3599,7 @@
 				67C5814F1E4B95A400932DFA /* MatricesDialog.cpp in Sources */,
 				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
+				67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
