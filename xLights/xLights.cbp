@@ -674,6 +674,8 @@
 		<Unit filename="SequenceData.h" />
 		<Unit filename="SequenceVideoPanel.cpp" />
 		<Unit filename="SequenceVideoPanel.h" />
+		<Unit filename="SequenceVideoPreview.cpp" />
+		<Unit filename="SequenceVideoPreview.h" />
 		<Unit filename="SequenceViewManager.cpp" />
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
