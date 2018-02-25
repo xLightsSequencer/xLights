@@ -564,6 +564,10 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
                 logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));
             }
+            else
+            {
+               sequenceVideoPanel->SetMediaPath( mediaFilename.ToStdString() );
+            }
         }
         else if (xml_file.GetSequenceType() == "Media")
         {
@@ -1788,6 +1792,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             mainSequencer->PanelEffectGrid->ForceRefresh();
             _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
+
+        sequenceVideoPanel->UpdateVideo( current_play_time );
 
         //wxLongLong me = wxGetUTCTimeMillis();
         //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
