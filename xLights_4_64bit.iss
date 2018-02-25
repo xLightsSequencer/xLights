@@ -60,12 +60,8 @@ Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignorevers
 Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 Source: "include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
-; xLightsBatchRender
-; Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
-; Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
-
-Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
-Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin64/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin64/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin64\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -111,8 +107,6 @@ Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
 Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
-; Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
-; Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
@@ -126,6 +120,8 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 
 ; Remove Kieth's Batch Render to prevent confusion
 [InstallDelete]
+Type: files; Name: "{app}\wxmsw310u_gcc_custom.dll"
+Type: files; Name: "{app}\wxmsw310u_gl_gcc_custom.dll"
 Type: files; Name: "{app}\xLightsBatchRenderer.exe"
 Type: files; Name: "{app}\xLightsBatchRenderer.ico"
 Type: files; Name: "{group}\xLightsBatchRender.lnk"

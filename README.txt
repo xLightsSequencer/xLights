@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (all)    Move to wxWidgets 3.1.1 on all platforms ... also codeblocks and gcc version upgrades on windows
    -- enh (keith)  Rework test dialog to better support large shows
    -- enh (keith)  Add submodels to test dialog
    -- enh (keith)  Add option to suppress outputs not under test in the test dialog

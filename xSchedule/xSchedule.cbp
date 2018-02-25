@@ -108,6 +108,8 @@
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
+					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -131,12 +133,13 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xSchedule.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="libwxmsw31u.a" />
-					<Add library="libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/libwxmsw31u.a" />
+					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
@@ -234,6 +237,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
