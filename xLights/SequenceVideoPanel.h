@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+class SequenceVideoPreview;
 class VideoReader;
 
 //(*Headers(SequenceVideoPanel)
@@ -38,6 +39,10 @@ class SequenceVideoPanel: public wxPanel
       std::string                   _Path;
       std::unique_ptr<VideoReader>  _VideoReader;
       bool                          _IsValidVideo;
+      int                           _VideoWidth;
+      int                           _VideoHeight;
+      int                           _VideoLength;
+      SequenceVideoPreview *        _VideoPreview;
 };
 
 #endif

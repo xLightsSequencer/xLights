@@ -328,6 +328,7 @@
     <ClCompile Include="xlSlider.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="SequenceVideoPanel.cpp" />
+    <ClCompile Include="SequenceVideoPreview.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -653,6 +654,7 @@
     <ClInclude Include="xlSlider.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="SequenceVideoPanel.h" />
+    <ClInclude Include="SequenceVideoPreview.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
