@@ -384,6 +384,13 @@ ScheduleManager::~ScheduleManager()
         _backgroundPlayList = nullptr;
     }
 
+    while (_eventPlayLists.size() > 0)
+    {
+        _eventPlayLists.front()->Stop();
+        delete _eventPlayLists.front();
+        _eventPlayLists.pop_front();
+    }
+
     while (_outputProcessing.size() > 0)
     {
         auto toremove = _outputProcessing.front();
@@ -611,16 +618,41 @@ void ScheduleManager::AllOff()
     memset(_buffer, 0x00, _outputManager->GetTotalChannels()); // clear out any prior frame data
     _outputManager->StartFrame(0);
 
-    if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+    if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
     {
-        logger_base.debug("   ... except the background lights.");
-
-        if (!_backgroundPlayList->IsRunning())
+        if (_backgroundPlayList != nullptr)
         {
-            _backgroundPlayList->Start(true);
-            logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+            logger_base.debug("   ... except the background lights.");
+
+            if (!_backgroundPlayList->IsRunning())
+            {
+                _backgroundPlayList->Start(true);
+                logger_base.debug("Background playlist started. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+            }
+            _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), true);
         }
-        _backgroundPlayList->Frame(_buffer, _outputManager->GetTotalChannels(), true);
+
+        if (_eventPlayLists.size() > 0)
+        {
+            logger_base.debug("   ... except the event lights.");
+
+            auto it = _eventPlayLists.begin(); 
+            while (it != _eventPlayLists.end())
+            {
+                if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                {
+                    auto temp = it;
+                    ++it;
+                    (*temp)->Stop();
+                    delete *temp;
+                    _eventPlayLists.remove(*temp);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
 
         // apply any overlay data
         for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
@@ -743,6 +775,26 @@ int ScheduleManager::Frame(bool outputframe)
             _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
         }
 
+        if (_eventPlayLists.size() > 0)
+        {
+            auto it = _eventPlayLists.begin();
+            while (it != _eventPlayLists.end())
+            {
+                if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe))
+                {
+                    auto temp = it;
+                    ++it;
+                    (*temp)->Stop();
+                    delete *temp;
+                    _eventPlayLists.remove(*temp);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+
         if (_xyzzy != nullptr)
         {
             _xyzzy->Frame(_buffer, totalChannels, outputframe);
@@ -812,8 +864,11 @@ int ScheduleManager::Frame(bool outputframe)
             {
                 _outputManager->StartFrame(0);
                 _outputManager->AllOff();
+            }
 
-                if (_backgroundPlayList != nullptr && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+            if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+            {
+                if (_backgroundPlayList != nullptr)
                 {
                     if (!_backgroundPlayList->IsRunning())
                     {
@@ -821,18 +876,102 @@ int ScheduleManager::Frame(bool outputframe)
                         logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
                     }
                     _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+                }
 
-                    // apply any overlay data
-                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                if (_eventPlayLists.size() > 0)
+                {
+                    auto it = _eventPlayLists.begin();
+                    while (it != _eventPlayLists.end())
                     {
-                        (*it)->Set(_buffer, totalChannels);
+                        if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                        {
+                            auto temp = it;
+                            ++it;
+                            (*temp)->Stop();
+                            delete *temp;
+                            _eventPlayLists.remove(*temp);
+                        }
+                        else
+                        {
+                            ++it;
+                        }
+                    }
+                }
+
+                // apply any overlay data
+                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                {
+                    (*it)->Set(_buffer, totalChannels);
+                }
+            }
+
+            // apply any output processing
+            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+            {
+                (*it)->Frame(_buffer, totalChannels);
+            }
+
+            if (outputframe && _brightness < 100)
+            {
+                if (_brightness != _lastBrightness)
+                {
+                    _lastBrightness = _brightness;
+                    CreateBrightnessArray();
+                }
+
+                wxByte* pb = _buffer;
+                for (int i = 0; i < totalChannels; ++i)
+                {
+                    *pb = _brightnessArray[*pb];
+                    pb++;
+                }
+            }
+
+            auto vm = GetOptions()->GetVirtualMatrices();
+            for (auto it = vm->begin(); it != vm->end(); ++it)
+            {
+                (*it)->Frame(_buffer, totalChannels);
+            }
+
+            _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+            if (outputframe)
+            {
+                _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                _outputManager->EndFrame();
+            }
+        }
+        else
+        {
+            if (_eventPlayLists.size() > 0)
+            {
+                if (outputframe)
+                {
+                    _outputManager->StartFrame(0);
+                    _outputManager->AllOff();
+                }
+
+                auto it = _eventPlayLists.begin();
+                while (it != _eventPlayLists.end())
+                {
+                    if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                    {
+                        auto temp = it;
+                        ++it;
+                        (*temp)->Stop();
+                        delete *temp;
+                        _eventPlayLists.remove(*temp);
+                    }
+                    else
+                    {
+                        ++it;
                     }
                 }
 
                 // apply any output processing
-                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    (*it2)->Frame(_buffer, totalChannels);
                 }
 
                 if (outputframe && _brightness < 100)
@@ -852,15 +991,16 @@ int ScheduleManager::Frame(bool outputframe)
                 }
 
                 auto vm = GetOptions()->GetVirtualMatrices();
-                for (auto it = vm->begin(); it != vm->end(); ++it)
+                for (auto it2 = vm->begin(); it2 != vm->end(); ++it2)
                 {
-                    (*it)->Frame(_buffer, totalChannels);
+                    (*it2)->Frame(_buffer, totalChannels);
                 }
 
-                _listenerManager->ProcessFrame(_buffer, totalChannels);
-
-                _outputManager->SetManyChannels(0, _buffer, totalChannels);
-                _outputManager->EndFrame();
+                if (outputframe)
+                {
+                    _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                    _outputManager->EndFrame();
+                }
             }
         }
     }
@@ -1147,6 +1287,8 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
 bool ScheduleManager::Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool result = true;
     bool scheduleChanged = false;
 
@@ -1427,6 +1569,120 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     result = false;
                     msg = "Unable to find run process.";
+                }
+            }
+            else if (command == "Run event playlist step")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    PlayListStep* pls = p->GetStep(step);
+
+                    if (pls != nullptr)
+                    {
+                        logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                        _eventPlayLists.push_back(new PlayList(*p));
+                        _eventPlayLists.back()->Start(false, false, false);
+                        _eventPlayLists.back()->JumpToStep(step);
+                        _eventPlayLists.back()->StopAtEndOfCurrentStep();
+                    }
+                }
+            }
+            else if (command == "Run event playlist step unique")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    PlayListStep* pls = p->GetStep(step);
+
+                    if (pls != nullptr)
+                    {
+                        // stop and remove any existing items from the specified playlist
+                        auto it2 = _eventPlayLists.begin(); 
+                        while (it2 != _eventPlayLists.end())
+                        {
+                            if ((*it2)->GetId() == p->GetId())
+                            {
+                                auto temp = it2;
+                                ++it2;
+                                (*temp)->Stop();
+                                delete *temp;
+                                _eventPlayLists.remove(*temp);
+                            }
+                            else
+                            {
+                                ++it2;
+                            }
+                        }
+
+                        logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                        _eventPlayLists.push_back(new PlayList(*p));
+                        _eventPlayLists.back()->Start(false, false, false);
+                        _eventPlayLists.back()->JumpToStep(step);
+                        _eventPlayLists.back()->StopAtEndOfCurrentStep();
+                    }
+                }
+            }
+            else if (command == "Run event playlist step if idle")
+            {
+                bool run = false;
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    bool running = false;
+                    // stop and remove any existing items from the specified playlist
+                    auto it2 = _eventPlayLists.begin();
+                    while (it2 != _eventPlayLists.end())
+                    {
+                        if ((*it2)->GetId() == p->GetId())
+                        {
+                            running = true;
+                            break;
+                        }
+                        else
+                        {
+                            ++it2;
+                        }
+                    }
+
+                    if (!running)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+
+                        if (pls != nullptr)
+                        {
+                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                            _eventPlayLists.push_back(new PlayList(*p));
+                            _eventPlayLists.back()->Start(false, false, false);
+                            _eventPlayLists.back()->JumpToStep(step);
+                            _eventPlayLists.back()->StopAtEndOfCurrentStep();
+                        }
+                    }
+                    else
+                    {
+                        logger_base.info("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char *)step.c_str());
+                    }
                 }
             }
             else if (command == "Play specified playlist step once only")

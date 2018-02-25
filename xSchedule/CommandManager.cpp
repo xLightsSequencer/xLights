@@ -320,5 +320,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Set pixels", 3, sss, false, false, true, false, true, true, false, true)); // <set channels name>,<base64 encoded data>, <properties>
     _commands.push_back(new Command("Set pixel range", 4, iiss, false, false, true, false, true, true, false, true)); // <startchannel>,<channels>,<color>,<blendmode>
     _commands.push_back(new Command("Run process", 3, plstit, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step unique", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step if idle", 2, plst, false, false, false, false, true, true, true, false));
 }
 

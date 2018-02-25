@@ -69,6 +69,7 @@ class ScheduleManager
     wxUint32 _startTime;
     PlayList* _immediatePlay;
     PlayList* _backgroundPlayList;
+    std::list<PlayList*> _eventPlayLists;
     std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
     PlayList* _queuedSongs;

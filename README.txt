@@ -1,5 +1,5 @@
 xLights is a show sequencer and player/scheduler designed to control
-USB/sACN(e1.31)/ArtNET(e.1.17) controllers.
+USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
 Vixen2, LSP, HLS.
@@ -16,6 +16,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add submodels to test dialog
    -- enh (keith)  Add option to suppress outputs not under test in the test dialog
    -- enh (keith)  Add to xSchedule MIDI events
+   -- enh (Keith)  Add to xSchedule an event playlist list. This is an extra list of simultaneously running playlists 
+				   which when triggered play one step once ... typically in response to an event. These are applied on 
+				   top of any running playlist or background playlist. Great for on demand elements in your show without 
+				   interrupting your show.
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.
