@@ -936,7 +936,6 @@ private:
     wxMenuItem* MenuItem_MedVol;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
     xlAuiToolBar* ACToolbar;
-    wxPanel* PanelSequenceVideoPanel;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
@@ -1319,6 +1318,7 @@ private:
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
     SelectPanel *_selectPanel;
+    SequenceVideoPanel* sequenceVideoPanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects;

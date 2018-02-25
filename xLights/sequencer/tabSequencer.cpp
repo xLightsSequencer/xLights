@@ -127,8 +127,8 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
 
     logger_base.debug( "        Sequence Video." );
-    PanelSequenceVideoPanel = new SequenceVideoPanel(this);
-    m_mgr->AddPane(PanelSequenceVideoPanel,wxAuiPaneInfo().Name(wxT("SequenceVideo")).Caption(wxT("Sequence Video")).Float().Hide() );
+    sequenceVideoPanel = new SequenceVideoPanel( this );
+    m_mgr->AddPane(sequenceVideoPanel,wxAuiPaneInfo().Name(wxT("SequenceVideo")).Caption(wxT("Sequence Video")).Float().Hide() );
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
