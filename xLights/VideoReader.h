@@ -14,7 +14,7 @@ extern "C"
 class VideoReader
 {
 public:
-	VideoReader(std::string filename, int width, int height, bool keepaspectratio);
+	VideoReader(std::string filename, int width, int height, bool keepaspectratio, bool usenativeresolution=false);
 	~VideoReader();
 	int GetLengthMS() { return _lengthMS; };
 	void Seek(int timestampMS);
