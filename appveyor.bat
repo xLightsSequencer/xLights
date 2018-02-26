@@ -87,7 +87,7 @@ cd ..
 
 cd xSchedule
 
-sed -i "s/10.0.15063.0/10.0.14393.0/g" xSchedule.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" xSchedule.vcxproj
 
 msbuild /m xSchedule.sln /p:PlatformToolset=v%PLATFORMTOOLSET%
 if %ERRORLEVEL% NEQ 0 exit 1
