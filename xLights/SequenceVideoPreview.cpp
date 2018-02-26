@@ -71,6 +71,12 @@ void SequenceVideoPreview::Render( AVFrame *frame )
    SwapBuffers();
 }
 
+void SequenceVideoPreview::Clear()
+{
+    // TODO Kevin ... we need to clear the image texture
+    Refresh();
+}
+
 #define GL_CLAMP_TO_EDGE 0x812F
 
 void SequenceVideoPreview::reinitTexture( int width, int height )

@@ -15,6 +15,7 @@
 #include "models/ModelGroup.h"
 #include "HousePreviewPanel.h"
 #include "FontManager.h"
+#include "SequenceVideoPanel.h"
 
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -514,6 +515,7 @@ bool xLightsFrame::CloseSequence()
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
+    sequenceVideoPanel->SetMediaPath("");
     xlightsFilename = "";
     mediaFilename.Clear();
     previewLoaded = false;

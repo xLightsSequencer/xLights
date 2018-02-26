@@ -14,6 +14,7 @@ public:
    virtual ~SequenceVideoPreview();
 
    void Render( AVFrame * frame );
+   void Clear();
 
 protected:
    void InitializeGLCanvas() override;
