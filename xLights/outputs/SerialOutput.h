@@ -45,6 +45,8 @@ public:
     virtual bool AllowsBaudRateSetting() const { return true; }
     virtual size_t TxNonEmptyCount() const override;
     virtual bool TxEmpty() const override;
+    int GetId() const { return _universe; }
+    void SetId(int id) { _universe = id; _dirty = true; }
     #pragma endregion Getters and Setters
 
     #pragma region Operators

@@ -2,13 +2,13 @@
 #define DDPDIALOG_H
 
 //(*Headers(DDPDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class DDPOutput;
@@ -26,19 +26,21 @@ class DDPDialog: public wxDialog
 		virtual ~DDPDialog();
 
 		//(*Declarations(DDPDialog)
-		wxSpinCtrl* SpinCtrl_ChannelsPerPacket;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrlIPAddress;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxCheckBox* CheckBox1;
-		wxTextCtrl* TextCtrlDescription;
 		wxButton* ButtonCancel;
-		wxStaticText* StaticText7;
-		wxCheckBox* CheckBoxKeepChannels;
 		wxButton* ButtonOk;
-		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox1;
+		wxCheckBox* CheckBoxKeepChannels;
+		wxSpinCtrl* SpinCtrl1;
 		wxSpinCtrl* SpinCtrlChannels;
+		wxSpinCtrl* SpinCtrl_ChannelsPerPacket;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText7;
+		wxTextCtrl* TextCtrlDescription;
+		wxTextCtrl* TextCtrlIPAddress;
 		//*)
 
 	protected:
@@ -47,6 +49,8 @@ class DDPDialog: public wxDialog
 		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT5;
+		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT7;
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT4;

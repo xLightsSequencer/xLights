@@ -24,6 +24,7 @@ DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
 
 DDPOutput::DDPOutput() : IPOutput()
 {
+    _universe = 64001;
     _fulldata = nullptr;
     _channelsPerPacket = 1410;
     _channels = 512;

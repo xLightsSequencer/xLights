@@ -2,13 +2,14 @@
 #define SERIALPORTWITHRATE_H
 
 //(*Headers(SerialPortWithRate)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class SerialOutput;
@@ -28,20 +29,22 @@ public:
     void ProtocolChange();
 
     //(*Declarations(SerialPortWithRate)
-    wxChoice* ChoiceProtocol;
-    wxButton* Button_Ok;
-    wxTextCtrl* TextCtrl_Description;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticTextRate;
-    wxChoice* ChoicePort;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxCheckBox* CheckBox_SuppressDuplicates;
-    wxTextCtrl* TextCtrlLastChannel;
     wxButton* Button_Cancel;
-    wxStaticText* StaticTextExplanation;
+    wxButton* Button_Ok;
+    wxCheckBox* CheckBox_SuppressDuplicates;
     wxChoice* ChoiceBaudRate;
+    wxChoice* ChoicePort;
+    wxChoice* ChoiceProtocol;
+    wxSpinCtrl* SpinCtrl_Id;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText3;
+    wxStaticText* StaticText4;
+    wxStaticText* StaticTextExplanation;
     wxStaticText* StaticTextPort;
+    wxStaticText* StaticTextRate;
+    wxTextCtrl* TextCtrlLastChannel;
+    wxTextCtrl* TextCtrl_Description;
     //*)
 
 protected:
@@ -49,6 +52,8 @@ protected:
     //(*Identifiers(SerialPortWithRate)
     static const long ID_CHOICE_PROTOCOL;
     static const long ID_STATICTEXT_EXPLANATION;
+    static const long ID_STATICTEXT4;
+    static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT_PORT;
     static const long ID_CHOICE_PORT;
     static const long ID_STATICTEXT_RATE;

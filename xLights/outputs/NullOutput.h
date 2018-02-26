@@ -5,11 +5,13 @@
 
 class NullOutput : public Output
 {
+    int _id;
+
 public:
 
     #pragma region Constructors and Destructors
     NullOutput(wxXmlNode* node) : Output(node) {}
-    NullOutput() : Output() { _channels = 512; }
+    NullOutput() : Output() { _channels = 512; _id = 64001; }
     virtual ~NullOutput() override {};
     #pragma endregion Constructors and Destructors
 
@@ -23,6 +25,8 @@ public:
     virtual std::string GetChannelMapping(long ch) const override;
     virtual int GetMaxChannels() const override { return 9999999; }
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0; }
+    int GetId() const { return _universe; }
+    void SetId(int id) { _universe = id; _dirty = true;}
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
