@@ -4,6 +4,8 @@ rem dir "\program files (x86)\windows kits\10\bin\"
 
 dir c:\
 
+dir c:\mingw
+
 dir C:\mingw-w64
 
 set "xlightsdir=%cd%"
@@ -72,7 +74,7 @@ rem =========================================== 32 BIT GCC =====================
 
 rem This has to be cmd.exe because the makefile uses \ in paths and bash and sh dont understand them
 set COMSPEC=cmd.exe
-set MINGWPATH=C:\mingw-w64\i686-7.2.0-posix-seh-rt_v5-rev1\mingw32\bin
+set MINGWPATH=C:\mingw\i686-7.2.0-posix-seh-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
 rem set
