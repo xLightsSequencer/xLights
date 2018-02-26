@@ -98,7 +98,7 @@ rem =========================================== 32 BIT GCC =====================
 :x86ReleaseGCC
 
 rem extract the 32 bit compiler
-7z x -o\mingw32 x86_64-7.2.0-release-posix-seh-rt_v5-rev0.7z
+7z x -o\mingw32 xi686-7.2.0-release-posix-dwarf-rt_v5-rev0.7z
 if %ERRORLEVEL% NEQ 0 exit 1
 
 dir c:\mingw32
