@@ -132,10 +132,6 @@ cd ..\wxWidgets\build\msw
 rem make the header files
 mingw32-make setup_h -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
 
-rem build wxWidgets
-mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
-if %ERRORLEVEL% NEQ 0 exit 1
-
 cd %xlightsdir%
 
 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
