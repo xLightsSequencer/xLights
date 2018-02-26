@@ -2,15 +2,22 @@ echo on
 
 rem dir "\program files (x86)\windows kits\10\bin\"
 
+dir c:\
+
+dir C:\mingw-w64
+
 set "xlightsdir=%cd%"
 
 rem git clone -q --branch=master https://github.com/wxWidgets/wxWidgets.git \projects\wxWidgets
-7z x -o\projects\wxWidgets wxWidgets-3.1.0.zip
+7z x -o\projects\wxWidgets wxWidgets-3.1.1.zip
 if %ERRORLEVEL% NEQ 0 exit 1
 
 rem dir \projects\wxWidgets
 
-sed -i 's/bool IsKindOf(const wxClassInfo *info) const/bool __attribute__((optimize("O0"))) IsKindOf(const wxClassInfo *info) const/g' \projects\wxWidgets\include\wx\rtti.h
+sed -i '#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL/#define wxUSE_STD_STRING_CONV_IN_WXSTRING 1/g' \projects\wxWidgets\include\wx\msw\setup.h
+if %ERRORLEVEL% NEQ 0 exit 1
+
+sed -i '#define wxUSE_STD_CONTAINERS 0/#define wxUSE_STD_CONTAINERS 1/g' \projects\wxWidgets\include\wx\msw\setup.h
 if %ERRORLEVEL% NEQ 0 exit 1
 
 is.exe /LOG=inno.log /SUPPRESSMSGBOXES /SP- /NORESTART /NOCLOSEAPPLICATIONS /DIR=\projects\inno /NOICONS /SILENT
@@ -33,12 +40,6 @@ rem =========================================== 64 BIT MSVC ====================
 
 rem prepare the header files for wxWidgets
 cd ..\wxWidgets\build\msw
-msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v%PLATFORMTOOLSET% /p:Configuration="Release"
-if %ERRORLEVEL% NEQ 0 exit 1
-
-sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
-if %ERRORLEVEL% NEQ 0 exit 1
-
 msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v%PLATFORMTOOLSET% /p:Configuration="Release"
 if %ERRORLEVEL% NEQ 0 exit 1
 
@@ -80,9 +81,6 @@ cd ..\wxWidgets\build\msw
 
 rem make the header files
 mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
-
-sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
-if %ERRORLEVEL% NEQ 0 exit 1
 
 rem solve for linker command line length issues
 sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\tsed -i 's\/\\\\\\\\\\\\\\\\\/\\\\\\\\\/\/g' objs.txt\n\tcat objs.txt\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
@@ -139,19 +137,11 @@ set PATH=%PATH%;%MINGWPATH%
 
 cd ..\wxWidgets\build\msw
 
-copy ..\..\include\wx\msw\setup0.h ..\..\include\wx\msw\setup.h
-
-sed -i 's/#   define wxUSE_GRAPHICS_CONTEXT 0/#   define wxUSE_GRAPHICS_CONTEXT 1/g' \projects\wxWidgets\include\wx\msw\setup.h
-if %ERRORLEVEL% NEQ 0 exit 1
-
-mkdir ..\..\lib\gcc_dll
-mkdir ..\..\lib\gcc_dll\mswu
-mkdir ..\..\lib\gcc_dll\mswu\wx
-mkdir ..\..\lib\gcc_dll\mswu\wx\msw
-copy ..\..\include\wx\msw\setup.h ..\..\lib\gcc_dll\mswu\wx
+rem make the header files
+mingw32-make setup_h -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
 
 rem build wxWidgets
-mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
+mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
 
 if %ERRORLEVEL% NEQ 0 exit 1
 
