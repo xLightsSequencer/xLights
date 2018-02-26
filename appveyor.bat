@@ -71,14 +71,14 @@ sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_ribbon.vcxproj
 sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_propgrid.vcxproj
 
 rem Build wxWidgets
-msbuild /m wx_vc14.sln /p:PlatformToolset=v%PLATFORMTOOLSET%
+msbuild /m wx_vc15.sln /p:PlatformToolset=v%PLATFORMTOOLSET%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %xlightsdir%
 
 cd xLights
 
-sed -i "s/10.0.15063.0/10.0.14393.0/g" Xlights.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" Xlights.vcxproj
 
 msbuild /m xLights.sln /p:PlatformToolset=v%PLATFORMTOOLSET%
 if %ERRORLEVEL% NEQ 0 exit 1
