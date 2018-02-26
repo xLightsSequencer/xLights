@@ -72,7 +72,7 @@ rem =========================================== 32 BIT GCC =====================
 
 rem This has to be cmd.exe because the makefile uses \ in paths and bash and sh dont understand them
 set COMSPEC=cmd.exe
-set MINGWPATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin
+set MINGWPATH=C:\mingw-w64\i686-7.2.0-posix-seh-rt_v5-rev1\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
 rem set
@@ -81,15 +81,6 @@ cd ..\wxWidgets\build\msw
 
 rem make the header files
 mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release SHELL=%COMSPEC%
-
-rem solve for linker command line length issues
-sed -i "s/$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ $(MONODLL_OBJECTS)/$(file >objs.txt,$^)\n\tsed -i 's\/\\\\\\\\\\\\\\\\\/\\\\\\\\\/\/g' objs.txt\n\tcat objs.txt\n\t$(CXX) $(LINK_DLL_FLAGS) -fPIC -o $@ @objs.txt/g" makefile.gcc
-if %ERRORLEVEL% NEQ 0 exit 1
-
-rem make wxWidgets
-mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
-
-if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %xlightsdir%
 
@@ -101,14 +92,8 @@ cd xlights
 ..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
 if %ERRORLEVEL% NEQ 0 exit 1
 
-sed -i "s/libwxmsw31u.a/..\\\\lib\\\\windows\\\\libwxmsw31u.a/g" xLights.cbp.mak
-if %ERRORLEVEL% NEQ 0 exit 1
-
-sed -i "s/libwxmsw31u_gl.a/..\\\\lib\\\\windows\\\\libwxmsw31u_gl.a/g" xLights.cbp.mak
-if %ERRORLEVEL% NEQ 0 exit 1
-
-sed -i "s/-l\.\./../g" xLights.cbp.mak
-if %ERRORLEVEL% NEQ 0 exit 1
+rem sed -i "s/-l\.\./../g" xLights.cbp.mak
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
 mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
 if %ERRORLEVEL% NEQ 0 exit 1
