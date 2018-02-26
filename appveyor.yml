@@ -17,7 +17,7 @@ environment:
     # Visual Studio 64 bit debug
     - platform: x64
       configuration: Debug
-      PLATFORMTOOLSET: v140
+      PLATFORMTOOLSET: 140
       BUILDTYPE: X64DEBUGVS
     # gcc 32 bit release
     - platform: x86
