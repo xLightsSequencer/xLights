@@ -125,8 +125,8 @@ cd xlights
 ..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
 if %ERRORLEVEL% NEQ 0 exit 1
 
-rem sed -i "s/-l\.\./../g" xLights.cbp.mak
-rem if %ERRORLEVEL% NEQ 0 exit 1
+sed -i "s/-l\.\./../g" xLights.cbp.mak
+if %ERRORLEVEL% NEQ 0 exit 1
 
 mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
 if %ERRORLEVEL% NEQ 0 exit 1
