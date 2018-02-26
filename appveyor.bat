@@ -45,6 +45,31 @@ cd ..\wxWidgets\build\msw
 msbuild /m wx_custom_build.vcxproj /p:PlatformToolset=v%PLATFORMTOOLSET% /p:Configuration="Release"
 if %ERRORLEVEL% NEQ 0 exit 1
 
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_custom_build.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxpng.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxjpeg.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxzlib.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxtiff.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxexpat.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxscintilla.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_wxregex.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_base.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_net.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_core.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_xml.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_gl.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_html.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_media.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_adv.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_webview.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_qa.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_stc.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_xrc.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_richtext.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_aui.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_ribbon.vcxproj
+sed -i "s/10.0.16299.0/10.0.14393.0/g" wx_propgrid.vcxproj
+
 rem Build wxWidgets
 msbuild /m wx_vc14.sln /p:PlatformToolset=v%PLATFORMTOOLSET%
 if %ERRORLEVEL% NEQ 0 exit 1
