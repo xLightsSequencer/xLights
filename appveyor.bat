@@ -1,6 +1,7 @@
 echo on
 
-rem dir "\program files (x86)\windows kits\10\bin\"
+dir "\program files (x86)\windows kits\10\bin\"
+
 rem dir c:\
 rem dir c:\mingw
 rem dir C:\mingw-w64
