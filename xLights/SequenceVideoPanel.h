@@ -36,6 +36,8 @@ class SequenceVideoPanel: public wxPanel
 
 		DECLARE_EVENT_TABLE()
 
+      void Resized( wxSizeEvent& evt );
+
       std::string                   _Path;
       std::unique_ptr<VideoReader>  _VideoReader;
       bool                          _IsValidVideo;

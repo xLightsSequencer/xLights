@@ -18,8 +18,14 @@ public:
 protected:
    void InitializeGLCanvas() override;
 
+   void reinitTexture( int width, int height );
+
 private:
-   void render( wxPaintEvent& evt );
+   void paint( wxPaintEvent& evt );
+
+   unsigned _TexId;
+   int      _TexWidth;
+   int      _TexHeight;
 
    DECLARE_EVENT_TABLE()
 };

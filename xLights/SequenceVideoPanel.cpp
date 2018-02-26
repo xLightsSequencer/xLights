@@ -16,6 +16,7 @@
 BEGIN_EVENT_TABLE(SequenceVideoPanel,wxPanel)
 	//(*EventTable(SequenceVideoPanel)
 	//*)
+   EVT_SIZE( SequenceVideoPanel::Resized )
 END_EVENT_TABLE()
 
 SequenceVideoPanel::SequenceVideoPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -56,5 +57,14 @@ void SequenceVideoPanel::UpdateVideo( int ms )
    AVFrame *frame = _VideoReader->GetNextFrame( clampedTime );
    if ( frame != nullptr )
    _VideoPreview->Render( frame );
+}
+
+void SequenceVideoPanel::Resized( wxSizeEvent& evt )
+{
+   if ( _VideoPreview )
+   {
+      _VideoPreview->Move( 0, 0 );
+      _VideoPreview->SetSize( evt.GetSize() );
+   }
 }
 
