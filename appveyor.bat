@@ -1,12 +1,11 @@
 echo on
 
 rem dir "\program files (x86)\windows kits\10\bin\"
+rem dir c:\
+rem dir c:\mingw
+rem dir C:\mingw-w64
 
-dir c:\
-
-dir c:\mingw
-
-dir C:\mingw-w64
+dir
 
 set "xlightsdir=%cd%"
 
@@ -72,9 +71,15 @@ exit 0
 rem =========================================== 32 BIT GCC ===========================================
 :x86ReleaseGCC
 
+rem extract the 32 bit compiler
+7z x -o\mingw32 x86_64-7.2.0-release-posix-seh-rt_v5-rev0.7z
+if %ERRORLEVEL% NEQ 0 exit 1
+
+dir c:\mingw32
+
 rem This has to be cmd.exe because the makefile uses \ in paths and bash and sh dont understand them
 set COMSPEC=cmd.exe
-set MINGWPATH=C:\mingw\i686-7.2.0-posix-seh-rt_v5-rev1\mingw32\bin
+set MINGWPATH=C:\mingw32\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
 rem set
@@ -118,9 +123,9 @@ exit 0
 rem =========================================== 64 BIT GCC ===========================================
 :x64ReleaseGCC
 
-set COMSPEC=C:\Windows\system32\cmd.exe
-set MINGWPATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin
-set PATH=%PATH%;%MINGWPATH%
+set COMSPEC=cmd.exe
+set MINGWPATH=C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin
+set PATH=%MINGWPATH%;%PATH%
 
 cd ..\wxWidgets\build\msw
 
@@ -129,7 +134,6 @@ mingw32-make setup_h -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=
 
 rem build wxWidgets
 mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10 SHELL=%COMSPEC%
-
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %xlightsdir%
