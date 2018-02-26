@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio)
+VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _filename = filename;
@@ -61,26 +61,33 @@ VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool
 	}
 
 	// at this point it is open and ready
-
-	if (keepaspectratio)
-	{
-        if (_codecContext->width == 0 || _codecContext->height == 0)
-        {
-            logger_base.error("VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, (const char *)filename.c_str());
+   if ( usenativeresolution )
+   {
+      _height = _codecContext->height;
+      _width = _codecContext->width;
+   }
+   else
+   {
+      if ( keepaspectratio )
+      {
+         if ( _codecContext->width == 0 || _codecContext->height == 0 )
+         {
+            logger_base.error( "VideoReader: Invalid input reader dimensions (%d,%d) %s", _codecContext->width, _codecContext->height, (const char *)filename.c_str() );
             return;
-        }
+         }
 
-		// if > 0 then video will be shrunk
-		// if < 0 then video will be stretched
-		float shrink = std::min((float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height);
-		_height = (int)((float)_codecContext->height * shrink);
-		_width = (int)((float)_codecContext->width * shrink);
-	}
-	else
-	{
-		_height = maxheight;
-		_width = maxwidth;
-	}
+         // if > 0 then video will be shrunk
+         // if < 0 then video will be stretched
+         float shrink = std::min( (float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height );
+         _height = (int)( (float)_codecContext->height * shrink );
+         _width = (int)( (float)_codecContext->width * shrink );
+      }
+      else
+      {
+         _height = maxheight;
+         _width = maxwidth;
+      }
+   }
 
 	// get the video length in MS
 	// Use the number of frames as the best possible way to calculate length

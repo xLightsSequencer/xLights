@@ -44,6 +44,7 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
+#include "SequenceVideoPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -227,6 +228,7 @@ const long xLightsFrame::ID_MENUITEM9 = wxNewId();
 const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
+const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -870,6 +872,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItemEffectAssistWindow);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemSelectEffect);
+    MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Sequence Video"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem52);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1184,6 +1188,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
+    Connect( ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -7467,5 +7472,13 @@ void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
         m_mgr->GetPane("SelectEffect").Show();
     }
     m_mgr->Update();
+}
+
+void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
+{
+   wxAuiPaneInfo& pane = m_mgr->GetPane("SequenceVideo");
+
+   pane.IsShown() ? pane.Hide() : pane.Show();
+   m_mgr->Update();
 }
 

@@ -429,6 +429,8 @@
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="outputs\SerialPortWithRate.cpp" />
+    <ClCompile Include="SequenceVideoPanel.cpp" />
+    <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
@@ -747,6 +749,8 @@
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="outputs\SerialPortWithRate.h" />
+    <ClInclude Include="SequenceVideoPanel.h" />
+    <ClInclude Include="SequenceVideoPreview.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="SplashDialog.h" />

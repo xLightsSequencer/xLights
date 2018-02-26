@@ -91,6 +91,7 @@ class wxDebugReport;
 class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
+class SequenceVideoPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -533,6 +534,7 @@ public:
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
+    void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
     //*)
 private:
@@ -672,6 +674,7 @@ private:
     static const long ID_MENUITEM17;
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
+    static const long ID_MENUITEM_VIDEOPREVIEW;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -889,6 +892,7 @@ private:
     wxMenuItem* MenuItemColorManager;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem51;
+    wxMenuItem* MenuItem52;
     wxStaticText* MediaDirectoryLabel;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* MenuItem41;
@@ -1314,6 +1318,7 @@ private:
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
     SelectPanel *_selectPanel;
+    SequenceVideoPanel* sequenceVideoPanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     wxFlexGridSizer* FlexGridEffects;
