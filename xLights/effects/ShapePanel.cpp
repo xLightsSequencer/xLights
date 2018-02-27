@@ -3,22 +3,29 @@
 #include "ShapeEffect.h"
 
 //(*InternalHeaders(ShapePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/font.h>
+#include <wx/fontpicker.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(ShapePanel)
 const long ShapePanel::ID_STATICTEXT_Shape_ObjectToDraw = wxNewId();
 const long ShapePanel::ID_CHOICE_Shape_ObjectToDraw = wxNewId();
+const long ShapePanel::ID_STATICTEXT1 = wxNewId();
+const long ShapePanel::ID_FONTPICKER_Shape_Font = wxNewId();
+const long ShapePanel::ID_SPINCTRL_Shape_Char = wxNewId();
+const long ShapePanel::ID_STATICTEXT2 = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_SLIDER_Shape_Thickness = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_Thickness = wxNewId();
@@ -70,18 +77,19 @@ END_EVENT_TABLE()
 ShapePanel::ShapePanel(wxWindow* parent)
 {
 	//(*Initialize(ShapePanel)
-	BulkEditTextCtrl* TextCtrl34;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	BulkEditTextCtrl* TextCtrl_Shape_Growth;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer57;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
 	BulkEditTextCtrl* TextCtrl1;
+	BulkEditTextCtrl* TextCtrl34;
+	BulkEditTextCtrl* TextCtrl_Shape_Growth;
 	BulkEditTextCtrl* TextCtrl_Shape_StartSize;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer57;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -103,8 +111,21 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	Choice_Shape_ObjectToDraw->Append(_("Random"));
 	Choice_Shape_ObjectToDraw->Append(_("Crucifix"));
 	Choice_Shape_ObjectToDraw->Append(_("Present"));
+	Choice_Shape_ObjectToDraw->Append(_("Emoji"));
 	FlexGridSizer57->Add(Choice_Shape_ObjectToDraw, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT1, _("Character"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer57->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	wxFont PickerFont_1(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Segoe UI Emoji"),wxFONTENCODING_DEFAULT);
+	FontPickerCtrl_Font = new wxFontPickerCtrl(this, ID_FONTPICKER_Shape_Font, PickerFont_1, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Shape_Font"));
+	FlexGridSizer8->Add(FontPickerCtrl_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_CharCode = new wxSpinCtrl(this, ID_SPINCTRL_Shape_Char, _T("127876"), wxDefaultPosition, wxDefaultSize, 0, 20, 917631, 127876, _T("ID_SPINCTRL_Shape_Char"));
+	SpinCtrl_CharCode->SetValue(_T("127876"));
+	FlexGridSizer8->Add(SpinCtrl_CharCode, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer57->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxSize(25,30), 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer57->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText72 = new wxStaticText(this, ID_STATICTEXT_Shape_Thickness, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Thickness"));
 	FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -233,6 +254,8 @@ ShapePanel::ShapePanel(wxWindow* parent)
 	FlexGridSizer57->SetSizeHints(this);
 
 	Connect(ID_CHOICE_Shape_ObjectToDraw,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnChoice_Shape_ObjectToDrawSelect);
+	Connect(ID_FONTPICKER_Shape_Font,wxEVT_COMMAND_FONTPICKER_CHANGED,(wxObjectEventFunction)&ShapePanel::OnFontPickerCtrl_FontFontChanged);
+	Connect(ID_SPINCTRL_Shape_Char,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ShapePanel::OnSpinCtrl_CharCodeChange);
 	Connect(ID_VALUECURVE_Shape_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Shape_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Shape_StartSize,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
@@ -279,6 +302,20 @@ void ShapePanel::ValidateWindow()
     {
         Slider_Shape_Points->Disable();
         TextCtrl_Shape_Points->Disable();
+    }
+
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
+    {
+        StaticText10->SetFont(FontPickerCtrl_Font->GetFont());
+        StaticText10->SetLabel(wxString(wxChar(SpinCtrl_CharCode->GetValue())));
+        FontPickerCtrl_Font->Enable();
+        SpinCtrl_CharCode->Enable();
+    }
+    else
+    {
+        StaticText10->SetLabel(" ");
+        FontPickerCtrl_Font->Enable(false);
+        SpinCtrl_CharCode->Enable(false);
     }
 
     if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
@@ -420,5 +457,15 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
             Choice_Shape_TimingTrack->SetSelection(0);
         }
     }
+    ValidateWindow();
+}
+
+void ShapePanel::OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event)
+{
+    ValidateWindow();
+}
+
+void ShapePanel::OnSpinCtrl_CharCodeChange(wxSpinEvent& event)
+{
     ValidateWindow();
 }
