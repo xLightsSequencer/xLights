@@ -38,13 +38,13 @@ class SequenceVideoPanel: public wxPanel
 
       void Resized( wxSizeEvent& evt );
 
-      std::string                   _Path;
-      std::unique_ptr<VideoReader>  _VideoReader;
-      bool                          _IsValidVideo;
-      int                           _VideoWidth;
-      int                           _VideoHeight;
-      int                           _VideoLength;
-      SequenceVideoPreview *        _VideoPreview;
+      std::string                   _path;
+      std::unique_ptr<VideoReader>  _videoReader;
+      bool                          _isValidVideo;
+      int                           _videoWidth;
+      int                           _videoHeight;
+      int                           _videoLength;
+      SequenceVideoPreview *        _videoPreview;
 };
 
 #endif

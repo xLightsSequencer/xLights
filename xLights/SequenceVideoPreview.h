@@ -26,9 +26,9 @@ protected:
 private:
    void paint( wxPaintEvent& evt );
 
-   unsigned _TexId;
-   int      _TexWidth;
-   int      _TexHeight;
+   unsigned _texId;
+   int      _texWidth;
+   int      _texHeight;
 
    DECLARE_EVENT_TABLE()
 };
