@@ -20,13 +20,13 @@ BEGIN_EVENT_TABLE(SequenceVideoPanel,wxPanel)
 END_EVENT_TABLE()
 
 SequenceVideoPanel::SequenceVideoPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-   : _Path(), _VideoReader(), _IsValidVideo(false), _VideoWidth(0), _VideoHeight(0), _VideoLength(0), _VideoPreview(nullptr)
+   : _path(), _videoReader(), _isValidVideo(false), _videoWidth(0), _videoHeight(0), _videoLength(0), _videoPreview(nullptr)
 {
 	//(*Initialize(SequenceVideoPanel)
 	Create(parent, id, wxDefaultPosition, wxSize(268,203), wxTAB_TRAVERSAL, _T("id"));
 	//*)
 
-   _VideoPreview = new SequenceVideoPreview( this );
+   _videoPreview = new SequenceVideoPreview( this );
 }
 
 SequenceVideoPanel::~SequenceVideoPanel()
@@ -39,43 +39,44 @@ void SequenceVideoPanel::SetMediaPath( const std::string& path )
 {
     if (path == "")
     {
-        _VideoWidth = 0;
-        _VideoHeight = 0;
-        _VideoLength = 0;
-        _IsValidVideo = false;
-        _VideoPreview->Clear();
+        _videoReader.reset();
+        _videoWidth = 0;
+        _videoHeight = 0;
+        _videoLength = 0;
+        _isValidVideo = false;
+        _videoPreview->Clear();
     }
     else
     {
-        _VideoReader.reset(new VideoReader(std::string(path), 0, 0, false, true));
-        if (_VideoReader->IsValid())
+        _videoReader.reset(new VideoReader(std::string(path), 0, 0, false, true));
+        if (_videoReader->IsValid())
         {
-            _IsValidVideo = true;
-            _VideoWidth = _VideoReader->GetWidth();
-            _VideoHeight = _VideoReader->GetHeight();
-            _VideoLength = _VideoReader->GetLengthMS();
+            _isValidVideo = true;
+            _videoWidth = _videoReader->GetWidth();
+            _videoHeight = _videoReader->GetHeight();
+            _videoLength = _videoReader->GetLengthMS();
         }
     }
 }
 
 void SequenceVideoPanel::UpdateVideo( int ms )
 {
-   if ( !_IsValidVideo || !IsShown() )
+   if ( !_isValidVideo || !IsShown() )
       return;
 
-   int clampedTime = std::min( ms, _VideoLength );
+   int clampedTime = std::min( ms, _videoLength );
 
-   AVFrame *frame = _VideoReader->GetNextFrame( clampedTime );
+   AVFrame *frame = _videoReader->GetNextFrame( clampedTime );
    if ( frame != nullptr )
-   _VideoPreview->Render( frame );
+   _videoPreview->Render( frame );
 }
 
 void SequenceVideoPanel::Resized( wxSizeEvent& evt )
 {
-   if ( _VideoPreview )
+   if ( _videoPreview )
    {
-      _VideoPreview->Move( 0, 0 );
-      _VideoPreview->SetSize( evt.GetSize() );
+      _videoPreview->Move( 0, 0 );
+      _videoPreview->SetSize( evt.GetSize() );
    }
 }
 

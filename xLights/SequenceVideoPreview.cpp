@@ -12,7 +12,7 @@ EVT_PAINT( SequenceVideoPreview::paint )
 END_EVENT_TABLE()
 
 
-SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent) : xlGLCanvas(parent, wxID_ANY), _TexId(0), _TexWidth(0), _TexHeight(0)
+SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent) : xlGLCanvas(parent, wxID_ANY), _texId(0), _texWidth(0), _texHeight(0)
 {
 
 }
@@ -20,11 +20,7 @@ SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent) : xlGLCanvas(parent,
 
 SequenceVideoPreview::~SequenceVideoPreview()
 {
-   if ( _TexId )
-   {
-      LOG_GL_ERRORV( glDeleteTextures( 1, &_TexId ) );
-      _TexId = 0;
-   }
+   deleteTexture();
 }
 
 void SequenceVideoPreview::InitializeGLCanvas()
@@ -55,37 +51,43 @@ void SequenceVideoPreview::Render( AVFrame *frame )
    if ( !IsShownOnScreen() ) return;
    SetCurrentGLContext();
 
-   if ( _TexId == 0 || frame->width != _TexWidth || frame->height != _TexHeight )
+   if ( _texId == 0 || frame->width != _texWidth || frame->height != _texHeight )
       reinitTexture( frame->width, frame->height );
 
    // Upload video frame to texture
-   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _TexId ) );
-   LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _TexWidth, _TexHeight, GL_RGB, GL_UNSIGNED_BYTE, frame->data[0] ) );
+   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
+   LOG_GL_ERRORV( glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, _texWidth, _texHeight, GL_RGB, GL_UNSIGNED_BYTE, frame->data[0] ) );
    LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, 0 ) );
 
    // Draw video frame and swap-buffers
    prepare2DViewport( 0, 0, mWindowWidth, mWindowHeight );
    cache->Ortho( 0, 0, mWindowWidth, mWindowHeight );
-   cache->DrawTexture( _TexId, 0, 0, mWindowWidth, mWindowHeight );
+   cache->DrawTexture( _texId, 0, 0, mWindowWidth, mWindowHeight );
 
    SwapBuffers();
 }
 
 void SequenceVideoPreview::Clear()
 {
-    // TODO Kevin ... we need to clear the image texture
-    Refresh();
+   deleteTexture();
+
+   SetCurrentGLContext();
+
+   LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
+
+   SwapBuffers();
+   
+   Refresh();
 }
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
 void SequenceVideoPreview::reinitTexture( int width, int height )
 {
-   if ( _TexId )
-      ::glDeleteTextures( 1, &_TexId );
+   deleteTexture();
 
-   LOG_GL_ERRORV( glGenTextures( 1, &_TexId ) );
-   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _TexId ) );
+   LOG_GL_ERRORV( glGenTextures( 1, &_texId ) );
+   LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _texId ) );
 
    LOG_GL_ERRORV( glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr ) );
    LOG_GL_ERRORV( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
@@ -95,6 +97,15 @@ void SequenceVideoPreview::reinitTexture( int width, int height )
 
    LOG_GL_ERRORV( ::glBindTexture( GL_TEXTURE_2D, 0 ) );
 
-   _TexWidth = width;
-   _TexHeight = height;
+   _texWidth = width;
+   _texHeight = height;
+}
+
+void SequenceVideoPreview::deleteTexture()
+{
+   if ( _texId )
+   {
+      LOG_GL_ERRORV( glDeleteTextures( 1, &_texId ) );
+      _texId = 0;
+   }
 }

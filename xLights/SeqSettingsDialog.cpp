@@ -692,6 +692,14 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
         xml_file->SetSequenceType(type);
         ProcessSequenceType();
     }
+
+    wxString path;
+    if ( type != "Animation" )
+       path = TextCtrl_Xml_Media_File->GetValue();
+    xLightsFrame *pFrame = dynamic_cast<xLightsFrame *>( GetParent() );
+    wxASSERT( pFrame != nullptr );
+    if ( pFrame != nullptr )
+      pFrame->UpdateSequenceVideoPanel( path );
 }
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
