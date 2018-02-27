@@ -416,18 +416,6 @@ void xLightsFrame::LoadEffectsFile()
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
 
-    if (_autoSavePerspecive)
-    {
-        // if we have a saved perspective on this machine then make that the current one
-        wxConfigBase* config = wxConfigBase::Get();
-        wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
-        if (machinePerspective != "")
-        {
-            m_mgr->LoadPerspective(machinePerspective);
-            logger_base.debug("Loaded machine perspective.");
-        }
-    }
-
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
