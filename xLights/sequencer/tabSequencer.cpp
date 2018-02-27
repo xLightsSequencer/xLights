@@ -3247,3 +3247,12 @@ void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
+{
+   if ( sequenceVideoPanel != nullptr )
+   {
+      std::string spath( path.ToStdString() );
+      ObtainAccessToURL( spath );
+      sequenceVideoPanel->SetMediaPath( spath );
+   }
+}

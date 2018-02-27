@@ -20,11 +20,7 @@ SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent) : xlGLCanvas(parent,
 
 SequenceVideoPreview::~SequenceVideoPreview()
 {
-   if ( _TexId )
-   {
-      LOG_GL_ERRORV( glDeleteTextures( 1, &_TexId ) );
-      _TexId = 0;
-   }
+   deleteTexture();
 }
 
 void SequenceVideoPreview::InitializeGLCanvas()
@@ -73,16 +69,22 @@ void SequenceVideoPreview::Render( AVFrame *frame )
 
 void SequenceVideoPreview::Clear()
 {
-    // TODO Kevin ... we need to clear the image texture
-    Refresh();
+   deleteTexture();
+
+   SetCurrentGLContext();
+
+   LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
+
+   SwapBuffers();
+   
+   Refresh();
 }
 
 #define GL_CLAMP_TO_EDGE 0x812F
 
 void SequenceVideoPreview::reinitTexture( int width, int height )
 {
-   if ( _TexId )
-      ::glDeleteTextures( 1, &_TexId );
+   deleteTexture();
 
    LOG_GL_ERRORV( glGenTextures( 1, &_TexId ) );
    LOG_GL_ERRORV( glBindTexture( GL_TEXTURE_2D, _TexId ) );
@@ -97,4 +99,13 @@ void SequenceVideoPreview::reinitTexture( int width, int height )
 
    _TexWidth = width;
    _TexHeight = height;
+}
+
+void SequenceVideoPreview::deleteTexture()
+{
+   if ( _TexId )
+   {
+      LOG_GL_ERRORV( glDeleteTextures( 1, &_TexId ) );
+      _TexId = 0;
+   }
 }

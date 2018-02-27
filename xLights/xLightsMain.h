@@ -1157,6 +1157,8 @@ public:
 
     bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
 
+    void UpdateSequenceVideoPanel( const wxString& path );
+
 protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);

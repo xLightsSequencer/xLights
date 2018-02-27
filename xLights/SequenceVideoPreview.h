@@ -21,6 +21,8 @@ protected:
 
    void reinitTexture( int width, int height );
 
+   void deleteTexture();
+
 private:
    void paint( wxPaintEvent& evt );
 

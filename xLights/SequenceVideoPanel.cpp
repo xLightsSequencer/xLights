@@ -39,6 +39,7 @@ void SequenceVideoPanel::SetMediaPath( const std::string& path )
 {
     if (path == "")
     {
+        _VideoReader.reset();
         _VideoWidth = 0;
         _VideoHeight = 0;
         _VideoLength = 0;
