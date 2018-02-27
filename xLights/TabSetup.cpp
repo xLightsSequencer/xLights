@@ -264,6 +264,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         else
         {
             logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
+            SpinCtrl_SyncUniverse->SetValue(_outputManager.GetSyncUniverse());
         }
     }
     else
