@@ -37,6 +37,9 @@ class ShapeEffect : public RenderableEffect
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+#ifdef LINUX
+        virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false; };
+#endif
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
@@ -52,6 +55,7 @@ protected:
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
+        void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const;
 };
 
 #endif // SHAPEEFFECT_H

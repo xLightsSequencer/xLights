@@ -3,19 +3,27 @@
 
 //(*Headers(ShapePanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxFontPickerCtrl;
+class wxSlider;
+class wxSpinCtrl;
+class wxSpinEvent;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
+#include <wx/fontpicker.h>
+#include <list>
+
+class Emoji;
 
 class ShapePanel: public wxPanel
 {
+    std::list<Emoji*> _emojis;
     void ValidateWindow();
 
 	public:
@@ -23,46 +31,52 @@ class ShapePanel: public wxPanel
 		ShapePanel(wxWindow* parent);
 		virtual ~ShapePanel();
         void SetTimingTracks(wxCommandEvent& event);
+        void EmojiMenu(wxContextMenuEvent& event);
+        void OnPopupEmoji(wxCommandEvent& event);
 
 		//(*Declarations(ShapePanel)
-		BulkEditTextCtrl* TextCtrl_Shape_Points;
-		BulkEditSlider* Slider_Shape_Lifetime;
-		BulkEditSlider* Slider_Shape_Thickness;
-		BulkEditChoice* Choice_Shape_TimingTrack;
-		wxStaticText* StaticText2;
-		BulkEditChoice* Choice_Shape_ObjectToDraw;
-		wxStaticText* StaticText6;
-		BulkEditTextCtrl* TextCtrl_Shape_CentreX;
-		BulkEditSlider* Slider_Shape_Count;
-		BulkEditSlider* Slider_Shape_Points;
-		wxStaticText* StaticText8;
-		BulkEditTextCtrl* TextCtrl_Shape_CentreY;
-		BulkEditSlider* Slider_Shape_CentreX;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		BulkEditValueCurveButton* BitmapButton_Shape_CountVC;
-		BulkEditCheckBox* CheckBox_Shape_FireTiming;
-		BulkEditSlider* Slider_Shape_StartSize;
-		wxStaticText* StaticText72;
-		BulkEditCheckBox* CheckBox_Shape_RandomLocation;
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
-		BulkEditValueCurveButton* BitmapButton_Shape_GrowthVC;
-		wxStaticText* StaticText69;
-		BulkEditValueCurveButton* BitmapButton_Shape_CentreXVC;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
-		BulkEditValueCurveButton* BitmapButton_Shape_CentreYVC;
+		BulkEditCheckBox* CheckBox_Shape_FireTiming;
+		BulkEditCheckBox* CheckBox_Shape_RandomLocation;
 		BulkEditCheckBox* CheckBox_Shape_UseMusic;
+		BulkEditChoice* Choice_Shape_ObjectToDraw;
+		BulkEditChoice* Choice_Shape_TimingTrack;
+		BulkEditSlider* Slider_Shape_CentreX;
 		BulkEditSlider* Slider_Shape_CentreY;
-		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
-		wxStaticText* StaticText4;
-		BulkEditSlider* Slider_Shape_Sensitivity;
-		wxStaticText* StaticText176;
+		BulkEditSlider* Slider_Shape_Count;
 		BulkEditSlider* Slider_Shape_Growth;
+		BulkEditSlider* Slider_Shape_Lifetime;
+		BulkEditSlider* Slider_Shape_Points;
+		BulkEditSlider* Slider_Shape_Sensitivity;
+		BulkEditSlider* Slider_Shape_StartSize;
+		BulkEditSlider* Slider_Shape_Thickness;
+		BulkEditTextCtrl* TextCtrl_Shape_CentreX;
+		BulkEditTextCtrl* TextCtrl_Shape_CentreY;
+		BulkEditTextCtrl* TextCtrl_Shape_Points;
 		BulkEditTextCtrl* TextCtrl_Shape_Sensitivity;
-		BulkEditValueCurveButton* BitmapButton_Shape_LifetimeVC;
 		BulkEditTextCtrl* TextCtrl_Shape_Thickness;
+		BulkEditValueCurveButton* BitmapButton_Shape_CentreXVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_CentreYVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_CountVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_GrowthVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_LifetimeVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
+		wxFontPickerCtrl* FontPickerCtrl_Font;
+		wxSpinCtrl* SpinCtrl_CharCode;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText176;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText69;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText72;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		//*)
 
 	protected:
@@ -70,6 +84,10 @@ class ShapePanel: public wxPanel
 		//(*Identifiers(ShapePanel)
 		static const long ID_STATICTEXT_Shape_ObjectToDraw;
 		static const long ID_CHOICE_Shape_ObjectToDraw;
+		static const long ID_STATICTEXT1;
+		static const long ID_FONTPICKER_Shape_Font;
+		static const long ID_SPINCTRL_Shape_Char;
+		static const long ID_STATICTEXT2;
 		static const long ID_STATICTEXT_Shape_Thickness;
 		static const long ID_SLIDER_Shape_Thickness;
 		static const long ID_VALUECURVE_Shape_Thickness;
@@ -115,14 +133,16 @@ class ShapePanel: public wxPanel
 	public:
 
 		//(*Handlers(ShapePanel)
-        void OnLockButtonClick(wxCommandEvent& event);
-        void OnVCButtonClick(wxCommandEvent& event);
+		void OnLockButtonClick(wxCommandEvent& event);
+		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_Shape_ObjectToDrawSelect(wxCommandEvent& event);
 		void OnCheckBox_Shape_RandomLocationClick(wxCommandEvent& event);
 		void OnCheckBox_Shape_UseMusicClick(wxCommandEvent& event);
 		void OnCheckBox_Shape_FireTimingClick(wxCommandEvent& event);
 		void OnChoice_Shape_TimingTrackSelect(wxCommandEvent& event);
+		void OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event);
+		void OnSpinCtrl_CharCodeChange(wxSpinEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

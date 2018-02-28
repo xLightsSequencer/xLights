@@ -184,7 +184,7 @@ AudioManager* RenderBuffer::GetMedia()
 {
 	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
 	{
-		return NULL;
+		return nullptr;
 	}
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }

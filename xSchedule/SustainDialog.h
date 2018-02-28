@@ -1,7 +1,7 @@
-#ifndef SETDIALOG_H
-#define SETDIALOG_H
+#ifndef SUSTAINDIALOG_H
+#define SUSTAINDIALOG_H
 
-//(*Headers(SetDialog)
+//(*Headers(SustainDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
@@ -13,11 +13,10 @@
 
 class OutputManager;
 
-class SetDialog: public wxDialog
+class SustainDialog: public wxDialog
 {
     std::string& _startChannel;
     size_t& _channels;
-    size_t& _value;
     std::string& _description;
     bool& _enabled;
     OutputManager* _outputManager;
@@ -26,18 +25,16 @@ class SetDialog: public wxDialog
 
 	public:
 
-		SetDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& channels, size_t& value, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
-		virtual ~SetDialog();
+		SustainDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& channels, std::string& description, bool& enabled, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~SustainDialog();
 
-		//(*Declarations(SetDialog)
+		//(*Declarations(SustainDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_Enabled;
 		wxSpinCtrl* SpinCtrl_Channels;
-		wxSpinCtrl* SpinCtrl_Value;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
-		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText_StartChannel;
 		wxTextCtrl* TextCtrl_Description;
@@ -46,14 +43,12 @@ class SetDialog: public wxDialog
 
 	protected:
 
-		//(*Identifiers(SetDialog)
+		//(*Identifiers(SustainDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT5;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL2;
-		static const long ID_STATICTEXT3;
-		static const long ID_SPINCTRL3;
 		static const long ID_STATICTEXT4;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
@@ -63,10 +58,10 @@ class SetDialog: public wxDialog
 
 	private:
 
-		//(*Handlers(SetDialog)
+		//(*Handlers(SustainDialog)
+		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

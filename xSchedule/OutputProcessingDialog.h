@@ -2,10 +2,10 @@
 #define OUTPUTPROCESSINGDIALOG_H
 
 //(*Headers(OutputProcessingDialog)
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/listctrl.h>
+#include <wx/sizer.h>
 //*)
 
 #include <list>
@@ -31,20 +31,21 @@ class OutputProcessingDialog: public wxDialog
 		virtual ~OutputProcessingDialog();
 
 		//(*Declarations(OutputProcessingDialog)
-		wxButton* Button_Dim;
-		wxButton* Button_Ok;
-		wxButton* Button_Reverse;
 		wxButton* Button_3to4;
-		wxListView* ListView_Processes;
-		wxButton* Button_ColourOrder;
-		wxButton* Button_DimWhite;
-		wxButton* Button_Delete;
+		wxButton* Button_AddDeadChannel;
+		wxButton* Button_AddRemap;
+		wxButton* Button_AddSet;
 		wxButton* Button_Cancel;
+		wxButton* Button_ColourOrder;
+		wxButton* Button_Delete;
+		wxButton* Button_Dim;
+		wxButton* Button_DimWhite;
 		wxButton* Button_Edit;
 		wxButton* Button_Gamma;
-		wxButton* Button_AddSet;
-		wxButton* Button_AddRemap;
-		wxButton* Button_AddDeadChannel;
+		wxButton* Button_Ok;
+		wxButton* Button_Reverse;
+		wxButton* Button_Sustain;
+		wxListView* ListView_Processes;
 		//*)
 
 	protected:
@@ -62,6 +63,7 @@ class OutputProcessingDialog: public wxDialog
 		static const long ID_BUTTON10;
 		static const long ID_BUTTON11;
 		static const long ID_BUTTON13;
+		static const long ID_BUTTON14;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON4;
 		//*)
@@ -88,6 +90,7 @@ class OutputProcessingDialog: public wxDialog
 		void OnButton_AddDeadChannelClick(wxCommandEvent& event);
 		void OnListView_ProcessesItemRClick(wxListEvent& event);
 		void OnButton_3to4Click(wxCommandEvent& event);
+		void OnButton_SustainClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
