@@ -55,7 +55,7 @@ protected:
         void Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawcrucifix(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawpresent(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, std::string font) const;
+        void Drawemoji(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const;
 };
 
 #endif // SHAPEEFFECT_H

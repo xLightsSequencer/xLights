@@ -17,9 +17,13 @@ class wxTextCtrl;
 
 #include "../BulkEditControls.h"
 #include <wx/fontpicker.h>
+#include <list>
+
+class Emoji;
 
 class ShapePanel: public wxPanel
 {
+    std::list<Emoji*> _emojis;
     void ValidateWindow();
 
 	public:
@@ -27,6 +31,8 @@ class ShapePanel: public wxPanel
 		ShapePanel(wxWindow* parent);
 		virtual ~ShapePanel();
         void SetTimingTracks(wxCommandEvent& event);
+        void EmojiMenu(wxContextMenuEvent& event);
+        void OnPopupEmoji(wxCommandEvent& event);
 
 		//(*Declarations(ShapePanel)
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;

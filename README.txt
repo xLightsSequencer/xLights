@@ -23,6 +23,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 				   interrupting your show.
    -- enh (keith)  Add an Id attribute to DDP/NULL and all the USB output types which can be used with the 
 				   #universe:startchannel addressing mode as a substitute for the universe ... as long as you keep the id unique
+   -- enh (keith)  Add emojies to the shape effect ... in reality these are just characters from fonts ... not full colour emojies
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.

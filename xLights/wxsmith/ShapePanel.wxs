@@ -65,6 +65,14 @@
 								<family>swiss</family>
 								<face>Segoe UI Emoji</face>
 							</font>
+							<font>
+								<size>10</size>
+								<style>normal</style>
+								<weight>normal</weight>
+								<underlined>0</underlined>
+								<family>swiss</family>
+								<face>Segoe UI Emoji</face>
+							</font>
 							<handler function="OnFontPickerCtrl_FontFontChanged" entry="EVT_FONTPICKER_CHANGED" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -74,7 +82,7 @@
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_Shape_Char" variable="SpinCtrl_CharCode" member="yes">
 							<value>127876</value>
-							<min>20</min>
+							<min>32</min>
 							<max>917631</max>
 							<handler function="OnSpinCtrl_CharCodeChange" entry="EVT_SPINCTRL" />
 						</object>

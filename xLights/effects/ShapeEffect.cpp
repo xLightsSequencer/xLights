@@ -171,6 +171,7 @@ public:
     std::list<ShapeData*> _shapes;
     int _lastColorIdx;
     int _sinceLastTriggered;
+    wxFontInfo _font;
 
     void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape)
     {
@@ -256,12 +257,13 @@ int ShapeEffect::DecodeShape(const std::string& shape)
     {
         return RENDER_SHAPE_PRESENT;
     }
+    // this must be the last as we dont want to randomly select it
     else if (shape == "Emoji")
     {
         return RENDER_SHAPE_EMOJI;
     }
 
-    return rand01() * 14;
+    return rand01() * 13; // exclude emoji
 }
 
 void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -310,6 +312,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     std::list<ShapeData*>& _shapes = cache->_shapes;
     int& _lastColorIdx = cache->_lastColorIdx;
     int& _sinceLastTriggered = cache->_sinceLastTriggered;
+    wxFontInfo& _font = cache->_font;
 
     float lifetimeFrames = (float)(buffer.curEffEndPer - buffer.curEffStartPer) * lifetime / 100.0;
     if (lifetimeFrames < 1) lifetimeFrames = 1;
@@ -318,6 +321,18 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
+
+        if (Object_To_Draw == RENDER_SHAPE_EMOJI)
+        {
+            wxFont ff(font);
+            ff.SetNativeFontInfoUserDesc(font);
+
+            _font = wxFontInfo(wxSize(0, 12));
+            _font.FaceName(ff.GetFaceName());
+            _font.Light();
+            _font.AntiAliased(false);
+            _font.Encoding(ff.GetEncoding());
+        }
 
         cache->DeleteShapes();
         _lastColorIdx = -1;
@@ -478,6 +493,12 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         }
     }
 
+    if (Object_To_Draw == RENDER_SHAPE_EMOJI)
+    {
+        auto context = buffer.GetTextDrawingContext();
+        context->Clear();
+    }
+
     for (auto it = _shapes.begin(); it != _shapes.end(); ++it)
     {
         (*it)->_oset++;
@@ -491,7 +512,8 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         {
             float brightness = (float)(lifetimeFrames - (*it)->_oset) / lifetimeFrames;
 
-            if (buffer.allowAlpha) {
+            // draw text does not respect alpha
+            if (buffer.allowAlpha && Object_To_Draw != RENDER_SHAPE_EMOJI) {
                 color.alpha = 255.0 * brightness;
             }
             else {
@@ -534,7 +556,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             Drawpresent(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
         case RENDER_SHAPE_EMOJI:
-            Drawemoji(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, emoji, font);
+            Drawemoji(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, emoji, _font);
             break;
         case RENDER_SHAPE_CANDYCANE:
             Drawcandycane(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
@@ -548,6 +570,26 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         default:
             wxASSERT(false);
             break;
+        }
+    }
+
+    if (Object_To_Draw == RENDER_SHAPE_EMOJI)
+    {
+        wxImage *i = buffer.GetTextDrawingContext()->FlushAndGetImage();
+        unsigned char* data = i->GetData();
+        int w = i->GetWidth();
+        int h = i->GetHeight();
+        int cur = 0;
+        for (int y = h - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                xlColor c(data[cur], data[cur + 1], data[cur + 2]);
+                if (c != xlBLACK) {
+                    buffer.SetPixel(x, y, c);
+                }
+                cur += 3;
+            }
         }
     }
 
@@ -882,24 +924,19 @@ void ShapeEffect::Drawpresent(RenderBuffer &buffer, int xc, int yc, double radiu
     }
 }
 
-void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, std::string font) const
+void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, wxFontInfo& font) const
 {
     if (radius < 1) return;
 
     auto context = buffer.GetTextDrawingContext();
-    context->Clear();
 
-    wxFont f(font);
-    f.SetNativeFontInfoUserDesc(font);
-
-    wxFontInfo info(wxSize(0, radius));
-    info.FaceName(f.GetFaceName());
-    info.Light();
-    info.AntiAliased(false);
-    info.Encoding(f.GetEncoding());
-
-    f.SetPointSize(radius);
-    context->SetFont(info, color);
+    wxFontInfo fi(wxSize(0, radius));
+    fi.FaceName(font.GetFaceName());
+    fi.Light(font.GetWeight() == wxFONTWEIGHT_LIGHT);
+    fi.AntiAliased(font.IsAntiAliased());
+    fi.Encoding(font.GetEncoding());
+    
+    context->SetFont(fi, color);
 
     wchar_t ch = emoji;
 
@@ -910,23 +947,6 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     context->GetTextExtent(text, &width, &height);
 
     context->DrawText(text, std::round((float)xc - width / 2.0), std::round((float)yc - height / 2.0));
-
-    wxImage *i = context->FlushAndGetImage();
-    unsigned char* data = i->GetData();
-    int w = i->GetWidth();
-    int h = i->GetHeight();
-    int cur = 0;
-    for (int y = h - 1; y >= 0; y--)
-    {
-        for (int x = 0; x < w; x++)
-        {
-            xlColor c(data[cur], data[cur + 1], data[cur + 2]);
-            if (c != xlBLACK) {
-                buffer.SetPixel(x, y, c);
-            }
-            cur += 3;
-        }
-    }
 }
 
 void ShapeEffect::Drawcandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
