@@ -577,18 +577,24 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     {
         wxImage *i = buffer.GetTextDrawingContext()->FlushAndGetImage();
         unsigned char* data = i->GetData();
+        unsigned char* alpha = i->HasAlpha() ? i->GetAlpha() : nullptr;
         int w = i->GetWidth();
         int h = i->GetHeight();
         int cur = 0;
+        int curA = 0;
         for (int y = h - 1; y >= 0; y--)
         {
             for (int x = 0; x < w; x++)
             {
                 xlColor c(data[cur], data[cur + 1], data[cur + 2]);
+                if (alpha) {
+                    c.SetAlpha(alpha[curA]);
+                }
                 if (c != xlBLACK) {
                     buffer.SetPixel(x, y, c);
                 }
                 cur += 3;
+                ++curA;
             }
         }
     }
