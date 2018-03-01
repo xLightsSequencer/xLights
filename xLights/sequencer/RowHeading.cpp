@@ -555,8 +555,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
             for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); i++)
             {
-                dlg.CheckListBox_Timings->Insert(mSequenceElements->GetElement(i)->GetName(), i);
-                if (mSequenceElements->GetElement(i)->GetName() == element->GetName())
+                TimingElement* te2 = mSequenceElements->GetTimingElement(i);
+                dlg.CheckListBox_Timings->Insert(te2->GetName(), i);
+                if (te2->GetName() == element->GetName())
                 {
                     dlg.CheckListBox_Timings->Check(i);
                 }

@@ -1394,9 +1394,9 @@ int SequenceElements::GetNumberOfTimingRows()
 
 int SequenceElements::GetNumberOfTimingElements() {
     int count = 0;
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
-        if(mAllViews[MASTER_VIEW][i]->GetType()==ELEMENT_TYPE_TIMING)
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
         {
             count++;
         }
@@ -1404,11 +1404,28 @@ int SequenceElements::GetNumberOfTimingElements() {
     return count;
 }
 
+TimingElement* SequenceElements::GetTimingElement(int n)
+{
+    int count = 0;
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
+    {
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            if (count == n)
+            {
+                return (TimingElement*)mAllViews[MASTER_VIEW][i];
+            }
+            count++;
+        }
+    }
+    return nullptr;
+}
+
 int SequenceElements::GetNumberOfActiveTimingEffects()
 {
     int num_timing_effects = 0;
     EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
-    if( tel != nullptr )
+    if (tel != nullptr)
     {
         num_timing_effects = tel->GetEffectCount();
     }

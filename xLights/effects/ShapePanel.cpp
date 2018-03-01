@@ -436,7 +436,8 @@ void ShapePanel::ValidateWindow()
         SpinCtrl_CharCode->Enable(false);
     }
 
-    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Emoji")
     {
         Slider_Shape_Thickness->Disable();
         TextCtrl_Shape_Thickness->Disable();
