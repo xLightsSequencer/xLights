@@ -1685,10 +1685,68 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
             {
                 for (unsigned int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
                 {
-                    if (wxString(model->_model).Trim(true).Trim(false).Lower() == ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower())
+                    wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
+                    if (availName.Contains("/"))
                     {
-                        model->_mapping = ListCtrl_Available->GetItemText(j);
-                        model->_mappingExists = true;
+                        wxArrayString parts = wxSplit(availName, '/');
+                        if (wxString(model->_model).Trim(true).Trim(false).Lower() == parts[0])
+                        {
+                            // matched the model name ... need to look at strands and submodels
+                            for (unsigned int k = 0; k < model->GetChildCount(); ++k)
+                            {
+                                auto strand = model->GetNthChild(k);
+                                if (strand != nullptr)
+                                {
+                                    if (strand->_mapping == "")
+                                    {
+                                        if (wxString(strand->_strand).Trim(true).Trim(false).Lower() == parts[1])
+                                        {
+                                            // matched to the strand level
+                                            if (parts.size() == 2)
+                                            {
+                                                strand->_mapping = ListCtrl_Available->GetItemText(j);
+                                                strand->_mappingExists = true;
+                                            }
+                                            else
+                                            {
+                                                // need to map the node level
+                                                for (unsigned int m = 0; m < strand->GetChildCount(); ++m)
+                                                {
+                                                    auto node = strand->GetNthChild(m);
+                                                    if (node != nullptr)
+                                                    {
+                                                        if (node->_mapping == "")
+                                                        {
+                                                            if (wxString(node->_node).Trim(true).Trim(false).Lower() == parts[2])
+                                                            {
+                                                                // matched to the strand level
+                                                                if (parts.size() == 3)
+                                                                {
+                                                                    node->_mapping = ListCtrl_Available->GetItemText(j);
+                                                                    node->_mappingExists = true;
+                                                                }
+                                                                else
+                                                                {
+                                                                    wxASSERT(false);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (wxString(model->_model).Trim(true).Trim(false).Lower() == availName)
+                        {
+                            model->_mapping = ListCtrl_Available->GetItemText(j);
+                            model->_mappingExists = true;
+                        }
                     }
                 }
             }
