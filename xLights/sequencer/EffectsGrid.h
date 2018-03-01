@@ -149,6 +149,7 @@ private:
     void DeleteEffectIconTextures();
     void DrawLines() const;
     void DrawSelectedCells();
+    void SetRCToolTip();
 
     int DrawEffectBackground(const Row_Information_Struct* ri, const Effect *effect,
                              int x1, int y1, int x2, int y2,

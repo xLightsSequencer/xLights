@@ -100,6 +100,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = nullptr;
     xlights = nullptr;
+    SetRCToolTip();
 }
 
 EffectsGrid::~EffectsGrid()
@@ -936,6 +937,7 @@ void EffectsGrid::ClearSelection(bool keepCanPaste)
     mRangeStartCol = -1;
     mRangeEndCol = -1;
     mResizeEffectIndex = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
@@ -2129,6 +2131,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
 
     if (mRangeStartRow == -1 || mRangeStartCol == -1 || mRangeEndRow == -1 || mRangeEndCol == -1)
     {
+        SetRCToolTip();
         // nothing selected
         return false;
     }
@@ -2262,7 +2265,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         }
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
-
+        SetRCToolTip();
         return true;
     }
     else if (key == (wxChar)WXK_DOWN)
@@ -2325,6 +2328,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
 
+        SetRCToolTip();
         return true;
     }
     else if (key == (wxChar)WXK_LEFT)
@@ -2393,6 +2397,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
 
+        SetRCToolTip();
         return true;
     }
     else if (key == (wxChar)WXK_RIGHT)
@@ -2460,6 +2465,7 @@ bool EffectsGrid::HandleACKey(wxChar key, bool shift)
         mDropStartTimeMS = GetMSFromColumn(mRangeCursorCol);
         mDropRow = mRangeCursorRow;
 
+        SetRCToolTip();
         return true;
     }
     return false;
@@ -2606,6 +2612,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         mRangeEndRow = -1;
         mRangeEndCol = -1;
         mCellRangeSelected = false;
+        SetRCToolTip();
 
         return;
     }
@@ -2691,6 +2698,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             UpdateZoomPosition(selected_time);
         }
     } else if (mDragging) {
+        UnsetToolTip();
         ReleaseMouse();
         mDragging = false;
         if((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0) ) {
@@ -2911,6 +2919,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                 mRangeEndRow--;
             }
         }
+        SetRCToolTip();
         UpdateSelectedEffects();
         Refresh(false);
     }
@@ -3046,6 +3055,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                 mRangeEndRow++;
             }
         }
+        SetRCToolTip();
         UpdateSelectedEffects();
         Refresh(false);
     }
@@ -3178,6 +3188,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
             {
                 mRangeStartCol++;
             }
+            SetRCToolTip();
             UpdateSelectedEffects();
             Refresh(false);
         }
@@ -3322,6 +3333,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
                 mRangeStartCol--;
                 mRangeEndCol--;
             }
+            SetRCToolTip();
             UpdateSelectedEffects();
             Refresh(false);
         }
@@ -4576,6 +4588,7 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
     }
     mCellRangeSelected = false;
     mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::ResizeMoveMultipleEffectsByTime(int delta, bool force)
@@ -4613,6 +4626,7 @@ void EffectsGrid::ResizeMoveMultipleEffectsByTime(int delta, bool force)
     }
     mCellRangeSelected = false;
     mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::ButtUpResizeMoveMultipleEffects(bool right)
@@ -4627,6 +4641,7 @@ void EffectsGrid::ButtUpResizeMoveMultipleEffects(bool right)
 
     mCellRangeSelected = false;
     mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::StretchMultipleEffectsByTime(int delta)
@@ -4656,6 +4671,7 @@ void EffectsGrid::StretchMultipleEffectsByTime(int delta)
     }
     mCellRangeSelected = false;
     mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
@@ -4669,6 +4685,7 @@ void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
     }
     mCellRangeSelected = false;
     mRangeStartCol = mRangeEndCol = mRangeStartRow = mRangeEndRow = -1;
+    SetRCToolTip();
 }
 
 void EffectsGrid::ResizeSingleEffect(int position)
@@ -4931,6 +4948,7 @@ void EffectsGrid::EstablishSelectionRectangle()
     {
         mSequenceElements->SelectEffectsInRowAndTimeRange(row1-first_row,row2-first_row,startTime,endTime);
     }
+    SetRCToolTip();
 }
 
 void EffectsGrid::UpdateSelectionRectangle()
@@ -4982,6 +5000,26 @@ void EffectsGrid::UpdateSelectionRectangle()
         int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_x);
         int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_x);
         mSequenceElements->SelectEffectsInRowAndTimeRange(row1,row2,startTime,endTime);
+    }
+    SetRCToolTip();
+}
+
+void EffectsGrid::SetRCToolTip()
+{
+    int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
+    int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
+
+    if (!mCellRangeSelected || 
+        mPartialCellSelected ||
+        mRangeStartCol < 0 || 
+        (x == 1 && y == 1) || 
+        mSequenceElements->GetSelectedTimingRow() < 0)
+    {
+        UnsetToolTip();
+    }
+    else
+    {
+        SetToolTip(wxString::Format("%dC x %dR", x, y));
     }
 }
 
@@ -5052,7 +5090,6 @@ void EffectsGrid::ForceRefresh()
     }
     Draw();
 }
-
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
 {
@@ -5949,6 +5986,7 @@ void EffectsGrid::CopyModelEffects(int row_number)
         effectLayer->UnSelectAllEffects();
         mPartialCellSelected = true;
         mCellRangeSelected = false;
+        SetRCToolTip();
     }
     else
     {
