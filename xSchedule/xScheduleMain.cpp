@@ -703,6 +703,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
 void xScheduleFrame::LoadSchedule()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Loading schedule.");
+
     if (_pinger != nullptr)
     {
         delete _pinger;
@@ -748,11 +751,16 @@ void xScheduleFrame::LoadSchedule()
         StaticText_ShowDir->SetForegroundColour(*wxRED);
     }
 
+    logger_base.debug("Adding IPs to ping.");
     AddIPs();
 
+    logger_base.debug("Update the playlist tree.");
     UpdateTree();
 
+    logger_base.debug("Creating buttons.");
     CreateButtons();
+
+    logger_base.debug("Schedule loaded.");
 }
 
 void xScheduleFrame::AddIPs()
