@@ -784,6 +784,35 @@
 												<border>5</border>
 												<option>1</option>
 											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText15" member="yes">
+													<label>Application Order</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxChoice" name="ID_CHOICE_RZ_RotationOrder" subclass="BulkEditChoice" variable="ChoiceRotateOrder" member="yes">
+													<content>
+														<item>X, Y, Z</item>
+														<item>X, Z, Y</item>
+														<item>Y, X, Z</item>
+														<item>Y, Z, X</item>
+														<item>Z, X, Y</item>
+														<item>Z, Y, X</item>
+													</content>
+													<selection>0</selection>
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>

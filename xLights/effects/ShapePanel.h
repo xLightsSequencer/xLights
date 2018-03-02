@@ -50,6 +50,7 @@ class ShapePanel: public wxPanel
 		BulkEditSlider* Slider_Shape_Sensitivity;
 		BulkEditSlider* Slider_Shape_StartSize;
 		BulkEditSlider* Slider_Shape_Thickness;
+		BulkEditSpinCtrl* SpinCtrl_CharCode;
 		BulkEditTextCtrl* TextCtrl_Shape_CentreX;
 		BulkEditTextCtrl* TextCtrl_Shape_CentreY;
 		BulkEditTextCtrl* TextCtrl_Shape_Points;
@@ -63,7 +64,6 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
 		wxFontPickerCtrl* FontPickerCtrl_Font;
-		wxSpinCtrl* SpinCtrl_CharCode;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;

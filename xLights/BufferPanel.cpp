@@ -2,9 +2,9 @@
 
 //(*InternalHeaders(BufferPanel)
 #include <wx/bitmap.h>
-#include <wx/settings.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
 #include <wx/string.h>
 //*)
 
@@ -80,6 +80,8 @@ const long BufferPanel::ID_STATICTEXT_YPivot = wxNewId();
 const long BufferPanel::ID_SLIDER_YPivot = wxNewId();
 const long BufferPanel::ID_VALUECURVE_YPivot = wxNewId();
 const long BufferPanel::IDD_TEXTCTRL_YPivot = wxNewId();
+const long BufferPanel::ID_STATICTEXT1 = wxNewId();
+const long BufferPanel::ID_CHOICE_RZ_RotationOrder = wxNewId();
 const long BufferPanel::ID_SCROLLEDWINDOW2 = wxNewId();
 const long BufferPanel::ID_PANEL4 = wxNewId();
 const long BufferPanel::ID_NOTEBOOK1 = wxNewId();
@@ -124,25 +126,25 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     _blur.SetMax(15);
 
 	//(*Initialize(BufferPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxPanel* Panel4;
-	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxStaticText* StaticText11;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxBitmapButton* BitmapButtonBufferStyle;
-	wxPanel* Panel3;
-	wxFlexGridSizer* FlexGridSizer15;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer12;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer11;
 	wxBitmapButton* BitmapButton_BufferTransform;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxPanel* Panel3;
+	wxPanel* Panel4;
+	wxStaticText* StaticText11;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -383,6 +385,17 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	TextCtrl_YPivot->SetMaxLength(3);
 	FlexGridSizer13->Add(TextCtrl_YPivot, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer13, 1, wxALL|wxEXPAND, 0);
+	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText15 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT1, _("Application Order"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	RotoZoomSizer->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	ChoiceRotateOrder = new BulkEditChoice(ScrolledWindow2, ID_CHOICE_RZ_RotationOrder, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_RZ_RotationOrder"));
+	ChoiceRotateOrder->SetSelection( ChoiceRotateOrder->Append(_("X, Y, Z")) );
+	ChoiceRotateOrder->Append(_("X, Z, Y"));
+	ChoiceRotateOrder->Append(_("Y, X, Z"));
+	ChoiceRotateOrder->Append(_("Y, Z, X"));
+	ChoiceRotateOrder->Append(_("Z, X, Y"));
+	ChoiceRotateOrder->Append(_("Z, Y, X"));
+	RotoZoomSizer->Add(ChoiceRotateOrder, 1, wxALL|wxEXPAND, 2);
 	RotoZoomSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ScrolledWindow2->SetSizer(RotoZoomSizer);
 	RotoZoomSizer->Fit(ScrolledWindow2);
@@ -647,6 +660,12 @@ wxString BufferPanel::GetBufferString() {
             s += wxString::Format("B_SLIDER_PivotPointX=%d,", Slider_PivotPointX->GetValue());
         }
     }
+    if (ChoiceRotateOrder->GetStringSelection() != "X, Y, Z")
+    {
+        s += "B_CHOICE_RZ_RotationOrder=";
+        s += ChoiceRotateOrder->GetStringSelection();
+        s += ",";
+    }
     if (BitmapButton_VCPivotPointY->GetValue()->IsActive())
     {
         wxString pivotpointyVC = wxString(BitmapButton_VCPivotPointY->GetValue()->Serialise().c_str());
@@ -738,12 +757,12 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         TextCtrl_PivotPointY->SetValue("50");
         BitmapButton_VCPivotPointY->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_VCPivotPointY->UpdateState();
+        ChoiceRotateOrder->SetSelection(0);
         ValidateWindow();
         wxSizeEvent evt;
         OnResize(evt);
     }
 }
-
 
 void BufferPanel::OnResize(wxSizeEvent& event)
 {
@@ -964,6 +983,7 @@ void BufferPanel::OnChoice_PresetSelect(wxCommandEvent& event)
         TextCtrl_ZoomQuality->SetValue("2");
     }
     Choice_Preset->SetStringSelection("");
+    ChoiceRotateOrder->SetSelection(0);
     ValidateWindow();
 }
 

@@ -76,6 +76,7 @@ private:
             rotations = 0;
             zoom = 1.0f;
             zoomquality = 1;
+            rotationorder = "X, Y, Z";
             pivotpointx = 50;
             pivotpointy = 50;
             xrotation = 0;
@@ -149,6 +150,7 @@ private:
         float rotations;
         float zoom;
         int zoomquality;
+        std::string rotationorder;
         int pivotpointx;
         int pivotpointy;
         int xpivot;
@@ -209,6 +211,9 @@ private:
     void reset(int layers, int timing);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
+    void RotateX(LayerInfo* layer, float offset);
+    void RotateY(LayerInfo* layer, float offset);
+    void RotateZAndZoom(LayerInfo* layer, float offset);
 
     std::string modelName;
     std::string lastBufferType;

@@ -2,16 +2,16 @@
 #define BUFFERPANEL_H
 
 //(*Headers(BufferPanel)
-#include <wx/scrolwin.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
-#include <wx/bmpbuttn.h>
 //*)
 
 #include "BulkEditControls.h"
@@ -43,71 +43,73 @@ public:
 
     
 		//(*Declarations(BufferPanel)
-		wxStaticText* StaticText10;
-		BulkEditTextCtrl* TextCtrl_XRotation;
-		wxStaticText* StaticText9;
-		BulkEditTextCtrl* TextCtrl_PivotPointY;
-		BulkEditSlider* Slider_PivotPointX;
-		wxBitmapButton* BitmapButton_EffectBlur;
-		wxBitmapButton* BitmapButton_Zoom;
-		wxNotebook* Notebook1;
-		wxBitmapButton* BitmapButton_Rotation;
-		BulkEditValueCurveButton* BitmapButton_XPivot;
-		BulkEditSlider* Slider_EffectBlur;
-		BulkEditTextCtrlF1* TextCtrl_Zoom;
-		BulkEditSlider* Slider_XRotation;
-		BulkEditSlider* Slider_YRotation;
-		wxStaticText* StaticText13;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText14;
-		wxScrolledWindow* ScrolledWindow1;
-		wxStaticText* StaticText6;
-		wxFlexGridSizer* SubBufferPanelSizer;
-		wxFlexGridSizer* BufferSizer;
-		BulkEditTextCtrl* TextCtrl_YPivot;
-		wxStaticText* StaticText8;
-		BulkEditValueCurveButton* BitmapButton_VCZoom;
-		BulkEditSlider* Slider_PivotPointY;
-		wxBitmapButton* BitmapButton_OverlayBkg;
-		BulkEditTextCtrlF1* TextCtrl_Rotations;
 		BulkEditCheckBox* CheckBox_OverlayBkg;
-		wxStaticText* StaticText1;
+		BulkEditChoice* BufferStyleChoice;
+		BulkEditChoice* BufferTransform;
+		BulkEditChoice* ChoiceRotateOrder;
+		BulkEditSlider* Slider_EffectBlur;
+		BulkEditSlider* Slider_PivotPointX;
+		BulkEditSlider* Slider_PivotPointY;
+		BulkEditSlider* Slider_Rotation;
+		BulkEditSlider* Slider_XPivot;
+		BulkEditSlider* Slider_XRotation;
+		BulkEditSlider* Slider_YPivot;
+		BulkEditSlider* Slider_YRotation;
+		BulkEditSlider* Slider_ZoomQuality;
+		BulkEditSliderF1* Slider_Rotations;
+		BulkEditSliderF1* Slider_Zoom;
+		BulkEditTextCtrl* TextCtrl_EffectBlur;
+		BulkEditTextCtrl* TextCtrl_PivotPointX;
+		BulkEditTextCtrl* TextCtrl_PivotPointY;
+		BulkEditTextCtrl* TextCtrl_Rotation;
+		BulkEditTextCtrl* TextCtrl_XPivot;
+		BulkEditTextCtrl* TextCtrl_XRotation;
+		BulkEditTextCtrl* TextCtrl_YPivot;
 		BulkEditTextCtrl* TextCtrl_YRotation;
 		BulkEditTextCtrl* TextCtrl_ZoomQuality;
-		wxStaticText* StaticText3;
-		BulkEditTextCtrl* TextCtrl_PivotPointX;
-		BulkEditValueCurveButton* BitmapButton_XRotation;
-		BulkEditSlider* Slider_Rotation;
-		wxBitmapButton* BitmapButton_Rotations;
-		BulkEditChoice* BufferTransform;
-		BulkEditTextCtrl* TextCtrl_XPivot;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		BulkEditValueCurveButton* BitmapButton_VCPivotPointY;
-		wxScrolledWindow* ScrolledWindow2;
-		BulkEditValueCurveButton* BitmapButton_YRotation;
-		wxChoice* Choice_Preset;
-		BulkEditValueCurveButton* BitmapButton_VCRotations;
-		BulkEditSlider* Slider_YPivot;
-		BulkEditSlider* Slider_XPivot;
-		wxCheckBox* CheckBox_ResetBufferPanel;
-		wxStaticText* StaticText12;
-		BulkEditSliderF1* Slider_Zoom;
-		BulkEditValueCurveButton* BitmapButton_VCPivotPointX;
-		wxFlexGridSizer* RotoZoomSizer;
-		wxBitmapButton* BitmapButton_PivotPointX;
-		BulkEditTextCtrl* TextCtrl_Rotation;
-		wxStaticText* StaticText4;
-		wxBitmapButton* BitmapButton_ZoomQuality;
-		wxFlexGridSizer* FullBufferSizer;
-		BulkEditSlider* Slider_ZoomQuality;
+		BulkEditTextCtrlF1* TextCtrl_Rotations;
+		BulkEditTextCtrlF1* TextCtrl_Zoom;
 		BulkEditValueCurveButton* BitmapButton_Blur;
-		BulkEditTextCtrl* TextCtrl_EffectBlur;
-		BulkEditChoice* BufferStyleChoice;
-		wxBitmapButton* BitmapButton_PivotPointY;
-		BulkEditValueCurveButton* BitmapButton_YPivot;
-		BulkEditSliderF1* Slider_Rotations;
+		BulkEditValueCurveButton* BitmapButton_VCPivotPointX;
+		BulkEditValueCurveButton* BitmapButton_VCPivotPointY;
 		BulkEditValueCurveButton* BitmapButton_VCRotation;
+		BulkEditValueCurveButton* BitmapButton_VCRotations;
+		BulkEditValueCurveButton* BitmapButton_VCZoom;
+		BulkEditValueCurveButton* BitmapButton_XPivot;
+		BulkEditValueCurveButton* BitmapButton_XRotation;
+		BulkEditValueCurveButton* BitmapButton_YPivot;
+		BulkEditValueCurveButton* BitmapButton_YRotation;
+		wxBitmapButton* BitmapButton_EffectBlur;
+		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxBitmapButton* BitmapButton_PivotPointX;
+		wxBitmapButton* BitmapButton_PivotPointY;
+		wxBitmapButton* BitmapButton_Rotation;
+		wxBitmapButton* BitmapButton_Rotations;
+		wxBitmapButton* BitmapButton_Zoom;
+		wxBitmapButton* BitmapButton_ZoomQuality;
+		wxCheckBox* CheckBox_ResetBufferPanel;
+		wxChoice* Choice_Preset;
+		wxFlexGridSizer* BufferSizer;
+		wxFlexGridSizer* FullBufferSizer;
+		wxFlexGridSizer* RotoZoomSizer;
+		wxFlexGridSizer* SubBufferPanelSizer;
+		wxNotebook* Notebook1;
+		wxScrolledWindow* ScrolledWindow1;
+		wxScrolledWindow* ScrolledWindow2;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText15;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		//*)
 
         SubBufferPanel *subBufferPanel;
@@ -176,6 +178,8 @@ public:
 		static const long ID_SLIDER_YPivot;
 		static const long ID_VALUECURVE_YPivot;
 		static const long IDD_TEXTCTRL_YPivot;
+		static const long ID_STATICTEXT1;
+		static const long ID_CHOICE_RZ_RotationOrder;
 		static const long ID_SCROLLEDWINDOW2;
 		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK1;

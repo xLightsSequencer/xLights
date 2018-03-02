@@ -1109,6 +1109,7 @@ static const std::string SLIDER_XRotation("SLIDER_XRotation");
 static const std::string SLIDER_YRotation("SLIDER_YRotation");
 static const std::string SLIDER_Rotations("SLIDER_Rotations");
 static const std::string SLIDER_ZoomQuality("SLIDER_ZoomQuality");
+static const std::string CHOICE_RZ_RotationOrder("CHOICE_RZ_RotationOrder");
 static const std::string SLIDER_PivotPointX("SLIDER_PivotPointX");
 static const std::string SLIDER_PivotPointY("SLIDER_PivotPointY");
 static const std::string SLIDER_XPivot("SLIDER_XPivot");
@@ -1388,6 +1389,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->rotations = (float)settingsMap.GetInt(SLIDER_Rotations, 0) / 10.0f;
     inf->zoom = (float)settingsMap.GetInt(SLIDER_Zoom, 10) / 10.0f;
     inf->zoomquality = settingsMap.GetInt(SLIDER_ZoomQuality, 1);
+    inf->rotationorder = settingsMap.Get(CHOICE_RZ_RotationOrder, "X, Y, Z");
     inf->pivotpointx = settingsMap.GetInt(SLIDER_PivotPointX, 50);
     inf->pivotpointy = settingsMap.GetInt(SLIDER_PivotPointY, 50);
     inf->xpivot = settingsMap.GetInt(SLIDER_XPivot, 50);
@@ -1627,12 +1629,96 @@ void PixelBufferClass::SetColors(int layer, const unsigned char *fdata)
     }
 }
 
-void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
+void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
 {
-    if (std::isinf(offset)) offset = 1.0;
+    // Now do the rotation around a point on the x axis
 
+    float xrotation = layer->xrotation;
+    if (layer->XRotationValueCurve.IsActive())
+    {
+        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset);
+    }
+
+    if (xrotation != 0 && xrotation != 360)
+    {
+        int xpivot = layer->xpivot;
+        if (layer->XPivotValueCurve.IsActive())
+        {
+            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset);
+        }
+
+        RenderBuffer orig(layer->buffer);
+        layer->buffer.Clear();
+
+        float sine = sin((xrotation + 90) * M_PI / 180);
+        float pivot = xpivot * layer->buffer.BufferWi / 100;
+
+        for (int x = pivot; x < layer->buffer.BufferWi; ++x)
+        {
+            float tox = sine * (x - pivot) + pivot;
+            for (int y = 0; y < layer->buffer.BufferHt; ++y)
+            {
+                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            }
+        }
+
+        for (int x = pivot - 1; x >= 0; --x)
+        {
+            float tox = -1 * sine * (pivot - x) + pivot;
+            for (int y = 0; y < layer->buffer.BufferHt; ++y)
+            {
+                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+            }
+        }
+    }
+}
+
+void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
+{
+    // Now do the rotation around a point on the y axis
+    float yrotation = layer->yrotation;
+    if (layer->YRotationValueCurve.IsActive())
+    {
+        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset);
+    }
+
+    if (yrotation != 0 && yrotation != 360)
+    {
+        int ypivot = layer->ypivot;
+        if (layer->YPivotValueCurve.IsActive())
+        {
+            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset);
+        }
+
+        RenderBuffer orig(layer->buffer);
+        layer->buffer.Clear();
+
+        float sine = sin((yrotation + 90) * M_PI / 180);
+        float pivot = ypivot * layer->buffer.BufferHt / 100;
+
+        for (int y = pivot; y < layer->buffer.BufferHt; ++y)
+        {
+            float toy = sine * (y - pivot) + pivot;
+            for (int x = 0; x < layer->buffer.BufferWi; ++x)
+            {
+                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            }
+        }
+
+        for (int y = pivot - 1; y >= 0; --y)
+        {
+            float toy = -1 * sine * (pivot - y) + pivot;
+            for (int x = 0; x < layer->buffer.BufferWi; ++x)
+            {
+                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+            }
+        }
+    }
+}
+
+void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
+{
     // Do the Z axis rotate and zoom first
-
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
@@ -1714,86 +1800,28 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
             }
         }
     }
+}
 
-    // Now do the rotation around a point on the x axis
+void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset)
+{
+    if (std::isinf(offset)) offset = 1.0;
 
-    float xrotation = layer->xrotation;
-    if (layer->XRotationValueCurve.IsActive())
+    wxArrayString order = wxSplit(layer->rotationorder, ',');
+
+    for (auto it = order.begin(); it != order.end(); ++it)
     {
-        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset);
-    }
-
-    if (xrotation != 0 && xrotation != 360)
-    {
-        int xpivot = layer->xpivot;
-        if (layer->XPivotValueCurve.IsActive())
+        char c = it->Trim(false).ToStdString()[0];
+        switch(c)
         {
-            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset);
-        }
-
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
-
-        float sine = sin((xrotation + 90) * M_PI / 180);
-        float pivot = xpivot * layer->buffer.BufferWi / 100;
-
-        for (int x = pivot; x < layer->buffer.BufferWi; ++x)
-        {
-            float tox = sine * (x - pivot) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
-            }
-        }
-
-        for (int x = pivot-1; x >= 0; --x)
-        {
-            float tox = -1 * sine * (pivot - x) + pivot;
-            for (int y = 0; y < layer->buffer.BufferHt; ++y)
-            {
-                layer->buffer.SetPixel(tox, y, orig.GetPixel(x, y));
-            }
-        }
-    }
-
-    // Now do the rotation around a point on the y axis
-
-    float yrotation = layer->yrotation;
-    if (layer->YRotationValueCurve.IsActive())
-    {
-        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset);
-    }
-
-    if (yrotation != 0 && yrotation != 360)
-    {
-        int ypivot = layer->ypivot;
-        if (layer->YPivotValueCurve.IsActive())
-        {
-            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset);
-        }
-
-        RenderBuffer orig(layer->buffer);
-        layer->buffer.Clear();
-
-        float sine = sin((yrotation + 90) * M_PI / 180);
-        float pivot = ypivot * layer->buffer.BufferHt / 100;
-
-        for (int y = pivot; y < layer->buffer.BufferHt; ++y)
-        {
-            float toy = sine * (y - pivot) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
-            }
-        }
-
-        for (int y = pivot-1; y >= 0; --y)
-        {
-            float toy = -1 * sine * (pivot - y) + pivot;
-            for (int x = 0; x < layer->buffer.BufferWi; ++x)
-            {
-                layer->buffer.SetPixel(x, toy, orig.GetPixel(x, y));
-            }
+        case 'X':
+            RotateX(layer, offset);
+            break;
+        case 'Y':
+            RotateY(layer, offset);
+            break;
+        case 'Z':
+            RotateZAndZoom(layer, offset);
+            break;
         }
     }
 }

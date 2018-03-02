@@ -80,7 +80,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL_Shape_Char" variable="SpinCtrl_CharCode" member="yes">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL_Shape_Char" subclass="BulkEditSpinCtrl" variable="SpinCtrl_CharCode" member="yes">
 							<value>127876</value>
 							<min>32</min>
 							<max>917631</max>

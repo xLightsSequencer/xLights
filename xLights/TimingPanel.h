@@ -4,16 +4,16 @@
 #include "BulkEditControls.h"
 
 //(*Headers(TimingPanel)
-#include <wx/scrolwin.h>
+#include <wx/bmpbuttn.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
-#include <wx/bmpbuttn.h>
 //*)
 
 class Model;
@@ -29,30 +29,30 @@ class TimingPanel: public wxPanel
         void SetDefaultControls(const Model *model, bool optionbased = false);
 
 		//(*Declarations(TimingPanel)
-		wxStaticText* InAdjustmentText;
-		wxNotebook* Notebook1;
 		BulkEditCheckBox* CheckBox_In_Reverse;
-		wxStaticText* StaticText2;
-		BulkEditChoice* Choice_LayerMethod;
-		wxPanel* Panel_Sizer;
-		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
-		BulkEditChoice* Choice_Out_Transition_Type;
-		BulkEditSlider* Slider_In_Adjust;
-		BulkEditTextCtrl* TextCtrl_Fadeout;
-		BulkEditSlider* Slider_EffectLayerMix;
-		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxCheckBox* CheckBox_LayerMorph;
-		wxCheckBox* CheckBox_ResetTimingPanel;
-		wxStaticText* OutAdjustmentText;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
 		BulkEditCheckBox* CheckBox_Out_Reverse;
-		wxScrolledWindow* ScrolledWindowTiming;
 		BulkEditChoice* Choice_In_Transition_Type;
+		BulkEditChoice* Choice_LayerMethod;
+		BulkEditChoice* Choice_Out_Transition_Type;
+		BulkEditSlider* Slider_EffectLayerMix;
+		BulkEditSlider* Slider_In_Adjust;
+		BulkEditSlider* Slider_Out_Adjust;
+		BulkEditTextCtrl* TextCtrl_EffectLayerMix;
+		BulkEditTextCtrl* TextCtrl_Fadein;
+		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
-		BulkEditSlider* Slider_Out_Adjust;
+		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxCheckBox* CheckBox_ResetTimingPanel;
+		wxNotebook* Notebook1;
+		wxPanel* Panel_Sizer;
+		wxScrolledWindow* ScrolledWindowTiming;
+		wxStaticText* InAdjustmentText;
+		wxStaticText* OutAdjustmentText;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText4;
-		BulkEditTextCtrl* TextCtrl_Fadein;
 		//*)
        
 	protected:
