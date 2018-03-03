@@ -238,6 +238,8 @@
 		67ACBAB21C63D84500BFA7D6 /* CustomModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */; };
 		67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */; };
 		67ACBAB81C63DDA400BFA7D6 /* SingleLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */; };
+		67B022FF204A794200639D21 /* OutputProcessSustain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B022FB204A794100639D21 /* OutputProcessSustain.cpp */; };
+		67B02300204A794200639D21 /* SustainDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B022FD204A794200639D21 /* SustainDialog.cpp */; };
 		67B2B2241E1947BE0024F0BB /* ArtNetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */; };
 		67B2B2251E1947BE0024F0BB /* ArtNetOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */; };
 		67B2B2261E1947BE0024F0BB /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2B1FC1E1947BE0024F0BB /* Controller.cpp */; };
@@ -1061,6 +1063,10 @@
 		67ACBAB41C63DAD400BFA7D6 /* WholeHouseModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WholeHouseModel.cpp; path = models/WholeHouseModel.cpp; sourceTree = "<group>"; };
 		67ACBAB61C63DDA400BFA7D6 /* SingleLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SingleLineModel.h; path = models/SingleLineModel.h; sourceTree = "<group>"; };
 		67ACBAB71C63DDA400BFA7D6 /* SingleLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SingleLineModel.cpp; path = models/SingleLineModel.cpp; sourceTree = "<group>"; };
+		67B022FB204A794100639D21 /* OutputProcessSustain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessSustain.cpp; sourceTree = "<group>"; };
+		67B022FC204A794200639D21 /* OutputProcessSustain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputProcessSustain.h; sourceTree = "<group>"; };
+		67B022FD204A794200639D21 /* SustainDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SustainDialog.cpp; sourceTree = "<group>"; };
+		67B022FE204A794200639D21 /* SustainDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SustainDialog.h; sourceTree = "<group>"; };
 		67B2B1F81E1947BE0024F0BB /* ArtNetDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArtNetDialog.cpp; path = outputs/ArtNetDialog.cpp; sourceTree = "<group>"; };
 		67B2B1F91E1947BE0024F0BB /* ArtNetDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArtNetDialog.h; path = outputs/ArtNetDialog.h; sourceTree = "<group>"; };
 		67B2B1FA1E1947BE0024F0BB /* ArtNetOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArtNetOutput.cpp; path = outputs/ArtNetOutput.cpp; sourceTree = "<group>"; };
@@ -2660,6 +2666,10 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67B022FB204A794100639D21 /* OutputProcessSustain.cpp */,
+				67B022FC204A794200639D21 /* OutputProcessSustain.h */,
+				67B022FD204A794200639D21 /* SustainDialog.cpp */,
+				67B022FE204A794200639D21 /* SustainDialog.h */,
 				67B6F3382040F63E00B847E0 /* wxMIDI */,
 				67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */,
 				67B6F3362040F5A600B847E0 /* EventMIDIPanel.h */,
@@ -3431,6 +3441,7 @@
 				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
 				67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */,
 				3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */,
+				67B02300204A794200639D21 /* SustainDialog.cpp in Sources */,
 				67D75E542020ED60005BAC6E /* EventBase.cpp in Sources */,
 				3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */,
 				3D585F2A1E7E50A200A3F84F /* jsonreader.cpp in Sources */,
@@ -3482,6 +3493,7 @@
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
+				67B022FF204A794200639D21 /* OutputProcessSustain.cpp in Sources */,
 				67F240091E32A03F00F8B985 /* E131Dialog.cpp in Sources */,
 				67D75E5E2020ED60005BAC6E /* EventData.cpp in Sources */,
 				67F2400A1E32A03F00F8B985 /* E131Output.cpp in Sources */,

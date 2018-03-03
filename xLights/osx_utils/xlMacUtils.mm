@@ -44,7 +44,7 @@ void ObtainAccessToURL(const std::string &path) {
     }
     
     if (data.length() > 0) {
-        NSString* dstr = [NSString stringWithCString:data.ToStdString().c_str()
+        NSString* dstr = [NSString stringWithCString:data.c_str()
                                             encoding:[NSString defaultCStringEncoding]];
         NSData *nsdata = [[NSData alloc] initWithBase64EncodedString:dstr options:0];
         BOOL isStale = false;

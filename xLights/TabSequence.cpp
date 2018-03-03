@@ -821,7 +821,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     fileNames.RemoveAt(0);
     wxStopWatch sw; // start a stopwatch timer
 
-    printf("Processing file %s\n", seq.ToStdString().c_str());
+    printf("Processing file %s\n", seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 

@@ -258,12 +258,12 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     {
         if (!_outputManager.Load(CurrentDir.ToStdString()))
         {
-            logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
+            logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().c_str());
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
         }
         else
         {
-            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
+            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().c_str());
             SpinCtrl_SyncUniverse->SetValue(_outputManager.GetSyncUniverse());
         }
     }

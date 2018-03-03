@@ -4128,7 +4128,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         return;
     }
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Pasting data: %s", (const char *)data.ToStdString().c_str());
+    logger_base.info("Pasting data: %s", (const char *)data.c_str());
 
     wxArrayString all_efdata = wxSplit(data, '\n');
     if (all_efdata.size() == 0) {

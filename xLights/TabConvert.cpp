@@ -37,7 +37,7 @@ void FRAMECLASS ConversionError(const wxString& msg)
 
 void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
     if (_renderMode) {
-        printf("%s\n",msg.ToStdString().c_str());
+        printf("%s\n",msg.c_str());
     } else {
         if (filename) {
             FileNameText->SetLabel(msg);
@@ -51,7 +51,7 @@ void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
 
 void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
     if (_renderMode) {
-        printf("%s\n",msg.ToStdString().c_str());
+        printf("%s\n",msg.c_str());
     } else {
         StatusText->SetLabel(msg);
         StatusText->SetForegroundColour(color);
@@ -443,7 +443,7 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
 
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
-    f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.ToStdString().c_str()));
+    f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.c_str()));
 
     if (ver == 1) {
         //old version only supports single channels
@@ -826,7 +826,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, lo
 
     av_register_all();
 
-    const char *filename = filenames.ToStdString().c_str();
+    const char *filename = filenames.c_str();
     AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
     if (!fmt)
     {
