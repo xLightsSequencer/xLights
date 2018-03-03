@@ -703,61 +703,73 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         subBufferPanel->SetDefaults();
 
         __blur = 1;
-        Slider_EffectBlur->SetValue(1);
+        //Slider_EffectBlur->SetValue(1);
         TextCtrl_EffectBlur->SetValue("1");
-        BufferStyleChoice->SetSelection(0);
-        BufferTransform->SetSelection(0);
         BitmapButton_Blur->GetValue()->SetDefault(1.0f, 15.0f);
         BitmapButton_Blur->UpdateState();
+        
+        BufferStyleChoice->SetSelection(0);
+        
+        BufferTransform->SetSelection(0);
+
         __rotation = 0;
-        Slider_Rotation->SetValue(0);
+        //Slider_Rotation->SetValue(0);
         TextCtrl_Rotation->SetValue("0");
         BitmapButton_VCRotation->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_VCRotation->UpdateState();
 
-        Slider_XRotation->SetValue(0);
+        //Slider_XRotation->SetValue(0);
         TextCtrl_XRotation->SetValue("0");
         BitmapButton_XRotation->GetValue()->SetDefault(0.0f, 360.0f);
         BitmapButton_XRotation->UpdateState();
-        Slider_XPivot->SetValue(50);
+
+        //Slider_XPivot->SetValue(50);
         TextCtrl_XPivot->SetValue("50");
         BitmapButton_XPivot->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_XPivot->UpdateState();
-        Slider_YRotation->SetValue(0);
+
+        //Slider_YRotation->SetValue(0);
         TextCtrl_YRotation->SetValue("0");
         BitmapButton_YRotation->GetValue()->SetDefault(0.0f, 360.0f);
         BitmapButton_YRotation->UpdateState();
-        Slider_YPivot->SetValue(50);
+
+        //Slider_YPivot->SetValue(50);
         TextCtrl_YPivot->SetValue("50");
         BitmapButton_YPivot->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_YPivot->UpdateState();
 
         __zoom = 1;
-        Slider_Zoom->SetValue(1);
+        //Slider_Zoom->SetValue(1);
         TextCtrl_Zoom->SetValue("1");
         BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 30.0f);
         BitmapButton_VCZoom->GetValue()->SetDivisor(10);
         BitmapButton_VCZoom->UpdateState();
+
         __rotations = 0;
-        Slider_Rotations->SetValue(0);
+        //Slider_Rotations->SetValue(0);
         TextCtrl_Rotations->SetValue("0.0");
         BitmapButton_VCRotations->GetValue()->SetDefault(0.0f, 200.0f);
         BitmapButton_VCRotations->GetValue()->SetDivisor(10);
         BitmapButton_VCRotations->UpdateState();
+
         __zoomquality = 1;
-        Slider_ZoomQuality->SetValue(1);
+        //Slider_ZoomQuality->SetValue(1);
         TextCtrl_ZoomQuality->SetValue("1");
+
         __pivotpointx = 50;
-        Slider_PivotPointX->SetValue(50);
+        //Slider_PivotPointX->SetValue(50);
         TextCtrl_PivotPointX->SetValue("50");
         BitmapButton_VCPivotPointX->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_VCPivotPointX->UpdateState();
+
         __pivotpointy = 50;
-        Slider_PivotPointY->SetValue(50);
+        //Slider_PivotPointY->SetValue(50);
         TextCtrl_PivotPointY->SetValue("50");
         BitmapButton_VCPivotPointY->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_VCPivotPointY->UpdateState();
+
         ChoiceRotateOrder->SetSelection(0);
+
         ValidateWindow();
         wxSizeEvent evt;
         OnResize(evt);

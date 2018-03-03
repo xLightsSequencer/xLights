@@ -845,21 +845,28 @@ void ColorPanel::SetDefaultSettings(bool optionbased)
     {
         BitmapButton_SparkleFrequencyVC->GetValue()->SetDefault(COLORPANEL_SPARKLE_MIN, COLORPANEL_SPARKLE_MAX);
         BitmapButton_SparkleFrequencyVC->UpdateState();
-        Slider_SparkleFrequency->SetValue(0);
+        //Slider_SparkleFrequency->SetValue(0);
+        txtCtrlSparkleFreq->SetValue("0");
+        
         CheckBox_MusicSparkles->SetValue(false);
+        
         BitmapButton_VCBrightness->GetValue()->SetDefault(COLORPANEL_BRIGHTNESS_MIN, COLORPANEL_BRIGHTNESS_MAX);
         BitmapButton_VCBrightness->UpdateState();
-        Slider_Brightness->SetValue(100);
+        //Slider_Brightness->SetValue(100);
         txtCtlBrightness->SetValue("100");
-        Slider_Contrast->SetValue(0);
+        
+        //Slider_Contrast->SetValue(0);
         txtCtlContrast->SetValue("0");
-        txtCtrlSparkleFreq->SetValue("0");
-        Slider_Color_HueAdjust->SetValue(0);
+        
+        //Slider_Color_HueAdjust->SetValue(0);
         TextCtrl_Color_HueAdjust->SetValue("0");
-        Slider_Color_SaturationAdjust->SetValue(0);
+        
+        //Slider_Color_SaturationAdjust->SetValue(0);
         TextCtrl_Color_SaturationAdjust->SetValue("0");
-        Slider_Color_ValueAdjust->SetValue(0);
+        
+        //Slider_Color_ValueAdjust->SetValue(0);
         TextCtrl_Color_ValueAdjust->SetValue("0");
+        
         BitmapButton_Color_HueAdjust->GetValue()->SetDefault(COLORPANEL_HUE_MIN, COLORPANEL_HUE_MAX);
         BitmapButton_Color_HueAdjust->UpdateState();
         BitmapButton_Color_SaturationAdjust->GetValue()->SetDefault(COLORPANEL_SATURATION_MIN, COLORPANEL_SATURATION_MAX);

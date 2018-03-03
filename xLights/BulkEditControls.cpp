@@ -666,10 +666,10 @@ wxWindow* GetAssociatedWindow(wxWindow* w, wxString ourName, wxString ourType, w
         name2.Replace("ID", "IDD", false);
     }
 
-    wxWindow* res = w->FindWindowByName(name1);
+    wxWindow* res = wxWindow::FindWindowByName(name1, w);
     if (res == nullptr)
     {
-        res = w->FindWindowByName(name2);
+        res = wxWindow::FindWindowByName(name2, w);
     }
 
     return res;
