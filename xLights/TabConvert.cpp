@@ -37,7 +37,7 @@ void FRAMECLASS ConversionError(const wxString& msg)
 
 void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
     if (_renderMode) {
-        printf("%s\n",msg.c_str());
+        printf("%s\n", (const char *)msg.c_str());
     } else {
         if (filename) {
             FileNameText->SetLabel(msg);
@@ -51,7 +51,7 @@ void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
 
 void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
     if (_renderMode) {
-        printf("%s\n",msg.c_str());
+        printf("%s\n", (const char *)msg.c_str());
     } else {
         StatusText->SetLabel(msg);
         StatusText->SetForegroundColour(color);

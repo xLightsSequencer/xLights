@@ -632,8 +632,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
-                       event.GetPropertyName().c_str(),
-                       event.GetValue().GetString().c_str());
+                       (const char *)event.GetPropertyName().c_str(),
+                       (const char *)event.GetValue().GetString().c_str());
             }
         }
     }
