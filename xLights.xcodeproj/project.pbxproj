@@ -136,6 +136,7 @@
 		675DE26B1B53381800A9BB44 /* xlColorPickerFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */; };
 		675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675DE2651B53381800A9BB44 /* xlSlider.cpp */; };
 		675EF49C1E422B2500AA189F /* xScheduleWeb in Resources */ = {isa = PBXBuildFile; fileRef = 675EF49B1E422B2500AA189F /* xScheduleWeb */; };
+		675FD840204C3C0B003D280F /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B227204BA69B00E90AC7 /* CoreImage.framework */; };
 		676013E51B9D34F7001179FA /* SaveChangesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676013E41B9D34F7001179FA /* SaveChangesDialog.cpp */; };
 		6760D8551FA3C6AD00458894 /* BatchRenderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */; };
 		6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6761F5EB1C4EA041009780DA /* AssistPanel.cpp */; };
@@ -167,6 +168,8 @@
 		676D0F821C72BEBD009C66FC /* kfc.c in Sources */ = {isa = PBXBuildFile; fileRef = 676D0F7B1C72BEBD009C66FC /* kfc.c */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
+		6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B227204BA69B00E90AC7 /* CoreImage.framework */; };
+		6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6771B229204BA6AF00E90AC7 /* QuartzCore.framework */; };
 		677421D41A68AB3E0082DA5B /* Render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D31A68AB3E0082DA5B /* Render.cpp */; };
 		677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D51A68ACDA0082DA5B /* JobPool.cpp */; };
 		677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */; };
@@ -957,6 +960,8 @@
 		676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LorConvertDialog.cpp; sourceTree = "<group>"; };
 		676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LorConvertDialog.h; sourceTree = "<group>"; };
 		676DCBFD1A98E53800FBA86B /* tmGridCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tmGridCell.h; sourceTree = "<group>"; };
+		6771B227204BA69B00E90AC7 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		6771B229204BA6AF00E90AC7 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		677421D31A68AB3E0082DA5B /* Render.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Render.cpp; sourceTree = "<group>"; };
 		677421D51A68ACDA0082DA5B /* JobPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JobPool.cpp; sourceTree = "<group>"; };
 		677421D61A68ACDA0082DA5B /* JobPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JobPool.h; sourceTree = "<group>"; };
@@ -1673,6 +1678,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				675FD840204C3C0B003D280F /* CoreImage.framework in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
@@ -1704,6 +1710,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */,
+				6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */,
 				67B6F3432040FBB600B847E0 /* CoreAudio.framework in Frameworks */,
 				67B6F3412040FB7900B847E0 /* CoreMIDI.framework in Frameworks */,
 				67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */,
@@ -2306,6 +2314,8 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6771B229204BA6AF00E90AC7 /* QuartzCore.framework */,
+				6771B227204BA69B00E90AC7 /* CoreImage.framework */,
 				67B6F3422040FBB600B847E0 /* CoreAudio.framework */,
 				67B6F3402040FB7800B847E0 /* CoreMIDI.framework */,
 				67B6F33E2040FB5100B847E0 /* libportmidi.a */,
