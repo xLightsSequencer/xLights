@@ -155,6 +155,7 @@ std::vector < Element*> SequenceElements::SearchForElements(const std::string &r
         {
             Element *el = mAllViews[view][i];
             if (el->GetFullName().empty()) continue;
+            if (el->GetType() == ELEMENT_TYPE_TIMING) continue;
             if (std::regex_match(el->GetFullName(), reg))
             {
                 foundModels.push_back(mAllViews[view][i]);

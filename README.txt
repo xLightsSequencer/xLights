@@ -26,6 +26,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add emojies to the shape effect ... in reality these are just characters from fonts ... not full colour emojies
    -- enh (keith)  Add sustain output process ... when a channel goes to zero ... overwrite it with the last non zero value
    -- enh (keith)  Add the ability to control the order in which the x, y and z + zoom rotozoom translations are applied.
+   -- bug (keith)  Fix some issues with effect selection
+   -- bug (keith)  Some performance fixes which impacted selecting effects and moving effects
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.
