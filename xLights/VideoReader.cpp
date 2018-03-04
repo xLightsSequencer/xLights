@@ -6,8 +6,9 @@
 #undef min
 #include <algorithm>
 #include <cmath>
+#include <wx/filename.h>
 
-VideoReader::VideoReader(std::string filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/)
+VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _filename = filename;
@@ -195,6 +196,28 @@ static int DTStoMS(int64_t dts , int dtspersec)
 int VideoReader::GetPos()
 {
     return DTStoMS(_srcFrame->pkt_dts, _dtspersec);
+}
+
+bool VideoReader::IsVideoFile(const std::string& filename)
+{
+    wxFileName fn(filename);
+    auto ext = fn.GetExt().Lower().ToStdString();
+
+    if (ext == "avi" ||
+        ext == "mp4" ||
+        ext == "mkv" ||
+        ext == "mov" ||
+        ext == "asf" ||
+        ext == "flv" ||
+        ext == "mpg" ||
+        ext == "mpeg" ||
+        ext == "m4v"
+        )
+    {
+        return true;
+    }
+
+    return false;
 }
 
 VideoReader::~VideoReader()

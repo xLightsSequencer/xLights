@@ -185,28 +185,6 @@ public:
     int _frameMS;
 };
 
-bool VideoEffect::IsVideo(const std::string& file)
-{
-    wxFileName fn(file);
-    auto ext = fn.GetExt().ToStdString();
-
-    if (ext == "avi" ||
-        ext == "mp4" ||
-        ext == "mkv" ||
-        ext == "mov" ||
-        ext == "asf" ||
-        ext == "flv" ||
-        ext == "mpg" ||
-        ext == "mpeg" ||
-        ext == "m4v"
-        )
-    {
-        return true;
-    }
-
-    return false;
-}
-
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 	double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
 {

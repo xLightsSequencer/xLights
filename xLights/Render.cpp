@@ -1424,12 +1424,12 @@ bool xLightsFrame::AbortRender()
     }
 
     //must wait for the rendering to complete
+    logger_base.info("Aborting %d renderers", abortCount);
     while (!renderProgressInfo.empty()) {
         wxMilliSleep(10);
-        wxYield();
+        wxYield(); // not sure this is advisable ... but it makes the app look responsive
     }
-
-    logger_base.info("    Aborted jobs %d.", abortCount);
+    logger_base.info("    Aborting renderers ... Done");
     return abortCount != 0;
 }
 
