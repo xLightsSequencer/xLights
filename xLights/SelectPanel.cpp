@@ -116,7 +116,8 @@ void SelectPanel::ReloadModels()
 {
     std::vector<wxString> keys;
 
-    mSequenceElements->UnSelectAllEffects();
+    // This causes undesirable effects
+    // mSequenceElements->UnSelectAllEffects();
 
     for (size_t i = 0; i < mSequenceElements->GetElementCount(mSequenceElements->GetCurrentView()); i++)
     {
