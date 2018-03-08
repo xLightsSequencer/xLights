@@ -10,7 +10,6 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>10</minsize>
 					<orientation>vertical</orientation>
 					<minsize>10,10</minsize>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
@@ -151,11 +150,11 @@
 									<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL</style>
 									<handler function="OnListCtrl_AvailableBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListCtrl_AvailableItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+									<handler function="OnListCtrl_AvailableItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
 									<handler function="OnListCtrl_AvailableColumnClick" entry="EVT_LIST_COL_CLICK" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<minsize>100,-1d</minsize>
 								<option>1</option>
 							</object>
 						</object>

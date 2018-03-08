@@ -1073,6 +1073,7 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
 }
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
                                  bool allowAllModels, bool clearSrc) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
     xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
@@ -1184,7 +1185,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            if (model != nullptr)
+            if (model == nullptr)
+            {
+                logger_base.error("Attempt to add model %s during xLights import failed.", (const char *)modelName.c_str());
+            }
+            else
             {
                 MapXLightsEffects(model, m->_mapping.ToStdString(), se, elementMap, layerMap, mapped);
             }
@@ -1199,7 +1204,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                if (model != nullptr)
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during xLights import failed.", (const char *)modelName.c_str());
+                }
+                else
                 {
                     SubModelElement *ste = model->GetSubModel(str);
                     if (ste != nullptr) {
@@ -1213,7 +1222,11 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                     if (model == nullptr) {
                         model = AddModel(GetModel(modelName), mSequenceElements);
                     }
-                    if (model != nullptr)
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during xLights import failed.", (const char *)modelName.c_str());
+                    }
+                    else
                     {
                         SubModelElement *ste = model->GetSubModel(str);
                         StrandElement *stre = dynamic_cast<StrandElement *>(ste);
@@ -1525,9 +1538,10 @@ std::string SafeGetAttrValue(SP_XmlStartTagEvent* event, const char* name)
 }
 
 void xLightsFrame::ImportVix(const wxFileName &filename) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw; // start a stopwatch timer
 
-    std::string NodeName,NodeValue,msg;
+    std::string msg;
     std::vector<unsigned char> VixSeqData;
     long cnt = 0;
     std::vector<std::string> context;
@@ -1571,7 +1585,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                 case SP_XmlPullEvent::eStartTag:
                 {
                     SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                    NodeName = stagEvent->getName();
+                    std::string NodeName = stagEvent->getName();
                     context.push_back(NodeName);
                     cnt++;
                     if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
@@ -1594,7 +1608,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                 {
                     SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                     if (cnt >= 2) {
-                        NodeValue = stagEvent->getText();
+                        std::string NodeValue = stagEvent->getText();
                         if (context[1] == "MaximumLevel") {
                             //MaxIntensity = wxAtoi(NodeValue);
                         } else if (context[1] == "EventPeriodInMilliseconds") {
@@ -1692,12 +1706,19 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            MapVixChannelInformation(this, model->GetEffectLayer(0),
-                                        VixSeqData, frameTime, numFrames,
-                                        m->_mapping.ToStdString(),
-                                        unsortedChannels,
-                                        m->_color,
-                                        *mc);
+            if (model == nullptr)
+            {
+                logger_base.error("Attempt to add model %s during Vixen import failed.", (const char *)modelName.c_str());
+            }
+            else
+            {
+                MapVixChannelInformation(this, model->GetEffectLayer(0),
+                    VixSeqData, frameTime, numFrames,
+                    m->_mapping.ToStdString(),
+                    unsortedChannels,
+                    m->_color,
+                    *mc);
+            }
         }
 
         int str = 0;
@@ -1709,13 +1730,20 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                SubModelElement *ste = model->GetSubModel(str);
-                if (ste != nullptr) {
-                    MapVixChannelInformation(this, ste->GetEffectLayer(0),
-                                                VixSeqData, frameTime, numFrames,
-                                                s->_mapping.ToStdString(),
-                                                unsortedChannels,
-                                                s->_color, *mc);
+                if (model == nullptr)
+                {
+                    logger_base.error("Attempt to add model %s during Vixen import failed.", (const char *)modelName.c_str());
+                }
+                else
+                {
+                    SubModelElement *ste = model->GetSubModel(str);
+                    if (ste != nullptr) {
+                        MapVixChannelInformation(this, ste->GetEffectLayer(0),
+                            VixSeqData, frameTime, numFrames,
+                            s->_mapping.ToStdString(),
+                            unsortedChannels,
+                            s->_color, *mc);
+                    }
                 }
             }
             for (size_t n = 0; n < s->GetChildCount(); n++) {
@@ -1724,16 +1752,23 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
                     if (model == nullptr) {
                         model = AddModel(GetModel(modelName), mSequenceElements);
                     }
-                    SubModelElement *ste = model->GetSubModel(str);
-                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
-                    if (stre != nullptr) {
-                        NodeLayer *nl = stre->GetNodeLayer(n, true);
-                        if (nl != nullptr) {
-                            MapVixChannelInformation(this, nl,
-                                VixSeqData, frameTime, numFrames,
-                                ns->_mapping.ToStdString(),
-                                unsortedChannels,
-                                ns->_color, *mc);
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during Vixen import failed.", (const char *)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                MapVixChannelInformation(this, nl,
+                                    VixSeqData, frameTime, numFrames,
+                                    ns->_mapping.ToStdString(),
+                                    unsortedChannels,
+                                    ns->_color, *mc);
+                            }
                         }
                     }
                 }
@@ -2393,6 +2428,7 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
 
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
@@ -2529,16 +2565,23 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             if (model == nullptr) {
                 model = AddModel(GetModel(modelName), mSequenceElements);
             }
-            if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+            if (model == nullptr)
             {
-                MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+                logger_base.error("Attempt to add model %s during LMS import failed.", (const char *)modelName.c_str());
             }
             else
             {
-                MapChannelInformation(effectManager,
-                    model->GetEffectLayer(0), input_xml,
-                    m->_mapping,
-                    m->_color, *mc);
+                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+                {
+                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+                }
+                else
+                {
+                    MapChannelInformation(effectManager,
+                        model->GetEffectLayer(0), input_xml,
+                        m->_mapping,
+                        m->_color, *mc);
+                }
             }
         }
 
@@ -2551,17 +2594,24 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 if (model == nullptr) {
                     model = AddModel(GetModel(modelName), mSequenceElements);
                 }
-                if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+                if (model == nullptr)
                 {
+                    logger_base.error("Attempt to add model %s during LMS import failed.", (const char *)modelName.c_str());
                 }
                 else
                 {
-                    SubModelElement *ste = model->GetSubModel(str);
-                    if (ste != nullptr) {
-                        MapChannelInformation(effectManager,
-                            ste->GetEffectLayer(0), input_xml,
-                            s->_mapping,
-                            s->_color, *mc);
+                    if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+                    {
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        if (ste != nullptr) {
+                            MapChannelInformation(effectManager,
+                                ste->GetEffectLayer(0), input_xml,
+                                s->_mapping,
+                                s->_color, *mc);
+                        }
                     }
                 }
             }
@@ -2571,15 +2621,22 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     if (model == nullptr) {
                         model = AddModel(GetModel(modelName), mSequenceElements);
                     }
-                    SubModelElement *ste = model->GetSubModel(str);
-                    StrandElement *stre = dynamic_cast<StrandElement *>(ste);
-                    if (stre != nullptr) {
-                        NodeLayer *nl = stre->GetNodeLayer(n, true);
-                        if (nl != nullptr) {
-                            MapChannelInformation(effectManager,
-                                nl, input_xml,
-                                ns->_mapping,
-                                ns->_color, *mc);
+                    if (model == nullptr)
+                    {
+                        logger_base.error("Attempt to add model %s during LMS import failed.", (const char *)modelName.c_str());
+                    }
+                    else
+                    {
+                        SubModelElement *ste = model->GetSubModel(str);
+                        StrandElement *stre = dynamic_cast<StrandElement *>(ste);
+                        if (stre != nullptr) {
+                            NodeLayer *nl = stre->GetNodeLayer(n, true);
+                            if (nl != nullptr) {
+                                MapChannelInformation(effectManager,
+                                    nl, input_xml,
+                                    ns->_mapping,
+                                    ns->_color, *mc);
+                            }
                         }
                     }
                 }
@@ -3660,6 +3717,7 @@ void MapLSPStrand(StrandElement *layer, wxXmlNode *node, const wxColor &c) {
 }
 
 void xLightsFrame::ImportLSP(const wxFileName &filename) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw; // start a stopwatch timer
 
     LMSImportChannelMapDialog dlg(this, filename);
@@ -3721,7 +3779,6 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
                     }
                 }
             } else {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Could not parse XML file %s.", (const char *)ent->GetName().c_str());
                 wxLogError("Could not parse XML file %s", ent->GetName().c_str());
             }

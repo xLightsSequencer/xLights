@@ -432,8 +432,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 
 	//(*Initialize(xLightsImportChannelMapDialog)
 	wxButton* Button01;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxButton* Button02;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, wxID_ANY, _("Map Channels"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
 	OldSizer = new wxFlexGridSizer(0, 1, 0, 0);
@@ -441,7 +441,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	OldSizer->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
 	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetMinimumPaneSize(10);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -506,6 +505,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
 	//*)
 
@@ -1759,4 +1759,27 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     }
     TreeListCtrl_Mapping->Refresh();
     MarkUsed();
+}
+
+void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEvent& event)
+{
+    if (TreeListCtrl_Mapping->GetSelectedItemsCount() != 1) return;
+
+    wxDataViewItem mapTo = TreeListCtrl_Mapping->GetSelection();
+    Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem()).ToStdString());
+
+    wxDataViewItem nextMapTo = GetNextTreeItem(mapTo);
+    TreeListCtrl_Mapping->Unselect(mapTo);
+    if (nextMapTo.IsOk())
+    {
+        TreeListCtrl_Mapping->Select(nextMapTo);
+        TreeListCtrl_Mapping->EnsureVisible(nextMapTo);
+    }
+
+    if (event.GetIndex() + 1 < ListCtrl_Available->GetItemCount())
+    {
+        ListCtrl_Available->SetItemState(event.GetIndex(), 0, wxLIST_STATE_SELECTED);
+        ListCtrl_Available->SetItemState(event.GetIndex() + 1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        ListCtrl_Available->EnsureVisible(event.GetIndex() + 1);
+    }
 }
