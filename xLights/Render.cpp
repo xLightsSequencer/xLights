@@ -1472,7 +1472,16 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     BuildRenderTree();
+
+    logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.", 
+        (const char *)model.c_str(),
+        startms,
+        endms,
+        renderTree.data.size());
 
     int startframe = startms / SeqData.FrameTime() - 1;
     if (startframe < 0) {
@@ -1504,6 +1513,9 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             }
             std::list<Model *> m;
             m.push_back((*it)->model);
+
+            logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
+
             Render((*it)->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }

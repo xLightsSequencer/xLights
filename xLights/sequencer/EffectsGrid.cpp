@@ -766,6 +766,8 @@ void EffectsGrid::OnDrop(int x, int y)
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!mIsInitialized || mSequenceElements == nullptr) {
         return;
     }
@@ -775,6 +777,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
+        logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
         Update();
@@ -942,6 +945,7 @@ void EffectsGrid::ClearSelection(bool keepCanPaste)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     mPartialCellSelected = false;
 
     // if no shift key clear any cell range selections
@@ -971,6 +975,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     Effect* selectedEffect = GetEffectAtRowAndTime(row,time,effectIndex,selectionType);
     if(selectedEffect!= nullptr)
     {
+        logger_base.debug("EffectsGrid::mouseDown effect selected %s.", (const char *)selectedEffect->GetEffectName().c_str());
         switch (selectionType) {
             case HitLocation::NONE:
                 break;
@@ -2591,6 +2596,8 @@ bool EffectsGrid::DoACDraw(bool keyboard, ACTYPE typeOverride, ACSTYLE styleOver
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mSequenceElements == nullptr) {
         return;
     }
@@ -2618,11 +2625,12 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     }
 
     bool checkForEmptyCell = false;
-    if(mResizing)
+    if (mResizing)
     {
         ReleaseMouse();
-        if(mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
+        if (mEffectLayer->GetParentElement()->GetType() != ELEMENT_TYPE_TIMING)
         {
+            logger_base.debug("EffectsGrid::mouseReleased model effect released.");
             if (MultipleEffectsSelected()) {
                 std::string lastModel;
                 int startMS = 99999999;
@@ -2810,9 +2818,9 @@ void EffectsGrid::CheckForPartialCell(int x_pos)
 
 void EffectsGrid::Resize(int position, bool offset, bool control)
 {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) return;
 
     int new_position = position;
 
@@ -2892,14 +2900,22 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     {
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
     }
-    sendRenderDirtyEvent();
+
+    // KW - I am commenting this out because it is causing a large number of render events
+    // when you drag or resize an effect. I have tested some scenarios and it seems to be ok
+    // If we encounter scenarios where it isnt it would be better to send the render dirty
+    // event from the calling functions. I have temporarily added logging for all click and
+    // drag events to try to help us identify why we miss rendering when we do
+    logger_base.debug("EffectsGrid::Resize would have sent render dirty event");
+    //sendRenderDirtyEvent();
 }
 
 void EffectsGrid::MoveSelectedEffectUp(bool shift)
 {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) return;
+
     if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
         mCellRangeSelected = false;
     }
@@ -2925,6 +2941,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
     }
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow > 0)
     {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving single effect.");
         int row = mSelectedRow-1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while( row >= mSequenceElements->GetNumberOfTimingRows() )
@@ -2958,6 +2975,8 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
     }
     else if( MultipleEffectsSelected() )
     {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectUp moving multiple effects.");
+
         // check if its clear for all effects
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
@@ -3032,9 +3051,10 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
 
 void EffectsGrid::MoveSelectedEffectDown(bool shift)
 {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) return;
+
     if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
         mCellRangeSelected = false;
     }
@@ -3061,6 +3081,8 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     }
     else if( !MultipleEffectsSelected() && mSelectedEffect != nullptr && !mSelectedEffect->IsLocked() && mSelectedRow >= 0)
     {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving single effect.");
+
         int row = mSelectedRow+1;
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while( row < mSequenceElements->GetVisibleRowInformationSize() )
@@ -3094,20 +3116,21 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
     }
     else if( MultipleEffectsSelected() )
     {
+        logger_base.debug("EffectsGrid::MoveSelectedEffectDown moving mulitple effects.");
 
         // check if its clear for all effects
         bool all_clear = true;
         int first_model_row = mSequenceElements->GetNumberOfTimingRows();
         int num_effects = mSequenceElements->GetEffectLayer(mSequenceElements->GetRowInformationSize()-1)->GetEffectCount();
-        if( num_effects > 0 )
+        if (num_effects > 0)
         {
             all_clear = false;
         }
-        for(int row=mSequenceElements->GetRowInformationSize()-1;row>first_model_row && all_clear;row--)
+        for (int row=mSequenceElements->GetRowInformationSize()-1;row>first_model_row && all_clear;row--)
         {
             EffectLayer* el1 = mSequenceElements->GetEffectLayer(row-1);
             EffectLayer* el2 = mSequenceElements->GetEffectLayer(row);
-            if( mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0 )
+            if (mSequenceElements->GetEffectLayer(row-1)->GetSelectedEffectCount() > 0)
             {
                 num_effects = mSequenceElements->GetEffectLayer(row-1)->GetEffectCount();
                 for( int i = 0; (i < num_effects) && all_clear; ++i )
@@ -3169,7 +3192,11 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
 
 void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mSequenceElements == nullptr) return; // a sequence must be open
+
+    logger_base.debug("EffectsGrid::MoveSelectedEffectRight.");
 
     if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
         mCellRangeSelected = false;
@@ -3308,7 +3335,11 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt)
 
 void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mSequenceElements == nullptr) return;
+
+    logger_base.debug("EffectsGrid::MoveSelectedEffectLeft.");
 
     if( mSequenceElements->GetSelectedTimingRow() == -1 ) {
         mCellRangeSelected = false;
@@ -3655,14 +3686,19 @@ void EffectsGrid::DeleteSelectedEffects()
 
 void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
 {
-    // TODO:  Fix so that rendering occurs where effects used to exist and their new location
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    //TODO :  Fix so that rendering occurs where effects used to exist and their new location
     if (mSequenceElements == nullptr || mSelectedEffect == nullptr) {
         return;
     }
+
+    logger_base.debug("EffectsGrid::AlignSelectedEffects.");
+
     int sel_eff_start = mSelectedEffect->GetStartTimeMS();
     int sel_eff_end = mSelectedEffect->GetEndTimeMS();
     int sel_eff_center = 0;
-    if(align_mode == ALIGN_CENTERPOINTS) {
+    if (align_mode == ALIGN_CENTERPOINTS) {
         sel_eff_center = sel_eff_end - sel_eff_start;
         if( sel_eff_center < mSequenceElements->GetMinPeriod() ) {
             sel_eff_center = sel_eff_start;
@@ -3674,7 +3710,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
     int rows_to_process = mSequenceElements->GetRowInformationSize();
     std::vector<bool> reserved;
     int first_model_row = mSequenceElements->GetFirstVisibleModelRow();
-    for(int i=first_model_row;i<rows_to_process;i++)
+    for (int i = first_model_row; i < rows_to_process; i++)
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
@@ -3846,9 +3882,12 @@ bool EffectsGrid::OneCellSelected()
 }
 
 void EffectsGrid::OldPaste(const wxString &data, const wxString &pasteDataVersion) {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) return;
+
+    logger_base.debug("EffectsGrid::OldPaste.");
 
     bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
@@ -4124,10 +4163,10 @@ int EffectsGrid::GetMSFromColumn(int col) const
 }
 
 void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, bool row_paste) {
-    if (mSequenceElements == nullptr) {
-        return;
-    }
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) return;
+
     logger_base.info("Pasting data: %s", (const char *)data.c_str());
 
     wxArrayString all_efdata = wxSplit(data, '\n');
@@ -4593,6 +4632,10 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
 
 void EffectsGrid::ResizeMoveMultipleEffectsByTime(int delta, bool force)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("EffectsGrid::ResizeMoveMultipleEffectsByTime.");
+
     int deltaTime = mTimeline->RoundToMultipleOfPeriod(std::abs(delta), mSequenceElements->GetFrequency());
     if( delta < 0 )
     {
@@ -4631,6 +4674,10 @@ void EffectsGrid::ResizeMoveMultipleEffectsByTime(int delta, bool force)
 
 void EffectsGrid::ButtUpResizeMoveMultipleEffects(bool right)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("EffectsGrid::ButtUpResizeMoveMultipleEffects.");
+
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
     for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
@@ -4646,6 +4693,10 @@ void EffectsGrid::ButtUpResizeMoveMultipleEffects(bool right)
 
 void EffectsGrid::StretchMultipleEffectsByTime(int delta)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("EffectsGrid::StretchMultipleEffectsByTime.");
+
     int deltaTime = mTimeline->RoundToMultipleOfPeriod(std::abs(delta), mSequenceElements->GetFrequency());
     if (delta < 0)
     {
@@ -4676,6 +4727,10 @@ void EffectsGrid::StretchMultipleEffectsByTime(int delta)
 
 void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("EffectsGrid::ButtUpStretchMultipleEffects.");
+
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
     for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
@@ -4690,7 +4745,11 @@ void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
 
 void EffectsGrid::ResizeSingleEffect(int position)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked()) return;
+
+    logger_base.debug("EffectsGrid::ResizeSingleEffect.");
 
     int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
 
@@ -4788,7 +4847,6 @@ void EffectsGrid::ResizeSingleEffect(int position)
     // Move time line and waveform to new position
     UpdateZoomPosition(time);
 }
-
 
 void EffectsGrid::RunMouseOverHitTests(int rowIndex,int x,int y)
 {
@@ -5926,6 +5984,10 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const
 
 void EffectsGrid::StretchAllSelectedEffects(int deltaMS, bool offset) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("EffectsGrid::StretchAllSelectedEffects.");
+
     // Tag all selected effects so we don't move them twice
     ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
