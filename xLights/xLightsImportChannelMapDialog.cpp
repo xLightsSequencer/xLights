@@ -1594,16 +1594,18 @@ void xLightsImportChannelMapDialog::MarkUsed()
     // go through each tree row where mapping is not blank
     for (unsigned int i = 0; i < dataModel->GetChildCount(); ++i)
     {
+        bool found = false;
         auto model = dataModel->GetNthChild(i);
         if (model->_mapping != "")
         {
             if (std::find(used.begin(), used.end(), model->_mapping) == used.end())
             {
                 used.push_back(model->_mapping.ToStdString());
+                found = true;
             }
         }
 
-        for (unsigned int j = 0; j < model->GetChildCount(); j++)
+        for (unsigned int j = 0; !found && j < model->GetChildCount(); j++)
         {
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "")
@@ -1611,10 +1613,11 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 if (std::find(used.begin(), used.end(), strand->_mapping) == used.end())
                 {
                     used.push_back(strand->_mapping.ToStdString());
+                    found = true;
                 }
             }
 
-            for (unsigned int k = 0; k < strand->GetChildCount(); k++)
+            for (unsigned int k = 0; !found && k < strand->GetChildCount(); k++)
             {
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "")
@@ -1622,15 +1625,20 @@ void xLightsImportChannelMapDialog::MarkUsed()
                     if (std::find(used.begin(), used.end(), node->_mapping) == used.end())
                     {
                         used.push_back(node->_mapping.ToStdString());
+                        found = true;
                     }
                 }
             }
         }
     }
 
-    for (unsigned int i = 0; i < ListCtrl_Available->GetItemCount(); ++i)
+    used.sort();
+
+    int items = ListCtrl_Available->GetItemCount();
+    ListCtrl_Available->Freeze();
+    for (unsigned int i = 0; i < items; ++i)
     {
-        if (std::find(used.begin(), used.end(), ListCtrl_Available->GetItemText(i)) == used.end())
+        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString()))
         {
             // not used
             ListCtrl_Available->SetItemTextColour(i, *wxBLACK);
@@ -1641,6 +1649,8 @@ void xLightsImportChannelMapDialog::MarkUsed()
             ListCtrl_Available->SetItemTextColour(i, *wxLIGHT_GREY);
         }
     }
+    ListCtrl_Available->Thaw();
+    ListCtrl_Available->Refresh();
 }
 
 StashedMapping* xLightsImportChannelMapDialog::GetStashedMapping(wxString modelName, wxString strandName, wxString nodeName)
