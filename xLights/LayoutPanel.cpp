@@ -2825,10 +2825,10 @@ void LayoutPanel::ReplaceModel()
             }
         }
 
-        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection(), "Iamgoingtodeletethismodel");
+        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
         replaceModel->Rename("Iamgoingtodeletethismodel");
-        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection());
-        modelToReplaceItWith->Rename(dlg.GetStringSelection());
+        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
+        modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
         xlights->AllModels.Delete("Iamgoingtodeletethismodel");
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
