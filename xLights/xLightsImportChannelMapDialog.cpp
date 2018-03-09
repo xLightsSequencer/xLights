@@ -538,14 +538,18 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
-    //delete dataModel;
+
+    // disconnect the model and then delete it ... this ensures the destructors are called
+    // which stops memory leaks
+    TreeListCtrl_Mapping->AssociateModel(nullptr);
+    delete dataModel;
 
     // clear any stashed mappings
-    for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it)
+    while (_stashedMappings.size() > 0)
     {
-        delete (*it);
+        delete _stashedMappings.front();
+        _stashedMappings.pop_front();
     }
-    _stashedMappings.clear();
 }
 
 int CountChar(wxString& line, char c)
