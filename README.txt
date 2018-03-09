@@ -30,6 +30,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Some performance fixes which impacted selecting effects and moving effects
    -- enh (keith)  Enhance mapping lots of channels sequentially
    -- enh (keith)  Add Spectrogram Peak to VUMeter
+   -- enh (keith)  Provide an easy way to replace a model without breaking all the groups it is a member of
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
    -- enh (gil)    Update LOR events to work with multiple cards on one port.
