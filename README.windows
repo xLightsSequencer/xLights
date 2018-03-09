@@ -16,7 +16,7 @@ Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
 We support both the CodeBlocks/MinGW compiler and the VisualStudio/MS Visual C++ compiler for Windows builds.
 
-Instructions for MinGW
+Instructions for MinGW 32 Bit
 ================================================
 
 Here are the steps to compile xLights for Windows using the MinGW compiler.
@@ -43,9 +43,9 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
 
      1) Open a command prompt
      2) cd to the build\msw directory under your wxWidgets base directory
-     3) Execute the command: SET Path=%PATH%;C:\Program Files (x86)\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw32\bin
+     3) Execute the command: SET Path=%PATH%;C:\Program Files (x86)\mingw-w64\i686-7.2.0-posix-dwarf-rt_v5-rev1\mingw32\bin
         Note: If your MinGW installation was placed in a different directory adjust the command above accordingly.
-	 4) Edit the wxWidgets-3.1.1\include\wx\msw\setup.h and change the following lines
+	 4) Edit the wxWidgets\include\wx\msw\setup.h and change the following lines
 			#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
 				to
 				#define wxUSE_STD_STRING_CONV_IN_WXSTRING 1
@@ -54,17 +54,17 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
 				#define wxUSE_STD_CONTAINERS 1
             - save the file
 	 5) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
-	    more locations: wxWidgets-3.1.1\lib\gcc_dll\mswu\wx\setup.h and wxWidgets-3.1.1\lib\gcc_dll\mswud\wx\setup.h.
+	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
 	 6) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
-	    - wxWidgets-3.1.1\build\msw\gcc_mswuddll
-		- wxWidgets-3.1.1\build\msw\gcc_mswudll
+	    - wxWidgets\build\msw\gcc_mswuddll
+		- wxWidgets\build\msw\gcc_mswudll
      7) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=debug -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      8) run: mingw32-make -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      9) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
-        then you need to update your path environment variable to include C:\wxWidgets-3.1.1\lib\gcc_dll
-        (assuming C:\wxWidgets-3.1.1 is your wxWidgets base directory).
+        then you need to update your path environment variable to include C:\wxWidgets\lib\gcc_dll
+        (assuming C:\wxWidgets is your wxWidgets base directory).
 
   c) In Code::Blocks:
      1) select Settings > Compiler
@@ -90,7 +90,7 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
      12) select Settings > Global Variables
      13) Make sure "wx" is defined as described in the Code::Blocks documentation.
          wx should be set to your wxWidgets base directory. Just the "Base" field
-         needs to be filled in - to something like "C:\wxWidgets-3.1.1",
+         needs to be filled in - to something like "C:\wxWidgets",
          assuming that is where your copy of wxWidgets is located.
 
   d) Now you are ready to use Code::Blocks to build xLights
@@ -122,7 +122,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
      The installer only puts the wxWidgets source code on your system, you will need
      to compile it yourself to create the dll. If you followed the MinGW instructions,
      make a separate directory for the 64-bit version:
-       C:\wxWidgets64-3.1.1
+       C:\wxWidgets
      
      To compile it yourself:
 
@@ -130,7 +130,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
      2) cd to the build\msw directory under your wxWidgets64 base directory
      3) Execute the command: SET Path=%PATH%;C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin
         Note: If your MinGW installation was placed in a different directory adjust the command above accordingly.
-	 4) Edit the wxWidgets-3.1.1\include\wx\msw\setup.h and change the following lines
+	 4) Edit the wxWidgets\include\wx\msw\setup.h and change the following lines
 			#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
 				to
 				#define wxUSE_STD_STRING_CONV_IN_WXSTRING 1
@@ -139,17 +139,17 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
 				#define wxUSE_STD_CONTAINERS 1
             - save the file
 	 5) If you have previously built wxWidgets64 before and are using the same directory you will need to make the same change as above to the setup.h file in two
-	    more locations: wxWidgets64-3.1.1\lib\gcc_dll\mswu\wx\setup.h and wxWidgets64-3.1.1\lib\gcc_dll\mswud\wx\setup.h.
+	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
 	 6) Also if you have built wxWidgets64 before you should delete the following 2 folders to force the setup.h change to be included
-	    - wxWidgets64-3.1.1\build\msw\gcc_mswuddll
-		- wxWidgets64-3.1.1\build\msw\gcc_mswudll
+	    - wxWidgets\build\msw\gcc_mswuddll
+		- wxWidgets\build\msw\gcc_mswudll
      7) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=debug -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      8) run: mingw32-make -f makefile.gcc --debug TARGET_CPU=X64 MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++14" BUILD=release -j 10
 			NOTE: If it fails the first time try it again ... and sometimes again
      9) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
-        then you need to update your path environment variable to include C:\wxWidgets64-3.1.1\lib\gcc_dll
-        (assuming C:\wxWidgets64-3.1.1 is your wxWidgets base directory).
+        then you need to update your path environment variable to include C:\wxWidgets\lib\gcc_dll
+        (assuming C:\wxWidgets is your wxWidgets base directory).
 
   c) In Code::Blocks:
      1) select Settings > Compiler then with selected compiler as "GNU GCC Compiler"
@@ -174,7 +174,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
      12) select Settings > Global Variables
      13) Make sure "wx64" is defined as described in the Code::Blocks documentation.
          wx64 should be set to your wxWidgets64 base directory. Just the "Base" field
-         needs to be filled in - to something like "C:\wxWidgets64-3.1.1",
+         needs to be filled in - to something like "C:\wxWidgets",
          assuming that is where your copy of wxWidgets is located.
 
   d) Now you are ready to use Code::Blocks to build xLights
@@ -199,7 +199,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
      http://wiki.wxwidgets.org/Compiling_Using_MSVC_On_The_Commandline
      To compile it yourself:
 
-	 1) Edit the wxWidgets-3.1.1\include\wx\msw\setup.h and change the following lines
+	 1) Edit the wxWidgets\include\wx\msw\setup.h and change the following lines
 			#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
 				to
 				#define wxUSE_STD_STRING_CONV_IN_WXSTRING 1
@@ -208,11 +208,11 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
 				#define wxUSE_STD_CONTAINERS 1
             - save the file
 	 2) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
-	    more locations: <basedir>\wxWidgets-3.1.1\lib\vc_dll\mswu\wx\setup.h and <basedir>\wxWidgets-3.1.1\lib\vc_dll\mswud\wx\setup.h.
+	    more locations: <basedir>\wxWidgets\lib\vc_dll\mswu\wx\setup.h and <basedir>\wxWidgets\lib\vc_dll\mswud\wx\setup.h.
 	 3) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
-	    - <basedir>\wxWidgets-3.1.1\build\msw\vc_mswuddll
-		- <basedir>\wxWidgets-3.1.1\build\msw\vc_mswudll
-	 4) Open the project <basedir>\wxWidgets-3.1.1\build\msw\wx_vc14.sln
+	    - <basedir>\wxWidgets\build\msw\vc_mswuddll
+		- <basedir>\wxWidgets\build\msw\vc_mswudll
+	 4) Open the project <basedir>\wxWidgets\build\msw\wx_vc14.sln
 	 5) Compile both a release and a debug version
 
    d) Now open the xlights project <basedir>\xLights\xLights\xLights.sln and build the project
