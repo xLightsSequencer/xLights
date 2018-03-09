@@ -26,6 +26,7 @@ class ModelManager
         void DisplayStartChannelCalcWarning() const;
 
         bool Rename(const std::string &oldName, const std::string &newName);
+        bool RenameInListOnly(const std::string &oldName, const std::string &newName);
         bool IsModelOverlapping(Model* model);
         void AddModel(Model *m);
         void Delete(const std::string &name);

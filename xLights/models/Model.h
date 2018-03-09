@@ -64,6 +64,7 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
+    void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
     virtual int GetNumPhysicalStrings() const { return parm1; }
 

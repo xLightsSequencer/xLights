@@ -99,6 +99,7 @@ class LayoutPanel: public wxPanel
 		//*)
 
 		static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_PREVIEW_REPLACEMODEL;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
@@ -193,6 +194,7 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerConnection();
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
+        void ReplaceModel();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);

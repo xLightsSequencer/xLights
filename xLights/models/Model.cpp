@@ -381,6 +381,13 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     return lg;
 }
 
+void Model::Rename(std::string newName)
+{
+    name = newName;
+    ModelXml->DeleteAttribute("name");
+    ModelXml->AddAttribute("name", name);
+}
+
 void Model::SetStartChannel(std::string startChannel, bool suppressRecalc)
 {
     ModelXml->DeleteAttribute("StartChannel");
@@ -818,6 +825,7 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
         att = att->GetNext();
     }
 }
+
 void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
     if (!faceInfo.empty()) {
         for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {

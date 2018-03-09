@@ -83,6 +83,7 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 END_EVENT_TABLE()
 
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_REPLACEMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
@@ -1965,6 +1966,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     wxMenu mnu;
+
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
@@ -2049,6 +2051,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             }
             mnu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         }
+
+        if (selectedModelCnt == 1 && modelPreview->GetModels().size() > 1)
+        {
+            mnu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        }
     }
 
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
@@ -2068,7 +2075,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 {
-    if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
+    if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
+    {
+        ReplaceModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
     {
         PreviewModelAlignTops();
     }
@@ -2781,6 +2792,44 @@ void LayoutPanel::DeleteSelectedModel() {
             xlights->AllModels.Delete(selectedModel->name);
         }
         selectedModel = nullptr;
+        xlights->UpdateModelsList();
+        xlights->MarkEffectsFileDirty(true);
+    }
+}
+
+void LayoutPanel::ReplaceModel()
+{
+    Model* modelToReplaceItWith = selectedModel;
+
+    wxArrayString choices;
+
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GetName() != selectedModel->GetName())
+        {
+            choices.Add(modelPreview->GetModels()[i]->GetName());
+        }
+    }
+
+    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
+    dlg.SetSelection(0);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        Model* replaceModel = nullptr;
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GetName() == dlg.GetStringSelection())
+            {
+                replaceModel = modelPreview->GetModels()[i];
+            }
+        }
+
+        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection(), "Iamgoingtodeletethismodel");
+        replaceModel->Rename("Iamgoingtodeletethismodel");
+        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection());
+        modelToReplaceItWith->Rename(dlg.GetStringSelection());
+        xlights->AllModels.Delete("Iamgoingtodeletethismodel");
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
     }

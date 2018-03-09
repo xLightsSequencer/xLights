@@ -102,6 +102,15 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     return false;
 }
 
+bool ModelManager::RenameInListOnly(const std::string& oldName, const std::string& newName)
+{
+    Model *model = GetModel(oldName);
+    if (model == nullptr) return false;
+    models.erase(models.find(oldName));
+    models[newName] = model;
+    return true;
+}
+
 bool ModelManager::IsModelOverlapping(Model* model)
 {
     long start = model->GetNumberFromChannelString(model->ModelStartChannel);
