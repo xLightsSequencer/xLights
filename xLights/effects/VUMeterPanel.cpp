@@ -5,18 +5,18 @@
 #include "VUMeterEffect.h"
 
 //(*InternalHeaders(VUMeterPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
 #include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(VUMeterPanel)
@@ -73,10 +73,10 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	//(*Initialize(VUMeterPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer42;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer31;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer42;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -99,6 +99,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_VUMeter_Type = new BulkEditChoice(this, ID_CHOICE_VUMeter_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Type"));
 	Choice_VUMeter_Type->Append(_("Spectrogram"));
+	Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
 	Choice_VUMeter_Type->Append(_("Volume Bars"));
 	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
 	Choice_VUMeter_Type->Append(_("On"));
@@ -297,6 +298,7 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_Type->GetStringSelection() == "Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Color" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
     {
         Slider_VUMeter_Sensitivity->Enable();
@@ -309,7 +311,8 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram")
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak")
     {
         CheckBox_VUMeter_SlowDownFalls->Enable();
     }
@@ -355,6 +358,7 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note On" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
         Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
@@ -373,6 +377,7 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" || 
+        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
         Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
     {
         Slider_VUMeter_XOffset->Enable();

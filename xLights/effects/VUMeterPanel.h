@@ -3,13 +3,13 @@
 
 //(*Headers(VUMeterPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,47 +22,47 @@ class VUMeterPanel: public wxPanel
 		virtual ~VUMeterPanel();
 
 		//(*Declarations(VUMeterPanel)
-		wxBitmapButton* BitmapButton_VUMeter_StartNote;
-		wxBitmapButton* BitmapButton_VUMeter_Bars;
+		BulkEditCheckBox* CheckBox_VUMeter_SlowDownFalls;
+		BulkEditChoice* Choice_VUMeter_Shape;
+		BulkEditChoice* Choice_VUMeter_TimingTrack;
+		BulkEditChoice* Choice_VUMeter_Type;
+		BulkEditSlider* Slider_VUMeter_Bars;
+		BulkEditSlider* Slider_VUMeter_EndNote;
+		BulkEditSlider* Slider_VUMeter_Sensitivity;
+		BulkEditSlider* Slider_VUMeter_StartNote;
+		BulkEditSlider* Slider_VUMeter_XOffset;
+		BulkEditSlider* Slider_VUMeter_YOffset;
+		BulkEditTextCtrl* TextCtrl_VUMeter_Bars;
+		BulkEditTextCtrl* TextCtrl_VUMeter_EndNote;
+		BulkEditTextCtrl* TextCtrl_VUMeter_Sensitivity;
+		BulkEditTextCtrl* TextCtrl_VUMeter_StartNote;
 		BulkEditTextCtrl* TextCtrl_VUMeter_XOffset;
+		BulkEditTextCtrl* TextCtrl_VUMeter_YOffset;
+		BulkEditValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
+		wxBitmapButton* BitmapButton_VUMeter_Bars;
+		wxBitmapButton* BitmapButton_VUMeter_EndNote;
+		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
+		wxBitmapButton* BitmapButton_VUMeter_Shape;
+		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
+		wxBitmapButton* BitmapButton_VUMeter_StartNote;
+		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
+		wxBitmapButton* BitmapButton_VUMeter_Type;
+		wxBitmapButton* BitmapButton_VUMeter_XOffset;
+		wxBitmapButton* BitmapButton_VUMeter_YOffset;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
-		wxBitmapButton* BitmapButton_VUMeter_EndNote;
-		BulkEditSlider* Slider_VUMeter_StartNote;
-		wxBitmapButton* BitmapButton_VUMeter_XOffset;
-		BulkEditSlider* Slider_VUMeter_EndNote;
-		wxBitmapButton* BitmapButton_VUMeter_YOffset;
-		BulkEditValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
-		BulkEditChoice* Choice_VUMeter_Shape;
-		BulkEditCheckBox* CheckBox_VUMeter_SlowDownFalls;
-		BulkEditTextCtrl* TextCtrl_VUMeter_YOffset;
-		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
-		BulkEditSlider* Slider_VUMeter_YOffset;
-		wxBitmapButton* BitmapButton_VUMeter_Shape;
-		BulkEditChoice* Choice_VUMeter_TimingTrack;
-		wxBitmapButton* BitmapButton_VUMeter_Type;
-		BulkEditSlider* Slider_VUMeter_Sensitivity;
-		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
 		wxStaticText* StaticText1;
-		wxStaticText* StaticText10;
-		wxStaticText* StaticText3;
-		BulkEditSlider* Slider_VUMeter_XOffset;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText12;
-		wxStaticText* StaticText7;
-		BulkEditTextCtrl* TextCtrl_VUMeter_Sensitivity;
-		wxStaticText* StaticText4;
-		BulkEditTextCtrl* TextCtrl_VUMeter_EndNote;
-		wxStaticText* StaticText5;
 		wxStaticText* StaticText2;
-		BulkEditTextCtrl* TextCtrl_VUMeter_Bars;
-		BulkEditSlider* Slider_VUMeter_Bars;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
-		BulkEditTextCtrl* TextCtrl_VUMeter_StartNote;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
-		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
-		BulkEditChoice* Choice_VUMeter_Type;
-		wxStaticText* StaticText11;
 		//*)
 
 	protected:

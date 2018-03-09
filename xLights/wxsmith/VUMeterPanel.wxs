@@ -67,6 +67,7 @@
 						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" subclass="BulkEditChoice" variable="Choice_VUMeter_Type" member="yes">
 							<content>
 								<item>Spectrogram</item>
+								<item>Spectrogram Peak</item>
 								<item>Volume Bars</item>
 								<item>Waveform</item>
 								<item>On</item>
@@ -91,7 +92,7 @@
 								<item>Note Level Pulse</item>
 								<item>Note Level Bar</item>
 							</content>
-							<selection>2</selection>
+							<selection>3</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

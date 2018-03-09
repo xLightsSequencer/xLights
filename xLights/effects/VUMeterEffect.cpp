@@ -45,8 +45,9 @@ namespace RenderType
 		LEVEL_PULSE_COLOR,
 		TIMING_EVENT_BARS,
         LEVEL_COLOR,
-        TIMING_EVENT_PULSE_COLOR
-	};
+        TIMING_EVENT_PULSE_COLOR,
+        SPECTROGRAM_PEAK
+    };
 }
 
 namespace ShapeType
@@ -91,6 +92,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
 
     if (media == nullptr && 
         (type == "Spectrogram" ||
+         type == "Spectrogram Peak" || 
          type == "Volume Bars" || 
          type == "Waveform" ||
          type == "On" || 
@@ -216,11 +218,16 @@ class VUMeterRenderCache : public EffectRenderCache
 public:
     VUMeterRenderCache() 
 	{
+        _lastsize = 0;
+        _colourindex = 0;
+        _lasttimingmark = 0;
 	};
     virtual ~VUMeterRenderCache() {};
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
 	int _lasttimingmark; // last time we saw a timing mark ... used for pulse
 	std::list<float> _lastvalues;
+	std::list<float> _lastpeaks;
+    std::list<int> _pausepeakfall;
 	float _lastsize;
     int _colourindex;
 };
@@ -327,6 +334,10 @@ int VUMeterEffect::DecodeType(const std::string& type)
     {
         return RenderType::LEVEL_COLOR;
     }
+    else if (type == "Spectrogram Peak")
+    {
+        return RenderType::SPECTROGRAM_PEAK;
+    }
 
 	// default type is volume bars
 	return RenderType::VOLUME_BARS;
@@ -423,6 +434,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	std::list<int>& _timingmarks = cache->_timingmarks;
 	int &_lasttimingmark = cache->_lasttimingmark;
 	std::list<float>& _lastvalues = cache->_lastvalues;
+	std::list<float>& _lastpeaks = cache->_lastpeaks;
+	std::list<int>& _pausepeakfall = cache->_pausepeakfall;
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
 
@@ -434,6 +447,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		_timingmarks.clear();
 		_lasttimingmark = -1;
 		_lastvalues.clear();
+		_lastpeaks.clear();
+        _pausepeakfall.clear();
 		_lastsize = 0;
         if (timingtrack != "")
         {
@@ -460,7 +475,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, slowdownfalls, startnote, endnote, xoffset);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, false, 0);
+			break;
+		case RenderType::SPECTROGRAM_PEAK:
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity);
 			break;
 		case RenderType::VOLUME_BARS:
 			RenderVolumeBarsFrame(buffer, usebars);
@@ -529,6 +547,9 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
         case RenderType::LEVEL_COLOR:
             RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark);
             break;
+        default:
+            wxASSERT(false);
+            break;
         }
 	}
 	catch (...)
@@ -538,7 +559,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, bool slowdownfalls, int startNote, int endNote, int xoffset)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, bool peak, int peakhold)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -547,6 +568,50 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 
 	if (pdata != nullptr && pdata->size() != 0)
 	{
+        if (peak)
+        {
+            if (lastvalues.size() == 0)
+            {
+                lastvalues = *pdata;
+                lastpeaks = *pdata;
+                for (auto it = lastvalues.begin(); it != lastvalues.end(); ++it)
+                {
+                    pauseuntilpeakfall.push_back(0);
+                }
+            }
+            else
+            {
+                std::list<float>::iterator newdata = pdata->begin();
+                std::list<float>::iterator olddata = lastpeaks.begin();
+                auto pause = pauseuntilpeakfall.begin();
+
+                while (olddata != lastpeaks.end())
+                {
+                    if (*newdata < *olddata)
+                    {
+                        if (*pause == 0)
+                        {
+                            *olddata = *olddata - 0.05;
+                            if (*olddata < *newdata)
+                            {
+                                *olddata = *newdata;
+                            }
+                        }
+                        *pause = std::max(*pause - 1, 0);
+                    }
+                    else
+                    {
+                        *olddata = *newdata;
+                        *pause = peakhold; // frames to pause before peaks drop
+                    }
+
+                    ++olddata;
+                    ++newdata;
+                    ++pause;
+                }
+            }
+        }
+
 		if (slowdownfalls)
 		{
 			if (lastvalues.size() == 0)
@@ -601,18 +666,31 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             cols = 1;
         }
 		std::list<float>::iterator it = lastvalues.begin();
+		std::list<float>::iterator itpeak = lastpeaks.begin();
 
         // skip to our start note
         for (int i = 0; i < startNote; i++)
         {
             ++it;
+            if (peak)
+            {
+                ++itpeak;
+            }
         }
 
 		int x = truexoffset;
 
+        // Peak colour is the last colour selected
+        xlColor peakColour = buffer.GetPalette().GetColor(0);
+        if (buffer.GetPalette().Size() > 1)
+        {
+            peakColour = buffer.GetPalette().GetColor(buffer.GetColorCount() - 1);
+        }
+
 		for (int j = 0; j < usebars; j++)
 		{
 			float f = 0;
+			float p = 0;
 			for (int k = 0; k < per; k++)
 			{
 				// use the max within the frequency range
@@ -620,11 +698,23 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 				{
 					f = *it;
 				}
-				++it;
+                ++it;
+                if (peak)
+                {
+                    if (*itpeak > p)
+                    {
+                        p = *itpeak;
+                    }
+                    ++itpeak;
+                }
                 // dont let it go off the end
                 if (it == lastvalues.end())
                 {
                     --it;
+                    if (peak)
+                    {
+                        --itpeak;
+                    }
                 }
 			}
 			for (int k = 0; k < cols; k++)
@@ -637,14 +727,28 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 						xlColor color1;
 						// an alternate colouring
 						//buffer.GetMultiColorBlend((double)y / (double)colheight, false, color1);
-						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
+						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, 1);
 						buffer.SetPixel(x, y, color1);
 					}
-					else
-					{
-						break;
-					}
-				}
+
+                    // peaks always render in white
+                    if (peak)
+                    {
+                        int peakheight = buffer.BufferHt * p;
+                        if (y >= peakheight)
+                        {
+                            buffer.SetPixel(x, y, peakColour);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (y >= colheight)
+                        {
+                            break;
+                        }
+                    }
+                }
 				x++;
 			}
 		}
@@ -1201,6 +1305,9 @@ void VUMeterEffect::DrawStar(RenderBuffer& buffer, int centerx, int centery, flo
         break;
     case 7:
         offsetangle = 90.0 - 360.0 / 7;
+        break;
+    default:
+        wxASSERT(false);
         break;
     }
 
@@ -2193,8 +2300,6 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
                     break;
                 }
             }
-
-            xlColor color1;
 
             if (effectPresent)
             {

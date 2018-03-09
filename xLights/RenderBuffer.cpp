@@ -762,21 +762,22 @@ HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return rgb.asHSV();
 }
 // 0 <= n < 1
-void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color)
+void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColours)
 {
-    size_t colorcnt=GetColorCount();
+    size_t colorcnt = GetColorCount() - reserveColours;
     if (colorcnt <= 1)
     {
-        palette.GetColor(0,color);
+        palette.GetColor(0, color);
         return;
     }
-    if (n >= 1.0) n=0.99999f;
-    if (n < 0.0) n=0.0f;
-    float realidx=circular ? n*colorcnt : n*(colorcnt-1);
-    int coloridx1=floor(realidx);
-    int coloridx2=(coloridx1+1) % colorcnt;
-    float ratio=realidx-float(coloridx1);
-    Get2ColorBlend(coloridx1,coloridx2,ratio,color);
+
+    if (n >= 1.0) n = 0.99999f;
+    if (n < 0.0) n = 0.0f;
+    float realidx = circular ? n * colorcnt : n * (colorcnt - 1);
+    int coloridx1 = floor(realidx);
+    int coloridx2 = (coloridx1 + 1) % colorcnt;
+    float ratio = realidx - float(coloridx1);
+    Get2ColorBlend(coloridx1, coloridx2, ratio, color);
 }
 
 
