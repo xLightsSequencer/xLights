@@ -456,7 +456,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx64)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
