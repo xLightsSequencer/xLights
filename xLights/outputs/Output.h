@@ -10,6 +10,7 @@ class OutputManager;
 #pragma region Output Constants
 // These are used to identify each output type
 #define OUTPUT_E131 "E131"
+#define OUTPUT_ZCPP "ZCPP"
 #define OUTPUT_ARTNET "ArtNet"
 #define OUTPUT_DDP "DDP"
 #define OUTPUT_DMX "DMX"
@@ -72,12 +73,13 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Static Functions
-    static Output* Create(wxXmlNode* node);
-    static std::list<Output*> Discover() { return std::list<Output*>(); } // Discovers controllers supporting this protocol
+    static Output* Create(wxXmlNode* node, std::string showDir);
+    static std::list<Output*> Discover(OutputManager* outputManager) { return std::list<Output*>(); } // Discovers controllers supporting this protocol
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
     virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
+    virtual bool NeedsControllerConfig() const { return false; }
     bool IsDirty() const { return _dirty; }
     void ClearDirty() { _dirty = false; }
     long GetStartChannel() const { return _startChannel; }

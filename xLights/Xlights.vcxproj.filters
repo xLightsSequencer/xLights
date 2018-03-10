@@ -349,6 +349,8 @@
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
+    <ClCompile Include="outputs\ZCPPDialog.cpp" />
+    <ClCompile Include="outputs\ZCPPOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -698,6 +700,8 @@
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
+    <ClInclude Include="outputs\ZCPPOutput.h" />
+    <ClInclude Include="outputs\ZCPPDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "NullOutput.h"
@@ -134,7 +135,7 @@ wxXmlNode* Output::Save()
 }
 
 #pragma region Static Functions
-Output* Output::Create(wxXmlNode* node)
+Output* Output::Create(wxXmlNode* node, std::string showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string type = node->GetAttribute("NetworkType", "").ToStdString();
@@ -142,6 +143,10 @@ Output* Output::Create(wxXmlNode* node)
     if (type == OUTPUT_E131)
     {
         return new E131Output(node);
+    }
+    else if (type == OUTPUT_ZCPP)
+    {
+        return new ZCPPOutput(node, showDir);
     }
     else if (type == OUTPUT_NULL)
     {

@@ -6,6 +6,7 @@
 #include <wx/filename.h>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "TestPreset.h"
@@ -17,6 +18,7 @@ int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
 int OutputManager::_lastSecondCount = 0;
 int OutputManager::_currentSecondCount = 0;
+bool OutputManager::__isSync = false;
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
@@ -55,7 +57,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         {
             if (e->GetName() == "network")
             {
-                _outputs.push_back(Output::Create(e));
+                _outputs.push_back(Output::Create(e, showdir));
                 if (_outputs.back() == nullptr)
                 {
                     // this shouldnt happen unless we are loading a future file with an output type we dont recognise
@@ -151,9 +153,10 @@ bool OutputManager::Save()
 bool OutputManager::Discover()
 {
     bool found = false;
-    auto artnet = ArtNetOutput::Discover();
-    auto ddp = DDPOutput::Discover();
-    auto e131 = E131Output::Discover();
+    auto artnet = ArtNetOutput::Discover(this);
+    auto ddp = DDPOutput::Discover(this);
+    auto e131 = E131Output::Discover(this);
+    auto zcpp = ZCPPOutput::Discover(this);
 
     auto outputs = GetAllOutputs("");
 
@@ -176,6 +179,15 @@ bool OutputManager::Discover()
     }
 
     for (auto it = e131.begin(); it != e131.end(); ++it)
+    {
+        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        {
+            _outputs.push_back(*it);
+            found = true;
+        }
+    }
+
+    for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
     {
         if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
         {

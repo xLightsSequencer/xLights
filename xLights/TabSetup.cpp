@@ -29,6 +29,7 @@
 #include "outputs/Output.h"
 #include "outputs/NullOutput.h"
 #include "outputs/E131Output.h"
+#include "outputs/ZCPPOutput.h"
 #include "outputs/ArtNetOutput.h"
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
@@ -37,10 +38,12 @@
 #include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
+#include "controllers/ControllerUploadData.h"
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDZCPP = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDLOR = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
@@ -116,7 +119,7 @@ void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 bool xLightsFrame::SetDir(const wxString& newdir)
 {
     static bool HasMenuSeparator = false;
-    int idx, cnt, i;
+    int idx, i;
 
     // don't change show directories with an open sequence because models won't match
     if (!CloseSequence()) {
@@ -164,7 +167,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
         mru.Insert(CurrentDir, 0);
     }
-    cnt = mru.GetCount();
+    int cnt = mru.GetCount();
     if (cnt > MRU_LENGTH)
     {
         mru.RemoveAt(MRU_LENGTH, cnt - MRU_LENGTH);
@@ -238,6 +241,29 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
 
+    if (mBackupOnLaunch)
+    {
+        logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
+        DoBackup(false, true);
+        logger_base.debug("Backup completed.");
+    }
+
+    long LinkFlag = 0;
+    config->Read(_("LinkFlag"), &LinkFlag);
+    if( LinkFlag ) {
+        mediaDirectory = CurrentDir;
+        config->Write(_("MediaDir"), mediaDirectory);
+        logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
+    }
+
+    long fseqLinkFlag = 0;
+    config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
+    if (fseqLinkFlag) {
+        fseqDirectory = CurrentDir;
+        config->Write(_("FSEQDir"), fseqDirectory);
+        logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
+    }
+
     while (Notebook1->GetPageCount() > FixedPages)
     {
         Notebook1->DeletePage(FixedPages);
@@ -289,7 +315,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         logger_base.debug("Backup completed.");
     }
 
-    long LinkFlag = 0;
+    LinkFlag = 0;
     config->Read(_("LinkFlag"), &LinkFlag);
     if (LinkFlag) {
         mediaDirectory = CurrentDir;
@@ -302,6 +328,12 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     Notebook1->ChangeSelection(SETUPTAB);
     SetStatusText("");
     FileNameText->SetLabel(newdir);
+
+    if (UnsavedRgbEffectsChanges)
+    {
+        RebuildControllerConfig(&_outputManager, &AllModels);
+    }
+
     return true;
 }
 
@@ -980,6 +1012,11 @@ void xLightsFrame::OnButtonAddE131Click(wxCommandEvent& event)
     SetupE131(nullptr);
 }
 
+void xLightsFrame::OnButton_AddZCPPClick(wxCommandEvent& event)
+{
+    SetupZCPP(nullptr);
+}
+
 void xLightsFrame::OnButtonAddDDPClick(wxCommandEvent& event)
 {
     SetupDDP(nullptr);
@@ -1030,6 +1067,26 @@ void xLightsFrame::SetupE131(Output* e, int after)
         if (e != e131)
         {
             _outputManager.DeleteOutput(e131);
+        }
+    }
+}
+
+void xLightsFrame::SetupZCPP(Output* e, int after)
+{
+    Output* zcpp = e;
+    if (zcpp == nullptr) zcpp = new ZCPPOutput();
+    _outputManager.AddOutput(zcpp, after);
+
+    if (zcpp->Configure(this, &_outputManager) != nullptr)
+    {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+    else
+    {
+        if (e != zcpp)
+        {
+            _outputManager.DeleteOutput(zcpp);
         }
     }
 }
@@ -1144,6 +1201,10 @@ void xLightsFrame::NetworkChange()
 #else
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
+    if (RebuildControllerConfig(&_outputManager, &AllModels))
+    {
+        MarkEffectsFileDirty(false);
+    }
 }
 
 bool xLightsFrame::SaveNetworksFile()
@@ -1276,6 +1337,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDZCPP, "ZCPP")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
     wxMenu* mnuUploadController = new wxMenu();
@@ -1527,7 +1589,13 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         SetupNullOutput(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDE131) {
         SetupE131(nullptr, item+1);
-    } else if (id == ID_NETWORK_ADDARTNET) {
+    }
+    else if (id == ID_NETWORK_ADDZCPP)
+    {
+        SetupZCPP(nullptr, item+1);
+    }
+    else if (id == ID_NETWORK_ADDARTNET)
+    {
         SetupArtNet(nullptr, item+1);
     } else if (id == ID_NETWORK_ADDLOR) {
         SetupLOR(nullptr, item+1);
@@ -2019,4 +2087,132 @@ void xLightsFrame::PingController(Output* e)
 				break;
 		}
 	}
+}
+
+void xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port)
+{
+    std::string protocol = "";
+    if (port != nullptr)
+    {
+        protocol = port->GetProtocol();
+    }
+    if (protocol == "ws2811")
+    {
+        *current = 0;
+    }
+    else if (protocol == "gece")
+    {
+        *current = 1;
+    }
+    else
+    {
+        *current = 255;
+    }
+    current++;
+    long sc = 0;
+    if (port != nullptr)
+    {
+        sc = port->GetStartChannel();
+        if (sc < 0) sc = 0;
+    }
+    *current = (sc & 0xFF000000) >> 24;
+    current++;
+    *current = (sc & 0xFF0000) >> 16;
+    current++;
+    *current = (sc & 0xFF00) >> 8;
+    current++;
+    *current = sc & 0xFF;
+    current++;
+    int c = 0;
+    if (port != nullptr)
+    {
+        c = port->Channels();
+    }
+    *current = (c & 0xff00) >> 8;
+    current++;
+    *current = c & 0xff;
+    current++;
+    *current = 100;
+    current++;
+    *current = 0;
+}
+
+void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, int modelsChangeCount, std::string showDir)
+{
+    std::list<int> selected;
+    std::string check;
+    UDController cud(zcpp->GetIP(), modelManager, outputManager, &selected, check);
+
+    unsigned char buffer[ZCPP_MODELDATASIZE];
+
+    memset(buffer, 0x00, sizeof(buffer));
+    buffer[0] = 'Z';
+    buffer[1] = 'C';
+    buffer[2] = 'P';
+    buffer[3] = 'P';
+    buffer[4] = 0x10;
+    buffer[5] = 0x00;
+    buffer[6] = (modelsChangeCount & 0xff00) >> 8;
+    buffer[7] = modelsChangeCount & 0xff;
+    buffer[8] = (zcpp->GetOutputNumber() & 0xff00) >> 8;
+    buffer[9] = zcpp->GetOutputNumber() & 0xff;
+    buffer[20] = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
+
+    unsigned char* current = &buffer[21];
+    for (int i = 0; i < cud.GetMaxPixelPort(); i++)
+    {
+        *current = i + 1;
+        current++;
+        auto port = cud.GetControllerPixelPort(i + 1);
+
+        SetZCPPPort(current, port);
+
+        current += 9;
+    }
+
+    for (int i = 0; i < cud.GetMaxSerialPort(); i++)
+    {
+        *current = 0x80 + i + 1;
+        current++;
+        auto port = cud.GetControllerSerialPort(i + 1);
+
+        SetZCPPPort(current, port);
+
+        current += 9;
+    }
+
+    if (zcpp->SetModelData(buffer, sizeof(buffer), showDir))
+    {
+        //#ifdef DEBUG
+        cud.Dump();
+        //#endif
+    }
+}
+
+// This is used to build the ZCPP controller config data that will be needed when it comes time to send data to controllers
+bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto outputs = outputManager->GetOutputs();
+    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+    {
+        if ((*ito)->NeedsControllerConfig())
+        {
+            ZCPPOutput* zcpp = (ZCPPOutput*)(*ito);
+
+            SetModelData(zcpp, modelManager, outputManager, modelsChangeCount, CurrentDir.ToStdString());
+        }
+    }
+
+    return true;
+}
+
+void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
+{
+    if (_outputManager.Discover())
+    {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
 }

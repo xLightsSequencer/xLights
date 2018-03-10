@@ -7,7 +7,7 @@
 #include <string>
 #include <mutex>
 
-#include "ColorCurve.h"
+#include "../ColorCurve.h"
 #include "../UtilClasses.h"
 #include "../DrawGLUtils.h"
 #include "../Color.h"

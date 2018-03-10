@@ -90,6 +90,8 @@ class PerspectivesPanel;
 class TopEffectsPanel;
 class MainSequencer;
 class ModelPreview;
+class ZCPPOutput;
+class UDControllerPort;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -556,6 +558,8 @@ public:
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
+    void OnButton_AddZCPPClick(wxCommandEvent& event);
+    void OnButton_DiscoverClick(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -636,9 +640,11 @@ public:
     static const long ID_BUTTON2;
     static const long ID_BUTTON_ADD_LOR;
     static const long ID_BUTTON_ADD_DDP;
+    static const long ID_BUTTON4;
     static const long ID_BUTTON_NETWORK_CHANGE;
     static const long ID_BUTTON_NETWORK_DELETE;
     static const long ID_BUTTON_NETWORK_DELETE_ALL;
+    static const long ID_BUTTON5;
     static const long ID_STATICTEXT8;
     static const long ID_SPINCTRL1;
     static const long ID_BITMAPBUTTON1;
@@ -842,6 +848,8 @@ public:
     wxButton* ButtonNetworkDeleteAll;
     wxButton* ButtonOtherFolders;
     wxButton* ButtonSaveSetup;
+    wxButton* Button_AddZCPP;
+    wxButton* Button_Discover;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
     wxFlexGridSizer* GaugeSizer;
@@ -1088,6 +1096,7 @@ public:
     void OnGridNetworkScrollTimer(wxTimerEvent& event);
     void SetupDongle(Output* e, int after = -1);
     void SetupE131(Output* e, int after = -1);
+    void SetupZCPP(Output* e, int after = -1);
     void SetupArtNet(Output* e, int after = -1);
     void SetupLOR(Output* e, int after = -1);
     void SetupDDP(Output* e, int after = -1);
@@ -1106,6 +1115,8 @@ public:
     void UploadPixlite16Output();
     void UploadFPPStringOuputs(const std::string &controllers, int maxport, int maxdmx);
 	void PingController(Output* e);
+    void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, int modelsChangeCount, std::string showDir);
+    void SetZCPPPort(unsigned char* current, UDControllerPort* port);
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
@@ -1271,6 +1282,7 @@ public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
+    bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
@@ -1508,6 +1520,7 @@ private:
     static const long ID_NETWORK_ADDUSB;
     static const long ID_NETWORK_ADDNULL;
     static const long ID_NETWORK_ADDE131;
+    static const long ID_NETWORK_ADDZCPP;
     static const long ID_NETWORK_ADDARTNET;
     static const long ID_NETWORK_ADDLOR;
     static const long ID_NETWORK_ADDDDP;

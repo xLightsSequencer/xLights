@@ -917,6 +917,10 @@
 		<Unit filename="outputs/E131Dialog.h" />
 		<Unit filename="outputs/E131Output.cpp" />
 		<Unit filename="outputs/E131Output.h" />
+		<Unit filename="outputs/ZCPPDialog.cpp" />
+		<Unit filename="outputs/ZCPPDialog.h" />
+		<Unit filename="outputs/ZCPPOutput.cpp" />
+		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
 		<Unit filename="outputs/LOROptimisedOutput.cpp" />
@@ -1198,6 +1202,7 @@
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="outputs/E131Dialog.cpp" hdr="outputs/E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ZCPPDialog.wxs" src="outputs/ZCPPDialog.cpp" hdr="outputs/ZCPPDialog.h" fwddecl="0" i18n="1" name="ZCPPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />

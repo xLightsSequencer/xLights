@@ -534,6 +534,10 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #endif
+    if (dirty)
+    {
+        xlights->RebuildControllerConfig(xlights->GetOutputManager(), &xlights->AllModels);
+    }
 }
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {

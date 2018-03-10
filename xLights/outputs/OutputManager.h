@@ -25,6 +25,7 @@ class OutputManager
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
+    static bool __isSync; // copied here so it can be accessed statically
     static int _lastSecond;
     static int _currentSecond;
     static int _lastSecondCount;
@@ -98,7 +99,8 @@ public:
 
     #pragma region Packet Sync
     bool IsSyncEnabled() const { return _syncEnabled; }
-    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; _dirty = true; }
+    static bool IsSyncEnabled_() { return __isSync; }
+    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; OutputManager::__isSync = syncEnabled; _dirty = true; }
     int GetSyncUniverse() const { return _syncUniverse; }
     void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
     void SetForceFromIP(const std::string& forceFromIP);

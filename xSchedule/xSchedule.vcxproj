@@ -193,6 +193,8 @@
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
+    <ClCompile Include="..\xLights\outputs\ZCPPDialog.cpp" />
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -386,6 +388,8 @@
     <ClInclude Include="..\xLights\outputs\serial.h" />
     <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
+    <ClInclude Include="..\xLights\outputs\ZCPPDialog.h" />
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />

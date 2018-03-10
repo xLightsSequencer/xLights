@@ -323,6 +323,10 @@
 		<Unit filename="../xLights/outputs/SerialPortWithRate.h" />
 		<Unit filename="../xLights/outputs/TestPreset.cpp" />
 		<Unit filename="../xLights/outputs/TestPreset.h" />
+		<Unit filename="../xLights/outputs/ZCPPDialog.cpp" />
+		<Unit filename="../xLights/outputs/ZCPPDialog.h" />
+		<Unit filename="../xLights/outputs/ZCPPOutput.cpp" />
+		<Unit filename="../xLights/outputs/ZCPPOutput.h" />
 		<Unit filename="../xLights/outputs/serial.cpp" />
 		<Unit filename="../xLights/outputs/serial.h" />
 		<Unit filename="../xLights/vamp-hostsdk/Files.cpp" />
@@ -468,6 +472,10 @@
 		<Unit filename="PlayList/PlayListItemJukebox.h" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.h" />
+		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophone.h" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemOSC.cpp" />
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
@@ -504,10 +512,6 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
-		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophone.h" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -663,6 +667,7 @@
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemJukeboxPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
@@ -672,7 +677,6 @@
 		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />

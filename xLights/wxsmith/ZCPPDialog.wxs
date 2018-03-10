@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="E131Dialog">
+	<object class="wxDialog" name="ZCPPDialog">
 		<title>E1.31 Setup</title>
 		<id_arg>0</id_arg>
 		<pos_arg>1</pos_arg>
@@ -9,7 +9,7 @@
 			<cols>1</cols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>Sets up an E1.31 connection over ethernet.&#x0A;&#x0A;Supported devices include those made&#x0A;by Falcon, j1sys, SanDevices, Advatek Lights,&#x0A;and Entec. Also supports the Lynx &#x0A;EtherDongle, and E1.31 projects on DIYC.&#x0A;&#x0A;The universe numbers entered here&#x0A;should match the universe numbers &#x0A;defined on your E1.31 device.</label>
+					<label>Sets up a Zero Configuration Pixel controller over ethernet.&#x0A;&#x0A;Supported devices include those made&#x0A;by Falcon.</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -19,38 +19,20 @@
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-							<label>Method</label>
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>Id</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
-							<orient>wxVERTICAL</orient>
-							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButtonMulticast" member="yes">
-									<label>Multicast</label>
-									<selected>1</selected>
-									<style>wxRB_GROUP</style>
-									<handler function="OnRadioButtonMulticastSelect" entry="EVT_RADIOBUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_LEFT</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButtonUnicast" member="yes">
-									<label>Unicast</label>
-									<handler function="OnRadioButtonUnicastSelect" entry="EVT_RADIOBUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_LEFT</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Id" member="yes">
+							<value>64001</value>
+							<min>1</min>
+							<max>65535</max>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -64,8 +46,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_IP_ADDR" variable="TextCtrlIpAddr" member="yes">
-							<value>MULTICAST</value>
-							<enabled>0</enabled>
+							<value>192.168.1.50</value>
 							<handler function="OnTextCtrlIpAddrText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -73,71 +54,18 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-							<label>Starting Universe #</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_StartUniv" member="yes">
-							<value>1</value>
-							<min>1</min>
-							<max>63999</max>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-							<label># of Universes</label>
+							<label># of Channels</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_NumUniv" member="yes">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_Channels" member="yes">
 							<value>1</value>
 							<min>1</min>
-							<max>63999</max>
-							<handler function="OnSpinCtrl_NumUnivChange" entry="EVT_SPINCTRL" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
-							<label>One Output</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="MultiE131CheckBox" member="yes">
-							<handler function="OnMultiE131CheckBoxClick" entry="EVT_CHECKBOX" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-							<label>Last Channel</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL_LAST_CHANNEL" variable="SpinCtrl_LastChannel" member="yes">
-							<value>512</value>
-							<min>1</min>
-							<max>512</max>
+							<max>16384</max>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

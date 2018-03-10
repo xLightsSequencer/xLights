@@ -2,7 +2,7 @@
 #define IMAGEMODEL_H
 
 #include "Model.h"
-#include "Image.h"
+#include "../Image.h"
 
 class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {

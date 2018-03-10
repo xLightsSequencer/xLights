@@ -412,6 +412,8 @@
     <ClCompile Include="outputs\serial.cpp" />
     <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
+    <ClCompile Include="outputs\ZCPPDialog.cpp" />
+    <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
@@ -754,6 +756,8 @@
     <ClInclude Include="outputs\serial.h" />
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
+    <ClInclude Include="outputs\ZCPPDialog.h" />
+    <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="PerspectivesPanel.h" />
