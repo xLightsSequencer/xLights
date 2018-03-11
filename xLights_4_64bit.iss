@@ -31,7 +31,7 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 AppName=xLights
-AppVersion=2018.6
+AppVersion=2018.7
 DefaultDirName={pf64}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights64.ico
@@ -62,8 +62,9 @@ Source: "include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "bin64/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin64/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin64\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+; Take these from the default mingw install directory
+Source: "C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
@@ -87,7 +88,7 @@ Source: "bin/user_dictionary";     DestDir: "{app}"
 Source: "bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; Path editor
-Source: "bin/PathEditor.exe";      DestDir: "{app}"
+;Source: "bin/PathEditor.exe";      DestDir: "{app}"
 
 ; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";

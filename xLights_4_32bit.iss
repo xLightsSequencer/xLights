@@ -22,7 +22,7 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName=xLights
-AppVersion=2018.6
+AppVersion=2018.7
 DefaultDirName={pf32}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xlights.ico
@@ -54,9 +54,10 @@ Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; Use the default installed mingw 32 bit files
+Source: "C:\Program Files (x86)\mingw-w64\i686-7.2.0-posix-dwarf-rt_v5-rev1\mingw32\bin\libgcc_s_dw2-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "C:\Program Files (x86)\mingw-w64\i686-7.2.0-posix-dwarf-rt_v5-rev1\mingw32\bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "C:\Program Files (x86)\mingw-w64\i686-7.2.0-posix-dwarf-rt_v5-rev1\mingw32\bin\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; avlib - video and audio
@@ -75,7 +76,7 @@ Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
 
 ; Path editor
-Source: "bin/PathEditor.exe";      DestDir: "{app}"
+;Source: "bin/PathEditor.exe";      DestDir: "{app}"
 
 ; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";
@@ -105,7 +106,7 @@ Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
 
-; Remove Kieth's Batch Render to prevent confusion
+; Remove Keith's Batch Render to prevent confusion
 [InstallDelete]
 Type: files; Name: "{app}\wxmsw310u_gcc_custom.dll"
 Type: files; Name: "{app}\wxmsw310u_gl_gcc_custom.dll"

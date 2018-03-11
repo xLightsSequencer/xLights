@@ -919,12 +919,6 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="MSVC_Debug" />
-			<Option target="MSVC_Release" />
-			<Option target="64bit  MinGW_Release" />
-			<Option target="64bit MinGW_Debug" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
@@ -1129,6 +1123,7 @@
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsTimer.cpp" />
 		<Unit filename="xLightsVersion.cpp" />
+		<Unit filename="xLightsVersion.h" />
 		<Unit filename="xLightsXmlFile.cpp" />
 		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlColorCanvas.cpp" />
