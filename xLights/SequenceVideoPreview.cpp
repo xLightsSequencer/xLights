@@ -12,7 +12,8 @@ EVT_PAINT( SequenceVideoPreview::paint )
 END_EVENT_TABLE()
 
 
-SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent) : xlGLCanvas(parent, wxID_ANY), _texId(0), _texWidth(0), _texHeight(0)
+SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview", true), _texId(0), _texWidth(0), _texHeight(0)
 {
 
 }
@@ -69,15 +70,19 @@ void SequenceVideoPreview::Render( AVFrame *frame )
 
 void SequenceVideoPreview::Clear()
 {
-   deleteTexture();
+    if (cache == nullptr) {
+        // nothing has been displayed yet, delay allocating resources and such
+        return;
+    }
+    SetCurrentGLContext();
+    deleteTexture();
 
-   SetCurrentGLContext();
 
-   LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
+    LOG_GL_ERRORV( glClear( GL_COLOR_BUFFER_BIT ) );
 
-   SwapBuffers();
+    SwapBuffers();
    
-   Refresh();
+    Refresh();
 }
 
 #define GL_CLAMP_TO_EDGE 0x812F
