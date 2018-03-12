@@ -726,12 +726,10 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 					{
 						xlColor color1;
 						// an alternate colouring
-						//buffer.GetMultiColorBlend((double)y / (double)colheight, false, color1);
-						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, 1);
+						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
 						buffer.SetPixel(x, y, color1);
 					}
 
-                    // peaks always render in white
                     if (peak)
                     {
                         int peakheight = buffer.BufferHt * p;
