@@ -2964,7 +2964,7 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift)
                     mSelectedEffect = ef;
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
-                    RaiseSelectedEffectChanged(ef, false, false);
+                    RaiseSelectedEffectChanged(ef, false, true);
                     Refresh(false);
                     sendRenderDirtyEvent();
                     return;
@@ -3105,7 +3105,7 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift)
                     mSelectedEffect = ef;
                     el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
                     mSequenceElements->get_undo_mgr().CaptureAddedEffect( new_el->GetParentElement()->GetModelName(), new_el->GetIndex(), ef->GetID() );
-                    RaiseSelectedEffectChanged(ef, false, false);
+                    RaiseSelectedEffectChanged(ef, false, true);
                     Refresh(false);
                     sendRenderDirtyEvent();
                     return;
