@@ -56,9 +56,10 @@ enum MixTypes
     Mix_Additive,
     Mix_Subtractive,
     Mix_Max,
-    Mix_Min
-
+    Mix_Min,
+    Mix_Canvas
 };
+
 class Effect;
 class SequenceElements;
 class SettingsMap;
@@ -205,7 +206,6 @@ private:
 
     int CurrentLayer;
 
-    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);
     void reset(int layers, int timing);
@@ -214,6 +214,7 @@ private:
     void RotateX(LayerInfo* layer, float offset);
     void RotateY(LayerInfo* layer, float offset);
     void RotateZAndZoom(LayerInfo* layer, float offset);
+    void GetMixedColor(int node, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
 
     std::string modelName;
     std::string lastBufferType;
@@ -223,6 +224,7 @@ private:
     SingleLineModel *ssModel;
     xLightsFrame *frame;
 public:
+    void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char *buf);
     xlColor GetNodeColor(size_t nodenum) const;
@@ -230,6 +232,7 @@ public:
     int NodeStartChannel(size_t nodenum) const;
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
+    MixTypes GetMixType(int layer) const;
 
     bool IsVariableSubBuffer(int layer) const;
     void PrepareVariableSubBuffer(int EffectPeriod, int layer);

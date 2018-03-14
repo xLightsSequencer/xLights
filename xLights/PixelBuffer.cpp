@@ -249,9 +249,13 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     {
         MixType=Mix_Mask1;
     }
-    else if (MixName == "2 is Mask")
+    else if (MixName == "1 is Mask")
     {
-        MixType=Mix_Mask2;
+        MixType=Mix_Mask1;
+    }
+    else if (MixName == "Canvas")
+    {
+        MixType=Mix_Canvas;
     }
     else if (MixName == "1 is Unmask")
     {
@@ -349,6 +353,7 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         break;
     case Mix_Effect1:
     case Mix_Effect2:
+    case Mix_Canvas:
     {
         double emt, emtNot;
         if (!layers[layer]->effectMixVaries) {
@@ -1575,12 +1580,14 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
     }
 
 }
+
 static inline bool IsInRange(const std::vector<bool> &restrictRange, size_t start) {
     if (start >= restrictRange.size()) {
         return true;
     }
     return restrictRange[start];
 }
+
 void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange) {
 
     // KW ... I think this needs to be optimised
@@ -1830,6 +1837,11 @@ bool PixelBufferClass::IsVariableSubBuffer(int layer) const
 {
     const std::string &subBuffer = layers[layer]->subBuffer;
     return subBuffer.find("Active=TRUE") != std::string::npos;
+}
+    
+MixTypes PixelBufferClass::GetMixType(int layer) const
+{
+    return layers[layer]->mixType;
 }
     
 void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)

@@ -228,7 +228,8 @@ public:
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
                 if ("ModelGroup" == model->GetDisplayAs()) {
-                    for (int l = 0; l < numLayers; ++l) {
+                    //for (int l = 0; l < numLayers; ++l) {
+                    for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
                         bool perModelEffects = false;
                         for (int e = 0; e < layer->GetEffectCount() && !perModelEffects; ++e) {
@@ -505,7 +506,8 @@ public:
             info.validLayers[layer] = false;
         }
 
-        for (int layer = 0; layer < numLayers; ++layer) {
+        // To support canvas mix type we must render them bottom to top
+        for (int layer = numLayers - 1; layer >= 0; --layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
@@ -526,6 +528,28 @@ public:
             }
             SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
             bool b = info.effectStates[layer];
+
+            // Mix canvas pre-loads the buffer with data from underlying layers
+            if (buffer->GetMixType(layer) == Mix_Canvas && layer < numLayers - 1)
+            {
+                // preload the buffer with the output from the lower layers    
+                RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
+
+                // I am deliberately not blending from other models
+                // because I dont know what that would do
+                buffer->CalcOutput(frame, info.validLayers);
+
+                for (int y = 0; y < rb.BufferHt; y++)
+                {
+                    for (int x = 0; x < rb.BufferWi; x++)
+                    {
+                        xlColor c = xlBLACK;
+                        buffer->GetMixedColor(x, y, c, info.validLayers, frame);
+                        rb.SetPixel(x, y, c);
+                    }
+                }
+            }
+
             info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
             info.effectStates[layer] = b;
             effectsToUpdate |= info.validLayers[layer];
@@ -591,7 +615,8 @@ public:
         std::map<SNPair, int> nodeEffectIdxs;
 
         try {
-            for (int layer = 0; layer < numLayers; ++layer) {
+            //for (int layer = 0; layer < numLayers; ++layer) {
+            for (int layer = numLayers - 1; layer >= 0; --layer) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
