@@ -3,9 +3,12 @@
 
 //(*Headers(OffPanel)
 #include <wx/panel.h>
-class wxStaticText;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxStaticText;
 //*)
+
+#include "../BulkEditControls.h"
 
 class OffPanel: public wxPanel
 {
@@ -15,11 +18,13 @@ class OffPanel: public wxPanel
 		virtual ~OffPanel();
 
 		//(*Declarations(OffPanel)
+		BulkEditCheckBox* CheckBox_Transparent;
 		//*)
 
 	protected:
 
 		//(*Identifiers(OffPanel)
+		static const long ID_CHECKBOX_Off_Transparent;
 		//*)
 
 	private:

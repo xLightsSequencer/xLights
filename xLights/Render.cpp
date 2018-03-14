@@ -534,11 +534,8 @@ public:
             {
                 // preload the buffer with the output from the lower layers    
                 RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
-
-                // I am deliberately not blending from other models
-                // because I dont know what that would do
+                // I have to calc the output here to apply blend, rotozoom and transitions
                 buffer->CalcOutput(frame, info.validLayers);
-
                 for (int y = 0; y < rb.BufferHt; y++)
                 {
                     for (int x = 0; x < rb.BufferWi; x++)

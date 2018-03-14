@@ -249,9 +249,9 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     {
         MixType=Mix_Mask1;
     }
-    else if (MixName == "1 is Mask")
+    else if (MixName == "2 is Mask")
     {
-        MixType=Mix_Mask1;
+        MixType=Mix_Mask2;
     }
     else if (MixName == "Canvas")
     {
@@ -710,6 +710,200 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     }
                     sparkle++;
                 }
+                int b;
+                if (thelayer->BrightnessValueCurve.IsActive())
+                {
+                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
+                }
+                else
+                {
+                    b = thelayer->brightness;
+                }
+                if (thelayer->contrast != 0) {
+                    //contrast is not 0, can handle brightness change at same time
+                    HSVValue hsv = color.asHSV();
+                    hsv.value = hsv.value * ((double)b / 100.0);
+
+                    // Apply Contrast
+                    if (hsv.value < 0.5)
+                    {
+                        // reduce brightness when below 0.5 in the V value or increase if > 0.5
+                        hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast / 100.0));
+                    }
+                    else
+                    {
+                        hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast / 100.0));
+                    }
+
+                    if (hsv.value < 0.0) hsv.value = 0.0;
+                    if (hsv.value > 1.0) hsv.value = 1.0;
+                    unsigned char alpha = color.Alpha();
+                    color = hsv;
+                    color.alpha = alpha;
+                } else if (b != 100) {
+                    //just brightness
+                    float ba = b;
+                    ba /= 100.0f;
+                    float f = color.red * ba;
+                    color.red = std::min((int)f, 255);
+                    f = color.green * ba;
+                    color.green = std::min((int)f, 255);
+                    f = color.blue * ba;
+                    color.blue = std::min((int)f, 255);
+                }
+
+                if (cnt > 0) {
+                    mixColors(x, y, color, c, layer);
+                } else if (thelayer->fadeFactor != 1.0) {
+                    //need to fade the first here as we're not mixing anything
+                    HSVValue hsv = color.asHSV();
+                    hsv.value *= thelayer->fadeFactor;
+                    if (color.alpha != 255) {
+                        hsv.value *= color.alpha;
+                        hsv.value /= 255.0f;
+                    }
+                    c = hsv;
+                } else {
+                    c.AlphaBlendForgroundOnto(color);
+                }
+
+                cnt++;
+            }
+        }
+    }
+}
+
+void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // If this coordinate maps to a node use the node function as nodes have some special stuff going on ... like sparkles
+    int i = 0;
+    for (auto it = layers[0]->buffer.Nodes.begin(); it != layers[0]->buffer.Nodes.end(); ++it)
+    {
+        if ((*it)->Coords[0].bufX == x && (*it)->Coords[0].bufY == y)
+        {
+            GetMixedColor(i, c, validLayers, EffectPeriod);
+            return;
+        }
+        i++;
+    }
+
+    int cnt = 0;
+    c = xlBLACK;
+    xlColor color;
+
+    for (int layer = numLayers - 1; layer >= 0; layer--)
+    {
+        if (validLayers[layer])
+        {
+            auto thelayer = layers[layer];
+
+            // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
+            if (thelayer == nullptr)
+            {
+                logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
+            }
+
+            if (x >= thelayer->BufferWi || y >= thelayer->BufferHt)
+            {
+                // out of bounds
+            }
+            else
+            {
+                int effStartPer, effEndPer;
+                thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
+                float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
+                offset = std::min(offset, 1.0f);
+
+                if (thelayer->isMasked(x, y)
+                    || x < 0
+                    || y < 0
+                    || x >= thelayer->BufferWi
+                    || y >= thelayer->BufferHt
+                    ) {
+                    color.Set(0, 0, 0, 0);
+                } else {
+                    thelayer->buffer.GetPixel(x, y, color);
+                }
+                
+                float ha;
+                if (thelayer->HueAdjustValueCurve.IsActive())
+                {
+                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    ha = (float)thelayer->hueadjust / 100.0;
+                }
+                float sa;
+                if (thelayer->SaturationAdjustValueCurve.IsActive())
+                {
+                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    sa = (float)thelayer->saturationadjust / 100.0;
+                }
+                
+                float va;
+                if (thelayer->ValueAdjustValueCurve.IsActive())
+                {
+                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                }
+                else
+                {
+                    va = (float)thelayer->valueadjust / 100.0;
+                }
+                
+                // adjust for HSV adjustments
+                if (ha != 0 || sa != 0 || va != 0) {
+                    HSVValue hsv = color.asHSV();
+
+                    if (ha != 0)
+                    {
+                        hsv.hue += ha;
+                        if (hsv.hue < 0)
+                        {
+                            hsv.hue += 1.0;
+                        }
+                        else if (hsv.hue > 1)
+                        {
+                            hsv.hue -= 1.0;
+                        }
+                    }
+
+                    if (sa != 0)
+                    {
+                        hsv.saturation += sa;
+                        if (hsv.saturation < 0)
+                        {
+                            hsv.saturation = 0.0;
+                        }
+                        else if (hsv.saturation > 1)
+                        {
+                            hsv.saturation = 1.0;
+                        }
+                    }
+
+                    if (va != 0)
+                    {
+                        hsv.value += va;
+                        if (hsv.value < 0)
+                        {
+                            hsv.value = 0.0;
+                        }
+                        else if (hsv.value > 1)
+                        {
+                            hsv.value = 1.0;
+                        }
+                    }
+
+                    unsigned char alpha = color.Alpha();
+                    color = hsv;
+                    color.alpha = alpha;
+                }
+
                 int b;
                 if (thelayer->BrightnessValueCurve.IsActive())
                 {

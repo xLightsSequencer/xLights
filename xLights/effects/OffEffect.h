@@ -10,7 +10,8 @@ class OffEffect : public RenderableEffect
         virtual ~OffEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::string GetEffectString() override { return "";};
+        virtual std::string GetEffectString() override;
+        virtual void SetDefaultParameters(Model *cls) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

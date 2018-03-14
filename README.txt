@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)    Improve phoneme placement when breaking down words.
+   -- enh (keith)  Add a canvas blend mode and a transparent option to the off effect which will often be used together
 2018.7 Mar 11, 2018
    -- enh (k.mojek) Add display of video when sequencing using a video track for the audio
    -- enh (all)    Move to wxWidgets 3.1.1 on all platforms ... also codeblocks and gcc version upgrades on windows
