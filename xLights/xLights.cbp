@@ -223,7 +223,7 @@
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
-			<Target title="64bit  MinGW_Release">
+			<Target title="64bit MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_64" />
@@ -923,7 +923,8 @@
 			<Option target="Release" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
-			<Option target="64bit_MinGW_Release" />
+			<Option target="64bit MinGW_Release" />
+			<Option target="64bit MinGW_Debug" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
