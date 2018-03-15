@@ -14,6 +14,7 @@ protected:
     #pragma region Member Variables
     int _major;
     int _minor;
+    std::string _ip;
     bool _started;
     #pragma endregion Member Variables
 
@@ -34,8 +35,10 @@ public:
     std::string GetRawName() const { return _name; }
     void SetMajor(const int major) { if (_major != major) { _major = major; _changeCount++; } }
     void SetMinor(const int minor) { if (_minor != minor) { _minor = minor; _changeCount++; } }
+    void SetIP(const std::string ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
     int GetMajor() const { return _major; }
     int GetMinor() const { return _minor; }
+    std::string GetIP() const { return _ip; }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 

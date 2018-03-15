@@ -695,6 +695,13 @@ void ScheduleManager::AllOff()
 
 int ScheduleManager::Frame(bool outputframe)
 {
+    static bool reentry = false;
+    static int oldrate = 50;
+
+    if (reentry) return oldrate;
+
+    reentry = true;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int rate = 0;
     long totalChannels = _outputManager->GetTotalChannels();
@@ -1004,6 +1011,9 @@ int ScheduleManager::Frame(bool outputframe)
             }
         }
     }
+
+    reentry = false;
+    oldrate = rate;
 
     return rate;
 }

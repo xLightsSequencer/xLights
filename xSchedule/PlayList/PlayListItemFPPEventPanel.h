@@ -2,11 +2,11 @@
 #define PLAYLISTITEMFPPEVENTPANEL_H
 
 //(*Headers(PlayListItemFPPEventPanel)
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
 //*)
 
 class PlayListItemFPPEvent;
@@ -21,14 +21,16 @@ class PlayListItemFPPEventPanel: public wxPanel
 		virtual ~PlayListItemFPPEventPanel();
 
 		//(*Declarations(PlayListItemFPPEventPanel)
-		wxTextCtrl* TextCtrl_FPPEventName;
-		wxStaticText* StaticText2;
+		wxSpinCtrl* SpinCtrl_Major;
 		wxSpinCtrl* SpinCtrl_Minor;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Major;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_FPPEventName;
+		wxTextCtrl* TextCtrl_IPAddress;
 		//*)
 
 	protected:
@@ -36,6 +38,8 @@ class PlayListItemFPPEventPanel: public wxPanel
 		//(*Identifiers(PlayListItemFPPEventPanel)
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT5;
+		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT4;
@@ -49,6 +53,7 @@ class PlayListItemFPPEventPanel: public wxPanel
 		//(*Handlers(PlayListItemFPPEventPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
 		void OnTextCtrl_FPPEventNameText(wxCommandEvent& event);
+		void OnTextCtrl_IPAddressText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

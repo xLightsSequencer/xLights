@@ -10,6 +10,8 @@
 //(*IdInit(PlayListItemFPPEventPanel)
 const long PlayListItemFPPEventPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemFPPEventPanel::ID_STATICTEXT5 = wxNewId();
+const long PlayListItemFPPEventPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemFPPEventPanel::ID_STATICTEXT4 = wxNewId();
@@ -37,6 +39,10 @@ PlayListItemFPPEventPanel::PlayListItemFPPEventPanel(wxWindow* parent, PlayListI
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_FPPEventName = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_FPPEventName, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("IP Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_IPAddress = new wxTextCtrl(this, ID_TEXTCTRL1, _("255.255.255.255"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer1->Add(TextCtrl_IPAddress, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Id - Major:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Major = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 24, 1, _T("ID_SPINCTRL1"));
@@ -60,6 +66,7 @@ PlayListItemFPPEventPanel::PlayListItemFPPEventPanel(wxWindow* parent, PlayListI
 	//*)
 
     TextCtrl_FPPEventName->SetValue(fppevent->GetRawName());
+    TextCtrl_IPAddress->SetValue(fppevent->GetIP());
     SpinCtrl_Major->SetValue(fppevent->GetMajor());
     SpinCtrl_Minor->SetValue(fppevent->GetMinor());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)fppevent->GetDelay() / 1000.0));
@@ -72,6 +79,7 @@ PlayListItemFPPEventPanel::~PlayListItemFPPEventPanel()
     _fppevent->SetName(TextCtrl_FPPEventName->GetValue().ToStdString());
     _fppevent->SetMajor(SpinCtrl_Major->GetValue());
     _fppevent->SetMinor(SpinCtrl_Minor->GetValue());
+    _fppevent->SetIP(TextCtrl_IPAddress->GetValue().ToStdString());
     _fppevent->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
 }
 
@@ -83,4 +91,8 @@ void PlayListItemFPPEventPanel::OnTextCtrl_FPPEventNameText(wxCommandEvent& even
 {
     _fppevent->SetName(TextCtrl_FPPEventName->GetValue().ToStdString());
     ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+}
+
+void PlayListItemFPPEventPanel::OnTextCtrl_IPAddressText(wxCommandEvent& event)
+{
 }
