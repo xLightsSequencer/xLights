@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Improve phoneme placement when breaking down words.
 2018.7 Mar 11, 2018
    -- enh (k.mojek) Add display of video when sequencing using a video track for the audio
    -- enh (all)    Move to wxWidgets 3.1.1 on all platforms ... also codeblocks and gcc version upgrades on windows
@@ -18,11 +19,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add submodels to test dialog
    -- enh (keith)  Add option to suppress outputs not under test in the test dialog
    -- enh (keith)  Add to xSchedule MIDI events
-   -- enh (Keith)  Add to xSchedule an event playlist list. This is an extra list of simultaneously running playlists 
-				   which when triggered play one step once ... typically in response to an event. These are applied on 
-				   top of any running playlist or background playlist. Great for on demand elements in your show without 
+   -- enh (Keith)  Add to xSchedule an event playlist list. This is an extra list of simultaneously running playlists
+				   which when triggered play one step once ... typically in response to an event. These are applied on
+				   top of any running playlist or background playlist. Great for on demand elements in your show without
 				   interrupting your show.
-   -- enh (keith)  Add an Id attribute to DDP/NULL and all the USB output types which can be used with the 
+   -- enh (keith)  Add an Id attribute to DDP/NULL and all the USB output types which can be used with the
 				   #universe:startchannel addressing mode as a substitute for the universe ... as long as you keep the id unique
    -- enh (keith)  Add emojies to the shape effect ... in reality these are just characters from fonts ... not full colour emojies
    -- enh (keith)  Add sustain output process ... when a channel goes to zero ... overwrite it with the last non zero value

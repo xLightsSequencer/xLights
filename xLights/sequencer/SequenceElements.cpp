@@ -1797,14 +1797,36 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
     {
         int phoneme_start_time = start_time;
         double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
+        int grow_next = 0;
+        Effect* last_effect = nullptr;
         for (size_t i = 0; i < phonemes.Count(); i++ )
         {
-            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+(phoneme_interval_ms*(i + 1)), GetFrequency());
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+grow_next+(phoneme_interval_ms*(i + 1)), GetFrequency());
             if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
-            phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            grow_next = 0;
+            if( phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
+            {
+                int duration = phoneme_end_time - phoneme_start_time;
+                int psize = GetMinPeriod();
+                if( duration >= 50 )
+                {
+                    psize = 50;
+                }
+                if( i == 0 || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP" )
+                {
+                    grow_next = duration - psize;
+                    phoneme_end_time = phoneme_start_time + psize;
+                }
+                else
+                {
+                    phoneme_start_time = phoneme_end_time - psize;
+                    last_effect->SetEndTimeMS(phoneme_start_time);
+                }
+            }
+            last_effect = phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
             phoneme_start_time = phoneme_end_time;
         }
     }
