@@ -8,6 +8,7 @@
 
 #include <map>
 #include "BitmapCache.h"
+#include "UtilFunctions.h"
 
 #include "../include/padlock16x16-blue.xpm"
 #include "../include/padlock16x16-red.xpm"
@@ -110,10 +111,6 @@
 
 #include "wx/artprov.h"
 
-#ifdef __WXOSX__
-double xlOSXGetMainScreenContentScaleFactor();
-#endif
-
 
 class xlArtProvider : public wxArtProvider {
 public:
@@ -171,7 +168,6 @@ public:
             dc = data64;
         }
 
-#ifdef __WXOSX__
         double scale = 1.0;
         int origSize = size;
         //Retina Display, use the larger icons with the scale factor set
@@ -183,7 +179,7 @@ public:
             } else if (size == 32) {
                 data = &size32e;
             }
-        } else if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
+        } else if (GetSystemContentScaleFactor() >= 1.5) {
             if (size == 16 && (data16 != data32)) {
                 size = 32;
                 scale = 2.0;
@@ -214,18 +210,6 @@ public:
                 (*data)[eff] = wxBitmap(scaled, -1, scale);
             }
         }
-#else
-        const wxBitmap &bmp = (*data)[eff];
-        if (!bmp.IsOk()) {
-            wxImage image(dc);
-            if (image.GetHeight() == size) {
-                (*data)[eff] = wxBitmap(image);
-            } else {
-                wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-                (*data)[eff] = wxBitmap(scaled);
-            }
-        }
-#endif
         return (*data)[eff];
     }
     const wxBitmap &GetOtherImage(const wxString &name,
@@ -244,12 +228,9 @@ public:
     std::map<wxString, wxBitmap> size32;
     std::map<wxString, wxBitmap> size48;
     std::map<wxString, wxBitmap> size64;
-
-#ifdef __WXOSX__
     std::map<wxString, wxBitmap> size16e;
     std::map<wxString, wxBitmap> size24e;
     std::map<wxString, wxBitmap> size32e;
-#endif
 
     std::map<wxString, wxBitmap> others;
 } effectBitmaps;

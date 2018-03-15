@@ -177,11 +177,7 @@ public:
             SetBitmap(bitmap.ConvertToDisabled());
         } else if (state == 1) {
             const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
-#ifdef __WXOSX__
             SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
-#else
-            SetBitmap(wxBitmap(imgDisabled));
-#endif
         } else {
             SetBitmap(bitmap);
         }
@@ -434,8 +430,13 @@ void LayoutPanel::InitImageList()
 {
     double scaleFactor = GetContentScaleFactor();
     wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
-    if ( iconSize == wxDefaultSize )
-        iconSize = wxSize(16, 16);
+    if ( iconSize == wxDefaultSize ) {
+        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
+                          ScaleWithSystemDPI(scaleFactor, 16));
+    } else {
+        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
+                          ScaleWithSystemDPI(scaleFactor, iconSize.y));
+    }
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
 
@@ -527,12 +528,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
-#ifdef __WXOSX__
     wxBitmap bitmap(image, -1, 2.0);
-#else
-    image.Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
-    wxBitmap bitmap(image);
-#endif
     NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);

@@ -433,16 +433,16 @@ END_EVENT_TABLE()
 
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 
+    int size = ScaleWithSystemDPI(16);
     for (int x = 0; x < manager.size(); x++) {
-        DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
+        DragEffectBitmapButton *BitmapButton34 = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size,size),
                                                     wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-        int size = 16;
         BitmapButton34->SetMinSize(wxSize(size,size));
         BitmapButton34->SetMaxSize(wxSize(size,size));
 #ifndef LINUX
         BitmapButton34->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
 #endif
-        BitmapButton34->SetEffect(manager[x]);
+        BitmapButton34->SetEffect(manager[x], 16);
         BitmapButton34->SetBitmapMargins(0,0);
         EffectsToolBar->AddControl(BitmapButton34, BitmapButton34->GetToolTipText());
 
@@ -3021,7 +3021,7 @@ void xLightsFrame::SetToolIconSize(wxCommandEvent& event)
     }
 
     mIconSize = size;
-
+    size = ScaleWithSystemDPI(size);
     for (size_t x = 0; x < EffectsToolBar->GetToolCount(); x++)
     {
         EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);

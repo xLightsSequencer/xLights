@@ -463,3 +463,50 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
         }
     }
 }
+
+#ifdef __WXOSX__
+double xlOSXGetMainScreenContentScaleFactor();
+#endif
+
+double GetSystemContentScaleFactor() {
+#ifdef __WXOSX__
+    return xlOSXGetMainScreenContentScaleFactor();
+#else
+    return double(wxScreenDC().GetPPI().y) / 96.0;
+#endif
+}
+
+double ScaleWithSystemDPI(double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return ScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
+#endif
+}
+double UnScaleWithSystemDPI(double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return UnScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
+#endif
+}
+
+double ScaleWithSystemDPI(double scalingFactor, double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return val * scalingFactor;
+#endif
+}
+
+double UnScaleWithSystemDPI(double scalingFactor, double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return val / scalingFactor;
+#endif
+}
