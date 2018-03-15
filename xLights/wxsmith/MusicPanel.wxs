@@ -27,7 +27,6 @@
 									<min>1</min>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
@@ -195,7 +194,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -248,7 +246,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">

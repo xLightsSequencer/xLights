@@ -326,17 +326,17 @@
 													<label>Adjustment</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -371,17 +371,16 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_HueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_HueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -416,17 +415,16 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_SaturationAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_SaturationAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -461,22 +459,21 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_ValueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_ValueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">

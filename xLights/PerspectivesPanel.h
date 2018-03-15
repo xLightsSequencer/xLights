@@ -2,11 +2,11 @@
 #define PERSPECTIVESPANEL_H
 
 //(*Headers(PerspectivesPanel)
-#include <wx/sizer.h>
 #include <wx/button.h>
-#include <wx/panel.h>
-#include <wx/stattext.h>
 #include <wx/listbox.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 #include <wx/xml/xml.h>
@@ -25,12 +25,12 @@ class PerspectivesPanel: public wxPanel
 		virtual ~PerspectivesPanel();
 
 		//(*Declarations(PerspectivesPanel)
-		wxButton* ButtonDeletePerspective;
-		wxStaticText* StaticText1;
 		wxButton* ButtonAddPerspective;
+		wxButton* ButtonDeletePerspective;
 		wxButton* ButtonRenamePerspective;
-		wxListBox* ListBoxPerspectives;
 		wxButton* ButtonSavePerspective;
+		wxListBox* ListBoxPerspectives;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:

@@ -3,13 +3,13 @@
 
 //(*Headers(FireworksPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include <list>
@@ -25,32 +25,32 @@ class FireworksPanel: public wxPanel
         void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(FireworksPanel)
-		wxStaticText* StaticText91;
-		BulkEditSlider* Slider_Fireworks_Num_Explosions;
-		wxBitmapButton* BitmapButton_FireworksCount;
-		BulkEditSlider* Slider_Fireworks_Fade;
-		wxStaticText* StaticText93;
-		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
-		wxBitmapButton* BitmapButton_FireworksFade;
-		BulkEditSlider* Slider_Fireworks_Count;
-		wxStaticText* StaticText95;
-		BulkEditCheckBox* CheckBox_Fireworks_UseMusic;
-		wxBitmapButton* BitmapButton_FireworksVelocity;
-		BulkEditSlider* Slider_Fireworks_Sensitivity;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Fade;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Velocity;
-		BulkEditSlider* Slider_Fireworks_Velocity;
-		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText94;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Explosions;
 		BulkEditCheckBox* CheckBox_FireTiming;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Count;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
-		wxBitmapButton* BitmapButton1;
+		BulkEditCheckBox* CheckBox_Fireworks_UseMusic;
 		BulkEditChoice* Choice_TimingTrack;
+		BulkEditSlider* Slider_Fireworks_Count;
+		BulkEditSlider* Slider_Fireworks_Fade;
+		BulkEditSlider* Slider_Fireworks_Num_Explosions;
+		BulkEditSlider* Slider_Fireworks_Sensitivity;
+		BulkEditSlider* Slider_Fireworks_Velocity;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Count;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Explosions;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Fade;
 		BulkEditTextCtrl* TextCtrl_Fireworks_Sensitivity;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Velocity;
+		wxBitmapButton* BitmapButton1;
+		wxBitmapButton* BitmapButton_FireworksCount;
+		wxBitmapButton* BitmapButton_FireworksFade;
+		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
+		wxBitmapButton* BitmapButton_FireworksVelocity;
+		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
+		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText91;
+		wxStaticText* StaticText93;
+		wxStaticText* StaticText94;
+		wxStaticText* StaticText95;
 		//*)
 
 	protected:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="SelectPanel">
-		<size>282,253</size>
+		<size>282,253d</size>
 		<hidden>1</hidden>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -84,8 +84,8 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_SELECT_STARTTIME" variable="TextCtrl_Select_StartTime" member="yes">
 							<value>0.000</value>
 							<maxlength>7</maxlength>
-							<size>50,-1</size>
-							<minsize>50,-1</minsize>
+							<size>30,-1d</size>
+							<minsize>35,-1d</minsize>
 							<handler function="OnTextCtrl_Select_StartTimeText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL</flag>
@@ -104,8 +104,8 @@
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_SELECT_ENDTIME" variable="TextCtrl_Select_EndTime" member="yes">
 							<value>0.000</value>
 							<maxlength>7</maxlength>
-							<size>50,-1</size>
-							<minsize>50,-1</minsize>
+							<size>30,-1d</size>
+							<minsize>35,-1d</minsize>
 							<handler function="OnTextCtrl_Select_EndTimeText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL</flag>

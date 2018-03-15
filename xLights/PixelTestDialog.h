@@ -7,17 +7,16 @@
 #include <wx/filename.h>
 
 //(*Headers(PixelTestDialog)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/aui/aui.h>
-#include <wx/radiobut.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/splitter.h>
+#include <wx/stattext.h>
 #include <wx/timer.h>
 //*)
 
@@ -245,71 +244,71 @@ class PixelTestDialog: public wxDialog
 		SeqDataType _seqData;
 
 		//(*Declarations(PixelTestDialog)
-		wxRadioButton* RadioButton_Standard_Chase;
-		wxRadioButton* RadioButton_Standard_Twinkle5;
-		wxSlider* Slider_Standard_Background;
-		wxRadioButton* RadioButton_RGB_Chase13;
-		wxSlider* Slider_RGB_BG_G;
-		wxPanel* Panel5;
-		wxSlider* Slider_RGB_BG_R;
-		wxRadioButton* RadioButton_RGB_Twinkle5;
-		wxNotebook* Notebook1;
-		wxRadioButton* RadioButton_RGB_Shimmer;
-		wxRadioButton* RadioButton_RGB_Background;
-		wxStaticText* StaticText2;
-		wxPanel* Panel4;
-		wxRadioButton* RadioButton_Standard_Chase14;
-		wxPanel* Panel_Outputs;
-		wxStaticText* StaticText6;
-		wxButton* Button_Save;
-		wxRadioButton* RadioButton_RGB_Twinkle10;
-		wxRadioButton* RadioButton_RGBCycle_RGBW;
-		wxPanel* Panel_ModelGroups;
-		wxSlider* Slider_RGB_BG_B;
-		wxRadioButton* RadioButton_RGB_Twinkle25;
-		wxRadioButton* RadioButton_RGBCycle_ABCAll;
-		wxPanel* Panel1;
-		wxStaticText* StaticText1;
-		xLightsTimer Timer1;
-		wxSlider* Slider_RGB_H_G;
-		wxStaticText* StaticText3;
-		wxRadioButton* RadioButton_Standard_Shimmer;
-		wxSlider* Slider_RGB_H_R;
-		wxSlider* Slider_Standard_Highlight;
-		wxRadioButton* RadioButton_Standard_Chase13;
-		wxRadioButton* RadioButton_RGB_Alternate;
-		wxRadioButton* RadioButton_RGBCycle_ABC;
-		wxRadioButton* RadioButton_RGB_Twinkle50;
-		wxCheckBox* CheckBox_OutputToLights;
-		wxStaticText* StaticText5;
-		wxRadioButton* RadioButton_RGB_Chase14;
-		wxRadioButton* RadioButton_RGBCycle_ABCAllNone;
-		wxRadioButton* RadioButton_Standard_Chase15;
-		wxStaticText* StatusBar1;
-		wxSlider* Slider_RGB_H_B;
-		wxAuiNotebook* AuiNotebook1;
-		wxRadioButton* RadioButton_Standard_Twinkle10;
-		wxFlexGridSizer* FlexGridSizer_ModelGroups;
-		wxRadioButton* RadioButton_RGB_Off;
-		wxRadioButton* RadioButton_RGBCycle_Off;
-		wxRadioButton* RadioButton_RGB_Chase15;
-		wxRadioButton* RadioButton_Standard_Twinkle25;
-		wxSlider* Slider_Speed;
-		wxPanel* Panel2;
-		wxRadioButton* RadioButton_Standard_Background;
-		wxRadioButton* RadioButton_Standard_Twinkle50;
-		wxRadioButton* RadioButton_RGB_Chase;
-		wxFlexGridSizer* FlexGridSizer_Outputs;
-		wxSplitterWindow* SplitterWindow1;
-		wxStaticText* StaticText4;
-		wxCheckBox* CheckBox_SuppressUnusedOutputs;
-		wxPanel* Panel_Models;
-		wxRadioButton* RadioButton_RGBCycle_MixedColors;
-		wxPanel* Panel_Standard;
-		wxRadioButton* RadioButton_Standard_Alternate;
-		wxRadioButton* RadioButton_Standard_Off;
-		wxFlexGridSizer* FlexGridSizer_Models;
 		wxButton* Button_Load;
+		wxButton* Button_Save;
+		wxCheckBox* CheckBox_OutputToLights;
+		wxCheckBox* CheckBox_SuppressUnusedOutputs;
+		wxFlexGridSizer* FlexGridSizer_ModelGroups;
+		wxFlexGridSizer* FlexGridSizer_Models;
+		wxFlexGridSizer* FlexGridSizer_Outputs;
+		wxNotebook* Notebook1;
+		wxNotebook* Notebook2;
+		wxPanel* Panel1;
+		wxPanel* Panel2;
+		wxPanel* PanelRGB;
+		wxPanel* PanelRGBCycle;
+		wxPanel* PanelStandard;
+		wxPanel* Panel_ModelGroups;
+		wxPanel* Panel_Models;
+		wxPanel* Panel_Outputs;
+		wxRadioButton* RadioButton_RGBCycle_ABC;
+		wxRadioButton* RadioButton_RGBCycle_ABCAll;
+		wxRadioButton* RadioButton_RGBCycle_ABCAllNone;
+		wxRadioButton* RadioButton_RGBCycle_MixedColors;
+		wxRadioButton* RadioButton_RGBCycle_Off;
+		wxRadioButton* RadioButton_RGBCycle_RGBW;
+		wxRadioButton* RadioButton_RGB_Alternate;
+		wxRadioButton* RadioButton_RGB_Background;
+		wxRadioButton* RadioButton_RGB_Chase13;
+		wxRadioButton* RadioButton_RGB_Chase14;
+		wxRadioButton* RadioButton_RGB_Chase15;
+		wxRadioButton* RadioButton_RGB_Chase;
+		wxRadioButton* RadioButton_RGB_Off;
+		wxRadioButton* RadioButton_RGB_Shimmer;
+		wxRadioButton* RadioButton_RGB_Twinkle10;
+		wxRadioButton* RadioButton_RGB_Twinkle25;
+		wxRadioButton* RadioButton_RGB_Twinkle50;
+		wxRadioButton* RadioButton_RGB_Twinkle5;
+		wxRadioButton* RadioButton_Standard_Alternate;
+		wxRadioButton* RadioButton_Standard_Background;
+		wxRadioButton* RadioButton_Standard_Chase13;
+		wxRadioButton* RadioButton_Standard_Chase14;
+		wxRadioButton* RadioButton_Standard_Chase15;
+		wxRadioButton* RadioButton_Standard_Chase;
+		wxRadioButton* RadioButton_Standard_Off;
+		wxRadioButton* RadioButton_Standard_Shimmer;
+		wxRadioButton* RadioButton_Standard_Twinkle10;
+		wxRadioButton* RadioButton_Standard_Twinkle25;
+		wxRadioButton* RadioButton_Standard_Twinkle50;
+		wxRadioButton* RadioButton_Standard_Twinkle5;
+		wxSlider* Slider_RGB_BG_B;
+		wxSlider* Slider_RGB_BG_G;
+		wxSlider* Slider_RGB_BG_R;
+		wxSlider* Slider_RGB_H_B;
+		wxSlider* Slider_RGB_H_G;
+		wxSlider* Slider_RGB_H_R;
+		wxSlider* Slider_Speed;
+		wxSlider* Slider_Standard_Background;
+		wxSlider* Slider_Standard_Highlight;
+		wxSplitterWindow* SplitterWindow1;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StatusBar1;
+		xLightsTimer Timer1;
 		//*)
 
 	protected:
@@ -346,7 +345,7 @@ class PixelTestDialog: public wxDialog
 		static const long ID_SLIDER_Standard_Background;
 		static const long ID_STATICTEXT4;
 		static const long ID_SLIDER_Standard_Highlight;
-		static const long ID_PANEL_Standard;
+		static const long ID_PANEL8;
 		static const long ID_STATICTEXT5;
 		static const long ID_RADIOBUTTON_RGB_Off;
 		static const long ID_RADIOBUTTON_RGB_Chase;
@@ -366,7 +365,7 @@ class PixelTestDialog: public wxDialog
 		static const long ID_SLIDER4;
 		static const long ID_SLIDER5;
 		static const long ID_SLIDER6;
-		static const long ID_PANEL4;
+		static const long ID_PANEL9;
 		static const long ID_STATICTEXT6;
 		static const long ID_RADIOBUTTON_RGBCycle_Off;
 		static const long ID_RADIOBUTTON_RGBCycle_ABC;
@@ -374,8 +373,8 @@ class PixelTestDialog: public wxDialog
 		static const long ID_RADIOBUTTON_RGBCycle_ABCAllNone;
 		static const long ID_RADIOBUTTON_RGBCycle_MixedColors;
 		static const long ID_RADIOBUTTON_RGBCycle_RGBW;
-		static const long ID_PANEL5;
-		static const long ID_AUINOTEBOOK1;
+		static const long ID_PANEL10;
+		static const long ID_NOTEBOOK2;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Speed;
 		static const long ID_PANEL2;

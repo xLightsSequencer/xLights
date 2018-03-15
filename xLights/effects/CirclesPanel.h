@@ -3,12 +3,12 @@
 
 //(*Headers(CirclesPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,34 +21,34 @@ class CirclesPanel: public wxPanel
 		virtual ~CirclesPanel();
 
 		//(*Declarations(CirclesPanel)
-		wxBitmapButton* BitmapButton2;
 		BulkEditCheckBox* CheckBox_Circles_Bounce;
-		wxBitmapButton* BitmapButton_CirclesBounce;
-		wxStaticText* StaticText137;
-		wxBitmapButton* BitmapButton_CirclesRadial3D;
-		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
 		BulkEditCheckBox* CheckBox_Circles_Bubbles;
-		BulkEditSlider* Slider_Circles_Count;
-		wxBitmapButton* BitmapButton_CirclesSize;
-		wxBitmapButton* BitmapButton_CirclesRadial;
-		wxStaticText* StaticText136;
-		BulkEditSlider* Slider_Circles_Speed;
-		BulkEditCheckBox* CheckBox_Circles_Plasma;
-		BulkEditSlider* Slider_Circles_Size;
-		wxBitmapButton* BitmapButton_CirclesCount;
-		BulkEditCheckBox* CheckBox_Circles_Radial_3D;
-		BulkEditCheckBox* CheckBox_Circles_Radial;
-		BulkEditValueCurveButton* BitmapButton_Circles_Speed;
-		BulkEditValueCurveButton* BitmapButton_Circles_Count;
-		wxBitmapButton* BitmapButton_CirclesPlasma;
-		BulkEditCheckBox* CheckBox_Circles_Random_m;
-		wxBitmapButton* BitmapButton_CirclesCollide;
-		wxBitmapButton* BitmapButton_CirclesBubbles;
 		BulkEditCheckBox* CheckBox_Circles_Collide;
 		BulkEditCheckBox* CheckBox_Circles_Linear_Fade;
-		wxBitmapButton* BitmapButton_RandomMotion;
-		wxStaticText* StaticText31;
+		BulkEditCheckBox* CheckBox_Circles_Plasma;
+		BulkEditCheckBox* CheckBox_Circles_Radial;
+		BulkEditCheckBox* CheckBox_Circles_Radial_3D;
+		BulkEditCheckBox* CheckBox_Circles_Random_m;
+		BulkEditSlider* Slider_Circles_Count;
+		BulkEditSlider* Slider_Circles_Size;
+		BulkEditSlider* Slider_Circles_Speed;
+		BulkEditValueCurveButton* BitmapButton_Circles_Count;
 		BulkEditValueCurveButton* BitmapButton_Circles_Size;
+		BulkEditValueCurveButton* BitmapButton_Circles_Speed;
+		wxBitmapButton* BitmapButton2;
+		wxBitmapButton* BitmapButton_CirclesBounce;
+		wxBitmapButton* BitmapButton_CirclesBubbles;
+		wxBitmapButton* BitmapButton_CirclesCollide;
+		wxBitmapButton* BitmapButton_CirclesCount;
+		wxBitmapButton* BitmapButton_CirclesPlasma;
+		wxBitmapButton* BitmapButton_CirclesRadial3D;
+		wxBitmapButton* BitmapButton_CirclesRadial;
+		wxBitmapButton* BitmapButton_CirclesSize;
+		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
+		wxBitmapButton* BitmapButton_RandomMotion;
+		wxStaticText* StaticText136;
+		wxStaticText* StaticText137;
+		wxStaticText* StaticText31;
 		//*)
 
 	protected:

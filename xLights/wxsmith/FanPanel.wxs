@@ -321,7 +321,6 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_Fan_Num_Blades" variable="StaticText151" member="yes">
 										<label># Blades:</label>
-										<size>-1,-1</size>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -584,7 +583,6 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_Fan_Duration" variable="StaticText149" member="yes">
 										<label>Duration:</label>
-										<size>-1,-1</size>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

@@ -3,12 +3,12 @@
 
 //(*Headers(TwinklePanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,16 +21,16 @@ class TwinklePanel: public wxPanel
 		virtual ~TwinklePanel();
 
 		//(*Declarations(TwinklePanel)
-		BulkEditCheckBox* CheckBox_Twinkle_Strobe;
-		wxBitmapButton* BitmapButton24;
-		BulkEditSlider* Slider_Twinkle_Count;
-		wxBitmapButton* BitmapButton_TwinkleCount;
-		BulkEditSlider* Slider_Twinkle_Steps;
-		wxBitmapButton* BitmapButton_TwinkleSteps;
-		wxStaticText* StaticText85;
-		wxStaticText* StaticText104;
 		BulkEditCheckBox* CheckBox_Twinkle_ReRandom;
+		BulkEditCheckBox* CheckBox_Twinkle_Strobe;
+		BulkEditSlider* Slider_Twinkle_Count;
+		BulkEditSlider* Slider_Twinkle_Steps;
+		wxBitmapButton* BitmapButton24;
+		wxBitmapButton* BitmapButton_TwinkleCount;
+		wxBitmapButton* BitmapButton_TwinkleSteps;
 		wxBitmapButton* BitmapButton_TwinkleStrobe;
+		wxStaticText* StaticText104;
+		wxStaticText* StaticText85;
 		//*)
 
 	protected:

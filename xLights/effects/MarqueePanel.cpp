@@ -3,20 +3,20 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MarqueePanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/statline.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
 #include <wx/gbsizer.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/statline.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(MarqueePanel)
@@ -75,24 +75,24 @@ END_EVENT_TABLE()
 MarqueePanel::MarqueePanel(wxWindow* parent)
 {
 	//(*Initialize(MarqueePanel)
+	BulkEditTextCtrl* TextCtrl_MarqueeXC;
+	BulkEditTextCtrl* TextCtrl_MarqueeYC;
+	BulkEditTextCtrl* TextCtrl_Marquee_Band_Size;
+	BulkEditTextCtrl* TextCtrl_Marquee_ScaleX;
+	BulkEditTextCtrl* TextCtrl_Marquee_ScaleY;
+	BulkEditTextCtrl* TextCtrl_Marquee_Skip_Size;
+	BulkEditTextCtrl* TextCtrl_Marquee_Speed;
+	BulkEditTextCtrl* TextCtrl_Marquee_Stagger;
+	BulkEditTextCtrl* TextCtrl_Marquee_Start;
+	BulkEditTextCtrl* TextCtrl_Marquee_Thickness;
+	wxBitmapButton* BitmapButton_Marquee_Band_Size;
+	wxFlexGridSizer* FlexGridSizer135;
+	wxFlexGridSizer* FlexGridSizer136;
+	wxFlexGridSizer* FlexGridSizer137;
 	wxFlexGridSizer* FlexGridSizer138;
 	wxFlexGridSizer* FlexGridSizer23;
-	BulkEditTextCtrl* TextCtrl_Marquee_Speed;
-	BulkEditTextCtrl* TextCtrl_MarqueeXC;
-	BulkEditTextCtrl* TextCtrl_Marquee_Thickness;
-	wxFlexGridSizer* FlexGridSizer135;
-	wxBitmapButton* BitmapButton_Marquee_Band_Size;
-	BulkEditTextCtrl* TextCtrl_Marquee_Skip_Size;
-	BulkEditTextCtrl* TextCtrl_Marquee_ScaleY;
-	BulkEditTextCtrl* TextCtrl_Marquee_ScaleX;
-	wxFlexGridSizer* FlexGridSizer137;
-	BulkEditTextCtrl* TextCtrl_Marquee_Start;
-	BulkEditTextCtrl* TextCtrl_Marquee_Stagger;
-	BulkEditTextCtrl* TextCtrl_Marquee_Band_Size;
-	wxGridBagSizer* GridBagSizer5;
-	wxFlexGridSizer* FlexGridSizer136;
 	wxFlexGridSizer* FlexGridSizer58;
-	BulkEditTextCtrl* TextCtrl_MarqueeYC;
+	wxGridBagSizer* GridBagSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer23 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -193,7 +193,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	BitmapButton_Marquee_ScaleY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer135->Add(FlexGridSizer138, 1, wxALL|wxEXPAND, 5);
-	StaticLine1 = new wxStaticLine(Panel_Marquee_Position, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
+	StaticLine1 = new wxStaticLine(Panel_Marquee_Position, ID_STATICLINE1, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
 	FlexGridSizer135->Add(StaticLine1, 1, wxALL|wxEXPAND, 5);
 	CheckBox_Marquee_PixelOffsets = new BulkEditCheckBox(Panel_Marquee_Position, ID_CHECKBOX_Marquee_PixelOffsets, _("Offsets In Pixels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Marquee_PixelOffsets"));
 	CheckBox_Marquee_PixelOffsets->SetValue(false);
@@ -228,7 +228,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer135->SetSizeHints(Panel_Marquee_Position);
 	Notebook_Marquee->AddPage(Panel_Marquee_Settings, _("Settings"), false);
 	Notebook_Marquee->AddPage(Panel_Marquee_Position, _("Position"), false);
-	FlexGridSizer23->Add(Notebook_Marquee, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer23->Add(Notebook_Marquee, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer23);
 	FlexGridSizer23->Fit(this);
 	FlexGridSizer23->SetSizeHints(this);

@@ -39,7 +39,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -49,7 +48,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -97,7 +96,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -107,7 +105,7 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -187,17 +185,16 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_TopX" subclass="BulkEditTextCtrl" variable="TextCtrl86" member="yes">
 					<value>0</value>
 					<maxlength>4</maxlength>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -242,16 +239,15 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_TopY" subclass="BulkEditTextCtrl" variable="TextCtrl88" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -280,16 +276,16 @@
 					<max>50</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_BOTX" subclass="BulkEditTextCtrl" variable="TextCtrl89" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -315,16 +311,16 @@
 			<object class="sizeritem">
 				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" subclass="BulkEditSlider" variable="Slider_Lightning_BOTY" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_BOTY" subclass="BulkEditTextCtrl" variable="TextCtrl90" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

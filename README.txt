@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  "Black" static text labels on Windows
+   -- enh (dkulp)  Initial support for HiDPI displays on Windows
    -- enh (gil)    Improve phoneme placement when breaking down words.
    -- enh (keith)  Add a canvas blend mode and a transparent option to the off effect which will often be used together
    -- bug (keith)  Fix FPP event not being recognised by FPP

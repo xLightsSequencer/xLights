@@ -3,12 +3,12 @@
 
 //(*Headers(StrobePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,20 +21,20 @@ class StrobePanel: public wxPanel
 		virtual ~StrobePanel();
 
 		//(*Declarations(StrobePanel)
+		BulkEditCheckBox* CheckBox_Strobe_Music;
+		BulkEditSlider* Slider_Number_Strobes;
+		BulkEditSlider* Slider_Strobe_Duration;
+		BulkEditSlider* Slider_Strobe_Type;
+		BulkEditTextCtrl* TextCtrl_Number_Strobes;
+		BulkEditTextCtrl* TextCtrl_Strobe_Duration;
+		BulkEditTextCtrl* TextCtrl_Strobe_Type;
+		wxBitmapButton* BitmapButton_NumberStrobes;
 		wxBitmapButton* BitmapButton_StrobeDuration;
 		wxBitmapButton* BitmapButton_Strobe_Music;
-		BulkEditSlider* Slider_Number_Strobes;
-		BulkEditTextCtrl* TextCtrl_Strobe_Type;
-		wxStaticText* StaticText111;
-		BulkEditTextCtrl* TextCtrl_Strobe_Duration;
-		BulkEditSlider* Slider_Strobe_Type;
-		BulkEditSlider* Slider_Strobe_Duration;
-		wxStaticText* StaticText112;
-		wxBitmapButton* BitmapButton_NumberStrobes;
-		wxStaticText* StaticText110;
-		BulkEditTextCtrl* TextCtrl_Number_Strobes;
 		wxBitmapButton* BitmapButton_Strobe_Type;
-		BulkEditCheckBox* CheckBox_Strobe_Music;
+		wxStaticText* StaticText110;
+		wxStaticText* StaticText111;
+		wxStaticText* StaticText112;
 		//*)
 
 	protected:

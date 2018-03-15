@@ -144,14 +144,13 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL1" variable="ListBoxAddToModelGroup" member="yes">
-									<size>65,-1</size>
+									<size>65,-1d</size>
 									<minsize>65,-1</minsize>
 									<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING</style>
 									<handler function="OnListBoxAddToModelGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListBoxAddToModelGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<minsize>65,-1</minsize>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -214,14 +213,13 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxListCtrl" name="ID_LISTCTRL2" variable="ListBoxModelsInGroup" member="yes">
-									<size>65,-1</size>
+									<size>65,-1d</size>
 									<minsize>65,-1</minsize>
 									<style>wxLC_REPORT|wxLC_NO_HEADER</style>
 									<handler function="OnListBoxModelsInGroupBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
 									<handler function="OnListBoxModelsInGroupItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-								<minsize>65,-1</minsize>
 								<option>1</option>
 							</object>
 						</object>

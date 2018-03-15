@@ -3,9 +3,9 @@
 
 //(*Headers(OptionChooser)
 #include <wx/dialog.h>
+#include <wx/listbox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/listbox.h>
 //*)
 
 class OptionChooser: public wxDialog
@@ -20,8 +20,8 @@ class OptionChooser: public wxDialog
 		void GetSelectedOptions(wxArrayString& options);
 
 		//(*Declarations(OptionChooser)
-		wxStaticText* StaticText_Option_Select;
 		wxListBox* ListBox_Options;
+		wxStaticText* StaticText_Option_Select;
 		//*)
 
 	protected:

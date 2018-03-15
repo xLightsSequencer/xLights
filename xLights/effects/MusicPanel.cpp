@@ -5,18 +5,18 @@
 #include "MusicEffect.h"
 
 //(*InternalHeaders(MusicPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
 #include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(MusicPanel)
@@ -66,9 +66,9 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	//(*Initialize(MusicPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer42;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer31;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer42;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -80,7 +80,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Music_Bars = new BulkEditSlider(this, ID_SLIDER_Music_Bars, 20, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_Bars"));
-	FlexGridSizer1->Add(Slider_Music_Bars, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(Slider_Music_Bars, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer31->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Music_Bars = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Music_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Bars"));
 	FlexGridSizer31->Add(TextCtrl_Music_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -124,7 +124,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Music_Sensitivity = new BulkEditSlider(this, ID_SLIDER_Music_Sensitivity, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Music_Sensitivity"));
 	FlexGridSizer2->Add(Slider_Music_Sensitivity, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer31->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Music_Sensitivity = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Music_Sensitivity, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Sensitivity"));
 	FlexGridSizer31->Add(TextCtrl_Music_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Music_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Music_Sensitivity, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Music_Sensitivity"));
@@ -138,7 +138,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	FlexGridSizer3->Add(Slider_Music_Offset, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Music_OffsetVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Music_Offset, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Music_Offset"));
 	FlexGridSizer3->Add(BitmapButton_Music_OffsetVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer31->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Music_Offset = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Music_Offset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Music_Offset"));
 	FlexGridSizer31->Add(TextCtrl_Music_Offset, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Music_Offset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Music_Offset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Music_Offset"));

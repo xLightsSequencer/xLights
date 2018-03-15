@@ -27,7 +27,7 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Explosions" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Explosions" member="yes">
 					<value>16</value>
 					<maxlength>2</maxlength>
-					<size>40,-1</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -66,7 +66,7 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Count" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Count" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
-					<size>40,-1</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -106,7 +106,7 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Velocity" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Velocity" member="yes">
 					<value>2</value>
 					<maxlength>2</maxlength>
-					<size>40,-1</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -145,7 +145,7 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Fade" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Fade" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
-					<size>40,-1</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -214,7 +214,7 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_Sensitivity" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_Sensitivity" member="yes">
 					<value>50</value>
 					<maxlength>3</maxlength>
-					<size>40,-1</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

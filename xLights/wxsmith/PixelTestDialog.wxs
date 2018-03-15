@@ -3,8 +3,6 @@
 	<object class="wxDialog" name="PixelTestDialog">
 		<title>Test Lights</title>
 		<centered>1</centered>
-		<size>300,200</size>
-		<minsize>300,200</minsize>
 		<id_arg>0</id_arg>
 		<size_arg>1</size_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
@@ -16,10 +14,7 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>10</minsize>
 					<orientation>vertical</orientation>
-					<size>283,125</size>
-					<minsize>10,10</minsize>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
 						<pos>95,46</pos>
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
@@ -28,11 +23,10 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-									<minsize>300,300</minsize>
+									<minsize>200,200d</minsize>
 									<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 									<object class="notebookpage">
 										<object class="wxPanel" name="ID_PANEL3" variable="Panel_Outputs" member="yes">
-											<pos>42,57</pos>
 											<object class="wxFlexGridSizer" variable="FlexGridSizer_Outputs" member="yes">
 												<cols>1</cols>
 												<growablecols>0</growablecols>
@@ -68,7 +62,6 @@
 									</object>
 									<object class="notebookpage">
 										<object class="wxPanel" name="ID_PANEL6" variable="Panel_ModelGroups" member="yes">
-											<pos>50,5</pos>
 											<object class="wxFlexGridSizer" variable="FlexGridSizer_ModelGroups" member="yes">
 												<cols>1</cols>
 												<growablecols>0</growablecols>
@@ -79,7 +72,6 @@
 									</object>
 									<object class="notebookpage">
 										<object class="wxPanel" name="ID_PANEL7" variable="Panel_Models" member="yes">
-											<pos>124,13</pos>
 											<object class="wxFlexGridSizer" variable="FlexGridSizer_Models" member="yes">
 												<cols>1</cols>
 												<growablecols>0</growablecols>
@@ -96,7 +88,6 @@
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
-						<pos>128,40</pos>
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
@@ -128,13 +119,9 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxAuiNotebook" name="ID_AUINOTEBOOK1" variable="AuiNotebook1" member="yes">
-									<size>422,400</size>
-									<style>wxAUI_NB_TAB_SPLIT|wxTAB_TRAVERSAL</style>
-									<object class="AuiNotebookPage">
-										<object class="wxPanel" name="ID_PANEL_Standard" variable="Panel_Standard" member="yes">
-											<pos>80,57</pos>
-											<minsize>300,300</minsize>
+								<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL8" variable="PanelStandard" member="yes">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 												<cols>4</cols>
 												<rows>1</rows>
@@ -277,7 +264,6 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_Standard_Background" variable="Slider_Standard_Background" member="yes">
 																		<max>255</max>
-																		<size>74,181</size>
 																		<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE|wxSIMPLE_BORDER</style>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
@@ -331,11 +317,9 @@
 											</object>
 										</object>
 										<label>Standard</label>
-										<selected>1</selected>
 									</object>
-									<object class="AuiNotebookPage">
-										<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
-											<pos>128,17</pos>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL9" variable="PanelRGB" member="yes">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 												<cols>4</cols>
 												<rows>1</rows>
@@ -558,9 +542,8 @@
 										</object>
 										<label>RGB</label>
 									</object>
-									<object class="AuiNotebookPage">
-										<object class="wxPanel" name="ID_PANEL5" variable="Panel5" member="yes">
-											<pos>132,14</pos>
+									<object class="notebookpage">
+										<object class="wxPanel" name="ID_PANEL10" variable="PanelRGBCycle" member="yes">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 												<cols>2</cols>
 												<growablerows>0</growablerows>
@@ -633,8 +616,8 @@
 										<label>RGB Cycle</label>
 									</object>
 								</object>
-								<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
-								<border>2</border>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">

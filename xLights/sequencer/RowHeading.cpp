@@ -64,9 +64,14 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 {
     DOUBLE_BUFFER(this);
     wxString tooltip;
-    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, false);
-    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, false);
-    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, false);
+#ifdef __WXOSX__
+    bool exact = false;
+#else
+    bool exact = true;
+#endif
+    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, exact);
+    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, exact);
+    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, exact);
     mCanPaste = false;
 }
 

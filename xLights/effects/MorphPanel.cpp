@@ -4,20 +4,20 @@
 #include "MorphEffect.h"
 
 //(*InternalHeaders(MorphPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(MorphPanel)
@@ -116,22 +116,22 @@ END_EVENT_TABLE()
 MorphPanel::MorphPanel(wxWindow* parent)
 {
 	//(*Initialize(MorphPanel)
-	wxPanel* MorphPanelStart;
-	wxFlexGridSizer* FlexGridSizer105;
 	BulkEditTextCtrl* TextCtrl_MorphAccel;
+	BulkEditTextCtrl* TextCtrl_MorphDuration;
 	BulkEditTextCtrl* TextCtrl_MorphEndLength;
 	BulkEditTextCtrl* TextCtrl_MorphStartLength;
-	BulkEditTextCtrl* TextCtrl_MorphDuration;
-	wxPanel* MorphPanelOptions;
-	wxPanel* MorphPanelEnd;
-	BulkEditTextCtrl* TextCtrl_Morph_Repeat_Skip;
-	wxFlexGridSizer* FlexGridSizer86;
-	BulkEditTextCtrl* TextCtrl_Morph_Stagger;
-	wxFlexGridSizer* FlexGridSizer99;
-	wxFlexGridSizer* FlexGridSizer78;
 	BulkEditTextCtrl* TextCtrl_Morph_Repeat_Count;
+	BulkEditTextCtrl* TextCtrl_Morph_Repeat_Skip;
+	BulkEditTextCtrl* TextCtrl_Morph_Stagger;
 	wxFlexGridSizer* FlexGridSizer104;
+	wxFlexGridSizer* FlexGridSizer105;
+	wxFlexGridSizer* FlexGridSizer78;
+	wxFlexGridSizer* FlexGridSizer86;
 	wxFlexGridSizer* FlexGridSizer94;
+	wxFlexGridSizer* FlexGridSizer99;
+	wxPanel* MorphPanelEnd;
+	wxPanel* MorphPanelOptions;
+	wxPanel* MorphPanelStart;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer78 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -297,7 +297,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	FlexGridSizer104->AddGrowableCol(0);
 	FlexGridSizer99 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer99->AddGrowableCol(1);
-	StaticText123 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT_MorphDuration, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT_MorphDuration"));
+	StaticText123 = new wxStaticText(MorphPanelOptions, ID_STATICTEXT_MorphDuration, _("Head Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MorphDuration"));
 	FlexGridSizer99->Add(StaticText123, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MorphDuration = new BulkEditSlider(MorphPanelOptions, ID_SLIDER_MorphDuration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MorphDuration"));
 	FlexGridSizer99->Add(Slider_MorphDuration, 1, wxALL|wxEXPAND, 5);

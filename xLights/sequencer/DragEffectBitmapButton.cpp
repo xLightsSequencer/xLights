@@ -39,8 +39,9 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
         const wxBitmap &bbmp = eff->GetEffectIcon(sz);
 
         int ns = GetContentScaleFactor() * sz;
-        if (ns != bbmp.GetScaledWidth()) {
-            const wxBitmap &bbmp2 = eff->GetEffectIcon(ScaleWithSystemDPI(sz), true);
+        int bs = bbmp.GetWidth();
+        if (ns != bs) {
+            const wxBitmap &bbmp2 = eff->GetEffectIcon(ns, true);
             if (ns != bbmp2.GetScaledWidth()) {
                 wxImage img = eff->GetEffectIcon(64, true).ConvertToImage();
                 wxImage scaled = img.Scale(ns, ns, wxIMAGE_QUALITY_HIGH);

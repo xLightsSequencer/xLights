@@ -33,8 +33,8 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
     _effectId = eff->GetID();
 
 	//(*Initialize(EffectTimingDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, _("Effect Timing"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -56,7 +56,7 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
 	SpinCtrl_EndTime = new StepSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 100, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_EndTime->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_EndTime, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Error = new wxStaticText(this, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	wxFont StaticText_ErrorFont(10,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText_Error->SetFont(StaticText_ErrorFont);

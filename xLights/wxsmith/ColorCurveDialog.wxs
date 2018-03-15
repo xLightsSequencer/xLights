@@ -18,7 +18,6 @@
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
-				<minsize>100,20</minsize>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

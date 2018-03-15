@@ -23,7 +23,6 @@
 							<value>3</value>
 							<min>1</min>
 							<max>20</max>
-							<size>80,20</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -68,7 +67,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_ArmSize" subclass="BulkEditSlider" variable="Slider_Pinwheel_ArmSize" member="yes">
 									<value>100</value>
 									<max>400</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -86,7 +84,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -128,7 +125,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Twist" subclass="BulkEditSlider" variable="Slider_Pinwheel_Twist" member="yes">
 									<min>-360</min>
 									<max>360</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -146,7 +142,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -184,9 +179,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" subclass="BulkEditSlider" variable="Slider_Pinwheel_Thickness" member="yes">
-									<size>80,20</size>
-								</object>
+								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" subclass="BulkEditSlider" variable="Slider_Pinwheel_Thickness" member="yes" />
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
@@ -203,7 +196,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -245,7 +237,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Speed" subclass="BulkEditSlider" variable="Slider_Pinwheel_Speed" member="yes">
 									<value>10</value>
 									<max>50</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -263,7 +254,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -379,7 +369,6 @@
 									<selection>0</selection>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -423,7 +412,6 @@
 							<object class="sizeritem">
 								<object class="wxSlider" name="ID_SLIDER_PinwheelXC" subclass="BulkEditSlider" variable="Slider_PinwheelXC" member="yes">
 									<min>-100</min>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
@@ -519,7 +507,6 @@
 							<object class="sizeritem">
 								<object class="wxSlider" name="ID_SLIDER_PinwheelYC" subclass="BulkEditSlider" variable="Slider_PinwheelYC" member="yes">
 									<min>-100</min>
-									<size>20,80</size>
 									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

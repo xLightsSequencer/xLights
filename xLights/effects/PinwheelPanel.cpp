@@ -3,18 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PinwheelPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
 #include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(PinwheelPanel)
@@ -68,28 +68,28 @@ END_EVENT_TABLE()
 PinwheelPanel::PinwheelPanel(wxWindow* parent)
 {
 	//(*Initialize(PinwheelPanel)
+	BulkEditTextCtrl* TextCtrl64;
+	BulkEditTextCtrl* TextCtrl65;
+	BulkEditTextCtrl* TextCtrl66;
+	BulkEditTextCtrl* TextCtrl67;
+	BulkEditTextCtrl* TextCtrl68;
+	BulkEditTextCtrl* TextCtrl69;
 	BulkEditTextCtrl* TextCtrl70;
+	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer128;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	BulkEditTextCtrl* TextCtrl67;
-	BulkEditTextCtrl* TextCtrl64;
-	wxFlexGridSizer* FlexGridSizer59;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer55;
-	wxFlexGridSizer* FlexGridSizer6;
-	BulkEditTextCtrl* TextCtrl68;
-	wxFlexGridSizer* FlexGridSizer68;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer64;
-	wxFlexGridSizer* FlexGridSizer128;
-	BulkEditTextCtrl* TextCtrl66;
-	wxFlexGridSizer* FlexGridSizer63;
-	wxBoxSizer* BoxSizer1;
-	wxFlexGridSizer* FlexGridSizer62;
-	BulkEditTextCtrl* TextCtrl69;
-	wxFlexGridSizer* FlexGridSizer61;
+	wxFlexGridSizer* FlexGridSizer59;
 	wxFlexGridSizer* FlexGridSizer5;
-	BulkEditTextCtrl* TextCtrl65;
+	wxFlexGridSizer* FlexGridSizer61;
+	wxFlexGridSizer* FlexGridSizer62;
+	wxFlexGridSizer* FlexGridSizer63;
+	wxFlexGridSizer* FlexGridSizer64;
+	wxFlexGridSizer* FlexGridSizer68;
+	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer55 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -99,7 +99,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer128->AddGrowableCol(1);
 	StaticText63 = new wxStaticText(this, ID_STATICTEXT_Pinwheel_Arms, _("#Arms"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pinwheel_Arms"));
 	FlexGridSizer128->Add(StaticText63, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Pinwheel_Arms = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Arms, 3, 1, 20, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Arms"));
+	Slider_Pinwheel_Arms = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Arms, 3, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Arms"));
 	FlexGridSizer128->Add(Slider_Pinwheel_Arms, 1, wxALL|wxEXPAND, 2);
 	TextCtrl64 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Pinwheel_Arms, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pinwheel_Arms"));
 	TextCtrl64->SetMaxLength(3);
@@ -111,11 +111,11 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer128->Add(StaticText84, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
-	Slider_Pinwheel_ArmSize = new BulkEditSlider(this, ID_SLIDER_Pinwheel_ArmSize, 100, 0, 400, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_ArmSize"));
+	Slider_Pinwheel_ArmSize = new BulkEditSlider(this, ID_SLIDER_Pinwheel_ArmSize, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_ArmSize"));
 	FlexGridSizer1->Add(Slider_Pinwheel_ArmSize, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Pinwheel_ArmSizeVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Pinwheel_ArmSize, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Pinwheel_ArmSize"));
 	FlexGridSizer1->Add(BitmapButton_Pinwheel_ArmSizeVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer128->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer128->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl65 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Pinwheel_ArmSize, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pinwheel_ArmSize"));
 	TextCtrl65->SetMaxLength(3);
 	FlexGridSizer128->Add(TextCtrl65, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -126,11 +126,11 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer128->Add(StaticText74, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(0);
-	Slider_Pinwheel_Twist = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Twist, 0, -360, 360, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Twist"));
+	Slider_Pinwheel_Twist = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Twist, 0, -360, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Twist"));
 	FlexGridSizer2->Add(Slider_Pinwheel_Twist, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Pinwheel_TwistVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Pinwheel_Twist, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Pinwheel_Twist"));
 	FlexGridSizer2->Add(BitmapButton_Pinwheel_TwistVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer128->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer128->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl66 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Pinwheel_Twist, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pinwheel_Twist"));
 	TextCtrl66->SetMaxLength(4);
 	FlexGridSizer128->Add(TextCtrl66, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -141,11 +141,11 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer128->Add(StaticText75, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	Slider_Pinwheel_Thickness = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Thickness, 0, 0, 100, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Thickness"));
+	Slider_Pinwheel_Thickness = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Thickness, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Thickness"));
 	FlexGridSizer3->Add(Slider_Pinwheel_Thickness, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Pinwheel_ThicknessVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Pinwheel_Thickness, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Pinwheel_Thickness"));
 	FlexGridSizer3->Add(BitmapButton_Pinwheel_ThicknessVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer128->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer128->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl67 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Pinwheel_Thickness, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pinwheel_Thickness"));
 	TextCtrl67->SetMaxLength(3);
 	FlexGridSizer128->Add(TextCtrl67, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -156,11 +156,11 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer128->Add(StaticText184, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
-	Slider_Pinwheel_Speed = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Speed, 10, 0, 50, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Speed"));
+	Slider_Pinwheel_Speed = new BulkEditSlider(this, ID_SLIDER_Pinwheel_Speed, 10, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Speed"));
 	FlexGridSizer4->Add(Slider_Pinwheel_Speed, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Pinwheel_SpeedVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Pinwheel_Speed, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Pinwheel_Speed"));
 	FlexGridSizer4->Add(BitmapButton_Pinwheel_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer128->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer128->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	TextCtrl70 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Pinwheel_Speed, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Pinwheel_Speed"));
 	TextCtrl70->SetMaxLength(3);
 	FlexGridSizer128->Add(TextCtrl70, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -194,7 +194,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	Choice_Pinwheel_3D->Append(_("3D"));
 	Choice_Pinwheel_3D->Append(_("3D Inverted"));
 	Choice_Pinwheel_3D->Append(_("Sweep"));
-	FlexGridSizer61->Add(Choice_Pinwheel_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer61->Add(Choice_Pinwheel_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	BitmapButton_Pinwheel3D = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Pinwheel_3D, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Pinwheel_3D"));
 	BitmapButton_Pinwheel3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer61->Add(BitmapButton_Pinwheel3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -207,7 +207,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer62->AddGrowableCol(1);
 	StaticText82 = new wxStaticText(this, ID_STATICTEXT_PinwheelXC, _("X-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PinwheelXC"));
 	FlexGridSizer62->Add(StaticText82, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_PinwheelXC = new BulkEditSlider(this, ID_SLIDER_PinwheelXC, 0, -100, 100, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_PinwheelXC"));
+	Slider_PinwheelXC = new BulkEditSlider(this, ID_SLIDER_PinwheelXC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PinwheelXC"));
 	FlexGridSizer62->Add(Slider_PinwheelXC, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer62->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -231,7 +231,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer6->Add(TextCtrl69, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer64->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer68->Add(FlexGridSizer64, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	Slider_PinwheelYC = new BulkEditSlider(this, ID_SLIDER_PinwheelYC, 0, -100, 100, wxDefaultPosition, wxSize(20,80), wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PinwheelYC"));
+	Slider_PinwheelYC = new BulkEditSlider(this, ID_SLIDER_PinwheelYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PinwheelYC"));
 	FlexGridSizer68->Add(Slider_PinwheelYC, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer63->Add(FlexGridSizer68, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer55->Add(FlexGridSizer63, 1, wxALL|wxEXPAND, 0);

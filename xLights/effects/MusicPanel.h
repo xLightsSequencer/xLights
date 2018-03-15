@@ -3,13 +3,13 @@
 
 //(*Headers(MusicPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -23,40 +23,40 @@ class MusicPanel: public wxPanel
 		virtual ~MusicPanel();
 
 		//(*Declarations(MusicPanel)
-		wxBitmapButton* BitmapButton_Music_Bars;
-		wxBitmapButton* BitmapButton_Music_Scale;
-		BulkEditTextCtrl* TextCtrl_Music_EndNote;
 		BulkEditCheckBox* CheckBox_Music_Fade;
+		BulkEditCheckBox* CheckBox_Music_Scale;
 		BulkEditChoice* Choice_Music_Colour;
-		wxBitmapButton* BitmapButton_Music_StartNote;
 		BulkEditChoice* Choice_Music_Scaling;
-		BulkEditSlider* Slider_Music_Offset;
-		BulkEditValueCurveButton* BitmapButton_Music_OffsetVC;
-		BulkEditSlider* Slider_Music_Sensitivity;
-		wxBitmapButton* BitmapButton_Music_Scaling;
+		BulkEditChoice* Choice_Music_Type;
 		BulkEditSlider* Slider_Music_Bars;
-		wxBitmapButton* BitmapButton_Music_EndNote;
+		BulkEditSlider* Slider_Music_EndNote;
+		BulkEditSlider* Slider_Music_Offset;
+		BulkEditSlider* Slider_Music_Sensitivity;
 		BulkEditSlider* Slider_Music_StartNote;
 		BulkEditTextCtrl* TextCtrl_Music_Bars;
-		BulkEditChoice* Choice_Music_Type;
-		BulkEditTextCtrl* TextCtrl_Music_Sensitivity;
-		wxStaticText* StaticText1;
-		BulkEditTextCtrl* TextCtrl_Music_StartNote;
-		wxStaticText* StaticText3;
-		BulkEditCheckBox* CheckBox_Music_Scale;
-		BulkEditSlider* Slider_Music_EndNote;
-		wxStaticText* StaticText12;
+		BulkEditTextCtrl* TextCtrl_Music_EndNote;
 		BulkEditTextCtrl* TextCtrl_Music_Offset;
-		wxStaticText* StaticText4;
+		BulkEditTextCtrl* TextCtrl_Music_Sensitivity;
+		BulkEditTextCtrl* TextCtrl_Music_StartNote;
+		BulkEditValueCurveButton* BitmapButton_Music_OffsetVC;
+		wxBitmapButton* BitmapButton_Music_Bars;
 		wxBitmapButton* BitmapButton_Music_Colour;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_Music_Sensitivity;
-		wxStaticText* StaticText6;
-		wxBitmapButton* BitmapButton_Music_Type;
+		wxBitmapButton* BitmapButton_Music_EndNote;
 		wxBitmapButton* BitmapButton_Music_Fade;
 		wxBitmapButton* BitmapButton_Music_Offset;
+		wxBitmapButton* BitmapButton_Music_Scale;
+		wxBitmapButton* BitmapButton_Music_Scaling;
+		wxBitmapButton* BitmapButton_Music_Sensitivity;
+		wxBitmapButton* BitmapButton_Music_StartNote;
+		wxBitmapButton* BitmapButton_Music_Type;
 		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		//*)
 
 	protected:

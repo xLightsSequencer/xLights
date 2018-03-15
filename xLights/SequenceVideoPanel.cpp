@@ -23,7 +23,7 @@ SequenceVideoPanel::SequenceVideoPanel(wxWindow* parent,wxWindowID id,const wxPo
    : _path(), _videoReader(), _isValidVideo(false), _videoWidth(0), _videoHeight(0), _videoLength(0), _videoPreview(nullptr)
 {
 	//(*Initialize(SequenceVideoPanel)
-	Create(parent, id, wxDefaultPosition, wxSize(268,203), wxTAB_TRAVERSAL, _T("id"));
+	Create(parent, id, wxDefaultPosition, wxDLG_UNIT(parent,wxSize(160,90)), wxTAB_TRAVERSAL, _T("id"));
 	//*)
 
    _videoPreview = new SequenceVideoPreview( this );

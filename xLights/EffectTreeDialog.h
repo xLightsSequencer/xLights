@@ -2,10 +2,10 @@
 #define EFFECTTREEDIALOG_H
 
 //(*Headers(EffectTreeDialog)
-#include <wx/treectrl.h>
-#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/treectrl.h>
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
@@ -25,15 +25,15 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxButton* btNewPreset;
 		wxButton* btAddGroup;
-		wxButton* btUpdate;
 		wxButton* btApply;
-		wxButton* btRename;
-		wxButton* btImport;
-		wxTreeCtrl* TreeCtrl1;
-		wxButton* btExport;
 		wxButton* btDelete;
+		wxButton* btExport;
+		wxButton* btImport;
+		wxButton* btNewPreset;
+		wxButton* btRename;
+		wxButton* btUpdate;
+		wxTreeCtrl* TreeCtrl1;
 		//*)
         wxTreeItemId treeRootID;
         void InitItems(wxXmlNode *e);

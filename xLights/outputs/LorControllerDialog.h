@@ -2,13 +2,13 @@
 #define LORCONTROLLERDIALOG_H
 
 //(*Headers(LorControllerDialog)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class LorController;
@@ -25,22 +25,22 @@ class LorControllerDialog: public wxDialog
         void SetNextUnitId(int id) { _next_id = id; }
 
 		//(*Declarations(LorControllerDialog)
-		wxButton* Button_Ok;
-		wxStaticText* StaticText_PerOutput;
-		wxTextCtrl* TextCtrl_Description;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxSpinCtrl* SpinCtrl_UnitID;
-		wxChoice* Choice_Mode;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText_Channels;
-		wxStaticText* StaticText_Hex;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxChoice* Choice_Mode;
 		wxChoice* Choice_Type;
 		wxFlexGridSizer* FlexGridSizer_PerOutput;
+		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_UnitID;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText_Channels;
+		wxStaticText* StaticText_Hex;
+		wxStaticText* StaticText_PerOutput;
+		wxTextCtrl* TextCtrl_Description;
 		//*)
 
 	protected:

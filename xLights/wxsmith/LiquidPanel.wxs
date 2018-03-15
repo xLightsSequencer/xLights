@@ -117,7 +117,7 @@
 							<value>1000</value>
 							<max>1000</max>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -164,7 +164,7 @@
 							<min>1</min>
 							<max>10000</max>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -190,7 +190,7 @@
 						<object class="wxSlider" name="IDD_SLIDER_WarmUpFrames" subclass="BulkEditSlider" variable="Slider_WarmUpFrames" member="yes">
 							<max>500</max>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -216,7 +216,7 @@
 						<object class="wxSlider" name="IDD_SLIDER_Despeckle" subclass="BulkEditSlider" variable="Slider_Despeckle" member="yes">
 							<max>4</max>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

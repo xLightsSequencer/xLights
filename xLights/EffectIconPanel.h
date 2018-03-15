@@ -2,8 +2,8 @@
 #define EFFECTICONPANEL_H
 
 //(*Headers(EffectIconPanel)
-#include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
 //*)
 
 #include "sequencer/DragEffectBitmapButton.h"

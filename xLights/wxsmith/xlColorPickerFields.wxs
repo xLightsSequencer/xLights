@@ -6,7 +6,7 @@
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="yes">
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_Palette" subclass="xlColorCanvas" variable="Panel_Palette" member="yes">
-					<minsize>256,256</minsize>
+					<minsize>200,200d</minsize>
 					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
 				</object>
 				<colspan>10</colspan>
@@ -19,7 +19,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_SLIDER" subclass="xlColorCanvas" variable="Panel_Slider" member="yes">
-					<minsize>25,256</minsize>
+					<minsize>25,200d</minsize>
 					<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
 				</object>
 				<rowspan>11</rowspan>
@@ -32,7 +32,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch1" variable="BitmapButton_Swatch1" member="yes">
 					<bg>#FF0000</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -46,7 +46,7 @@
 				<object class="wxSlider" name="ID_SLIDER_Left" subclass="xlSlider" variable="SliderLeft" member="yes">
 					<value>255</value>
 					<max>255</max>
-					<minsize>25,277</minsize>
+					<minsize>-1,200d</minsize>
 					<style>wxSL_VERTICAL</style>
 					<handler function="OnSliderLeftCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
@@ -61,7 +61,7 @@
 				<object class="wxSlider" name="ID_SLIDER_Right" subclass="xlSlider" variable="SliderRight" member="yes">
 					<value>255</value>
 					<max>255</max>
-					<minsize>25,277</minsize>
+					<minsize>-1,200d</minsize>
 					<style>wxSL_VERTICAL|wxSL_LEFT</style>
 					<handler function="OnSliderRightCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 				</object>
@@ -74,7 +74,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL_CurrentColor" variable="Panel_CurrentColor" member="yes">
-					<minsize>75,55</minsize>
+					<minsize>75,55d</minsize>
 					<style>wxSUNKEN_BORDER</style>
 				</object>
 				<colspan>2</colspan>
@@ -184,7 +184,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -201,7 +201,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -218,7 +218,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -235,7 +235,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -252,7 +252,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -269,7 +269,7 @@
 						<size>12</size>
 						<family>modern</family>
 					</font>
-					<minsize>40,23</minsize>
+					<minsize>25,-1d</minsize>
 					<style>wxTE_LEFT|wxSIMPLE_BORDER</style>
 					<handler function="OnTextCtrl_Text" entry="EVT_TEXT" />
 				</object>
@@ -282,7 +282,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch2" variable="BitmapButton_Swatch2" member="yes">
 					<bg>#00FF00</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -295,7 +295,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch3" variable="BitmapButton_Swatch3" member="yes">
 					<bg>#0000FF</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -308,7 +308,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch4" variable="BitmapButton_Swatch4" member="yes">
 					<bg>#FFFF00</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -321,7 +321,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch5" variable="BitmapButton_Swatch5" member="yes">
 					<bg>#FF8000</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -334,7 +334,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch6" variable="BitmapButton_Swatch6" member="yes">
 					<bg>#00FFFF</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -347,7 +347,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch7" variable="BitmapButton_Swatch7" member="yes">
 					<bg>#FF00FF</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>
@@ -360,7 +360,7 @@
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Swatch8" variable="BitmapButton_Swatch8" member="yes">
 					<bg>#8000FF</bg>
-					<minsize>20,20</minsize>
+					<minsize>15,15d</minsize>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnBitmapButton_SwatchClick" entry="EVT_BUTTON" />
 				</object>

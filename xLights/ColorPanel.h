@@ -2,15 +2,15 @@
 #define COLORPANEL_H
 
 //(*Headers(ColorPanel)
-#include <wx/scrolwin.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/panel.h>
+#include <wx/scrolwin.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <wx/dir.h>
@@ -77,46 +77,46 @@ public:
         void SetButtonColor(int btn, const xlColor &v, bool notify = true);
 
 		//(*Declarations(ColorPanel)
-		BulkEditSlider* Slider_Color_ValueAdjust;
-		wxStaticText* StaticText22;
-		wxCheckBox* CheckBox_ResetColorPanel;
-		wxBitmapButton* BitmapButton_Contrast;
-		wxBitmapButton* BitmapButton_Brightness;
-		wxFlexGridSizer* FlexGridSizer_Palette;
-		BulkEditTextCtrl* txtCtlBrightness;
-		wxBitmapButton* BitmapButton_ShuffleColours;
-		wxStaticText* StaticText2;
-		BulkEditValueCurveButton* BitmapButton_VCBrightness;
-		wxBitmapButton* BitmapButton_SavePalette;
-		wxBitmapButton* BitmapButton_random;
-		BulkEditSlider* Slider_Color_HueAdjust;
-		wxBitmapButton* BitmapButton_normal;
-		BulkEditSlider* Slider_Color_SaturationAdjust;
-		wxPanel* Panel_Sizer;
-		BulkEditSlider* Slider_SparkleFrequency;
-		ColourList* BitmapButton_ColourChoice;
-		wxBitmapButton* BitmapButton_SparkleFrequency;
-		wxStaticText* StaticText1;
-		BulkEditTextCtrl* TextCtrl_Color_HueAdjust;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText127;
-		BulkEditSlider* Slider_Brightness;
-		wxBitmapButton* BitmapButton_locked;
-		BulkEditValueCurveButton* BitmapButton_Color_HueAdjust;
-		BulkEditTextCtrl* txtCtrlSparkleFreq;
-		wxBitmapButton* BitmapButton_MusicSparkles;
-		BulkEditValueCurveButton* BitmapButton_Color_SaturationAdjust;
-		BulkEditTextCtrl* TextCtrl_Color_ValueAdjust;
-		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
-		BulkEditSlider* Slider_Contrast;
-		wxStaticText* StaticText126;
-		BulkEditValueCurveButton* BitmapButton_Color_ValueAdjust;
-		wxScrolledWindow* ColorScrollWindow;
-		BulkEditTextCtrl* TextCtrl_Color_SaturationAdjust;
-		wxBitmapButton* BitmapButton_DeletePalette;
-		BulkEditTextCtrl* txtCtlContrast;
-		wxStaticText* StaticText4;
 		BulkEditCheckBox* CheckBox_MusicSparkles;
+		BulkEditSlider* Slider_Brightness;
+		BulkEditSlider* Slider_Color_HueAdjust;
+		BulkEditSlider* Slider_Color_SaturationAdjust;
+		BulkEditSlider* Slider_Color_ValueAdjust;
+		BulkEditSlider* Slider_Contrast;
+		BulkEditSlider* Slider_SparkleFrequency;
+		BulkEditTextCtrl* TextCtrl_Color_HueAdjust;
+		BulkEditTextCtrl* TextCtrl_Color_SaturationAdjust;
+		BulkEditTextCtrl* TextCtrl_Color_ValueAdjust;
+		BulkEditTextCtrl* txtCtlBrightness;
+		BulkEditTextCtrl* txtCtlContrast;
+		BulkEditTextCtrl* txtCtrlSparkleFreq;
+		BulkEditValueCurveButton* BitmapButton_Color_HueAdjust;
+		BulkEditValueCurveButton* BitmapButton_Color_SaturationAdjust;
+		BulkEditValueCurveButton* BitmapButton_Color_ValueAdjust;
+		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
+		BulkEditValueCurveButton* BitmapButton_VCBrightness;
+		ColourList* BitmapButton_ColourChoice;
+		wxBitmapButton* BitmapButton_Brightness;
+		wxBitmapButton* BitmapButton_Contrast;
+		wxBitmapButton* BitmapButton_DeletePalette;
+		wxBitmapButton* BitmapButton_MusicSparkles;
+		wxBitmapButton* BitmapButton_SavePalette;
+		wxBitmapButton* BitmapButton_ShuffleColours;
+		wxBitmapButton* BitmapButton_SparkleFrequency;
+		wxBitmapButton* BitmapButton_locked;
+		wxBitmapButton* BitmapButton_normal;
+		wxBitmapButton* BitmapButton_random;
+		wxCheckBox* CheckBox_ResetColorPanel;
+		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxPanel* Panel_Sizer;
+		wxScrolledWindow* ColorScrollWindow;
+		wxStaticText* StaticText126;
+		wxStaticText* StaticText127;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText22;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		//*)
 
 	protected:

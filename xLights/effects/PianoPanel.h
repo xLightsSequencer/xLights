@@ -3,15 +3,15 @@
 
 //(*Headers(PianoPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxSpinEvent;
-class wxBitmapButton;
 class wxSlider;
 class wxSpinCtrl;
+class wxSpinEvent;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include <wx/progdlg.h>
@@ -28,23 +28,23 @@ public:
         void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(PianoPanel)
-		BulkEditChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		BulkEditCheckBox* CheckBox_Piano_ShowSharps;
-		BulkEditSpinCtrl* SpinCtrl_Piano_EndMIDI;
-		wxBitmapButton* BitmapButton_Piano_ShowSharps;
-		BulkEditSlider* Slider_Piano_XOffset;
-		BulkEditSpinCtrl* SpinCtrl_Piano_StartMIDI;
-		BulkEditTextCtrl* TextCtrl_Piano_XOffset;
-		wxStaticText* StaticText_Piano_NumKeys;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Piano_Scale;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText7;
-		BulkEditValueCurveButton* BitmapButton_Piano_ScaleVC;
+		BulkEditChoice* Choice_Piano_MIDITrack_APPLYLAST;
 		BulkEditChoice* Choice_Piano_Type;
-		wxStaticText* StaticText2;
+		BulkEditSlider* Slider_Piano_Scale;
+		BulkEditSlider* Slider_Piano_XOffset;
+		BulkEditSpinCtrl* SpinCtrl_Piano_EndMIDI;
+		BulkEditSpinCtrl* SpinCtrl_Piano_StartMIDI;
 		BulkEditTextCtrl* TextCtrl_Piano_Scale;
+		BulkEditTextCtrl* TextCtrl_Piano_XOffset;
+		BulkEditValueCurveButton* BitmapButton_Piano_ScaleVC;
+		wxBitmapButton* BitmapButton_Piano_ShowSharps;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		wxStaticText* StaticText_Piano_NumKeys;
 		//*)
 
 	protected:

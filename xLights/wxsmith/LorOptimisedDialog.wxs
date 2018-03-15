@@ -87,7 +87,7 @@
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_DESCRIPTION" variable="TextCtrl_Description" member="yes">
 									<maxlength>64</maxlength>
-									<size>271,21</size>
+									<size>180,-1d</size>
 									<handler function="OnTextCtrl_DescriptionText" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

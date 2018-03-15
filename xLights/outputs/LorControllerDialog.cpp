@@ -35,9 +35,9 @@ LorControllerDialog::LorControllerDialog(wxWindow* parent, LorController* contro
     _controller = controller;
 
 	//(*Initialize(LorControllerDialog)
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, _("LOR Controller Definition"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);

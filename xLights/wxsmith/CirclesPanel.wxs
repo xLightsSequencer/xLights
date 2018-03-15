@@ -171,7 +171,7 @@
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Speed" variable="BitmapButton2" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,14</size>
+							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />

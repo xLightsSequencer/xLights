@@ -3,16 +3,16 @@
 
 //(*Headers(MarqueePanel)
 #include <wx/panel.h>
-class wxGridBagSizer;
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxStaticLine;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxGridBagSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticLine;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -25,40 +25,40 @@ class MarqueePanel: public wxPanel
 		virtual ~MarqueePanel();
 
 		//(*Declarations(MarqueePanel)
-		BulkEditSlider* Slider_Marquee_Start;
-		BulkEditCheckBox* CheckBox_Marquee_WrapX;
 		BulkEditCheckBox* CheckBox_Marquee_PixelOffsets;
-		wxStaticText* StaticText200;
-		BulkEditSlider* Slider_MarqueeYC;
-		wxBitmapButton* BitmapButton_Marquee_ScaleY;
-		BulkEditSlider* Slider_Marquee_ScaleY;
-		wxStaticText* StaticText195;
-		BulkEditSlider* Slider_Marquee_Stagger;
-		BulkEditSlider* Slider_Marquee_Thickness;
-		BulkEditSlider* Slider_Marquee_Speed;
-		wxPanel* Panel_Marquee_Settings;
-		wxStaticText* StaticText62;
-		BulkEditSlider* Slider_Marquee_ScaleX;
-		wxBitmapButton* BitmapButton_Marquee_Start;
-		wxStaticText* StaticText244;
-		wxStaticText* StaticText194;
 		BulkEditCheckBox* CheckBox_Marquee_Reverse;
-		wxNotebook* Notebook_Marquee;
+		BulkEditCheckBox* CheckBox_Marquee_WrapX;
 		BulkEditSlider* Slider_MarqueeXC;
+		BulkEditSlider* Slider_MarqueeYC;
 		BulkEditSlider* Slider_Marquee_Band_Size;
+		BulkEditSlider* Slider_Marquee_ScaleX;
+		BulkEditSlider* Slider_Marquee_ScaleY;
+		BulkEditSlider* Slider_Marquee_Skip_Size;
+		BulkEditSlider* Slider_Marquee_Speed;
+		BulkEditSlider* Slider_Marquee_Stagger;
+		BulkEditSlider* Slider_Marquee_Start;
+		BulkEditSlider* Slider_Marquee_Thickness;
+		wxBitmapButton* BitmapButton_Marquee_ScaleX;
+		wxBitmapButton* BitmapButton_Marquee_ScaleY;
+		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
+		wxBitmapButton* BitmapButton_Marquee_Speed;
+		wxBitmapButton* BitmapButton_Marquee_Stagger;
+		wxBitmapButton* BitmapButton_Marquee_Start;
+		wxBitmapButton* BitmapButton_Marquee_Thickness;
+		wxNotebook* Notebook_Marquee;
+		wxPanel* Panel_Marquee_Position;
+		wxPanel* Panel_Marquee_Settings;
 		wxStaticLine* StaticLine1;
 		wxStaticText* StaticText116;
+		wxStaticText* StaticText194;
+		wxStaticText* StaticText195;
 		wxStaticText* StaticText196;
-		wxStaticText* StaticText201;
-		wxBitmapButton* BitmapButton_Marquee_ScaleX;
-		wxBitmapButton* BitmapButton_Marquee_Stagger;
 		wxStaticText* StaticText198;
-		wxBitmapButton* BitmapButton_Marquee_Speed;
-		wxPanel* Panel_Marquee_Position;
 		wxStaticText* StaticText199;
-		BulkEditSlider* Slider_Marquee_Skip_Size;
-		wxBitmapButton* BitmapButton_Marquee_Thickness;
-		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
+		wxStaticText* StaticText200;
+		wxStaticText* StaticText201;
+		wxStaticText* StaticText244;
+		wxStaticText* StaticText62;
 		//*)
 
 	protected:

@@ -31,7 +31,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Strobes" subclass="BulkEditTextCtrl" variable="TextCtrl_Number_Strobes" member="yes">
 							<value>3</value>
 							<maxlength>3</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -70,7 +70,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Duration" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Duration" member="yes">
 							<value>10</value>
 							<maxlength>3</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -110,7 +110,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Type" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Type" member="yes">
 							<value>1</value>
 							<maxlength>1</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

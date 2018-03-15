@@ -1,8 +1,8 @@
 #include "SeqElementMismatchDialog.h"
 
 //(*InternalHeaders(SeqElementMismatchDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -22,8 +22,8 @@ END_EVENT_TABLE()
 SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     //(*Initialize(SeqElementMismatchDialog)
-    wxStaticText* StaticText1;
     wxFlexGridSizer* FlexGridSizer1;
+    wxStaticText* StaticText1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
     Create(parent, id, _("Sequence Element Mismatch"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));

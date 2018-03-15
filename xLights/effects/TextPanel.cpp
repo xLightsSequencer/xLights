@@ -4,21 +4,21 @@
 #include "../FontManager.h"
 
 //(*InternalHeaders(TextPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/fontpicker.h>
 #include <wx/gbsizer.h>
 #include <wx/image.h>
-#include <wx/fontpicker.h>
+#include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(TextPanel)
@@ -71,28 +71,28 @@ END_EVENT_TABLE()
 TextPanel::TextPanel(wxWindow* parent)
 {
 	//(*Initialize(TextPanel)
-	BulkEditTextCtrl* TextCtrl93;
 	BulkEditCheckBox* CheckBox_TextToCenter;
-	BulkEditTextCtrl* TextCtrl92;
-	wxNotebook* Notebook6;
-	wxFlexGridSizer* FlexGridSizer145;
-	wxFlexGridSizer* FlexGridSizer66;
-	wxFlexGridSizer* FlexGridSizer69;
 	BulkEditTextCtrl* TextCtrl72;
-	wxStaticText* StaticText162;
-	wxFlexGridSizer* FlexGridSizer143;
-	wxGridBagSizer* GridBagSizer7;
-	wxPanel* Panel16;
 	BulkEditTextCtrl* TextCtrl91;
+	BulkEditTextCtrl* TextCtrl92;
+	BulkEditTextCtrl* TextCtrl93;
 	BulkEditTextCtrl* TextCtrl94;
-	wxFlexGridSizer* FlexGridSizer144;
-	wxFlexGridSizer* FlexGridSizer142;
 	wxFlexGridSizer* FlexGridSizer119;
 	wxFlexGridSizer* FlexGridSizer141;
+	wxFlexGridSizer* FlexGridSizer142;
+	wxFlexGridSizer* FlexGridSizer143;
+	wxFlexGridSizer* FlexGridSizer144;
+	wxFlexGridSizer* FlexGridSizer145;
 	wxFlexGridSizer* FlexGridSizer46;
 	wxFlexGridSizer* FlexGridSizer48;
-	wxGridBagSizer* GridBagSizer6;
+	wxFlexGridSizer* FlexGridSizer66;
+	wxFlexGridSizer* FlexGridSizer69;
 	wxFontPickerCtrl* FontPickerCtrl;
+	wxGridBagSizer* GridBagSizer6;
+	wxGridBagSizer* GridBagSizer7;
+	wxNotebook* Notebook6;
+	wxPanel* Panel16;
+	wxStaticText* StaticText162;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -258,7 +258,7 @@ TextPanel::TextPanel(wxWindow* parent)
 	Panel_Text1->SetSizer(FlexGridSizer69);
 	FlexGridSizer69->Fit(Panel_Text1);
 	FlexGridSizer69->SetSizeHints(Panel_Text1);
-	FlexGridSizer46->Add(Panel_Text1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer46->Add(Panel_Text1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer46);
 	FlexGridSizer46->Fit(this);
 	FlexGridSizer46->SetSizeHints(this);

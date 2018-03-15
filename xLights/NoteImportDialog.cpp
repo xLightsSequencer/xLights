@@ -43,11 +43,11 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
     _sequenceElements(sequenceElements)
 {
 	//(*Initialize(NoteImportDialog)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -77,7 +77,7 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
 	TextCtrl_Piano_File = new wxTextCtrl(this, ID_TEXTCTRL_Piano_File, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_File"));
 	TextCtrl_Piano_File->SetToolTip(_("The file should be a Polyphonic Transcription file consisting of 3 floating point numbers per line. #1 is the start time in seconds. #2 the end time. #3 the MIDI channel number."));
 	FlexGridSizer3->Add(TextCtrl_Piano_File, 1, wxALL|wxEXPAND, 5);
-	Button_Piano_File = new wxButton(this, ID_BUTTON_Piano_File, _("..."), wxDefaultPosition, wxSize(32,28), 0, wxDefaultValidator, _T("ID_BUTTON_Piano_File"));
+	Button_Piano_File = new wxButton(this, ID_BUTTON_Piano_File, _("..."), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_Piano_File"));
 	FlexGridSizer3->Add(Button_Piano_File, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -91,13 +91,13 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
 	FlexGridSizer5->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Start = new wxSlider(this, ID_SLIDER_Piano_MIDI_Start, 0, -1000, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_MIDI_Start"));
 	FlexGridSizer5->Add(Slider_Piano_MIDI_Start, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_MIDI_Start = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Start, _("0"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Start"));
+	TextCtrl_Piano_MIDI_Start = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Start, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Start"));
 	FlexGridSizer5->Add(TextCtrl_Piano_MIDI_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Speed Adjust %"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
 	FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Piano_MIDI_Speed = new wxSlider(this, ID_SLIDER_Piano_MIDI_Speed, 100, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_MIDI_Speed"));
 	FlexGridSizer5->Add(Slider_Piano_MIDI_Speed, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Piano_MIDI_Speed = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Speed, _("100"), wxDefaultPosition, wxSize(44,24), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Speed"));
+	TextCtrl_Piano_MIDI_Speed = new wxTextCtrl(this, IDD_TEXTCTRL_Piano_MIDI_Speed, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_MIDI_Speed"));
 	FlexGridSizer5->Add(TextCtrl_Piano_MIDI_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);

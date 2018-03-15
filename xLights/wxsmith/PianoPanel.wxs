@@ -164,13 +164,12 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_Scale" subclass="BulkEditTextCtrl" variable="TextCtrl_Piano_Scale" member="yes">
 							<value>100</value>
-							<size>44,24</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL</flag>
 						<border>2</border>
@@ -198,7 +197,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_XOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_Piano_XOffset" member="yes">
 							<value>0</value>
-							<size>44,24</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

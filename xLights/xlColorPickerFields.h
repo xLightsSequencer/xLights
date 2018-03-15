@@ -2,12 +2,12 @@
 #define XLCOLORPICKERFIELDS_H
 
 //(*Headers(xlColorPickerFields)
-#include <wx/textctrl.h>
-#include <wx/radiobut.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
+#include <wx/slider.h>
+#include <wx/textctrl.h>
 //*)
 
 #include "xlColorPicker.h"
@@ -28,33 +28,33 @@ class xlColorPickerFields: public xlColorPicker
         virtual void NotifyColorChange();
 
 		//(*Declarations(xlColorPickerFields)
-		wxBitmapButton* BitmapButton_Swatch8;
-		wxTextCtrl* TextCtrl_Blue;
-		wxRadioButton* RadioButton_Red;
-		wxBitmapButton* BitmapButton_Swatch2;
-		wxTextCtrl* TextCtrl_Hue;
-		wxBitmapButton* BitmapButton_Swatch3;
-		xlSlider* SliderRight;
-		xlSlider* SliderLeft;
-		wxGridBagSizer* GridBagSizer1;
-		wxRadioButton* RadioButton_SwatchMarker;
-		wxBitmapButton* BitmapButton_Swatch4;
-		wxTextCtrl* TextCtrl_Green;
-		xlColorCanvas* Panel_Slider;
-		wxBitmapButton* BitmapButton_Swatch7;
-		wxTextCtrl* TextCtrl_Brightness;
-		wxTextCtrl* TextCtrl_Saturation;
-		wxRadioButton* RadioButton_Saturation;
-		wxPanel* Panel_CurrentColor;
-		wxRadioButton* RadioButton_Green;
-		wxRadioButton* RadioButton_Brightness;
-		xlColorCanvas* Panel_Palette;
-		wxBitmapButton* BitmapButton_Swatch6;
-		wxRadioButton* RadioButton_Blue;
 		wxBitmapButton* BitmapButton_Swatch1;
+		wxBitmapButton* BitmapButton_Swatch2;
+		wxBitmapButton* BitmapButton_Swatch3;
+		wxBitmapButton* BitmapButton_Swatch4;
 		wxBitmapButton* BitmapButton_Swatch5;
+		wxBitmapButton* BitmapButton_Swatch6;
+		wxBitmapButton* BitmapButton_Swatch7;
+		wxBitmapButton* BitmapButton_Swatch8;
+		wxGridBagSizer* GridBagSizer1;
+		wxPanel* Panel_CurrentColor;
+		wxRadioButton* RadioButton_Blue;
+		wxRadioButton* RadioButton_Brightness;
+		wxRadioButton* RadioButton_Green;
 		wxRadioButton* RadioButton_Hue;
+		wxRadioButton* RadioButton_Red;
+		wxRadioButton* RadioButton_Saturation;
+		wxRadioButton* RadioButton_SwatchMarker;
+		wxTextCtrl* TextCtrl_Blue;
+		wxTextCtrl* TextCtrl_Brightness;
+		wxTextCtrl* TextCtrl_Green;
+		wxTextCtrl* TextCtrl_Hue;
 		wxTextCtrl* TextCtrl_Red;
+		wxTextCtrl* TextCtrl_Saturation;
+		xlColorCanvas* Panel_Palette;
+		xlColorCanvas* Panel_Slider;
+		xlSlider* SliderLeft;
+		xlSlider* SliderRight;
 		//*)
 
 	protected:

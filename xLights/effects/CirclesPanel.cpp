@@ -4,17 +4,17 @@
 #include "CirclesEffect.h"
 
 //(*InternalHeaders(CirclesPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(CirclesPanel)
@@ -59,22 +59,22 @@ END_EVENT_TABLE()
 CirclesPanel::CirclesPanel(wxWindow* parent)
 {
 	//(*Initialize(CirclesPanel)
-	wxFlexGridSizer* FlexGridSizer15;
 	BulkEditTextCtrl* TextCtrl27;
-	wxFlexGridSizer* FlexGridSizer17;
-	wxFlexGridSizer* FlexGridSizer11;
-	BulkEditTextCtrl* TextCtrl29;
-	wxFlexGridSizer* FlexGridSizer14;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer22;
-	wxFlexGridSizer* FlexGridSizer80;
 	BulkEditTextCtrl* TextCtrl28;
-	wxFlexGridSizer* FlexGridSizer16;
-	wxFlexGridSizer* FlexGridSizer91;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer18;
-	wxFlexGridSizer* FlexGridSizer12;
+	BulkEditTextCtrl* TextCtrl29;
 	wxFlexGridSizer* FlexGridSizer107;
+	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer14;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer16;
+	wxFlexGridSizer* FlexGridSizer17;
+	wxFlexGridSizer* FlexGridSizer18;
+	wxFlexGridSizer* FlexGridSizer22;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer80;
+	wxFlexGridSizer* FlexGridSizer91;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer80 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -123,7 +123,7 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	TextCtrl29->SetMaxLength(2);
 	FlexGridSizer22->Add(TextCtrl29, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer22, 1, wxALL|wxEXPAND, 0);
-	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Circles_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Circles_Speed"));
+	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Circles_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Circles_Speed"));
 	BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);

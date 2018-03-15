@@ -23,16 +23,18 @@
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_TopValue" member="yes">
 									<label>100</label>
+									<style>wxALIGN_RIGHT</style>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText_BottomValue" member="yes">
 									<label>0</label>
+									<style>wxALIGN_RIGHT</style>
 								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_BOTTOM</flag>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
 							</object>
@@ -117,7 +119,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter1" variable="TextCtrl_Parameter1" member="yes">
 							<value>0</value>
 							<maxlength>5</maxlength>
-							<size>40,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Parameter1Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -144,7 +146,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter2" variable="TextCtrl_Parameter2" member="yes">
 							<value>0</value>
 							<maxlength>5</maxlength>
-							<size>40,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Parameter2Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -171,7 +173,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter3" variable="TextCtrl_Parameter3" member="yes">
 							<value>0</value>
 							<maxlength>5</maxlength>
-							<size>40,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Parameter3Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -199,7 +201,7 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Parameter4" variable="TextCtrl_Parameter4" member="yes">
 							<value>0</value>
 							<maxlength>5</maxlength>
-							<size>40,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Parameter4Text" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

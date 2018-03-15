@@ -17,7 +17,6 @@
 				<object class="wxSlider" name="ID_SLIDER_Twinkle_Count" subclass="BulkEditSlider" variable="Slider_Twinkle_Count" member="yes">
 					<value>3</value>
 					<min>2</min>
-					<size>117,24</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -58,7 +57,6 @@
 					<value>30</value>
 					<min>2</min>
 					<max>200</max>
-					<size>119,24</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -112,7 +110,7 @@
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>1</border>
 				<option>1</option>
 			</object>

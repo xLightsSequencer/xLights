@@ -3,14 +3,14 @@
 
 //(*Headers(FanPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -23,61 +23,61 @@ class FanPanel: public wxPanel
 		virtual ~FanPanel();
 
 		//(*Declarations(FanPanel)
-		wxBitmapButton* BitmapButton_Fan_Duration;
-		wxStaticText* StaticText148;
-		wxStaticText* StaticText146;
-		BulkEditSlider* Slider_Fan_Blade_Angle;
-		BulkEditValueCurveButton* ValueCurve_Fan_Accel;
-		wxStaticText* StaticText147;
-		BulkEditValueCurveButton* ValueCurve_Fan_Blade_Angle;
-		BulkEditSlider* Slider_Fan_Start_Radius;
-		BulkEditSlider* Slider_Fan_Duration;
+		BulkEditCheckBox* CheckBox_Fan_Blend_Edges;
 		BulkEditCheckBox* CheckBox_Fan_Reverse;
+		BulkEditSlider* Slider_Fan_Accel;
+		BulkEditSlider* Slider_Fan_Blade_Angle;
+		BulkEditSlider* Slider_Fan_Blade_Width;
+		BulkEditSlider* Slider_Fan_CenterX;
+		BulkEditSlider* Slider_Fan_CenterY;
+		BulkEditSlider* Slider_Fan_Duration;
+		BulkEditSlider* Slider_Fan_Element_Width;
+		BulkEditSlider* Slider_Fan_End_Radius;
+		BulkEditSlider* Slider_Fan_Num_Blades;
+		BulkEditSlider* Slider_Fan_Num_Elements;
+		BulkEditSlider* Slider_Fan_Start_Angle;
+		BulkEditSlider* Slider_Fan_Start_Radius;
+		BulkEditSliderF360* Slider_Fan_Revolutions;
+		BulkEditValueCurveButton* ValueCurve_Fan_Accel;
+		BulkEditValueCurveButton* ValueCurve_Fan_Blade_Angle;
+		BulkEditValueCurveButton* ValueCurve_Fan_Blade_Width;
+		BulkEditValueCurveButton* ValueCurve_Fan_CenterX;
+		BulkEditValueCurveButton* ValueCurve_Fan_CenterY;
+		BulkEditValueCurveButton* ValueCurve_Fan_Duration;
+		BulkEditValueCurveButton* ValueCurve_Fan_Element_Width;
+		BulkEditValueCurveButton* ValueCurve_Fan_End_Radius;
+		BulkEditValueCurveButton* ValueCurve_Fan_Num_Blades;
+		BulkEditValueCurveButton* ValueCurve_Fan_Num_Elements;
+		BulkEditValueCurveButton* ValueCurve_Fan_Revolutions;
+		BulkEditValueCurveButton* ValueCurve_Fan_Start_Angle;
+		BulkEditValueCurveButton* ValueCurve_Fan_Start_Radius;
+		wxBitmapButton* BitmapButton_Fan_Accel;
+		wxBitmapButton* BitmapButton_Fan_Blade_Angle;
+		wxBitmapButton* BitmapButton_Fan_Blade_Width;
+		wxBitmapButton* BitmapButton_Fan_CenterX;
+		wxBitmapButton* BitmapButton_Fan_CenterY;
+		wxBitmapButton* BitmapButton_Fan_Duration;
+		wxBitmapButton* BitmapButton_Fan_Element_Width;
 		wxBitmapButton* BitmapButton_Fan_End_Radius;
+		wxBitmapButton* BitmapButton_Fan_Num_Blades;
+		wxBitmapButton* BitmapButton_Fan_Num_Elements;
+		wxBitmapButton* BitmapButton_Fan_Revolutions;
+		wxBitmapButton* BitmapButton_Fan_Start_Angle;
 		wxBitmapButton* BitmapButton_Fan_Start_Radius;
 		wxNotebook* Notebook1;
-		BulkEditValueCurveButton* ValueCurve_Fan_Start_Angle;
-		BulkEditSlider* Slider_Fan_Accel;
-		BulkEditSlider* Slider_Fan_CenterX;
-		wxBitmapButton* BitmapButton_Fan_Start_Angle;
-		BulkEditValueCurveButton* ValueCurve_Fan_Blade_Width;
-		wxBitmapButton* BitmapButton_Fan_CenterX;
-		wxBitmapButton* BitmapButton_Fan_Blade_Width;
-		BulkEditValueCurveButton* ValueCurve_Fan_CenterX;
-		wxStaticText* StaticText151;
-		BulkEditSlider* Slider_Fan_Num_Elements;
-		wxStaticText* StaticText144;
-		wxStaticText* StaticText153;
-		wxStaticText* StaticText152;
-		BulkEditValueCurveButton* ValueCurve_Fan_End_Radius;
-		wxStaticText* StaticText150;
-		wxBitmapButton* BitmapButton_Fan_Accel;
-		BulkEditSlider* Slider_Fan_Element_Width;
-		BulkEditSlider* Slider_Fan_CenterY;
-		BulkEditSlider* Slider_Fan_Blade_Width;
-		BulkEditValueCurveButton* ValueCurve_Fan_Revolutions;
-		wxStaticText* StaticText149;
-		BulkEditValueCurveButton* ValueCurve_Fan_Duration;
-		wxBitmapButton* BitmapButton_Fan_Num_Blades;
 		wxStaticText* StaticText133;
-		wxBitmapButton* BitmapButton_Fan_Num_Elements;
-		BulkEditSlider* Slider_Fan_Num_Blades;
-		wxStaticText* StaticText145;
-		BulkEditValueCurveButton* ValueCurve_Fan_Start_Radius;
-		BulkEditValueCurveButton* ValueCurve_Fan_Num_Blades;
-		wxBitmapButton* BitmapButton_Fan_Blade_Angle;
-		BulkEditValueCurveButton* ValueCurve_Fan_Element_Width;
-		BulkEditCheckBox* CheckBox_Fan_Blend_Edges;
-		BulkEditValueCurveButton* ValueCurve_Fan_Num_Elements;
-		wxBitmapButton* BitmapButton_Fan_CenterY;
-		BulkEditSliderF360* Slider_Fan_Revolutions;
-		wxBitmapButton* BitmapButton_Fan_Revolutions;
-		BulkEditValueCurveButton* ValueCurve_Fan_CenterY;
-		wxStaticText* StaticText143;
-		BulkEditSlider* Slider_Fan_End_Radius;
 		wxStaticText* StaticText135;
-		BulkEditSlider* Slider_Fan_Start_Angle;
-		wxBitmapButton* BitmapButton_Fan_Element_Width;
+		wxStaticText* StaticText143;
+		wxStaticText* StaticText144;
+		wxStaticText* StaticText145;
+		wxStaticText* StaticText146;
+		wxStaticText* StaticText147;
+		wxStaticText* StaticText148;
+		wxStaticText* StaticText149;
+		wxStaticText* StaticText150;
+		wxStaticText* StaticText151;
+		wxStaticText* StaticText152;
+		wxStaticText* StaticText153;
 		//*)
 
 	protected:

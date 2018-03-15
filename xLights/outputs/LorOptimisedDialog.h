@@ -2,13 +2,13 @@
 #define LOROPTIMISEDDIALOG_H
 
 //(*Headers(LorOptimisedDialog)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class LOROptimisedOutput;
@@ -33,18 +33,18 @@ public:
     virtual ~LorOptimisedDialog();
 
     //(*Declarations(LorOptimisedDialog)
-    wxButton* Button_Ok;
-    wxTextCtrl* TextCtrl_Description;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticTextRate;
-    wxChoice* ChoicePort;
-    wxButton* Button_Delete;
-    wxStaticText* StaticTextExplanation;
-    wxButton* Button_Edit;
     wxButton* Button_Add;
+    wxButton* Button_Delete;
+    wxButton* Button_Edit;
+    wxButton* Button_Ok;
     wxChoice* ChoiceBaudRate;
+    wxChoice* ChoicePort;
     wxListView* ListView_Controllers;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticTextExplanation;
     wxStaticText* StaticTextPort;
+    wxStaticText* StaticTextRate;
+    wxTextCtrl* TextCtrl_Description;
     //*)
 
 protected:

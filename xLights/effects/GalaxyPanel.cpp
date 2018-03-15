@@ -4,18 +4,18 @@
 #include "GalaxyEffect.h"
 
 //(*InternalHeaders(GalaxyPanel)
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
+#include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/notebook.h>
 #include <wx/settings.h>
-#include <wx/string.h>
+#include <wx/sizer.h>
 #include <wx/slider.h>
-#include <wx/intl.h>
 #include <wx/stattext.h>
-#include <wx/bitmap.h>
+#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/image.h>
 //*)
 
 //(*IdInit(GalaxyPanel)
@@ -86,23 +86,23 @@ END_EVENT_TABLE()
 GalaxyPanel::GalaxyPanel(wxWindow* parent)
 {
 	//(*Initialize(GalaxyPanel)
+	BulkEditTextCtrl* TextCtrl_Galaxy_Accel;
+	BulkEditTextCtrl* TextCtrl_Galaxy_CenterX;
+	BulkEditTextCtrl* TextCtrl_Galaxy_CenterY;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Duration;
+	BulkEditTextCtrl* TextCtrl_Galaxy_End_Radius;
+	BulkEditTextCtrl* TextCtrl_Galaxy_End_Width;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Angle;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Radius;
+	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Width;
+	BulkEditTextCtrlF360* TextCtrl_Galaxy_Revolutions;
+	wxFlexGridSizer* FlexGridSizer108;
+	wxFlexGridSizer* GridBagSizerGalaxyEnd;
+	wxFlexGridSizer* GridBagSizerGalaxyOptions;
+	wxFlexGridSizer* GridBagSizerGalaxyStart;
 	wxPanel* Panel6;
 	wxPanel* Panel7;
-	BulkEditTextCtrl* TextCtrl_Galaxy_CenterX;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Width;
-	wxFlexGridSizer* GridBagSizerGalaxyOptions;
-	BulkEditTextCtrl* TextCtrl_Galaxy_End_Width;
-	wxFlexGridSizer* FlexGridSizer108;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Angle;
 	wxPanel* Panel8;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Accel;
-	BulkEditTextCtrlF360* TextCtrl_Galaxy_Revolutions;
-	BulkEditTextCtrl* TextCtrl_Galaxy_CenterY;
-	wxFlexGridSizer* GridBagSizerGalaxyStart;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Start_Radius;
-	wxFlexGridSizer* GridBagSizerGalaxyEnd;
-	BulkEditTextCtrl* TextCtrl_Galaxy_End_Radius;
-	BulkEditTextCtrl* TextCtrl_Galaxy_Duration;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer108 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -219,7 +219,7 @@ GalaxyPanel::GalaxyPanel(wxWindow* parent)
 	Panel8 = new wxPanel(Notebook_Galaxy, ID_PANEL32, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL32"));
 	GridBagSizerGalaxyOptions = new wxFlexGridSizer(0, 5, 0, 0);
 	GridBagSizerGalaxyOptions->AddGrowableCol(1);
-	StaticText141 = new wxStaticText(Panel8, ID_STATICTEXT_Galaxy_Duration, _("Head Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT_Galaxy_Duration"));
+	StaticText141 = new wxStaticText(Panel8, ID_STATICTEXT_Galaxy_Duration, _("Head Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Galaxy_Duration"));
 	GridBagSizerGalaxyOptions->Add(StaticText141, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Galaxy_Duration = new BulkEditSlider(Panel8, ID_SLIDER_Galaxy_Duration, 20, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Galaxy_Duration"));
 	GridBagSizerGalaxyOptions->Add(Slider_Galaxy_Duration, 1, wxALL|wxEXPAND, 5);

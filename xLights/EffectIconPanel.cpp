@@ -4,8 +4,8 @@
 #include "UtilFunctions.h"
 
 //(*InternalHeaders(EffectIconPanel)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(EffectIconPanel)

@@ -39,10 +39,10 @@ END_EVENT_TABLE()
 SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, wxWindow* parent,wxWindowID id)
 {
 	//(*Initialize(SelectPanel)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(282,253), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDLG_UNIT(parent,wxSize(282,253)), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	Hide();
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
@@ -64,15 +64,15 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _("0.000"), wxDefaultPosition, wxSize(50,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
+	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _("0.000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
 	TextCtrl_Select_StartTime->SetMaxLength(7);
-	TextCtrl_Select_StartTime->SetMinSize(wxSize(50,-1));
+	TextCtrl_Select_StartTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_StartTime, 1, wxALL, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("End"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _("0.000"), wxDefaultPosition, wxSize(50,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
+	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _("0.000"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
 	TextCtrl_Select_EndTime->SetMaxLength(7);
-	TextCtrl_Select_EndTime->SetMinSize(wxSize(50,-1));
+	TextCtrl_Select_EndTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_EndTime, 1, wxALL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Select_All_Time = new wxButton(this, ID_BUTTON_SELECT_ALL_TIME, _("Select All "), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL_TIME"));

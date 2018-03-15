@@ -3,13 +3,13 @@
 
 //(*Headers(LightningPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,37 +22,37 @@ class LightningPanel: public wxPanel
 		virtual ~LightningPanel();
 
 		//(*Declarations(LightningPanel)
-		BulkEditSlider* Slider_Number_Bolts;
-		BulkEditSlider* Slider_Lightning_BOTY;
-		BulkEditValueCurveButton* BitmapButton_Lightning_TopXVC;
-		wxStaticText* StaticText205;
 		BulkEditCheckBox* CheckBox_ForkedLightning;
-		wxStaticText* StaticText210;
-		wxBitmapButton* BitmapButton_LightningBOTX;
-		BulkEditSlider* Slider_Lightning_TopX;
-		wxStaticText* StaticText208;
-		wxStaticText* StaticText1;
-		wxBitmapButton* BitmapButton_NumberBolts;
-		BulkEditValueCurveButton* BitmapButton_Lightning_TopYVC;
-		BulkEditTextCtrl* TextCtrl89;
-		BulkEditSlider* Slider_Lightning_BOTX;
-		BulkEditTextCtrl* TextCtrl90;
-		wxBitmapButton* BitmapButton_NumberSegments;
 		BulkEditChoice* CHOICE_Lightning_Direction;
-		wxBitmapButton* BitmapButton_ForkedLightning;
-		wxBitmapButton* BitmapButton_LightningTopY;
-		wxBitmapButton* BitmapButton_LightningBOTY;
-		wxStaticText* StaticText207;
+		BulkEditSlider* Slider_Lightning_BOTX;
+		BulkEditSlider* Slider_Lightning_BOTY;
+		BulkEditSlider* Slider_Lightning_TopX;
+		BulkEditSlider* Slider_Lightning_TopY;
+		BulkEditSlider* Slider_Number_Bolts;
+		BulkEditSlider* Slider_Number_Segments;
+		BulkEditTextCtrl* TextCtrl86;
+		BulkEditTextCtrl* TextCtrl88;
+		BulkEditTextCtrl* TextCtrl89;
+		BulkEditTextCtrl* TextCtrl90;
+		BulkEditValueCurveButton* BitmapButton_Lightning_TopXVC;
+		BulkEditValueCurveButton* BitmapButton_Lightning_TopYVC;
 		BulkEditValueCurveButton* BitmapButton_Number_BoltsVC;
 		BulkEditValueCurveButton* BitmapButton_Number_SegmentsVC;
-		BulkEditTextCtrl* TextCtrl86;
+		wxBitmapButton* BitmapButton_ForkedLightning;
+		wxBitmapButton* BitmapButton_LightningBOTX;
+		wxBitmapButton* BitmapButton_LightningBOTY;
 		wxBitmapButton* BitmapButton_LightningTopX;
-		BulkEditTextCtrl* TextCtrl88;
+		wxBitmapButton* BitmapButton_LightningTopY;
+		wxBitmapButton* BitmapButton_NumberBolts;
+		wxBitmapButton* BitmapButton_NumberSegments;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText203;
-		wxStaticText* StaticText209;
+		wxStaticText* StaticText205;
 		wxStaticText* StaticText206;
-		BulkEditSlider* Slider_Lightning_TopY;
-		BulkEditSlider* Slider_Number_Segments;
+		wxStaticText* StaticText207;
+		wxStaticText* StaticText208;
+		wxStaticText* StaticText209;
+		wxStaticText* StaticText210;
 		//*)
 
 	protected:

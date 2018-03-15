@@ -2,11 +2,11 @@
 #define EffectTimingDialog_H
 
 //(*Headers(EffectTimingDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 class Effect;
@@ -98,15 +98,15 @@ class EffectTimingDialog: public wxDialog
         int GetEndTime() const { return SpinCtrl_EndTime->GetValue(); }
 
 		//(*Declarations(EffectTimingDialog)
-		wxButton* Button_Ok;
-		wxStaticText* StaticText2;
-		StepSpinCtrl* SpinCtrl_StartTime;
 		StepSpinCtrl* SpinCtrl_Duration;
 		StepSpinCtrl* SpinCtrl_EndTime;
-		wxStaticText* StaticText3;
+		StepSpinCtrl* SpinCtrl_StartTime;
 		wxButton* Button_Cancel;
-		wxStaticText* StaticText_Error;
+		wxButton* Button_Ok;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText_Error;
 		//*)
 
 	protected:

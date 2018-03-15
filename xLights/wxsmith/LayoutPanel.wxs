@@ -10,7 +10,6 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
 					<sashpos>175</sashpos>
-					<minsize>10</minsize>
 					<orientation>vertical</orientation>
 					<minsize>10,10</minsize>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
@@ -21,7 +20,6 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
-									<minsize>100</minsize>
 									<minsize>100,100</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes" />
@@ -81,11 +79,8 @@
 										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 											<label>Preview:</label>
 											<font>
-												<size>12</size>
-												<style>normal</style>
 												<weight>bold</weight>
-												<underlined>0</underlined>
-												<family>swiss</family>
+												<sysfont>wxSYS_DEFAULT_GUI_FONT</sysfont>
 											</font>
 										</object>
 										<flag>wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

@@ -2,14 +2,14 @@
 #define NOTEIMPORTDIALOG_H
 
 //(*Headers(NoteImportDialog)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
+#include <wx/filedlg.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/slider.h>
-#include <wx/filedlg.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class MidiFile;
@@ -33,24 +33,24 @@ class NoteImportDialog: public wxDialog
 		virtual ~NoteImportDialog();
 
 		//(*Declarations(NoteImportDialog)
-		wxTextCtrl* TextCtrl_Piano_File;
-		wxStaticText* StaticText6;
-		wxSlider* Slider_Piano_MIDI_Speed;
-		wxStaticText* StaticText8;
-		wxTextCtrl* TextCtrl_Piano_MIDI_Speed;
-		wxChoice* Choice_Piano_Notes_Source;
-		wxChoice* Choice_Piano_MIDITrack_APPLYLAST;
-		wxStaticText* StaticText1;
-		wxFileDialog* FileDialog1;
-		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_TimingName;
 		wxButton* ButtonCancel;
-		wxStaticText* StaticText5;
 		wxButton* ButtonOk;
-		wxSlider* Slider_Piano_MIDI_Start;
-		wxStaticText* StaticText4;
 		wxButton* Button_Piano_File;
+		wxChoice* Choice_Piano_MIDITrack_APPLYLAST;
+		wxChoice* Choice_Piano_Notes_Source;
+		wxFileDialog* FileDialog1;
+		wxSlider* Slider_Piano_MIDI_Speed;
+		wxSlider* Slider_Piano_MIDI_Start;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText8;
+		wxTextCtrl* TextCtrl_Piano_File;
+		wxTextCtrl* TextCtrl_Piano_MIDI_Speed;
 		wxTextCtrl* TextCtrl_Piano_MIDI_Start;
+		wxTextCtrl* TextCtrl_TimingName;
 		//*)
 
 	protected:

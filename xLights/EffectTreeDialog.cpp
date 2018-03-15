@@ -1,12 +1,12 @@
 #include "EffectTreeDialog.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
+#include "UtilFunctions.h"
 //#include <log4cpp/Category.hh>
 
 //(*InternalHeaders(EffectTreeDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(EffectTreeDialog)
@@ -29,9 +29,9 @@ END_EVENT_TABLE()
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(EffectTreeDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
@@ -430,7 +430,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     {
         newName += " [" + ParseLayers(newName, e->GetAttribute("settings")) + "]";
     }
-   
+
     TreeCtrl1->SetItemText(itemID, newName);
     EffectsFileDirty();
     ValidateWindow();
