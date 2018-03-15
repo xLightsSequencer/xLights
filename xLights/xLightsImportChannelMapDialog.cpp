@@ -710,11 +710,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         if (channelColors.find(subModel->GetName()) != channelColors.end())
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", true, channelColors.find(subModel->GetName())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, channelColors.find(subModel->GetName())->second.asWxColor());
         }
         else
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), "", true, *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), subModel->GetName(), std::string(""), true, *wxWHITE);
         }
         lastmodel->Append(laststrand);
     }
@@ -727,11 +727,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         if (channelColors.find(sn.ToStdString()) != channelColors.end())
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", true, channelColors.find(sn.ToStdString())->second.asWxColor());
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, channelColors.find(sn.ToStdString())->second.asWxColor());
         }
         else
         {
-            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, "", true, *wxWHITE);
+            laststrand = new xLightsImportModelNode(lastmodel, m->GetName(), sn, std::string(""), true, *wxWHITE);
         }
         lastmodel->Append(laststrand);
         for (int n = 0; n < m->GetStrandLength(s); n++)
