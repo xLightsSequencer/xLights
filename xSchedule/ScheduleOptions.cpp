@@ -1,7 +1,6 @@
 #include "ScheduleOptions.h"
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
-#include <wx/dir.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include "UserButton.h"
@@ -302,9 +301,8 @@ void ScheduleOptions::ClearButtons()
 
 std::string ScheduleOptions::GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const
 {
-    std::string res;
     bool first = true;
-    res = "{\"buttons\":[";
+    std::string res = "{\"buttons\":[";
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
         if (wxString((*it)->GetLabel()).StartsWith("HIDE_"))

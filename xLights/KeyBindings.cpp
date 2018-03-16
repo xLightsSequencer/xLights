@@ -72,11 +72,22 @@ void KeyBindingMap::Load(wxFileName &fileName) {
 }
 
 void KeyBindingMap::Save(wxFileName &fileName) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxXmlDocument doc;
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
     doc.SetRoot(root);
+
     for (auto it = bindings.begin(); it != bindings.end(); ++it) {
+
         const KeyBinding &binding = *it;
+
+        if (binding.GetKey() < 32 || binding.GetKey() > 127)
+        {
+            // This looks extremely suspicious
+            logger_base.warn("KeyBindings saving element type %d has odd looking key assigned 0x%02x.", (int)binding.GetType(), (int)binding.GetKey());
+        }
+        
         wxXmlNode *child = new wxXmlNode(wxXML_ELEMENT_NODE, "keybinding");
         child->AddAttribute("key", wxString::Format("%c", binding.GetKey()));
         switch (binding.GetType()) {

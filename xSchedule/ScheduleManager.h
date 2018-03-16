@@ -132,6 +132,7 @@ class ScheduleManager
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
         PlayList* GetPlayList(int  id) const;
         PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }
+        std::list<PlayList*> GetEventPlayLists() const { return _eventPlayLists; }
         void SetBackgroundPlayList(PlayList* playlist);
         OutputManager* GetOutputManager() const { return _outputManager; }
         RunningSchedule* GetRunningSchedule() const;

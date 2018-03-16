@@ -11,11 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.8 Mar 16, 2018
    -- bug (dkulp)  "Black" static text labels on Windows
    -- enh (dkulp)  Initial support for HiDPI displays on Windows
    -- enh (gil)    Improve phoneme placement when breaking down words.
    -- enh (keith)  Add a canvas blend mode and a transparent option to the off effect which will often be used together
    -- bug (keith)  Fix FPP event not being recognised by FPP
+   -- enh (keith)  Add the option to loop event playlists when you start them
+   -- bug (keith)  Stop all doesnt stop event playlists
+   -- bug (keith)  Log illegal key bindings
 2018.7 Mar 11, 2018
    -- enh (k.mojek) Add display of video when sequencing using a video track for the audio
    -- enh (all)    Move to wxWidgets 3.1.1 on all platforms ... also codeblocks and gcc version upgrades on windows

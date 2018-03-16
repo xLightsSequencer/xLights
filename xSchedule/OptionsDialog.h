@@ -2,15 +2,15 @@
 #define OPTIONSDIALOG_H
 
 //(*Headers(OptionsDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class ScheduleOptions;
@@ -37,37 +37,37 @@ class OptionsDialog: public wxDialog
         void EditButton(int row);
 
 		//(*Declarations(OptionsDialog)
-		wxSpinCtrl* SpinCtrl_WebServerPort;
-		wxTextCtrl* TextCtrl_wwwRoot;
-		wxCheckBox* CheckBox_RunBackground;
-		wxButton* Button_ButtonDelete;
-		wxButton* Button_Ok;
-		wxStaticText* StaticText2;
-		wxListView* ListView_Buttons;
+		wxButton* Button_AddProjector;
 		wxButton* Button_ButtonAdd;
-		wxStaticText* StaticText6;
+		wxButton* Button_ButtonDelete;
+		wxButton* Button_ButtonEdit;
+		wxButton* Button_Cancel;
 		wxButton* Button_DeleteProjector;
-		wxListView* ListView_Projectors;
-		wxCheckBox* CheckBox_Sync;
-		wxStaticText* StaticText8;
 		wxButton* Button_Export;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxButton* Button_Import;
+		wxButton* Button_Ok;
+		wxButton* Button_ProjectorEdit;
+		wxCheckBox* CheckBox_APIOnly;
+		wxCheckBox* CheckBox_RunBackground;
+		wxCheckBox* CheckBox_SendOffWhenNotRunning;
+		wxCheckBox* CheckBox_SimpleMode;
+		wxCheckBox* CheckBox_Sync;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		wxButton* Button_Cancel;
-		wxCheckBox* CheckBox_APIOnly;
-		wxButton* Button_ProjectorEdit;
-		wxButton* Button_AddProjector;
-		wxCheckBox* CheckBox_SimpleMode;
-		wxStaticText* StaticText4;
-		wxButton* Button_ButtonEdit;
-		wxTextCtrl* TextCtrl_Password;
+		wxListView* ListView_Buttons;
+		wxListView* ListView_Projectors;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
-		wxCheckBox* CheckBox_SendOffWhenNotRunning;
+		wxSpinCtrl* SpinCtrl_WebServerPort;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxTextCtrl* TextCtrl_Password;
+		wxTextCtrl* TextCtrl_wwwRoot;
 		//*)
 
 	protected:

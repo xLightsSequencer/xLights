@@ -104,7 +104,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
     }
 
     PlayList* pl = scheduleManager->GetRunningPlayList();
-    if (_requiresPlayingPlaylist && pl == nullptr)
+    if (_requiresPlayingPlaylist && pl == nullptr && scheduleManager->GetEventPlayLists().size() == 0)
     {
         msg = "Playlist not playing.";
         return false;
@@ -323,5 +323,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Run event playlist step", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Run event playlist step unique", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Run event playlist step if idle", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step looped", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step unique looped", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Run event playlist step if idle looped", 2, plst, false, false, false, false, true, true, true, false));
 }
 
