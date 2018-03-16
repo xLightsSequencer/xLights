@@ -1567,12 +1567,8 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     }
     std::list<Model *> models;
     std::list<Model *> restricts;
-    for (auto x = models.begin(); x != models.end(); ++x) {
-        for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
-            if ((*it)->model == *x) {
-                addModelsFrom(models, (*it)->renderOrder, (*it)->model);
-            }
-        }
+    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
+        models.push_back((*it)->model);
     }
     if (startms < 0) {
         startms = 0;
@@ -1591,7 +1587,27 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
     if (endframe < startframe) {
         return;
     }
-    Render(models, restricts, startframe, endframe, true, clear, [] {});
+    
+    
+    EnableSequenceControls(false);
+    mRendering = true;
+    ProgressBar->Show();
+    GaugeSizer->Layout();
+    SetStatusText(_("Rendering all layers for time slice"));
+    ProgressBar->SetValue(0);
+    wxStopWatch sw; // start a stopwatch timer
+    Render(models, restricts, startframe, endframe, true, clear, [this, sw] {
+        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base2.info("   Effects done.");
+        ProgressBar->SetValue(100);
+        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
+        CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
+        mRendering = false;
+        EnableSequenceControls(true);
+        ProgressBar->Hide();
+        GaugeSizer->Layout();
+    });
 }
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
