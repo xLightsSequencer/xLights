@@ -76,28 +76,23 @@ public:
 #define MODEL_IMAGE 3
 
 //(*IdInit(ViewsModelsPanel)
-const long ViewsModelsPanel::ID_STATICTEXT3 = wxNewId();
-const long ViewsModelsPanel::ID_LISTCTRL1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON3 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON4 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON5 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON6 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON9 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON10 = wxNewId();
-const long ViewsModelsPanel::ID_PANEL2 = wxNewId();
-const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
-const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON1 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON2 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON7 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON8 = wxNewId();
 const long ViewsModelsPanel::ID_BUTTON11 = wxNewId();
+const long ViewsModelsPanel::ID_STATICTEXT1 = wxNewId();
+const long ViewsModelsPanel::ID_LISTCTRL_VIEWS = wxNewId();
 const long ViewsModelsPanel::ID_STATICTEXT2 = wxNewId();
 const long ViewsModelsPanel::ID_LISTCTRL_MODELS = wxNewId();
-const long ViewsModelsPanel::ID_PANEL3 = wxNewId();
-const long ViewsModelsPanel::ID_SPLITTERWINDOW1 = wxNewId();
-const long ViewsModelsPanel::ID_SCROLLEDWINDOW1 = wxNewId();
-const long ViewsModelsPanel::ID_PANEL1 = wxNewId();
+const long ViewsModelsPanel::ID_LISTCTRL1 = wxNewId();
+const long ViewsModelsPanel::ID_STATICTEXT3 = wxNewId();
 //*)
 
 const long ViewsModelsPanel::ID_MODELS_UNDO = wxNewId();
@@ -125,145 +120,96 @@ END_EVENT_TABLE()
 ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size) : _xlFrame(frame)
 {
 	//(*Initialize(ViewsModelsPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxGridBagSizer* GridBagSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	MainSizer = new wxFlexGridSizer(1, 1, 0, 0);
-	MainSizer->AddGrowableCol(0);
-	MainSizer->AddGrowableRow(0);
-	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	FlexGridSizer9 = new wxFlexGridSizer(1, 1, 0, 0);
-	FlexGridSizer9->AddGrowableCol(0);
-	FlexGridSizer9->AddGrowableRow(0);
-	ScrolledWindowViewsModels = new wxScrolledWindow(Panel_Sizer, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-	ScrollWindowSizer = new wxFlexGridSizer(0, 1, 0, 0);
-	ScrollWindowSizer->AddGrowableCol(0);
-	ScrollWindowSizer->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(ScrolledWindowViewsModels, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
-	SplitterWindow1->SetMinimumPaneSize(10);
-	SplitterWindow1->SetSashGravity(0.5);
-	Panel1 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	FlexGridSizer2->AddGrowableRow(0);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(1);
-	StaticText3 = new wxStaticText(Panel1, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlNonModels = new wxListCtrl(Panel1, ID_LISTCTRL1, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
-	ListCtrlNonModels->SetMinSize(wxSize(150,-1));
-	FlexGridSizer1->Add(ListCtrlNonModels, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	Button_AddAll = new wxButton(Panel1, ID_BUTTON3, _(">>"), wxDefaultPosition, wxSize(32,30), 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer5->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_AddSelected = new wxButton(Panel1, ID_BUTTON4, _(">"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer5->Add(Button_AddSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_RemoveSelected = new wxButton(Panel1, ID_BUTTON5, _("<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer5->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_RemoveAll = new wxButton(Panel1, ID_BUTTON6, _("<<"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON6"));
-	FlexGridSizer5->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_MoveUp = new wxButton(Panel1, ID_BUTTON9, _("^"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON9"));
-	FlexGridSizer5->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_MoveDown = new wxButton(Panel1, ID_BUTTON10, _("v"), wxDefaultPosition, wxSize(32,32), 0, wxDefaultValidator, _T("ID_BUTTON10"));
-	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	Panel1->SetSizer(FlexGridSizer2);
-	FlexGridSizer2->Fit(Panel1);
-	FlexGridSizer2->SetSizeHints(Panel1);
-	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer3->AddGrowableCol(0);
-	FlexGridSizer3->AddGrowableRow(1);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer6->AddGrowableCol(0);
-	FlexGridSizer6->AddGrowableRow(0);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer7->AddGrowableCol(0);
-	FlexGridSizer7->AddGrowableRow(1);
-	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer7->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlViews = new wxCheckedListCtrl(Panel2, ID_LISTCTRL_VIEWS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_VIEWS"));
-	ListCtrlViews->SetMinSize(wxDLG_UNIT(Panel2,wxSize(40,-1)));
-	FlexGridSizer7->Add(ListCtrlViews, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
-	Button_AddView = new wxButton(Panel2, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	GridBagSizer1 = new wxGridBagSizer(0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(2, 1, 0, 0);
+	FlexGridSizer5->AddGrowableRow(0);
+	FlexGridSizer5->Add(-1,-1,5, wxALL|wxEXPAND, 2);
+	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
+	Button_AddAll = new wxButton(this, ID_BUTTON3, _(">>"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	BoxSizer1->Add(Button_AddAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_AddSelected = new wxButton(this, ID_BUTTON4, _(">"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	BoxSizer1->Add(Button_AddSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_RemoveSelected = new wxButton(this, ID_BUTTON5, _("<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	BoxSizer1->Add(Button_RemoveSelected, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_RemoveAll = new wxButton(this, ID_BUTTON6, _("<<"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	BoxSizer1->Add(Button_RemoveAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	BoxSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_MoveUp = new wxButton(this, ID_BUTTON9, _("^"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON9"));
+	BoxSizer1->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_MoveDown = new wxButton(this, ID_BUTTON10, _("v"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_BUTTON10"));
+	BoxSizer1->Add(Button_MoveDown, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(BoxSizer1, 1, wxALL|wxEXPAND, 0);
+	GridBagSizer1->Add(FlexGridSizer5, wxGBPosition(1, 1), wxGBSpan(3, 1), wxEXPAND, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(5, 1, 0, 0);
+	Button_AddView = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer8->Add(Button_AddView, 1, wxALL|wxEXPAND, 2);
-	Button_DeleteView = new wxButton(Panel2, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	Button_DeleteView = new wxButton(this, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer8->Add(Button_DeleteView, 1, wxALL|wxEXPAND, 2);
-	ButtonRename = new wxButton(Panel2, ID_BUTTON7, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	ButtonRename = new wxButton(this, ID_BUTTON7, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	FlexGridSizer8->Add(ButtonRename, 1, wxALL|wxEXPAND, 2);
-	ButtonClone = new wxButton(Panel2, ID_BUTTON8, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+	ButtonClone = new wxButton(this, ID_BUTTON8, _("Clone"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	FlexGridSizer8->Add(ButtonClone, 1, wxALL|wxEXPAND, 2);
-	Button_MakeMaster = new wxButton(Panel2, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+	Button_MakeMaster = new wxButton(this, ID_BUTTON11, _("Make Master"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
 	FlexGridSizer8->Add(Button_MakeMaster, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer4->AddGrowableRow(1);
-	StaticText2 = new wxStaticText(Panel2, ID_STATICTEXT2, _("Added:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlModels = new wxCheckedListCtrl(Panel2, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
-	ListCtrlModels->SetMinSize(wxDLG_UNIT(Panel2,wxSize(60,-1)));
-	FlexGridSizer4->Add(ListCtrlModels, 1, wxALL|wxEXPAND, 0);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	Panel2->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel2);
-	FlexGridSizer3->SetSizeHints(Panel2);
-	SplitterWindow1->SplitVertically(Panel1, Panel2);
-	ScrollWindowSizer->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	ScrolledWindowViewsModels->SetSizer(ScrollWindowSizer);
-	ScrollWindowSizer->Fit(ScrolledWindowViewsModels);
-	ScrollWindowSizer->SetSizeHints(ScrolledWindowViewsModels);
-	FlexGridSizer9->Add(ScrolledWindowViewsModels, 1, wxALL|wxEXPAND, 5);
-	Panel_Sizer->SetSizer(FlexGridSizer9);
-	FlexGridSizer9->Fit(Panel_Sizer);
-	FlexGridSizer9->SetSizeHints(Panel_Sizer);
-	MainSizer->Add(Panel_Sizer, 1, wxEXPAND, 0);
-	SetSizer(MainSizer);
-	MainSizer->Fit(this);
-	MainSizer->SetSizeHints(this);
+	GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxEXPAND, 2);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	GridBagSizer1->Add(StaticText1, wxGBPosition(0, 2), wxDefaultSpan, wxALL, 2);
+	ListCtrlViews = new wxCheckedListCtrl(this, ID_LISTCTRL_VIEWS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTCTRL_VIEWS"));
+	ListCtrlViews->SetMinSize(wxDLG_UNIT(this,wxSize(25,30)));
+	GridBagSizer1->Add(ListCtrlViews, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxEXPAND, 2);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Added:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	GridBagSizer1->Add(StaticText2, wxGBPosition(2, 2), wxDefaultSpan, wxALL, 0);
+	ListCtrlModels = new wxCheckedListCtrl(this, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
+	ListCtrlModels->SetMinSize(wxDLG_UNIT(this,wxSize(30,30)));
+	GridBagSizer1->Add(ListCtrlModels, wxGBPosition(3, 2), wxGBSpan(1, 2), wxALL|wxEXPAND, 2);
+	ListCtrlNonModels = new wxListCtrl(this, ID_LISTCTRL1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL1"));
+	ListCtrlNonModels->SetMinSize(wxDLG_UNIT(this,wxSize(25,30)));
+	GridBagSizer1->Add(ListCtrlNonModels, wxGBPosition(1, 0), wxGBSpan(3, 1), wxALL|wxEXPAND, 2);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Available:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	GridBagSizer1->Add(StaticText3, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 2);
+	SetSizer(GridBagSizer1);
+	GridBagSizer1->Fit(this);
+	GridBagSizer1->SetSizeHints(this);
 
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsKeyDown);
-	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsColumnClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddAllClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddSelectedClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveSelectedClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_RemoveAllClick);
 	Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveUpClick);
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MoveDownClick);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
-	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_AddViewClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_DeleteViewClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonRenameClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButtonCloneClick);
 	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ViewsModelsPanel::OnButton_MakeMasterClick);
+	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemSelect);
+	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsItemDClick);
+	Connect(ID_LISTCTRL_VIEWS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlViewsKeyDown);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsBeginDrag);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsItemSelect);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlModelsItemRClick);
 	Connect(ID_LISTCTRL_MODELS,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListView_ViewItemsKeyDown);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsBeginDrag);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsItemSelect);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsKeyDown);
+	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_COL_CLICK,(wxObjectEventFunction)&ViewsModelsPanel::OnListCtrlNonModelsColumnClick);
 	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&ViewsModelsPanel::OnLeftUp);
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ViewsModelsPanel::OnResize);
 	//*)
 
     Connect(wxID_ANY, EVT_VMDROP, (wxObjectEventFunction)&ViewsModelsPanel::OnDrop);
 
+    
+    GridBagSizer1->AddGrowableCol(0, 2);
+    GridBagSizer1->AddGrowableCol(2, 1);
+    GridBagSizer1->AddGrowableRow(3);
+
+    
     ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
 
     _numViews = 0;
@@ -290,9 +236,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
-    Panel_Sizer->SetMinSize(wxSize(600, 400));
-    MainSizer->SetMinSize(600, 400);
-    SetMinSize(wxSize(600, 400));
+    //Panel_Sizer->SetMinSize(wxSize(600, 400));
+    //MainSizer->SetMinSize(600, 400);
+    //SetMinSize(wxSize(600, 400));
 
     ValidateWindow();
 }
@@ -897,8 +843,6 @@ void ViewsModelsPanel::Initialize()
 
     SelectView(_sequenceElements->GetViewName(_sequenceElements->GetCurrentView()));
     ValidateWindow();
-    wxSizeEvent se;
-    OnResize(se);
 }
 
 void ViewsModelsPanel::SetSequenceElementsModelsViews(SequenceData* seqData, SequenceElements* sequenceElements, wxXmlNode* modelsNode, wxXmlNode* modelGroupsNode, SequenceViewManager* sequenceViewManager)
@@ -1394,34 +1338,6 @@ void ViewsModelsPanel::OnButton_DeleteViewClick(wxCommandEvent& event)
     DeleteSelectedView();
 }
 #pragma endregion
-
-void ViewsModelsPanel::OnResize(wxSizeEvent& event)
-{
-    // a minimum size is cached deep inside someplace, reset them all
-    ListCtrlViews->SetMinSize(wxSize(-1, -1));
-    ListCtrlNonModels->SetMinSize(wxSize(150, -1));
-    ListCtrlModels->SetMinSize(wxSize(-1, -1));
-    Panel_Sizer->SetMinSize(wxSize(-1, -1));
-    Panel_Sizer->GetSizer()->SetMinSize(-1, -1);
-    ScrolledWindowViewsModels->SetVirtualSize(-1, -1);
-    ScrolledWindowViewsModels->SetClientSize(-1, -1);
-    ScrolledWindowViewsModels->SetMinSize(wxSize(-1, -1));
-    ScrollWindowSizer->SetMinSize(wxSize(-1, -1));
-
-    wxSize s = GetSize();
-    Panel_Sizer->SetSize(s);
-    Panel_Sizer->SetMaxSize(s);
-    Panel_Sizer->Refresh();
-
-    s -= wxSize(10, 10); //account for the border
-    ScrolledWindowViewsModels->SetSize(s);
-    ScrolledWindowViewsModels->SetMaxSize(s);
-
-    ScrolledWindowViewsModels->FitInside();
-    ScrolledWindowViewsModels->SetScrollRate(5, 5);
-    ScrolledWindowViewsModels->Refresh();
-
-}
 
 void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)
 {
