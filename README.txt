@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
 2018.8 Mar 16, 2018
    -- bug (dkulp)  "Black" static text labels on Windows
    -- enh (dkulp)  Initial support for HiDPI displays on Windows
