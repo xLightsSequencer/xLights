@@ -46,6 +46,8 @@ class TimeLine : public wxWindow
         void SetSelectedPositionEndMS(int time);
         int GetSelectedPositionStart() const { return mSelectedPlayMarkerStart; }
         int GetSelectedPositionEnd() const { return mSelectedPlayMarkerEnd; }
+        int GetSelectedPositionStartMS() const { return mSelectedPlayMarkerStartMS; }
+        int GetSelectedPositionEndMS() const { return mSelectedPlayMarkerEndMS; }
         void LatchSelectedPositions();
         void SetMousePositionMS(int ms);
         int GetMousePosition() const { return mMousePosition; }

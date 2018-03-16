@@ -1118,6 +1118,7 @@ public:
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
     void RenderDirtyModels();
+    void RenderTimeSlice(int startms, int endms, bool clear);
     void Render(std::list<Model*> models, std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,

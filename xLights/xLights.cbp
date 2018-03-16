@@ -500,6 +500,7 @@
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBuffer.cpp" />
 		<Unit filename="RenderBuffer.h" />
+		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
@@ -919,12 +920,6 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="64bit MinGW_Release" />
-			<Option target="64bit MinGW_Debug" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
