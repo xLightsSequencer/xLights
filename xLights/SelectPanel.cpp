@@ -42,7 +42,7 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDLG_UNIT(parent,wxSize(282,253)), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	Hide();
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
@@ -87,8 +87,8 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Button_Select_Refresh = new wxButton(this, ID_BUTTON_SELECT_REFRESH, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_REFRESH"));
 	FlexGridSizer1->Add(Button_Select_Refresh, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_COMBOBOX_SELECT_MODELS,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_ModelsTextEnter);
 	Connect(ID_BUTTON_SELECT_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_SearchClick);

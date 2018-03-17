@@ -16,29 +16,19 @@
 									<cols>1</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
+											<label>Reset panel when changing effects</label>
+											<checked>1</checked>
+											<handler function="OnCheckBox_ResetTimingPanelClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 											<cols>3</cols>
 											<growablecols>1</growablecols>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
-													<label>Reset panel when changing effects</label>
-													<checked>1</checked>
-													<handler function="OnCheckBox_ResetTimingPanelClick" entry="EVT_CHECKBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
 											<object class="sizeritem">
 												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
 													<label>Morph</label>
@@ -50,7 +40,6 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -103,7 +92,9 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" subclass="BulkEditSlider" variable="Slider_EffectLayerMix" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" subclass="BulkEditSlider" variable="Slider_EffectLayerMix" member="yes">
+															<minsize>30,-1d</minsize>
+														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>1</border>
 														<option>1</option>
@@ -185,6 +176,7 @@
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadein" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
+																		<size>25,-1d</size>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -210,9 +202,9 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_In_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_In_Adjust" member="yes">
 																		<value>50</value>
+																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
-																	<border>1</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
@@ -291,6 +283,7 @@
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadeout" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
+																		<size>25,-1d</size>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -316,9 +309,9 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_Out_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_Out_Adjust" member="yes">
 																		<value>50</value>
+																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
-																	<border>2</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">

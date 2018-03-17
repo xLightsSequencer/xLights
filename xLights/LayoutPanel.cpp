@@ -203,7 +203,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0)
+    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
+    ModelGroupWindow(nullptr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -268,7 +269,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
 	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
-	SplitterWindow2->SetSashPosition(175);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 1);
 	SetSizer(FlexGridSizerPreview);
 	FlexGridSizerPreview->Fit(this);
@@ -321,11 +321,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
-    LeftPanelSizer->Fit(LeftPanel);
-    LeftPanelSizer->SetSizeHints(LeftPanel);
-    FlexGridSizerPreview->Fit(this);
-    FlexGridSizerPreview->SetSizeHints(this);
-
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    int msp = config->Read("LayoutModelSplitterSash", -1);
+    int sp = config->Read("LayoutMainSplitterSash", -1);
+    
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
     propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
@@ -334,18 +334,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 
     logger_base.debug("LayoutPanel property grid created");
-
-    wxConfigBase* config = wxConfigBase::Get();
-    int msp = config->Read("LayoutModelSplitterSash", -1);
-    int sp = config->Read("LayoutMainSplitterSash", -1);
-    if (sp != -1) {
-        SplitterWindow2->SetSashGravity(0.0);
-        SplitterWindow2->SetSashPosition(sp);
-    }
-    if (msp != -1) {
-        ModelSplitter->SetSashGravity(0.0);
-        ModelSplitter->SetSashPosition(msp);
-    }
 
     ToolSizer->SetCols(18);
     AddModelButton("Arches", arches);
@@ -381,16 +369,32 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo, nullptr,this);
 
-    ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
+    wxScrolledWindow *sw = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    ModelGroupWindow->SetSizer(sizer);
-    model_grp_panel = new ModelGroupPanel(ModelGroupWindow, xlights->AllModels, this);
+    sw->SetSizer(sizer);
+    model_grp_panel = new ModelGroupPanel(sw, xlights->AllModels, this);
     sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
-    ModelGroupWindow->SetScrollRate(5,5);
-    ModelGroupWindow->Hide();
+    sw->SetScrollRate(5,5);
+    sw->Hide();
 
     logger_base.debug("LayoutPanel model group panel created");
 
+    LeftPanelSizer->Fit(LeftPanel);
+    LeftPanelSizer->SetSizeHints(LeftPanel);
+    FlexGridSizerPreview->Fit(this);
+    FlexGridSizerPreview->SetSizeHints(this);
+
+    ModelGroupWindow = sw;
+    if (sp != -1) {
+        SplitterWindow2->SetSashGravity(0.0);
+        SplitterWindow2->SetSashPosition(sp);
+    }
+    if (msp != -1) {
+        ModelSplitter->SetSashGravity(0.0);
+        ModelSplitter->SetSashPosition(msp);
+    }
+
+    
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
@@ -2547,12 +2551,20 @@ int LayoutPanel::ModelsSelectedCount() const
 
 void LayoutPanel::OnModelSplitterSashPosChanged(wxSplitterEvent& event)
 {
+    if (ModelGroupWindow == nullptr) {
+        //event during creation
+        return;
+    }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutModelSplitterSash", event.GetSashPosition());
 }
 
 void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 {
+    if (ModelGroupWindow == nullptr) {
+        //event during creation
+        return;
+    }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }

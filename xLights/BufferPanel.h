@@ -189,7 +189,6 @@ public:
 
 		//(*Handlers(BufferPanel)
 		void OnLockButtonClick(wxCommandEvent& event);
-		void OnResize(wxSizeEvent& event);
 		void OnBufferTransformSelect(wxCommandEvent& event);
 		void OnChoice_PresetSelect(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);

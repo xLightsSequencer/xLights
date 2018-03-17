@@ -103,9 +103,6 @@ public:
 		wxBitmapButton* BitmapButton_SavePalette;
 		wxBitmapButton* BitmapButton_ShuffleColours;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
-		wxBitmapButton* BitmapButton_locked;
-		wxBitmapButton* BitmapButton_normal;
-		wxBitmapButton* BitmapButton_random;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxPanel* Panel_Sizer;
@@ -157,9 +154,6 @@ public:
 		static const long ID_SLIDER_Color_ValueAdjust;
 		static const long ID_VALUECURVE_Color_ValueAdjust;
 		static const long IDD_TEXTCTRL_Color_ValueAdjust;
-		static const long ID_BITMAPBUTTON87;
-		static const long ID_BITMAPBUTTON1;
-		static const long ID_BITMAPBUTTON88;
 		static const long ID_SCROLLED_ColorScroll;
 		static const long ID_PANEL1;
 		//*)

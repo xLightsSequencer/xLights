@@ -9,7 +9,6 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
-					<sashpos>175</sashpos>
 					<orientation>vertical</orientation>
 					<minsize>10,10</minsize>
 					<handler function="OnSplitterWindowSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
