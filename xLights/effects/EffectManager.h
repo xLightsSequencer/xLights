@@ -70,7 +70,7 @@ public:
 
 
         RenderableEffect *GetEffect(int i) const {
-            if (i >= size() || i < 0) {
+            if (i >= (int)size() || i < 0) {
                 return nullptr;
             }
             return effects[i];

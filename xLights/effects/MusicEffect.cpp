@@ -255,9 +255,11 @@ void MusicEffect::Render(RenderBuffer &buffer,
     std::vector<std::list<MusicEvent*>*>& _events = cache->_events;
 
     // end note cant be less than start note
-    if (endnote < startnote)
+    if (startnote > endnote)
     {
-        endnote = startnote;
+        int temp = startnote;
+        startnote = endnote;
+        endnote = temp;
     }
 
     int actualbars = std::min(bars, std::min(endnote - startnote + 1, buffer.BufferWi - offsetx));

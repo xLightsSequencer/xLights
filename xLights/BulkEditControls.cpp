@@ -520,6 +520,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
         break;
         }
     }
+    GetParent()->HandleWindowEvent(event);
 }
 
 void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
@@ -591,6 +592,7 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
             }
         }
     }
+    GetParent()->HandleWindowEvent(event);
 }
 #pragma endregion
 

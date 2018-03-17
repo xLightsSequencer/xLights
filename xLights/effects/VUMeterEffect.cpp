@@ -423,7 +423,15 @@ int VUMeterEffect::DecodeShape(const std::string& shape)
 
 void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
 {
-	int nType = DecodeType(type);
+    // startnote must be less than or equal to endnote
+    if (startnote > endnote)
+    {
+        int temp = startnote;
+        startnote = endnote;
+        endnote = temp;
+    }
+
+    int nType = DecodeType(type);
 
 	// Grab our cache
 	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
