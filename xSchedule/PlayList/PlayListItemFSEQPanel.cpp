@@ -297,7 +297,8 @@ void PlayListItemFSEQPanel::ValidateWindow()
         SpinCtrl_Channels->Enable(false);
     }
 
-    if (FilePickerCtrl_AudioFile->GetFileName() == "")
+    if ((!CheckBox_OverrideAudio->GetValue() && _fseq->GetAudioFilename() == "") ||
+        (CheckBox_OverrideAudio->GetValue() && FilePickerCtrl_AudioFile->GetFileName() == ""))
     {
         CheckBox_FastStartAudio->Enable(false);
         CheckBox_FastStartAudio->SetValue(false);

@@ -532,7 +532,7 @@ public:
             // Mix canvas pre-loads the buffer with data from underlying layers
             if (buffer->GetMixType(layer) == Mix_Canvas && layer < numLayers - 1)
             {
-                // preload the buffer with the output from the lower layers    
+                // preload the buffer with the output from the lower layers
                 RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
                 // I have to calc the output here to apply blend, rotozoom and transitions
                 buffer->CalcOutput(frame, info.validLayers);
@@ -829,8 +829,12 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
         selectedEffect = 0;
     }
     if (evt.model == "") {
-        //render all dirty models
-        RenderDirtyModels();
+        if( (evt.start != -1) && (evt.end != -1) ) {
+            RenderTimeSlice(evt.start, evt.end, evt.clear);
+        } else {
+            //render all dirty models
+            RenderDirtyModels();
+        }
     } else {
         RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
     }
@@ -871,7 +875,7 @@ public:
     std::list<Model *> restriction;
 };
 
-void xLightsFrame::LogRenderStatus() 
+void xLightsFrame::LogRenderStatus()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Logging render status ***************");
@@ -1499,7 +1503,7 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
     BuildRenderTree();
 
-    logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.", 
+    logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.",
         (const char *)model.c_str(),
         startms,
         endms,
@@ -1541,6 +1545,69 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             Render((*it)->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }
+}
+
+void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    BuildRenderTree();
+    logger_base.debug("Render tree built for time slice %dms-%dms. %d entries.",
+        startms,
+        endms,
+        renderTree.data.size());
+
+    if (renderTree.data.empty()) {
+        //nothing to do....
+        return;
+    }
+    const int numRows = mSequenceElements.GetElementCount();
+    if (numRows == 0) {
+        return;
+    }
+    std::list<Model *> models;
+    std::list<Model *> restricts;
+    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
+        models.push_back((*it)->model);
+    }
+    if (startms < 0) {
+        startms = 0;
+    }
+    if (endms < 0) {
+        endms = 0;
+    }
+    int startframe = startms / SeqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / SeqData.FrameTime() + 1;
+    if (endframe >= SeqData.NumFrames()) {
+        endframe = SeqData.NumFrames() - 1;
+    }
+    if (endframe < startframe) {
+        return;
+    }
+    
+    
+    EnableSequenceControls(false);
+    mRendering = true;
+    ProgressBar->Show();
+    GaugeSizer->Layout();
+    SetStatusText(_("Rendering all layers for time slice"));
+    ProgressBar->SetValue(0);
+    wxStopWatch sw; // start a stopwatch timer
+    Render(models, restricts, startframe, endframe, true, clear, [this, sw] {
+        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base2.info("   Effects done.");
+        ProgressBar->SetValue(100);
+        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
+        CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
+        mRendering = false;
+        EnableSequenceControls(true);
+        ProgressBar->Hide();
+        GaugeSizer->Layout();
+    });
 }
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {

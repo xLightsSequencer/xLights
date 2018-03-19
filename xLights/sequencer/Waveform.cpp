@@ -25,6 +25,7 @@
 
 #include "Waveform.h"
 #include "TimeLine.h"
+#include "../RenderCommandEvent.h"
 #include <wx/file.h>
 #include "../DrawGLUtils.h"
 #include "ColorManager.h"
@@ -40,12 +41,15 @@ EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
+EVT_RIGHT_DOWN(Waveform::rightClick)
 EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_SIZE(Waveform::Resized)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
 EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
+
+const long Waveform::ID_WAVE_MNU_RENDER = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -158,6 +162,32 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
     }
     wxPostEvent(mParent, eventSelected);
+}
+
+void Waveform::rightClick(wxMouseEvent& event)
+{
+    if( (mTimeline->GetSelectedPositionStartMS() != -1 ) &&
+        (mTimeline->GetSelectedPositionEndMS() != -1 ) )
+    {
+        wxMenu mnuWave;
+        wxMenuItem* menu_render = mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
+        mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&Waveform::OnGridPopup, nullptr, this);
+        renderGL();
+        PopupMenu(&mnuWave);
+    }
+}
+
+void Waveform::OnGridPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int id = event.GetId();
+    if(id == ID_WAVE_MNU_RENDER)
+    {
+        logger_base.debug("OnGridPopup - ID_WAVE_MNU_RENDER");
+        RenderCommandEvent event("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
+        wxPostEvent(mParent, event);
+    }
+    Refresh();
 }
 
 void Waveform::SetSelectedInterval(int startMS, int endMS)

@@ -607,6 +607,13 @@ void ScheduleManager::StopAll()
         (*it)->GetPlayList()->Stop();
     }
 
+    while (_eventPlayLists.size() > 0)
+    {
+        _eventPlayLists.front()->Stop();
+        delete _eventPlayLists.front();
+        _eventPlayLists.pop_front();
+    }
+
     AllOff();
 }
 
@@ -1605,6 +1612,29 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                 }
             }
+            else if (command == "Run event playlist step looped")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    PlayListStep* pls = p->GetStep(step);
+
+                    if (pls != nullptr)
+                    {
+                        logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                        _eventPlayLists.push_back(new PlayList(*p));
+                        _eventPlayLists.back()->Start(false, false, false);
+                        _eventPlayLists.back()->LoopStep(step);
+                    }
+                }
+            }
             else if (command == "Run event playlist step unique")
             {
                 wxString parameter = parameters;
@@ -1644,6 +1674,47 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         _eventPlayLists.back()->Start(false, false, false);
                         _eventPlayLists.back()->JumpToStep(step);
                         _eventPlayLists.back()->StopAtEndOfCurrentStep();
+                    }
+                }
+            }
+            else if (command == "Run event playlist step unique looped")
+            {
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    PlayListStep* pls = p->GetStep(step);
+
+                    if (pls != nullptr)
+                    {
+                        // stop and remove any existing items from the specified playlist
+                        auto it2 = _eventPlayLists.begin(); 
+                        while (it2 != _eventPlayLists.end())
+                        {
+                            if ((*it2)->GetId() == p->GetId())
+                            {
+                                auto temp = it2;
+                                ++it2;
+                                (*temp)->Stop();
+                                delete *temp;
+                                _eventPlayLists.remove(*temp);
+                            }
+                            else
+                            {
+                                ++it2;
+                            }
+                        }
+
+                        logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                        _eventPlayLists.push_back(new PlayList(*p));
+                        _eventPlayLists.back()->Start(false, false, false);
+                        _eventPlayLists.back()->LoopStep(step);
                     }
                 }
             }
@@ -1687,6 +1758,53 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             _eventPlayLists.back()->Start(false, false, false);
                             _eventPlayLists.back()->JumpToStep(step);
                             _eventPlayLists.back()->StopAtEndOfCurrentStep();
+                        }
+                    }
+                    else
+                    {
+                        logger_base.info("Event playlist %s step %s not started because playlist is already playing.", (const char*)p->GetNameNoTime().c_str(), (const char *)step.c_str());
+                    }
+                }
+            }
+            else if (command == "Run event playlist step if idle looped")
+            {
+                bool run = false;
+                wxString parameter = parameters;
+                wxArrayString split = wxSplit(parameter, ',');
+
+                std::string pl = DecodePlayList(split[0].ToStdString());
+                std::string step = DecodeStep(split[1].ToStdString());
+   
+                PlayList* p = GetPlayList(pl);
+                if (p != nullptr)
+                {
+                    bool running = false;
+                    // stop and remove any existing items from the specified playlist
+                    auto it2 = _eventPlayLists.begin();
+                    while (it2 != _eventPlayLists.end())
+                    {
+                        if ((*it2)->GetId() == p->GetId())
+                        {
+                            running = true;
+                            break;
+                        }
+                        else
+                        {
+                            ++it2;
+                        }
+                    }
+
+                    if (!running)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+
+                        if (pls != nullptr)
+                        {
+                            logger_base.info("Playing event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+
+                            _eventPlayLists.push_back(new PlayList(*p));
+                            _eventPlayLists.back()->Start(false, false, false);
+                            _eventPlayLists.back()->LoopStep(step);
                         }
                     }
                     else

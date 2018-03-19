@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxPanel" name="BufferPanel">
 		<id_arg>0</id_arg>
-		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -124,6 +123,7 @@
 																	<value>1</value>
 																	<min>1</min>
 																	<max>15</max>
+																	<minsize>20,-1d</minsize>
 																</object>
 																<flag>wxALL|wxEXPAND</flag>
 																<option>1</option>
@@ -144,12 +144,10 @@
 																	<size>20,-1d</size>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>2</border>
 																<option>1</option>
 															</object>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -270,9 +268,11 @@
 													<cols>3</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Rotation" subclass="BulkEditSlider" variable="Slider_Rotation" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Rotation" subclass="BulkEditSlider" variable="Slider_Rotation" member="yes">
+															<minsize>20,-1d</minsize>
+														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -282,7 +282,7 @@
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -293,7 +293,7 @@
 															<validator>__rotation</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -328,9 +328,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Rotations" subclass="BulkEditSliderF1" variable="Slider_Rotations" member="yes">
 															<max>200</max>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -350,7 +351,7 @@
 															<validator>__rotations</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -385,9 +386,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_PivotPointX" subclass="BulkEditSlider" variable="Slider_PivotPointX" member="yes">
 															<value>50</value>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -442,9 +444,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_PivotPointY" subclass="BulkEditSlider" variable="Slider_PivotPointY" member="yes">
 															<value>50</value>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -499,9 +502,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Zoom" subclass="BulkEditSliderF1" variable="Slider_Zoom" member="yes">
 															<max>30</max>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -558,9 +562,10 @@
 															<value>1</value>
 															<min>1</min>
 															<max>10</max>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -605,9 +610,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_XRotation" subclass="BulkEditSlider" variable="Slider_XRotation" member="yes">
 															<max>360</max>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -653,9 +659,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_XPivot" subclass="BulkEditSlider" variable="Slider_XPivot" member="yes">
 															<value>50</value>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -702,9 +709,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_YRotation" subclass="BulkEditSlider" variable="Slider_YRotation" member="yes">
 															<max>360</max>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -750,9 +758,10 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_YPivot" subclass="BulkEditSlider" variable="Slider_YPivot" member="yes">
 															<value>50</value>
+															<minsize>20,-1d</minsize>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -804,8 +813,8 @@
 													</content>
 													<selection>0</selection>
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
-												<border>2</border>
+												<flag>wxALL</flag>
+												<border>1</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">

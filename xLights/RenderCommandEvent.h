@@ -10,6 +10,7 @@
 #define xLights_RenderCommandEvent_h
 
 #include <string>
+#include "sequencer/Effect.h"
 
 class RenderCommandEvent;
 class SelectedEffectChangedEvent;

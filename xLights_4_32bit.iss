@@ -14,6 +14,9 @@
 
 
 #define MyTitleName "xLights" 
+#define Year 2018
+#define Version 8
+#define Bits 32
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard
@@ -21,17 +24,17 @@
 ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
-AppName=xLights
-AppVersion=2018.7
-DefaultDirName={pf32}\xLights
-DefaultGroupName=xLights
-SetupIconFile=include\xlights.ico
+AppName={#MyTitleName}
+AppVersion={#Year}.{#Version}
+DefaultDirName={pf32}\{#MyTitleName}
+DefaultGroupName={#MyTitleName}
+SetupIconFile=include\{#MyTitleName}.ico
 
-UninstallDisplayIcon={app}\xLights.exe
+UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights32_2018_x
+OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone

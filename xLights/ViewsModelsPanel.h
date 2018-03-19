@@ -4,13 +4,12 @@
 #include <wx/dnd.h>
 
 //(*Headers(ViewsModelsPanel)
+#include <wx/button.h>
+#include <wx/gbsizer.h>
 #include <wx/listctrl.h>
-#include <wx/scrolwin.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
-#include <wx/button.h>
 //*)
 
 #include "wxCheckedListCtrl.h"
@@ -116,57 +115,45 @@ class ViewsModelsPanel: public wxPanel
         void UpdateModelsForSelectedView();
 
 		//(*Declarations(ViewsModelsPanel)
-		wxButton* Button_AddAll;
-		wxButton* Button_MoveUp;
-		wxListCtrl* ListCtrlNonModels;
-		wxFlexGridSizer* MainSizer;
-		wxButton* Button_AddSelected;
-		wxStaticText* StaticText2;
-		wxPanel* Panel_Sizer;
-		wxPanel* Panel1;
-		wxStaticText* StaticText1;
-		wxCheckedListCtrl* ListCtrlModels;
-		wxStaticText* StaticText3;
-		wxButton* Button_MakeMaster;
-		wxButton* Button_AddView;
-		wxFlexGridSizer* ScrollWindowSizer;
-		wxButton* Button_DeleteView;
-		wxCheckedListCtrl* ListCtrlViews;
-		wxButton* Button_RemoveAll;
-		wxScrolledWindow* ScrolledWindowViewsModels;
 		wxButton* ButtonClone;
 		wxButton* ButtonRename;
-		wxPanel* Panel2;
+		wxButton* Button_AddAll;
+		wxButton* Button_AddSelected;
+		wxButton* Button_AddView;
+		wxButton* Button_DeleteView;
+		wxButton* Button_MakeMaster;
 		wxButton* Button_MoveDown;
+		wxButton* Button_MoveUp;
+		wxButton* Button_RemoveAll;
 		wxButton* Button_RemoveSelected;
-		wxSplitterWindow* SplitterWindow1;
+		wxCheckedListCtrl* ListCtrlModels;
+		wxCheckedListCtrl* ListCtrlViews;
+		wxListCtrl* ListCtrlNonModels;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
 	protected:
 
 		//(*Identifiers(ViewsModelsPanel)
-		static const long ID_STATICTEXT3;
-		static const long ID_LISTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON6;
 		static const long ID_BUTTON9;
 		static const long ID_BUTTON10;
-		static const long ID_PANEL2;
-		static const long ID_STATICTEXT1;
-		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON8;
 		static const long ID_BUTTON11;
+		static const long ID_STATICTEXT1;
+		static const long ID_LISTCTRL_VIEWS;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTCTRL_MODELS;
-		static const long ID_PANEL3;
-		static const long ID_SPLITTERWINDOW1;
-		static const long ID_SCROLLEDWINDOW1;
-		static const long ID_PANEL1;
+		static const long ID_LISTCTRL1;
+		static const long ID_STATICTEXT3;
 		//*)
 
         static const long ID_MODELS_UNDO;
@@ -197,7 +184,6 @@ class ViewsModelsPanel: public wxPanel
 		void OnButton_RemoveSelectedClick(wxCommandEvent& event);
 		void OnButton_RemoveAllClick(wxCommandEvent& event);
 		void OnListCtrlViewsItemSelect(wxListEvent& event);
-		void OnResize(wxSizeEvent& event);
 		void OnLeftUp(wxMouseEvent& event);
 		void OnListCtrlNonModelsItemSelect(wxListEvent& event);
 		void OnListCtrlNonModelsBeginDrag(wxListEvent& event);
