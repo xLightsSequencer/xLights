@@ -7361,7 +7361,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
             dialog->downloadUrl=downloadUrl;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights "
                                                        + xlights_version_string + "\n"
-                                                       + "Whereas the most recent release is " + urlVersion));
+                                                       + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
     } else {
