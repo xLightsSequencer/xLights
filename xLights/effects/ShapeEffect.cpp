@@ -628,7 +628,7 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius
 
 void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const
 {
-    double interpolation = 0.75;
+    double interpolation = 0.6;
     double t = (double)thickness - 1.0 + interpolation;
     double offsetangle = 0.0;
     switch (points)
