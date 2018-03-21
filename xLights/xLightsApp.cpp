@@ -453,7 +453,7 @@ bool xLightsApp::OnInit()
        wxString appPath(f.GetPath());
        wxString cmdline(appPath+wxT("/xSchedule"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i],"-x",2) == 0) {
+            if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else {
                 cmdline += wxT(" ");
