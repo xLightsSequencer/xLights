@@ -39,7 +39,7 @@ linkliquid:
             then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
             elif test "${DEB_HOST_ARCH}" = "amd64"; \
             then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
-            else ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
+            else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
         fi; \
 	fi
 
@@ -97,7 +97,7 @@ install:
 	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
-	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -i` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
+	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights

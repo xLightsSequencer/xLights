@@ -36,10 +36,11 @@ Instructions for other Linux distributions will vary.
      libsdl1.2-dev
      liblog4cpp5-dev
      libportmidi-dev
+     cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev libportmidi-dev
+     sudo apt-get install build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev libportmidi-dev cbp2make
 
      Example commands to install packages on Fedora 24
 
