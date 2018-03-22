@@ -61,6 +61,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Rework the window frame model to allow it to go CW and CCW. This may break some existing models
    -- enh (keith)  Check sequence to detect effects dropped on strands, submodels and models with no nodes
    -- bug (scott)  Fixed FPP Connect USB Drive Upload
+   -- bug (scott)  Added 3D fade to Single Strand Effect for Rainbow Pallet
 2018.5 Feb 05, 2018
    -- enh (gil)    Added a new LOR output that allows xLights to control CCRs, Pixies, and other
                    existing controllers to run on a LOR network (LOR USB dongle).
