@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
+   -- enh (keith)  Add xCapture for capturing E131/ArtNET data from the network and save it to a FSEQ or ESEQ file
 2018.8 Mar 16, 2018
    -- bug (dkulp)  "Black" static text labels on Windows
    -- enh (dkulp)  Initial support for HiDPI displays on Windows

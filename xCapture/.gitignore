@@ -1,0 +1,8 @@
+*.layout
+.vs/
+.objs_wr/
+bin/
+Debug/
+obj/
+x64/
+*.depend

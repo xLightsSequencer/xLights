@@ -53,6 +53,11 @@ Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignorevers
 Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xCapture
+Source: "bin/xCapture.exe"; DestDir: "{app}"
+Source: "bin/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xCapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "bin/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -106,6 +111,7 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 [Registry]
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
 
