@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="EffectTreeDialog">
 		<title>Effect Presets</title>
+		<size>500,400</size>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
@@ -114,6 +115,29 @@
 									<handler function="OnbtImportClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrl1" member="yes">
+											<handler function="OnTextCtrl1TextEnter" entry="EVT_TEXT_ENTER" />
+										</object>
+										<flag>wxRIGHT|wxEXPAND</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_SEARCH" variable="ETButton1" member="yes">
+											<label>Search</label>
+											<style>wxBU_EXACTFIT</style>
+											<handler function="OnETButton1Click" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

@@ -19,6 +19,8 @@ const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON8 = wxNewId();
+const long EffectTreeDialog::ID_TEXTCTRL_SEARCH = wxNewId();
+const long EffectTreeDialog::ID_BUTTON_SEARCH = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
@@ -30,12 +32,13 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 {
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer1;
+	wxBoxSizer* BoxSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("id"));
-	SetClientSize(wxDefaultSize);
+	SetClientSize(wxSize(500,400));
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
@@ -70,6 +73,12 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	btImport = new wxButton(this, ID_BUTTON8, _("&Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
 	btImport->SetToolTip(_("Import presets from another file."));
 	BoxSizer1->Add(btImport, 1, wxALL|wxEXPAND, 5);
+	BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
+	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_SEARCH"));
+	BoxSizer2->Add(TextCtrl1, 1, wxRIGHT|wxEXPAND, 3);
+	ETButton1 = new wxButton(this, ID_BUTTON_SEARCH, _("Search"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_SEARCH"));
+	BoxSizer2->Add(ETButton1, 0, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
+	BoxSizer1->Add(BoxSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -77,8 +86,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	StdDialogButtonSizer1->Realize();
 	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
+	SetSizer(FlexGridSizer1);
+	Layout();
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_END_DRAG,(wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1EndDrag);
@@ -92,6 +101,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtExportClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtImportClick);
+	Connect(ID_TEXTCTRL_SEARCH,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&EffectTreeDialog::OnTextCtrl1TextEnter);
+	Connect(ID_BUTTON_SEARCH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
 	//*)
 	treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = (xLightsFrame*)parent;
@@ -849,4 +860,91 @@ void EffectTreeDialog::ValidateWindow()
 void EffectTreeDialog::OnTreeCtrl1SelectionChanged(wxTreeEvent& event)
 {
     ValidateWindow();
+}
+
+wxTreeItemId EffectTreeDialog::findTreeItem(wxTreeCtrl* pTreeCtrl, const wxTreeItemId& root, const wxTreeItemId& startID, const wxString& text, bool &startfound)
+{
+    wxTreeItemId item = root, child;
+    wxTreeItemIdValue cookie;
+    wxString findtext(text), itemtext;
+    bool bFound;
+
+    //make search case insensitive
+    findtext.MakeLower();
+
+    //Loop through all element and branches, first look for start location, second loop until new element of text found
+    while (item.IsOk())
+    {
+        if (startfound)
+        {   //second state found
+            itemtext = pTreeCtrl->GetItemText(item).MakeLower();
+            bFound = itemtext.Contains(findtext);
+            if (bFound)//text found
+                return item;
+        }
+        //state element found
+        if (item == startID)
+            startfound = true;
+
+        child = pTreeCtrl->GetFirstChild(item, cookie);
+        if (child.IsOk())
+            child = findTreeItem(pTreeCtrl, child, startID, text, startfound);
+        if (child.IsOk())
+            return child;
+
+        item = pTreeCtrl->GetNextSibling(item);
+    }
+
+    return item;
+}
+
+void EffectTreeDialog::OnETButton1Click(wxCommandEvent& event)
+{
+    SearchForText();
+}
+
+void EffectTreeDialog::OnTextCtrl1TextEnter(wxCommandEvent& event)
+{
+    SearchForText();
+}
+
+void EffectTreeDialog::SearchForText()
+{
+    wxArrayTreeItemIds Selections;
+    wxTreeItemId item;
+
+    //dont search for blank strings
+    if (TextCtrl1->GetValue().IsEmpty())
+        return;
+
+    item = TreeCtrl1->GetRootItem();
+
+    // empty tree control, return
+    if (!TreeCtrl1->GetCount())
+        return; 
+
+    //Get Current selected ID and search from there
+    wxTreeItemId startID = TreeCtrl1->GetSelection();
+
+    bool bStartFound = false; //pass a bool by ref to keep track if staring location was found, too lazy for state machine
+    item = findTreeItem(TreeCtrl1, TreeCtrl1->GetRootItem(), startID, TextCtrl1->GetValue(), bStartFound);
+
+    //none found, start at the top of tree this time
+    if (!item.IsOk())
+    {
+        bStartFound = false;
+        item = findTreeItem(TreeCtrl1, TreeCtrl1->GetRootItem(), TreeCtrl1->GetRootItem(), TextCtrl1->GetValue(), bStartFound);
+    }
+
+    //none found anywhere
+    if (!item.IsOk())
+    {
+        wxMessageBox(_("Search Found No Results."), _("None Found"));
+        return;
+    }
+
+    // found an item woot
+    TreeCtrl1->UnselectAll();
+    TreeCtrl1->SelectItem(item, true);
+    TreeCtrl1->EnsureVisible(item);
 }

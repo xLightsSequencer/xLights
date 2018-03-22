@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
    -- enh (keith)  Add xCapture for capturing E131/ArtNET data from the network and save it to a FSEQ or ESEQ file
+   -- bug (scott)  Added 3D fade to Single Strand Effect for Rainbow Pallet
+   -- enh (scott)  Added Search Box to Effect Preset Dialog
 2018.8 Mar 16, 2018
    -- bug (dkulp)  "Black" static text labels on Windows
    -- enh (dkulp)  Initial support for HiDPI displays on Windows
@@ -103,6 +105,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)  Bunch of startup optimizations - don't load rgbeffects.xml twice
    -- enh (scott)  Added Ctrl-A to Selects all Effects in a Sequence.
    -- enh (scott)  Add Select Row Effects to Sequencer Row Right Click Menu.
+   -- enh (scott)  Added Support for Sandevice Firmware 5
    -- enh (gil)    Added a DMX Flood option to the DMX Model.
    -- enh (gil)    Allow the rotate handle to Spin the DMX Model when in 3D mode.
    -- bug (gil)    Fixed a LOR S4 clipboard export model issue.
@@ -139,7 +142,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add number aware model name sorting (layout, display elements, import effects)
    -- enh (keith)  Enhance handling of invalid mappings loaded from mapping files so mappings are not lost when saved and invalid mappings are highlighted
    -- enh (keith)  Add download of vendor custom models from licensed vendors
-   —- enh (Billy)  Added Controller Status to xSchedule WebUI
+   -- enh (Billy)  Added Controller Status to xSchedule WebUI
+   -- enh (scott)  Added Right Click Ping controller Option To Setup Tab
 2018.1 Jan 04, 2018
    -- enh (k.mojek) Add "Print Layout" option to Layout popup menu
    -- enh (dkulp)  Add WRGB 4 channel node type
@@ -149,7 +153,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add create group of models by right clicking on a layout after selecting the models to be in the group
    -- bug (keith)  Display node number relative to string in node layout rather that absolute node number within model
    -- enh (keith)  Add to matrix face dialog attempt to fill in all the rows based on the pattern of an entered row
-   -- bug (scotth) Fix bars effect rounding problem
+   -- bug (scott)  Fix bars effect rounding problem
    -- enh (k.mojek) Add ability to save the layout as an image via right click menu
    -- bug (gil)    Last release broke DMX effect panel label updating.
    -- bug (craig)  Fix crash of randomize effect after effect is deleted. Fixes #1052
@@ -205,13 +209,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Save selected batch render items between runs of batch render
    -- enh (keith)  Add selectable audio devices on windows for xSchedule
    -- bug (craig)  Fix the output of the xScheduleData/GetModels.dat file format as json
-   -- enh (scotth) Added Tree, Crucifix, Present, Candy Cane, Snowflake, and Heart Shapes to the VU Effect
+   -- enh (scott)  Added Tree, Crucifix, Present, Candy Cane, Snowflake, and Heart Shapes to the VU Effect
    -- bug (dkulp)  Fix dimming curves that are different for R/G/B
    -- bug (dkulp)  Fix debug build popups on rendering on Linux
    -- bug (dkulp)  Fix crash on text effect on Linux (fonts still look crappy)
    -- enh (scott)  Warn windows 64 bit computer users using 32 bit that they should move to 64 bit
    -- bug (scott)  Fix FPP connect wont upload sequences in subdirectories
-   -- enh (scott)  Add all the shape effect shapes to the VU Meter shape modes
    -- bug (keith)  Fix xSchedule text properties not working in API
    -- bug (keith)  Fix a number of problems with xSchedule channel constraints not saving
    -- bug (keith)  Fix xSchedule fast start audio does not respect per song volume setting
@@ -225,8 +228,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Remove Master View from the new sequence default views
    -- enh (dkulp)  Add undo to update effect and update palette actions
    -- enh (rich)   Fix xSchedule web doesnt like spaces in some url parameters #1000
-   -- bug (scotth) Fix spinner calculate incorrect number of nodes #1008
-   -- bug (scotth) Fix bulk render doesnt like xml files in subdirectories
+   -- bug (scott)  Fix spinner calculate incorrect number of nodes #1008
+   -- bug (scott)  Fix bulk render not working with xml files in subdirectories
    -- bug (keith)  Ensure all lights are off when xSchedule closes
    -- enh (keith)  Add active timing marks to Value Curve and Colour Curve dialogs so you can line things up easier
    -- bug (keith)  Fix xSchedule test mode does not display A-B-C-ALL and some other patterns correctly
@@ -274,7 +277,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2017.36  Nov 13, 2017
    -- enh (dkulp)   Add multicolor suppport for non-rotated text
    -- enh (dkulp)   Allow user to change number of universes in an e131 multi universe output
-   -- bug (scotth)  Remove layer count from group lines in preset list
+   -- bug (scott)   Remove layer count from group lines in preset list
    -- bug (gil)     Fix motion positions for XL fonts in Text effect.
    -- enh (keith)   Move xSchedule video reading to a separate thread ... should make video performance more reliable but will use
                     more of memory
@@ -343,7 +346,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug     (keith)  Fix rotozoom presets
    -- enh     (keith)  Add remember custom colours in colour selection dialog
 2017.30  Sep  29, 2017
-   -- enh (scottH)  Added Swap Start and End Points to Morph Effect.
+   -- enh (scott)   Added Swap Start and End Points to Morph Effect.
    -- enh (keith)   Add printing of wiring view
    -- enh (keith)   Add display of actual time in value curve and color curve dialogs.
    -- bug (dkulp)   Prevent crash when perspective is chosen from menu prior to flipping to the sequencer tab
@@ -365,12 +368,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2017.29  Sep  19, 2017
    -- bug (keith)   Fix regular crash due to slow rendering. This bug was introduced in 2017.28
    -- enh (cjd)     Add option to run xschedule via xlights on linux (for AppImage usage)
-   -- bug (scottH)  Custom Model Renumber (#917)
+   -- enh (scott)   Custom Model Renumber (#917)
    -- bug (dkulp)   Fix crash when changing show directories
    -- bug (dkulp)   OSX - flipping back and forth between tabs sometimes results in hidden panels appearing and moving to a docked state.
 2017.28  Sep  18, 2017
    -- bug (dkulp)   Fix crash on startup when ViesModelsPanel is not visible
-   -- bug (scottH)  Fixed Divide by zero error if main window is re-sized too small. (#913)
+   -- bug (scott)   Fixed Divide by zero error if main window is re-sized too small. (#913)
    -- enh (keith)   Add ability to import LAS files ... actually this existed ... it just wasnt selectable
    -- bug (keith)   Add warning if i am importing a datalayer that is bigger than the number of xlights channels
    -- enh (keith)   Add a xSchedule file play list item which can write information about current song etc to a file

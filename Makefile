@@ -52,7 +52,7 @@ wxwidgets31: FORCE
 		fi; \
 		cd wxWidgets-3.1.1; \
 		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
-		CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff; \
+		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff; \
 		echo Building wxwidgets; \
 		${MAKE} -s; \
 		echo Completed build of wxwidgets; \
