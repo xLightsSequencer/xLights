@@ -26,8 +26,8 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxButton* Button1;
 		wxButton* btAddGroup;
+		wxButton* ETButton1;
 		wxButton* btApply;
 		wxButton* btDelete;
 		wxButton* btExport;
@@ -73,7 +73,7 @@ class EffectTreeDialog : public wxDialog
 		void OnbtImportClick(wxCommandEvent& event);
 		void OnbtExportClick(wxCommandEvent& event);
 		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
-		void OnButton1Click(wxCommandEvent& event);
+		void OnETButton1Click(wxCommandEvent& event);
 		void OnTextCtrl1TextEnter(wxCommandEvent& event);
 		//*)
 

@@ -129,10 +129,10 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SEARCH" variable="Button1" member="yes">
+										<object class="wxButton" name="ID_BUTTON_SEARCH" variable="ETButton1" member="yes">
 											<label>Search</label>
 											<style>wxBU_EXACTFIT</style>
-											<handler function="OnButton1Click" entry="EVT_BUTTON" />
+											<handler function="OnETButton1Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 									</object>
