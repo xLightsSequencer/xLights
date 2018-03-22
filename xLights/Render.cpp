@@ -498,6 +498,8 @@ public:
 
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
 
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
         wxStopWatch sw;
         bool effectsToUpdate = false;
         int numLayers = el->GetEffectLayerCount();
@@ -532,18 +534,68 @@ public:
             // Mix canvas pre-loads the buffer with data from underlying layers
             if (buffer->GetMixType(layer) == Mix_Canvas && layer < numLayers - 1)
             {
+logger_base.debug("Preparing canvas");
+for (int i = 0; i < info.validLayers.size(); i++)
+{
+    logger_base.debug("   Pre valid layer %d %d", i, (int)info.validLayers[i]);
+}
+                auto vl = info.validLayers;
+                if (info.settingsMaps[layer].Get("LayersSelected", "") != "")
+                {
+                    // remove from valid layers any layers we dont need to include
+                    wxArrayString ls = wxSplit(info.settingsMaps[layer].Get("LayersSelected", ""), '|');
+                    for (int i = layer + 1; i < vl.size(); i++)
+                    {
+                        if (vl[i])
+                        {
+                            bool found = false;
+                            for (auto it = ls.begin(); !found && it != ls.end(); ++it)
+                            {
+                                if (wxAtoi(*it) + layer + 1 == i)
+                                {
+                                    found = true;
+                                }
+                            }
+                            if (!found)
+                            {
+                                vl[i] = false;
+                                logger_base.debug("   Removing layer %d.", i);
+                            }
+                        }
+                    }
+                }
+
+                for (int i = 0; i < vl.size(); i++)
+                {
+                    logger_base.debug("   Post valid layer %d %d", i, (int)vl[i]);
+                }
+
                 // preload the buffer with the output from the lower layers
                 RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
+
                 // I have to calc the output here to apply blend, rotozoom and transitions
-                buffer->CalcOutput(frame, info.validLayers);
+                buffer->CalcOutput(frame, vl);
+
+                // Now copy the result into the current layer
+                int nonblack = 0;
                 for (int y = 0; y < rb.BufferHt; y++)
                 {
                     for (int x = 0; x < rb.BufferWi; x++)
                     {
                         xlColor c = xlBLACK;
-                        buffer->GetMixedColor(x, y, c, info.validLayers, frame);
+                        buffer->GetMixedColor(x, y, c, vl, frame);
                         rb.SetPixel(x, y, c);
+                        if (c != xlBLACK)
+                        {
+                            nonblack++;
+                        }
                     }
+                }
+                logger_base.debug("   Non black %d", nonblack);
+
+                for (int i = 0; i < vl.size(); i++)
+                {
+                    logger_base.debug("   Post prerender %d %d vs %d", i, (int)vl[i], (int)info.validLayers[i]);
                 }
             }
 

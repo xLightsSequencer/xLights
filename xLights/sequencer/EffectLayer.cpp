@@ -535,6 +535,11 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
     return effs;
 }
 
+int EffectLayer::GetLayerNumber()
+{
+    return GetParentElement()->GetLayerNumberFromIndex(GetIndex());
+}
+
 void EffectLayer::UnSelectAllEffects()
 {
     for (int i = 0; i < mEffects.size(); i++)

@@ -448,6 +448,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LayerSelectDialog.cpp" />
+		<Unit filename="LayerSelectDialog.h" />
 		<Unit filename="LayoutGroup.cpp" />
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
@@ -1051,6 +1053,7 @@
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
+		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
@@ -1293,6 +1296,7 @@
 					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

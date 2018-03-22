@@ -52,6 +52,7 @@ public:
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
+    int GetLayerNumberFromIndex(int index);
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
 
@@ -60,7 +61,7 @@ public:
     EffectLayer* InsertEffectLayer(int index);
     bool operator==(const Element& e) const;
     bool operator<(const Element& e) const;
-    
+
     bool GetCollapsed() const { return mCollapsed; }
     void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }
     

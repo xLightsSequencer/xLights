@@ -124,6 +124,7 @@ wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_ROW_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
@@ -1343,6 +1344,7 @@ private:
     void SelectedEffectChanged( SelectedEffectChangedEvent& event);
     void SelectedRowChanged( wxCommandEvent& event);
     void EffectChanged( wxCommandEvent& event);
+    void EffectUpdated( wxCommandEvent& event);
     void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
