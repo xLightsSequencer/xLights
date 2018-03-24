@@ -553,7 +553,7 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         if (packet[6] != 't') return;
         if (packet[9] != 0x50) return;
 
-        _timeStamp = wxDateTime::Now();
+        _timeStamp = wxDateTime::UNow();
         _seq = packet[12];
         _length = ((int)packet[16] << 8) + (int)packet[17];
         _pdata = (wxByte*)malloc(_length);
