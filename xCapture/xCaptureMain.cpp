@@ -23,7 +23,7 @@
 #include <wx/protocol/http.h>
 #include "UniverseEntryDialog.h"
 #include <wx/filedlg.h>
-#include <wx/numdlg.h> 
+#include <wx/numdlg.h>
 #include "ResultDialog.h"
 
 #include "../include/xLights.xpm"
@@ -600,7 +600,7 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
             auto next = it;
             ++next;
 
-            if ((*next)->_seq == lastseq)
+            if (next != _packets.end() && (*next)->_seq == lastseq)
             {
                 logger_base.warn("Universe %d missing one packet sequence %d", _universe, lastseq);
                 // only one frame was missing so assume it was lost
