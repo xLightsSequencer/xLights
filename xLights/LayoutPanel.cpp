@@ -634,6 +634,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
+        } else if ("SubModels" == name) {
+            // skip submodel changes for now
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
             if (i & 0x0001) {
@@ -672,6 +674,8 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 CreateUndoPoint("ModelName", selectedModel->name, safename);
                 event.Veto();
             }
+        } else if ("SubModels" == name) {
+            // ignore the submodel changes for now.
         } else {
             CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
