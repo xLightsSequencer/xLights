@@ -397,7 +397,6 @@ void PicturesEffect::Render(RenderBuffer &buffer,
 
     int dir = GetPicturesDirection(dirstr);
     double position = buffer.GetEffectTimeIntervalPosition(movementSpeed);
-    wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
 
     int BufferWi = buffer.BufferWi;
     int BufferHt = buffer.BufferHt;
@@ -423,12 +422,12 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     std::vector<PixelVector> &PixelsByFrame = cache->PixelsByFrame;
     int &frame = cache->frame;
 
-    sPicture = NewPictureName2;
-    suffix = NewPictureName2.substr(NewPictureName2.length()-6,2);
-    extension = NewPictureName2.substr(NewPictureName2.length()-3,3);
+    wxString sPicture = NewPictureName2;
+    wxString suffix = NewPictureName2.substr(NewPictureName2.length()-6,2);
+    wxString extension = NewPictureName2.substr(NewPictureName2.length()-3,3);
     if (suffix == "-1")  {// do we have a movie file?
         //    yes
-        BasePicture= NewPictureName2.substr(0,NewPictureName2.length()-6) ;
+        wxString BasePicture = NewPictureName2.substr(0,NewPictureName2.length()-6);
 
         wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
         if (!wxFileExists(sTmpPicture)) {
@@ -464,7 +463,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         }
     }
 
-    NewPictureName=sPicture;
+    wxString NewPictureName = sPicture;
 
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {
