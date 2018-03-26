@@ -16,7 +16,7 @@ SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary s
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 PATH            := $(CURDIR)/wxWidgets-3.1.1:$(PATH)
 
-SUBDIRS         = xLights xSchedule
+SUBDIRS         = xLights xSchedule xCapture
 
 .NOTPARALLEL:
 
@@ -80,6 +80,7 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
+	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
@@ -100,6 +101,7 @@ install:
 	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
 
 uninstall:
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
@@ -108,10 +110,10 @@ uninstall:
 
 cbp2make:
 	@if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -132,6 +134,16 @@ xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xSchedule/xSchedule.cbp.mak
+
+xCapture/xCapture.cbp.mak: xCapture/xCapture.cbp
+	@cbp2make -in xCapture/xCapture.cbp -cfg cbp2make.cfg -out xCapture/xCapture.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xCapture/xCapture.cbp.mak xCapture/xCapture.cbp.mak.orig
+	@cat xCapture/xCapture.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xCapture/xCapture.cbp.mak
 
 #############################################################################
 
