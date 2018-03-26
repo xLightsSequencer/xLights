@@ -23,7 +23,7 @@ ListenerThread::ListenerThread(ListenerBase* listener)
     }
     else
     {
-        logger_base.error("Listener thread for %s created.", (const char *)listener->GetType().c_str());
+        logger_base.info("Listener thread for %s created.", (const char *)listener->GetType().c_str());
     }
 }
 
@@ -31,7 +31,7 @@ void* ListenerThread::Entry()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _running = true;
-    logger_base.error("Listener thread for %s running.", (const char *)_listener->GetType().c_str());
+    logger_base.info("Listener thread for %s running.", (const char *)_listener->GetType().c_str());
 
     _listener->StartProcess();
 
