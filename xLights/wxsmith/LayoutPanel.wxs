@@ -19,6 +19,7 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="ModelSplitter" member="yes">
+									<minpanesize>100</minpanesize>
 									<minsize>100,100</minsize>
 									<handler function="OnModelSplitterSashPosChanged" entry="EVT_SPLITTER_SASH_POS_CHANGED" />
 									<object class="wxPanel" name="ID_PANEL3" variable="FirstPanel" member="yes" />
