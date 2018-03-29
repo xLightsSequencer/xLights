@@ -55,7 +55,7 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
             - save the file
 	 5) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
-     5a) Edit the file wxWidgets\src\msw\any_button.cpp to comment out lines 1138 through 1146 as follows:
+     5a) Edit the file wxWidgets\src\msw\anybutton.cpp to comment out lines 1138 through 1146 as follows:
         /*if ( wxGetWinVersion() >= wxWinVersion_10 )
         {
             // buttons have flat appearance so we can fully color them
