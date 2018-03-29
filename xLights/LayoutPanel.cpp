@@ -528,17 +528,17 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
     }
 #else
     if (dirty) {
-        ButtonSavePreview->SetForegroundColour(*wxRED);
-        auto font = ButtonSavePreview->GetFont();
-        font.SetWeight(wxFONTWEIGHT_BOLD);
-        ButtonSavePreview->SetFont(font);
-        //ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+        //ButtonSavePreview->SetForegroundColour(*wxRED);
+        //auto font = ButtonSavePreview->GetFont();
+        //font.SetWeight(wxFONTWEIGHT_BOLD);
+        //ButtonSavePreview->SetFont(font);
+        ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
     } else {
-        ButtonSavePreview->SetForegroundColour(*wxBLACK);
-        auto font = ButtonSavePreview->GetFont();
-        font.SetWeight(wxFONTWEIGHT_NORMAL);
-        ButtonSavePreview->SetFont(font);
-        //ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+        //ButtonSavePreview->SetForegroundColour(*wxBLACK);
+        //auto font = ButtonSavePreview->GetFont();
+        //font.SetWeight(wxFONTWEIGHT_NORMAL);
+        //ButtonSavePreview->SetFont(font);
+        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
     }
 #endif
 }
