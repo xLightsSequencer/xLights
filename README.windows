@@ -55,6 +55,16 @@ Here are the steps to compile xLights for Windows using the MinGW compiler.
             - save the file
 	 5) If you have previously built wxWidgets before and are using the same directory you will need to make the same change as above to the setup.h file in two
 	    more locations: wxWidgets\lib\gcc_dll\mswu\wx\setup.h and wxWidgets\lib\gcc_dll\mswud\wx\setup.h.
+     5a) Edit the file wxWidgets\src\msw\any_button.cpp to comment out lines 1138 through 1146 as follows:
+        /*if ( wxGetWinVersion() >= wxWinVersion_10 )
+        {
+            // buttons have flat appearance so we can fully color them
+            // even outside the "safe" rectangle
+            SelectInHDC brush(hdc, hbrushBackground);
+            COLORREF colTheme = GetPixel(hdc, rectClient.left, rectClient.top);
+            ExtFloodFill(hdc, rectClient.left, rectClient.top, colTheme, FLOODFILLSURFACE);
+        }
+        else*/
 	 6) Also if you have built wxWidgets before you should delete the following 2 folders to force the setup.h change to be included
 	    - wxWidgets\build\msw\gcc_mswuddll
 		- wxWidgets\build\msw\gcc_mswudll
@@ -123,7 +133,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
      to compile it yourself to create the dll. If you followed the MinGW instructions,
      make a separate directory for the 64-bit version:
        C:\wxWidgets
-     
+
      To compile it yourself:
 
      1) Open a command prompt
@@ -189,7 +199,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
   a) Install Visual Studio 2017 ... the community edition is fine
 
   b) Select a base directory to place all your souce code in. From now on this is represented as <basedir>
-  
+
   c) Download and build wxWidgets for Windows (currently using version 3.1.1)
 
      Download the version with the Windows installer from here:
