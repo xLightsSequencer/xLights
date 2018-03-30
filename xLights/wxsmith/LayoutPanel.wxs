@@ -101,46 +101,6 @@
 								<border>3</border>
 								<option>1</option>
 							</object>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="LayoutViewSizer" member="no">
-									<cols>2</cols>
-									<growablecols>0</growablecols>
-									<growablerows>0</growablerows>
-									<object class="sizeritem">
-										<object class="wxPanel" name="ID_PANEL4" variable="LayoutView" member="yes">
-											<style>wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE</style>
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxScrollBar" name="ID_SCROLLBAR1" variable="ScrollBar1" member="yes">
-											<thumbsize>1</thumbsize>
-											<range>10</range>
-											<pagesize>1</pagesize>
-											<style>wxSB_VERTICAL</style>
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxScrollBar" name="ID_SCROLLBAR2" variable="ScrollBar2" member="yes">
-											<thumbsize>1</thumbsize>
-											<range>10</range>
-											<pagesize>1</pagesize>
-											<style>wxSB_HORIZONTAL</style>
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<option>1</option>
-									</object>
-									<object class="spacer">
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<option>1</option>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<option>1</option>
-							</object>
 						</object>
 					</object>
 				</object>

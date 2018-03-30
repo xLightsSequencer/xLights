@@ -7,7 +7,6 @@ class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxScrollBar;
 class wxSplitterEvent;
 class wxSplitterWindow;
 class wxStaticText;
@@ -73,12 +72,9 @@ class LayoutPanel: public wxPanel
 		wxChoice* ChoiceLayoutGroups;
 		wxFlexGridSizer* ToolSizer;
 		wxPanel* FirstPanel;
-		wxPanel* LayoutView;
 		wxPanel* LeftPanel;
 		wxPanel* PreviewGLPanel;
 		wxPanel* SecondPanel;
-		wxScrollBar* ScrollBar1;
-		wxScrollBar* ScrollBar2;
 		wxSplitterWindow* ModelSplitter;
 		wxSplitterWindow* SplitterWindow2;
 		wxStaticText* StaticText1;
@@ -98,9 +94,6 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
-		static const long ID_PANEL4;
-		static const long ID_SCROLLBAR1;
-		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;
 		static const long ID_SPLITTERWINDOW2;
 		//*)
