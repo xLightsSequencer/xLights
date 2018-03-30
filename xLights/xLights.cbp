@@ -924,7 +924,8 @@
 			<Option target="Release" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
-			<Option target="64bit_MinGW_Release" />
+			<Option target="64bit MinGW_Debug" />
+			<Option target="64bit MinGW_Release" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
