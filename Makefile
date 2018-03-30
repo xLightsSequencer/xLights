@@ -14,9 +14,9 @@ DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary standard_dictionary user_dictionary xschedule.linux.properties
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
-PATH            := $(CURDIR)/wxWidgets-3.1.0:$(PATH)
+PATH            := $(CURDIR)/wxWidgets-3.1.1:$(PATH)
 
-SUBDIRS         = xLights xSchedule
+SUBDIRS         = xLights xSchedule xCapture
 
 .NOTPARALLEL:
 
@@ -39,24 +39,25 @@ linkliquid:
             then ln -s libliquidfun.a.i686 lib/linux/libliquidfun.a; \
             elif test "${DEB_HOST_ARCH}" = "amd64"; \
             then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
-            else ln -s libliquidfun.a.`uname -p` lib/linux/libliquidfun.a; \
+            else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
         fi; \
 	fi
 
 wxwidgets31: FORCE
 	@printf "Checking wxwidgets\n"
-	@if test "`wx-config --release`" != "3.1"; \
-		then if test ! -d wxWidgets-3.1.0; \
-			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2; \
-			tar xfj wxWidgets-3.1.0.tar.bz2; \
+	@if test "`wx-config --version`" != "3.1.1"; \
+		then if test ! -d wxWidgets-3.1.1; \
+			then echo Downloading wxwidgets; wget --no-verbose -c https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2; \
+			tar xfj wxWidgets-3.1.1.tar.bz2; \
 		fi; \
-		cd wxWidgets-3.1.0;\
-		    patch -p1 < ../lib/linux/wxwidgets-31.patch;\
-			CXXFLAGS="-std=gnu++14" ./configure --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=2 --disable-pcx --disable-iff --without-libtiff; \
-			echo Building wxwidgets; \
-			${MAKE} -s; \
-			echo Completed build of wxwidgets; \
-	fi
+		cd wxWidgets-3.1.1; \
+		patch -p1 < ../lib/linux/wxwidgets-31.patch; \
+		CXXFLAGS="-std=gnu++14" ./configure --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring --enable-backtrace --enable-exceptions --enable-mediactrl --enable-graphics_ctx --enable-monolithic --disable-shared --disable-gtktest --disable-sdltest --with-gtk=3 --disable-pcx --disable-iff --without-libtiff; \
+		echo Building wxwidgets; \
+		${MAKE} -s; \
+		echo Completed build of wxwidgets; \
+        fi
+
 
 #############################################################################
 
@@ -79,6 +80,7 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
+	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
@@ -96,9 +98,10 @@ install:
 	install -D -m 644 xSchedule/Assets.xcassets/AppIcon.appiconset/xschedule-13.png $(DESTDIR)/${PREFIX}/share/icons/hicolor/256x256/apps/xschedule.png
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
-	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -i` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
+	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
 
 uninstall:
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
@@ -107,10 +110,10 @@ uninstall:
 
 cbp2make:
 	@if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -131,6 +134,16 @@ xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xSchedule/xSchedule.cbp.mak
+
+xCapture/xCapture.cbp.mak: xCapture/xCapture.cbp
+	@cbp2make -in xCapture/xCapture.cbp -cfg cbp2make.cfg -out xCapture/xCapture.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xCapture/xCapture.cbp.mak xCapture/xCapture.cbp.mak.orig
+	@cat xCapture/xCapture.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xCapture/xCapture.cbp.mak
 
 #############################################################################
 

@@ -14,7 +14,7 @@ function playlistsLoadPlaylists() {
     dataType: "json",
     success: function(response) {
 
-      $('#currentPlaylist').html("Avalible Playlists");
+      $('#currentPlaylist').html("Available Playlists");
 
       $("#playlistStatus tr").remove();
       for (var i = 0; i < response.playlists.length; i++) {

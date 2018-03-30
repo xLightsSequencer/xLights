@@ -2,13 +2,13 @@
 #define SETDIALOG_H
 
 //(*Headers(SetDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class OutputManager;
@@ -30,18 +30,18 @@ class SetDialog: public wxDialog
 		virtual ~SetDialog();
 
 		//(*Declarations(SetDialog)
-		wxStaticText* StaticText_StartChannel;
-		wxCheckBox* CheckBox_Enabled;
-		wxButton* Button_Ok;
-		wxTextCtrl* TextCtrl_Description;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxButton* Button_Cancel;
-		wxTextCtrl* TextCtrl_StartChannel;
+		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_Enabled;
+		wxSpinCtrl* SpinCtrl_Channels;
 		wxSpinCtrl* SpinCtrl_Value;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText_StartChannel;
+		wxTextCtrl* TextCtrl_Description;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:

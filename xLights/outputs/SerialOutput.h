@@ -28,6 +28,7 @@ public:
     #pragma region Static Functions
     static std::list<std::string> GetAvailableSerialPorts();
     static std::list<std::string> GetPossibleSerialPorts();
+    static std::list<std::string> GetPossibleBaudRates();
     #pragma endregion Static Functions
 
     virtual wxXmlNode* Save() override;
@@ -44,6 +45,8 @@ public:
     virtual bool AllowsBaudRateSetting() const { return true; }
     virtual size_t TxNonEmptyCount() const override;
     virtual bool TxEmpty() const override;
+    int GetId() const { return _universe; }
+    void SetId(int id) { _universe = id; _dirty = true; }
     #pragma endregion Getters and Setters
 
     #pragma region Operators

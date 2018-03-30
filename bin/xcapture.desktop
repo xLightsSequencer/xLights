@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=xCapture %f
+Comment=Capture of e1.31
+Name=xCapture
+Terminal=false
+Icon=xlights
+Categories=AudioVideo;
+MimeType=text/xml;

@@ -1033,6 +1033,7 @@ void AudioManager::DoPrepareFrameData()
 
 	// lock the mutex
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+    logger_base.info("DoPrepareFrameData: Got mutex.");
 
     if (_data[0] == nullptr) return;
 
@@ -1269,6 +1270,7 @@ void ProgressFunction(wxProgressDialog* pd, int p)
 // Get the pre-prepared data for this frame
 std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::list<float>* rc = nullptr;
 
     // Grab the lock so we can safely access the frame data
@@ -1280,6 +1282,7 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
     // if the frame data has not been prepared
     if (!_frameDataPrepared)
     {
+        logger_base.debug("GetFrameData was called prior to the frame data being prepared.");
         // prepare it
         lock.unlock();
         PrepareFrameData(false);
@@ -1308,7 +1311,6 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
 
             if (framedata == nullptr)
             {
-                log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.crit("AudioManager::GetFrameData framedata is nullptr ... this is going to crash.");
             }
 

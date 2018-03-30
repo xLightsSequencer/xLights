@@ -1,10 +1,11 @@
 #include "EffectIconPanel.h"
 #include "sequencer/DragEffectBitmapButton.h"
 #include "BitmapCache.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(EffectIconPanel)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(EffectIconPanel)
@@ -22,13 +23,14 @@ END_EVENT_TABLE()
 
 void AddEffectPanelButtons(const EffectManager &manager, EffectIconPanel *panel, wxGridSizer *sizer) {
 
+    int size = ScaleWithSystemDPI(16);
     for (int x = 0; x < manager.size(); x++) {
-        DragEffectBitmapButton *BitmapButton = new DragEffectBitmapButton(panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(16,16),
+        DragEffectBitmapButton *BitmapButton = new DragEffectBitmapButton(panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size,size),
                                                                             wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
-        BitmapButton->SetMinSize(wxSize(16,16));
-        BitmapButton->SetMaxSize(wxSize(16,16));
+        BitmapButton->SetMinSize(wxSize(size,size));
+        BitmapButton->SetMaxSize(wxSize(size,size));
         BitmapButton->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
-        BitmapButton->SetEffect(manager[x]);
+        BitmapButton->SetEffect(manager[x], 16);
         sizer->Add(BitmapButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, x);
 
     }

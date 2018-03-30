@@ -39,7 +39,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -49,14 +48,15 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON38" variable="BitmapButton20" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Bolts" variable="BitmapButton_NumberBolts" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -96,7 +96,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -106,14 +105,15 @@
 					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON40" variable="BitmapButton22" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Segments" variable="BitmapButton_NumberSegments" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -142,10 +142,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON41" variable="BitmapButton23" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ForkedLightning" variable="BitmapButton_ForkedLightning" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -184,24 +185,24 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_TopX" subclass="BulkEditTextCtrl" variable="TextCtrl86" member="yes">
 					<value>0</value>
 					<maxlength>4</maxlength>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON42" variable="BitmapButton25" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_TopX" variable="BitmapButton_LightningTopX" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -221,8 +222,7 @@
 					<cols>2</cols>
 					<growablecols>0</growablecols>
 					<object class="sizeritem">
-						<object class="wxSlider" name="ID_SLIDER_Lightning_TopY" subclass="BulkEditSlider" variable="Slider_Lightning_TopY" member="yes">
-						</object>
+						<object class="wxSlider" name="ID_SLIDER_Lightning_TopY" subclass="BulkEditSlider" variable="Slider_Lightning_TopY" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
@@ -239,23 +239,23 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_TopY" subclass="BulkEditTextCtrl" variable="TextCtrl88" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON43" variable="BitmapButton26" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_TopY" variable="BitmapButton_LightningTopY" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -276,23 +276,24 @@
 					<max>50</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_BOTX" subclass="BulkEditTextCtrl" variable="TextCtrl89" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton27" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_BOTX" variable="BitmapButton_LightningBOTX" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -308,26 +309,26 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" subclass="BulkEditSlider" variable="Slider_Lightning_BOTY" member="yes">
-				</object>
+				<object class="wxSlider" name="ID_SLIDER_Lightning_BOTY" subclass="BulkEditSlider" variable="Slider_Lightning_BOTY" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lightning_BOTY" subclass="BulkEditTextCtrl" variable="TextCtrl90" member="yes">
 					<value>0</value>
-					<size>20,-1</size>
+					<size>20,-1d</size>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON52" variable="BitmapButton28" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Lightning_BOTY" variable="BitmapButton_LightningBOTY" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 					<minsize>13,13</minsize>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

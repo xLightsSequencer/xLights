@@ -35,6 +35,11 @@ class ColorManager
             COLOR_MODEL_SELECTED,
             COLOR_MODEL_OVERLAP,
             COLOR_LAYOUT_DASHES,
+            COLOR_EFFECT_SELECTED_LOCKED,
+            COLOR_REFERENCE_EFFECT_LOCKED,
+            COLOR_WAVEFORM,
+            COLOR_WAVEFORM_BACKGROUND,
+            COLOR_WAVEFORM_SELECTED,
             NUM_COLORS
         };
 
@@ -99,7 +104,12 @@ class ColorManager
             {COLOR_MODEL_DEFAULT,       "ModelDefault",      "Model Default",       xlLIGHT_GREY,           COLOR_CAT_LAYOUT_TAB},
             {COLOR_MODEL_SELECTED,      "ModelSelected",     "Model Selected",      xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
             {COLOR_MODEL_OVERLAP,       "ModelOverlap",      "Model Overlap",       xlRED,                  COLOR_CAT_LAYOUT_TAB},
-            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB}
+            {COLOR_LAYOUT_DASHES,       "LayoutDashes",      "Dashed Select",       xlYELLOW,               COLOR_CAT_LAYOUT_TAB},
+            {COLOR_EFFECT_SELECTED_LOCKED,  "EffectSelectedLocked",  "Locked Effects",          xlColor(200, 0, 0), COLOR_CAT_EFFECT_GRID},
+            {COLOR_REFERENCE_EFFECT_LOCKED, "ReferenceEffectLocked", "Locked Reference Effect", xlRED,              COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM,            "Waveform",           "Waveform",            xlColor(130, 178, 207), COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM_BACKGROUND, "WaveformBackground", "Waveform Background", xlColor(212, 208, 200), COLOR_CAT_EFFECT_GRID},
+            {COLOR_WAVEFORM_SELECTED,   "WaveformSelected",   "Waveform Selected",   xlColor(0, 0, 200, 45),     COLOR_CAT_EFFECT_GRID}
         };
 
     protected:

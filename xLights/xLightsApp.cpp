@@ -25,6 +25,8 @@
 #include <log4cpp/PropertyConfigurator.hh>
 #include <log4cpp/Configurator.hh>
 
+#include <stdlib.h>     /* srand */
+#include <time.h>       /* time */
 
 #ifdef LINUX
 #include <GL/glut.h>
@@ -209,6 +211,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file
@@ -248,7 +251,6 @@ void handleCrash(void *data) {
     #ifndef __WXMSW__
         // dont call these for windows as they dont seem to do anything.
         report->AddAll(wxDebugReport::Context_Exception);
-        report->AddAll(wxDebugReport::Context_Current);
     #endif
 
     wxFileName fn(topFrame->CurrentDir, OutputManager::GetNetworksFileName());
@@ -451,7 +453,7 @@ bool xLightsApp::OnInit()
        wxString appPath(f.GetPath());
        wxString cmdline(appPath+wxT("/xSchedule"));
         for (int i=1; i< argc;i++) {
-            if (strncmp(argv[i],"-x",2) == 0) {
+            if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else {
                 cmdline += wxT(" ");
@@ -536,14 +538,19 @@ bool xLightsApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    if ( wxsOK )
+    if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(0);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr);
+        if (Frame->CurrentDir == "")
+        {
+            return false;
+        }
     	Frame->Show();
     	SetTopWindow(Frame);
     }
     //*)
-    topFrame = (xLightsFrame* )GetTopWindow();
+
+    topFrame = (xLightsFrame*)GetTopWindow();
     __frame = topFrame;
 
     if (parser.Found("r")) {

@@ -316,15 +316,15 @@ void MModelWiring::DownloadXModel()
         if (d.IsOk())
         {
             wxXmlNode* root = d.GetRoot();
-            if (_model->_pixelDescription != "")
+            if (root->GetAttribute("PixelType", "") == "" && _model->_pixelDescription != "")
             {
                 root->AddAttribute("PixelType", _model->_pixelDescription);
             }
-            if (wxAtoi(_model->_pixelSpacing) != 0)
+            if (root->GetAttribute("PixelMinimumSpacingInches", "") == "" && wxAtoi(_model->_pixelSpacing) != 0)
             {
                 root->AddAttribute("PixelMinimumSpacingInches", wxString::Format("%d", wxAtoi(_model->_pixelSpacing)));
             }
-            if (wxAtoi(_model->_pixelCount) != 0)
+            if (root->GetAttribute("PixelCount", "") == "" && wxAtoi(_model->_pixelCount) != 0)
             {
                 root->AddAttribute("PixelCount", wxString::Format("%d", wxAtoi(_model->_pixelCount)));
             }
@@ -1182,6 +1182,12 @@ void VendorModelDialog::ValidateWindow()
                 Button_Next->Disable();
             }
         }
+    }
+    else
+    {
+        Button_Next->Disable();
+        Button_Prior->Disable();
+        Button_InsertModel->Disable();
     }
 }
 

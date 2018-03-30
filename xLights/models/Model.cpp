@@ -53,6 +53,14 @@ Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml
     StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     splitRGB(false)
 {
+    // These member vars were not initialised so give them some defaults.
+    BufferHt = 0;
+    BufferWi = 0;
+    IsLtoR = true;
+    isBotToTop = true;
+    SingleNode = false;
+    zeroBased = false;
+    SingleChannel = false;
 }
 
 Model::~Model() {
@@ -271,6 +279,8 @@ public:
             return new StatesDialogAdapter(m_model);
         case 5:
             return new SubModelsDialogAdapter(m_model);
+        default:
+            break;
         }
         return nullptr;
     }
@@ -369,6 +379,28 @@ wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
     }
 
     return lg;
+}
+
+void Model::Rename(std::string newName)
+{
+    name = newName;
+    ModelXml->DeleteAttribute("name");
+    ModelXml->AddAttribute("name", name);
+}
+
+void Model::SetStartChannel(std::string startChannel, bool suppressRecalc)
+{
+    ModelXml->DeleteAttribute("StartChannel");
+    ModelXml->AddAttribute("StartChannel", startChannel);
+    if (ModelXml->GetAttribute("Advanced") == "1") {
+        ModelXml->DeleteAttribute(StartChanAttrName(0));
+        ModelXml->AddAttribute(StartChanAttrName(0), startChannel);
+    }
+    if (!suppressRecalc)
+    {
+        RecalcStartChannels();
+    }
+    IncrementChangeCount();
 }
 
 void Model::SetProperty(wxString property, wxString value, bool apply)
@@ -793,6 +825,7 @@ void Model::ParseFaceInfo(wxXmlNode *f, std::map<std::string, std::map<std::stri
         att = att->GetNext();
     }
 }
+
 void Model::WriteFaceInfo(wxXmlNode *rootXml, const std::map<std::string, std::map<std::string, std::string> > &faceInfo) {
     if (!faceInfo.empty()) {
         for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it) {
@@ -915,11 +948,10 @@ std::string Model::ComputeStringStartChannel(int i) {
         return ModelXml->GetAttribute("StartChannel", "1").ToStdString();
     }
     wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
-    wxString sNet = "";
     int ChannelsPerString = CalcCannelsPerString();
     long StringStartChanLong = 0;
     if (stch.Contains(":")) {
-        sNet = stch.SubString(0, stch.Find(":")-1);
+        wxString sNet = stch.SubString(0, stch.Find(":")-1);
         stch = stch.SubString(stch.Find(":") + 1, stch.size());
         long startNetwork;
         if (sNet.ToLong(&startNetwork) && startNetwork > 0) {
@@ -1024,6 +1056,7 @@ bool Model::IsValidStartChannelString() const
     else if (parts[0][0] == '>' || parts[0][0] == '@')
     {
         if ((parts.size() == 2) &&
+            (parts[0].substr(1) != GetName()) && // self referencing
             (parts[1].IsNumber() && wxAtol(parts[1]) > 0 && !parts[1].Contains('.')))
         {
             // dont bother checking the model name ... other processes will check for that
@@ -1090,35 +1123,43 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             int returnChannel = wxAtoi(sc);
             bool fromStart = start[0] == '@';
             start = start.substr(1, start.size());
-            dependsonmodel = start;
-            Model *m = modelManager[start];
-            if (m != nullptr && m->CouldComputeStartChannel) {
-                if (fromStart) {
-                    int i = m->GetFirstChannel();
-                    if (i == -1 && m == this && stringStartChan.size() > 0) {
-                        i = stringStartChan[0];
-                    }
-                    return i + returnChannel;
-                }
-                else {
-                    return m->GetLastChannel() + returnChannel + 1;
-                }
-            }
-            else {
+            if (start == GetName() && !CouldComputeStartChannel)
+            {
                 valid = false;
                 output = 1;
+            }
+            else
+            {
+                if (start != GetName()) {
+                    dependsonmodel = start;
+                }
+                Model *m = modelManager[start];
+                if (m != nullptr && m->CouldComputeStartChannel) {
+                    if (fromStart) {
+                        int i = m->GetFirstChannel();
+                        if (i == -1 && m == this && stringStartChan.size() > 0) {
+                            i = stringStartChan[0];
+                        }
+                        return i + returnChannel;
+                    }
+                    else {
+                        return m->GetLastChannel() + returnChannel + 1;
+                    }
+                }
+                else {
+                    valid = false;
+                    output = 1;
+                }
             }
         }
         else if (start[0] == '#') {
             wxString ss = wxString(str);
             wxArrayString cs = wxSplit(ss.SubString(1, ss.Length()), ':');
-            int returnChannel = 1;
-            int returnUniverse = 1;
             if (cs.Count() == 3)
             {
                 // #ip:universe:channel
-                returnUniverse = wxAtoi(cs[1]);
-                returnChannel = wxAtoi(cs[2]);
+                int returnUniverse = wxAtoi(cs[1]);
+                int returnChannel = wxAtoi(cs[2]);
 
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
                 if (res <= 0)
@@ -1131,8 +1172,8 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
             else if (cs.Count() == 2)
             {
                 // #universe:channel
-                returnChannel = wxAtoi(sc);
-                returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
+                int returnChannel = wxAtoi(sc);
+                int returnUniverse = wxAtoi(ss.SubString(1, ss.Find(":") - 1));
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
@@ -1218,7 +1259,6 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     subModels.clear();
 
     wxString tempstr,channelstr;
-    long StartChannel;
 
     zeroBased = zb;
     ModelXml=ModelNode;
@@ -1276,9 +1316,9 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 
     CouldComputeStartChannel = false;
     std::string  dependsonmodel;
-    StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
+    long StartChannel = GetNumberFromChannelString(ModelNode->GetAttribute("StartChannel","1").ToStdString(), CouldComputeStartChannel, dependsonmodel);
     tempstr=ModelNode->GetAttribute("Dir");
-    IsLtoR=tempstr != "R";
+    IsLtoR = tempstr != "R";
     if (ModelNode->HasAttribute("StartSide")) {
         tempstr=ModelNode->GetAttribute("StartSide");
         isBotToTop = (tempstr == "B");
@@ -1445,6 +1485,43 @@ wxChar Model::GetChannelColorLetter(wxByte chidx) {
     return rgbOrder[chidx];
 }
 
+char Model::EncodeColour(const xlColor& c)
+{
+	if (c.red > 0 && c.green == 0 && c.blue == 0)
+	{
+		return 'R';
+	}
+	if (c.red == 0 && c.green > 0 && c.blue == 0)
+	{
+		return 'G';
+	}
+	if (c.red == 0 && c.green == 0 && c.blue > 0)
+	{
+		return 'B';
+	}
+	if (c.red > 0 && c.red == c.green && c.red == c.blue)
+	{
+		return 'W';
+	}
+
+	return 'X';
+}
+
+// Accepts any absolute channel number and if it happens to be used by this model a single character representing the channel colour is returned.
+// If the channel does not map to the model this returns ' '
+char Model::GetAbsoluteChannelColorLetter(long absoluteChannel)
+{
+    long fc = GetFirstChannel();
+    if (absoluteChannel < fc + 1 || absoluteChannel > GetLastChannel() + 1) return ' ';
+
+    if (SingleChannel)
+    {
+        return EncodeColour(GetNodeMaskColor(0));
+    }
+
+    return GetChannelColorLetter((absoluteChannel - fc - 1) % GetChanCountPerNode());
+}
+
 int CountChar(const std::string& s, char c)
 {
     int count = 0;
@@ -1473,8 +1550,16 @@ std::string Model::GetStartChannelInDisplayFormat()
     }
 }
 
-std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
+std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels)
 {
+    bool allocated = false;
+    if (visitedModels == nullptr)
+    {
+        allocated = true;
+        visitedModels = new std::list<std::string>();
+    }
+    visitedModels->push_back(GetName());
+
     std::string modelFormat = ModelStartChannel;
     char firstChar = ModelStartChannel[0];
 
@@ -1485,9 +1570,9 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
         std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
         Model *m = modelManager[referencedModel];
 
-        if (m != nullptr)
+        if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
         {
-            std::string end = m->GetLastChannelInStartChannelFormat(outputManager);
+            std::string end = m->GetLastChannelInStartChannelFormat(outputManager, visitedModels);
             if (end != "")
             {
                 if (end[0] == '#')
@@ -1502,6 +1587,11 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
                 }
             }
         }
+    }
+
+    if (allocated)
+    {
+        delete visitedModels;
     }
 
     if (firstChar == '#')
@@ -1568,6 +1658,7 @@ unsigned int Model::GetLastChannel() {
     }
     return LastChan;
 }
+
 unsigned int Model::GetFirstChannel() {
     unsigned int LastChan=-1;
     size_t NodeCount=GetNodeCount();
@@ -1651,8 +1742,9 @@ const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 
-NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) {
-    NodeBaseClass *ret = nullptr;
+NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const
+{
+    NodeBaseClass *ret;
     if (StringType=="Single Color Red" || StringType == "R") {
         ret = new NodeClassRed(ns, NodesPerString);
     } else if (StringType=="Single Color Green" || StringType == "G") {
@@ -1789,7 +1881,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
     // want to see if i can catch something that causes this to crash
     if (firstNode + Nodes.size() <= 0 || firstNode + Nodes.size() > 50000)
     {
-        logger_base.warn("XXX Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld.", (long)firstNode + Nodes.size());
+        // This seems to happen when an effect is dropped on a strand with zero pixels
+        // Like a polyline segment with no nodes
+        logger_base.warn("Model::InitRenderBufferNodes firstNode + Nodes.size() = %ld. %s::'%s'. This commonly happens on a polyline segement with zero pixels but with effects dropped on it.", (long)firstNode + Nodes.size(), (const char *)GetDisplayAs().c_str(), (const char *)GetFullName().c_str());
     }
 
     newNodes.reserve(firstNode + Nodes.size());
@@ -1954,10 +2048,21 @@ void Model::InitRenderBufferNodes(const std::string &type,
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
     }
-    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
 
-    //wxASSERT(bufferWi != 0);
-    //wxASSERT(bufferHt != 0);
+    // Zero buffer sizes are bad
+    // This can happen when a strand is zero length ... maybe also a custom model with no nodes
+    if (BufferHt == 0)
+    {
+        logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overidden to be 1.");
+        bufferHt = 1;
+    }
+    if (BufferWi == 0)
+    {
+        logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overidden to be 1.");
+        bufferWi = 1;
+    }
+
+    ApplyTransform(transform, newNodes, bufferWi, bufferHt);
 }
 
 std::string Model::GetNextName() {
@@ -2602,7 +2707,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     bool left = true;
 
     while (first < last) {
-        int n = 0;
+        int n;
         if (left) {
             n = first;
             first++;
@@ -2783,12 +2888,11 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             maxVertexCount = vcount;
         }
         DrawGLUtils::xlAccumulator va(maxVertexCount);
-        float sx,sy;
         int first = 0; int last = NodeCount;
         int buffFirst = -1; int buffLast = -1;
         bool left = true;
         while (first < last) {
-            int n = 0;
+            int n;
             if (left) {
                 n = first;
                 first++;
@@ -2824,8 +2928,8 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX;
-                sy=Nodes[n]->Coords[c].screenY;
+                float sx = Nodes[n]->Coords[c].screenX;
+                float sy = Nodes[n]->Coords[c].screenY;
 
                 if (!GetModelScreenLocation().IsCenterBased()) {
                     sx -= GetModelScreenLocation().RenderWi / 2.0;
@@ -3225,6 +3329,29 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model->SetHcenterOffset(x);
             model->SetVcenterOffset(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
+            model->SetLayoutGroup(model->GetLayoutGroup());
+            model->Selected = true;
+            return model;
+        }
+        else if (root->GetName() == "archesmodel") {
+
+            // grab the attributes I want to keep
+            std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
+            int l = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetLeft();
+            int r = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetRight();
+            int t = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetTop();
+            int b = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetBottom();
+
+            // not a custom model so delete the default model that was created
+            if (model != nullptr) {
+                delete model;
+            }
+            model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
+
+            int h1 = 1;
+            model->InitializeLocation(h1, l, b);
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r-l));
+            ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t-b) / (float)std::abs(r-l));
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
             return model;

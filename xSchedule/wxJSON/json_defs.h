@@ -196,6 +196,11 @@
 #if defined( wxUSE_STL ) && wxUSE_STL == 1
 #define wxJSON_USE_STL
 #endif
+#ifndef wxJSON_USE_STL
+#if wxUSE_STD_CONTAINERS
+#define wxJSON_USE_STL
+#endif
+#endif
 
 //
 // defines the MIN and MAX macro for numeric arguments

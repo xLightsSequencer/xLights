@@ -224,7 +224,6 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
 {
     size_t in_len = encoded_string.size();
     int i = 0;
-    int j = 0;
     int in_ = 0;
     unsigned char char_array_4[4], char_array_3[3];
 
@@ -254,12 +253,12 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
 
     if (i && encoded_string[in_] == '=')
     {
-        for (j = i; j <4; j++)
+        for (int j = i; j <4; j++)
         {
             char_array_4[j] = 0;
         }
 
-        for (j = 0; j <4; j++)
+        for (int j = 0; j <4; j++)
         {
             char_array_4[j] = base64_chars.find(char_array_4[j]);
         }
@@ -268,7 +267,7 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
         char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
         char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-        for (j = 0; (j < i - 1); j++)
+        for (int j = 0; (j < i - 1); j++)
         {
             data.resize(data.size() + 1);
             data[data.size() - 1] = char_array_3[j];
@@ -282,7 +281,6 @@ wxString base64_encode(SequenceData& SeqData)
 {
     wxString ret;
     int i = 0;
-    int j = 0;
 
     unsigned char char_array_3[3];
     unsigned char char_array_4[4];
@@ -308,7 +306,7 @@ wxString base64_encode(SequenceData& SeqData)
 
     if (i)
     {
-        for (j = i; j < 3; j++)
+        for (int j = i; j < 3; j++)
         {
             char_array_3[j] = '\0';
         }
@@ -318,7 +316,7 @@ wxString base64_encode(SequenceData& SeqData)
         char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
         char_array_4[3] = char_array_3[2] & 0x3f;
 
-        for (j = 0; (j < i + 1); j++)
+        for (int j = 0; (j < i + 1); j++)
         {
             ret += base64_chars[char_array_4[j]];
         }
@@ -393,122 +391,57 @@ void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
     }
 }
 
-std::string AfterFirstInt(const std::string &s)
+// Extract all chars before the first number in the string ... strip it from the input string
+std::string BeforeInt(std::string& s)
 {
-    std::string res = "";
     int i = 0;
-    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    while (i < s.size() && (s[i] > '9' || s[i] < '0'))
     {
         i++;
     }
+    if (i == 0) return "";
 
-    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
-    {
-        i++;
-    }
-
-    while (i < s.size())
-    {
-        res += s[i++];
-    }
-
+    std::string res = s.substr(0, i);
+    s = s.substr(i);
     return res;
 }
 
-std::string GetFirstInt(const std::string &s)
+// Extract any leading number ... strip it from the input string
+int ExtractInt(std::string& s)
 {
-    std::string res = "";
     int i = 0;
-    while (i < s.size() && (s[i] < '0' || s[i] > '9'))
+    while (i < s.size() && s[i] <= '9' && s[i] >= '0')
     {
         i++;
     }
 
-    while (i < s.size() && s[i] >= '0' && s[i] <= '9')
-    {
-        res += s[i++];
-    }
+    if (i == 0) return -1;
 
-    return res;
-}
-
-wxString StripLeadingChars(const wxString &s, const wxString &chars)
-{
-    wxString res = s;
-
-    bool found = true;
-    while(found && s.size() != 0)
-    {
-        found = false;
-        for (int i = 0; i < chars.size(); i++)
-        {
-            if (res[0] == chars[i])
-            {
-                res = res.substr(1);
-                found = true;
-                break;
-            }
-        }
-    }
-
+    int res = wxAtoi(s.substr(0, i));
+    s = s.substr(i);
     return res;
 }
 
 int NumberAwareStringCompare(const std::string &a, const std::string &b)
 {
-    // first replace all the numbers with zeros and compare
-    wxString A = wxString(a);
-    A.Replace("0", "");
-    A.Replace("1", "");
-    A.Replace("2", "");
-    A.Replace("3", "");
-    A.Replace("4", "");
-    A.Replace("5", "");
-    A.Replace("6", "");
-    A.Replace("7", "");
-    A.Replace("8", "");
-    A.Replace("9", "");
-    wxString AA = A;
-    AA.Replace("-", "");
-    AA.Replace("_", "");
-    AA.Replace(" ", "");
+    std::string aa = a;
+    std::string bb = b;
 
-    wxString B = wxString(b);
-    B.Replace("0", "");
-    B.Replace("1", "");
-    B.Replace("2", "");
-    B.Replace("3", "");
-    B.Replace("4", "");
-    B.Replace("5", "");
-    B.Replace("6", "");
-    B.Replace("7", "");
-    B.Replace("8", "");
-    B.Replace("9", "");
-    wxString BB = B;
-    BB.Replace("-", "");
-    BB.Replace("_", "");
-    BB.Replace(" ", "");
-
-    if (AA == BB)
+    while (true)
     {
-        std::string aa = a;
-        std::string bb = b;
-        while (true)
+        std::string abi = BeforeInt(aa);
+        std::string bbi = BeforeInt(bb);
+
+        if (abi == bbi)
         {
-            std::string ai = GetFirstInt(aa);
-            int ia = wxAtoi(ai);
-            int ib = wxAtoi(GetFirstInt(bb));
+            int ia = ExtractInt(aa);
+            int ib = ExtractInt(bb);
 
             if (ia == ib)
             {
-                if (ai == "")
+                if (aa == bb)
                 {
                     return 0;
-                }
-                else
-                {
-                    aa = AfterFirstInt(aa);
-                    bb = AfterFirstInt(bb);
                 }
             }
             else
@@ -520,20 +453,60 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
                 return 1;
             }
         }
+        else
+        {
+            if (abi < bbi)
+            {
+                return -1;
+            }
+            return 1;
+        }
     }
-    else
-    {
-        A = StripLeadingChars(A, " -_");
-        B = StripLeadingChars(B, " -_");
+}
 
-        if (A < B)
-        {
-            return -1;
-        }
-        if (A == B)
-        {
-            return 0;
-        }
-        return 1;
-    }
+#ifdef __WXOSX__
+double xlOSXGetMainScreenContentScaleFactor();
+#endif
+
+double GetSystemContentScaleFactor() {
+#ifdef __WXOSX__
+    return xlOSXGetMainScreenContentScaleFactor();
+#else
+    return double(wxScreenDC().GetPPI().y) / 96.0;
+#endif
+}
+
+double ScaleWithSystemDPI(double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return ScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
+#endif
+}
+double UnScaleWithSystemDPI(double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return UnScaleWithSystemDPI(GetSystemContentScaleFactor(), val);
+#endif
+}
+
+double ScaleWithSystemDPI(double scalingFactor, double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return val * scalingFactor;
+#endif
+}
+
+double UnScaleWithSystemDPI(double scalingFactor, double val) {
+#ifdef __WXOSX__
+    //OSX handles all the scaling itself
+    return val;
+#else
+    return val / scalingFactor;
+#endif
 }

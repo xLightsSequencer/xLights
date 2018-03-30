@@ -80,7 +80,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_Piano_File" variable="Button_Piano_File" member="yes">
 							<label>...</label>
-							<size>32,28</size>
+							<size>25,-1d</size>
 							<handler function="OnButton_Piano_FileClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -136,7 +136,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Start" variable="TextCtrl_Piano_MIDI_Start" member="yes">
 							<value>0</value>
-							<size>44,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Piano_MIDI_StartText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -165,7 +165,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Piano_MIDI_Speed" variable="TextCtrl_Piano_MIDI_Speed" member="yes">
 							<value>100</value>
-							<size>44,24</size>
+							<size>25,-1d</size>
 							<handler function="OnTextCtrl_Piano_MIDI_SpeedText" entry="EVT_TEXT" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

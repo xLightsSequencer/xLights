@@ -83,6 +83,24 @@ Version:     ?
 License:     GPL2
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
+Library:     wxMIDI
+Usage:       Talking to midi devices
+Link:        http://wxcode.sourceforge.net/docs/wxmidi/
+Source:      https://sourceforge.net/projects/wxcode/files/Components/wxMidi/
+Last Pulled: Jan 2018
+Version:     2.0
+License:     ?
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
+
+Library:     PortMIDI
+Usage:       Underlying library used by wxMIDI
+Link:        http://portmedia.sourceforge.net/portmidi/
+Source:      https://sourceforge.net/projects/portmedia/files/portmidi/
+Last Pulled: Jan 2018
+Version:     217
+License:     ?
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
+
 Library:     MIDI
 Usage:       MIDI file reading for Piano effect
 Link:        http://midifile.sapp.org/
@@ -110,18 +128,30 @@ Version:     ?
 License:     MIT License
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
-Library:     
-Usage:       
-Link:        
+Library:     Joachim Buermann Serial Port Access Code
+Usage:       Serial port access
+Link:        http://wxcode.sourceforge.net/showcomp.php?name=wxCtb
 Source:      
 Last Pulled: 
 Version:     
 License:     
-Strategy:    
+Strategy:    Code has been incorportated into Serial.cpp and heavily modified. It is not being kept up to date with source.
 
+Library:     Rene Nyffenegger Base64 Encode/Decode
+Usage:       Base64 coding
+Link:        http://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp
+Source:      
+Last Pulled: 
+Version:     
+License:     
+Strategy:    Code has been incorportated into UtilFunctions.cpp.
 
-
-
-
-
+Library:     Frank Thilo MD5 Hash
+Usage:       MD5 Hash
+Link:        http://www.zedwood.com/article/cpp-md5-function
+Source:      
+Last Pulled: 
+Version:     
+License:     
+Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 

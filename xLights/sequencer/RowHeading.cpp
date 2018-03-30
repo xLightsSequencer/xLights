@@ -6,6 +6,7 @@
 #include "../BitmapCache.h"
 #include <wx/numdlg.h>
 #include "models/ModelGroup.h"
+#include "../SelectTimingsDialog.h"
 
 #define ICON_SPACE 25
 
@@ -63,9 +64,14 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
 {
     DOUBLE_BUFFER(this);
     wxString tooltip;
-    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, false);
-    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, false);
-    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, false);
+#ifdef __WXOSX__
+    bool exact = false;
+#else
+    bool exact = true;
+#endif
+    papagayo_icon = BitmapCache::GetPapgayoIcon(tooltip, 16, exact);
+    papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, exact);
+    model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, exact);
     mCanPaste = false;
 }
 
@@ -550,23 +556,60 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         TimingElement *te = dynamic_cast<TimingElement *>(element);
         if (fn.GetExt().Lower() == "xtiming")
         {
-            wxFile f(filename);
-            logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
-            if (!f.Create(filename, true) || !f.IsOpened())
+            SelectTimingsDialog dlg(this);
+
+            for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); i++)
             {
-                logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-                wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-                return;
+                TimingElement* te2 = mSequenceElements->GetTimingElement(i);
+                dlg.CheckListBox_Timings->Insert(te2->GetName(), i);
+                if (te2->GetName() == element->GetName())
+                {
+                    dlg.CheckListBox_Timings->Check(i);
+                }
             }
-            wxString name = wxFileName(filename).GetName();
-            wxString td = wxString(te->GetExport().c_str());
-            wxString v = xlights_version_string;
-            f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<timing ");
-            f.Write(wxString::Format("name=\"%s\" ", name));
-            f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
-            f.Write(td);
-            f.Write("</timing>\n");
-            f.Close();
+
+            if (mSequenceElements->GetNumberOfTimingElements() == 1  || dlg.ShowModal() == wxID_OK)
+            {
+                wxArrayInt sel;
+                dlg.CheckListBox_Timings->GetCheckedItems(sel);
+
+                if (sel.size() > 0)
+                {
+                    wxFile f(filename);
+                    logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
+                    if (!f.Create(filename, true) || !f.IsOpened())
+                    {
+                        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
+                        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                        return;
+                    }
+                    wxString v = xlights_version_string;
+                    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+                    if (sel.size() > 1)
+                    {
+                        f.Write("<timings>\n");
+                    }
+                    for (int i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
+                    {
+                        if (dlg.CheckListBox_Timings->IsChecked(i))
+                        {
+                            TimingElement *tee = dynamic_cast<TimingElement *>(mSequenceElements->GetElement(dlg.CheckListBox_Timings->GetString(i).ToStdString()));
+
+                            wxString td = wxString(tee->GetExport().c_str());
+                            f.Write("<timing ");
+                            f.Write(wxString::Format("name=\"%s\" ", tee->GetName()));
+                            f.Write(wxString::Format("SourceVersion=\"%s\">\n", v));
+                            f.Write(td);
+                            f.Write("</timing>\n");
+                        }
+                    }
+                    if (sel.size() > 1)
+                    {
+                        f.Write("</timings>\n");
+                    }
+                    f.Close();
+                }
+            }
         }
         else if (fn.GetExt().Lower() == "pgo")
         {
@@ -919,7 +962,6 @@ void RowHeading::Draw()
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row = 0;
-    int startY = 0;
     int endY = 0;
 
     for (int i = 0; i< mSequenceElements->GetVisibleRowInformationSize(); i++)
@@ -936,7 +978,7 @@ void RowHeading::Draw()
         }
         wxBrush brush2(GetHeaderColor(rowInfo).asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush2);
-        startY = DEFAULT_ROW_HEADING_HEIGHT*row;
+        int startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);

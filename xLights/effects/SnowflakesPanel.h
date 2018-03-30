@@ -4,11 +4,11 @@
 //(*Headers(SnowflakesPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,19 +21,19 @@ class SnowflakesPanel: public wxPanel
 		virtual ~SnowflakesPanel();
 
 		//(*Declarations(SnowflakesPanel)
-		wxStaticText* StaticText80;
-		wxBitmapButton* BitmapButton16;
-		wxBitmapButton* BitmapButton_SnowflakesType;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText181;
-		wxBitmapButton* BitmapButton_SnowflakesCount;
-		BulkEditSlider* Slider_Snowflakes_Count;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Snowflakes_Type;
-		wxBitmapButton* BitmapButton1;
 		BulkEditSlider* Slider_Snowflakes_Speed;
-		BulkEditChoice* Choice_Falling;
 		wxStaticText* StaticText79;
+		wxStaticText* StaticText80;
+		wxBitmapButton* BitmapButton_SnowflakesType;
+		wxStaticText* StaticText181;
+		BulkEditChoice* Choice_Falling;
+		wxStaticText* StaticText1;
+		wxBitmapButton* BitmapButton_SnowflakesSpeed;
+		BulkEditSlider* Slider_Snowflakes_Type;
+		wxStaticText* StaticText2;
+		BulkEditSlider* Slider_Snowflakes_Count;
+		wxBitmapButton* BitmapButton_Falling;
+		wxBitmapButton* BitmapButton_SnowflakesCount;
 		//*)
 
 	protected:
@@ -50,11 +50,11 @@ class SnowflakesPanel: public wxPanel
 		static const long ID_STATICTEXT_Snowflakes_Speed;
 		static const long ID_SLIDER_Snowflakes_Speed;
 		static const long IDD_TEXTCTRL_Snowflakes_Speed;
-		static const long ID_BITMAPBUTTON34;
+		static const long ID_BITMAPBUTTON_SLIDER_Snowflakes_Speed;
 		static const long ID_STATICTEXT_Falling;
 		static const long ID_CHOICE_Falling;
 		static const long ID_STATICTEXT2;
-		static const long ID_BITMAPBUTTON1;
+		static const long ID_BITMAPBUTTON_CHOICE_Falling;
 		//*)
 
 	public:

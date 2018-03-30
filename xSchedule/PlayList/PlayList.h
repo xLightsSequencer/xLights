@@ -84,6 +84,8 @@ public:
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
     void ClearStepLooping() { _loopStep = false; }
+    PlayListStep* GetStepAtTime(long ms) const;
+    size_t GetPosition() const;
     std::string GetName() const;
     std::string GetRawName() const {  return _name; };
     std::string GetNameNoTime() const { if (_name == "") return "<unnamed>"; else return _name; };

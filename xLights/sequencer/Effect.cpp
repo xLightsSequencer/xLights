@@ -247,7 +247,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         }
         else
         {
-            mPaletteMap.erase(wxString(vcid));
+            mPaletteMap.erase(vcid);
             mPaletteMap[id] = value;
         }
     }
@@ -259,7 +259,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         }
         else
         {
-            mSettings.erase(wxString(vcid));
+            mSettings.erase(vcid);
             mSettings[id] = value;
         }
     }
@@ -356,6 +356,23 @@ wxString Effect::GetDescription() const
     return "";
 }
 
+bool Effect::IsLocked() const
+{
+    return mSettings.Contains("X_Effect_Locked");
+}
+
+void Effect::SetLocked(bool lock)
+{
+    if (lock)
+    {
+        mSettings["X_Effect_Locked"] = "True";
+    }
+    else
+    {
+        mSettings.erase("X_Effect_Locked");
+    }
+}
+
 int Effect::GetStartTimeMS() const
 {
     return mStartTime;
@@ -363,6 +380,8 @@ int Effect::GetStartTimeMS() const
 
 void Effect::SetStartTimeMS(int startTimeMS)
 {
+    wxASSERT(!IsLocked());
+
     if (startTimeMS > mStartTime)
     {
         IncrementChangeCount();
@@ -386,6 +405,8 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
 
 void Effect::SetEndTimeMS(int endTimeMS)
 {
+    wxASSERT(!IsLocked());
+
     if (endTimeMS < mEndTime)
     {
         IncrementChangeCount();

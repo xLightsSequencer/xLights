@@ -27,7 +27,6 @@
 									<min>1</min>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
 								<option>1</option>
 							</object>
 						</object>
@@ -45,7 +44,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Music_Bars" variable="BitmapButton_Music_Bars" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Music_Bars" variable="BitmapButton_Music_Bars" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -124,7 +123,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_StartNote" variable="BitmapButton_Music_StartNote" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Music_StartNote" variable="BitmapButton_Music_StartNote" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -163,7 +162,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_EndNote" variable="BitmapButton_Music_EndNote" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Music_EndNote" variable="BitmapButton_Music_EndNote" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -195,7 +194,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -208,7 +206,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Sensitivty" variable="BitmapButton_Music_Sensitivity" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Music_Sensitivity" variable="BitmapButton_Music_Sensitivity" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -248,7 +246,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -261,7 +258,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Offset" variable="BitmapButton_Music_Offset" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Music_Offset" variable="BitmapButton_Music_Offset" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -290,7 +287,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Scale" variable="BitmapButton_Music_Scale" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Music_Scale" variable="BitmapButton_Music_Scale" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -327,7 +324,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Scaling" variable="BitmapButton_Music_Scaling" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Music_Scaling" variable="BitmapButton_Music_Scaling" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -364,7 +361,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Colour" variable="BitmapButton_Music_Colour" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Music_Colour" variable="BitmapButton_Music_Colour" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -393,7 +390,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Music_Fade" variable="BitmapButton_Music_Fade" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Music_Fade" variable="BitmapButton_Music_Fade" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

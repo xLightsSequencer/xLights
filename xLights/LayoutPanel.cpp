@@ -1,17 +1,16 @@
 #include "LayoutPanel.h"
 
 //(*InternalHeaders(LayoutPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/font.h>
-#include <wx/choice.h>
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/splitter.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
-#include <wx/filedlg.h>
-#include <wx/prntbase.h>
 //*)
 
 #include <wx/clipbrd.h>
@@ -83,6 +82,7 @@ BEGIN_EVENT_TABLE(LayoutPanel,wxPanel)
 END_EVENT_TABLE()
 
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
+const long LayoutPanel::ID_PREVIEW_REPLACEMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
@@ -112,6 +112,9 @@ const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
+const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
+const long LayoutPanel::ID_MNU_MAKEALLSCNOTOVERLAPPING = wxNewId();
 const long LayoutPanel::ID_MNU_ADD_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETE_ACTIVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ADDPOINT = wxNewId();
@@ -173,11 +176,7 @@ public:
             SetBitmap(bitmap.ConvertToDisabled());
         } else if (state == 1) {
             const wxImage imgDisabled = bitmap.ConvertToImage().ConvertToDisabled(128);
-#ifdef __WXOSX__
             SetBitmap(wxBitmap(imgDisabled, -1, bitmap.GetScaleFactor()));
-#else
-            SetBitmap(wxBitmap(imgDisabled));
-#endif
         } else {
             SetBitmap(bitmap);
         }
@@ -204,7 +203,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false)
+    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
+    ModelGroupWindow(nullptr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -214,11 +214,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     appearanceVisible = sizeVisible = stringPropsVisible = false;
 
 	//(*Initialize(LayoutPanel)
-	wxFlexGridSizer* LeftPanelSizer;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* PreviewGLSizer;
-	wxFlexGridSizer* FlexGridSizerPreview;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* LeftPanelSizer;
+	wxFlexGridSizer* PreviewGLSizer;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -226,7 +226,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->AddGrowableRow(0);
 	SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
 	SplitterWindow2->SetMinSize(wxSize(10,10));
-	SplitterWindow2->SetMinimumPaneSize(10);
 	SplitterWindow2->SetSashGravity(0.5);
 	LeftPanel = new wxPanel(SplitterWindow2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	LeftPanelSizer = new wxFlexGridSizer(0, 1, 0, 0);
@@ -259,7 +258,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
 	FlexGridSizer1->Add(ToolSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
 	StaticText1 = new wxStaticText(PreviewGLPanel, ID_STATICTEXT1, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	wxFont StaticText1Font(12,wxFONTFAMILY_SWISS,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	wxFont StaticText1Font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	if ( !StaticText1Font.Ok() ) StaticText1Font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	StaticText1Font.SetWeight(wxFONTWEIGHT_BOLD);
 	StaticText1->SetFont(StaticText1Font);
 	FlexGridSizer1->Add(StaticText1, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 40);
 	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
@@ -269,7 +270,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
 	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
-	SplitterWindow2->SetSashPosition(175);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 1);
 	SetSizer(FlexGridSizerPreview);
 	FlexGridSizerPreview->Fit(this);
@@ -281,7 +281,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
-
 
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, xlights->PreviewModels, xlights->LayoutGroups, true);
@@ -323,11 +322,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
-    LeftPanelSizer->Fit(LeftPanel);
-    LeftPanelSizer->SetSizeHints(LeftPanel);
-    FlexGridSizerPreview->Fit(this);
-    FlexGridSizerPreview->SetSizeHints(this);
-
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    int msp = config->Read("LayoutModelSplitterSash", -1);
+    int sp = config->Read("LayoutMainSplitterSash", -1);
+    
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
     propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
@@ -336,18 +335,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetValidationFailureBehavior(wxPG_VFB_MARK_CELL | wxPG_VFB_BEEP);
 
     logger_base.debug("LayoutPanel property grid created");
-
-    wxConfigBase* config = wxConfigBase::Get();
-    int msp = config->Read("LayoutModelSplitterSash", -1);
-    int sp = config->Read("LayoutMainSplitterSash", -1);
-    if (sp != -1) {
-        SplitterWindow2->SetSashGravity(0.0);
-        SplitterWindow2->SetSashPosition(sp);
-    }
-    if (msp != -1) {
-        ModelSplitter->SetSashGravity(0.0);
-        ModelSplitter->SetSashPosition(msp);
-    }
 
     ToolSizer->SetCols(18);
     AddModelButton("Arches", arches);
@@ -383,16 +370,32 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo, nullptr,this);
 
-    ModelGroupWindow = new wxScrolledWindow(ModelSplitter);
+    wxScrolledWindow *sw = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    ModelGroupWindow->SetSizer(sizer);
-    model_grp_panel = new ModelGroupPanel(ModelGroupWindow, xlights->AllModels, this);
+    sw->SetSizer(sizer);
+    model_grp_panel = new ModelGroupPanel(sw, xlights->AllModels, this);
     sizer->Add( model_grp_panel, 1, wxEXPAND | wxALL, 1 );
-    ModelGroupWindow->SetScrollRate(5,5);
-    ModelGroupWindow->Hide();
+    sw->SetScrollRate(5,5);
+    sw->Hide();
 
     logger_base.debug("LayoutPanel model group panel created");
 
+    LeftPanelSizer->Fit(LeftPanel);
+    LeftPanelSizer->SetSizeHints(LeftPanel);
+    FlexGridSizerPreview->Fit(this);
+    FlexGridSizerPreview->SetSizeHints(this);
+
+    ModelGroupWindow = sw;
+    if (sp != -1) {
+        SplitterWindow2->SetSashGravity(0.0);
+        SplitterWindow2->SetSashPosition(sp);
+    }
+    if (msp != -1) {
+        ModelSplitter->SetSashGravity(0.0);
+        ModelSplitter->SetSashPosition(msp);
+    }
+
+    
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
@@ -400,6 +403,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
+
+    if (ModelSplitter->GetSashPosition() < 200)
+    {
+        ModelSplitter->SetSashPosition(200, true);
+    }
 }
 
 void AddIcon(wxImageList &list, const std::string &id, double scaleFactor) {
@@ -431,8 +439,13 @@ void LayoutPanel::InitImageList()
 {
     double scaleFactor = GetContentScaleFactor();
     wxSize iconSize = wxArtProvider::GetSizeHint(wxART_LIST);
-    if ( iconSize == wxDefaultSize )
-        iconSize = wxSize(16, 16);
+    if ( iconSize == wxDefaultSize ) {
+        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, 16),
+                          ScaleWithSystemDPI(scaleFactor, 16));
+    } else {
+        iconSize = wxSize(ScaleWithSystemDPI(scaleFactor, iconSize.x),
+                          ScaleWithSystemDPI(scaleFactor, iconSize.y));
+    }
 
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
 
@@ -515,8 +528,16 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
     }
 #else
     if (dirty) {
+        //ButtonSavePreview->SetForegroundColour(*wxRED);
+        //auto font = ButtonSavePreview->GetFont();
+        //font.SetWeight(wxFONTWEIGHT_BOLD);
+        //ButtonSavePreview->SetFont(font);
         ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
     } else {
+        //ButtonSavePreview->SetForegroundColour(*wxBLACK);
+        //auto font = ButtonSavePreview->GetFont();
+        //font.SetWeight(wxFONTWEIGHT_NORMAL);
+        //ButtonSavePreview->SetFont(font);
         ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
     }
 #endif
@@ -527,9 +548,12 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
 #ifdef __WXOSX__
     wxBitmap bitmap(image, -1, 2.0);
 #else
-    image.Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
+    image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+                  ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+                  wxIMAGE_QUALITY_HIGH);
     wxBitmap bitmap(image);
 #endif
+    
     NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
@@ -541,6 +565,7 @@ LayoutPanel::~LayoutPanel()
     if (background != nullptr) {
         delete background;
     }
+    TreeListViewModels->SetItemComparator(nullptr);
     TreeListViewModels->DeleteAllItems();
     delete m_imageList;
 	//(*Destroy(LayoutPanel)
@@ -629,8 +654,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             }
             if (i == 0) {
                 printf("Did not handle %s   %s\n",
-                       event.GetPropertyName().ToStdString().c_str(),
-                       event.GetValue().GetString().ToStdString().c_str());
+                       (const char *)event.GetPropertyName().c_str(),
+                       (const char *)event.GetValue().GetString().c_str());
             }
         }
     }
@@ -734,6 +759,9 @@ void LayoutPanel::clearPropGrid() {
 }
 
 void LayoutPanel::refreshModelList() {
+
+    TreeListViewModels->Freeze();
+
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextItem(item) )
@@ -743,7 +771,7 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
-            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
+            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
             if( model->GetDisplayAs() != "ModelGroup" ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
                 wxString startStr = model->GetStartChannelInDisplayFormat();
@@ -766,6 +794,8 @@ void LayoutPanel::refreshModelList() {
             }
         }
     }
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string new_name)
@@ -841,7 +871,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
                                                          GetModelTreeIcon(model, true),
                                                          new ModelTreeData(model));
     if( model->GetDisplayAs() != "ModelGroup" ) {
-        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
+        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
         wxString startStr = model->GetStartChannelInDisplayFormat();
         if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
         {
@@ -888,6 +918,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
+
+    TreeListViewModels->Freeze();
+
     if (full_refresh) {
         UnSelectAllModels();
     }
@@ -911,14 +944,22 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
     if (full_refresh) {
         int width = 0;
-
         TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
-
+        //delete all items will atempt to resort as each item is deleted, however, our Model pointers
+        //stored in the items may be invalid
+        TreeListViewModels->SetItemComparator(nullptr);
+        wxTreeListItem child = TreeListViewModels->GetFirstItem();
+        while (child.IsOk()) {
+            TreeListViewModels->DeleteItem(child);
+            child = TreeListViewModels->GetFirstItem();
+        }
         TreeListViewModels->DeleteAllItems();
-        // add all the model groups
+        TreeListViewModels->SetItemComparator(&comparator);
+
         wxTreeListItem root = TreeListViewModels->GetRootItem();
+        // add all the model groups
         for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
             if (model->GetDisplayAs() == "ModelGroup") {
@@ -958,13 +999,12 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
         }
-#ifdef __WXOSX__
-        //work around http://trac.wxwidgets.org/ticket/17409
-        TreeListViewModels->GetDataView()->SetIndent(8);
-#endif
     }
     modelPreview->SetModels(models);
     UpdatePreview();
+
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering)
@@ -1042,7 +1082,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
 void LayoutPanel::BulkEditDimmingCurves()
 {
-    // get the first dimming curve    
+    // get the first dimming curve
     ModelDimmingCurveDialog dlg(this);
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -1547,11 +1587,13 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     Model* a = data1->GetModel();
     Model* b = data2->GetModel();
 
-    if( a == nullptr || b == nullptr ) return 0;
+    if( a == nullptr || b == nullptr ) {
+        return 0;
+    }
 
     if( a->GetDisplayAs() == "ModelGroup" ) {
         if( b->GetDisplayAs() == "ModelGroup" ) {
-            return 0;
+            return NumberAwareStringCompare(a->name, b->name);
         } else {
             return -1;
         }
@@ -1560,22 +1602,13 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     }
 
     if (sortColumn == 1) {
-        if( a->GetDisplayAs() == "ModelGroup" ) {
-            if( b->GetDisplayAs() == "ModelGroup" ) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else if( b->GetDisplayAs() == "ModelGroup" ) {
-            return -1;
-        }
         int ia = data1->startingChannel;
         int ib = data2->startingChannel;
         if (ia > ib)
             return 1;
         if (ia < ib)
             return -1;
-        return 0;
+        return NumberAwareStringCompare(a->name, b->name);
     } else if (sortColumn == 2) {
         int ia = data1->endingChannel;
         int ib = data2->endingChannel;
@@ -1583,11 +1616,9 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return 1;
         if (ia < ib)
             return -1;
-        return 0;
-    } else {
         return NumberAwareStringCompare(a->name, b->name);
     }
-    return 0;
+    return NumberAwareStringCompare(a->name, b->name);
 }
 
 int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
@@ -1597,9 +1628,9 @@ int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned
 
 int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if(modelPreview->GetModels()[i]->HitTest(modelPreview,x,y))
+        if (modelPreview->GetModels()[i]->HitTest(modelPreview, x, y))
         {
             found.push_back(i);
         }
@@ -1611,7 +1642,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
 {
     std::vector<int> found;
     int modelCount = FindModelsClicked(x, y, found);
-    if (modelCount==0)
+    if (modelCount == 0)
     {
         TreeListViewModels->UnselectAll();
         return false;
@@ -1624,7 +1655,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     }
     else if (modelCount>1)
     {
-        for (int i=0; i<modelCount; i++)
+        for (int i = 0; i < modelCount; i++)
         {
             if (mHitTestNextSelectModelIndex == i)
             {
@@ -1786,7 +1817,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if(SelectSingleModel(event.GetX(), y))
+        if (SelectSingleModel(event.GetX(), y))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
@@ -1808,7 +1839,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
     int y = event.GetY();
 
-    if(m_creating_bound_rect)
+    if (m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
         m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
@@ -1956,6 +1987,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     wxMenu mnu;
+
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
@@ -2040,6 +2072,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             }
             mnu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         }
+
+        if (selectedModelCnt == 1 && modelPreview->GetModels().size() > 1)
+        {
+            mnu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+        }
     }
 
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
@@ -2059,7 +2096,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 {
-    if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
+    if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
+    {
+        ReplaceModel();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
     {
         PreviewModelAlignTops();
     }
@@ -2524,12 +2565,20 @@ int LayoutPanel::ModelsSelectedCount() const
 
 void LayoutPanel::OnModelSplitterSashPosChanged(wxSplitterEvent& event)
 {
+    if (ModelGroupWindow == nullptr) {
+        //event during creation
+        return;
+    }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutModelSplitterSash", event.GetSashPosition());
 }
 
 void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 {
+    if (ModelGroupWindow == nullptr) {
+        //event during creation
+        return;
+    }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }
@@ -2777,6 +2826,44 @@ void LayoutPanel::DeleteSelectedModel() {
     }
 }
 
+void LayoutPanel::ReplaceModel()
+{
+    Model* modelToReplaceItWith = selectedModel;
+
+    wxArrayString choices;
+
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GetName() != selectedModel->GetName())
+        {
+            choices.Add(modelPreview->GetModels()[i]->GetName());
+        }
+    }
+
+    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
+    dlg.SetSelection(0);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        Model* replaceModel = nullptr;
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GetName() == dlg.GetStringSelection())
+            {
+                replaceModel = modelPreview->GetModels()[i];
+            }
+        }
+
+        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
+        replaceModel->Rename("Iamgoingtodeletethismodel");
+        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
+        modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
+        xlights->AllModels.Delete("Iamgoingtodeletethismodel");
+        xlights->UpdateModelsList();
+        xlights->MarkEffectsFileDirty(true);
+    }
+}
+
 void LayoutPanel::LockSelectedModels(bool lock)
 {
     bool selectedModelFound = false;
@@ -2893,13 +2980,13 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             UnSelectAllModels();
         } else if (undoBuffer[sz].type == "ModelProperty") {
             SelectModel(undoBuffer[sz].model);
-            wxPropertyGridEvent event;
-            event.SetPropertyGrid(propertyEditor);
+            wxPropertyGridEvent event2;
+            event2.SetPropertyGrid(propertyEditor);
             wxStringProperty wsp("Model", undoBuffer[sz].key, undoBuffer[sz].data);
-            event.SetProperty(&wsp);
+            event2.SetProperty(&wsp);
             wxVariant value(undoBuffer[sz].data);
-            event.SetPropertyValue(value);
-            OnPropertyGridChange(event);
+            event2.SetPropertyValue(value);
+            OnPropertyGridChange(event2);
             xlights->MarkEffectsFileDirty(true);
             resetPropertyGrid();
         } else if (undoBuffer[sz].type == "SingleModel") {
@@ -3071,7 +3158,117 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
     }
-    else if(id == ID_MNU_RENAME_MODEL_GROUP)
+    else if (id == ID_MNU_MAKEALLSCVALID)
+    {
+        if (wxMessageBox("While this will make all your start channels valid it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            Model* lastModel = nullptr;
+            long lastModelEndChannel = 0;
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetLastChannel() > lastModelEndChannel)
+                {
+                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    {
+                        lastModelEndChannel = it->second->GetLastChannel();
+                        lastModel = it->second;
+                    }
+                }
+            }
+
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetDisplayAs() != "ModelGroup" && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+                {
+                    if (lastModel == nullptr)
+                    {
+                        it->second->SetStartChannel("1", true);
+                        lastModel = it->second;
+                    }
+                    else
+                    {
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        lastModel = it->second;
+                    }
+                }
+            }
+            //xlights->RecalcModels(true);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+        }
+    }
+    else if (id == ID_MNU_MAKEALLSCNOTOVERLAPPING)
+    {
+        if (wxMessageBox("While this will make all your start channels not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            Model* lastModel = nullptr;
+            long lastModelEndChannel = 0;
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetLastChannel() > lastModelEndChannel)
+                {
+                    if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                    {
+                        lastModelEndChannel = it->second->GetLastChannel();
+                        lastModel = it->second;
+                    }
+                }
+            }
+
+            for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+            {
+                if (it->second->GetDisplayAs() != "ModelGroup" && xlights->AllModels.IsModelOverlapping(it->second))
+                {
+                    if (lastModel == nullptr)
+                    {
+                        it->second->SetStartChannel("1", true);
+                        lastModel = it->second;
+                    }
+                    else
+                    {
+                        it->second->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                        lastModel = it->second;
+                    }
+                }
+            }
+            //xlights->RecalcModels(true);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+        }
+    }
+    else if (id == ID_MNU_MAKESCVALID)
+    {
+        if (wxMessageBox("While this will make your start channel valid and not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
+        {
+            if (selectedModel != nullptr)
+            {
+                Model* lastModel = nullptr;
+                long lastModelEndChannel = 0;
+                for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+                {
+                    if (it->second->GetLastChannel() > lastModelEndChannel)
+                    {
+                        if (it->second->GetDisplayAs() != "ModelGroup" && it->second->CouldComputeStartChannel && it->second->IsValidStartChannelString())
+                        {
+                            lastModelEndChannel = it->second->GetLastChannel();
+                            lastModel = it->second;
+                        }
+                    }
+                }
+                if (lastModel == nullptr)
+                {
+                    selectedModel->SetStartChannel("1", true);
+                }
+                else
+                {
+                    selectedModel->SetStartChannel(">" + lastModel->GetName() + ":1", true);
+                }
+                xlights->UpdateModelsList();
+                xlights->MarkEffectsFileDirty(true);
+            }
+        }
+    }
+    else if (id == ID_MNU_RENAME_MODEL_GROUP)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup RENAME_MODEL_GROUP");
         if( mSelectedGroup.IsOk() ) {
@@ -3197,8 +3394,6 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
 }
-
-
 
 void LayoutPanel::PreviewSaveImage()
 {
@@ -3474,11 +3669,53 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
         mnuContext.AppendSeparator();
     }
+
     mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
     if( mSelectedGroup.IsOk() ) {
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
+
+    bool foundInvalid = false;
+    bool foundOverlapping = false;
+    if (selectedModel != nullptr && selectedModel->GetDisplayAs() != "SubModel" && selectedModel->GetDisplayAs() != "ModelGroup")
+    {
+        if (!selectedModel->CouldComputeStartChannel || !selectedModel->IsValidStartChannelString())
+        {
+            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Valid");
+            foundInvalid = true;
+        }
+        if (xlights->AllModels.IsModelOverlapping(selectedModel))
+        {
+            foundOverlapping = true;
+            mnuContext.Append(ID_MNU_MAKESCVALID, "Make Start Channel Not Overlapping");
+        }
+    }
+
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            if (!foundInvalid && (!it->second->CouldComputeStartChannel || !it->second->IsValidStartChannelString()))
+            {
+                foundInvalid = true;
+            }
+            if (!foundOverlapping && xlights->AllModels.IsModelOverlapping(it->second))
+            {
+                foundOverlapping = true;
+            }
+        }
+    }
+
+    if (foundInvalid)
+    {
+        mnuContext.Append(ID_MNU_MAKEALLSCVALID, "Make All Start Channels Valid");
+    }
+    if (foundOverlapping)
+    {
+        mnuContext.Append(ID_MNU_MAKEALLSCNOTOVERLAPPING, "Make All Start Channels Not Overlapping");
+    }
+
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
     PopupMenu(&mnuContext);
 }
@@ -3543,6 +3780,8 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     UpdateModelList(full_refresh, models);
     if( full_refresh ) return;
 
+    TreeListViewModels->Freeze();
+
     std::vector<Model *> modelsToAdd(models);
 
     wxTreeListItem root = TreeListViewModels->GetRootItem();
@@ -3600,6 +3839,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
         TreeListViewModels->GetRootItem();
         AddModelToTree(*a, &root);
     }
+
+    TreeListViewModels->Thaw();
+    TreeListViewModels->Refresh();
 }
 
 CopyPasteModel::~CopyPasteModel()

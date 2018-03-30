@@ -10,7 +10,7 @@
 			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Sets up an DDP connection over ethernet.</label>
+					<label>Sets up an DDP connection over ethernet.&#x0A;&#x0A;Id if unique amongst all your output universes &#x0A;then you can use #id:startchannel for start &#x0A;channel identification</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -37,6 +37,24 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+							<label>Id</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl1" member="yes">
+							<value>64001</value>
+							<min>1</min>
+							<max>65535</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -48,7 +66,7 @@
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
-							<label>Last Channel</label>
+							<label>Num Channels</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -74,11 +92,25 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_ChannelsPerPacket" variable="SpinCtrl_ChannelsPerPacket" member="yes">
-							<value>512</value>
+							<value>1440</value>
 							<min>1</min>
 							<max>1440</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_KEEPCHANNELS" variable="CheckBoxKeepChannels" member="yes">
+							<label>Keep Channel Numbers</label>
+							<checked>1</checked>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

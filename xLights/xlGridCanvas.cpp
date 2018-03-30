@@ -1,5 +1,4 @@
 #include "xlGridCanvas.h"
-#include "BitmapCache.h"
 #include "DrawGLUtils.h"
 #include "models/Model.h"
 
@@ -49,7 +48,7 @@ int xlGridCanvas::GetColumnCenter(int percent)
     return (col * mCellSize) + (1.5 * mCellSize);
 }
 
-int xlGridCanvas::GetCellFromPosition(int position)
+int xlGridCanvas::GetCellFromPosition(int position) const
 {
     return (position / mCellSize) - 1;
 }

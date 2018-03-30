@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="TimingPanel">
-		<size>301,262</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 			<cols>3</cols>
@@ -17,29 +16,19 @@
 									<cols>1</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
+											<label>Reset panel when changing effects</label>
+											<checked>1</checked>
+											<handler function="OnCheckBox_ResetTimingPanelClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 											<cols>3</cols>
 											<growablecols>1</growablecols>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_ResetTimingPanel" variable="CheckBox_ResetTimingPanel" member="yes">
-													<label>Reset panel when changing effects</label>
-													<checked>1</checked>
-													<handler function="OnCheckBox_ResetTimingPanelClick" entry="EVT_CHECKBOX" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
 											<object class="sizeritem">
 												<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
 													<label>Morph</label>
@@ -51,7 +40,6 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -89,6 +77,7 @@
 														<item>Subtractive</item>
 														<item>Max</item>
 														<item>Min</item>
+														<item>Canvas</item>
 													</content>
 													<selection>0</selection>
 													<tooltip>Layering defines how Effect 1 and Effect 2 will be mixed together.&#x0A;Here are the Choices&#x0A;* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. &#x0A;* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.&#x0A;* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.&#x0A;* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.&#x0A;* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.&#x0A;* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.&#x0A;* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2&#x0A;* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1&#x0A;* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2&#x0A;* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1&#x0A;* Layered: Effect 1 only shows in black regions of Effect 2.&#x0A;* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum&#x0A;* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display&#x0A;* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.&#x0A;* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.&#x0A;* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.&#x0A;* Max - Take the maximum value for each channel from both effects&#x0A;* Min - Take the minimum value for each channel from both effects</tooltip>
@@ -103,7 +92,9 @@
 													<cols>2</cols>
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" subclass="BulkEditSlider" variable="Slider_EffectLayerMix" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" subclass="BulkEditSlider" variable="Slider_EffectLayerMix" member="yes">
+															<minsize>30,-1d</minsize>
+														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>1</border>
 														<option>1</option>
@@ -185,6 +176,7 @@
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadein" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
+																		<size>25,-1d</size>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -210,9 +202,9 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_In_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_In_Adjust" member="yes">
 																		<value>50</value>
+																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
-																	<border>1</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
@@ -291,6 +283,7 @@
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" subclass="BulkEditTextCtrl" variable="TextCtrl_Fadeout" member="yes">
 																		<value>0.00</value>
 																		<maxlength>4</maxlength>
+																		<size>25,-1d</size>
 																	</object>
 																	<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																	<border>2</border>
@@ -316,9 +309,9 @@
 																<object class="sizeritem">
 																	<object class="wxSlider" name="ID_SLIDER_Out_Transition_Adjust" subclass="BulkEditSlider" variable="Slider_Out_Adjust" member="yes">
 																		<value>50</value>
+																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
-																	<border>2</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">

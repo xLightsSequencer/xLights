@@ -21,6 +21,7 @@
 #include "../MusicXML.h"
 #include "../osxMacUtils.h"
 #include "../SeqElementMismatchDialog.h"
+#include "../SequenceVideoPanel.h"
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
 #include <wx/config.h>
@@ -115,10 +116,19 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
                    Left().Layer(1));
 
+    logger_base.debug("CreateSequencer: Adding Select Effects Panel.");
+    _selectPanel = new SelectPanel(&mSequenceElements, mainSequencer, PanelSequencer);
+    m_mgr->AddPane(_selectPanel, wxAuiPaneInfo().Name(wxT("SelectEffect")).Caption(wxT("Select Effects")).
+        Left().Layer(1));
+
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0));
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));
+
+    logger_base.debug( "        Sequence Video." );
+    sequenceVideoPanel = new SequenceVideoPanel( this );
+    m_mgr->AddPane(sequenceVideoPanel,wxAuiPaneInfo().Name(wxT("SequenceVideo")).Caption(wxT("Sequence Video")).Float().Hide() );
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
 
@@ -140,6 +150,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
     m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
     m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(1).Show();
+    m_mgr->GetPane("SelectEffect").Caption("SelectEffect").Dock().Left().Layer(1).Hide();
 
     m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Show();
     m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
@@ -331,6 +342,8 @@ static void HandleChoices(xLightsFrame *frame,
                     break;
                 case 3:
                     ignore.push_back(element);
+                    break;
+                default:
                     break;
             }
         }
@@ -551,6 +564,10 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
                 logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
                 wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));
             }
+            else
+            {
+               sequenceVideoPanel->SetMediaPath( mediaFilename.ToStdString() );
+            }
         }
         else if (xml_file.GetSequenceType() == "Media")
         {
@@ -616,6 +633,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
     m_mgr->Update();
+    _selectPanel->ReloadModels();
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -1306,7 +1324,7 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -1348,7 +1366,7 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -1392,7 +1410,7 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
     {
         wxTimeSpan ts = wxDateTime::UNow() - starttime;
         long curtime = ts.GetMilliseconds().ToLong();
-        int msec = 0;
+        int msec;
         if (playAnimation) {
             msec = curtime * playSpeed;
         }
@@ -1775,6 +1793,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             _housePreviewPanel->SetPositionFrames(current_play_time / CurrentSeqXmlFile->GetFrameMS());
         }
 
+        sequenceVideoPanel->UpdateVideo( current_play_time );
+
         //wxLongLong me = wxGetUTCTimeMillis();
         //printf("%d     %d    %d\n", (me-ms).GetLo(), SeqData.FrameTime(), Timer1.GetInterval());
         //ms = me;
@@ -1827,12 +1847,12 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     RenderableEffect *ef = GetEffectManager().GetEffect(effectName);
     if (ef != nullptr) {
         colorPanel->SetColorCount(ef->GetColorSupportedCount());
+        colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
     } else {
         colorPanel->SetColorCount(8);
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("Setting effect controls for unknown effect type: %s", (const char *)effectName.c_str());
     }
-    colorPanel->SetSupports(ef->SupportsLinearColorCurves(settings), ef->SupportsRadialColorCurves(settings));
 }
 
 void xLightsFrame::ApplySetting(wxString name, const wxString &value)
@@ -1864,6 +1884,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
     else if (name.StartsWith("X_"))
     {
+        // This is used for properties that are not displayed on a panel ... but are typically accessed via the right click menu on an effect
         return;
     }
     else
@@ -2067,6 +2088,7 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 void xLightsFrame::DoForceSequencerRefresh()
 {
     mSequenceElements.PopulateRowInformation();
+    _selectPanel->ReloadModels();
     ResizeMainSequencer();
 }
 
@@ -2834,16 +2856,15 @@ std::string xLightsFrame::DecodeMidi(int midi)
         note = 'G';
         sharp = true;
         break;
+    default:
+        break;
     }
 
     if (sharp)
     {
         return wxString::Format("%c#%d", note, o).ToStdString();
     }
-    else
-    {
-        return wxString::Format("%c%d", note, o).ToStdString();
-    }
+    return wxString::Format("%c%d", note, o).ToStdString();
 }
 
 std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
@@ -2964,11 +2985,15 @@ bool isOnLineColor(const xlColor &v1, const xlColor &v2, const xlColor &v3,
 }
 int RampLenColor(int start, std::vector<xlColor> &colors) {
 
-    for (int s = start + 2; s < colors.size(); s++) {
+    int s = start + 2;
+    for (; s < colors.size(); s++) {
         if (!isOnLineColor(colors[start], colors[s-1], colors[s],
                       start, s-1, s)) {
             return s - start;
         }
+    }
+    if (s == colors.size()) {
+        return s - start;
     }
     return 0;
 }
@@ -2983,10 +3008,12 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {
+                HSVValue v1 = colors[x].asHSV();
+                HSVValue v2 = colors[x + len - 1].asHSV();
 
                 int stime = x * frameTime;
                 int etime = (x+len)*frameTime;
-                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK) {
+                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
                     HSVValue c = colors[x].asHSV();
                     if (colors[x] == xlBLACK) {
                         c = colors[x + len - 1].asHSV();
@@ -2994,8 +3021,8 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
                     c.value = 1.0;
                     xlColor c2(c);
 
-                    int i = colors[x].asHSV().value * 100.0;
-                    int i2 = colors[x + len - 1].asHSV().value * 100.0;
+                    int i = v1.value * 100.0;
+                    int i2 = v2.value * 100.0;
                     std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime))
@@ -3040,17 +3067,25 @@ void xLightsFrame::DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     StrandElement *el = dynamic_cast<StrandElement*>((Element*)event.GetClientData());
     int node = event.GetInt() & 0xFFFF;
+    int strand = (event.GetInt() >> 16) & 0xFFFF;
     EffectLayer *layer = el->GetNodeLayer(node);
 
     xlColorVector colors;
+    colors.reserve(SeqData.NumFrames());
     PixelBufferClass ncls(this);
     Model *model = GetModel(el->GetModelName());
-    for (size_t f = 0; f < SeqData.NumFrames(); f++) {
-        model->SetNodeChannelValues(0, &SeqData[f][model->NodeStartChannel(0)]);
-        xlColor c = model->GetNodeColor(0);
-        colors.push_back(c);
+    if (model != nullptr) {
+        SingleLineModel *ssModel = new SingleLineModel(model->GetModelManager());
+        ssModel->Reset(1, *model, strand, node);
+        
+        for (size_t f = 0; f < SeqData.NumFrames(); f++) {
+            ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
+            xlColor c = ssModel->GetNodeColor(0);
+            colors.push_back(c);
+        }
+        DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
+        delete ssModel;
     }
-    DoConvertDataRowToEffects(layer, colors, SeqData.FrameTime());
 }
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
@@ -3212,3 +3247,12 @@ void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)
+{
+   if ( sequenceVideoPanel != nullptr )
+   {
+      std::string spath( path.ToStdString() );
+      ObtainAccessToURL( spath );
+      sequenceVideoPanel->SetMediaPath( spath );
+   }
+}

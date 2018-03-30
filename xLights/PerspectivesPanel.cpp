@@ -2,8 +2,8 @@
 #include <wx/wx.h>
 
 //(*InternalHeaders(PerspectivesPanel)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(PerspectivesPanel)
@@ -25,8 +25,8 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	//(*Initialize(PerspectivesPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);

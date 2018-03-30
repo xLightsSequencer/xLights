@@ -117,6 +117,15 @@ void PlayListItemFSEQ::LoadAudio()
             _audioManager->SetVolume(_volume);
         _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
+
+        // If the FSEQ is shorter than the audio ... then override the length
+        FSEQFile fseq(_fseqFileName);
+        size_t durationFSEQ = fseq.GetLengthMS();
+        if (durationFSEQ < _durationMS)
+        {
+            logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+            _durationMS = durationFSEQ;
+        }
     }
     else
     {
@@ -339,6 +348,8 @@ void PlayListItemFSEQ::SetFastStartAudio(bool fastStartAudio)
 
 void PlayListItemFSEQ::FastSetDuration()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _controlsTimingCache = false;
     std::string af = GetAudioFile();
     if (af == "")
@@ -351,6 +362,14 @@ void PlayListItemFSEQ::FastSetDuration()
         {
             _durationMS = AudioManager::GetAudioFileLength(fseq.GetAudioFileName());
             _controlsTimingCache = true;
+
+            // If the FSEQ is shorter than the audio ... then override the length
+            size_t durationFSEQ = fseq.GetLengthMS();
+            if (durationFSEQ < _durationMS)
+            {
+                logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+                _durationMS = durationFSEQ;
+            }
         }
         else
         {
@@ -361,6 +380,15 @@ void PlayListItemFSEQ::FastSetDuration()
     {
         _durationMS = AudioManager::GetAudioFileLength(GetAudioFilename());
         _controlsTimingCache = true;
+
+        // If the FSEQ is shorter than the audio ... then override the length
+        FSEQFile fseq(_fseqFileName);
+        size_t durationFSEQ = fseq.GetLengthMS();
+        if (durationFSEQ < _durationMS)
+        {
+            logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+            _durationMS = durationFSEQ;
+        }
     }
 }
 
@@ -381,8 +409,6 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     {
         return _currentFrame * GetFrameMS();
     }
-
-    return 0;
 }
 
 void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)

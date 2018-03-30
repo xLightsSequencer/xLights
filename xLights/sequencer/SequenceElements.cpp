@@ -1,6 +1,7 @@
 #include "wx/wx.h"
 #include <wx/utils.h>
 #include <algorithm>
+#include <regex>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 
@@ -140,6 +141,47 @@ EffectLayer* SequenceElements::GetEffectLayer(int row) {
 EffectLayer* SequenceElements::GetVisibleEffectLayer(int row) {
     if(row==-1) return nullptr;
     return GetEffectLayer(GetVisibleRowInformation(row));
+}
+
+std::vector < Element*> SequenceElements::SearchForElements(const std::string &regex, int view) const
+{
+    std::vector < Element*> foundModels;
+    if (mAllViews.size() == 0) return foundModels;
+    try
+    {
+        std::regex reg(regex);
+
+        for (size_t i = 0; i < mAllViews[view].size(); ++i)
+        {
+            Element *el = mAllViews[view][i];
+            if (el->GetFullName().empty()) continue;
+            if (el->GetType() == ELEMENT_TYPE_TIMING) continue;
+            if (std::regex_match(el->GetFullName(), reg))
+            {
+                foundModels.push_back(mAllViews[view][i]);
+            }
+            if (el->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(el);
+                if (mel != nullptr)
+                {
+                    for (int x = 0; x < mel->GetSubModelCount(); ++x)
+                    {
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr)
+                        {
+                            if (sme->GetFullName().empty()) continue;
+                            if (std::regex_match(sme->GetFullName(), reg)) {
+                                foundModels.push_back(sme);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (std::regex_error& e)
+    { }
+    return foundModels;
 }
 
 static Element* CreateElement(SequenceElements *se, const std::string &name, const std::string &type,
@@ -1353,9 +1395,9 @@ int SequenceElements::GetNumberOfTimingRows()
 
 int SequenceElements::GetNumberOfTimingElements() {
     int count = 0;
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
-        if(mAllViews[MASTER_VIEW][i]->GetType()==ELEMENT_TYPE_TIMING)
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
         {
             count++;
         }
@@ -1363,11 +1405,28 @@ int SequenceElements::GetNumberOfTimingElements() {
     return count;
 }
 
+TimingElement* SequenceElements::GetTimingElement(int n)
+{
+    int count = 0;
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
+    {
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            if (count == n)
+            {
+                return (TimingElement*)mAllViews[MASTER_VIEW][i];
+            }
+            count++;
+        }
+    }
+    return nullptr;
+}
+
 int SequenceElements::GetNumberOfActiveTimingEffects()
 {
     int num_timing_effects = 0;
     EffectLayer* tel = GetVisibleEffectLayer(GetSelectedTimingRow());
-    if( tel != nullptr )
+    if (tel != nullptr)
     {
         num_timing_effects = tel->GetEffectCount();
     }
@@ -1448,6 +1507,17 @@ void SequenceElements::SelectAllEffects()
     }
 }
 
+void SequenceElements::SelectAllEffectsNoTiming()
+{
+    for (size_t i = 0; i < mRowInformation.size(); i++)
+    {
+        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING)
+            continue;
+        EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
+        effectLayer->SelectAllEffects();
+    }
+}
+
 void SequenceElements::SelectAllEffectsInRow(int row)
 {
     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
@@ -1460,6 +1530,16 @@ void SequenceElements::UnSelectAllEffects()
     {
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
         effectLayer->UnSelectAllEffects();
+    }
+}
+
+void SequenceElements::SelectAllElements()
+{
+    for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
+    {
+        if (mAllViews[mCurrentView][i]->GetType() == ELEMENT_TYPE_MODEL) {
+            dynamic_cast<ModelElement*>(mAllViews[mCurrentView][i])->SetSelected(true);
+        }
     }
 }
 
@@ -1717,14 +1797,36 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
     {
         int phoneme_start_time = start_time;
         double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
+        int grow_next = 0;
+        Effect* last_effect = nullptr;
         for (size_t i = 0; i < phonemes.Count(); i++ )
         {
-            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+(phoneme_interval_ms*(i + 1)), GetFrequency());
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+grow_next+(phoneme_interval_ms*(i + 1)), GetFrequency());
             if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
-            phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            grow_next = 0;
+            if( phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
+            {
+                int duration = phoneme_end_time - phoneme_start_time;
+                int psize = GetMinPeriod();
+                if( duration >= 50 )
+                {
+                    psize = 50;
+                }
+                if( i == 0 || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP" )
+                {
+                    grow_next = duration - psize;
+                    phoneme_end_time = phoneme_start_time + psize;
+                }
+                else
+                {
+                    phoneme_start_time = phoneme_end_time - psize;
+                    last_effect->SetEndTimeMS(phoneme_start_time);
+                }
+            }
+            last_effect = phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
             phoneme_start_time = phoneme_end_time;
         }
     }

@@ -15,20 +15,20 @@ os: Visual Studio 2015
 environment:
   matrix:
     # Visual Studio 64 bit debug
-    - platform: x64
-      configuration: Debug
-      PLATFORMTOOLSET: 140
-      BUILDTYPE: X64DEBUGVS
-    # gcc 64 bit release
     #- platform: x64
-    #  configuration: 64bit  MinGW_Release
+    #  configuration: Debug
     #  PLATFORMTOOLSET: 140
-    #  BUILDTYPE: X64RELEASEGCC
+    #  BUILDTYPE: X64DEBUGVS
     # gcc 32 bit release
-    #- platform: x86
-    #  configuration: mingw_release
-    #  PLATFORMTOOLSET: 140
-    #  BUILDTYPE: X86RELEASEGCC
+    - platform: x86
+      configuration: mingw_release
+      PLATFORMTOOLSET: 140
+      BUILDTYPE: X86RELEASEGCC
+    # gcc 64 bit release
+    - platform: x64
+      configuration: 64bit  MinGW_Release
+      PLATFORMTOOLSET: 140
+      BUILDTYPE: X64RELEASEGCC
   
 notifications:
   - provider: Email
@@ -41,7 +41,21 @@ notifications:
 build_script:
   - ps: Start-FileDownload 'https://downloads.sourceforge.net/project/cbp2make/cbp2make-stl-rev147-all.tar.7z'
   - ps: Start-FileDownload 'http://www.jrsoftware.org/download.php/is.exe?site=1'
+  - ps: Start-FileDownload 'https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.zip'
+  # This is not required because it is built in to the appveyor image
+  #- ps: Start-FileDownload 'https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.2.0/threads-posix/seh/x86_64-7.2.0-release-posix-seh-rt_v5-rev0.7z'
+  - ps: Start-FileDownload 'https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.2.0/threads-posix/dwarf/i686-7.2.0-release-posix-dwarf-rt_v5-rev0.7z'
   - appveyor.bat
+  
+#deploy:
+#  provider: FTP
+#  protocol: ftps
+#  host: ftp.xlights.org
+#  username: appveyor
+#  password:
+#    secure: AAAAAAAAA====
+#  folder: wwwroot
+#  artifact: /xlights_*.exe
   
 # fail as soon as any build fails
 matrix:

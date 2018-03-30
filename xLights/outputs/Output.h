@@ -17,6 +17,7 @@ class OutputManager;
 #define OUTPUT_PIXELNET "Pixelnet"
 #define OUTPUT_OPENPIXELNET "Pixelnet-Open"
 #define OUTPUT_LOR "LOR"
+#define OUTPUT_LOR_OPT "LOR Optimised"
 #define OUTPUT_DLIGHT "D-Light"
 #define OUTPUT_RENARD "Renard"
 #define OUTPUT_OPENDMX "OpenDMX"
@@ -29,7 +30,7 @@ typedef enum
     PING_OPEN,
     PING_OPENED,
     PING_ALLFAILED,
-    PING_UNAVAILABLE, 
+    PING_UNAVAILABLE,
     PING_UNKNOWN
 } PINGSTATE;
 
@@ -46,6 +47,7 @@ protected:
     int _baudRate;
     int _universe;
     bool _enabled;
+    bool _suspend;
     Controller* _controller;
     int _outputNumber; // cached ordinal of this output ... may change when reordered or other output are changed
     int _nullNumber; // cached ordinal of null controllers ... may change when reordered or other output are changed
@@ -80,6 +82,7 @@ public:
     void ClearDirty() { _dirty = false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }
+    void Suspend(bool suspend) { _suspend = suspend; }
     virtual long GetEndChannel() const { return _startChannel + _channels - 1; }
     std::string GetDescription() const { return _description; }
     void SetDescription(const std::string& description) { _description = description; _dirty = true; }
@@ -126,9 +129,9 @@ public:
     #pragma region Operators
     bool operator==(const Output& output) const;
     #pragma endregion Operators
-        
+
     virtual wxXmlNode* Save();
-    
+
     #pragma region Start and Stop
     virtual bool Open();
     virtual void Close() = 0;
@@ -148,7 +151,7 @@ public:
     virtual void SetManyChannels(long channel, unsigned char data[], long size);
     virtual void AllOff() = 0;
     #pragma endregion Data Setting
-    
+
     virtual void SendHeartbeat() const {}
 
     #pragma region UI

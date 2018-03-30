@@ -52,7 +52,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON32" variable="BitmapButton14" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_Speed" variable="BitmapButton_SpirographSpeed" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -284,7 +284,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate" variable="BitmapButton_Spirographd" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_Animate" variable="BitmapButton_Spirographd" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -342,7 +342,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton15" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_Length" variable="BitmapButton_SpirographLength" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

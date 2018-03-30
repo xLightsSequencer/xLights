@@ -1,11 +1,11 @@
 #include "ConfigureOSC.h"
 #include "ScheduleOptions.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "OSCPacket.h"
 
 //(*InternalHeaders(ConfigureOSC)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "OSCPacket.h"
 //*)
 
 //(*IdInit(ConfigureOSC)

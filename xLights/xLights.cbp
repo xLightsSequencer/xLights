@@ -6,154 +6,6 @@
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="MSVC_Debug">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
-				<Option compiler="msvc10" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="/MDd" />
-					<Add option="/EHc" />
-					<Add option="/EHs" />
-					<Add option="/W3" />
-					<Add option="/Zc:auto" />
-					<Add option="/Zc:wchar_t" />
-					<Add option="/Zi" />
-					<Add option="/DWIN32" />
-					<Add option="/D__WIN32__" />
-					<Add option="/D__WXMSW__" />
-					<Add option="/DwxUSE_UNICODE" />
-					<Add option="/D_WINDOWS" />
-					<Add option="/D_CRT_SECURE_DEPRECATE" />
-					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
-					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
-					<Add option="/DNCCDLLIMPL" />
-					<Add option="/D_DEBUG" />
-					<Add option="/D__WXDEBUG__" />
-					<Add directory="$(#wxvc)/include" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="models/" />
-					<Add directory="support" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wxvc)/include" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="/DEBUG" />
-					<Add option="/NODEFAULTLIB:libcmtd.lib" />
-					<Add option="/NODEFAULTLIB:msvcrt.lib" />
-					<Add option="/INCREMENTAL:NO" />
-					<Add option="/SUBSYSTEM:WINDOWS" />
-					<Add library="msvcrtd.lib" />
-					<Add library="wxmsw31ud_core" />
-					<Add library="wxbase31ud" />
-					<Add library="wxmsw31ud_html" />
-					<Add library="wxbase31ud_xml" />
-					<Add library="wxmsw31ud_adv" />
-					<Add library="wxmsw31ud_media" />
-					<Add library="wxbase31ud_net" />
-					<Add library="wxtiffd" />
-					<Add library="wxpngd" />
-					<Add library="wxjpegd" />
-					<Add library="wxregexud" />
-					<Add library="wxexpatd" />
-					<Add library="wxzlibd" />
-					<Add library="advapi32.lib" />
-					<Add library="gdi32.lib" />
-					<Add library="user32.lib" />
-					<Add library="ole32.lib" />
-					<Add library="oleaut32.lib" />
-					<Add library="uuid.lib" />
-					<Add library="comctl32.lib" />
-					<Add library="comdlg32.lib" />
-					<Add library="kernel32.lib" />
-					<Add library="rpcrt4.lib" />
-					<Add library="winspool.lib" />
-					<Add library="shell32.lib" />
-					<Add library="wsock32.lib" />
-					<Add directory="$(#wxvc)/lib/vc_lib" />
-				</Linker>
-			</Target>
-			<Target title="MSVC_Release">
-				<Option platforms="Windows;" />
-				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option type="0" />
-				<Option compiler="msvc10" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="/MD" />
-					<Add option="/EHc" />
-					<Add option="/EHs" />
-					<Add option="/O2" />
-					<Add option="/Ox" />
-					<Add option="/W3" />
-					<Add option="/Zc:auto" />
-					<Add option="/Zc:wchar_t" />
-					<Add option="/DWIN32" />
-					<Add option="/D__WIN32__" />
-					<Add option="/D__WXMSW__" />
-					<Add option="/DwxUSE_UNICODE" />
-					<Add option="/D_WINDOWS" />
-					<Add option="/D_CRT_SECURE_DEPRECATE" />
-					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
-					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
-					<Add option="/DNCCDLLIMPL" />
-					<Add option="/DNDEBUG" />
-					<Add directory="$(#wxvc)/include" />
-					<Add directory="include" />
-					<Add directory="sequencer" />
-					<Add directory="../xLights" />
-					<Add directory="effects" />
-					<Add directory="effects/" />
-					<Add directory="models" />
-					<Add directory="effects/assist" />
-					<Add directory="models/" />
-					<Add directory="support" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wxvc)/include" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="/NODEFAULTLIB:libcmt.lib" />
-					<Add option="/INCREMENTAL:NO" />
-					<Add option="/SUBSYSTEM:WINDOWS" />
-					<Add library="msvcrt.lib" />
-					<Add library="wxmsw31u_core" />
-					<Add library="wxbase31u" />
-					<Add library="wxmsw31u_html" />
-					<Add library="wxbase31u_xml" />
-					<Add library="wxmsw31u_adv" />
-					<Add library="wxmsw31u_media" />
-					<Add library="wxbase31u_net" />
-					<Add library="wxtiff" />
-					<Add library="wxpng" />
-					<Add library="wxjpeg" />
-					<Add library="wxregexu" />
-					<Add library="wxexpat" />
-					<Add library="wxzlib" />
-					<Add library="advapi32.lib" />
-					<Add library="gdi32.lib" />
-					<Add library="user32.lib" />
-					<Add library="ole32.lib" />
-					<Add library="oleaut32.lib" />
-					<Add library="uuid.lib" />
-					<Add library="comctl32.lib" />
-					<Add library="comdlg32.lib" />
-					<Add library="kernel32.lib" />
-					<Add library="rpcrt4.lib" />
-					<Add library="winspool.lib" />
-					<Add library="shell32.lib" />
-					<Add library="wsock32.lib" />
-					<Add directory="$(#wxvc)/lib/vc_lib" />
-				</Linker>
-			</Target>
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
@@ -188,6 +40,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -226,6 +79,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -250,6 +104,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -262,8 +117,8 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="libwxmsw31u.a" />
-					<Add library="libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/libwxmsw31u.a" />
+					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/ImageHlp.Lib" />
 					<Add library="../lib/windows/avcodec.lib" />
@@ -290,6 +145,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
+					<Add option="-std=c++14" />
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
@@ -310,6 +166,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -352,6 +209,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -365,7 +223,7 @@
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
-			<Target title="64bit  MinGW_Release">
+			<Target title="64bit MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_64" />
@@ -398,6 +256,7 @@
 					<Add directory="../include" />
 					<Add directory="models/" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -434,6 +293,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
 					<Add option="-m64" />
 					<Add option="-g" />
 					<Add option="-pipe" />
@@ -446,7 +306,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
-					<Add directory="$(#wx64)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -458,10 +318,11 @@
 					<Add directory="ffmpeg-dev/include" />
 					<Add directory="../include" />
 					<Add directory="support" />
+					<Add directory="outputs" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx64)/include" />
-					<Add directory="$(#wx64)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-m64" />
@@ -482,7 +343,7 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
-					<Add directory="$(#wx64)/lib/gcc_dll" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -594,6 +455,8 @@
 		<Unit filename="MIDI/MidiFile.cpp" />
 		<Unit filename="MIDI/MidiMessage.cpp" />
 		<Unit filename="MSWStackWalk.h" />
+		<Unit filename="MatrixFaceDownloadDialog.cpp" />
+		<Unit filename="MatrixFaceDownloadDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
@@ -625,6 +488,8 @@
 		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
+		<Unit filename="PixelTestDialog.cpp" />
+		<Unit filename="PixelTestDialog.h" />
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
@@ -635,6 +500,7 @@
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBuffer.cpp" />
 		<Unit filename="RenderBuffer.h" />
+		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />
 		<Unit filename="ResizeImageDialog.cpp" />
@@ -643,6 +509,10 @@
 		<Unit filename="SOIL.h" />
 		<Unit filename="SaveChangesDialog.cpp" />
 		<Unit filename="SaveChangesDialog.h" />
+		<Unit filename="SelectPanel.cpp" />
+		<Unit filename="SelectPanel.h" />
+		<Unit filename="SelectTimingsDialog.cpp" />
+		<Unit filename="SelectTimingsDialog.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
@@ -653,6 +523,10 @@
 		<Unit filename="SequenceCheck.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
+		<Unit filename="SequenceVideoPanel.cpp" />
+		<Unit filename="SequenceVideoPanel.h" />
+		<Unit filename="SequenceVideoPreview.cpp" />
+		<Unit filename="SequenceVideoPreview.h" />
 		<Unit filename="SequenceViewManager.cpp" />
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
@@ -675,8 +549,6 @@
 		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
-		<Unit filename="TestDialog.cpp" />
-		<Unit filename="TestDialog.h" />
 		<Unit filename="TimingPanel.cpp" />
 		<Unit filename="TimingPanel.h" />
 		<Unit filename="TopEffectsPanel.cpp" />
@@ -1010,8 +882,18 @@
 		<Unit filename="outputs/E131Output.h" />
 		<Unit filename="outputs/IPOutput.cpp" />
 		<Unit filename="outputs/IPOutput.h" />
+		<Unit filename="outputs/LOROptimisedOutput.cpp" />
+		<Unit filename="outputs/LOROptimisedOutput.h" />
 		<Unit filename="outputs/LOROutput.cpp" />
 		<Unit filename="outputs/LOROutput.h" />
+		<Unit filename="outputs/LorController.cpp" />
+		<Unit filename="outputs/LorController.h" />
+		<Unit filename="outputs/LorControllerDialog.cpp" />
+		<Unit filename="outputs/LorControllerDialog.h" />
+		<Unit filename="outputs/LorControllers.cpp" />
+		<Unit filename="outputs/LorControllers.h" />
+		<Unit filename="outputs/LorOptimisedDialog.cpp" />
+		<Unit filename="outputs/LorOptimisedDialog.h" />
 		<Unit filename="outputs/NullOutput.cpp" />
 		<Unit filename="outputs/NullOutput.h" />
 		<Unit filename="outputs/NullOutputDialog.cpp" />
@@ -1038,12 +920,11 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
+			<Option target="Debug" />
+			<Option target="Release" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
-			<Option target="MSVC_Debug" />
-			<Option target="MSVC_Release" />
-			<Option target="64bit  MinGW_Release" />
-			<Option target="64bit MinGW_Debug" />
+			<Option target="64bit_MinGW_Release" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />
@@ -1162,10 +1043,13 @@
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
+		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
+		<Unit filename="wxsmith/LorOptimisedDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
+		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
@@ -1185,6 +1069,7 @@
 		<Unit filename="wxsmith/PicturesPanel.wxs" />
 		<Unit filename="wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
+		<Unit filename="wxsmith/PixelTestDialog.wxs" />
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
@@ -1193,9 +1078,12 @@
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
 		<Unit filename="wxsmith/RipplePanel.wxs" />
 		<Unit filename="wxsmith/SaveChangesDialog.wxs" />
+		<Unit filename="wxsmith/SelectPanel.wxs" />
+		<Unit filename="wxsmith/SelectTimingsDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
+		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
@@ -1214,7 +1102,6 @@
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
-		<Unit filename="wxsmith/TestDialog.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
@@ -1242,6 +1129,7 @@
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsTimer.cpp" />
 		<Unit filename="xLightsVersion.cpp" />
+		<Unit filename="xLightsVersion.h" />
 		<Unit filename="xLightsXmlFile.cpp" />
 		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlColorCanvas.cpp" />
@@ -1352,7 +1240,7 @@
 					<wxPanel wxs="wxsmith/PicturesAssistPanel.wxs" src="effects/assist/PicturesAssistPanel.cpp" hdr="effects/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/AssistPanel.wxs" src="effects/assist/AssistPanel.cpp" hdr="effects/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/BufferPanel.wxs" src="BufferPanel.cpp" hdr="BufferPanel.h" fwddecl="0" i18n="1" name="BufferPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/TestDialog.wxs" src="TestDialog.cpp" hdr="TestDialog.h" fwddecl="0" i18n="1" name="TestDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PixelTestDialog.wxs" src="PixelTestDialog.cpp" hdr="PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/LayoutPanel.wxs" src="LayoutPanel.cpp" hdr="LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/StartChannelDialog.wxs" src="StartChannelDialog.cpp" hdr="StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/CustomModelDialog.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
@@ -1387,6 +1275,12 @@
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

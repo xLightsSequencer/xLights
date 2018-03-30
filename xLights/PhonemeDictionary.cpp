@@ -118,11 +118,36 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
                 continue;
             if (phoneme_map.count(p))
             {
-               phonemes.push_back(phoneme_map[p]);
+                bool skip = false;
+                if( phoneme_map[p] == "etc" )
+                {
+                    if( phonemes.Count() > 0 )
+                    {
+                        if( phonemes.Last() == "etc" )
+                        {
+                            skip = true;
+                        }
+                    }
+                }
+                if( !skip )
+                {
+                    phonemes.push_back(phoneme_map[p]);
+                }
             }
             else
             {
-               phonemes.push_back("etc");
+                bool skip = false;
+                if( phonemes.Count() > 0 )
+                {
+                    if( phonemes.Last() == "etc" )
+                    {
+                        skip = true;
+                    }
+                }
+                if( !skip )
+                {
+                    phonemes.push_back(phoneme_map[p]);
+                }
             }
         }
     }

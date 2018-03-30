@@ -759,6 +759,24 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_ADD_LOR" variable="ButtonAddLOR" member="yes">
+																<label>Add LOR</label>
+																<handler function="OnButtonAddLORClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_ADD_DDP" variable="ButtonAddDDP" member="yes">
+																<label>Add DDP</label>
+																<handler function="OnButtonAddDDPClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON_NETWORK_CHANGE" variable="ButtonNetworkChange" member="yes">
 																<label>Change</label>
 																<handler function="OnButtonNetworkChangeClick" entry="EVT_BUTTON" />
@@ -934,7 +952,6 @@
 											<size>100,-1d</size>
 										</object>
 										<flag>wxEXPAND</flag>
-										<minsize>100,-1d</minsize>
 									</object>
 								</object>
 							</object>
@@ -1123,7 +1140,7 @@
 					<handler function="OnMenuItem_xScheduleSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="iD_MNU_VENDORCACHEPURGE" variable="MenuItem_PurgeVendorCache" member="yes">
-					<label>Purge Vendor Cache</label>
+					<label>Purge Download Cache</label>
 					<handler function="OnMenuItem_PurgeVendorCacheSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_CrashXLights" member="yes">
@@ -1222,6 +1239,13 @@
 						<label>Effect Assist</label>
 						<handler function="ShowHideEffectAssistWindow" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_SELECT_EFFECT" variable="MenuItemSelectEffect" member="yes">
+						<label>Select Effect</label>
+						<handler function="OnMenuItemSelectEffectSelected" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItem52" member="yes">
+						<label>Video Preview</label>
+					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>
@@ -1277,6 +1301,27 @@
 				<object class="wxMenuItem" name="ID_PLAY_1_4" variable="MenuItem31" member="no">
 					<label>Play 1/4 Speed</label>
 					<handler function="SetPlaySpeed" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_LOUDVOLUME" variable="MenuItem_LoudVol" member="yes">
+					<label>Loud</label>
+					<handler function="OnMenuItem_LoudVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_MEDVOLUME" variable="MenuItem_MedVol" member="yes">
+					<label>Medium</label>
+					<handler function="OnMenuItem_MedVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_QUIET" variable="MenuItem_QuietVol" member="yes">
+					<label>Quiet</label>
+					<handler function="OnMenuItem_QuietVolSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_SUPERQUIET" variable="MenuItem_VQuietVol" member="yes">
+					<label>Very Quiet</label>
+					<handler function="OnMenuItem_VQuietVolSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
 			</object>

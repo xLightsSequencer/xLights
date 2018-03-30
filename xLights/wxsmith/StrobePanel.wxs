@@ -31,17 +31,18 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Strobes" subclass="BulkEditTextCtrl" variable="TextCtrl_Number_Strobes" member="yes">
 							<value>3</value>
 							<maxlength>3</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON49" variable="BitmapButton_NumberStrobes" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Strobes" variable="BitmapButton_NumberStrobes" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -69,17 +70,18 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Duration" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Duration" member="yes">
 							<value>10</value>
 							<maxlength>3</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON51" variable="BitmapButton_StrobeDuration" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Strobe_Duration" variable="BitmapButton_StrobeDuration" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -108,17 +110,18 @@
 						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Strobe_Type" subclass="BulkEditTextCtrl" variable="TextCtrl_Strobe_Type" member="yes">
 							<value>1</value>
 							<maxlength>1</maxlength>
-							<size>40,-1</size>
+							<size>25,-1d</size>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON50" variable="BitmapButton_Strobe_Type" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Strobe_Type" variable="BitmapButton_Strobe_Type" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -144,10 +147,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Strobe_Music" variable="BitmapButton_Strobe_Music" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Strobe_Music" variable="BitmapButton_Strobe_Music" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -3,16 +3,16 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(TreePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(TreePanel)
@@ -34,9 +34,9 @@ END_EVENT_TABLE()
 TreePanel::TreePanel(wxWindow* parent)
 {
 	//(*Initialize(TreePanel)
-	wxFlexGridSizer* FlexGridSizer71;
 	BulkEditTextCtrl* TextCtrl59;
 	BulkEditTextCtrl* TextCtrl60;
+	wxFlexGridSizer* FlexGridSizer71;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer71 = new wxFlexGridSizer(5, 4, 0, 0);

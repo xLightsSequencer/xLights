@@ -20,6 +20,7 @@ class Xyzzy;
 class PlayListItem;
 class xScheduleFrame;
 class Pinger;
+class ListenerManager;
 
 typedef enum
 {
@@ -54,7 +55,7 @@ public:
     size_t GetStartChannel() const { return _startChannel; }
 };
 
-class ScheduleManager : public wxEvtHandler
+class ScheduleManager
 {
     SYNCMODE _mode;
     int _manualOTL;
@@ -68,6 +69,7 @@ class ScheduleManager : public wxEvtHandler
     wxUint32 _startTime;
     PlayList* _immediatePlay;
     PlayList* _backgroundPlayList;
+    std::list<PlayList*> _eventPlayLists;
     std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
     PlayList* _queuedSongs;
@@ -76,12 +78,12 @@ class ScheduleManager : public wxEvtHandler
     int _lastBrightness;
     wxByte _brightnessArray[255];
     wxDatagramSocket* _fppSyncMaster;
+    wxDatagramSocket* _artNetSyncMaster;
     wxDatagramSocket* _oscSyncMaster;
     wxDatagramSocket* _fppSyncMasterUnicast;
-    wxDatagramSocket* _fppSyncSlave;
     wxDatagramSocket* _oscSyncSlave;
-    wxDatagramSocket* _fppSyncUnicastSlave;
     std::list<OutputProcess*> _outputProcessing;
+    ListenerManager* _listenerManager;
     Xyzzy* _xyzzy;
     wxDateTime _lastXyzzyCommand;
     int _timerAdjustment;
@@ -93,28 +95,20 @@ class ScheduleManager : public wxEvtHandler
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
+    void SendARTNetSync(size_t msec, size_t frameMS);
     void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
     void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
+    void CloseARTNetSyncSendSocket();
     void CloseOSCSyncSendSocket();
-    void OpenFPPSyncListenSocket();
-    void OpenOSCSyncListenSocket();
-    void OpenFPPSyncUnicastListenSocket();
-    void CloseFPPSyncListenSocket();
-    void CloseOSCSyncListenSocket();
-    void CloseFPPSyncUnicastListenSocket();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
-    void OnServerEvent(wxSocketEvent& event);
-    void HandleOSCEvent(wxSocketEvent& event);
     void StartFSEQ(const std::string fseq);
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
-
-    DECLARE_EVENT_TABLE()
 
     public:
 
@@ -131,12 +125,14 @@ class ScheduleManager : public wxEvtHandler
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
         void OpenFPPSyncSendSocket();
+        void OpenARTNetSyncSendSocket();
         void OpenOSCSyncSendSocket();
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
         PlayList* GetPlayList(int  id) const;
         PlayList* GetBackgroundPlayList() const { return _backgroundPlayList; }
+        std::list<PlayList*> GetEventPlayLists() const { return _eventPlayLists; }
         void SetBackgroundPlayList(PlayList* playlist);
         OutputManager* GetOutputManager() const { return _outputManager; }
         RunningSchedule* GetRunningSchedule() const;
@@ -145,6 +141,7 @@ class ScheduleManager : public wxEvtHandler
         ScheduleOptions* GetOptions() const { return _scheduleOptions; }
         std::list<OutputProcess*>* GetOutputProcessing() { return &_outputProcessing; }
         void WebRequestReceived() { _webRequestToggle = !_webRequestToggle; }
+        std::list<PlayListItem*> GetPlayListIps() const;
         bool GetWebRequestToggle();
         bool IsDirty();
         void SetDirty();
@@ -205,6 +202,8 @@ class ScheduleManager : public wxEvtHandler
         static std::string xScheduleShowDir();
         bool ShowDirectoriesMatch() const;
         int GetPPS() const;
+        void StartListeners();
+        int Sync(const std::string& filename, long ms);
 };
 
 #endif

@@ -2,10 +2,11 @@
 #define EFFECTTREEDIALOG_H
 
 //(*Headers(EffectTreeDialog)
-#include <wx/treectrl.h>
-#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/textctrl.h>
+#include <wx/treectrl.h>
 //*)
 #include <wx/xml/xml.h>
 #include <wx/filename.h>
@@ -25,15 +26,17 @@ class EffectTreeDialog : public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxButton* btNewPreset;
 		wxButton* btAddGroup;
-		wxButton* btUpdate;
+		wxButton* ETButton1;
 		wxButton* btApply;
-		wxButton* btRename;
-		wxButton* btImport;
-		wxTreeCtrl* TreeCtrl1;
-		wxButton* btExport;
 		wxButton* btDelete;
+		wxButton* btExport;
+		wxButton* btImport;
+		wxButton* btNewPreset;
+		wxButton* btRename;
+		wxButton* btUpdate;
+		wxTextCtrl* TextCtrl1;
+		wxTreeCtrl* TreeCtrl1;
 		//*)
         wxTreeItemId treeRootID;
         void InitItems(wxXmlNode *e);
@@ -50,6 +53,8 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON5;
 		static const long ID_BUTTON8;
+		static const long ID_TEXTCTRL_SEARCH;
+		static const long ID_BUTTON_SEARCH;
 		//*)
 
 	private:
@@ -68,6 +73,8 @@ class EffectTreeDialog : public wxDialog
 		void OnbtImportClick(wxCommandEvent& event);
 		void OnbtExportClick(wxCommandEvent& event);
 		void OnTreeCtrl1SelectionChanged(wxTreeEvent& event);
+		void OnETButton1Click(wxCommandEvent& event);
+		void OnTextCtrl1TextEnter(wxCommandEvent& event);
 		//*)
 
         xLightsFrame* xLightParent;
@@ -80,6 +87,10 @@ class EffectTreeDialog : public wxDialog
         void AddEffect(wxXmlNode* ele, wxTreeItemId curGroupID);
         void AddGroup(wxXmlNode* ele, wxTreeItemId curGroupID);
         void EffectsFileDirty();
+
+        wxTreeItemId findTreeItem(wxTreeCtrl* pTreeCtrl, const wxTreeItemId& root, const wxTreeItemId& startID, const wxString& text, bool &startfound);
+
+        void SearchForText();
 
 		DECLARE_EVENT_TABLE()
 

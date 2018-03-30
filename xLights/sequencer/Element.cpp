@@ -195,6 +195,10 @@ StrandElement::~StrandElement() {
     mNodeLayers.clear();
 }
 
+std::string StrandElement::GetFullName() const {
+    return GetModelName() + "/" + GetStrandName();
+}
+
 void StrandElement::CleanupAfterRender() {
     for (auto &a : mNodeLayers) {
         a->CleanupAfterRender();

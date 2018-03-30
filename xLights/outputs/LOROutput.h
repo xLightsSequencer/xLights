@@ -5,13 +5,15 @@
 
 // Should be called with: 0 <= chindex <= 3839 (max channels=240*16)
 
-#pragma region LOR Constants
-#define LOR_PACKET_LEN 256
-#define LOR_MAX_CHANNELS 3840
-#pragma endregion LOR Constants
 
 class LOROutput : public SerialOutput
 {
+protected:
+    #pragma region LOR Constants
+    static const unsigned int LOR_PACKET_LEN = 256;
+    static const unsigned int LOR_MAX_CHANNELS = 3840;
+    #pragma endregion LOR Constants
+
     #pragma region Member Variables
     long _lastheartbeat;
     wxByte _data[LOR_PACKET_LEN];

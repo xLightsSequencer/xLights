@@ -85,6 +85,7 @@ void AssistPanel::AddPanel(wxPanel* panel)
     FlexGridSizer2->SetSizeHints(ScrolledWindowAssist);
     SetHandlers(this);
 }
+
 void AssistPanel::RefreshEffect() {
     if( mGridCanvas != nullptr && mModel != nullptr && mEffect != nullptr )
     {

@@ -15,10 +15,10 @@
 			<object class="sizeritem">
 				<object class="wxListBox" name="ID_LISTBOX_Options" variable="ListBox_Options" member="yes">
 					<default>-1</default>
-					<size>158,109</size>
+					<size>120,80d</size>
 					<style>wxLB_MULTIPLE</style>
 				</object>
-				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5d</border>
 				<option>1</option>
 			</object>

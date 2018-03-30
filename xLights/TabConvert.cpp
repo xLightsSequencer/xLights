@@ -37,7 +37,7 @@ void FRAMECLASS ConversionError(const wxString& msg)
 
 void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
     if (_renderMode) {
-        printf("%s\n",msg.ToStdString().c_str());
+        printf("%s\n", (const char *)msg.c_str());
     } else {
         if (filename) {
             FileNameText->SetLabel(msg);
@@ -51,7 +51,7 @@ void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
 
 void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
     if (_renderMode) {
-        printf("%s\n",msg.ToStdString().c_str());
+        printf("%s\n", (const char *)msg.c_str());
     } else {
         StatusText->SetLabel(msg);
         StatusText->SetForegroundColour(color);
@@ -443,8 +443,8 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
 
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
-    f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.ToStdString().c_str()));
-    
+    f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.c_str()));
+
     if (ver == 1) {
         //old version only supports single channels
         cpn = 1;
@@ -495,8 +495,13 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             Effect *eff = layer.GetEffect(eidx);
             if (eff->GetStartTimeMS() != lastEndTime) {
                 //off from last effect to start of this effect
-                f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" />\n",
-                                      lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                if (ver == 1) {
+                    f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" type=\"intensity\" />\n",
+                                          lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                } else {
+                    f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\" />\n",
+                                          lastEndTime / 10, eff->GetStartTimeMS() / 10, 0));
+                }
             }
 
             f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\"",
@@ -504,10 +509,9 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             if (eff->GetEffectName() == "On") {
                 int starti = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
                 int endi = eff->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
+                xlColor c = eff->GetPalette()[0];
 
-                
                 if (cpn == 3) {
-                    xlColor c = eff->GetPalette()[0];
                     std::stringstream stream;
                     stream << " startColor=\"FF"
                         << std::setfill ('0') << std::setw(6)
@@ -517,6 +521,11 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
                         << std::hex << std::uppercase << c.GetRGB(false)
                         << "\"";
                     f.Write(stream.str());
+                } else {
+                    starti *= c.red;
+                    starti /= 255;
+                    endi *= c.red;
+                    endi /= 255;
                 }
                 if (starti == endi) {
                     f.Write(string_format(" intensity=\"%d\"", starti));
@@ -549,10 +558,13 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
             }
             lastEndTime = eff->GetEndTimeMS();
         }
-        
+
         if (lastEndTime < maxCell) {
             f.Write(string_format("      <effect startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"0\"",
                                   lastEndTime / 10, maxCell / 10));
+            if (ver == 1) {
+                f.Write(" type=\"intensity\"");
+            }
             if (ver == 2) {
                 f.Write(" type=\"INTENSITY\"");
             }
@@ -791,7 +803,7 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
     }
 }
 
-void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
+void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -814,6 +826,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
 
     av_register_all();
 
+    const char *filename = filenames.c_str();
     AVOutputFormat* fmt = av_guess_format(nullptr, filename, nullptr);
     if (!fmt)
     {
@@ -953,7 +966,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filename, long numChans, lon
     /* open the output file, if needed */
     if (!(fmt->flags & AVFMT_NOFILE)) {
         if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-            logger_base.error("   Could open file %s.", static_cast<const char *>(filename.c_str()));
+            logger_base.error("   Could open file %s.", static_cast<const char *>(filename));
             return;
         }
     }
@@ -1288,7 +1301,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
             break;
         }
     }
-    
+
     f.Close();
     free(buf);
 }

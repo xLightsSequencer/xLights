@@ -2,11 +2,11 @@
 #define HOUSEPREVIEWPANEL_H
 
 //(*Headers(HousePreviewPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
 #include <wx/bmpbuttn.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 //*)
 
 class xLightsFrame;
@@ -37,16 +37,16 @@ class HousePreviewPanel: public wxPanel
         void SetPositionFrames(int frames);
 
 		//(*Declarations(HousePreviewPanel)
-		wxFlexGridSizer* ButtonSizer;
-		wxStaticText* StaticText_Time;
-		wxPanel* Panel1;
 		wxBitmapButton* FastForward10Button;
 		wxBitmapButton* PauseButton;
-		wxBitmapButton* Rewind10Button;
 		wxBitmapButton* PlayButton;
-		wxBitmapButton* StopButton;
+		wxBitmapButton* Rewind10Button;
 		wxBitmapButton* RewindButton;
+		wxBitmapButton* StopButton;
+		wxFlexGridSizer* ButtonSizer;
+		wxPanel* Panel1;
 		wxSlider* SliderPosition;
+		wxStaticText* StaticText_Time;
 		//*)
 
 	protected:

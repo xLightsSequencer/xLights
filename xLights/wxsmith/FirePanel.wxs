@@ -158,7 +158,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire" variable="BitmapButton_FireGrow" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles" variable="BitmapButton_FireGrow" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -189,7 +189,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Fire_GrowWithMusic" variable="BitmapButton_Fire_GrowWithMusic" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic" variable="BitmapButton_Fire_GrowWithMusic" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

@@ -2,11 +2,11 @@
 #define COLORCURVEDIALOG_H
 
 //(*Headers(ColorCurveDialog)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 #include <wx/colourdata.h>
@@ -95,13 +95,13 @@ class ColorCurveDialog: public wxDialog
 
 		//(*Declarations(ColorCurveDialog)
 		wxButton* ButtonExport;
+		wxButton* ButtonLoad;
+		wxButton* Button_Cancel;
+		wxButton* Button_Flip;
 		wxButton* Button_Ok;
+		wxChoice* Choice1;
 		wxFlexGridSizer* PresetSizer;
 		wxStaticText* StaticText1;
-		wxButton* Button_Cancel;
-		wxButton* ButtonLoad;
-		wxButton* Button_Flip;
-		wxChoice* Choice1;
 		//*)
 
 	protected:

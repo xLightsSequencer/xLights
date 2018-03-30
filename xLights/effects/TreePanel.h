@@ -3,12 +3,12 @@
 
 //(*Headers(TreePanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,12 +21,12 @@ class TreePanel: public wxPanel
 		virtual ~TreePanel();
 
 		//(*Declarations(TreePanel)
-		wxBitmapButton* BitmapButton_TreeBranches;
 		BulkEditCheckBox* CheckBox1;
-		wxStaticText* StaticText86;
-		wxStaticText* StaticText182;
 		BulkEditSlider* Slider_Tree_Branches;
 		BulkEditSlider* Slider_Tree_Speed;
+		wxBitmapButton* BitmapButton_TreeBranches;
+		wxStaticText* StaticText182;
+		wxStaticText* StaticText86;
 		//*)
 
 	protected:

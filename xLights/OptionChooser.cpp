@@ -2,8 +2,8 @@
 
 //(*InternalHeaders(OptionChooser)
 #include <wx/button.h>
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(OptionChooser)
@@ -26,7 +26,7 @@ OptionChooser::OptionChooser(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText_Option_Select = new wxStaticText(this, ID_STATICTEXT_Option_Select, _("Select Options:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Option_Select"));
 	FlexGridSizer1->Add(StaticText_Option_Select, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ListBox_Options = new wxListBox(this, ID_LISTBOX_Options, wxDefaultPosition, wxSize(158,109), 0, 0, wxLB_MULTIPLE, wxDefaultValidator, _T("ID_LISTBOX_Options"));
+	ListBox_Options = new wxListBox(this, ID_LISTBOX_Options, wxDefaultPosition, wxDLG_UNIT(this,wxSize(120,80)), 0, 0, wxLB_MULTIPLE, wxDefaultValidator, _T("ID_LISTBOX_Options"));
 	FlexGridSizer1->Add(ListBox_Options, 1, wxALL|wxEXPAND, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));

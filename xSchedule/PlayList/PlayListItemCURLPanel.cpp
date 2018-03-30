@@ -25,23 +25,6 @@ BEGIN_EVENT_TABLE(PlayListItemCURLPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemCURLPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL* curl, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _curl = curl;
@@ -88,7 +71,7 @@ PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL*
     TextCtrl_URL->SetToolTip(PlayListItemCURL::GetTooltip());
     TextCtrl_Body->SetValue(curl->GetBody());
     TextCtrl_Body->SetToolTip(PlayListItemCURL::GetTooltip());
-    SetChoiceFromString(Choice_Type, curl->GetType());
+    Choice_Type->SetStringSelection(curl->GetType());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)curl->GetDelay() / 1000.0));
 }
 

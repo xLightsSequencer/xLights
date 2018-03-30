@@ -12,12 +12,12 @@
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
-#include "BufferPanel.h"
 #include <wx/config.h>
+#include "BufferPanel.h"
 
-void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
+void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
-    xlightsFilename=filename;
+    xlightsFilename = filename;
     FileNameText->SetLabel(filename);
 }
 
@@ -45,11 +45,10 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
         ReadFalconFile(filename, nullptr);
     }
     DisplayXlightsFilename(fn.GetFullPath());
-    SeqBaseChannel=1;
-    SeqChanCtrlBasic=false;
-    SeqChanCtrlColor=false;
+    SeqBaseChannel = 1;
+    SeqChanCtrlBasic = false;
+    SeqChanCtrlColor = false;
 }
-
 
 void xLightsFrame::ResetEffectsXml()
 {
@@ -417,18 +416,6 @@ void xLightsFrame::LoadEffectsFile()
     perspectivePanel->SetPerspectives(PerspectivesNode);
     LoadPerspectivesMenu(PerspectivesNode);
 
-    if (_autoSavePerspecive)
-    {
-        // if we have a saved perspective on this machine then make that the current one
-        wxConfigBase* config = wxConfigBase::Get();
-        wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
-        if (machinePerspective != "")
-        {
-            m_mgr->LoadPerspective(machinePerspective);
-            logger_base.debug("Loaded machine perspective.");
-        }
-    }
-
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
@@ -675,7 +662,7 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
         Model *model = dynamic_cast<Model*>(*it2);
         ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
         SubModel *sm = dynamic_cast<SubModel*>(*it2);
-        
+
         if (sm != nullptr) {
             model = sm->GetParent();
         }
@@ -697,6 +684,7 @@ void xLightsFrame::UpdateModelsList()
     PreviewModels.clear();
     layoutPanel->GetMainPreview()->GetModels().clear();
 
+    modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
@@ -776,6 +764,8 @@ void xLightsFrame::UpdateModelsList()
                                 break;
                             }
                             break;
+                        default:
+                            break;
                     }
                 } while (!done);
             }
@@ -831,7 +821,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     fileNames.RemoveAt(0);
     wxStopWatch sw; // start a stopwatch timer
 
-    printf("Processing file %s\n", seq.ToStdString().c_str());
+    printf("Processing file %s\n", (const char *)seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1161,16 +1151,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 //void djdebug(const char* fmt, ...); //_DJ
 std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::string &palette)
 {
-    int eff1;
-    if (EffectsPanel1->isRandom_()) { //avoid a few types of random effects
-        eff1 = ChooseRandomEffect();
-    } else {
-        eff1 = EffectsPanel1->EffectChoicebook->GetSelection();
-    }
-
+    int eff1 = ChooseRandomEffect();
     settings = EffectsPanel1->GetRandomEffectString(eff1);
-
-
     palette = colorPanel->GetRandomColorString();
     return effectManager[eff1]->Name();
 }

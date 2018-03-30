@@ -15,6 +15,9 @@
 
 
 #define MyTitleName "xLights" 
+#define Year 2018
+#define Version 8
+#define Bits 64
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard
@@ -30,17 +33,17 @@ ArchitecturesAllowed=x64
 ; 64-bit Program Files directory and the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64
 
-AppName=xLights
-AppVersion=2018.2
-DefaultDirName={pf64}\xLights
-DefaultGroupName=xLights
-SetupIconFile=include\xlights64.ico
+AppName={#MyTitleName}
+AppVersion={#Year}.{#Version}
+DefaultDirName={pf64}\{#MyTitleName}
+DefaultGroupName={#MyTitleName}
+SetupIconFile=include\{#MyTitleName}.ico
 
-UninstallDisplayIcon={app}\xLights.exe
+UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename=xLights64_2017_x
+OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
@@ -60,14 +63,17 @@ Source: "bin/xschedule.windows.properties"; DestDir: "{app}"; Flags: "ignorevers
 Source: "bin/xScheduleWeb\*.*"; DestDir: "{app}/xScheduleWeb"; Flags: replacesameversion recursesubdirs
 Source: "include\xSchedule64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
-; xLightsBatchRender
-; Source: "bin/xLightsBatchRenderer.exe"; DestDir: "{app}"
-; Source: "include\xLightsBatchRenderer.ico"; DestDir: "{app}"
+; xCapture
+Source: "bin64/xCapture.exe"; DestDir: "{app}"
+Source: "bin64/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xCapture64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
-Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
-Source: "C:\wxWidgets-3.1.0_64bit\lib\gcc_dll\wxmsw310u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "bin64\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-Source: "bin64\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
+Source: "bin64/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin64/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
+; Take these from the default mingw install directory
+Source: "C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin\libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
+Source: "C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin\libstdc++-6.dll";     DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64\libwinpthread-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin64/liblog4cpp.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
@@ -91,7 +97,7 @@ Source: "bin/user_dictionary";     DestDir: "{app}"
 Source: "bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
 ; Path editor
-Source: "bin/PathEditor.exe";      DestDir: "{app}"
+;Source: "bin/PathEditor.exe";      DestDir: "{app}"
 
 ; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";
@@ -111,8 +117,6 @@ Name: "{group}\xLights64"; Filename: "{app}\xLights.EXE"; WorkingDir: "{app}"
 Name: "{group}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"
 Name: "{commondesktop}\xLights64"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights64.ico";
 Name: "{commondesktop}\xSchedule64"; Filename: "{app}\xSchedule.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xSchedule64.ico";
-; Name: "{group}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"
-; Name: "{commondesktop}\xLightsBatchRender"; Filename: "{app}\xLightsBatchRenderer.EXE"; WorkingDir: "{app}"; Tasks: desktopicon ; IconFilename: "{app}\xLightsBatchRenderer.ico";
 
 [Run]
 Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
@@ -120,12 +124,15 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 [Registry]
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xLightsBatchRender"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{pf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
 
 ; Remove Kieth's Batch Render to prevent confusion
 [InstallDelete]
+Type: files; Name: "{app}\wxmsw310u_gcc_custom.dll"
+Type: files; Name: "{app}\wxmsw310u_gl_gcc_custom.dll"
 Type: files; Name: "{app}\xLightsBatchRenderer.exe"
 Type: files; Name: "{app}\xLightsBatchRenderer.ico"
 Type: files; Name: "{group}\xLightsBatchRender.lnk"

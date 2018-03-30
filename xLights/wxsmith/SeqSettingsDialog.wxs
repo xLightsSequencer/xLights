@@ -8,7 +8,7 @@
 			<object class="sizeritem">
 				<object class="wxNotebook" name="ID_NOTEBOOK_Seq_Settings" variable="Notebook_Seq_Settings" member="yes">
 					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxPanel" name="ID_PANEL3" variable="PanelInfo" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 								<cols>1</cols>
 								<object class="sizeritem">
@@ -47,7 +47,7 @@
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_XML_Version" variable="StaticText_XML_Version" member="yes">
 												<label></label>
-												<size>70,-1</size>
+												<size>50,-1d</size>
 											</object>
 											<col>1</col>
 											<row>1</row>
@@ -61,7 +61,7 @@
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 											<border>5</border>
 											<option>1</option>
-											<size>40,20</size>
+											<size>25,-1d</size>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Num_Models_Label" variable="StaticText_Num_Models_Label" member="yes">
@@ -76,7 +76,7 @@
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Num_Models" variable="StaticText_Num_Models" member="yes">
 												<label></label>
-												<size>70,-1</size>
+												<size>50,-1d</size>
 											</object>
 											<col>4</col>
 											<row>1</row>
@@ -175,7 +175,7 @@
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
-											<size>72,20</size>
+											<size>25,-1d</size>
 										</object>
 										<object class="sizeritem">
 											<object class="wxCheckBox" name="ID_CHECKBOX_Overwrite_Tags" variable="CheckBox_Overwrite_Tags" member="yes">
@@ -237,7 +237,7 @@
 						<label>Info / Media</label>
 					</object>
 					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxPanel" name="ID_PANEL1" variable="PanelMetaData" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer_Timing_Page" member="no">
 								<cols>2</cols>
 								<object class="sizeritem">
@@ -381,7 +381,7 @@
 						<label>Meta Data</label>
 					</object>
 					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+						<object class="wxPanel" name="ID_PANEL2" variable="PanelTimings" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -423,10 +423,10 @@
 									<option>1</option>
 								</object>
 								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
-									<size>412,20</size>
+									<size>-1,12d</size>
 								</object>
 							</object>
 						</object>
@@ -450,7 +450,7 @@
 											<item2>&lt;none&gt;</item2>
 											<item2>0,#000000,0,-1,-1,-1,-1,Layers to Render</item2>
 										</items_text>
-										<size>413,158</size>
+										<size>300,100d</size>
 										<style>wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE</style>
 										<handler function="OnTreeCtrl_Data_LayersBeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
 										<handler function="OnTreeCtrl_Data_LayersBeginLabelEdit" entry="EVT_TREE_BEGIN_LABEL_EDIT" />

@@ -10,6 +10,7 @@
 #include <wx/spinctrl.h>
 
 #include <sstream>
+#include "../UtilFunctions.h"
 #include "../ValueCurveButton.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
@@ -28,22 +29,18 @@ RenderableEffect::~RenderableEffect()
     //dtor
 }
 
-#ifdef __WXOSX__
-double xlOSXGetMainScreenContentScaleFactor();
-#endif
-
 const wxBitmap &RenderableEffect::GetEffectIcon(int size, bool exact) const {
-#ifdef __WXOSX__
-    if (exact || xlOSXGetMainScreenContentScaleFactor() < 1.9) {
+    if (exact || GetSystemContentScaleFactor() < 1.5) {
         if (size <= 16) {
             return icon16e;
         } else if (size <= 24) {
             return icon24e;
         } else if (size <= 32) {
             return icon32e;
+        } else if (size <= 48) {
+            return icon48e;
         }
     }
-#endif
     if (size <= 16) {
         return icon16;
     } else if (size <= 24) {
@@ -83,15 +80,12 @@ int RenderableEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int 
 
 
 void AdjustAndSetBitmap(int size, wxImage &image, wxImage &dbl, wxBitmap&bitmap) {
-#ifdef __WXOSX__
     if (dbl.GetHeight() == (2 * size)) {
         bitmap = wxBitmap(dbl, -1, 2.0);
     } else if (dbl.GetHeight() > (2*size)) {
         wxImage scaled = image.Scale(size*2, size*2, wxIMAGE_QUALITY_HIGH);
         bitmap = wxBitmap(scaled, -1, 2.0);
-    } else
-#endif
-    if (image.GetHeight() == size) {
+    } else if (image.GetHeight() == size) {
         bitmap = wxBitmap(image);
     } else {
         wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
@@ -123,12 +117,11 @@ void RenderableEffect::initBitmaps(const char **data16,
     AdjustAndSetBitmap(32, image32, image64, icon32);
     AdjustAndSetBitmap(48, image48, icon48);
     AdjustAndSetBitmap(64, image64, icon64);
-#ifdef __WXOSX__
     AdjustAndSetBitmap(16, image16, icon16e);
     AdjustAndSetBitmap(24, image24, icon24e);
     AdjustAndSetBitmap(32, image32, icon32e);
-#endif
-
+    AdjustAndSetBitmap(48, image48, icon48e);
+    AdjustAndSetBitmap(48, image64, icon64e);
 }
 
 // return true if version string is older than compare string

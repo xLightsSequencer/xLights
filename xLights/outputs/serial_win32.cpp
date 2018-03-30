@@ -42,6 +42,7 @@ int SerialPort::Close()
 {
     if (_fd != INVALID_HANDLE_VALUE)
     {
+        //FlushFileBuffers(_fd);
         CloseHandle(_ov.hEvent);
         CloseHandle(_fd);
         _fd = INVALID_HANDLE_VALUE;
@@ -61,7 +62,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
         return -1;
     }
 
-    _fd = CreateFile(wxString(devName),  // device name
+    _fd = CreateFile(wxString(devName).t_str(),     // device name
                     GENERIC_READ | GENERIC_WRITE,   // O_RDWR
                     0,                              // not shared
                     NULL,                           // default value for object security ?!?
@@ -111,23 +112,23 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
     // XOFF character is received and starts again, when the XON character
     // is received.
     dcb.fOutX = false;
-    
+
     // If fInX is true (default is false), the XOFF character is sent when
     // the input buffer comes within XoffLim bytes of being full, and the
     // XON character is sent, when the input buffer comes within XonLim
     // bytes of being empty.
     dcb.fInX = false;
-    
+
     // default character for XOFF is 0x13 (hex 13)
     dcb.XoffChar = 0x13;
-    
+
     // default character for XON is 0x11 (hex 11)
     dcb.XonChar = 0x11;
-    
+
     // set the minimum number of bytes allowed in the input buffer before
     // the XON character is sent (1/4 of full size)
     dcb.XonLim = (SERIALPORT_BUFSIZE >> 2);
-    
+
     // set the maximum number of free bytes in the input buffer, before the
     // XOFF character is sent (1/4 of full size)
     dcb.XoffLim = (SERIALPORT_BUFSIZE >> 2);
@@ -171,7 +172,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
                             TRUE,  // BOOL fManualReset
                             TRUE,  // BOOL fInitialState
                             NULL); // LPTSTR lpszEventName
-    
+
     if (_ov.hEvent == INVALID_HANDLE_VALUE)
     {
         logger_base.error("Failed to create event for overlapped I/O DevName: %s -> returning -3.", (const char *) devName.c_str());
@@ -229,7 +230,7 @@ int SerialPort::WaitingToWrite()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     COMSTAT comStat;
     DWORD   dwErrors;
-    
+
     // Get and clear current errors on the port.
     if (!ClearCommError(_fd, &dwErrors, &comStat))
     {
@@ -276,6 +277,7 @@ int SerialPort::Write(char* buf, size_t len)
             return -1;
         }
     }
+    //FlushFileBuffers(_fd);
 
     return write;
 }

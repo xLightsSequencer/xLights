@@ -228,7 +228,8 @@ public:
 
             if (xframe->InitPixelBuffer(name, *mainBuffer, numLayers, zeroBased)) {
                 if ("ModelGroup" == model->GetDisplayAs()) {
-                    for (int l = 0; l < numLayers; ++l) {
+                    //for (int l = 0; l < numLayers; ++l) {
+                    for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
                         bool perModelEffects = false;
                         for (int e = 0; e < layer->GetEffectCount() && !perModelEffects; ++e) {
@@ -505,7 +506,8 @@ public:
             info.validLayers[layer] = false;
         }
 
-        for (int layer = 0; layer < numLayers; ++layer) {
+        // To support canvas mix type we must render them bottom to top
+        for (int layer = numLayers - 1; layer >= 0; --layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
@@ -526,6 +528,25 @@ public:
             }
             SetRenderingStatus(frame, &info.settingsMaps[layer], layer, strand, -1, true);
             bool b = info.effectStates[layer];
+
+            // Mix canvas pre-loads the buffer with data from underlying layers
+            if (buffer->GetMixType(layer) == Mix_Canvas && layer < numLayers - 1)
+            {
+                // preload the buffer with the output from the lower layers
+                RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
+                // I have to calc the output here to apply blend, rotozoom and transitions
+                buffer->CalcOutput(frame, info.validLayers);
+                for (int y = 0; y < rb.BufferHt; y++)
+                {
+                    for (int x = 0; x < rb.BufferWi; x++)
+                    {
+                        xlColor c = xlBLACK;
+                        buffer->GetMixedColor(x, y, c, info.validLayers, frame);
+                        rb.SetPixel(x, y, c);
+                    }
+                }
+            }
+
             info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
             info.effectStates[layer] = b;
             effectsToUpdate |= info.validLayers[layer];
@@ -591,7 +612,8 @@ public:
         std::map<SNPair, int> nodeEffectIdxs;
 
         try {
-            for (int layer = 0; layer < numLayers; ++layer) {
+            //for (int layer = 0; layer < numLayers; ++layer) {
+            for (int layer = numLayers - 1; layer >= 0; --layer) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
@@ -807,8 +829,12 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
         selectedEffect = 0;
     }
     if (evt.model == "") {
-        //render all dirty models
-        RenderDirtyModels();
+        if( (evt.start != -1) && (evt.end != -1) ) {
+            RenderTimeSlice(evt.start, evt.end, evt.clear);
+        } else {
+            //render all dirty models
+            RenderDirtyModels();
+        }
     } else {
         RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
     }
@@ -849,7 +875,7 @@ public:
     std::list<Model *> restriction;
 };
 
-void xLightsFrame::LogRenderStatus() 
+void xLightsFrame::LogRenderStatus()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Logging render status ***************");
@@ -1424,12 +1450,12 @@ bool xLightsFrame::AbortRender()
     }
 
     //must wait for the rendering to complete
+    logger_base.info("Aborting %d renderers", abortCount);
     while (!renderProgressInfo.empty()) {
         wxMilliSleep(10);
-        wxYield();
+        wxYield(); // not sure this is advisable ... but it makes the app look responsive
     }
-
-    logger_base.info("    Aborted jobs %d.", abortCount);
+    logger_base.info("    Aborting renderers ... Done");
     return abortCount != 0;
 }
 
@@ -1472,7 +1498,16 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     BuildRenderTree();
+
+    logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.",
+        (const char *)model.c_str(),
+        startms,
+        endms,
+        renderTree.data.size());
 
     int startframe = startms / SeqData.FrameTime() - 1;
     if (startframe < 0) {
@@ -1504,9 +1539,75 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
             }
             std::list<Model *> m;
             m.push_back((*it)->model);
+
+            logger_base.debug("Rendering %d models %d frames.", m.size(), endframe - startframe + 1);
+
             Render((*it)->renderOrder, m, startframe, endframe, false, true, [] {});
         }
     }
+}
+
+void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    BuildRenderTree();
+    logger_base.debug("Render tree built for time slice %dms-%dms. %d entries.",
+        startms,
+        endms,
+        renderTree.data.size());
+
+    if (renderTree.data.empty()) {
+        //nothing to do....
+        return;
+    }
+    const int numRows = mSequenceElements.GetElementCount();
+    if (numRows == 0) {
+        return;
+    }
+    std::list<Model *> models;
+    std::list<Model *> restricts;
+    for (auto it = renderTree.data.begin(); it != renderTree.data.end(); ++it) {
+        models.push_back((*it)->model);
+    }
+    if (startms < 0) {
+        startms = 0;
+    }
+    if (endms < 0) {
+        endms = 0;
+    }
+    int startframe = startms / SeqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / SeqData.FrameTime() + 1;
+    if (endframe >= SeqData.NumFrames()) {
+        endframe = SeqData.NumFrames() - 1;
+    }
+    if (endframe < startframe) {
+        return;
+    }
+    
+    
+    EnableSequenceControls(false);
+    mRendering = true;
+    ProgressBar->Show();
+    GaugeSizer->Layout();
+    SetStatusText(_("Rendering all layers for time slice"));
+    ProgressBar->SetValue(0);
+    wxStopWatch sw; // start a stopwatch timer
+    Render(models, restricts, startframe, endframe, true, clear, [this, sw] {
+        static log4cpp::Category &logger_base2 = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base2.info("   Effects done.");
+        ProgressBar->SetValue(100);
+        float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+        wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
+        CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
+        mRendering = false;
+        EnableSequenceControls(true);
+        ProgressBar->Hide();
+        GaugeSizer->Layout();
+    });
 }
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
@@ -1677,7 +1778,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
 
         if (m != nullptr)
         {
-            if (wxString(m->GetStringType()).StartsWith("Single Color"))
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0)
             {
                 colorMask = buffer.GetNodeMaskColor(0);
 

@@ -55,16 +55,15 @@ class PicturesPanel: public wxPanel
 		wxBitmapButton* BitmapButton_PicturesSpeed;
 		xlPictureFilePickerCtrl* FilePickerCtrl1;
 		BulkEditChoice* Choice_Scaling;
+		wxBitmapButton* BitmapButton_PicturesFrameRateAdj;
 		BulkEditSliderF1* Slider_Pictures_FR;
 		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
 		BulkEditSlider* Slider_Pictures_EndScale;
-		wxBitmapButton* BitmapButton6;
 		BulkEditChoice* Choice_Pictures_Direction;
 		wxStaticText* StaticText96;
 		wxPanel* PictureEndPositionPanel;
 		BulkEditSlider* Slider_PicturesYC;
 		BulkEditSlider* Slider_PicturesEndYC;
-		wxBitmapButton* BitmapButton_PicturesFilename;
 		wxStaticText* StaticText68;
 		wxStaticText* StaticText160;
 		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
@@ -80,18 +79,17 @@ class PicturesPanel: public wxPanel
 
 		//(*Identifiers(PicturesPanel)
 		static const long ID_FILEPICKER_Pictures_Filename;
-		static const long ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME;
 		static const long ID_STATICTEXT_Pictures_Direction;
 		static const long ID_CHOICE_Pictures_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Pictures_Direction;
 		static const long ID_STATICTEXT_Pictures_Speed;
 		static const long IDD_SLIDER_Pictures_Speed;
 		static const long ID_TEXTCTRL_Pictures_Speed;
-		static const long ID_BITMAPBUTTON25;
+		static const long ID_BITMAPBUTTON_SLIDER_Pictures_Speed;
 		static const long ID_STATICTEXT_Pictures_FrameRateAdj;
 		static const long IDD_SLIDER_Pictures_FrameRateAdj;
 		static const long ID_TEXTCTRL_Pictures_FrameRateAdj;
-		static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
+		static const long ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj;
 		static const long ID_CHECKBOX_Pictures_PixelOffsets;
 		static const long ID_CHOICE_Scaling;
 		static const long ID_CHECKBOX_Pictures_Shimmer;

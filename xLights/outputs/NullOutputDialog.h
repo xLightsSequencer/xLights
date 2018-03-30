@@ -2,12 +2,12 @@
 #define NULLOUTPUTDIALOG_H
 
 //(*Headers(NullOutputDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/spinctrl.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class NullOutput;
@@ -25,17 +25,21 @@ class NullOutputDialog: public wxDialog
 		virtual ~NullOutputDialog();
 
 		//(*Declarations(NullOutputDialog)
-		wxButton* Button_Ok;
-		wxTextCtrl* TextCtrl_Description;
-		wxSpinCtrl* NumChannelsSpinCtrl;
-		wxStaticText* StaticText1;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxSpinCtrl* NumChannelsSpinCtrl;
+		wxSpinCtrl* SpinCtrl1;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_Description;
 		//*)
 
 	protected:
 
 		//(*Identifiers(NullOutputDialog)
 		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT2;
+		static const long ID_SPINCTRL2;
 		static const long ID_SPINCTRL1;
 		static const long ID_TEXTCTRL_DESCRIPTION;
 		static const long ID_BUTTON1;

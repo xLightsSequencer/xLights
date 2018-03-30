@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include "SerialPortWithRate.h"
 #include "LOROutput.h"
+#include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "RenardOutput.h"
 #include "DMXOutput.h"
@@ -206,6 +207,26 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts()
     return res;
 }
 
+std::list<std::string> SerialOutput::GetPossibleBaudRates()
+{
+    std::list<std::string> res;
+
+    res.push_back("9600");
+    res.push_back("19200");
+    res.push_back("38400");
+    res.push_back("57600");
+    res.push_back("115200");
+    res.push_back("128000");
+    res.push_back("250000");
+    res.push_back("256000");
+    res.push_back("500000");
+    res.push_back("512000");
+    res.push_back("1000000");
+    res.push_back("1024000");
+
+    return res;
+}
+
 std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 {
     std::list<std::string> res;
@@ -378,6 +399,10 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
     else if (newtype == OUTPUT_LOR)
     {
         return new LOROutput(this);
+    }
+    else if (newtype == OUTPUT_LOR_OPT)
+    {
+        return new LOROptimisedOutput(this);
     }
     else if (newtype == OUTPUT_DLIGHT)
     {

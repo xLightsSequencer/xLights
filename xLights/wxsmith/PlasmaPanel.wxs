@@ -34,7 +34,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON35" variable="BitmapButton17" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Plasma_Color" variable="BitmapButton_PlasmaColor" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -74,7 +74,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON36" variable="BitmapButton18" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Style" variable="BitmapButton_PlasmaStyle" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -114,7 +114,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON37" variable="BitmapButton19" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Line_Density" variable="BitmapButton_PlasmaLineDensity" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -170,7 +170,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON39" variable="BitmapButton21" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Plasma_Speed" variable="BitmapButton_PlasmaSpeed" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

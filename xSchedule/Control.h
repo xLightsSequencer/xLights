@@ -23,6 +23,9 @@
 
 PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } ControlPkt);
 
+#define CTRL_PKT_SYNC   1
+#define CTRL_PKT_EVENT  2
+
 #define SYNC_PKT_START 0
 #define SYNC_PKT_STOP  1
 #define SYNC_PKT_SYNC  2

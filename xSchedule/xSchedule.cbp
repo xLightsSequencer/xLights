@@ -6,44 +6,6 @@
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/xSchedule" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-g" />
-					<Add option="-D__WXDEBUG__" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswd" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/lib/gcc_dll/mswd" />
-				</ResourceCompiler>
-				<Linker>
-					<Add library="libwxmsw30d.a" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
-				</Linker>
-			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/xSchedule" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add directory="$(#wx)/lib/gcc_dll/msw" />
-				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/lib/gcc_dll/msw" />
-				</ResourceCompiler>
-				<Linker>
-					<Add option="-s" />
-					<Add library="libwxmsw30.a" />
-					<Add directory="$(#wx)/lib/gcc_dll" />
-				</Linker>
-			</Target>
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xSchedule" prefix_auto="1" extension_auto="1" />
@@ -92,6 +54,8 @@
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -106,6 +70,8 @@
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
+					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
@@ -129,12 +95,13 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xSchedule.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
-					<Add library="libwxmsw31u.a" />
-					<Add library="libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/libwxmsw31u.a" />
+					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
@@ -145,7 +112,8 @@
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
-					<Add directory="lib/windows" />
+					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -181,6 +149,7 @@
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
 				</Linker>
 			</Target>
@@ -215,6 +184,7 @@
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
 				</Linker>
 			</Target>
@@ -228,6 +198,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++14" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -267,8 +238,9 @@
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
-					<Add directory="lib/windows" />
-					<Add directory="../lib/windows" />
+					<Add library="../lib/windows64/libportmidi.a" />
+					<Add library="libwinmm.a" />
+					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>
 		</Build>
@@ -278,7 +250,7 @@
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
 		<ResourceCompiler>
-			<Add directory="$(#wxvc)/include" />
+			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
 		<Unit filename="../xLights/AudioManager.cpp" />
 		<Unit filename="../xLights/AudioManager.h" />
@@ -317,8 +289,18 @@
 		<Unit filename="../xLights/outputs/E131Output.h" />
 		<Unit filename="../xLights/outputs/IPOutput.cpp" />
 		<Unit filename="../xLights/outputs/IPOutput.h" />
+		<Unit filename="../xLights/outputs/LOROptimisedDialog.h" />
+		<Unit filename="../xLights/outputs/LOROptimisedOutput.cpp" />
+		<Unit filename="../xLights/outputs/LOROptimisedOutput.h" />
 		<Unit filename="../xLights/outputs/LOROutput.cpp" />
 		<Unit filename="../xLights/outputs/LOROutput.h" />
+		<Unit filename="../xLights/outputs/LorController.cpp" />
+		<Unit filename="../xLights/outputs/LorController.h" />
+		<Unit filename="../xLights/outputs/LorControllerDialog.cpp" />
+		<Unit filename="../xLights/outputs/LorControllerDialog.h" />
+		<Unit filename="../xLights/outputs/LorControllers.cpp" />
+		<Unit filename="../xLights/outputs/LorControllers.h" />
+		<Unit filename="../xLights/outputs/LorOptimisedDialog.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.cpp" />
 		<Unit filename="../xLights/outputs/NullOutput.h" />
 		<Unit filename="../xLights/outputs/NullOutputDialog.cpp" />
@@ -377,6 +359,26 @@
 		<Unit filename="DimWhiteDialog.h" />
 		<Unit filename="ESEQFile.cpp" />
 		<Unit filename="ESEQFile.h" />
+		<Unit filename="EventARTNetPanel.cpp" />
+		<Unit filename="EventARTNetPanel.h" />
+		<Unit filename="EventDataPanel.cpp" />
+		<Unit filename="EventDataPanel.h" />
+		<Unit filename="EventDialog.cpp" />
+		<Unit filename="EventDialog.h" />
+		<Unit filename="EventE131Panel.cpp" />
+		<Unit filename="EventE131Panel.h" />
+		<Unit filename="EventFPPPanel.cpp" />
+		<Unit filename="EventFPPPanel.h" />
+		<Unit filename="EventLorPanel.cpp" />
+		<Unit filename="EventLorPanel.h" />
+		<Unit filename="EventMIDIPanel.cpp" />
+		<Unit filename="EventMIDIPanel.h" />
+		<Unit filename="EventOSCPanel.cpp" />
+		<Unit filename="EventOSCPanel.h" />
+		<Unit filename="EventSerialPanel.cpp" />
+		<Unit filename="EventSerialPanel.h" />
+		<Unit filename="EventsDialog.cpp" />
+		<Unit filename="EventsDialog.h" />
 		<Unit filename="FPPRemotesDialog.cpp" />
 		<Unit filename="FPPRemotesDialog.h" />
 		<Unit filename="FSEQFile.cpp" />
@@ -404,6 +406,8 @@
 		<Unit filename="OutputProcessRemap.cpp" />
 		<Unit filename="OutputProcessReverse.cpp" />
 		<Unit filename="OutputProcessSet.cpp" />
+		<Unit filename="OutputProcessSustain.cpp" />
+		<Unit filename="OutputProcessSustain.h" />
 		<Unit filename="OutputProcessThreeToFour.cpp" />
 		<Unit filename="OutputProcessThreeToFour.h" />
 		<Unit filename="OutputProcessingDialog.cpp" />
@@ -436,6 +440,10 @@
 		<Unit filename="PlayList/PlayListItemESEQ.h" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.h" />
+		<Unit filename="PlayList/PlayListItemFPPEvent.cpp" />
+		<Unit filename="PlayList/PlayListItemFPPEvent.h" />
+		<Unit filename="PlayList/PlayListItemFPPEventPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemFPPEventPanel.h" />
 		<Unit filename="PlayList/PlayListItemFSEQ.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQ.h" />
 		<Unit filename="PlayList/PlayListItemFSEQPanel.cpp" />
@@ -472,6 +480,14 @@
 		<Unit filename="PlayList/PlayListItemRunProcess.h" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemRunProcessPanel.h" />
+		<Unit filename="PlayList/PlayListItemScreenMap.cpp" />
+		<Unit filename="PlayList/PlayListItemScreenMap.h" />
+		<Unit filename="PlayList/PlayListItemScreenMapPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemScreenMapPanel.h" />
+		<Unit filename="PlayList/PlayListItemSerial.cpp" />
+		<Unit filename="PlayList/PlayListItemSerial.h" />
+		<Unit filename="PlayList/PlayListItemSerialPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemSerialPanel.h" />
 		<Unit filename="PlayList/PlayListItemTest.cpp" />
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
@@ -513,6 +529,8 @@
 		<Unit filename="ScheduleOptions.h" />
 		<Unit filename="SetDialog.cpp" />
 		<Unit filename="SetDialog.h" />
+		<Unit filename="SustainDialog.cpp" />
+		<Unit filename="SustainDialog.h" />
 		<Unit filename="ThreeToFourDialog.cpp" />
 		<Unit filename="ThreeToFourDialog.h" />
 		<Unit filename="UserButton.cpp" />
@@ -529,6 +547,44 @@
 		<Unit filename="WebServer.h" />
 		<Unit filename="Xyzzy.cpp" />
 		<Unit filename="Xyzzy.h" />
+		<Unit filename="events/EventARTNet.cpp" />
+		<Unit filename="events/EventARTNet.h" />
+		<Unit filename="events/EventBase.cpp" />
+		<Unit filename="events/EventBase.h" />
+		<Unit filename="events/EventData.cpp" />
+		<Unit filename="events/EventData.h" />
+		<Unit filename="events/EventE131.cpp" />
+		<Unit filename="events/EventE131.h" />
+		<Unit filename="events/EventFPP.cpp" />
+		<Unit filename="events/EventFPP.h" />
+		<Unit filename="events/EventLor.cpp" />
+		<Unit filename="events/EventLor.h" />
+		<Unit filename="events/EventMIDI.cpp" />
+		<Unit filename="events/EventMIDI.h" />
+		<Unit filename="events/EventOSC.cpp" />
+		<Unit filename="events/EventOSC.h" />
+		<Unit filename="events/EventSerial.cpp" />
+		<Unit filename="events/EventSerial.h" />
+		<Unit filename="events/ListenerARTNet.cpp" />
+		<Unit filename="events/ListenerARTNet.h" />
+		<Unit filename="events/ListenerBase.cpp" />
+		<Unit filename="events/ListenerBase.h" />
+		<Unit filename="events/ListenerE131.cpp" />
+		<Unit filename="events/ListenerE131.h" />
+		<Unit filename="events/ListenerFPP.cpp" />
+		<Unit filename="events/ListenerFPP.h" />
+		<Unit filename="events/ListenerFPPUnicast.cpp" />
+		<Unit filename="events/ListenerFPPUnicast.h" />
+		<Unit filename="events/ListenerLor.cpp" />
+		<Unit filename="events/ListenerLor.h" />
+		<Unit filename="events/ListenerMIDI.cpp" />
+		<Unit filename="events/ListenerMIDI.h" />
+		<Unit filename="events/ListenerManager.cpp" />
+		<Unit filename="events/ListenerManager.h" />
+		<Unit filename="events/ListenerOSC.cpp" />
+		<Unit filename="events/ListenerOSC.h" />
+		<Unit filename="events/ListenerSerial.cpp" />
+		<Unit filename="events/ListenerSerial.h" />
 		<Unit filename="md5.cpp" />
 		<Unit filename="md5.h" />
 		<Unit filename="resource.rc">
@@ -554,6 +610,9 @@
 		<Unit filename="wxJSON/jsonreader.h" />
 		<Unit filename="wxJSON/jsonval.cpp" />
 		<Unit filename="wxJSON/jsonval.h" />
+		<Unit filename="wxMIDI/src/wxMidi.cpp" />
+		<Unit filename="wxMIDI/src/wxMidi.h" />
+		<Unit filename="wxMIDI/src/wxMidiDatabase.cpp" />
 		<Unit filename="wxsmith/AddReverseDialog.wxs" />
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
@@ -562,6 +621,16 @@
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
+		<Unit filename="wxsmith/EventARTNetPanel.wxs" />
+		<Unit filename="wxsmith/EventDataPanel.wxs" />
+		<Unit filename="wxsmith/EventDialog.wxs" />
+		<Unit filename="wxsmith/EventE131Panel.wxs" />
+		<Unit filename="wxsmith/EventFPPPanel.wxs" />
+		<Unit filename="wxsmith/EventLorPanel.wxs" />
+		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
+		<Unit filename="wxsmith/EventOSCPanel.wxs" />
+		<Unit filename="wxsmith/EventSerialPanel.wxs" />
+		<Unit filename="wxsmith/EventsDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
 		<Unit filename="wxsmith/GammaDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
@@ -574,6 +643,7 @@
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemFPPEventPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
@@ -583,6 +653,8 @@
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemScreenMapPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
@@ -593,6 +665,7 @@
 		<Unit filename="wxsmith/RemapDialog.wxs" />
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
+		<Unit filename="wxsmith/SustainDialog.wxs" />
 		<Unit filename="wxsmith/ThreeToFourDialog.wxs" />
 		<Unit filename="wxsmith/VideoWindowPositionDialog.wxs" />
 		<Unit filename="wxsmith/VirtualMatricesDialog1.wxs" />
@@ -620,8 +693,10 @@
 					<wxPanel wxs="wxsmith/PlayListItemPJLinkPanel.wxs" src="PlayList/PlayListItemPJLinkPanel.cpp" hdr="PlayList/PlayListItemPJLinkPanel.h" fwddecl="0" i18n="1" name="PlayListItemPJLinkPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunCommandPanel.wxs" src="PlayList/PlayListItemRunCommandPanel.cpp" hdr="PlayList/PlayListItemRunCommandPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunCommandPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemCURLPanel.wxs" src="PlayList/PlayListItemCURLPanel.cpp" hdr="PlayList/PlayListItemCURLPanel.h" fwddecl="0" i18n="1" name="PlayListItemCURLPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemSerialPanel.wxs" src="PlayList/PlayListItemSerialPanel.cpp" hdr="PlayList/PlayListItemSerialPanel.h" fwddecl="0" i18n="1" name="PlayListItemSerialPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFilePanel.wxs" src="PlayList/PlayListItemFilePanel.cpp" hdr="PlayList/PlayListItemFilePanel.h" fwddecl="0" i18n="1" name="PlayListItemFilePanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemFPPEventPanel.wxs" src="PlayList/PlayListItemFPPEventPanel.cpp" hdr="PlayList/PlayListItemFPPEventPanel.h" fwddecl="0" i18n="1" name="PlayListItemFPPEventPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQVideoPanel.wxs" src="PlayList/PlayListItemFSEQVideoPanel.cpp" hdr="PlayList/PlayListItemFSEQVideoPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQVideoPanel" language="CPP" />
@@ -649,12 +724,24 @@
 					<wxDialog wxs="wxsmith/MatricesDialog1.wxs" src="MatricesDialog.cpp" hdr="MatricesDialog.h" fwddecl="0" i18n="1" name="MatricesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VirtualMatrixDialog.wxs" src="VirtualMatrixDialog.cpp" hdr="VirtualMatrixDialog.h" fwddecl="0" i18n="1" name="VirtualMatrixDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VirtualMatricesDialog1.wxs" src="VirtualMatricesDialog.cpp" hdr="VirtualMatricesDialog.h" fwddecl="0" i18n="1" name="VirtualMatricesDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemScreenMapPanel.wxs" src="PlayList/PlayListItemScreenMapPanel.cpp" hdr="PlayList/PlayListItemScreenMapPanel.h" fwddecl="0" i18n="1" name="PlayListItemScreenMapPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTextPanel.wxs" src="PlayList/PlayListItemTextPanel.cpp" hdr="PlayList/PlayListItemTextPanel.h" fwddecl="0" i18n="1" name="PlayListItemTextPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/FPPRemotesDialog.wxs" src="FPPRemotesDialog.cpp" hdr="FPPRemotesDialog.h" fwddecl="0" i18n="1" name="FPPRemotesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/GammaDialog.wxs" src="GammaDialog.cpp" hdr="GammaDialog.h" fwddecl="0" i18n="1" name="GammaDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DeadChannelDialog.wxs" src="DeadChannelDialog.cpp" hdr="DeadChannelDialog.h" fwddecl="0" i18n="1" name="DeadChannelDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConfigureOSC.wxs" src="ConfigureOSC.cpp" hdr="ConfigureOSC.h" fwddecl="0" i18n="1" name="ConfigureOSC" language="CPP" />
 					<wxDialog wxs="wxsmith/ThreeToFourDialog.wxs" src="ThreeToFourDialog.cpp" hdr="ThreeToFourDialog.h" fwddecl="0" i18n="1" name="ThreeToFourDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EventsDialog.wxs" src="EventsDialog.cpp" hdr="EventsDialog.h" fwddecl="0" i18n="1" name="EventsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EventDialog.wxs" src="EventDialog.cpp" hdr="EventDialog.h" fwddecl="0" i18n="1" name="EventDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/EventE131Panel.wxs" src="EventE131Panel.cpp" hdr="EventE131Panel.h" fwddecl="0" i18n="1" name="EventE131Panel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventARTNetPanel.wxs" src="EventARTNetPanel.cpp" hdr="EventARTNetPanel.h" fwddecl="0" i18n="1" name="EventARTNetPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventSerialPanel.wxs" src="EventSerialPanel.cpp" hdr="EventSerialPanel.h" fwddecl="0" i18n="1" name="EventSerialPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventMIDIPanel.wxs" src="EventMIDIPanel.cpp" hdr="EventMIDIPanel.h" fwddecl="0" i18n="1" name="EventMIDIPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

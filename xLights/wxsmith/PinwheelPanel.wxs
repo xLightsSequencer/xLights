@@ -23,7 +23,6 @@
 							<value>3</value>
 							<min>1</min>
 							<max>20</max>
-							<size>80,20</size>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
@@ -41,7 +40,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_PinwheelNumberArms" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Arms" variable="BitmapButton_PinwheelNumberArms" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -68,7 +67,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_ArmSize" subclass="BulkEditSlider" variable="Slider_Pinwheel_ArmSize" member="yes">
 									<value>100</value>
 									<max>400</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -86,7 +84,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -101,7 +98,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON16" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_ArmSize" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -128,7 +125,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Twist" subclass="BulkEditSlider" variable="Slider_Pinwheel_Twist" member="yes">
 									<min>-360</min>
 									<max>360</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -146,7 +142,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -161,7 +156,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_PinwheelTwist" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Twist" variable="BitmapButton_PinwheelTwist" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -184,9 +179,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" subclass="BulkEditSlider" variable="Slider_Pinwheel_Thickness" member="yes">
-									<size>80,20</size>
-								</object>
+								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" subclass="BulkEditSlider" variable="Slider_Pinwheel_Thickness" member="yes" />
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
 								<option>1</option>
@@ -203,7 +196,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -218,7 +210,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON18" variable="BitmapButton_PinwheelThickness" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Thickness" variable="BitmapButton_PinwheelThickness" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -245,7 +237,6 @@
 								<object class="wxSlider" name="ID_SLIDER_Pinwheel_Speed" subclass="BulkEditSlider" variable="Slider_Pinwheel_Speed" member="yes">
 									<value>10</value>
 									<max>50</max>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -263,7 +254,6 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -278,7 +268,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON26" variable="BitmapButton7" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed" variable="BitmapButton_PinwheelSpeed" member="yes">
 							<bitmap code="padlock16x16_blue_xpm" />
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -341,7 +331,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Pinwheel_Rotation" variable="BitmapButton_PinwheelRotation" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
 									<size>13,13</size>
 									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -379,11 +369,10 @@
 									<selection>0</selection>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Pinwheel3D" variable="BitmapButton_Pinwheel3D" member="yes">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pinwheel_3D" variable="BitmapButton_Pinwheel3D" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
 									<size>13,13</size>
 									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -423,7 +412,6 @@
 							<object class="sizeritem">
 								<object class="wxSlider" name="ID_SLIDER_PinwheelXC" subclass="BulkEditSlider" variable="Slider_PinwheelXC" member="yes">
 									<min>-100</min>
-									<size>80,20</size>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
@@ -519,7 +507,6 @@
 							<object class="sizeritem">
 								<object class="wxSlider" name="ID_SLIDER_PinwheelYC" subclass="BulkEditSlider" variable="Slider_PinwheelYC" member="yes">
 									<min>-100</min>
-									<size>20,80</size>
 									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>

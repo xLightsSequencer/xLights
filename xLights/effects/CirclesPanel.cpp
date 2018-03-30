@@ -4,17 +4,17 @@
 #include "CirclesEffect.h"
 
 //(*InternalHeaders(CirclesPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(CirclesPanel)
@@ -32,7 +32,7 @@ const long CirclesPanel::ID_STATICTEXT_Circles_Speed = wxNewId();
 const long CirclesPanel::ID_SLIDER_Circles_Speed = wxNewId();
 const long CirclesPanel::ID_VALUECURVE_Circles_Speed = wxNewId();
 const long CirclesPanel::IDD_TEXTCTRL_Circles_Speed = wxNewId();
-const long CirclesPanel::ID_BITMAPBUTTON21 = wxNewId();
+const long CirclesPanel::ID_BITMAPBUTTON_SLIDER_Circles_Speed = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Bounce = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Radial = wxNewId();
@@ -42,7 +42,7 @@ const long CirclesPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Bubbles = wxNewId();
-const long CirclesPanel::ID_BITMAPBUTTON_CirclesBubbles = wxNewId();
+const long CirclesPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Bubbles = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Collide = wxNewId();
 const long CirclesPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Collide = wxNewId();
 const long CirclesPanel::ID_CHECKBOX_Circles_Random_m = wxNewId();
@@ -59,22 +59,22 @@ END_EVENT_TABLE()
 CirclesPanel::CirclesPanel(wxWindow* parent)
 {
 	//(*Initialize(CirclesPanel)
-	wxFlexGridSizer* FlexGridSizer91;
-	wxFlexGridSizer* FlexGridSizer16;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer80;
 	BulkEditTextCtrl* TextCtrl27;
-	wxFlexGridSizer* FlexGridSizer22;
-	BulkEditTextCtrl* TextCtrl29;
 	BulkEditTextCtrl* TextCtrl28;
-	wxFlexGridSizer* FlexGridSizer15;
-	wxFlexGridSizer* FlexGridSizer18;
-	wxFlexGridSizer* FlexGridSizer14;
-	wxFlexGridSizer* FlexGridSizer13;
-	wxFlexGridSizer* FlexGridSizer12;
+	BulkEditTextCtrl* TextCtrl29;
 	wxFlexGridSizer* FlexGridSizer107;
 	wxFlexGridSizer* FlexGridSizer11;
+	wxFlexGridSizer* FlexGridSizer12;
+	wxFlexGridSizer* FlexGridSizer13;
+	wxFlexGridSizer* FlexGridSizer14;
+	wxFlexGridSizer* FlexGridSizer15;
+	wxFlexGridSizer* FlexGridSizer16;
 	wxFlexGridSizer* FlexGridSizer17;
+	wxFlexGridSizer* FlexGridSizer18;
+	wxFlexGridSizer* FlexGridSizer22;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer80;
+	wxFlexGridSizer* FlexGridSizer91;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer80 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -123,7 +123,7 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	TextCtrl29->SetMaxLength(2);
 	FlexGridSizer22->Add(TextCtrl29, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer22, 1, wxALL|wxEXPAND, 0);
-	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON21, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
+	BitmapButton2 = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Circles_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Circles_Speed"));
 	BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -163,7 +163,7 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	CheckBox_Circles_Bubbles->SetValue(false);
 	FlexGridSizer91->Add(CheckBox_Circles_Bubbles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer91, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_CirclesBubbles = new wxBitmapButton(this, ID_BITMAPBUTTON_CirclesBubbles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CirclesBubbles"));
+	BitmapButton_CirclesBubbles = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_Circles_Bubbles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Bubbles"));
 	BitmapButton_CirclesBubbles->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer3->Add(BitmapButton_CirclesBubbles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -204,13 +204,13 @@ CirclesPanel::CirclesPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Circles_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Circles_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnVCButtonClick);
-	Connect(ID_BITMAPBUTTON21,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Circles_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_CHECKBOX_Circles_Bubbles,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnCheckBox_Circles_BubblesClick);
-	Connect(ID_BITMAPBUTTON_CirclesBubbles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Bubbles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Collide,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Linear_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CirclesPanel::OnLockButtonClick);

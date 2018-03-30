@@ -3,17 +3,17 @@
 
 //(*Headers(TextPanel)
 #include <wx/panel.h>
-class wxGridBagSizer;
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxFontPickerCtrl;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxFontPickerCtrl;
+class wxGridBagSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -26,36 +26,36 @@ class TextPanel: public wxPanel
 		virtual ~TextPanel();
 
 		//(*Declarations(TextPanel)
-		wxStaticText* StaticText53;
-		wxStaticText* StaticText213;
-		BulkEditSlider* Slider_Text_XStart;
-		wxStaticText* StaticText107;
-		BulkEditChoice* Choice_Text_Dir;
-		wxStaticText* StaticText78;
-		BulkEditChoice* Choice_Text_Font;
-		BulkEditTextCtrl* TextCtrl_Text;
-		wxBitmapButton* BitmapButton_TextToCenter;
-		wxStaticText* StaticText186;
-		wxPanel* Panel_Text1;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Text_YStart;
-		wxBitmapButton* BitmapButton1;
-		wxStaticText* StaticText98;
-		wxStaticText* StaticText211;
-		wxBitmapButton* BitmapButton_TextDir;
-		wxStaticText* StaticText212;
-		wxBitmapButton* BitmapButton_TextCount;
-		BulkEditChoice* Choice_Text_Count;
-		BulkEditSlider* Slider_Text_XEnd;
-		wxBitmapButton* BitmapButton_TextEffect;
-		BulkEditSlider* Slider_Text_YEnd;
-		wxBitmapButton* BitmapButton_Text_Speed;
-		wxStaticText* StaticText214;
-		wxPanel* Panel17;
-		wxBitmapButton* BitmapButton_TextFont;
 		BulkEditCheckBox* CheckBox_Text_PixelOffsets;
+		BulkEditChoice* Choice_Text_Count;
+		BulkEditChoice* Choice_Text_Dir;
 		BulkEditChoice* Choice_Text_Effect;
+		BulkEditChoice* Choice_Text_Font;
 		BulkEditSlider* Slider_Text_Speed;
+		BulkEditSlider* Slider_Text_XEnd;
+		BulkEditSlider* Slider_Text_XStart;
+		BulkEditSlider* Slider_Text_YEnd;
+		BulkEditSlider* Slider_Text_YStart;
+		BulkEditTextCtrl* TextCtrl_Text;
+		wxBitmapButton* BitmapButton1;
+		wxBitmapButton* BitmapButton_TextCount;
+		wxBitmapButton* BitmapButton_TextDir;
+		wxBitmapButton* BitmapButton_TextEffect;
+		wxBitmapButton* BitmapButton_TextFont;
+		wxBitmapButton* BitmapButton_TextToCenter;
+		wxBitmapButton* BitmapButton_Text_Speed;
+		wxPanel* Panel17;
+		wxPanel* Panel_Text1;
+		wxStaticText* StaticText107;
+		wxStaticText* StaticText186;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText211;
+		wxStaticText* StaticText212;
+		wxStaticText* StaticText213;
+		wxStaticText* StaticText214;
+		wxStaticText* StaticText53;
+		wxStaticText* StaticText78;
+		wxStaticText* StaticText98;
 		//*)
 
 

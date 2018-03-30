@@ -37,9 +37,12 @@ const long VideoPanel::IDD_SLIDER_Video_CropBottom = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropBottom = wxNewId();
 //*)
 
+wxDEFINE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(VideoPanel,wxPanel)
 	//(*EventTable(VideoPanel)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_VIDEODETAILS, VideoPanel::SetVideoDetails)
 END_EVENT_TABLE()
 
 VideoPanel::VideoPanel(wxWindow* parent)
@@ -143,7 +146,7 @@ VideoPanel::~VideoPanel()
 	//*)
 }
 
-void VideoPanel::addVideoTime(std::string fn, unsigned long ms) {
+void VideoPanel::AddVideoTime(std::string fn, unsigned long ms) {
     std::unique_lock<std::mutex> locker(lock);
     videoTimeCache[fn] = ms;
 
@@ -170,6 +173,11 @@ void VideoPanel::OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& ev
 void VideoPanel::OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void VideoPanel::SetVideoDetails(wxCommandEvent& event)
+{
+    AddVideoTime(event.GetString().ToStdString(), event.GetInt());
 }
 
 void VideoPanel::ValidateWindow()

@@ -263,7 +263,6 @@
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Brightness" subclass="BulkEditTextCtrl" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>20,-1d</size>
-													<validator>__brightness</validator>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -327,17 +326,17 @@
 													<label>Adjustment</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -345,7 +344,7 @@
 													<label>Hue</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -357,7 +356,6 @@
 															<min>-100</min>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -367,22 +365,20 @@
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_HueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_HueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -390,7 +386,7 @@
 													<label>Saturation</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -402,7 +398,6 @@
 															<min>-100</min>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -412,22 +407,20 @@
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_SaturationAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_SaturationAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -435,7 +428,7 @@
 													<label>Value</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -447,7 +440,6 @@
 															<min>-100</min>
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -457,68 +449,25 @@
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDD_TEXTCTRL_Color_ValueAdjust" subclass="BulkEditTextCtrl" variable="TextCtrl_Color_ValueAdjust" member="yes">
 													<value>0</value>
 													<maxlength>4</maxlength>
-													<size>35,-1</size>
+													<size>20,-1d</size>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-											<cols>4</cols>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON87" variable="BitmapButton_normal" member="yes">
-													<bitmap code="padlock16x16_green_xpm" />
-													<size>13,13</size>
-													<hidden>1</hidden>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_locked" member="yes">
-													<bitmap code="padlock16x16_red_xpm" />
-													<size>13,13</size>
-													<hidden>1</hidden>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON88" variable="BitmapButton_random" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<hidden>1</hidden>
-													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>1</border>
-												<option>1</option>
-											</object>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 								</object>

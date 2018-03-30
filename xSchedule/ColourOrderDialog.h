@@ -22,7 +22,6 @@ class ColourOrderDialog: public wxDialog
     std::string& _description;
     bool& _enabled;
     OutputManager* _outputManager;
-    void SetChoiceFromString(wxChoice* choice, std::string value);
     void ValidateWindow();
 
     public:

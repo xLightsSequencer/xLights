@@ -8,7 +8,6 @@
 #include "../xLightsXmlFile.h"
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
-#include <log4cpp/Category.hh>
 #include "../UtilFunctions.h"
 
 #include "../../include/video-16.xpm"
@@ -16,7 +15,8 @@
 #include "../../include/video-32.xpm"
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
-#include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -185,28 +185,6 @@ public:
     int _frameMS;
 };
 
-bool VideoEffect::IsVideo(const std::string& file)
-{
-    wxFileName fn(file);
-    auto ext = fn.GetExt().ToStdString();
-
-    if (ext == "avi" ||
-        ext == "mp4" ||
-        ext == "mkv" ||
-        ext == "mov" ||
-        ext == "asf" ||
-        ext == "flv" ||
-        ext == "mpg" ||
-        ext == "mpeg" ||
-        ext == "m4v"
-        )
-    {
-        return true;
-    }
-
-    return false;
-}
-
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 	double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
 {
@@ -311,7 +289,11 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 VideoPanel *fp = static_cast<VideoPanel*>(panel);
                 if (fp != nullptr)
                 {
-                    fp->addVideoTime(filename, videolen);
+                    wxCommandEvent event(EVT_VIDEODETAILS);
+                    event.SetInt(videolen);
+                    event.SetString(filename);
+                    wxPostEvent(fp, event);
+                    //fp->addVideoTime(filename, videolen);
                 }
 
                 if (starttime != 0)

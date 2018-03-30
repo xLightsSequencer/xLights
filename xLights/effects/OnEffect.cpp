@@ -16,7 +16,6 @@ static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 
 #include <sstream>
 
-
 OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 {
     //ctor

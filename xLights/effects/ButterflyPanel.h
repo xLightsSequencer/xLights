@@ -4,11 +4,11 @@
 //(*Headers(ButterflyPanel)
 #include <wx/panel.h>
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,21 +21,21 @@ class ButterflyPanel: public wxPanel
 		virtual ~ButterflyPanel();
 
 		//(*Declarations(ButterflyPanel)
-		wxStaticText* StaticText175;
-		BulkEditValueCurveButton* BitmapButton_Butterfly_Skip;
-		BulkEditSlider* Slider_Butterfly_Style;
-		wxStaticText* StaticText26;
-		BulkEditChoice* Choice_Butterfly_Direction;
-		wxStaticText* StaticText58;
-		wxStaticText* StaticText27;
-		BulkEditValueCurveButton* BitmapButton_Butterfly_Speed;
-		wxStaticText* StaticText28;
-		BulkEditSlider* Slider_Butterfly_Skip;
 		BulkEditSlider* Slider_Butterfly_Chunks;
-		BulkEditValueCurveButton* BitmapButton_Butterfly_Chunks;
-		wxStaticText* StaticText25;
+		BulkEditValueCurveButton* BitmapButton_Butterfly_Skip;
+		wxStaticText* StaticText175;
+		wxStaticText* StaticText28;
 		BulkEditSlider* Slider_Butterfly_Speed;
+		BulkEditValueCurveButton* BitmapButton_Butterfly_Speed;
+		BulkEditChoice* Choice_Butterfly_Direction;
 		BulkEditChoice* Choice_Butterfly_Colors;
+		BulkEditSlider* Slider_Butterfly_Style;
+		wxStaticText* StaticText27;
+		BulkEditSlider* Slider_Butterfly_Skip;
+		wxStaticText* StaticText26;
+		BulkEditValueCurveButton* BitmapButton_Butterfly_Chunks;
+		wxStaticText* StaticText58;
+		wxStaticText* StaticText25;
 		//*)
 
 	protected:
@@ -43,7 +43,7 @@ class ButterflyPanel: public wxPanel
 		//(*Identifiers(ButterflyPanel)
 		static const long ID_STATICTEXT_Butterfly_Colors;
 		static const long ID_CHOICE_Butterfly_Colors;
-		static const long ID_BITMAPBUTTON_CHOICE_Butterfly_Color;
+		static const long ID_BITMAPBUTTON_CHOICE_Butterfly_Colors;
 		static const long ID_STATICTEXT_Butterfly_Style;
 		static const long ID_SLIDER_Butterfly_Style;
 		static const long IDD_TEXTCTRL_Butterfly_Style;
@@ -57,15 +57,15 @@ class ButterflyPanel: public wxPanel
 		static const long ID_SLIDER_Butterfly_Skip;
 		static const long ID_VALUECURVE_Butterfly_Skip;
 		static const long IDD_TEXTCTRL_Butterfly_Skip;
-		static const long ID_BITMAPBUTTON15;
+		static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Skip;
 		static const long ID_STATICTEXT_Butterfly_Speed;
 		static const long ID_SLIDER_Butterfly_Speed;
 		static const long ID_VALUECURVE_Butterfly_Speed;
 		static const long IDD_TEXTCTRL_Butterfly_Speed;
-		static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Skip;
+		static const long ID_BITMAPBUTTON_SLIDER_Butterfly_Speed;
 		static const long ID_STATICTEXT_Butterfly_Direction;
 		static const long ID_CHOICE_Butterfly_Direction;
-		static const long ID_BITMAPBUTTON9;
+		static const long ID_BITMAPBUTTON_CHOICE_Butterfly_Direction;
 		//*)
 
 	public:

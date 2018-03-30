@@ -3,13 +3,13 @@
 
 //(*Headers(FireworksPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include <list>
@@ -25,32 +25,32 @@ class FireworksPanel: public wxPanel
         void SetTimingTracks(wxCommandEvent& event);
 
 		//(*Declarations(FireworksPanel)
-		BulkEditSlider* Slider_Fireworks_Velocity;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
-		BulkEditChoice* Choice_TimingTrack;
-		wxBitmapButton* BitmapButton_FireworksCount;
-		BulkEditCheckBox* CheckBox_Fireworks_UseMusic;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Fade;
-		wxStaticText* StaticText1;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Sensitivity;
-		wxBitmapButton* BitmapButton1;
-		BulkEditSlider* Slider_Fireworks_Sensitivity;
-		wxStaticText* StaticText94;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Velocity;
-		wxBitmapButton* BitmapButton_FireworksVelocity;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Count;
-		wxStaticText* StaticText91;
-		BulkEditSlider* Slider_Fireworks_Num_Explosions;
-		wxStaticText* StaticText93;
-		wxStaticText* StaticText95;
-		BulkEditTextCtrl* TextCtrl_Fireworks_Explosions;
-		wxBitmapButton* BitmapButton_FireworksFade;
-		BulkEditSlider* Slider_Fireworks_Fade;
-		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
-		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
-		BulkEditSlider* Slider_Fireworks_Count;
 		BulkEditCheckBox* CheckBox_FireTiming;
+		BulkEditCheckBox* CheckBox_Fireworks_UseMusic;
+		BulkEditChoice* Choice_TimingTrack;
+		BulkEditSlider* Slider_Fireworks_Count;
+		BulkEditSlider* Slider_Fireworks_Fade;
+		BulkEditSlider* Slider_Fireworks_Num_Explosions;
+		BulkEditSlider* Slider_Fireworks_Sensitivity;
+		BulkEditSlider* Slider_Fireworks_Velocity;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Count;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Explosions;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Fade;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Sensitivity;
+		BulkEditTextCtrl* TextCtrl_Fireworks_Velocity;
+		wxBitmapButton* BitmapButton1;
+		wxBitmapButton* BitmapButton_FireworksCount;
+		wxBitmapButton* BitmapButton_FireworksFade;
+		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
+		wxBitmapButton* BitmapButton_FireworksVelocity;
+		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
+		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText91;
+		wxStaticText* StaticText93;
+		wxStaticText* StaticText94;
+		wxStaticText* StaticText95;
 		//*)
 
 	protected:
@@ -59,7 +59,7 @@ class FireworksPanel: public wxPanel
 		static const long ID_STATICTEXT_Fireworks_Explosions;
 		static const long ID_SLIDER_Fireworks_Explosions;
 		static const long IDD_TEXTCTRL_Fireworks_Explosions;
-		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions;
+		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Explosions;
 		static const long ID_STATICTEXT_Fireworks_Count;
 		static const long ID_SLIDER_Fireworks_Count;
 		static const long IDD_TEXTCTRL_Fireworks_Count;
@@ -73,13 +73,13 @@ class FireworksPanel: public wxPanel
 		static const long IDD_TEXTCTRL_Fireworks_Fade;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Fade;
 		static const long ID_CHECKBOX_Fireworks_UseMusic;
-		static const long ID_BITMAPBUTTON_Fireworks_UseMusic;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic;
 		static const long ID_STATICTEXT_Fireworks_Sensitivity;
 		static const long ID_SLIDER_Fireworks_Sensitivity;
 		static const long IDD_TEXTCTRL_Fireworks_Sensitivity;
-		static const long ID_BITMAPBUTTON_Fireworks_Sensitivity;
+		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Sensitivity;
 		static const long ID_CHECKBOX_FIRETIMING;
-		static const long ID_BITMAPBUTTON_FIRETIMING;
+		static const long ID_BITMAPBUTTON_CHECKBOX_FIRETIMING;
 		static const long ID_STATICTEXT_FIRETIMINGTRACK;
 		static const long ID_CHOICE_FIRETIMINGTRACK;
 		//*)

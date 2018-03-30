@@ -246,6 +246,23 @@ http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
 		Run process <playlist name>,<step name>,<run process name>
 			This api will run the run process specified without interupting any playlists that happen to be playing at that time. This can be used to run a script which maybe does some more complicated control of the scheduler. For example ... if you wanted to fade the volume down over a period of 3 seconds you could kick off a script that called the api to change the volume several times over the time period.
 		
+		Run event playlist step <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else. Data from this step will overwrite almost everything
+
+		Run event playlist step unique <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else. Data from this step will overwrite almost everything. If any existing items from the specified playlist are already in the event playlist list they are stopped and removed
+
+		Run event playlist step if idle <playlistname>,<step name>
+			This api will run the specified playlist step once immediately without interrupting anything else as long as there isnt already an event playing in that playlist. Data from this step will overwrite almost everything.
+
+		Run event playlist step looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else. Data from this step will overwrite almost everything
+
+		Run event playlist step unique looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else. Data from this step will overwrite almost everything. If any existing items from the specified playlist are already in the event playlist list they are stopped and removed
+
+		Run event playlist step if idle looped <playlistname>,<step name>
+			This api will run the specified playlist step continuously immediately without interrupting anything else as long as there isnt already an event playing in that playlist. Data from this step will overwrite almost everything.
 
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 

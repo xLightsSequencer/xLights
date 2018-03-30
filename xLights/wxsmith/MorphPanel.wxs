@@ -21,8 +21,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" subclass="BulkEditSlider" variable="Slider_Morph_Start_X1" member="yes">
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" subclass="BulkEditSlider" variable="Slider_Morph_Start_X1" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -69,8 +68,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y1" member="yes">
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y1" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -166,8 +164,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y2" member="yes">
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" subclass="BulkEditSlider" variable="Slider_Morph_Start_Y2" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -326,8 +323,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" subclass="BulkEditSlider" variable="Slider_Morph_End_X1" member="yes">
-									</object>
+									<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" subclass="BulkEditSlider" variable="Slider_Morph_End_X1" member="yes" />
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -591,7 +587,6 @@
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_MorphDuration" variable="StaticText123" member="yes">
 												<label>Head Duration:</label>
-												<size>-1,-1</size>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

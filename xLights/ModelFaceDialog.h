@@ -26,10 +26,14 @@ class FaceGrid;
 
 class ModelFaceDialog: public wxDialog
 {
+    const std::list<std::string> _phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ" };
+
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
     void DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);
     void DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name);
     void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
+    bool IsValidPhoneme(const std::string phoneme) const;
+    int GetRowForPhoneme(const std::string phoneme) const;
 
     public:
 
@@ -46,6 +50,7 @@ class ModelFaceDialog: public wxDialog
 		wxGrid* MatrixModelsGrid;
 		wxGrid* SingleNodeGrid;
 		wxStaticText* StaticText3;
+		wxButton* Button_DownloadImages;
 		wxPanel* Matrix;
 		wxCheckBox* CustomColorSingleNode;
 		wxButton* DeleteButton;
@@ -73,6 +78,7 @@ class ModelFaceDialog: public wxDialog
 		static const long ID_PANEL6;
 		static const long ID_PANEL7;
 		static const long ID_CHOICE2;
+		static const long ID_BUTTON1;
 		static const long ID_GRID1;
 		static const long ID_PANEL3;
 		static const long ID_CHOICEBOOK1;
@@ -101,6 +107,7 @@ class ModelFaceDialog: public wxDialog
 		void OnNodeRangeGridCellLeftClick(wxGridEvent& event);
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		void Paint(wxPaintEvent& event);
+		void OnButton_DownloadImagesClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

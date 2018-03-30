@@ -26,11 +26,8 @@ class VirtualMatrixDialog: public wxDialog
     std::string& _rotation;
     std::string& _quality;
     OutputManager* _outputManager;
-
     wxSize _tempSize;
     wxPoint _tempLocation;
-
-    void SetChoiceFromString(wxChoice* choice, std::string value);
 
 	public:
 

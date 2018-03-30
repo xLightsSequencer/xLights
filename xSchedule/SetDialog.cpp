@@ -33,9 +33,9 @@ SetDialog::SetDialog(wxWindow* parent, OutputManager* outputManager, std::string
     _outputManager = outputManager;
 
 	//(*Initialize(SetDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);

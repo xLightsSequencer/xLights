@@ -36,7 +36,7 @@ template <class CTX>
 class ContextPool {
 public:
     
-    ContextPool(std::function<CTX* ()> alloc): allocator(alloc) {
+    ContextPool(std::function<CTX* ()> alloc, std::string type = ""): allocator(alloc), _type(type) {
     }
     ~ContextPool() {
         while (!contexts.empty()) {
@@ -47,14 +47,23 @@ public:
     }
     
     CTX *GetContext() {
-        std::unique_lock<std::mutex> locker(lock);
-        if (contexts.empty()) {
-            lock.unlock();
+        // This seems odd but manually releasing the lock causes hard crashes on Visual Studio
+        bool contextsEmpty = false;
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            contextsEmpty = contexts.empty();
+        }
+
+        if (contextsEmpty) {
             return allocator();
         }
-        CTX *ret = contexts.front();
-        contexts.pop();
-        return ret;
+
+        {
+            std::unique_lock<std::mutex> locker(lock);
+            CTX *ret = contexts.front();
+            contexts.pop();
+            return ret;
+        }
     }
     void ReleaseContext(CTX *pctx) {
         std::unique_lock<std::mutex> locker(lock);
@@ -65,6 +74,7 @@ private:
     std::mutex lock;
     std::queue<CTX*> contexts;
     std::function<CTX* ()> allocator;
+    std::string _type;
 };
 
 
@@ -111,6 +121,7 @@ void DrawingContext::Initialize(wxWindow *parent) {
         });
     }
 }
+
 void DrawingContext::CleanUp() {
     if (TEXT_CONTEXT_POOL != nullptr) {
         delete TEXT_CONTEXT_POOL;
@@ -173,7 +184,7 @@ AudioManager* RenderBuffer::GetMedia()
 {
 	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
 	{
-		return NULL;
+		return nullptr;
 	}
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
 }
@@ -241,6 +252,7 @@ DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, boo
 
 DrawingContext::~DrawingContext() {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     if (gc != nullptr) {
         delete gc;
     }
@@ -257,11 +269,9 @@ DrawingContext::~DrawingContext() {
 
 
 PathDrawingContext::PathDrawingContext(int BufferWi, int BufferHt, bool allowShared)
-    : DrawingContext(BufferWi, BufferHt, allowShared, true)
-{
-}
-PathDrawingContext::~PathDrawingContext() {
-}
+    : DrawingContext(BufferWi, BufferHt, allowShared, true) {}
+
+PathDrawingContext::~PathDrawingContext() {}
 
 TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowShared)
 #ifdef __WXMSW__
@@ -272,11 +282,9 @@ TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowSha
     // Linux does text rendering on main thread so using the shared stuff is fine
     : DrawingContext(BufferWi, BufferHt, true, true)
 #endif
-{
-}
-TextDrawingContext::~TextDrawingContext() {
-}
+{}
 
+TextDrawingContext::~TextDrawingContext() {}
 
 void DrawingContext::ResetSize(int BufferWi, int BufferHt) {
     if (bitmap != nullptr) {
@@ -754,21 +762,22 @@ HSVValue RenderBuffer::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return rgb.asHSV();
 }
 // 0 <= n < 1
-void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color)
+void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColours)
 {
-    size_t colorcnt=GetColorCount();
+    size_t colorcnt = GetColorCount() - reserveColours;
     if (colorcnt <= 1)
     {
-        palette.GetColor(0,color);
+        palette.GetColor(0, color);
         return;
     }
-    if (n >= 1.0) n=0.99999f;
-    if (n < 0.0) n=0.0f;
-    float realidx=circular ? n*colorcnt : n*(colorcnt-1);
-    int coloridx1=floor(realidx);
-    int coloridx2=(coloridx1+1) % colorcnt;
-    float ratio=realidx-float(coloridx1);
-    Get2ColorBlend(coloridx1,coloridx2,ratio,color);
+
+    if (n >= 1.0) n = 0.99999f;
+    if (n < 0.0) n = 0.0f;
+    float realidx = circular ? n * colorcnt : n * (colorcnt - 1);
+    int coloridx1 = floor(realidx);
+    int coloridx2 = (coloridx1 + 1) % colorcnt;
+    float ratio = realidx - float(coloridx1);
+    Get2ColorBlend(coloridx1, coloridx2, ratio, color);
 }
 
 

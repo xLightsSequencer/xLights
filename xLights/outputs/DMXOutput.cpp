@@ -1,7 +1,6 @@
 #include "DMXOutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 DMXOutput::DMXOutput(SerialOutput* output) : SerialOutput(output)
@@ -49,7 +48,7 @@ bool DMXOutput::Open()
 #pragma region Frame Handling
 void DMXOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _serial == nullptr || !_ok) return;
+    if (!_enabled || _suspend || _serial == nullptr || !_ok) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {

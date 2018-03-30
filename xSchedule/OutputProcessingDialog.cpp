@@ -7,6 +7,7 @@
 #include "OutputProcessSet.h"
 #include "OutputProcessRemap.h"
 #include "OutputProcessDeadChannel.h"
+#include "OutputProcessSustain.h"
 #include "DimDialog.h"
 #include "DimWhiteDialog.h"
 #include "ThreeToFourDialog.h"
@@ -17,6 +18,7 @@
 #include "GammaDialog.h"
 #include "OutputProcessGamma.h"
 #include "DeadChannelDialog.h"
+#include "SustainDialog.h"
 
 //(*InternalHeaders(OutputProcessingDialog)
 #include <wx/intl.h>
@@ -36,6 +38,7 @@ const long OutputProcessingDialog::ID_BUTTON9 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON10 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON11 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON13 = wxNewId();
+const long OutputProcessingDialog::ID_BUTTON14 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON5 = wxNewId();
 const long OutputProcessingDialog::ID_BUTTON4 = wxNewId();
 //*)
@@ -51,11 +54,11 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, OutputManager* 
     _dragging = false;
 
 	//(*Initialize(OutputProcessingDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, _("Output Processing"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -94,6 +97,8 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, OutputManager* 
 	FlexGridSizer4->Add(Button_Gamma, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_3to4 = new wxButton(this, ID_BUTTON13, _("Add 3 to 4 Channel Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
 	FlexGridSizer4->Add(Button_3to4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Sustain = new wxButton(this, ID_BUTTON14, _("Add Sustain"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON14"));
+	FlexGridSizer4->Add(Button_Sustain, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Button_Ok = new wxButton(this, ID_BUTTON5, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
@@ -122,6 +127,7 @@ OutputProcessingDialog::OutputProcessingDialog(wxWindow* parent, OutputManager* 
 	Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_ReverseClick);
 	Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_GammaClick);
 	Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_3to4Click);
+	Connect(ID_BUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_SustainClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_OkClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OutputProcessingDialog::OnButton_CancelClick);
 	//*)
@@ -254,7 +260,7 @@ void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
                 ListView_Processes->SetItem(dropitem + 1, 2, p1);
                 ListView_Processes->SetItem(dropitem + 1, 3, p1);
                 ListView_Processes->SetItem(dropitem + 1, 4, d);
-                if (!e) 
+                if (!e)
 		{
 			ListView_Processes->SetItemTextColour(dropitem + 1 , *wxLIGHT_GREY);
 		}
@@ -366,6 +372,10 @@ void OutputProcessingDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "Set")
         {
             op = new OutputProcessSet(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), wxAtol(ListView_Processes->GetItemText(i, 3)), ListView_Processes->GetItemText(i, 4).ToStdString());
+        }
+        else if (type == "Sustain")
+        {
+            op = new OutputProcessSustain(_outputManager, ListView_Processes->GetItemText(i, 1).ToStdString(), wxAtol(ListView_Processes->GetItemText(i, 2)), ListView_Processes->GetItemText(i, 4).ToStdString());
         }
         else if (type == "Dead Channel")
         {
@@ -479,6 +489,7 @@ bool OutputProcessingDialog::EditSelectedItem()
         DimWhiteDialog dlgdw(this, _outputManager, sc, p1, p2, d, e);
         ThreeToFourDialog dlgt2f(this, _outputManager, sc, p1, p2s, d, e);
         SetDialog dlgs(this, _outputManager, sc, p1, p2, d, e);
+        SustainDialog dlgsus(this, _outputManager, sc, p1, d, e);
         DeadChannelDialog dlgdc(this, _outputManager, sc, p1, d, e);
         RemapDialog dlgr(this, _outputManager, sc, p1s, p2, d, e);
         AddReverseDialog dlgrv(this, _outputManager, sc, p1, p2, d, e);
@@ -501,6 +512,10 @@ bool OutputProcessingDialog::EditSelectedItem()
         else if (type == "Set")
         {
             res = dlgs.ShowModal();
+        }
+        else if (type == "Sustain")
+        {
+            res = dlgsus.ShowModal();
         }
         else if (type == "Remap")
         {
@@ -642,6 +657,17 @@ void OutputProcessingDialog::OnListView_ProcessesItemRClick(wxListEvent& event)
 void OutputProcessingDialog::OnButton_3to4Click(wxCommandEvent& event)
 {
     ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Three To Four");
+    ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
+    if (!EditSelectedItem())
+    {
+        ListView_Processes->DeleteItem(ListView_Processes->GetItemCount() - 1);
+    }
+    ValidateWindow();
+}
+
+void OutputProcessingDialog::OnButton_SustainClick(wxCommandEvent& event)
+{
+    ListView_Processes->InsertItem(ListView_Processes->GetItemCount(), "Sustain");
     ListView_Processes->Select(ListView_Processes->GetItemCount() - 1);
     if (!EditSelectedItem())
     {

@@ -196,9 +196,9 @@ void CachedFileDownloader::SaveCache()
     if (f.Create(_cacheFile, true) && f.IsOpened())
     {
         wxString lit("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        f.Write(lit, lit.size());
+        f.Write(lit.c_str(), lit.size());
         lit = "<filecache>\n";
-        f.Write(lit, lit.size());
+        f.Write(lit.c_str(), lit.size());
 
         int i = 0;
         for (auto it = _cacheItems.begin(); it != _cacheItems.end(); ++it)
@@ -211,7 +211,7 @@ void CachedFileDownloader::SaveCache()
         }
 
         lit = "</filecache>";
-        f.Write(lit, lit.size());
+        f.Write(lit.c_str(), lit.size());
         f.Close();
         logger_base.debug("    File Cache %d items saved.", i);
     }

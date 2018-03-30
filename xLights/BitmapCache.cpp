@@ -8,6 +8,7 @@
 
 #include <map>
 #include "BitmapCache.h"
+#include "UtilFunctions.h"
 
 #include "../include/padlock16x16-blue.xpm"
 #include "../include/padlock16x16-red.xpm"
@@ -18,6 +19,10 @@
 /*-----  Toolbar Art ----- */
 #include "../include/toolbar/toolbarImages.h"
 
+
+#include "../include/fforward10-24.xpm"
+#include "../include/rewind10-24.xpm"
+/*
 #include "../include/render-all-16.xpm"
 #include "../include/render-all-24.xpm"
 #include "../include/render-all-32.xpm"
@@ -25,9 +30,6 @@
 #include "../include/render-all-64.xpm"
 #include "../include/paste-by-time-24.xpm"
 #include "../include/paste-by-cell-24.xpm"
-#include "../include/fforward10-24.xpm"
-#include "../include/rewind10-24.xpm"
-
 
 #define paste_by_time_16_xpm paste_by_time_24_xpm
 #define paste_by_time_32_xpm paste_by_time_24_xpm
@@ -43,6 +45,7 @@
 #include "../include/save-as-24.xpm"
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
+ */
 
 #include "../include/Dice-24.xpm"
 #include "../include/Dice-32.xpm"
@@ -108,10 +111,6 @@
 
 #include "wx/artprov.h"
 
-#ifdef __WXOSX__
-double xlOSXGetMainScreenContentScaleFactor();
-#endif
-
 
 class xlArtProvider : public wxArtProvider {
 public:
@@ -169,7 +168,6 @@ public:
             dc = data64;
         }
 
-#ifdef __WXOSX__
         double scale = 1.0;
         int origSize = size;
         //Retina Display, use the larger icons with the scale factor set
@@ -181,7 +179,7 @@ public:
             } else if (size == 32) {
                 data = &size32e;
             }
-        } else if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
+        } else if (GetSystemContentScaleFactor() >= 1.5) {
             if (size == 16 && (data16 != data32)) {
                 size = 32;
                 scale = 2.0;
@@ -201,29 +199,19 @@ public:
             wxImage image(dc);
             if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
+#ifdef __WSOSX__
             } else if (!exact && image.GetHeight() == origSize*2) {
                 (*data)[eff] = wxBitmap(image, -1, 2.0);
             } else if (!exact && image.GetHeight() == origSize*3) {
                 (*data)[eff] = wxBitmap(image, -1, 3.0);
             } else if (!exact && image.GetHeight() == origSize*4) {
                 (*data)[eff] = wxBitmap(image, -1, 4.0);
+#endif
             } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
                 (*data)[eff] = wxBitmap(scaled, -1, scale);
             }
         }
-#else
-        const wxBitmap &bmp = (*data)[eff];
-        if (!bmp.IsOk()) {
-            wxImage image(dc);
-            if (image.GetHeight() == size) {
-                (*data)[eff] = wxBitmap(image);
-            } else {
-                wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-                (*data)[eff] = wxBitmap(scaled);
-            }
-        }
-#endif
         return (*data)[eff];
     }
     const wxBitmap &GetOtherImage(const wxString &name,
@@ -242,12 +230,9 @@ public:
     std::map<wxString, wxBitmap> size32;
     std::map<wxString, wxBitmap> size48;
     std::map<wxString, wxBitmap> size64;
-
-#ifdef __WXOSX__
     std::map<wxString, wxBitmap> size16e;
     std::map<wxString, wxBitmap> size24e;
     std::map<wxString, wxBitmap> size32e;
-#endif
 
     std::map<wxString, wxBitmap> others;
 } effectBitmaps;
@@ -385,23 +370,16 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, dice_24, dice_24, dice_32, dice_48, dice_64);
     } else if ("wxART_INFORMATION" == id) {
         return effectBitmaps.get(24, false, id, tips_16, tips_24, tips_32, tips_48, tips_64);
-#ifndef __WXOSX__
-        //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
     } else if (wxART_FOLDER_OPEN == id) {
-        return effectBitmaps.get(24, false, id, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm);
+        return effectBitmaps.get(24, false, id, select_show_folder_16_xpm, select_show_folder_24_xpm, select_show_folder_32_xpm, select_show_folder_48_xpm, select_show_folder_64_xpm);
     } else if (wxART_NEW == id) {
-        return effectBitmaps.get(24, false, id, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm);
+        return effectBitmaps.get(24, false, id, file_new_16_xpm, file_new_24_xpm, file_new_32_xpm, file_new_48_xpm, file_new_64_xpm);
     } else if (wxART_FILE_OPEN == id) {
-        return effectBitmaps.get(24, false, id, folder_xpm, folder_xpm, folder_xpm, folder_xpm, folder_xpm);
+        return effectBitmaps.get(24, false, id, open_16_xpm, open_24_xpm, open_32_xpm, open_48_xpm, open_64_xpm);
     } else if (wxART_FILE_SAVE == id) {
-        return effectBitmaps.get(24, false, id, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm);
+        return effectBitmaps.get(24, false, id, save_16_xpm, save_24_xpm, save_32_xpm, save_48_xpm, save_64_xpm);
     } else if (wxART_FILE_SAVE_AS == id) {
-        return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
-#else
-    } else if (wxART_TOOLBAR == client) {
-        //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
-        return wxArtProvider::GetBitmap(id, wxART_OTHER);
-#endif
+        return effectBitmaps.get(24, false, id, save_as_16_xpm, save_as_24_xpm, save_as_32_xpm, save_as_48_xpm, save_as_64_xpm);
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;

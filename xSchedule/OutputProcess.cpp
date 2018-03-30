@@ -5,6 +5,7 @@
 #include "OutputProcessDimWhite.h"
 #include "OutputProcessThreeToFour.h"
 #include "OutputProcessSet.h"
+#include "OutputProcessSustain.h"
 #include "OutputProcessRemap.h"
 #include "OutputProcessReverse.h"
 #include "OutputProcessGamma.h"
@@ -93,6 +94,10 @@ OutputProcess* OutputProcess::CreateFromXml(OutputManager* outputManager, wxXmlN
     else if (node->GetName() == "OPSet")
     {
         return new OutputProcessSet(outputManager, node);
+    }
+    else if (node->GetName() == "OPSustain")
+    {
+        return new OutputProcessSustain(outputManager, node);
     }
     else if (node->GetName() == "OPRemap")
     {

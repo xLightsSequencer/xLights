@@ -62,11 +62,13 @@ class SequenceElements : public ChangeListener
         bool LoadSequencerFile(xLightsXmlFile& xml_file, const wxString& ShowDir);
         void Clear();
         void PrepareViews(xLightsXmlFile& xml_file);
+        std::vector < Element*> SearchForElements(const std::string &regex, int view = MASTER_VIEW) const;
         Element* AddElement(const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index, const std::string &name, const std::string &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const std::string &name) const;
         int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
         Element* GetElement(size_t index, int view = MASTER_VIEW) const;
+        TimingElement* GetTimingElement(int n);
         size_t GetElementCount(int view = MASTER_VIEW) const;
         Row_Information_Struct* GetVisibleRowInformation(size_t index);
         Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
@@ -151,8 +153,10 @@ class SequenceElements : public ChangeListener
         int SelectVisibleEffectsInRowAndTimeRange(int startRow, int endRow, int startMS,int endMS);
         int SelectEffectsInRowAndColumnRange(int startRow, int endRow, int startCol,int endCol);
         void SelectAllEffects();
+        void SelectAllEffectsNoTiming();
         void SelectAllEffectsInRow(int row);
         void UnSelectAllEffects();
+        void SelectAllElements();
         void UnSelectAllElements();
 
         EffectLayer* GetEffectLayer(Row_Information_Struct *s);

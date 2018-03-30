@@ -16,6 +16,7 @@ DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
 {
     _fulldata = nullptr;
     _channelsPerPacket = wxAtoi(node->GetAttribute("ChannelsPerPacket"));
+    _keepChannelNumbers = wxAtoi(node->GetAttribute("KeepChannelNumbers"));
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -23,11 +24,13 @@ DDPOutput::DDPOutput(wxXmlNode* node) : IPOutput(node)
 
 DDPOutput::DDPOutput() : IPOutput()
 {
+    _universe = 64001;
     _fulldata = nullptr;
-    _channelsPerPacket = 512;
+    _channelsPerPacket = 1410;
     _channels = 512;
     _sequenceNum = 0;
     _datagram = nullptr;
+    _keepChannelNumbers = true;
     memset(_data, 0, sizeof(_data));
 }
 
@@ -53,7 +56,7 @@ void DDPOutput::SendSync()
         __initialised = true;
         memset(syncdata, 0x00, sizeof(syncdata));
         syncdata[0] = DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH;
-        syncdata[2] = 1;
+        syncdata[2] = 0x80;
         syncdata[3] = DDP_ID_DISPLAY;
 
         wxIPV4address localaddr;
@@ -111,6 +114,7 @@ wxXmlNode* DDPOutput::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     node->AddAttribute("ChannelsPerPacket", wxString::Format("%i", _channelsPerPacket));
+    node->AddAttribute("KeepChannelNumbers", _keepChannelNumbers ? "1" : "0");
     IPOutput::Save(node);
 
     return node;
@@ -177,8 +181,6 @@ bool DDPOutput::Open()
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(DDP_PORT);
 
-    __initialised = false;
-
     return _ok;
 }
 #pragma endregion Start and Stop
@@ -186,11 +188,12 @@ bool DDPOutput::Open()
 #pragma region Frame Handling
 void DDPOutput::EndFrame(int suppressFrames)
 {
-    if (!_enabled || _datagram == nullptr) return;
+    if (!_enabled || _suspend || _datagram == nullptr) return;
 
     if (_changed || NeedToOutput(suppressFrames))
     {
         long index = 0;
+        long chan = _keepChannelNumbers ? (_startChannel - 1) : 0;
         long tosend = _channels;
 
         while (tosend > 0)
@@ -199,6 +202,7 @@ void DDPOutput::EndFrame(int suppressFrames)
 
             if (__initialised)
             {
+                // sync packet will boadcast later
                 _data[0] = DDP_FLAGS1_VER1;
             }
             else
@@ -215,10 +219,10 @@ void DDPOutput::EndFrame(int suppressFrames)
 
             _data[1] = (_data[1] & 0xF0) + _sequenceNum;
             
-            _data[4] = (index & 0xFF000000) >> 24;
-            _data[5] = (index & 0xFF0000) >> 16;
-            _data[6] = (index & 0xFF00) >> 8;
-            _data[7] = (index & 0xFF);
+            _data[4] = (chan & 0xFF000000) >> 24;
+            _data[5] = (chan & 0xFF0000) >> 16;
+            _data[6] = (chan & 0xFF00) >> 8;
+            _data[7] = (chan & 0xFF);
 
             _data[8] = (thissend & 0xFF00) >> 8;
             _data[9] = thissend & 0x00FF;
@@ -230,8 +234,9 @@ void DDPOutput::EndFrame(int suppressFrames)
 
             tosend -= thissend;
             index += thissend;
-            FrameOutput();
+            chan += thissend;
         }
+        FrameOutput();
     }
     else
     {
@@ -243,9 +248,9 @@ void DDPOutput::EndFrame(int suppressFrames)
 #pragma region Data Setting
 void DDPOutput::SetOneChannel(long channel, unsigned char data)
 {
-    wxASSERT(channel < _channels);
+    if (_fulldata == nullptr) return;
 
-    if (*(_fulldata + channel) != data) 
+    if ((channel < _channels) && (*(_fulldata + channel) != data))
     {
         *(_fulldata + channel) = data;
         _changed = true;
@@ -255,8 +260,6 @@ void DDPOutput::SetOneChannel(long channel, unsigned char data)
 void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
     if (_fulldata == nullptr) return;
-
-    wxASSERT(channel + size <= _channels);
 
 #ifdef _MSC_VER
     long chs = min(size, _channels - channel);
@@ -277,6 +280,7 @@ void DDPOutput::SetManyChannels(long channel, unsigned char data[], long size)
 
 void DDPOutput::AllOff()
 {
+    if (_fulldata == nullptr) return;
     memset(_fulldata, 0x00, _channels);
     _changed = true;
 }
@@ -289,8 +293,7 @@ std::string DDPOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "DDP " + _ip + " {" + GetUniverseString() + "} ";
-    res += "[1-" + std::string(wxString::Format(wxT("%i"), (long)_channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%i"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetEndChannel())) + ") ";
     res += _description;
 
     return res;
@@ -298,13 +301,13 @@ std::string DDPOutput::GetLongDescription() const
 
 std::string DDPOutput::GetChannelMapping(long ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
 
     long channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: DDP\n";
     res += "IP: " + _ip + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
+    res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 

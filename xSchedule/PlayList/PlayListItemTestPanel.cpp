@@ -35,23 +35,6 @@ BEGIN_EVENT_TABLE(PlayListItemTestPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemTestPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, OutputManager* outputManager, PlayListItemTest* test, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
@@ -124,7 +107,7 @@ PlayListItemTestPanel::PlayListItemTestPanel(wxWindow* parent, OutputManager* ou
     SpinCtrl_Channels->SetRange(1, channels);
 
     TextCtrl_Name->SetValue(test->GetRawName());
-    SetChoiceFromString(Choice_Mode, test->GetMode());
+    Choice_Mode->SetStringSelection(test->GetMode());
     SpinCtrl_Value1->SetValue(test->GetValue1());
     SpinCtrl_Value2->SetValue(test->GetValue2());
     TextCtrl_StartChannel->SetValue(test->GetStartChannel());

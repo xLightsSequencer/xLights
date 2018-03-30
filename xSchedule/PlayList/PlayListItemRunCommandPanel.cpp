@@ -30,23 +30,6 @@ BEGIN_EVENT_TABLE(PlayListItemRunCommandPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemRunCommandPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i = 0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 PlayListItemRunCommandPanel::PlayListItemRunCommandPanel(wxWindow* parent, PlayListItemRunCommand* Command, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _Command = Command;
@@ -100,7 +83,7 @@ PlayListItemRunCommandPanel::PlayListItemRunCommandPanel(wxWindow* parent, PlayL
     }
 
     TextCtrl_RunCommandName->SetValue(Command->GetRawName());
-    SetChoiceFromString(Choice_Command, Command->GetCommand());
+    Choice_Command->SetStringSelection(Command->GetCommand());
     TextCtrl_Parm1->SetValue(Command->GetParm1());
     TextCtrl_Parm2->SetValue(Command->GetParm2());
     TextCtrl_Parm3->SetValue(Command->GetParm3());
@@ -145,6 +128,8 @@ void PlayListItemRunCommandPanel::OnTextCtrl_Parm3Text(wxCommandEvent& event)
 
 void PlayListItemRunCommandPanel::OnChoice_CommandSelect(wxCommandEvent& event)
 {
+    Command* c = xScheduleFrame::GetScheduleManager()->GetCommand(Choice_Command->GetStringSelection().ToStdString());
+    Choice_Command->SetToolTip(c->GetParametersTip());
     ValidateWindow();
 }
 

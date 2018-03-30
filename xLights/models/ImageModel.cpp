@@ -108,6 +108,18 @@ void ImageModel::DisableUnusedProperties(wxPropertyGridInterface *grid)
     if (p != nullptr) {
         p->Enable(false);
     }
+
+    p = grid->GetPropertyByName("ModelStringType");
+    if (p != nullptr) {
+        wxArrayString labels = ((wxEnumProperty*)p)->GetChoices().GetLabels();
+        std::for_each(labels.begin(), labels.end(), [&p](wxString label)
+        {
+            if (!label.Contains("Single Color"))
+            {
+                ((wxEnumProperty*)p)->DeleteChoice(((wxEnumProperty*)p)->GetChoices().Index(label));
+            }
+        });
+    }
 }
 
 int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {

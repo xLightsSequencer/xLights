@@ -13,6 +13,8 @@
 //(*IdInit(SerialPortWithRate)
 const long SerialPortWithRate::ID_CHOICE_PROTOCOL = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT_EXPLANATION = wxNewId();
+const long SerialPortWithRate::ID_STATICTEXT4 = wxNewId();
+const long SerialPortWithRate::ID_SPINCTRL1 = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT_PORT = wxNewId();
 const long SerialPortWithRate::ID_CHOICE_PORT = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT_RATE = wxNewId();
@@ -39,13 +41,13 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     _outputManager = outputManager;
 
     //(*Initialize(SerialPortWithRate)
-    wxStaticBoxSizer* StaticBoxSizer2;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxStaticBoxSizer* StaticBoxSizer2;
 
     Create(parent, wxID_ANY, _("USB Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -59,12 +61,17 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     ChoiceProtocol->Append(_("Renard"));
     ChoiceProtocol->Append(_("OpenDMX"));
     FlexGridSizer3->Add(ChoiceProtocol, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextExplanation = new wxStaticText(this, ID_STATICTEXT_EXPLANATION, _("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036)."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EXPLANATION"));
+    StaticTextExplanation = new wxStaticText(this, ID_STATICTEXT_EXPLANATION, _("DMX controllers (or LOR or D-Light controllers in DMX mode)\nattached to an Entec DMX USB Pro, Lynx DMX dongle,\nDIYC RPM, DMXking.com, or DIY Blinky dongle.\n\nLast Channel should be 512 or less, unless you are using\na DIY Blinky dongle (in which case it can be up to 3036).\n\nId if unique amongst all your output universes then you can \nuse #id:startchannel for start channel identification"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_EXPLANATION"));
     FlexGridSizer3->Add(StaticTextExplanation, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Connection Details"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Id"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrl_Id = new wxSpinCtrl(this, ID_SPINCTRL1, _T("64001"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 64001, _T("ID_SPINCTRL1"));
+    SpinCtrl_Id->SetValue(_T("64001"));
+    FlexGridSizer2->Add(SpinCtrl_Id, 1, wxALL|wxEXPAND, 5);
     StaticTextPort = new wxStaticText(this, ID_STATICTEXT_PORT, _("Port"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PORT"));
     FlexGridSizer2->Add(StaticTextPort, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ChoicePort = new wxChoice(this, ID_CHOICE_PORT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PORT"));
@@ -140,6 +147,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     }
     TextCtrlLastChannel->SetValue(wxString::Format(wxT("%ld"), (*_serial)->GetChannels()));
     TextCtrl_Description->SetValue((*_serial)->GetDescription());
+    SpinCtrl_Id->SetValue((*_serial)->GetId());
     ProtocolChange();
 
     Button_Ok->SetDefault();
@@ -187,6 +195,7 @@ void SerialPortWithRate::OnButton_OkClick(wxCommandEvent& event)
     (*_serial)->SetChannels(wxAtoi(TextCtrlLastChannel->GetValue()));
     (*_serial)->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     (*_serial)->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
+    (*_serial)->SetId(SpinCtrl_Id->GetValue());
 
     EndDialog(wxID_OK);
 }

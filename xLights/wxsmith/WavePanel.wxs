@@ -34,10 +34,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton_WaveType" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Type" variable="BitmapButton_WaveType" member="yes">
 					<bitmap code="padlock16x16_green_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -71,10 +72,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_Wave_FillColors" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Fill_Colors" variable="BitmapButton_Wave_FillColors" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -100,10 +102,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_Wave_MirrorWave" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Mirror_Wave" variable="BitmapButton_Wave_MirrorWave" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -158,10 +161,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="BitmapButton_NumberWaves" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Waves" variable="BitmapButton_NumberWaves" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -214,10 +218,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="BitmapButton_Wave_Thickness" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Thickness_Percentage" variable="BitmapButton_Wave_Thickness" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -270,10 +275,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButton_Wave_Height" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Height" variable="BitmapButton_Wave_Height" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -327,10 +333,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" variable="BitmapButton13" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Speed" variable="BitmapButton_WaveSpeed" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -363,10 +370,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" variable="BitmapButton_Wave_Direction" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Direction" variable="BitmapButton_Wave_Direction" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

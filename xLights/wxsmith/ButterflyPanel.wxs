@@ -31,7 +31,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Color" variable="BitmapButton_ButterflyColors" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Colors" variable="BitmapButton_ButterflyColors" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -187,7 +187,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton1" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton1" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -243,7 +243,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton_ButterflySkip" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Speed" variable="BitmapButton_ButterflySkip" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -280,10 +280,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton8" member="no">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Direction" variable="BitmapButton_ButterflyDirection" member="no">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

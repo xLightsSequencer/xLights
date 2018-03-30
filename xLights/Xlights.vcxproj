@@ -113,6 +113,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -188,6 +190,7 @@
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
@@ -367,6 +370,11 @@
     <ClCompile Include="NewTimingDialog.cpp" />
     <ClCompile Include="NodesGridCellEditor.cpp" />
     <ClCompile Include="NoteImportDialog.cpp" />
+    <ClCompile Include="outputs\LorController.cpp" />
+    <ClCompile Include="outputs\LorControllerDialog.cpp" />
+    <ClCompile Include="outputs\LorControllers.cpp" />
+    <ClCompile Include="outputs\LorOptimisedDialog.cpp" />
+    <ClCompile Include="outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="outputs\NullOutputDialog.cpp" />
     <ClCompile Include="OptionChooser.cpp" />
     <ClCompile Include="osx_utils\TouchBars.cpp" />
@@ -391,6 +399,7 @@
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
+    <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
@@ -399,6 +408,8 @@
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
+    <ClCompile Include="SelectPanel.cpp" />
+    <ClCompile Include="SelectTimingsDialog.cpp" />
     <ClCompile Include="SeqElementMismatchDialog.cpp" />
     <ClCompile Include="SeqExportDialog.cpp" />
     <ClCompile Include="SeqFileUtilities.cpp" />
@@ -418,6 +429,8 @@
     <ClCompile Include="sequencer\UndoManager.cpp" />
     <ClCompile Include="sequencer\Waveform.cpp" />
     <ClCompile Include="outputs\SerialPortWithRate.cpp" />
+    <ClCompile Include="SequenceVideoPanel.cpp" />
+    <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="SequenceViewManager.cpp" />
     <ClCompile Include="SevenSegmentDialog.cpp" />
     <ClCompile Include="SplashDialog.cpp" />
@@ -434,7 +447,6 @@
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
     <ClCompile Include="TabSetup.cpp" />
-    <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TimingPanel.cpp" />
     <ClCompile Include="tmGridCell.cpp" />
     <ClCompile Include="TopEffectsPanel.cpp" />
@@ -499,6 +511,7 @@
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
+    <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="MSWStackWalk.h" />
@@ -675,6 +688,11 @@
     <ClInclude Include="NewTimingDialog.h" />
     <ClInclude Include="NodesGridCellEditor.h" />
     <ClInclude Include="NoteImportDialog.h" />
+    <ClInclude Include="outputs\LorController.h" />
+    <ClInclude Include="outputs\LorControllerDialog.h" />
+    <ClInclude Include="outputs\LorControllers.h" />
+    <ClInclude Include="outputs\LorOptimisedDialog.h" />
+    <ClInclude Include="outputs\LOROptimisedOutput.h" />
     <ClInclude Include="outputs\NullOutputDialog.h" />
     <ClInclude Include="OptionChooser.h" />
     <ClInclude Include="osxMacUtils.h" />
@@ -701,6 +719,7 @@
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
+    <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
@@ -709,10 +728,11 @@
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
+    <ClInclude Include="SelectPanel.h" />
+    <ClInclude Include="SelectTimingsDialog.h" />
     <ClInclude Include="SeqElementMismatchDialog.h" />
     <ClInclude Include="SeqExportDialog.h" />
     <ClInclude Include="SeqSettingsDialog.h" />
-    <ClInclude Include="SequenceCheck.h" />
     <ClInclude Include="SequenceData.h" />
     <ClInclude Include="sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="sequencer\Effect.h" />
@@ -729,6 +749,8 @@
     <ClInclude Include="sequencer\UndoManager.h" />
     <ClInclude Include="sequencer\Waveform.h" />
     <ClInclude Include="outputs\SerialPortWithRate.h" />
+    <ClInclude Include="SequenceVideoPanel.h" />
+    <ClInclude Include="SequenceVideoPreview.h" />
     <ClInclude Include="SequenceViewManager.h" />
     <ClInclude Include="SevenSegmentDialog.h" />
     <ClInclude Include="SplashDialog.h" />
@@ -741,7 +763,6 @@
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
-    <ClInclude Include="TestDialog.h" />
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />

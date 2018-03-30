@@ -430,7 +430,6 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT_Galaxy_Duration" variable="StaticText141" member="yes">
 										<label>Head Duration:</label>
-										<size>-1,-1</size>
 									</object>
 									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

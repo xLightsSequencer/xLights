@@ -126,8 +126,13 @@ wxXmlNode* IPOutput::Save()
 
 PINGSTATE IPOutput::Ping() const
 {
+    return IPOutput::Ping(GetIP());
+}
+
+PINGSTATE IPOutput::Ping(const std::string ip)
+{
 #ifdef __WXMSW__
-    unsigned long ipaddr = inet_addr(GetIP().c_str());
+    unsigned long ipaddr = inet_addr(ip.c_str());
     if (ipaddr == INADDR_NONE) {
         return PINGSTATE::PING_ALLFAILED;
     }
@@ -159,11 +164,11 @@ PINGSTATE IPOutput::Ping() const
     }
 #endif
 
-    wxHTTP http;    
+    wxHTTP http;
     http.SetMethod("GET");
     http.SetTimeout(2);
     bool connected = false;
-    connected  = http.Connect(_ip, false);
+    connected = http.Connect(ip, false);
 
     if (connected)
     {

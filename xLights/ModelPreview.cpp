@@ -333,8 +333,10 @@ void ModelPreview::SetActive(bool show) {
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
-    if(!IsShownOnScreen()) return false;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!IsShownOnScreen()) return false;
+    if (!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
@@ -372,11 +374,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
         accumulator.Finish(GL_TRIANGLES);
     }
+
     if(mBackgroundImageExists)
     {
         if (image == nullptr)
         {
-           image = new Image(mBackgroundImage);
+            logger_base.debug("Loading background image file %s for preview %s.",
+                (const char *)mBackgroundImage.c_str(),
+                (const char *)GetName().c_str());
+            image = new Image(mBackgroundImage);
            sprite = new xLightsDrawable(image);
         }
         float scaleh = 1.0;

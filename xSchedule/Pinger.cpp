@@ -1,6 +1,7 @@
 #include "Pinger.h"
 #include <log4cpp/Category.hh>
 #include "../xLights/outputs/OutputManager.h"
+#include "../xLights/outputs/IPOutput.h"
 
 class PingThread : public wxThread
 {
@@ -19,7 +20,7 @@ public:
 
     virtual ~PingThread()
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         if (_running && !_stop)
         {
@@ -61,6 +62,19 @@ public:
 APinger::APinger(Output* output)
 {
     _output = output;
+    _why = "Output";
+    _ip = output->GetIP();
+    _lastResult = PINGSTATE::PING_UNKNOWN;
+    _pingThread = new PingThread(this);
+    _pingThread->Create();
+    _pingThread->Run();
+}
+
+APinger::APinger(const std::string ip, const std::string why)
+{
+    _output = nullptr;
+    _ip = ip;
+    _why = why;
     _lastResult = PINGSTATE::PING_UNKNOWN;
     _pingThread = new PingThread(this);
     _pingThread->Create();
@@ -99,7 +113,14 @@ std::string APinger::GetPingResultName(PINGSTATE state)
 
 void APinger::Ping()
 {
-    SetPingResult(_output->Ping());
+    if (_output != nullptr)
+    {
+        SetPingResult(_output->Ping());
+    }
+    else
+    {
+        SetPingResult(IPOutput::Ping(_ip));
+    }
 }
 
 void APinger::SetPingResult(PINGSTATE result)
@@ -115,19 +136,19 @@ std::string APinger::GetName() const
         return _output->GetPingDescription();
     }
 
-    return "";
+    return _why + " " + _ip;
 }
 
 void APinger::Stop()
 {
-    _output = nullptr;
-
     // tell it to stop ... but it may take a bit of time to stop
     if (_pingThread != nullptr)
     {
         _pingThread->Stop();
         _pingThread = nullptr;
     }
+    _output = nullptr;
+    _ip = "";
 }
 
 std::string GetID(Output* output)
@@ -184,5 +205,34 @@ Pinger::~Pinger()
     for (auto it  = _pingers.begin(); it != _pingers.end(); ++it)
     {
         delete *it;
+    }
+}
+
+void Pinger::AddIP(const std::string ip, const std::string why)
+{
+    if (ip == "") return;
+    if (ip == "255.255.255.255") return;
+
+    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    {
+        if ((*it)->GetIP() == ip) return;
+    }
+
+    _pingers.push_back(new APinger(ip, why));
+}
+
+void Pinger::RemoveNonOutputIPs()
+{
+    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    {
+        if (!(*it)->IsOutput())
+        {
+            auto t = it;
+            --t;
+            (*it)->Stop();
+            delete *it;
+            _pingers.remove(*it);
+            it = t;
+        }
     }
 }

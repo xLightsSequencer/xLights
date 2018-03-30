@@ -4,6 +4,7 @@
 #include "../xLightsMain.h"
 #include "../effects/RenderableEffect.h"
 #include "../RenderCommandEvent.h"
+#include "../UtilFunctions.h"
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
@@ -24,7 +25,7 @@ void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
     #ifdef LINUX
         offset = 12; //Linux puts a 6 pixel border around it
     #endif // LINUX
-    SetEffect(mEffect, minW);
+    SetEffect(mEffect, UnScaleWithSystemDPI(minW));
     wxBitmapButton::DoSetSizeHints(minW + offset,
                                    minH + offset,
                                    maxW + offset,
@@ -35,7 +36,22 @@ void DragEffectBitmapButton::SetEffect(RenderableEffect *eff, int sz)
 {
     mEffect = eff;
     if (eff != nullptr) {
-        SetBitmap(eff->GetEffectIcon(sz, GetContentScaleFactor() < 1.5));
+        const wxBitmap &bbmp = eff->GetEffectIcon(sz);
+
+        int ns = GetContentScaleFactor() * sz;
+        int bs = bbmp.GetWidth();
+        if (ns != bs) {
+            const wxBitmap &bbmp2 = eff->GetEffectIcon(ns, true);
+            if (ns != bbmp2.GetScaledWidth()) {
+                wxImage img = eff->GetEffectIcon(64, true).ConvertToImage();
+                wxImage scaled = img.Scale(ns, ns, wxIMAGE_QUALITY_HIGH);
+                SetBitmap(wxBitmap(scaled));
+            } else {
+                SetBitmap(bbmp2);
+            }
+        } else {
+            SetBitmap(bbmp);
+        }
         SetToolTip(eff->ToolTip());
     }
 }
@@ -53,7 +69,7 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxPostEvent(GetParent(), unselectEffect);
 
     int id = mEffect->GetId();
-    
+
     // Change the Choicebook to correct page
     SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true);
     // We are only changing choicebook not populating effect panel with settings

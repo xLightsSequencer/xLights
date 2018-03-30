@@ -2,9 +2,9 @@
 #include <algorithm>
 
 //(*InternalHeaders(xlColorPickerFields)
-#include <wx/string.h>
-#include <wx/intl.h>
 #include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(xlColorPickerFields)
@@ -22,7 +22,7 @@ const long xlColorPickerFields::ID_RADIOBUTTON_Green = wxNewId();
 const long xlColorPickerFields::ID_RADIOBUTTON_Blue = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Hue = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Saturation = wxNewId();
-const long xlColorPickerFields::ID_TEXTCTRL_Brightness = wxNewId();
+const long xlColorPickerFields::ID_TEXTCTRL_BrightnessCPF = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Red = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Green = wxNewId();
 const long xlColorPickerFields::ID_TEXTCTRL_Blue = wxNewId();
@@ -54,23 +54,23 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSTATIC_BORDER, _T("wxID_ANY"));
 	GridBagSizer1 = new wxGridBagSizer(0, 0);
 	Panel_Palette = new xlColorCanvas(this, ID_PANEL_Palette, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL_Palette"));
-	Panel_Palette->SetMinSize(wxSize(256,256));
+	Panel_Palette->SetMinSize(wxDLG_UNIT(this,wxSize(200,200)));
 	GridBagSizer1->Add(Panel_Palette, wxGBPosition(0, 0), wxGBSpan(11, 10), wxTOP|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(10,0)).GetWidth());
 	Panel_Slider = new xlColorCanvas(this, ID_PANEL_SLIDER, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL_SLIDER"));
-	Panel_Slider->SetMinSize(wxSize(25,256));
+	Panel_Slider->SetMinSize(wxDLG_UNIT(this,wxSize(25,200)));
 	GridBagSizer1->Add(Panel_Slider, wxGBPosition(0, 11), wxGBSpan(11, 1), wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(10,0)).GetWidth());
 	BitmapButton_Swatch1 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch1, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch1"));
-	BitmapButton_Swatch1->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch1->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch1->SetBackgroundColour(wxColour(255,0,0));
 	GridBagSizer1->Add(BitmapButton_Swatch1, wxGBPosition(11, 1), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	SliderLeft = new xlSlider(this, ID_SLIDER_Left, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL, wxDefaultValidator, _T("ID_SLIDER_Left"));
-	SliderLeft->SetMinSize(wxSize(25,277));
+	SliderLeft->SetMinSize(wxDLG_UNIT(this,wxSize(-1,200)));
 	GridBagSizer1->Add(SliderLeft, wxGBPosition(0, 10), wxGBSpan(11, 1), wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(10,0)).GetWidth());
 	SliderRight = new xlSlider(this, ID_SLIDER_Right, 255, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_LEFT, wxDefaultValidator, _T("ID_SLIDER_Right"));
-	SliderRight->SetMinSize(wxSize(25,277));
+	SliderRight->SetMinSize(wxDLG_UNIT(this,wxSize(-1,200)));
 	GridBagSizer1->Add(SliderRight, wxGBPosition(0, 12), wxGBSpan(11, 1), wxTOP|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(10,0)).GetWidth());
 	Panel_CurrentColor = new wxPanel(this, ID_PANEL_CurrentColor, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_PANEL_CurrentColor"));
-	Panel_CurrentColor->SetMinSize(wxSize(75,55));
+	Panel_CurrentColor->SetMinSize(wxDLG_UNIT(this,wxSize(75,55)));
 	GridBagSizer1->Add(Panel_CurrentColor, wxGBPosition(0, 13), wxGBSpan(3, 2), wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP, wxDLG_UNIT(this,wxSize(17,0)).GetWidth());
 	RadioButton_Hue = new wxRadioButton(this, ID_RADIOBUTTON_Hue, _("H:"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON_Hue"));
 	wxFont RadioButton_HueFont(13,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
@@ -98,61 +98,61 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	RadioButton_Blue->SetFont(RadioButton_BlueFont);
 	GridBagSizer1->Add(RadioButton_Blue, wxGBPosition(9, 13), wxDefaultSpan, wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Hue = new wxTextCtrl(this, ID_TEXTCTRL_Hue, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Hue"));
-	TextCtrl_Hue->SetMinSize(wxSize(40,23));
+	TextCtrl_Hue->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_HueFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Hue->SetFont(TextCtrl_HueFont);
 	GridBagSizer1->Add(TextCtrl_Hue, wxGBPosition(4, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Saturation = new wxTextCtrl(this, ID_TEXTCTRL_Saturation, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Saturation"));
-	TextCtrl_Saturation->SetMinSize(wxSize(40,23));
+	TextCtrl_Saturation->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_SaturationFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Saturation->SetFont(TextCtrl_SaturationFont);
 	GridBagSizer1->Add(TextCtrl_Saturation, wxGBPosition(5, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
-	TextCtrl_Brightness = new wxTextCtrl(this, ID_TEXTCTRL_Brightness, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Brightness"));
-	TextCtrl_Brightness->SetMinSize(wxSize(40,23));
+	TextCtrl_Brightness = new wxTextCtrl(this, ID_TEXTCTRL_BrightnessCPF, _("100"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_BrightnessCPF"));
+	TextCtrl_Brightness->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_BrightnessFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Brightness->SetFont(TextCtrl_BrightnessFont);
 	GridBagSizer1->Add(TextCtrl_Brightness, wxGBPosition(6, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Red = new wxTextCtrl(this, ID_TEXTCTRL_Red, _("255"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Red"));
-	TextCtrl_Red->SetMinSize(wxSize(40,23));
+	TextCtrl_Red->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_RedFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Red->SetFont(TextCtrl_RedFont);
 	GridBagSizer1->Add(TextCtrl_Red, wxGBPosition(7, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Green = new wxTextCtrl(this, ID_TEXTCTRL_Green, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Green"));
-	TextCtrl_Green->SetMinSize(wxSize(40,23));
+	TextCtrl_Green->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_GreenFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Green->SetFont(TextCtrl_GreenFont);
 	GridBagSizer1->Add(TextCtrl_Green, wxGBPosition(8, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	TextCtrl_Blue = new wxTextCtrl(this, ID_TEXTCTRL_Blue, _("0"), wxDefaultPosition, wxDefaultSize, wxTE_LEFT|wxSIMPLE_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL_Blue"));
-	TextCtrl_Blue->SetMinSize(wxSize(40,23));
+	TextCtrl_Blue->SetMinSize(wxDLG_UNIT(this,wxSize(25,-1)));
 	wxFont TextCtrl_BlueFont(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	TextCtrl_Blue->SetFont(TextCtrl_BlueFont);
 	GridBagSizer1->Add(TextCtrl_Blue, wxGBPosition(9, 14), wxDefaultSpan, wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch2 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch2, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch2"));
-	BitmapButton_Swatch2->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch2->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch2->SetBackgroundColour(wxColour(0,255,0));
 	GridBagSizer1->Add(BitmapButton_Swatch2, wxGBPosition(11, 2), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch3 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch3, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch3"));
-	BitmapButton_Swatch3->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch3->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch3->SetBackgroundColour(wxColour(0,0,255));
 	GridBagSizer1->Add(BitmapButton_Swatch3, wxGBPosition(11, 3), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch4 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch4, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch4"));
-	BitmapButton_Swatch4->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch4->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch4->SetBackgroundColour(wxColour(255,255,0));
 	GridBagSizer1->Add(BitmapButton_Swatch4, wxGBPosition(11, 4), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch5 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch5, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch5"));
-	BitmapButton_Swatch5->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch5->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch5->SetBackgroundColour(wxColour(255,128,0));
 	GridBagSizer1->Add(BitmapButton_Swatch5, wxGBPosition(11, 5), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch6 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch6, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch6"));
-	BitmapButton_Swatch6->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch6->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch6->SetBackgroundColour(wxColour(0,255,255));
 	GridBagSizer1->Add(BitmapButton_Swatch6, wxGBPosition(11, 6), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch7 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch7, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch7"));
-	BitmapButton_Swatch7->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch7->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch7->SetBackgroundColour(wxColour(255,0,255));
 	GridBagSizer1->Add(BitmapButton_Swatch7, wxGBPosition(11, 7), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	BitmapButton_Swatch8 = new wxBitmapButton(this, ID_BITMAPBUTTON_Swatch8, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Swatch8"));
-	BitmapButton_Swatch8->SetMinSize(wxSize(20,20));
+	BitmapButton_Swatch8->SetMinSize(wxDLG_UNIT(this,wxSize(15,15)));
 	BitmapButton_Swatch8->SetBackgroundColour(wxColour(128,0,255));
 	GridBagSizer1->Add(BitmapButton_Swatch8, wxGBPosition(11, 8), wxDefaultSpan, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, wxDLG_UNIT(this,wxSize(5,0)).GetWidth());
 	RadioButton_SwatchMarker = new wxRadioButton(this, ID_RADIOBUTTON_SwatchMarker, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON_SwatchMarker"));
@@ -174,7 +174,7 @@ xlColorPickerFields::xlColorPickerFields(wxWindow* parent, wxWindowID id,const w
 	Connect(ID_RADIOBUTTON_Blue,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&xlColorPickerFields::OnRadioButton_ModeSelect);
 	Connect(ID_TEXTCTRL_Hue,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Saturation,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
-	Connect(ID_TEXTCTRL_Brightness,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
+	Connect(ID_TEXTCTRL_BrightnessCPF,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Red,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Green,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
 	Connect(ID_TEXTCTRL_Blue,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xlColorPickerFields::OnTextCtrl_Text);
@@ -399,7 +399,7 @@ void xlColorPickerFields::OnTextCtrl_Text(wxCommandEvent& event)
         Panel_Slider->SetHSV(hsv);
         Panel_Palette->SetHSV(hsv);
     }
-    else if (name.Contains("ID_TEXTCTRL_Brightness")) {
+    else if (name.Contains("ID_TEXTCTRL_BrightnessCPF")) {
         int val = RangeLimit( TextCtrl_Brightness, 0, 100 );
         hsv.value = double(val) / 100.0;
         Panel_Slider->SetHSV(val);

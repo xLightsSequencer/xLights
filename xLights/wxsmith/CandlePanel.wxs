@@ -107,7 +107,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Cande_WindBaseline" variable="BitmapButton_Cande_WindBaseline" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline" variable="BitmapButton_Cande_WindBaseline" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -163,7 +163,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Cande_WindVariability" variable="BitmapButton_Cande_WinfVariability" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindVariability" variable="BitmapButton_Cande_WinfVariability" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -219,7 +219,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Candle_WindCalmness" variable="BitmapButton_Candle_WindCalmness" member="yes">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness" variable="BitmapButton_Candle_WindCalmness" member="yes">
 					<bitmap code="padlock16x16_blue_xpm" />
 					<size>13,13</size>
 					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>

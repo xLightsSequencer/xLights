@@ -102,12 +102,11 @@ class RenderableEffect
         wxBitmap icon32;
         wxBitmap icon48;
         wxBitmap icon64;
-
-#ifdef __WXOSX__
         wxBitmap icon16e;
         wxBitmap icon24e;
         wxBitmap icon32e;
-#endif
+        wxBitmap icon48e;
+        wxBitmap icon64e;
     private:
 };
 

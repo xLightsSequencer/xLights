@@ -3,13 +3,13 @@
 
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
-class wxSplitterWindow;
-class wxCheckBox;
-class wxSplitterEvent;
-class wxStaticText;
-class wxFlexGridSizer;
 class wxButton;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSplitterEvent;
+class wxSplitterWindow;
+class wxStaticText;
 //*)
 
 #include "wxCheckedListCtrl.h"
@@ -67,17 +67,17 @@ class LayoutPanel: public wxPanel
 
     private:
 		//(*Declarations(LayoutPanel)
-		wxFlexGridSizer* ToolSizer;
-		wxChoice* ChoiceLayoutGroups;
-		wxPanel* FirstPanel;
-		wxSplitterWindow* SplitterWindow2;
-		wxPanel* LeftPanel;
-		wxStaticText* StaticText1;
-		wxCheckBox* CheckBoxOverlap;
-		wxPanel* SecondPanel;
 		wxButton* ButtonSavePreview;
-		wxSplitterWindow* ModelSplitter;
+		wxCheckBox* CheckBoxOverlap;
+		wxChoice* ChoiceLayoutGroups;
+		wxFlexGridSizer* ToolSizer;
+		wxPanel* FirstPanel;
+		wxPanel* LeftPanel;
 		wxPanel* PreviewGLPanel;
+		wxPanel* SecondPanel;
+		wxSplitterWindow* ModelSplitter;
+		wxSplitterWindow* SplitterWindow2;
+		wxStaticText* StaticText1;
 		//*)
 
 		wxScrolledWindow* ModelGroupWindow;
@@ -99,6 +99,7 @@ class LayoutPanel: public wxPanel
 		//*)
 
 		static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_PREVIEW_REPLACEMODEL;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
@@ -193,6 +194,7 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerConnection();
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
+        void ReplaceModel();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
@@ -322,6 +324,9 @@ class LayoutPanel: public wxPanel
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
         static const long ID_MNU_RENAME_MODEL_GROUP;
+        static const long ID_MNU_MAKESCVALID;
+        static const long ID_MNU_MAKEALLSCVALID;
+        static const long ID_MNU_MAKEALLSCNOTOVERLAPPING;
         static const long ID_MNU_ADD_MODEL_GROUP;
         void OnModelsPopup(wxCommandEvent& event);
 		LayoutGroup* GetLayoutGroup(const std::string &name);
@@ -336,14 +341,14 @@ class LayoutPanel: public wxPanel
         int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string new_name);
-        int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
+        //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator
         {
         public:
-            ModelListComparator() {};
+            ModelListComparator() { xlights = nullptr; };
             virtual ~ModelListComparator() {};
-            virtual int Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second);
+            virtual int Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second) override;
             int SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
             void SetFrame(xLightsFrame* frame) {xlights = frame;}
        private:

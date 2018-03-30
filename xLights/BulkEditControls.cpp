@@ -487,7 +487,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
             auto s = wxString::Format("%d", GetValue());
             if (t->GetValue() != s)
             {
-                t->SetValue(s);
+                t->ChangeValue(s);
             }
         }
         break;
@@ -496,7 +496,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
             auto s = wxString::Format("%.1f", (float)GetValue() / 10.0);
             if (t->GetValue() != s)
             {
-                t->SetValue(s);
+                t->ChangeValue(s);
             }
         }
         break;
@@ -505,7 +505,7 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
             auto s = wxString::Format("%.2f", (float)GetValue() / 100.0);
             if (t->GetValue() != s)
             {
-                t->SetValue(s);
+                t->ChangeValue(s);
             }
         }
         break;
@@ -514,12 +514,13 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
             auto s = wxString::Format("%.2f", (float)GetValue() / 360.0);
             if (t->GetValue() != s)
             {
-                t->SetValue(s);
+                t->ChangeValue(s);
             }
         }
         break;
         }
     }
+    GetParent()->HandleWindowEvent(event);
 }
 
 void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
@@ -542,6 +543,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        ChangeValue(wxString::Format("%d", s->GetValue()));
+                    }
                 }
             }
             break;
@@ -551,6 +556,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        ChangeValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                    }
                 }
             }
             break;
@@ -560,6 +569,10 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                    }
                 }
             }
             break;
@@ -569,12 +582,17 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 if (s->GetValue() != t)
                 {
                     s->SetValue(t);
+                    if (s->GetValue() != t)
+                    {
+                        ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                    }
                 }
             }
             break;
             }
         }
     }
+    GetParent()->HandleWindowEvent(event);
 }
 #pragma endregion
 
@@ -650,10 +668,10 @@ wxWindow* GetAssociatedWindow(wxWindow* w, wxString ourName, wxString ourType, w
         name2.Replace("ID", "IDD", false);
     }
 
-    wxWindow* res = w->FindWindowByName(name1);
+    wxWindow* res = wxWindow::FindWindowByName(name1, w);
     if (res == nullptr)
     {
-        res = w->FindWindowByName(name2);
+        res = wxWindow::FindWindowByName(name2, w);
     }
 
     return res;

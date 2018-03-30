@@ -440,7 +440,7 @@ public:
     void Get2ColorBlend(int coloridx1, int coloridx2, float ratio, xlColor &color);
     void Get2ColorBlend(xlColor& color, xlColor color2, float ratio);
     void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
-    void GetMultiColorBlend(float n, bool circular, xlColor &color);
+    void GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColors = 0);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
     double RandomRange(double num1, double num2);
     void Color2HSV(const xlColor& color, HSVValue& hsv);

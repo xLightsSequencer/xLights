@@ -3,13 +3,13 @@
 
 //(*Headers(MeteorsPanel)
 #include <wx/panel.h>
-class wxCheckBox;
 class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxBitmapButton;
+class wxSlider;
+class wxStaticText;
+class wxCheckBox;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,35 +22,35 @@ class MeteorsPanel: public wxPanel
 		virtual ~MeteorsPanel();
 
 		//(*Declarations(MeteorsPanel)
-		BulkEditTextCtrl* TextCtrl_Meteors_Yoffset;
-		wxBitmapButton* BitmapButton_MeteorsCount;
-		BulkEditChoice* Choice_Meteors_Effect;
-		BulkEditSlider* Slider_Meteors_YOffset;
+		BulkEditSlider* Slider_Meteors_Speed;
+		BulkEditSlider* Slider_Meteors_Swirl_Intensity;
+		wxStaticText* StaticText43;
+		BulkEditSlider* Slider_Meteors_Length;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_Meteors_YOffset;
-		BulkEditSlider* Slider_Meteors_Count;
+		wxStaticText* StaticText130;
+		wxBitmapButton* BitmapButton_MeteorsType;
+		BulkEditTextCtrl* TextCtrl_Meteors_Yoffset;
+		wxStaticText* StaticText41;
+		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
 		wxStaticText* StaticText1;
 		BulkEditCheckBox* CheckBox_Meteors_UseMusic;
 		wxStaticText* StaticText128;
-		wxBitmapButton* BitmapButton_MeteorsType;
-		BulkEditTextCtrl* TextCtrl_Meteors_XOffset;
-		wxStaticText* StaticText39;
-		BulkEditCheckBox* CheckBox_FadeWithDistance;
-		wxStaticText* StaticText130;
-		wxBitmapButton* BitmapButton_Meteors_UseMusic;
 		BulkEditSlider* Slider_Meteors_XOffset;
-		BulkEditSlider* Slider_Meteors_Length;
-		BulkEditSlider* Slider_Meteors_Swirl_Intensity;
-		wxStaticText* StaticText43;
-		wxStaticText* StaticText41;
-		BulkEditChoice* Choice_Meteors_Type;
-		wxBitmapButton* BitmapButton_Meteors_XOffset;
-		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
-		wxStaticText* StaticText4;
-		wxBitmapButton* BitmapButton_MeteorsLength;
+		BulkEditSlider* Slider_Meteors_Count;
+		BulkEditSlider* Slider_Meteors_YOffset;
 		wxBitmapButton* BitmapButton_FadeWithDistance;
-		BulkEditSlider* Slider_Meteors_Speed;
+		wxBitmapButton* BitmapButton_MeteorsLength;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText39;
+		BulkEditChoice* Choice_Meteors_Effect;
+		BulkEditTextCtrl* TextCtrl_Meteors_XOffset;
+		BulkEditChoice* Choice_Meteors_Type;
+		BulkEditCheckBox* CheckBox_FadeWithDistance;
+		wxBitmapButton* BitmapButton_MeteorsCount;
+		wxBitmapButton* BitmapButton_Meteors_YOffset;
+		wxBitmapButton* BitmapButton_Meteors_XOffset;
+		wxBitmapButton* BitmapButton_Meteors_UseMusic;
 		//*)
 
 	protected:
@@ -80,15 +80,15 @@ class MeteorsPanel: public wxPanel
 		static const long ID_STATICTEXT_Meteors_XOffset;
 		static const long IDD_SLIDER_Meteors_XOffset;
 		static const long ID_TEXTCTRL_Meteors_XOffset;
-		static const long ID_BITMAPBUTTON_Meteors_XOffset;
+		static const long ID_BITMAPBUTTON_SLIDER_Meteors_XOffset;
 		static const long ID_STATICTEXT_Meteors_YOffset;
 		static const long IDD_SLIDER_Meteors_YOffset;
 		static const long ID_TEXTCTRL_Meteors_YOffset;
-		static const long ID_BITMAPBUTTON_Meteors_YOffset;
+		static const long ID_BITMAPBUTTON_SLIDER_Meteors_YOffset;
 		static const long ID_CHECKBOX_Meteors_UseMusic;
-		static const long ID_BITMAPBUTTON_Meteors_UseMusic;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Meteors_UseMusic;
 		static const long ID_CHECKBOX_FadeWithDistance;
-		static const long ID_BITMAPBUTTON_FadeWithDistance;
+		static const long ID_BITMAPBUTTON_CHECKBOX_FadeWithDistance;
 		//*)
 
 	public:

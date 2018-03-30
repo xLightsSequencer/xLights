@@ -31,6 +31,7 @@
 #include "outputs/ArtNetOutput.h"
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
+#include "outputs/LOROptimisedOutput.h"
 
 // Process Setup Panel Events
 
@@ -40,6 +41,7 @@ const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDE131 = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDARTNET = wxNewId();
+const long xLightsFrame::ID_NETWORK_ADDLOR = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDDDP = wxNewId();
 const long xLightsFrame::ID_NETWORK_BEIPADDR = wxNewId();
 const long xLightsFrame::ID_NETWORK_BECHANNELS = wxNewId();
@@ -206,7 +208,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
 
     ObtainAccessToURL(newdir.ToStdString());
-    
+
     // update UI
     CheckBoxLightOutput->SetValue(false);
     _outputManager.StopOutput();
@@ -256,12 +258,13 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     {
         if (!_outputManager.Load(CurrentDir.ToStdString()))
         {
-            logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
+            logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().c_str());
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
         }
         else
         {
-            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().ToStdString().c_str());
+            logger_base.debug("Loaded network config %s", (const char*)networkFile.GetFullPath().c_str());
+            SpinCtrl_SyncUniverse->SetValue(_outputManager.GetSyncUniverse());
         }
     }
     else
@@ -281,7 +284,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
-    
+
     LoadEffectsFile();
     EnableSequenceControls(true);
 
@@ -345,7 +348,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(long channel)
     }
     else
     {
-        return wxString::Format("Channel %i could not be mapped to a controller.", channel).ToStdString();
+        return wxString::Format("Channel %ld could not be mapped to a controller.", channel).ToStdString();
     }
 }
 
@@ -961,14 +964,13 @@ void xLightsFrame::OnButtonAddE131Click(wxCommandEvent& event)
     SetupE131(nullptr);
 }
 
+void xLightsFrame::OnButtonAddDDPClick(wxCommandEvent& event)
+{
+    SetupDDP(nullptr);
+}
 void xLightsFrame::OnButtonArtNETClick(wxCommandEvent& event)
 {
     SetupArtNet(nullptr);
-}
-
-void xLightsFrame::OnButton_DDPClick(wxCommandEvent& event)
-{
-    SetupDDP(nullptr);
 }
 
 void xLightsFrame::OnButtonAddNullClick(wxCommandEvent& event)
@@ -1084,9 +1086,42 @@ void xLightsFrame::SetupDongle(Output* e, int after)
     }
 }
 
+void xLightsFrame::SetupLOR(Output* e, int after)
+{
+    Output* serial = e;
+    if (serial == nullptr) serial = new LOROptimisedOutput();
+    _outputManager.AddOutput(serial, after);
+
+    Output* newoutput = serial->Configure(this, &_outputManager);
+
+    if (newoutput == nullptr)
+    {
+        if (e != serial)
+        {
+            _outputManager.DeleteOutput(serial);
+        }
+    }
+    else if (newoutput != serial)
+    {
+        _outputManager.Replace(serial, newoutput);
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+    else
+    {
+        NetworkChange();
+        UpdateNetworkList(true);
+    }
+}
+
 void xLightsFrame::OnButtonAddDongleClick(wxCommandEvent& event)
 {
     SetupDongle(nullptr);
+}
+
+void xLightsFrame::OnButtonAddLORClick(wxCommandEvent& event)
+{
+    SetupLOR(nullptr);
 }
 
 void xLightsFrame::NetworkChange()
@@ -1097,6 +1132,10 @@ void xLightsFrame::NetworkChange()
     ButtonSaveSetup->SetForegroundColour(wxColour(255, 0, 0));
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
 #else
+    //ButtonSaveSetup->SetForegroundColour(*wxRED);
+    //auto font = ButtonSaveSetup->GetFont();
+    //font.SetWeight(wxFONTWEIGHT_BOLD);
+    //ButtonSaveSetup->SetFont(font);
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
 }
@@ -1110,6 +1149,10 @@ bool xLightsFrame::SaveNetworksFile()
         ButtonSaveSetup->SetForegroundColour(*wxBLACK);
         ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
 #else
+        //ButtonSaveSetup->SetForegroundColour(*wxBLACK);
+        //auto font = ButtonSaveSetup->GetFont();
+        //font.SetWeight(wxFONTWEIGHT_NORMAL);
+        //ButtonSaveSetup->SetFont(font);
         ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
 #endif
         return true;
@@ -1216,6 +1259,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuAdd->Append(ID_NETWORK_ADDNULL, "NULL")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDE131, "E1.31")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDARTNET, "ArtNET")->Enable(selcnt == 1);
+    mnuAdd->Append(ID_NETWORK_ADDLOR, "LOR")->Enable(selcnt == 1);
     mnuAdd->Append(ID_NETWORK_ADDDDP, "DDP")->Enable(selcnt == 1);
     mnuAdd->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
@@ -1700,6 +1744,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     {
         SetupArtNet(nullptr, item+1);
     }
+    else if (id == ID_NETWORK_ADDLOR)
+    {
+        SetupLOR(nullptr, item+1);
+    }
     else if (id == ID_NETWORK_ADDDDP)
     {
         SetupDDP(nullptr, item + 1);
@@ -1819,6 +1867,8 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL);
             }
         }
+        break;
+    default:
         break;
     }
 }

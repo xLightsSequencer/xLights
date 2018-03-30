@@ -8,6 +8,7 @@
 #include "DDPOutput.h"
 #include "NullOutput.h"
 #include "LOROutput.h"
+#include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "DMXOutput.h"
 #include "PixelNetOutput.h"
@@ -20,6 +21,7 @@
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
@@ -41,6 +43,7 @@ Output::Output(Output* output)
 
 Output::Output(wxXmlNode* node)
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
@@ -71,6 +74,7 @@ Output::Output(wxXmlNode* node)
 
 Output::Output()
 {
+    _suspend = false;
     _changed = false;
     _timer_msec = 0;
     _outputNumber = -1;
@@ -162,6 +166,10 @@ Output* Output::Create(wxXmlNode* node)
     else if (type == OUTPUT_LOR)
     {
         return new LOROutput(node);
+    }
+    else if (type == OUTPUT_LOR_OPT)
+    {
+        return new LOROptimisedOutput(node);
     }
     else if (type == OUTPUT_DLIGHT)
     {
@@ -268,8 +276,8 @@ void Output::SetManyChannels(long channel, unsigned char data[], long size)
 
 void Output::FrameOutput()
 {
-    _lastOutputTime = wxGetUTCTimeMillis(); 
-    _skippedFrames = 0; 
-    _changed = false; 
+    _lastOutputTime = wxGetUTCTimeMillis();
+    _skippedFrames = 0;
+    _changed = false;
     OutputManager::RegisterSentPacket();
 }

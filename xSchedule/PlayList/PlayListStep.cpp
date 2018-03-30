@@ -8,6 +8,7 @@
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
+#include "PlayListItemScreenMap.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
@@ -16,6 +17,8 @@
 #include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
+#include "PlayListItemSerial.h"
+#include "PlayListItemFPPEvent.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemOSC.h"
 #include "PlayListItemAudio.h"
@@ -138,6 +141,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemText(n));
         }
+        else if (n->GetName() == "PLIScreenMap")
+        {
+            _items.push_back(new PlayListItemScreenMap(n));
+        }
         else if (n->GetName() == "PLIAudio")
         {
             _items.push_back(new PlayListItemAudio(n));
@@ -181,6 +188,14 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLICURL")
         {
             _items.push_back(new PlayListItemCURL(n));
+        }
+        else if (n->GetName() == "PLISERIAL")
+        {
+            _items.push_back(new PlayListItemSerial(n));
+        }
+        else if (n->GetName() == "PLIFPPEVENT")
+        {
+            _items.push_back(new PlayListItemFPPEvent(n));
         }
         else if (n->GetName() == "PLICommand")
         {
@@ -576,14 +591,10 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
     return (fn.GetFullName().Lower() == wxString(fseqFile).Lower());
 }
 
-// Because frame and ms dont seem to be properly correlated #defining USEMS will derive the frame from the time.
-// not defining it will ignore the ms and rely on the frame
-// #define USEMS
-
-void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
+void PlayListStep::SetSyncPosition(size_t ms, bool force)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetSyncPosition: Frame %ld MS %ld Force %s.", (long)frame, (long)ms, force? "true" : "false");
+    logger_base.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force? "true" : "false");
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
@@ -596,17 +607,14 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
             {
                 // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
-#ifdef USEMS
-                frame = ms / pli->GetFrameMS();
-                logger_base.debug("    Adjusted: Frame %ld.", (long)frame);
-#endif
-
+                int frame = ms / pli->GetFrameMS();
                 if (force)
                 {
                     long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
                     logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                     pli->SetPosition(frame, ms);
-                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                    if (xScheduleFrame::GetScheduleManager() != nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                 }
                 else
                 {
@@ -627,7 +635,8 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
                     }
 
                     logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
-                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                    if (xScheduleFrame::GetScheduleManager() != nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                 }
                 break;
             }
@@ -638,17 +647,14 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
             if (fseq == pli->GetFSEQFileName())
             {
                 //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
-#ifdef USEMS
-                frame = ms / pli->GetFrameMS();
-                logger_base.debug("    Adjusted: Frame %ld.", (long)frame);
-#endif
-
+                int frame = ms / pli->GetFrameMS();
                 if (force)
                 {
                     long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
                     logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
                     pli->SetPosition(frame, ms);
-                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                    if (xScheduleFrame::GetScheduleManager() !=  nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                 }
                 else
                 {
@@ -669,7 +675,9 @@ void PlayListStep::SetSyncPosition(size_t frame, size_t ms, bool force)
                     }
 
                     logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
-                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+
+                    if (xScheduleFrame::GetScheduleManager() != nullptr)
+                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                 }
                 break;
             }

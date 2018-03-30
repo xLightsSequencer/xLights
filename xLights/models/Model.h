@@ -64,6 +64,7 @@ public:
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
+    void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
     virtual int GetNumPhysicalStrings() const { return parm1; }
 
@@ -100,6 +101,7 @@ public:
     static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
+    void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
 
     static const std::vector<std::string> DEFAULT_BUFFER_STYLES;
 
@@ -144,7 +146,7 @@ protected:
 
     const ModelManager &modelManager;
 
-    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder);
+    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const;
 
 
     virtual void InitModel();
@@ -233,7 +235,7 @@ public:
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     unsigned int GetLastChannel();
-    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
     bool IsValidStartChannelString() const;
     unsigned int GetFirstChannel();
@@ -289,6 +291,9 @@ public:
     virtual xlColor GetNodeMaskColor(size_t nodenum) const;
     void SetNodeColor(size_t nodenum, const xlColor &c);
     wxChar GetChannelColorLetter(wxByte chidx);
+    std::string GetRGBOrder() const { return rgbOrder; }
+    static char EncodeColour(const xlColor& c);
+    char GetAbsoluteChannelColorLetter(long absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     void ExportAsCustomXModel() const;

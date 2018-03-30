@@ -2,14 +2,14 @@
 #define VALUECURVEDIALOG_H
 
 //(*Headers(ValueCurveDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 #include "xlCustomControl.h"
@@ -84,27 +84,27 @@ class ValueCurveDialog: public wxDialog
 		virtual ~ValueCurveDialog();
 
 		//(*Declarations(ValueCurveDialog)
-		wxStaticText* StaticText_P3;
 		wxButton* ButtonExport;
-		wxTextCtrl* TextCtrl_Parameter3;
-		wxSlider* Slider_Parameter2;
-		wxButton* Button_Ok;
-		wxStaticText* StaticText_P2;
-		wxButton* Button_Reverse;
-		wxFlexGridSizer* PresetSizer;
-		wxTextCtrl* TextCtrl_Parameter2;
-		wxStaticText* StaticText_BottomValue;
-		wxButton* Button_Cancel;
-		wxSlider* Slider_Parameter3;
-		wxStaticText* StaticText_P1;
-		wxStaticText* StaticText_TopValue;
-		wxStaticText* StaticText_P4;
-		wxSlider* Slider_Parameter4;
 		wxButton* ButtonLoad;
+		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxButton* Button_Reverse;
 		wxCheckBox* CheckBox_WrapValues;
 		wxChoice* Choice1;
+		wxFlexGridSizer* PresetSizer;
 		wxSlider* Slider_Parameter1;
+		wxSlider* Slider_Parameter2;
+		wxSlider* Slider_Parameter3;
+		wxSlider* Slider_Parameter4;
+		wxStaticText* StaticText_BottomValue;
+		wxStaticText* StaticText_P1;
+		wxStaticText* StaticText_P2;
+		wxStaticText* StaticText_P3;
+		wxStaticText* StaticText_P4;
+		wxStaticText* StaticText_TopValue;
 		wxTextCtrl* TextCtrl_Parameter1;
+		wxTextCtrl* TextCtrl_Parameter2;
+		wxTextCtrl* TextCtrl_Parameter3;
 		wxTextCtrl* TextCtrl_Parameter4;
 		//*)
 

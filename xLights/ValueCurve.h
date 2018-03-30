@@ -10,7 +10,7 @@
 #define MINVOIDF -9.1234f
 #define MAXVOIDF 9.1234f
 
-#define VC_X_POINTS 40.0
+#define VC_X_POINTS 100.0
 
 class vcSortablePoint
 {

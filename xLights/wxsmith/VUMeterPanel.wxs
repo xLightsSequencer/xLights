@@ -45,7 +45,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Bars" variable="BitmapButton_VUMeter_Bars" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Bars" variable="BitmapButton_VUMeter_Bars" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -67,6 +67,7 @@
 						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" subclass="BulkEditChoice" variable="Choice_VUMeter_Type" member="yes">
 							<content>
 								<item>Spectrogram</item>
+								<item>Spectrogram Peak</item>
 								<item>Volume Bars</item>
 								<item>Waveform</item>
 								<item>On</item>
@@ -91,7 +92,7 @@
 								<item>Note Level Pulse</item>
 								<item>Note Level Bar</item>
 							</content>
-							<selection>2</selection>
+							<selection>3</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -319,7 +320,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_StartNote" variable="BitmapButton_VUMeter_StartNote" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote" variable="BitmapButton_VUMeter_StartNote" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -358,7 +359,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_EndNote" variable="BitmapButton_VUMeter_EndNote" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote" variable="BitmapButton_VUMeter_EndNote" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -403,7 +404,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_XOffset" variable="BitmapButton_VUMeter_XOffset" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset" variable="BitmapButton_VUMeter_XOffset" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -458,7 +459,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_VUMeter_YOffset" variable="BitmapButton_VUMeter_YOffset" member="yes">
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset" variable="BitmapButton_VUMeter_YOffset" member="yes">
 							<size>13,13</size>
 							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>

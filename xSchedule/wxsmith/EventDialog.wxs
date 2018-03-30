@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="EventDialog">
+		<title>Event</title>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<minsize>10</minsize>
+					<orientation>vertical</orientation>
+					<size>20,20</size>
+					<minsize>10,10</minsize>
+					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook_EventType" member="yes">
+									<handler function="OnChoicebook_EventTypePageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>3</cols>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
+											<label>Ok</label>
+											<handler function="OnButton_OkClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON2" variable="Button_Cancel" member="yes">
+											<label>Cancel</label>
+											<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>2</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+									<label>Name :</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_Name" member="yes">
+									<handler function="OnTextCtrl_NameText" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+									<label>Command :</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Command" member="yes">
+									<minsize>300,-1</minsize>
+									<handler function="OnChoice_CommandSelect" entry="EVT_CHOICE" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+									<label>Parameter 1 :</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_P1" member="yes">
+									<handler function="OnTextCtrl_P1Text" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+									<label>Parameter 2 :</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_P2" member="yes">
+									<handler function="OnTextCtrl_P2Text" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+									<label>Parameter 3 :</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_P3" member="yes">
+									<handler function="OnTextCtrl_P3Text" entry="EVT_TEXT" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

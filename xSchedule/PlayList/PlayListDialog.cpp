@@ -12,9 +12,12 @@
 #include "PlayListItemOSC.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
+#include "PlayListItemSerial.h"
+#include "PlayListItemFPPEvent.h"
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
+#include "PlayListItemScreenMap.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
@@ -60,6 +63,7 @@ const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEXT = wxNewId();
+const long PlayListDialog::ID_MNU_ADDSCREENMAP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFILE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEST = wxNewId();
@@ -72,6 +76,8 @@ const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCURL = wxNewId();
+const long PlayListDialog::ID_MNU_ADDSERIAL = wxNewId();
+const long PlayListDialog::ID_MNU_ADDFPPEVENT = wxNewId();
 const long PlayListDialog::ID_MNU_DELETE = wxNewId();
 const long PlayListDialog::ID_MNU_REMOVEEMPTYSTEPS = wxNewId();
 
@@ -538,25 +544,28 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     TreeCtrl_PlayList->SelectItem(treeitem);
 
     wxMenu mnu;
-    wxMenuItem* mi = mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
-    mi = mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
-    mi = mnu.Append(ID_MNU_ADDFSEQVIDEO, "Add FSEQ & Video");
-    mi = mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
-    mi = mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
-    mi = mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
-    mi = mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
-    mi = mnu.Append(ID_MNU_ADDPJLINK, "Add PJLink");
-    mi = mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
-    mi = mnu.Append(ID_MNU_ADDRDS, "Add RDS");
-    mi = mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
-    mi = mnu.Append(ID_MNU_ADDTEST, "Add Test");
-    mi = mnu.Append(ID_MNU_ADDCURL, "Add CURL");
-    mi = mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
-    mi = mnu.Append(ID_MNU_ADDOSC, "Add OSC");
-    mi = mnu.Append(ID_MNU_ADDTEXT, "Add Text");
-    mi = mnu.Append(ID_MNU_ADDFILE, "Add File");
+    mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
+    mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
+    mnu.Append(ID_MNU_ADDFSEQVIDEO, "Add FSEQ & Video");
+    mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
+    mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
+    mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
+    mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
+    mnu.Append(ID_MNU_ADDPJLINK, "Add PJLink");
+    mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
+    mnu.Append(ID_MNU_ADDRDS, "Add RDS");
+    mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
+    mnu.Append(ID_MNU_ADDTEST, "Add Test");
+    mnu.Append(ID_MNU_ADDCURL, "Add CURL");
+    mnu.Append(ID_MNU_ADDSERIAL, "Add Serial");
+    mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
+    mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
+    mnu.Append(ID_MNU_ADDOSC, "Add OSC");
+    mnu.Append(ID_MNU_ADDSCREENMAP, "Add Screen Map");
+    mnu.Append(ID_MNU_ADDTEXT, "Add Text");
+    mnu.Append(ID_MNU_ADDFILE, "Add File");
 
-    mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
+    wxMenuItem* mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
     if (!IsPlayList(treeitem) && !IsPlayListStep(treeitem))
     {
         mi->Enable(false);
@@ -567,7 +576,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     {
         mi->Enable(false);
     }
-    mi = mnu.Append(ID_MNU_REMOVEEMPTYSTEPS, "Remove Empty Steps");
+    mnu.Append(ID_MNU_REMOVEEMPTYSTEPS, "Remove Empty Steps");
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&PlayListDialog::OnTreeCtrlMenu, nullptr, this);
     ModalPopup(this, mnu);
@@ -628,6 +637,16 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         PlayListItemCURL* pli = new PlayListItemCURL();
         AddItem(_playlist, step, pli);
     }
+    else if (event.GetId() == ID_MNU_ADDSERIAL)
+    {
+        PlayListItemSerial* pli = new PlayListItemSerial();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDFPPEVENT)
+    {
+        PlayListItemFPPEvent* pli = new PlayListItemFPPEvent();
+        AddItem(_playlist, step, pli);
+    }
     else if (event.GetId() == ID_MNU_ADDCOMMAND)
     {
         PlayListItemRunCommand* pli = new PlayListItemRunCommand();
@@ -641,6 +660,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDTEXT)
     {
         PlayListItemText* pli = new PlayListItemText();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDSCREENMAP)
+    {
+        PlayListItemScreenMap* pli = new PlayListItemScreenMap();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDFILE)

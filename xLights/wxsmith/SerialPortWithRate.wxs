@@ -30,7 +30,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT_EXPLANATION" variable="StaticTextExplanation" member="yes">
-									<label>DMX controllers (or LOR or D-Light controllers in DMX mode)&#x0A;attached to an Entec DMX USB Pro, Lynx DMX dongle,&#x0A;DIYC RPM, DMXking.com, or DIY Blinky dongle.&#x0A;&#x0A;Last Channel should be 512 or less, unless you are using&#x0A;a DIY Blinky dongle (in which case it can be up to 3036).</label>
+									<label>DMX controllers (or LOR or D-Light controllers in DMX mode)&#x0A;attached to an Entec DMX USB Pro, Lynx DMX dongle,&#x0A;DIYC RPM, DMXking.com, or DIY Blinky dongle.&#x0A;&#x0A;Last Channel should be 512 or less, unless you are using&#x0A;a DIY Blinky dongle (in which case it can be up to 3036).&#x0A;&#x0A;Id if unique amongst all your output universes then you can &#x0A;use #id:startchannel for start channel identification</label>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
@@ -52,6 +52,24 @@
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>2</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+									<label>Id</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Id" member="yes">
+									<value>64001</value>
+									<min>1</min>
+									<max>65535</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT_PORT" variable="StaticTextPort" member="yes">
 									<label>Port</label>

@@ -7,16 +7,16 @@
 #include <wx/dataview.h>
 
 //(*Headers(xLightsImportChannelMapDialog)
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/checklst.h>
-#include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
 #include <wx/dialog.h>
+#include <wx/listctrl.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/splitter.h>
+#include <wx/stattext.h>
 //*)
 
 #include <map>
@@ -349,23 +349,23 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsImportTreeModel *dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
-		wxFlexGridSizer* Sizer_TimeAdjust;
-		wxSpinCtrl* TimeAdjustSpinCtrl;
-		wxButton* Button_Ok;
-		wxFlexGridSizer* Sizer2;
 		wxButton* Button_AutoMap;
-		wxPanel* Panel1;
-		wxFlexGridSizer* OldSizer;
-		wxCheckListBox* TimingTrackListBox;
 		wxButton* Button_Cancel;
-		wxStaticText* StaticText_TimeAdjust;
-		wxStaticBoxSizer* TimingTrackPanel;
+		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_MapCCRStrand;
-		wxPanel* Panel2;
-		wxFlexGridSizer* SizerMap;
-		wxSplitterWindow* SplitterWindow1;
-		wxListCtrl* ListCtrl_Available;
+		wxCheckListBox* TimingTrackListBox;
+		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
+		wxFlexGridSizer* Sizer2;
+		wxFlexGridSizer* SizerMap;
+		wxFlexGridSizer* Sizer_TimeAdjust;
+		wxListCtrl* ListCtrl_Available;
+		wxPanel* Panel1;
+		wxPanel* Panel2;
+		wxSpinCtrl* TimeAdjustSpinCtrl;
+		wxSplitterWindow* SplitterWindow1;
+		wxStaticBoxSizer* TimingTrackPanel;
+		wxStaticText* StaticText_TimeAdjust;
 		//*)
 
         SequenceElements *mSequenceElements;
@@ -410,6 +410,7 @@ protected:
 		void OnListCtrl_AvailableColumnClick(wxListEvent& event);
 		void OnCheckBox_MapCCRStrandClick(wxCommandEvent& event);
 		void OnButton_AutoMapClick(wxCommandEvent& event);
+		void OnListCtrl_AvailableItemActivated(wxListEvent& event);
 		//*)
 
         void OnDrop(wxCommandEvent& event);

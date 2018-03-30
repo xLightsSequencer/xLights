@@ -388,7 +388,7 @@ void E131Output::StartFrame(long msec)
 
 void E131Output::EndFrame(int suppressFrames)
 {
-    if (!_enabled) return;
+    if (!_enabled || _suspend) return;
 
     if (IsOutputCollection())
     {

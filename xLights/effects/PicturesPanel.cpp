@@ -22,18 +22,17 @@
 
 //(*IdInit(PicturesPanel)
 const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_Pictures_Direction = wxNewId();
 const long PicturesPanel::ID_CHOICE_Pictures_Direction = wxNewId();
 const long PicturesPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_Pictures_Speed = wxNewId();
 const long PicturesPanel::IDD_SLIDER_Pictures_Speed = wxNewId();
 const long PicturesPanel::ID_TEXTCTRL_Pictures_Speed = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON25 = wxNewId();
+const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_Speed = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::IDD_SLIDER_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::ID_TEXTCTRL_Pictures_FrameRateAdj = wxNewId();
-const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
+const long PicturesPanel::ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
 const long PicturesPanel::ID_CHOICE_Scaling = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
@@ -105,8 +104,6 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer19->AddGrowableCol(0);
 	FilePickerCtrl1 = new xlPictureFilePickerCtrl(this, ID_FILEPICKER_Pictures_Filename, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKER_Pictures_Filename"));
 	FlexGridSizer19->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_PicturesFilename = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME"));
-	FlexGridSizer19->Add(BitmapButton_PicturesFilename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer42->Add(FlexGridSizer19, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer31 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer31->AddGrowableCol(1);
@@ -149,19 +146,19 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	TextCtrl48 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Speed"));
 	TextCtrl48->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl48, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton6 = new wxBitmapButton(this, ID_BITMAPBUTTON25, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON25"));
-	BitmapButton6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer31->Add(BitmapButton6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_PicturesSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_Speed"));
+	BitmapButton_PicturesSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_PicturesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText96 = new wxStaticText(this, ID_STATICTEXT_Pictures_FrameRateAdj, _("Frame Rate Adj"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(StaticText96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Pictures_FR = new BulkEditSliderF1(this, IDD_SLIDER_Pictures_FrameRateAdj, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(Slider_Pictures_FR, 1, wxALL|wxEXPAND, 2);
-	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
+	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
 	TextCtrl_Pictures_FR->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl_Pictures_FR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_PicturesSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed"));
-	BitmapButton_PicturesSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-	FlexGridSizer31->Add(BitmapButton_PicturesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	BitmapButton_PicturesFrameRateAdj = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj"));
+	BitmapButton_PicturesFrameRateAdj->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	FlexGridSizer31->Add(BitmapButton_PicturesFrameRateAdj, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	FlexGridSizer102 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer102->AddGrowableCol(0);
@@ -180,7 +177,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	CheckBox_LoopGIF = new BulkEditCheckBox(this, ID_CHECKBOX_LoopGIF, _("Loop Animated GIF"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LoopGIF"));
 	CheckBox_LoopGIF->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LoopGIF, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	Notebook4 = new wxNotebook(this, IDD_NOTEBOOK_Pictures_Positions, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK_Pictures_Positions"));
 	PictureStartPositionPanel = new wxPanel(Notebook4, ID_PANEL43, wxPoint(15,49), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
 	FlexGridSizer112 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -266,17 +263,16 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	Notebook4->AddPage(PictureEndPositionPanel, _("End Position"), false);
 	Notebook4->AddPage(Panel1, _("Start Scale"), false);
 	Notebook4->AddPage(Panel2, _("End Scale"), false);
-	FlexGridSizer102->Add(Notebook4, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer42->Add(FlexGridSizer102, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer102->Add(Notebook4, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer42->Add(FlexGridSizer102, 1, wxALL|wxEXPAND, 0);
 	SetSizer(FlexGridSizer42);
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
-	Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PicturesPanel::OnChoicePicturesDirectionSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON25,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	//*)
     SetName("ID_PANEL_PICTURES");
 }

@@ -4,18 +4,18 @@
 #include "FanEffect.h"
 
 //(*InternalHeaders(FanPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(FanPanel)
@@ -100,27 +100,27 @@ END_EVENT_TABLE()
 FanPanel::FanPanel(wxWindow* parent)
 {
 	//(*Initialize(FanPanel)
-	wxFlexGridSizer* GridBagSizerFanPosition;
-	BulkEditTextCtrl* TextCtrl_Fan_Num_Blades;
-	BulkEditTextCtrl* TextCtrl_Fan_CenterX;
-	BulkEditTextCtrl* TextCtrl_Fan_Blade_Angle;
-	wxFlexGridSizer* FlexGridSizer103;
-	BulkEditTextCtrl* TextCtrl_Fan_Start_Angle;
-	wxFlexGridSizer* FlexGridSizer109;
-	BulkEditTextCtrl* TextCtrl_Fan_CenterY;
-	wxPanel* Panel11;
-	wxPanel* Panel9;
-	BulkEditTextCtrl* TextCtrl_Fan_Blade_Width;
-	BulkEditTextCtrlF360* TextCtrl_Fan_Revolutions;
-	BulkEditTextCtrl* TextCtrl_Fan_Num_Elements;
 	BulkEditTextCtrl* TextCtrl_Fan_Accel;
+	BulkEditTextCtrl* TextCtrl_Fan_Blade_Angle;
+	BulkEditTextCtrl* TextCtrl_Fan_Blade_Width;
+	BulkEditTextCtrl* TextCtrl_Fan_CenterX;
+	BulkEditTextCtrl* TextCtrl_Fan_CenterY;
 	BulkEditTextCtrl* TextCtrl_Fan_Duration;
-	BulkEditTextCtrl* TextCtrl_Fan_End_Radius;
-	wxFlexGridSizer* GridBagSizerFanBlades;
-	BulkEditTextCtrl* TextCtrl_Fan_Start_Radius;
-	wxFlexGridSizer* GridBagSizerFanOptions;
 	BulkEditTextCtrl* TextCtrl_Fan_Element_Width;
+	BulkEditTextCtrl* TextCtrl_Fan_End_Radius;
+	BulkEditTextCtrl* TextCtrl_Fan_Num_Blades;
+	BulkEditTextCtrl* TextCtrl_Fan_Num_Elements;
+	BulkEditTextCtrl* TextCtrl_Fan_Start_Angle;
+	BulkEditTextCtrl* TextCtrl_Fan_Start_Radius;
+	BulkEditTextCtrlF360* TextCtrl_Fan_Revolutions;
+	wxFlexGridSizer* FlexGridSizer103;
+	wxFlexGridSizer* FlexGridSizer109;
+	wxFlexGridSizer* GridBagSizerFanBlades;
+	wxFlexGridSizer* GridBagSizerFanOptions;
+	wxFlexGridSizer* GridBagSizerFanPosition;
+	wxPanel* Panel11;
 	wxPanel* Panel12;
+	wxPanel* Panel9;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer109 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -207,7 +207,7 @@ FanPanel::FanPanel(wxWindow* parent)
 	Panel12 = new wxPanel(Notebook1, ID_PANEL42, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL42"));
 	GridBagSizerFanBlades = new wxFlexGridSizer(0, 5, 0, 0);
 	GridBagSizerFanBlades->AddGrowableCol(1);
-	StaticText151 = new wxStaticText(Panel12, ID_STATICTEXT_Fan_Num_Blades, _("# Blades:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT_Fan_Num_Blades"));
+	StaticText151 = new wxStaticText(Panel12, ID_STATICTEXT_Fan_Num_Blades, _("# Blades:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fan_Num_Blades"));
 	GridBagSizerFanBlades->Add(StaticText151, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Fan_Num_Blades = new BulkEditSlider(Panel12, ID_SLIDER_Fan_Num_Blades, 3, 1, 16, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Num_Blades"));
 	GridBagSizerFanBlades->Add(Slider_Fan_Num_Blades, 1, wxALL|wxEXPAND, 5);
@@ -273,7 +273,7 @@ FanPanel::FanPanel(wxWindow* parent)
 	Panel11 = new wxPanel(Notebook1, ID_PANEL41, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL41"));
 	GridBagSizerFanOptions = new wxFlexGridSizer(0, 5, 0, 0);
 	GridBagSizerFanOptions->AddGrowableCol(1);
-	StaticText149 = new wxStaticText(Panel11, ID_STATICTEXT_Fan_Duration, _("Duration:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT_Fan_Duration"));
+	StaticText149 = new wxStaticText(Panel11, ID_STATICTEXT_Fan_Duration, _("Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fan_Duration"));
 	GridBagSizerFanOptions->Add(StaticText149, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Fan_Duration = new BulkEditSlider(Panel11, ID_SLIDER_Fan_Duration, 80, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fan_Duration"));
 	GridBagSizerFanOptions->Add(Slider_Fan_Duration, 1, wxALL|wxEXPAND, 5);

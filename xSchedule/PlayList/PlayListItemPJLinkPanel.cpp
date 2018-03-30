@@ -24,23 +24,6 @@ BEGIN_EVENT_TABLE(PlayListItemPJLinkPanel,wxPanel)
 	//*)
 END_EVENT_TABLE()
 
-void PlayListItemPJLinkPanel::SetChoiceFromString(wxChoice* choice, std::string value)
-{
-    int sel = choice->GetSelection();
-
-    choice->SetSelection(-1);
-    for (size_t i =0; i < choice->GetCount(); i++)
-    {
-        if (choice->GetString(i) == value)
-        {
-            choice->SetSelection(i);
-            return;
-        }
-    }
-
-    choice->SetSelection(sel);
-}
-
 PlayListItemPJLinkPanel::PlayListItemPJLinkPanel(wxWindow* parent, PlayListItemPJLink* PJLink, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _PJLink = PJLink;
@@ -101,9 +84,9 @@ PlayListItemPJLinkPanel::PlayListItemPJLinkPanel(wxWindow* parent, PlayListItemP
         Choice_Projector->AppendString((*it)->GetName());
     }
 
-    SetChoiceFromString(Choice_Command, PJLink->GetCommand());
-    SetChoiceFromString(Choice_Parameter, PJLink->GetParameter());
-    SetChoiceFromString(Choice_Projector, PJLink->GetProjector());
+    Choice_Command->SetStringSelection(PJLink->GetCommand());
+    Choice_Parameter->SetStringSelection(PJLink->GetParameter());
+    Choice_Projector->SetStringSelection(PJLink->GetProjector());
 
     ValidateWindow();
 }
