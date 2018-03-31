@@ -18,6 +18,7 @@ class StateEffect : public RenderableEffect
         std::list<std::string> GetStates(Model* cls, std::string model);
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

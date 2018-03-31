@@ -14,10 +14,10 @@ class TreeEffect : public RenderableEffect
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
 };
 
 #endif // TREEEFFECT_H

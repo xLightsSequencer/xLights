@@ -236,9 +236,9 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
-bool EffectLayer::HitTestEffectByTime(int timeMS,int &index)
+bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
 {
-    for(int i=0;i<mEffects.size();i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
             timeMS <= mEffects[i]->GetEndTimeMS())
@@ -252,7 +252,7 @@ bool EffectLayer::HitTestEffectByTime(int timeMS,int &index)
 
 bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
 {
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         if ((mEffects[i]->GetStartTimeMS() > t1MS && mEffects[i]->GetStartTimeMS() < t2MS) ||
             (mEffects[i]->GetEndTimeMS() > t1MS && mEffects[i]->GetEndTimeMS() < t2MS) ||
@@ -267,27 +267,27 @@ bool EffectLayer::HitTestEffectBetweenTime(int t1MS, int t2MS)
 Effect* EffectLayer::GetEffectBeforeTime(int ms)
 {
     int i;
-    for(i=0; i<mEffects.size();i++)
+    for (i = 0; i < mEffects.size(); i++)
     {
-        if(mEffects[i]->GetStartTimeMS() >= ms)
+        if (mEffects[i]->GetStartTimeMS() >= ms)
         {
             break;
         }
     }
-    if(i==0)
+    if (i == 0)
     {
         return nullptr;
     }
     else
     {
-        return mEffects[i-1];
+        return mEffects[i - 1];
     }
 }
 
 Effect* EffectLayer::GetEffectAfterTime(int ms)
 {
     int i;
-    for (i = 0; i<mEffects.size(); i++)
+    for (i = 0; i < mEffects.size(); i++)
     {
         if (mEffects[i]->GetStartTimeMS() > ms)
         {
@@ -304,10 +304,9 @@ Effect* EffectLayer::GetEffectAfterTime(int ms)
     }
 }
 
-
 Effect* EffectLayer::GetEffectAtTime(int timeMS)
 {
-    for(int i=0;i<mEffects.size();i++) {
+    for (int i = 0; i < mEffects.size(); i++) {
         if (timeMS >= mEffects[i]->GetStartTimeMS() &&
             timeMS <= mEffects[i]->GetEndTimeMS()) {
             return mEffects[i];
@@ -319,14 +318,14 @@ Effect* EffectLayer::GetEffectAtTime(int timeMS)
 Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
 {
     int i;
-    for(i=mEffects.size()-1; i >= 0; i--)
+    for (i = mEffects.size() - 1; i >= 0; i--)
     {
-        if( mEffects[i]->GetEndTimeMS() < ms )
+        if (mEffects[i]->GetEndTimeMS() < ms)
         {
             break;
         }
     }
-    if(i<0)
+    if (i < 0)
     {
         return nullptr;
     }
@@ -339,14 +338,14 @@ Effect*  EffectLayer::GetEffectBeforeEmptyTime(int ms)
 Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
 {
     int i;
-    for(i=0; i < mEffects.size(); i++)
+    for (i = 0; i < mEffects.size(); i++)
     {
-        if( mEffects[i]->GetStartTimeMS() > ms )
+        if (mEffects[i]->GetStartTimeMS() > ms)
         {
             break;
         }
     }
-    if(i==mEffects.size())
+    if (i == mEffects.size())
     {
         return nullptr;
     }
@@ -358,27 +357,27 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
 
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected)
 {
-    for(int i=0; i<mEffects.size(); i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
-        if( ignore_selected )
+        if (ignore_selected)
         {
-            if( mEffects[i]->GetSelected() )
+            if (mEffects[i]->GetSelected())
             {
                 continue;
             }
         }
         // check if start is between effect range
-        if( (startTimeMS > mEffects[i]->GetStartTimeMS()) && (startTimeMS < mEffects[i]->GetEndTimeMS()) )
+        if ((startTimeMS > mEffects[i]->GetStartTimeMS()) && (startTimeMS < mEffects[i]->GetEndTimeMS()))
         {
             return false;
         }
         // check if end is between effect range
-        if( (endTimeMS > mEffects[i]->GetStartTimeMS()) && (endTimeMS < mEffects[i]->GetEndTimeMS()) )
+        if ((endTimeMS > mEffects[i]->GetStartTimeMS()) && (endTimeMS < mEffects[i]->GetEndTimeMS()))
         {
             return false;
         }
         // check effect is between start and end
-        if( (mEffects[i]->GetStartTimeMS() >= startTimeMS) && (mEffects[i]->GetEndTimeMS() <= endTimeMS) )
+        if ((mEffects[i]->GetStartTimeMS() >= startTimeMS) && (mEffects[i]->GetEndTimeMS() <= endTimeMS))
         {
             return false;
         }
@@ -387,7 +386,7 @@ bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_
 }
 
 bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
-    for(int i=0;i<mEffects.size();i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         if (mEffects[i]->OverlapsWith(startTimeMS, endTimeMS)) return true;
     }
@@ -397,12 +396,12 @@ bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
 int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
 {
     int num_selected = 0;
-    for(int i=0;i<mEffects.size();i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
-        if(mEffects[i]->GetStartTimeMS() >= startTimeMS &&  mEffects[i]->GetStartTimeMS() < endTimeMS)
+        if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
         {
-            if( endTimeMS < midpoint )
+            if (endTimeMS < midpoint)
             {
                 mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
             }
@@ -412,9 +411,9 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
             }
             num_selected++;
         }
-        else if(mEffects[i]->GetEndTimeMS() <= endTimeMS &&  mEffects[i]->GetEndTimeMS() > startTimeMS)
+        else if (mEffects[i]->GetEndTimeMS() <= endTimeMS && mEffects[i]->GetEndTimeMS() > startTimeMS)
         {
-            if( startTimeMS > midpoint )
+            if (startTimeMS > midpoint)
             {
                 mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
             }
@@ -424,7 +423,7 @@ int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
             }
             num_selected++;
         }
-        else if(mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
+        else if (mEffects[i]->GetEndTimeMS() > endTimeMS &&  mEffects[i]->GetStartTimeMS() < startTimeMS)
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             num_selected++;
@@ -449,7 +448,7 @@ int EffectLayer::SelectEffectsByType(const std::string & type)
     return num_selected;
 }
 
-std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS) 
+std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS)
 {
     std::vector<Effect*> effs = std::vector<Effect*>();
     for (int i = 0; i < mEffects.size(); i++)
@@ -540,7 +539,7 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
 
 void EffectLayer::UnSelectAllEffects()
 {
-    for(int i=0;i<mEffects.size();i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
     }
@@ -548,7 +547,7 @@ void EffectLayer::UnSelectAllEffects()
 
 void EffectLayer::SelectAllEffects()
 {
-    for (int i = 0; i<mEffects.size(); i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
         mEffects[i]->SetSelected(EFFECT_SELECTED);
     }
@@ -568,80 +567,80 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(int &toLeft, int &
 {
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    for(int i=0;i<mEffects.size();i++)
+    for (int i = 0; i < mEffects.size(); i++)
     {
-        if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
+        if (mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
         {
-            int l,r;
-            GetMaximumRangeOfMovementForEffect(i,l,r);
-            toLeft = toLeft<l?toLeft:l;
-            toRight = toRight<r?toRight:r;
+            int l, r;
+            GetMaximumRangeOfMovementForEffect(i, l, r);
+            toLeft = toLeft < l ? toLeft : l;
+            toRight = toRight < r ? toRight : r;
         }
     }
 }
 
 void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, int &toLeft, int &toRight)
 {
-    switch(mEffects[index]->GetSelected())
+    switch (mEffects[index]->GetSelected())
     {
-        case EFFECT_LT_SELECTED:
-            GetMaximumRangeWithLeftMovement(index,toLeft,toRight);
-            break;
-        case EFFECT_RT_SELECTED:
-            GetMaximumRangeWithRightMovement(index,toLeft,toRight);
-            break;
-        case EFFECT_SELECTED:
-            int l1,l2,r1,r2;
-            GetMaximumRangeWithLeftMovement(index,l1,r1);
-            GetMaximumRangeWithRightMovement(index,l2,r2);
-            toLeft = l1<l2?l1:l2;
-            toRight = r1<r2?r1:r2;
-            break;
-        default:
-            toLeft = NO_MAX;
-            toRight = NO_MAX;
-            break;
+    case EFFECT_LT_SELECTED:
+        GetMaximumRangeWithLeftMovement(index, toLeft, toRight);
+        break;
+    case EFFECT_RT_SELECTED:
+        GetMaximumRangeWithRightMovement(index, toLeft, toRight);
+        break;
+    case EFFECT_SELECTED:
+        int l1, l2, r1, r2;
+        GetMaximumRangeWithLeftMovement(index, l1, r1);
+        GetMaximumRangeWithRightMovement(index, l2, r2);
+        toLeft = l1 < l2 ? l1 : l2;
+        toRight = r1 < r2 ? r1 : r2;
+        break;
+    default:
+        toLeft = NO_MAX;
+        toRight = NO_MAX;
+        break;
     }
 }
 
 void EffectLayer::GetMaximumRangeWithLeftMovement(int index, int &toLeft, int &toRight)
 {
     SequenceElements* seq_elem = mParentElement->GetSequenceElements();
-    if( mEffects[index]->GetSelected() == EFFECT_SELECTED )
+    if (mEffects[index]->GetSelected() == EFFECT_SELECTED)
     {
-       toRight = NO_MAX;
+        toRight = NO_MAX;
     }
     else
     {
         toRight = mEffects[index]->GetEndTimeMS() - mEffects[index]->GetStartTimeMS() - seq_elem->GetMinPeriod();
     }
-    if(index == 0)
+    if (index == 0)
     {
         toLeft = mEffects[index]->GetStartTimeMS();
     }
     else
     {
-       if(mEffects[index-1]->GetSelected() == EFFECT_NOT_SELECTED ||
-          ((index > 0) && mEffects[index-1]->GetSelected() == EFFECT_LT_SELECTED))
-       {
-          toLeft = mEffects[index]->GetStartTimeMS() - mEffects[index-1]->GetEndTimeMS();
-       }
-       else if(mEffects[index-1]->GetSelected() == EFFECT_RT_SELECTED)
-       {
-          toLeft = mEffects[index]->GetStartTimeMS() - mEffects[index-1]->GetStartTimeMS();
-       }
-       else if(mEffects[index-1]->GetSelected() == EFFECT_SELECTED)
-       {
-           // Do not know so set to maximum. Let the effects to left decide
-          toLeft = mEffects[index]->GetStartTimeMS();
-       }
+        if (mEffects[index - 1]->GetSelected() == EFFECT_NOT_SELECTED ||
+            ((index > 0) && mEffects[index - 1]->GetSelected() == EFFECT_LT_SELECTED))
+        {
+            toLeft = mEffects[index]->GetStartTimeMS() - mEffects[index - 1]->GetEndTimeMS();
+        }
+        else if (mEffects[index - 1]->GetSelected() == EFFECT_RT_SELECTED)
+        {
+            toLeft = mEffects[index]->GetStartTimeMS() - mEffects[index - 1]->GetStartTimeMS();
+        }
+        else if (mEffects[index - 1]->GetSelected() == EFFECT_SELECTED)
+        {
+            // Do not know so set to maximum. Let the effects to left decide
+            toLeft = mEffects[index]->GetStartTimeMS();
+        }
     }
 }
 
 void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &toRight)
 {
     SequenceElements* seq_elem = mParentElement->GetSequenceElements();
-    if( mEffects[index]->GetSelected() == EFFECT_SELECTED )
+    if (mEffects[index]->GetSelected() == EFFECT_SELECTED)
     {
         toLeft = mEffects[index]->GetStartTimeMS();
     }
@@ -651,26 +650,26 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, int &toLeft, int &
     }
     // Last effect, nothing to right to stop movement other then edge of screen.
     // Let grid take care of screen boundary so set to huge number
-    if(index == mEffects.size()-1)
+    if (index == mEffects.size() - 1)
     {
-       toRight = NO_MAX;
+        toRight = NO_MAX;
     }
     else
     {
-       if(mEffects[index+1]->GetSelected() == EFFECT_NOT_SELECTED ||
-          ((index < mEffects.size()-1) && mEffects[index+1]->GetSelected() == EFFECT_RT_SELECTED))
-       {
-          toRight = mEffects[index+1]->GetStartTimeMS() - mEffects[index]->GetEndTimeMS();
-       }
-       else if(mEffects[index+1]->GetSelected() == EFFECT_LT_SELECTED)
-       {
-          toRight = mEffects[index+1]->GetEndTimeMS() - mEffects[index]->GetEndTimeMS();
-       }
-       else if(mEffects[index+1]->GetSelected() == EFFECT_SELECTED)
-       {
-           // Do not know so set to maximum. Let the effects to right decide
-          toRight = NO_MAX;
-       }
+        if (mEffects[index + 1]->GetSelected() == EFFECT_NOT_SELECTED ||
+            ((index < mEffects.size() - 1) && mEffects[index + 1]->GetSelected() == EFFECT_RT_SELECTED))
+        {
+            toRight = mEffects[index + 1]->GetStartTimeMS() - mEffects[index]->GetEndTimeMS();
+        }
+        else if (mEffects[index + 1]->GetSelected() == EFFECT_LT_SELECTED)
+        {
+            toRight = mEffects[index + 1]->GetEndTimeMS() - mEffects[index]->GetEndTimeMS();
+        }
+        else if (mEffects[index + 1]->GetSelected() == EFFECT_SELECTED)
+        {
+            // Do not know so set to maximum. Let the effects to right decide
+            toRight = NO_MAX;
+        }
     }
 }
 

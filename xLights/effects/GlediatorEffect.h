@@ -34,6 +34,9 @@ class GlediatorEffect : public RenderableEffect
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual bool AppropriateOnNodes() const override { return false; }
+        
+        // Currently not possible but I think changes could be made to make it support partial
+        //virtual bool CanRenderPartialTimeInterval() const override { return true; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:

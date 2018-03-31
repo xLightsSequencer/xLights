@@ -20,12 +20,12 @@ class SingleStrandEffect : public RenderableEffect
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
 
-    private:
-    
+    private:    
         void RenderSingleStrandChase(RenderBuffer &buffer,
                                  const std::string &ColorScheme,int Number_Chases,int chaseSize,
                                  const std::string &Chase_Type1,

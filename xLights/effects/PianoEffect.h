@@ -23,6 +23,8 @@ class PianoEffect : public RenderableEffect
         virtual int GetColorSupportedCount() const override { return 5; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+        // Currently not possible but I think changes could be made to make it support partial
+        //virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
