@@ -2262,6 +2262,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonAddE131->Enable(flag);
     ButtonArtNET->Enable(flag);
     ButtonAddNull->Enable(flag);
+    ButtonAddLOR->Enable(flag);
     ButtonNetworkChange->Enable(flag);
     ButtonNetworkDelete->Enable(flag);
     ButtonNetworkDeleteAll->Enable(flag);
