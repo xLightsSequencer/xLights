@@ -10,6 +10,7 @@
 
 class OutputManager;
 class PingThread;
+class ListenerManager;
 
 class APinger
 {
@@ -19,17 +20,19 @@ class APinger
     std::mutex _lock;
     std::string _ip;
     std::string _why;
+    ListenerManager* _listenerManager;
 
     void SetPingResult(PINGSTATE result);
 
     public:
 
     bool IsOutput() const { return _output != nullptr; }
-	APinger(Output* output);
-	APinger(const std::string ip, const std::string why);
+	APinger(ListenerManager* listenerManager, Output* output);
+	APinger(ListenerManager* listenerManager, const std::string ip, const std::string why);
 	virtual ~APinger();
 	PINGSTATE GetPingResult();
-	static std::string GetPingResultName(PINGSTATE state);
+    bool GetPingResult(PINGSTATE state);
+    static std::string GetPingResultName(PINGSTATE state);
     void Ping();
 	std::string GetName() const;
     int GetPingInterval() const { return PINGINTERVAL; }
@@ -39,10 +42,11 @@ class APinger
 
 class Pinger
 {
-	std::list<APinger*> _pingers;
+    ListenerManager* _listenerManager;
+    std::list<APinger*> _pingers;
 	
 	public:
-		Pinger(OutputManager* outputManager);
+		Pinger(ListenerManager* listenerManager, OutputManager* outputManager);
 		virtual ~Pinger();
         std::list<APinger*> GetPingers() const { return _pingers; }
         void AddIP(const std::string ip, const std::string why);

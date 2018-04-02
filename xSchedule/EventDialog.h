@@ -14,6 +14,7 @@
 #include <wx/choicebk.h>
 //*)
 
+class OutputManager;
 class EventBase;
 
 class EventDialog: public wxDialog
@@ -22,9 +23,9 @@ class EventDialog: public wxDialog
 
 	public:
 
-		EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		EventDialog(wxWindow* parent, OutputManager* outputManager, EventBase* eventBase, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EventDialog();
-        EventBase* GetEvent() { return _eventBase; }
+        EventBase* GetEvent() const { return _eventBase; }
         void ValidateWindow();
 
 		//(*Declarations(EventDialog)

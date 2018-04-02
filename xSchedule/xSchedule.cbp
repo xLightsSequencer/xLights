@@ -375,6 +375,8 @@
 		<Unit filename="EventMIDIPanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
+		<Unit filename="EventPingPanel.cpp" />
+		<Unit filename="EventPingPanel.h" />
 		<Unit filename="EventSerialPanel.cpp" />
 		<Unit filename="EventSerialPanel.h" />
 		<Unit filename="EventsDialog.cpp" />
@@ -563,6 +565,8 @@
 		<Unit filename="events/EventMIDI.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
+		<Unit filename="events/EventPing.cpp" />
+		<Unit filename="events/EventPing.h" />
 		<Unit filename="events/EventSerial.cpp" />
 		<Unit filename="events/EventSerial.h" />
 		<Unit filename="events/ListenerARTNet.cpp" />
@@ -627,6 +631,7 @@
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
+		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
@@ -740,6 +745,7 @@
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

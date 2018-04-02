@@ -21,8 +21,9 @@ BEGIN_EVENT_TABLE(EventsDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-EventsDialog::EventsDialog(wxWindow* parent, ScheduleOptions* scheduleOptions,wxWindowID id,const wxPoint& pos,const wxSize& size)
+EventsDialog::EventsDialog(wxWindow* parent, OutputManager* outputManager, ScheduleOptions* scheduleOptions, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _outputManager = outputManager;
     _scheduleOptions = scheduleOptions;
 
 	//(*Initialize(EventsDialog)
@@ -131,7 +132,7 @@ void EventsDialog::EditSelected()
 
     if (e != nullptr)
     {
-        EventDialog dlg(this, e);
+        EventDialog dlg(this, _outputManager, e);
         if (dlg.ShowModal() == wxID_OK)
         {
             // update should have occurred in the dialog
@@ -145,7 +146,7 @@ void EventsDialog::EditSelected()
 
 void EventsDialog::OnButton_AddClick(wxCommandEvent& event)
 {
-    EventDialog dlg(this, nullptr);
+    EventDialog dlg(this, _outputManager, nullptr);
     if (dlg.ShowModal() == wxID_OK)
     {
         // update should have occurred in the dialog

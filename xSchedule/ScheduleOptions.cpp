@@ -13,6 +13,7 @@
 #include "events/EventARTNet.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
+#include "events/EventPing.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
@@ -91,6 +92,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
                 else if (n2->GetName() == "EventLor")
                 {
                     _events.push_back(new EventLor(n2));
+                }
+                else if (n2->GetName() == "EventPing")
+                {
+                    _events.push_back(new EventPing(n2));
                 }
                 else if (n2->GetName() == "EventARTNet")
                 {

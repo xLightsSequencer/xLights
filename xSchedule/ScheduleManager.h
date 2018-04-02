@@ -120,6 +120,7 @@ class ScheduleManager
         void AdjustVolumeBy(int volume);
         int GetVolume() const;
         void AllOff();
+        ListenerManager* GetListenerManager() const { return _listenerManager; }
         int GetManualOutputToLights() const { return _manualOTL; }
         void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);

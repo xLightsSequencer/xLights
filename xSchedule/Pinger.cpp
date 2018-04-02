@@ -2,6 +2,7 @@
 #include <log4cpp/Category.hh>
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/outputs/IPOutput.h"
+#include "events/ListenerManager.h"
 
 class PingThread : public wxThread
 {
@@ -59,8 +60,9 @@ public:
     }
 };
 
-APinger::APinger(Output* output)
+APinger::APinger(ListenerManager* lm, Output* output)
 {
+    _listenerManager = lm;
     _output = output;
     _why = "Output";
     _ip = output->GetIP();
@@ -70,8 +72,9 @@ APinger::APinger(Output* output)
     _pingThread->Run();
 }
 
-APinger::APinger(const std::string ip, const std::string why)
+APinger::APinger(ListenerManager* lm, const std::string ip, const std::string why)
 {
+    _listenerManager = lm;
     _output = nullptr;
     _ip = ip;
     _why = why;
@@ -89,6 +92,23 @@ PINGSTATE APinger::GetPingResult()
 {
     std::unique_lock<std::mutex> mutLock(_lock);
     return _lastResult;
+}
+
+bool APinger::GetPingResult(PINGSTATE state)
+{
+    switch (state)
+    {
+    case PINGSTATE::PING_OK:
+    case PINGSTATE::PING_WEBOK:
+    case PINGSTATE::PING_OPEN:
+    case PINGSTATE::PING_OPENED:
+        return true;
+    case PINGSTATE::PING_UNKNOWN:
+    case PINGSTATE::PING_ALLFAILED:
+    case PINGSTATE::PING_UNAVAILABLE:
+    default:
+        return false;
+    }
 }
 
 std::string APinger::GetPingResultName(PINGSTATE state)
@@ -127,6 +147,7 @@ void APinger::SetPingResult(PINGSTATE result)
 {
     std::unique_lock<std::mutex> mutLock(_lock);
     _lastResult = result;
+    _listenerManager->ProcessPacket("Ping", GetPingResult(result), _ip);
 }
 
 std::string APinger::GetName() const
@@ -160,8 +181,9 @@ std::string GetID(Output* output)
     return id;
 }
 
-Pinger::Pinger(OutputManager* outputManager)
+Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 {
+    _listenerManager = listenerManager;
     std::list<std::string> created;
 
     auto outputs = outputManager->GetOutputs();
@@ -185,7 +207,7 @@ Pinger::Pinger(OutputManager* outputManager)
             if (!found)
             {
                 created.push_back(GetID(*it));
-                _pingers.push_back(new APinger(*it));
+                _pingers.push_back(new APinger(listenerManager, *it));
             }
         }
     }
@@ -218,7 +240,7 @@ void Pinger::AddIP(const std::string ip, const std::string why)
         if ((*it)->GetIP() == ip) return;
     }
 
-    _pingers.push_back(new APinger(ip, why));
+    _pingers.push_back(new APinger(_listenerManager, ip, why));
 }
 
 void Pinger::RemoveNonOutputIPs()

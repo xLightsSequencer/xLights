@@ -64,6 +64,7 @@ class EventBase
         virtual void Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& id, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager) {}
+        virtual void Process(bool success, const std::string& ip, ScheduleManager* scheduleManager) {}
         void SetCondition(std::string condition) { if (_condition != condition) { _condition = condition; _changeCount++; } }
         void SetThreshold(int threshold) { if (_threshold != threshold) { _threshold = threshold; _changeCount++; } }
         std::string GetCondition() const { return _condition; }

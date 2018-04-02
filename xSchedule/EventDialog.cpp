@@ -5,6 +5,7 @@
 #include "EventSerialPanel.h"
 #include "EventLorPanel.h"
 #include "EventARTNetPanel.h"
+#include "EventPingPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
 #include "EventMIDIPanel.h"
@@ -19,6 +20,7 @@
 #include "events/EventMIDI.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
+#include "events/EventPing.h"
 
 //(*InternalHeaders(EventDialog)
 #include <wx/intl.h>
@@ -49,7 +51,7 @@ BEGIN_EVENT_TABLE(EventDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,const wxPoint& pos,const wxSize& size)
+EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBase* eventBase, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _eventBase = eventBase;
 
@@ -145,6 +147,7 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         Choicebook_EventType->AddPage(new EventOSCPanel(Choicebook_EventType), "OSC", false);
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
+        Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", false);
         Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
         Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", false);
     }
@@ -174,6 +177,10 @@ EventDialog::EventDialog(wxWindow* parent, EventBase* eventBase, wxWindowID id,c
         else if (type == "ARTNet")
         {
             Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", true);
+        }
+        else if (type == "Ping")
+        {
+            Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", true);
         }
         else if (type == "LOR")
         {
@@ -240,6 +247,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             _eventBase = new EventMIDI();
         }
+        else if (type == "Ping")
+        {
+            _eventBase = new EventPing();
+        }
     }
 
     EventPanel* panel = (EventPanel*)Choicebook_EventType->GetPage(Choicebook_EventType->GetSelection());
@@ -303,6 +314,12 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P1->SetToolTip(EventLor::GetParmToolTip());
         TextCtrl_P2->SetToolTip(EventLor::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventLor::GetParmToolTip());
+    }
+    else if (type == "Ping")
+    {
+        TextCtrl_P1->SetToolTip(EventPing::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventPing::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventPing::GetParmToolTip());
     }
 }
 

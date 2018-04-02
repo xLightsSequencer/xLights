@@ -721,7 +721,7 @@ void xScheduleFrame::LoadSchedule()
     }
     __schedule = new ScheduleManager(this, _showDir);
 
-    _pinger = new Pinger(__schedule->GetOutputManager());
+    _pinger = new Pinger(__schedule->GetListenerManager(), __schedule->GetOutputManager());
     __schedule->SetPinger(_pinger);
 
     if (__schedule == nullptr) return;
@@ -2741,7 +2741,7 @@ void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
 
 void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
 {
-    EventsDialog dlg(this, __schedule->GetOptions());
+    EventsDialog dlg(this, __schedule->GetOutputManager(), __schedule->GetOptions());
 
     dlg.ShowModal();
 

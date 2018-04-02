@@ -597,6 +597,19 @@ void ListenerManager::ProcessPacket(const std::string& source, const std::string
     }
 }
 
+void ListenerManager::ProcessPacket(const std::string& source, bool result, const std::string& ip)
+{
+    if (_pause || _stop) return;
+
+    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    {
+        if ((*it)->GetType() == source)
+        {
+            (*it)->Process(result, ip, _scheduleManager);
+        }
+    }
+}
+
 void ListenerManager::Stop()
 {
     _stop = true;

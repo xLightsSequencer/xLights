@@ -190,6 +190,8 @@
     <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="SustainDialog.cpp" />
     <ClCompile Include="OutputProcessSustain.cpp" />
+    <ClCompile Include="EventPingPanel.cpp" />
+    <ClCompile Include="events\EventPing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -360,6 +362,8 @@
     <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="SustainDialog.h" />
+    <ClInclude Include="EventPingPanel.h" />
+    <ClInclude Include="events\EventPing.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
