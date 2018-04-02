@@ -199,7 +199,7 @@ public:
             wxImage image(dc);
             if (image.GetHeight() == size) {
                 (*data)[eff] = wxBitmap(image, -1, scale);
-#ifdef __WSOSX__
+#ifdef __WXOSX__
             } else if (!exact && image.GetHeight() == origSize*2) {
                 (*data)[eff] = wxBitmap(image, -1, 2.0);
             } else if (!exact && image.GetHeight() == origSize*3) {

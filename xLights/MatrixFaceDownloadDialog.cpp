@@ -502,7 +502,7 @@ void MatrixFaceDownloadDialog::AddFaces(wxTreeItemId v, std::string categoryId)
 
     for (auto it = faces.begin(); it != faces.end(); ++it)
     {
-		wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MFaceTreeItemData(*it));
+		TreeCtrl_Navigator->AppendItem(v, (*it)->_name, -1, -1, new MFaceTreeItemData(*it));
     }
 }
 

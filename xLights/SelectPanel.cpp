@@ -181,8 +181,6 @@ void SelectPanel::populateEffectsList()
         auto startendtime = GetStartAndEndTime();
 
         for (auto value : modelsSelected) {
-            int i = value;
-
             if (!modelText.empty())
                 modelText += "||";
             modelText += ListBox_Select_Found->GetString(value);

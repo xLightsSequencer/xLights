@@ -455,7 +455,6 @@ std::vector<Effect*> EffectLayer::GetEffectsByTypeAndTime(const std::string &typ
     {
         if (mEffects[i]->GetEffectName() == type)
         {
-            int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
             if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
             {
                 effs.push_back(mEffects[i]);
@@ -520,7 +519,6 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
     std::vector<Effect*> effs = std::vector<Effect*>();
     for (int i = 0; i < mEffects.size(); i++)
     {
-        int midpoint = mEffects[i]->GetStartTimeMS() + ((mEffects[i]->GetEndTimeMS() - mEffects[i]->GetStartTimeMS()) / 2);
         if (mEffects[i]->GetStartTimeMS() >= startTimeMS && mEffects[i]->GetStartTimeMS() < endTimeMS)
         {
             effs.push_back(mEffects[i]);

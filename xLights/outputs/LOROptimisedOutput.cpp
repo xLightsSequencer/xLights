@@ -251,7 +251,6 @@ void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, i
 
 void LOROptimisedOutput::AllOff()
 {
-    int channels_to_process = _channels;
     int bank = 0;
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)

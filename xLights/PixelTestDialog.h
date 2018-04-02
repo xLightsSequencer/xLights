@@ -94,7 +94,7 @@ public:
             long s = GetStart(*it);
             long e = GetEnd(*it);
 
-            if (start >= s && start <= e || end >= s && end <= e) return true;
+            if ((start >= s && start <= e) || (end >= s && end <= e)) return true;
 
             ++it;
         }
