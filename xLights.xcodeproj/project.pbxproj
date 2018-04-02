@@ -3145,9 +3145,7 @@
 						};
 					};
 					67E7086C17B51AB400A22034 = {
-						DevelopmentTeam = U8ZT9RPC6S;
 						LastSwiftMigration = 0810;
-						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 0;
@@ -3156,7 +3154,6 @@
 					};
 					67F23F201E32994400F8B985 = {
 						CreatedOnToolsVersion = 8.2.1;
-						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -3955,9 +3952,11 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = U8ZT9RPC6S;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/lib/osx";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
