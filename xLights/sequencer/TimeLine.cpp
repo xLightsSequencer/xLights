@@ -36,20 +36,50 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
     if (_rightClickPosition > GetTimeLength()) return;
 
     wxMenu mnuLayer;
-
     for (int i = 0; i < 10; ++i)
     {
-        mnuLayer.Append(i+1, wxString::Format("%i", i));
+        auto mnu = mnuLayer.Append(i+1, wxString::Format("%i", i));
+        mnu->SetCheckable(true);
+        if (_tagPositions[i] != -1)
+        {
+            mnu->Check();
+        }
     }
 
     mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnPopup, nullptr, this);
+
+    if (GetTagCount() > 0)
+    {
+        wxMenu *mnuDelete = new wxMenu();
+
+        for (int i = 0; i < 10; ++i)
+        {
+            if (_tagPositions[i] != -1)
+            {
+                mnuDelete->Append(100 + i + 1, wxString::Format("%i", i));
+            }
+        }
+
+        mnuLayer.AppendSubMenu(mnuDelete, "Delete");
+        mnuDelete->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnPopup, nullptr, this);
+    }
+
     PopupMenu(&mnuLayer);
 }
 
 void TimeLine::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId() - 1;
-    SetTagPosition(id, _rightClickPosition);
+
+    if (id >= 100)
+    {
+        id -= 100;
+        SetTagPosition(id, -1);
+    }
+    else
+    {
+        SetTagPosition(id, _rightClickPosition);
+    }
 }
 
 void TimeLine::SetTagPosition(int tag, int position)
@@ -74,6 +104,19 @@ void TimeLine::ClearTags()
         _tagPositions[i] = -1;
     }
     Refresh(false);
+}
+
+int TimeLine::GetTagCount()
+{
+    int count = 0;
+    for (int i = 0; i < 10; ++i)
+    {
+        if (_tagPositions[i] != -1)
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 void TimeLine::GoToTag(int tag)

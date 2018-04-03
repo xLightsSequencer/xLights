@@ -104,6 +104,7 @@ class TimeLine : public wxWindow
         int GetTagPosition(int tag);
         void SetTagPosition(int tag, int position);
         void ClearTags();
+        int GetTagCount();
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
