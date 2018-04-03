@@ -7,12 +7,12 @@
 class PingThread : public wxThread
 {
     APinger* _pinger;
-    bool _stop;
-    bool _running;
+    volatile bool _stop;
+    volatile bool _running;
 
 public:
 
-    PingThread(APinger* pinger)
+    PingThread(APinger* pinger) : wxThread(wxTHREAD_JOINABLE)
     {
         _pinger = pinger;
         _stop = false;
@@ -35,7 +35,7 @@ public:
         logger_base.debug("Asking pinging thread %s to stop", (const char *)_pinger->GetName().c_str());
         _stop = true;
     }
-
+    
     virtual void* Entry() override
     {
         _running = true;
@@ -166,6 +166,8 @@ void APinger::Stop()
     if (_pingThread != nullptr)
     {
         _pingThread->Stop();
+        _pingThread->Wait();
+        delete _pingThread;
         _pingThread = nullptr;
     }
     _output = nullptr;
