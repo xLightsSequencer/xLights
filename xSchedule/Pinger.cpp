@@ -98,16 +98,16 @@ bool APinger::GetPingResult(PINGSTATE state)
 {
     switch (state)
     {
+    case PINGSTATE::PING_ALLFAILED:
+        return false;
     case PINGSTATE::PING_OK:
     case PINGSTATE::PING_WEBOK:
     case PINGSTATE::PING_OPEN:
     case PINGSTATE::PING_OPENED:
-        return true;
     case PINGSTATE::PING_UNKNOWN:
-    case PINGSTATE::PING_ALLFAILED:
     case PINGSTATE::PING_UNAVAILABLE:
     default:
-        return false;
+        return true;
     }
 }
 
