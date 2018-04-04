@@ -794,7 +794,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
         {
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
-            res = valc.GetOutputValueAt(offset);
+            res = valc.GetOutputValueAtDivided(offset);
 
             if (needsUpgrade)
             {
@@ -833,7 +833,7 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
         valc.Deserialise(vc.ToStdString());
         if (valc.IsActive())
         {
-            res = valc.GetOutputValueAt(offset);
+            res = valc.GetOutputValueAtDivided(offset);
 
             if (needsUpgrade)
             {
