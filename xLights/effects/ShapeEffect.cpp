@@ -501,6 +501,14 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
     for (auto it = _shapes.begin(); it != _shapes.end(); ++it)
     {
+        // if location is not random then update it to whatever the current location is
+        // as it may be value curve controlled
+        if (!randomLocation)
+        {
+            (*it)->_centre = wxPoint(xc, yc);
+        }
+
+
         (*it)->_oset++;
         (*it)->_size += growthPerFrame;
 

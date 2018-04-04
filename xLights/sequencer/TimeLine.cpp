@@ -52,6 +52,11 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
     {
         wxMenu *mnuDelete = new wxMenu();
 
+        if (GetTagCount() > 1)
+        {
+            mnuDelete->Append(200, "All");
+        }
+
         for (int i = 0; i < 10; ++i)
         {
             if (_tagPositions[i] != -1)
@@ -71,7 +76,12 @@ void TimeLine::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId() - 1;
 
-    if (id >= 100)
+    if (id == 199)
+    {
+        ClearTags();
+        RaiseSequenceChange();
+    }
+    else if (id >= 100)
     {
         id -= 100;
         SetTagPosition(id, -1);
