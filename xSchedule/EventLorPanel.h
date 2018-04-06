@@ -4,11 +4,11 @@
 #include "EventPanel.h"
 
 //(*Headers(EventLorPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
 #include <wx/choice.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 class EventLorPanel: public EventPanel
@@ -22,18 +22,18 @@ class EventLorPanel: public EventPanel
         virtual void Load(EventBase* event) override;
 
 		//(*Declarations(EventLorPanel)
-		wxChoice* Choice_UnitId;
-		wxChoice* Choice_Test;
-		wxSpinCtrl* SpinCtrl_Channel;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxChoice* Choice_Speed;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxChoice* Choice_CommPort;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
+		wxChoice* Choice_Speed;
+		wxChoice* Choice_Test;
+		wxChoice* Choice_UnitId;
+		wxSpinCtrl* SpinCtrl_Channel;
 		wxSpinCtrl* SpinCtrl_Value;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		//*)
 
 	protected:

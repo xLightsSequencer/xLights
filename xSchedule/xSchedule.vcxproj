@@ -225,6 +225,7 @@
     <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="EventMIDIPanel.cpp" />
     <ClCompile Include="EventOSCPanel.cpp" />
+    <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
     <ClCompile Include="events\EventARTNet.cpp" />
@@ -235,6 +236,7 @@
     <ClCompile Include="events\EventLor.cpp" />
     <ClCompile Include="events\EventMIDI.cpp" />
     <ClCompile Include="events\EventOSC.cpp" />
+    <ClCompile Include="events\EventPing.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
     <ClCompile Include="events\ListenerBase.cpp" />
@@ -277,6 +279,8 @@
     <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerial.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerialPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColour.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColourPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemText.cpp" />
     <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
     <ClCompile Include="PlayList\PlayerWindow.cpp" />
@@ -403,6 +407,7 @@
     <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="EventMIDIPanel.h" />
     <ClInclude Include="EventOSCPanel.h" />
+    <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
     <ClInclude Include="events\EventARTNet.h" />
@@ -413,6 +418,7 @@
     <ClInclude Include="events\EventLor.h" />
     <ClInclude Include="events\EventMIDI.h" />
     <ClInclude Include="events\EventOSC.h" />
+    <ClInclude Include="events\EventPing.h" />
     <ClInclude Include="events\EventSerial.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
     <ClInclude Include="events\ListenerBase.h" />
@@ -456,6 +462,8 @@
     <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
     <ClInclude Include="PlayList\PlayListItemSerial.h" />
     <ClInclude Include="PlayList\PlayListItemSerialPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColour.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColourPanel.h" />
     <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
     <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayList.h" />

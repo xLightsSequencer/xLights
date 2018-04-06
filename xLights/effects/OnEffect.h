@@ -17,6 +17,7 @@ class OnEffect : public RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
         virtual void SetDefaultParameters(Model *cls) override;
         virtual std::string GetEffectString() override;
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
         virtual void RemoveDefaults(const std::string &version, Effect *effect) override;

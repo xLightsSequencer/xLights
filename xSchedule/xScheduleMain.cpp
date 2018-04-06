@@ -721,7 +721,7 @@ void xScheduleFrame::LoadSchedule()
     }
     __schedule = new ScheduleManager(this, _showDir);
 
-    _pinger = new Pinger(__schedule->GetOutputManager());
+    _pinger = new Pinger(__schedule->GetListenerManager(), __schedule->GetOutputManager());
     __schedule->SetPinger(_pinger);
 
     if (__schedule == nullptr) return;
@@ -819,15 +819,33 @@ xScheduleFrame::~xScheduleFrame()
     //(*Destroy(xScheduleFrame)
     //*)
 
-    delete _webServer;
-    _webServer = nullptr;
+    if (_webServer != nullptr)
+    {
+        delete _webServer;
+        _webServer = nullptr;
+    }
 
-    delete __schedule;
-    __schedule = nullptr;
+    if (__schedule != nullptr)
+    {
+        delete __schedule;
+        __schedule = nullptr;
+    }
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
 {
+    if (__schedule->IsDirty())
+    {
+        if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
+        {
+            __schedule->Save();
+        }
+        else
+        {
+            __schedule->ClearDirty();
+        }
+    }
+
     Close();
 }
 
@@ -2741,7 +2759,7 @@ void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
 
 void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
 {
-    EventsDialog dlg(this, __schedule->GetOptions());
+    EventsDialog dlg(this, __schedule->GetOutputManager(), __schedule->GetOptions());
 
     dlg.ShowModal();
 

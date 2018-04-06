@@ -22,6 +22,7 @@ class BarsEffect : public RenderableEffect
         virtual void SetDefaultParameters(Model *cls) override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

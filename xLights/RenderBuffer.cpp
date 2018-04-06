@@ -1021,7 +1021,6 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
     }
 }
 
-
 // 0,0 is lower left
 void RenderBuffer::GetPixel(int x, int y, xlColor &color)
 {
@@ -1029,7 +1028,12 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color)
     {
         color=pixels[y*BufferWi+x];
     }
+    else
+    {
+        color = xlBLACK;
+    }
 }
+
 const xlColor &RenderBuffer::GetPixel(int x, int y) {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {

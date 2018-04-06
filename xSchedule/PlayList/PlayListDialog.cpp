@@ -8,6 +8,7 @@
 #include "PlayListStepPanel.h"
 #include "PlayListItemVideo.h"
 #include "PlayListItemAllOff.h"
+#include "PlayListItemSetColour.h"
 #include "PlayListItemRunCommand.h"
 #include "PlayListItemOSC.h"
 #include "PlayListItemRunProcess.h"
@@ -70,6 +71,7 @@ const long PlayListDialog::ID_MNU_ADDTEST = wxNewId();
 const long PlayListDialog::ID_MNU_ADDRDS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPJLINK = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
+const long PlayListDialog::ID_MNU_ADDSETCOLOUR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
@@ -551,6 +553,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
     mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
     mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
+    mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
     mnu.Append(ID_MNU_ADDPJLINK, "Add PJLink");
     mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
     mnu.Append(ID_MNU_ADDRDS, "Add RDS");
@@ -620,6 +623,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDALLOFF)
     {
         PlayListItemAllOff* pli = new PlayListItemAllOff(_outputManager);
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDSETCOLOUR)
+    {
+        PlayListItemSetColour* pli = new PlayListItemSetColour(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDDELAY)

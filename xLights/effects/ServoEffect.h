@@ -15,6 +15,7 @@ class ServoEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void SetDefaultParameters(Model *cls) override;
+        virtual bool CanRenderPartialTimeInterval() const override { return true; }
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return false; }

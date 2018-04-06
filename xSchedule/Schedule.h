@@ -25,8 +25,11 @@ class Schedule
     int _priority;
     bool _active;
     bool _enabled;
+    int _nthDay;
+    int _nthDayOffset;
 
     bool IsOkDOW(const wxDateTime& date);
+    bool IsOkNthDay(const wxDateTime& date);
     bool CheckActiveAt(const wxDateTime& now);
 
     public:
@@ -47,6 +50,10 @@ class Schedule
         void SetLoops(int loops) { if (_loops != loops) { _loops = loops; _changeCount++; } }
         int GetLoops() const { return _loops; }
         void SetLoop(bool loop) { if (_loop != loop) { _loop = loop; _changeCount++; } }
+        int GetNthDay() const { return _nthDay; }
+        void SetNthDay(int nthDay) { if (_nthDay != nthDay) { _nthDay = nthDay; _changeCount++; } }
+        int GetNthDayOffset() const { return _nthDayOffset; }
+        void SetNthDayOffset(int nthDayOffset) { if (_nthDayOffset != nthDayOffset) { _nthDayOffset = nthDayOffset; _changeCount++; } }
         void SetEnabled(bool enabled) { if (_enabled != enabled) { _enabled = enabled; _changeCount++; } }
         bool GetLoop() const { return _loop; }
         bool GetEnabled() const { return _enabled; }
@@ -76,6 +83,7 @@ class Schedule
         std::string GetNextEndTime();
         void AddMinsToEndTime(int mins);
         wxDateTime GetNextTriggerDateTime();
+        static std::string GetNextNthDay(int nthDay, int nthDayOffset);
 };
 
 #endif

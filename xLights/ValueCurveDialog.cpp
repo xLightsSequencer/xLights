@@ -110,10 +110,11 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID 
     FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     FlexGridSizer6->AddGrowableRow(0);
-    FlexGridSizer5 = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizer5 = new wxFlexGridSizer(3, 1, 0, 0);
     FlexGridSizer5->AddGrowableRow(1);
     StaticText_TopValue = new wxStaticText(this, ID_STATICTEXT3, _("100"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT3"));
     FlexGridSizer5->Add(StaticText_TopValue, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer5->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BottomValue = new wxStaticText(this, ID_STATICTEXT4, _("0"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT4"));
     FlexGridSizer5->Add(StaticText_BottomValue, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);

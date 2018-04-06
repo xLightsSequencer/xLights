@@ -11,10 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
+   -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
+   -- bug (keith)  Some fixes to value curves with divisors
+   -- bug (keith)  Fixes to x/y shape position value curves
+   -- bug (keith)  Fix for some issues with scaled pictures in resizing buffers
+   -- enh (keith)  Add the ability to delete timeline tags
+   -- enh (keith)  Add the ability to schedule a playlist every n days
+   -- enh (keith)  Add a play list item that sets a range of pixels to a particular colour
+2018.9 Apr 1, 2018
    -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
    -- enh (keith)  Add xCapture for capturing E131/ArtNET data from the network and save it to a FSEQ or ESEQ file
    -- bug (scott)  Added 3D fade to Single Strand Effect for Rainbow Pallet
    -- enh (scott)  Added Search Box to Effect Preset Dialog
+   -- bug (dkulp)  Fix some window resizing issues
+   -- bug (gil)    Fix OpenGL not rendering correctly on some windows installs
+   -- bug (keith)  Fix fast start audio does not look like it saved
+   -- enh (keith)  Add xCapture tool for capturing e131/Artnet network data and save it to a FSEQ
+   -- enh (keith)  Optimise matrix face rendering
+   -- enh (cjd)    Move Linux to GTK 3
 2018.8 Mar 16, 2018
    -- bug (dkulp)  "Black" static text labels on Windows
    -- enh (dkulp)  Initial support for HiDPI displays on Windows

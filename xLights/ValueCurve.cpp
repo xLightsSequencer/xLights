@@ -1254,7 +1254,7 @@ float ValueCurve::GetOutputValueAtDivided(float offset)
 {
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
-    return _min + (_max - _min) * GetValueAt(offset) / _divisor;
+    return (_min + (_max - _min) * GetValueAt(offset)) / _divisor;
 }
 
 float ValueCurve::GetValueAt(float offset)

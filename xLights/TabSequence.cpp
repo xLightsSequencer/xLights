@@ -303,8 +303,6 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
 void xLightsFrame::LoadEffectsFile()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxStopWatch sw; // start a stopwatch timer
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?

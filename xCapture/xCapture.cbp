@@ -232,6 +232,12 @@
 		<Unit filename="xCaptureApp.h" />
 		<Unit filename="xCaptureMain.cpp" />
 		<Unit filename="xCaptureMain.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

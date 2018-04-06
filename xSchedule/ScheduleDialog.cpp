@@ -30,6 +30,11 @@ const long ScheduleDialog::ID_CHECKBOX5 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX4 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX3 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX2 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT16 = wxNewId();
+const long ScheduleDialog::ID_SPINCTRL3 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT17 = wxNewId();
+const long ScheduleDialog::ID_SPINCTRL4 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT18 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT12 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL2 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT11 = wxNewId();
@@ -54,9 +59,10 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     _schedule = schedule;
 
 	//(*Initialize(ScheduleDialog)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, _("Schedule Playlist"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -120,7 +126,21 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	CheckBox_Sun = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Sun->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_Sun, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	StaticText16 = new wxStaticText(this, ID_STATICTEXT16, _("Every nth day"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT16"));
+	FlexGridSizer1->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
+	SpinCtrl_NthDay = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 14, 1, _T("ID_SPINCTRL3"));
+	SpinCtrl_NthDay->SetValue(_T("1"));
+	FlexGridSizer4->Add(SpinCtrl_NthDay, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText17 = new wxStaticText(this, ID_STATICTEXT17, _("Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT17"));
+	FlexGridSizer4->Add(StaticText17, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_NthDayOffset = new wxSpinCtrl(this, ID_SPINCTRL4, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 13, 0, _T("ID_SPINCTRL4"));
+	SpinCtrl_NthDayOffset->SetValue(_T("0"));
+	FlexGridSizer4->Add(SpinCtrl_NthDayOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_NextDay = new wxStaticText(this, ID_STATICTEXT18, _("2000-01-01"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT18"));
+	FlexGridSizer4->Add(StaticText_NextDay, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("On Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer1->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_OnTime = new wxTextCtrl(this, ID_TEXTCTRL2, _("19:00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
@@ -169,6 +189,8 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnCheckBox_DOWClick);
 	Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnCheckBox_DOWClick);
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnCheckBox_DOWClick);
+	Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnSpinCtrl_NthDayChange);
+	Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnSpinCtrl_NthDayOffsetChange);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OnTimeText);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OffTimeText);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnButton_OkClick);
@@ -193,6 +215,8 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     CheckBox_Sat->SetValue(schedule->IsOnDOW("Sat"));
     CheckBox_Sun->SetValue(schedule->IsOnDOW("Sun"));
     CheckBox_Enabled->SetValue(schedule->GetEnabled());
+    SpinCtrl_NthDay->SetValue(schedule->GetNthDay());
+    SpinCtrl_NthDayOffset->SetValue(schedule->GetNthDayOffset());
 
     SetEscapeId(Button_Cancel->GetId());
 
@@ -204,6 +228,8 @@ ScheduleDialog::~ScheduleDialog()
 	//(*Destroy(ScheduleDialog)
 	//*)
     _schedule->SetName(TextCtrl_Name->GetValue().ToStdString());
+    _schedule->SetNthDay(SpinCtrl_NthDay->GetValue());
+    _schedule->SetNthDayOffset(SpinCtrl_NthDayOffset->GetValue());
     _schedule->SetStartTime(TextCtrl_OnTime->GetValue().ToStdString());
     _schedule->SetEndTime(TextCtrl_OffTime->GetValue().ToStdString());
     _schedule->SetPriority(SpinCtrl_Priority->GetValue());
@@ -242,6 +268,8 @@ void ScheduleDialog::ValidateWindow()
     {
         Button_Ok->Enable(false);
     }
+
+    StaticText_NextDay->SetLabel(Schedule::GetNextNthDay(SpinCtrl_NthDay->GetValue(), SpinCtrl_NthDayOffset->GetValue()));
 }
 
 
@@ -281,6 +309,21 @@ void ScheduleDialog::OnCheckBox_DOWClick(wxCommandEvent& event)
 }
 
 void ScheduleDialog::OnTextCtrl_NameText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void ScheduleDialog::OnSpinCtrl_NthDayChange(wxSpinEvent& event)
+{
+    SpinCtrl_NthDayOffset->SetRange(0, SpinCtrl_NthDay->GetValue() - 1);
+    if (SpinCtrl_NthDayOffset->GetValue() > SpinCtrl_NthDayOffset->GetMax())
+    {
+        SpinCtrl_NthDayOffset->SetValue(SpinCtrl_NthDayOffset->GetMax());
+    }
+    ValidateWindow();
+}
+
+void ScheduleDialog::OnSpinCtrl_NthDayOffsetChange(wxSpinEvent& event)
 {
     ValidateWindow();
 }

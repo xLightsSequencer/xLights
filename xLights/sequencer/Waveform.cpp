@@ -170,7 +170,7 @@ void Waveform::rightClick(wxMouseEvent& event)
         (mTimeline->GetSelectedPositionEndMS() != -1 ) )
     {
         wxMenu mnuWave;
-        wxMenuItem* menu_render = mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
+        mnuWave.Append(ID_WAVE_MNU_RENDER,"Render Selected Region");
         mnuWave.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&Waveform::OnGridPopup, nullptr, this);
         renderGL();
         PopupMenu(&mnuWave);

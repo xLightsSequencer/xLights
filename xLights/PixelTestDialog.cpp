@@ -385,7 +385,7 @@ public:
         _name = wxString::Format("[%ld-%ld]", _absoluteStartChannel, _absoluteEndChannel).ToStdString();
     }
     virtual bool IsClickable() const override { return _absoluteEndChannel > 0; }
-    virtual std::string GetType() const { return "ControllerRoot"; }
+    virtual std::string GetType() const override { return "ControllerRoot"; }
 };
 
 class NodesTestItem : public TestItemBase
@@ -399,7 +399,7 @@ public:
         _name = "Nodes";
     }
     virtual bool IsClickable() const override { return true; }
-    virtual std::string GetType() const { return "Nodes"; }
+    virtual std::string GetType() const override { return "Nodes"; }
 };
 
 class ControllerTestItem : public TestItemBase
@@ -674,7 +674,6 @@ public:
                 {
                     _models.push_back(new ModelTestItem((*it)->GetName(), modelManager, channelsAvailable));
 
-                    long msc = (*it)->GetFirstChannel() + 1;
                     long nodes = (*it)->GetNodeCount();
                     for (int i = 0; i < nodes; i++)
                     {
@@ -1385,8 +1384,8 @@ void PixelTestDialog::DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeList
 	TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
 	if (tc != nullptr)
 	{
-        if (tree == TreeListCtrl_ModelGroups && tc->GetType() == "Model" ||
-            tree == TreeListCtrl_Models && tc->GetType() == "SubModel")
+        if ((tree == TreeListCtrl_ModelGroups && tc->GetType() == "Model") ||
+            (tree == TreeListCtrl_Models && tc->GetType() == "SubModel"))
         {
             // dont delete these
         }

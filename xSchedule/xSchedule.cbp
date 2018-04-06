@@ -375,6 +375,8 @@
 		<Unit filename="EventMIDIPanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
+		<Unit filename="EventPingPanel.cpp" />
+		<Unit filename="EventPingPanel.h" />
 		<Unit filename="EventSerialPanel.cpp" />
 		<Unit filename="EventSerialPanel.h" />
 		<Unit filename="EventsDialog.cpp" />
@@ -424,6 +426,10 @@
 		<Unit filename="PlayList/PlayListItemAllOff.h" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.h" />
+		<Unit filename="PlayList/PlayListItemSetColour.cpp" />
+		<Unit filename="PlayList/PlayListItemSetColour.h" />
+		<Unit filename="PlayList/PlayListItemSetColourPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemSetColourPanel.h" />
 		<Unit filename="PlayList/PlayListItemAudio.cpp" />
 		<Unit filename="PlayList/PlayListItemAudio.h" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.cpp" />
@@ -563,6 +569,8 @@
 		<Unit filename="events/EventMIDI.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
+		<Unit filename="events/EventPing.cpp" />
+		<Unit filename="events/EventPing.h" />
 		<Unit filename="events/EventSerial.cpp" />
 		<Unit filename="events/EventSerial.h" />
 		<Unit filename="events/ListenerARTNet.cpp" />
@@ -589,8 +597,6 @@
 		<Unit filename="md5.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="Debug" />
-			<Option target="Release" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
 			<Option target="64bit_MinGW_Release" />
@@ -629,6 +635,7 @@
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
+		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
@@ -639,6 +646,7 @@
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
@@ -688,6 +696,7 @@
 					<wxDialog wxs="wxsmith/PlayListDialog.wxs" src="PlayList/PlayListDialog.cpp" hdr="PlayList/PlayListDialog.h" fwddecl="0" i18n="1" name="PlayListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PlayListSimpleDialog.wxs" src="PlayList/PlayListSimpleDialog.cpp" hdr="PlayList/PlayListSimpleDialog.h" fwddecl="0" i18n="1" name="PlayListSimpleDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemAllOffPanel.wxs" src="PlayList/PlayListItemAllOffPanel.cpp" hdr="PlayList/PlayListItemAllOffPanel.h" fwddecl="0" i18n="1" name="PlayListItemAllOffPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemSetColourPanel.wxs" src="PlayList/PlayListItemSetColourPanel.cpp" hdr="PlayList/PlayListItemSetColourPanel.h" fwddecl="0" i18n="1" name="PlayListItemSetColourPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemPJLinkPanel.wxs" src="PlayList/PlayListItemPJLinkPanel.cpp" hdr="PlayList/PlayListItemPJLinkPanel.h" fwddecl="0" i18n="1" name="PlayListItemPJLinkPanel" language="CPP" />
@@ -742,6 +751,7 @@
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

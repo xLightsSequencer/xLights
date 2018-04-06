@@ -27,6 +27,7 @@ class ListenerManager
 		void ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2);
 		void ProcessPacket(const std::string& source, const std::string& id);
         void ProcessPacket(const std::string& source, const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3);
+        void ProcessPacket(const std::string& source, bool result, const std::string& ip);
         void Stop();
         void StartListeners();
         void SetRemoteOSC();

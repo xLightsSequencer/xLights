@@ -8,18 +8,20 @@
 #include <wx/dialog.h>
 //*)
 
+class OutputManager;
 class ScheduleOptions;
 
 class EventsDialog: public wxDialog
 {
     ScheduleOptions* _scheduleOptions;
+    OutputManager* _outputManager;
     void ValidateWindow();
     void LoadList();
     void EditSelected();
 
 	public:
 
-		EventsDialog(wxWindow* parent, ScheduleOptions* scheduleOptions ,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		EventsDialog(wxWindow* parent, OutputManager* outputManager, ScheduleOptions* scheduleOptions ,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EventsDialog();
 
 		//(*Declarations(EventsDialog)
