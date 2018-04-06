@@ -349,13 +349,14 @@ ScheduleManager::~ScheduleManager()
     StopVirtualMatrices();
     ManageBackground();
     logger_base.info("Stopped outputting to lights.");
+
     if (IsDirty())
-	{
-		if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
-		{
-			Save();
-		}
-	}
+    {
+        if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
+        {
+            Save();
+        }
+    }
 
     while (_overlayData.size() > 0)
     {

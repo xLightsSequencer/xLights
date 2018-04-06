@@ -192,6 +192,8 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="events\EventPing.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColourPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColour.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -364,6 +366,8 @@
     <ClInclude Include="SustainDialog.h" />
     <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="events\EventPing.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColourPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColour.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

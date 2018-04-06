@@ -279,6 +279,8 @@
     <ClCompile Include="PlayList\PlayListItemScreenMapPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerial.cpp" />
     <ClCompile Include="PlayList\PlayListItemSerialPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColour.cpp" />
+    <ClCompile Include="PlayList\PlayListItemSetColourPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemText.cpp" />
     <ClCompile Include="PlayList\PlayListItemTextPanel.cpp" />
     <ClCompile Include="PlayList\PlayerWindow.cpp" />
@@ -460,6 +462,8 @@
     <ClInclude Include="PlayList\PlayListItemScreenMapPanel.h" />
     <ClInclude Include="PlayList\PlayListItemSerial.h" />
     <ClInclude Include="PlayList\PlayListItemSerialPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColour.h" />
+    <ClInclude Include="PlayList\PlayListItemSetColourPanel.h" />
     <ClInclude Include="PlayList\PlayListItemTextPanel.h" />
     <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\PlayList.h" />

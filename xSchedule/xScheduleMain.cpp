@@ -819,15 +819,33 @@ xScheduleFrame::~xScheduleFrame()
     //(*Destroy(xScheduleFrame)
     //*)
 
-    delete _webServer;
-    _webServer = nullptr;
+    if (_webServer != nullptr)
+    {
+        delete _webServer;
+        _webServer = nullptr;
+    }
 
-    delete __schedule;
-    __schedule = nullptr;
+    if (__schedule != nullptr)
+    {
+        delete __schedule;
+        __schedule = nullptr;
+    }
 }
 
 void xScheduleFrame::OnQuit(wxCommandEvent& event)
 {
+    if (__schedule->IsDirty())
+    {
+        if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
+        {
+            __schedule->Save();
+        }
+        else
+        {
+            __schedule->ClearDirty();
+        }
+    }
+
     Close();
 }
 

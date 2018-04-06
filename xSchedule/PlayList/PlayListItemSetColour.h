@@ -2,6 +2,7 @@
 #define PLAYLISTITEMSETCOLOUR_H
 
 #include "PlayListItem.h"
+#include "../Blend.h"
 
 class wxXmlNode;
 class wxWindow;

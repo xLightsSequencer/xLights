@@ -30,6 +30,8 @@ void Schedule::Load(wxXmlNode* node)
     _enabled = node->GetAttribute("Enabled", "FALSE") == "TRUE";
     _loops = wxAtoi(node->GetAttribute("Loops", "0"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
+    _nthDay = wxAtoi(node->GetAttribute("NthDay", "1"));
+    _nthDayOffset = wxAtoi(node->GetAttribute("NthDayOffset", "0"));
 }
 
 wxXmlNode* Schedule::Save()
@@ -43,6 +45,8 @@ wxXmlNode* Schedule::Save()
     node->AddAttribute("StartTime", _startTime.FormatTime());
     node->AddAttribute("EndTime", _endTime.FormatTime());
     node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
+    node->AddAttribute("NthDay", wxString::Format(wxT("%i"), _nthDay));
+    node->AddAttribute("NthDayOffset", wxString::Format(wxT("%i"), _nthDayOffset));
     if (_loop)
     {
         node->AddAttribute("Loop", "TRUE");
@@ -82,13 +86,13 @@ Schedule::Schedule()
     _everyYear = false;
     _priority = 5;
     _dow = "MonTueWedThuFriSatSun";
+    _nthDay = 1;
+    _nthDayOffset = 0;
 }
 
 std::string Schedule::GetJSON(const std::string& reference)
 {
-    std::string res;
-
-    res = "{\"name\":\"" + _name +
+    std::string res = "{\"name\":\"" + _name +
         "\",\"id\":\"" + wxString::Format(wxT("%i"), _id).ToStdString() +
         "\",\"enabled\":\"" + std::string(_enabled ? "TRUE" : "FALSE") +
         "\",\"active\":\"" + std::string(CheckActive() ? "TRUE" : "FALSE") +
@@ -133,6 +137,8 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _everyYear = schedule._everyYear;
     _priority = schedule._priority;
     _dow = schedule._dow;
+    _nthDay = schedule._nthDay;
+    _nthDayOffset = schedule._nthDayOffset;
 }
 
 Schedule* Schedule::Configure(wxWindow* parent)
@@ -231,6 +237,11 @@ bool Schedule::CheckActive()
 
 //#define LOGCALCNEXTTRIGGERTIME
 
+bool Schedule::IsOkNthDay(const wxDateTime& date)
+{
+    return ((date.GetDayOfYear() % _nthDay) - _nthDayOffset == 0);
+}
+
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
@@ -241,7 +252,7 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
-    if (!_enabled || !IsOkDOW(now))
+    if (!_enabled || !IsOkDOW(now) || !IsOkNthDay(now))
     {
 #ifdef LOGCALCNEXTTRIGGERTIME
         logger_base.debug("       Disabled or wrong day of week.");
@@ -392,6 +403,23 @@ wxDateTime Schedule::GetNextTriggerDateTime()
 
     // I give up
     return wxDateTime((time_t)0);
+}
+
+std::string Schedule::GetNextNthDay(int nthDay, int nthDayOffset)
+{
+    wxDateTime now = wxDateTime::Now();
+    wxTimeSpan day(24);
+
+    for (int i = 0; i < 15; i++)
+    {
+        if ((now.GetDayOfYear() % nthDay) - nthDayOffset == 0)
+        {
+            return now.FormatISODate().ToStdString();
+        }
+        now.Add(day);
+    }
+
+    return "Unknown";
 }
 
 std::string Schedule::GetNextTriggerTime()

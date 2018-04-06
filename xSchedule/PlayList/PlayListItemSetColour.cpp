@@ -11,9 +11,9 @@ PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager, wxXml
     _nodes = 0;
     _startChannel = "1";
     _duration = 50;
-    _value = 0;
+    _value = *wxBLACK;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
-    PlayListItemAllOff::Load(node);
+    PlayListItemSetColour::Load(node);
 }
 
 void PlayListItemSetColour::Load(wxXmlNode* node) 
@@ -33,7 +33,7 @@ PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : Pla
     _nodes = 0;
     _startChannel = "1";
     _duration = 50;
-    _value = 0;
+    _value = *wxBLACK;
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
     SetName("Set Colour");
 }
@@ -67,7 +67,7 @@ wxXmlNode* PlayListItemSetColour::Save()
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLISetColour");
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
-    node->AddAttribute("Value", _value.ToString()));
+    node->AddAttribute("Value", _value.GetAsString());
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_applyMethod));
     node->AddAttribute("StartChannel", _startChannel);
     node->AddAttribute("Nodes", wxString::Format(wxT("%ld"), (long)_nodes));
@@ -106,15 +106,15 @@ void PlayListItemSetColour::Frame(wxByte* buffer, size_t size, size_t ms, size_t
             if (toset > 0)
             {
                 wxByte data[3];
-                data[0] = _value.red;
-                data[1] = _value.green;
-                data[2] = _value.blue;
+                data[0] = _value.Red();
+                data[1] = _value.Green();
+                data[2] = _value.Blue();
                 wxByte* values = (wxByte*)malloc(toset * 3);
                 if (values != nullptr)
                 {
                     for (int i = 0; i < toset; i++)
                     {
-                      memset(values + i * 3, data, 3);
+                        memcpy(values + i * 3, data, sizeof(data));
                     }
                     Blend(buffer, size, values, toset * 3, _applyMethod, sc - 1);
                     free(values);

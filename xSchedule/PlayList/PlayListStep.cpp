@@ -14,6 +14,7 @@
 #include "PlayListItemRDS.h"
 #include "PlayListItemPJLink.h"
 #include "PlayListItemAllOff.h"
+#include "PlayListItemSetColour.h"
 #include "PlayListItemDelay.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
@@ -176,6 +177,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIAllSet")
         {
             _items.push_back(new PlayListItemAllOff(outputManager, n));
+        }
+        else if (n->GetName() == "PLISetColour")
+        {
+            _items.push_back(new PlayListItemSetColour(outputManager, n));
         }
         else if (n->GetName() == "PLIDelay")
         {
