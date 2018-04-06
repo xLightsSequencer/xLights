@@ -585,7 +585,6 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     thelayer->buffer.GetPixel(x, y, color);
                 }
 
-                
                 float ha;
                 if (thelayer->HueAdjustValueCurve.IsActive())
                 {
@@ -1560,6 +1559,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
             it2.bufY -= y1;
         }
     }
+
     bufferWi = int(std::ceil(x2 - x1));
     bufferHi = int(std::ceil(y2 - y1));
     if (bufferWi < 1) bufferWi = 1;
@@ -1740,8 +1740,8 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         //get all the data
         xlColor color;
         int nc = 0;
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); it++) {
-            for (auto node = (*it)->Nodes.begin(); node != (*it)->Nodes.end(); node++, nc++) {
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it) {
+            for (auto node = (*it)->Nodes.begin(); node != (*it)->Nodes.end(); ++node, nc++) {
                 (*it)->GetPixel((*node)->Coords[0].bufX, (*node)->Coords[0].bufY, color);
                 for (auto coord = layers[layer]->buffer.Nodes[nc]->Coords.begin(); coord != layers[layer]->buffer.Nodes[nc]->Coords.end(); coord++) {
                     layers[layer]->buffer.SetPixel(coord->bufX, coord->bufY, color);
