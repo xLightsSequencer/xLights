@@ -315,7 +315,7 @@ void ScheduleDialog::OnTextCtrl_NameText(wxCommandEvent& event)
 
 void ScheduleDialog::OnSpinCtrl_NthDayChange(wxSpinEvent& event)
 {
-    SpinCtrl_NthDayOffset->SetMax(SpinCtrl_NthDay->GetValue() - 1);
+    SpinCtrl_NthDayOffset->SetRange(0, SpinCtrl_NthDay->GetValue() - 1);
     if (SpinCtrl_NthDayOffset->GetValue() > SpinCtrl_NthDayOffset->GetMax())
     {
         SpinCtrl_NthDayOffset->SetValue(SpinCtrl_NthDayOffset->GetMax());
