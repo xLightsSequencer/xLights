@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
    -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
    -- bug (keith)  Some fixes to value curves with divisors
    -- bug (keith)  Fixes to x/y shape position value curves

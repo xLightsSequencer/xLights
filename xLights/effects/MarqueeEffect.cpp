@@ -51,30 +51,23 @@ void MarqueeEffect::SetDefaultParameters(Model *cls) {
 
 static void UpdateMarqueeColor(int &position, int &band_color, int colorcnt, int color_size, int shift)
 {
-    if( shift == 0 ) return;
-    if( shift > 0 )
-    {
+    if (shift == 0) return;
+    if (shift > 0) {
         int index = 0;
-        while( index < shift )
-        {
+        while (index < shift) {
             position++;
-            if( position >= color_size )
-            {
+            if (position >= color_size) {
                 band_color++;
                 band_color %= colorcnt;
                 position = 0;
             }
             index++;
         }
-    }
-    else
-    {
+    } else {
         int index = 0;
-        while( index > shift )
-        {
+        while (index > shift) {
             position--;
-            if( position < 0 )
-            {
+            if (position < 0) {
                 band_color++;
                 band_color %= colorcnt;
                 position = color_size-1;
@@ -113,7 +106,7 @@ void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     int corner_x2 = (int)((double)buffer.BufferWi * (double)x_scale / 100.0) - 1;
     int corner_y2 = (int)((double)buffer.BufferHt * (double)y_scale / 100.0) - 1;
     int sign = 1;
-    if( reverse_dir ) {
+    if (reverse_dir) {
         sign = -1;
     }
 
@@ -124,54 +117,44 @@ void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         yoffset_adj = (yoffset_adj*buffer.BufferHt)/100.0; // yc_adj is from -100 to 100
     }
 
-    for( int thick = 0; thick < Thickness; thick++ )
-    {
+    for (int thick = 0; thick < Thickness; thick++) {
         int current_color = ((x + mStart) % repeat_size) / color_size;
         int current_pos = (((x + mStart) % repeat_size) % color_size);
-        if( sign < 0 )
-        {
+        if (sign < 0) {
             current_color = colorcnt - current_color - 1;
         }
        // wxLogDebug(wxString::Format("Color: %d,  Pos: %d", current_color, current_pos));
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*(stagger+1) * sign);
-        for( int x_pos = corner_x1; x_pos <= corner_x2; x_pos++ )
-        {
-            color = xlBLACK;
-            if( current_pos < BandSize )
-            {
+        for (int x_pos = corner_x1; x_pos <= corner_x2; x_pos++) {
+            color = xlCLEAR;
+            if (current_pos < BandSize) {
                 buffer.palette.GetColor(current_color, color);
             }
             buffer.ProcessPixel(x_pos + xoffset_adj, corner_y2 + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int y_pos = corner_y2; y_pos >=corner_y1 ; y_pos-- )
-        {
-            color = xlBLACK;
-            if( current_pos < BandSize )
-            {
+        for (int y_pos = corner_y2; y_pos >=corner_y1 ; y_pos--) {
+            color = xlCLEAR;
+            if (current_pos < BandSize) {
                 buffer.palette.GetColor(current_color, color);
             }
             buffer.ProcessPixel(corner_x2 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int x_pos = corner_x2; x_pos >= corner_x1; x_pos-- )
-        {
-            color = xlBLACK;
-            if( current_pos < BandSize )
-            {
+        for (int x_pos = corner_x2; x_pos >= corner_x1; x_pos--) {
+            color = xlCLEAR;
+            if (current_pos < BandSize) {
                 buffer.palette.GetColor(current_color, color);
             }
             buffer.ProcessPixel(x_pos + xoffset_adj, corner_y1 + yoffset_adj, color, wrap_x);
             UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, 1*sign);
         }
         UpdateMarqueeColor(current_pos, current_color, colorcnt, color_size, thick*2*sign);
-        for( int y_pos = corner_y1; y_pos <= corner_y2-1; y_pos++ )
-        {
-            color = xlBLACK;
-            if( current_pos < BandSize )
-            {
+        for (int y_pos = corner_y1; y_pos <= corner_y2-1; y_pos++) {
+            color = xlCLEAR;
+            if (current_pos < BandSize) {
                 buffer.palette.GetColor(current_color, color);
             }
             buffer.ProcessPixel(corner_x1 + xoffset_adj, y_pos + yoffset_adj, color, wrap_x);

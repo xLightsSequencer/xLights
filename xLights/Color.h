@@ -229,6 +229,7 @@ static const xlColor xlLIGHT_GREY(211, 211, 211);
 static const xlColor xlDARK_GREY(96, 96, 96);
 static const xlColor xlCYAN(0, 255, 255);
 static const xlColor xlMAGENTA(255, 0, 255);
+static const xlColor xlCLEAR(0, 0, 0, 0);
 
 typedef std::vector<xlColor> xlColorVector;
 typedef std::vector<ColorCurve> xlColorCurveVector;
