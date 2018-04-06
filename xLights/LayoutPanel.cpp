@@ -6,6 +6,7 @@
 #include <wx/choice.h>
 #include <wx/font.h>
 #include <wx/intl.h>
+#include <wx/scrolbar.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
@@ -66,6 +67,8 @@ const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
 const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
+const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 //*)
@@ -217,6 +220,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* LayoutGLSizer;
 	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* PreviewGLSizer;
 
@@ -266,6 +270,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer1->Add(ChoiceLayoutGroups, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
+	LayoutGLSizer = new wxFlexGridSizer(0, 2, 0, 0);
+	LayoutGLSizer->AddGrowableCol(0);
+	LayoutGLSizer->AddGrowableRow(0);
+	ScrollBarLayoutVert = new wxScrollBar(PreviewGLPanel, ID_SCROLLBAR1, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR1"));
+	ScrollBarLayoutVert->SetScrollbar(0, 1, 10, 1);
+	LayoutGLSizer->Add(ScrollBarLayoutVert, 1, wxALL|wxEXPAND, 0);
+	ScrollBarLayoutHorz = new wxScrollBar(PreviewGLPanel, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
+	ScrollBarLayoutHorz->SetScrollbar(0, 1, 10, 1);
+	LayoutGLSizer->Add(ScrollBarLayoutHorz, 1, wxALL|wxEXPAND, 0);
+	LayoutGLSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	PreviewGLSizer->Add(LayoutGLSizer, 1, wxALL|wxEXPAND, 0);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -284,7 +299,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, xlights->PreviewModels, xlights->LayoutGroups, true);
-    PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
+    LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
     FlexGridSizerPreview->Fit(this);
@@ -322,11 +337,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
-    
+
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
     propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
@@ -395,7 +410,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashPosition(msp);
     }
 
-    
+
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
     Reset();
@@ -553,7 +568,7 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
                   wxIMAGE_QUALITY_HIGH);
     wxBitmap bitmap(image);
 #endif
-    
+
     NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
