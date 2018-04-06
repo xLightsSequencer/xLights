@@ -44,6 +44,10 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListStepPanel::OnTextCtrl_PlayListStepNameText);
 	//*)
 
+    wxTextValidator tv(wxFILTER_EXCLUDE_CHAR_LIST);
+    tv.SetCharExcludes("\"'`");
+    TextCtrl_PlayListStepName->SetValidator(tv);
+
     TextCtrl_PlayListStepName->SetValue(step->GetRawName());
     CheckBox_ExcludeFromRandom->SetValue(step->GetExcludeFromRandom());
 }

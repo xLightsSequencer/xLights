@@ -49,6 +49,10 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListPanel::OnTextCtrl_PlayListNameText);
 	//*)
 
+    wxTextValidator tv(wxFILTER_EXCLUDE_CHAR_LIST);
+    tv.SetCharExcludes("\"'`");
+    TextCtrl_PlayListName->SetValidator(tv);
+
     TextCtrl_PlayListName->SetValue(playlist->GetNameNoTime());
     CheckBox_FirstOnce->SetValue(playlist->GetFirstOnce());
     CheckBox_LastStepOnce->SetValue(playlist->GetLastOnce());
