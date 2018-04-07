@@ -1027,6 +1027,7 @@ private:
     void UploadSanDevicesInput();
     void UploadSanDevicesOutput();
     void UploadJ1SYSOutput();
+    void UploadESPixelStickOutput();
     void UploadPixlite16Output();
 	void PingController(Output* e);
 
@@ -1436,10 +1437,11 @@ private:
     static const long ID_NETWORK_UCOFPPB;
     static const long ID_NETWORK_UCIFALCON;
     static const long ID_NETWORK_UCOFALCON;
-    static const long ID_NETWORK_UCISanDevices;
-    static const long ID_NETWORK_UCOSanDevices;
+    static const long ID_NETWORK_UCISANDEVICES;
+    static const long ID_NETWORK_UCOSANDEVICES;
     static const long ID_NETWORK_UCOJ1SYS;
-    static const long ID_NETWORK_UCOPixlite16;
+    static const long ID_NETWORK_UCOESPIXELSTICK;
+    static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_PINGCONTROLLER;
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)

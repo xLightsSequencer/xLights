@@ -281,8 +281,6 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
             continue;
         }
 
-        std::string sendmessage;
-
         bool portdone[100];
         memset(&portdone, 0x00, sizeof(portdone)); // all false
 

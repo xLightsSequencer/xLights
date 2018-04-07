@@ -581,6 +581,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ESPixelStick.cpp" />
+		<Unit filename="controllers/ESPixelStick.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -595,6 +597,8 @@
 		<Unit filename="controllers/SanDevices.h" />
 		<Unit filename="controllers/SimpleFTP.cpp" />
 		<Unit filename="controllers/SimpleFTP.h" />
+		<Unit filename="controllers/WebSocketClient.cpp" />
+		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
@@ -920,12 +924,6 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="64bit MinGW_Debug" />
-			<Option target="64bit MinGW_Release" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />

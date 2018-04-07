@@ -329,6 +329,8 @@
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="SequenceVideoPanel.cpp" />
     <ClCompile Include="SequenceVideoPreview.cpp" />
+    <ClCompile Include="controllers\ESPixelStick.cpp" />
+    <ClCompile Include="controllers\WebSocketClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -655,6 +657,8 @@
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="SequenceVideoPanel.h" />
     <ClInclude Include="SequenceVideoPreview.h" />
+    <ClInclude Include="controllers\ESPixelStick.h" />
+    <ClInclude Include="controllers\WebSocketClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

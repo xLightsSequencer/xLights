@@ -168,6 +168,7 @@
     <ClCompile Include="CachedFileDownloader.cpp" />
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
+    <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
     <ClCompile Include="controllers\FPPConnectDialog.cpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
     <ClCompile Include="controllers\SimpleFTP.cpp" />
+    <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
@@ -498,6 +500,7 @@
     <ClInclude Include="CachedFileDownloader.h" />
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
+    <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
     <ClInclude Include="controllers\FPPConnectDialog.h" />
@@ -505,6 +508,7 @@
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
+    <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />

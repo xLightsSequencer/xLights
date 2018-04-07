@@ -23,6 +23,7 @@
 #include "controllers/Pixlite16.h"
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
+#include "controllers/ESPixelStick.h"
 
 // dialogs
 #include "outputs/Output.h"
@@ -63,10 +64,11 @@ const long xLightsFrame::ID_NETWORK_UCIFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIFALCON = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCISanDevices = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCOSanDevices = wxNewId();
-const long xLightsFrame::ID_NETWORK_UCOPixlite16 = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCISANDEVICES = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOSANDEVICES = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOPIXLITE16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
@@ -1357,7 +1359,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISanDevices, "SanDevices");
+    wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISANDEVICES, "SanDevices");
     if (!AllSelectedSupportIP())
     {
         beUCISanDevices->Enable(false);
@@ -1472,7 +1474,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPixlite16, "Pixlite");
+    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "Pixlite");
     if (!AllSelectedSupportIP())
     {
         beUCOPixlite16->Enable(false);
@@ -1517,7 +1519,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSanDevices, "SanDevices");
+    wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSANDEVICES, "SanDevices");
     if (!AllSelectedSupportIP())
     {
         beUCOSanDevices->Enable(false);
@@ -1597,7 +1599,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             {
                 Output* o = _outputManager.GetOutput(item);
 
-                if (ip != o->GetIP())
+                if (ip != o->GetIP() && o->GetIP() != "MULTICAST")
                 {
                     if (ip == "")
                     {
@@ -1626,6 +1628,62 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             }
             beUCOJ1SYS->Enable(valid);
+        }
+    }
+
+    wxMenuItem* beUCOESPixelStick = mnuUCOutput->Append(ID_NETWORK_UCOESPIXELSTICK, "ES Pixel Stick");
+    if (!AllSelectedSupportIP())
+    {
+        beUCOESPixelStick->Enable(false);
+    }
+    else
+    {
+        if (selcnt == 1)
+        {
+            beUCOESPixelStick->Enable(true);
+        }
+        else
+        {
+            bool valid = true;
+            // check all are multicast or one ip address
+            wxString ip;
+            wxString type;
+
+            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+            while (item != -1)
+            {
+                Output* o = _outputManager.GetOutput(item);
+
+                if (ip != o->GetIP() && o->GetIP() != "MULTICAST")
+                {
+                    if (ip == "")
+                    {
+                        ip = o->GetIP();
+                    }
+                    else
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (type == "")
+                {
+                    type = o->GetType();
+                }
+                else
+                {
+                    if (type != o->GetType())
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+            }
+            beUCOESPixelStick->Enable(valid);
         }
     }
 
@@ -1768,11 +1826,11 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     {
         UploadFalconOutput();
     }
-    else if (id == ID_NETWORK_UCISanDevices)
+    else if (id == ID_NETWORK_UCISANDEVICES)
     {
         UploadSanDevicesInput();
     }
-    else if (id == ID_NETWORK_UCOSanDevices)
+    else if (id == ID_NETWORK_UCOSANDEVICES)
     {
         UploadSanDevicesOutput();
     }
@@ -1780,7 +1838,11 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     {
         UploadJ1SYSOutput();
     }
-    else if (id == ID_NETWORK_UCOPixlite16)
+    else if (id == ID_NETWORK_UCOESPIXELSTICK)
+    {
+        UploadESPixelStickOutput();
+    }
+    else if (id == ID_NETWORK_UCOPIXLITE16)
     {
         UploadPixlite16Output();
     }
@@ -2209,6 +2271,42 @@ void xLightsFrame::UploadJ1SYSOutput()
             else
             {
                 SetStatusText("J1SYS Upload Failed.");
+            }
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void xLightsFrame::UploadESPixelStickOutput()
+{
+    SetStatusText("");
+    if (wxMessageBox("This will upload the output controller configuration for a ES Pixel Stick controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        std::list<int> selected = GetSelectedOutputs(ip);
+
+        if (ip == "")
+        {
+            wxTextEntryDialog dlg(this, "ES Pixel Stick IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK)
+            {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+
+        ESPixelStick esPixelStick(ip.ToStdString());
+        if (esPixelStick.IsConnected())
+        {
+            if (esPixelStick.SetOutputs(&AllModels, &_outputManager, selected, this))
+            {
+                SetStatusText("ES Pixel Stick Upload Complete.");
+            }
+            else
+            {
+                SetStatusText("ES Pixel Stick Upload Failed.");
             }
         }
         SetCursor(wxCURSOR_ARROW);

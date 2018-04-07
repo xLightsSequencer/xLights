@@ -7,7 +7,7 @@
 
 class SimpleFTP
 {
-    wxFTP ftp;
+    wxFTP _ftp;
 
 public:
     SimpleFTP();
