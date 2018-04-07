@@ -19,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add the ability to delete timeline tags
    -- enh (keith)  Add the ability to schedule a playlist every n days
    -- enh (keith)  Add a play list item that sets a range of pixels to a particular colour
+   -- enh (keith)  Add controller upload support for ECG-P12S firmware 3.3
 2018.9 Apr 1, 2018
    -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
    -- enh (keith)  Add xCapture for capturing E131/ArtNET data from the network and save it to a FSEQ or ESEQ file
