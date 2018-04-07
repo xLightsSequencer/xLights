@@ -19,7 +19,7 @@ J1Sys::J1Sys(const std::string& ip)
     _outputs = 0;
 
     _http.SetMethod("GET");
-	_connected = _http.Connect(_ip);
+    _connected = _http.Connect(_ip);
 
     if (_connected)
     {
@@ -271,6 +271,16 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
     // for each protocol
     for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
     {
+        if (DecodeSerialPortProtocol(*protocol) >= 0 && GetMaxSerialOutputs() == 0)
+        {
+            logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s not supported by this controller.",
+                (const char *)_ip.c_str(), (const char *)protocol->c_str());
+            wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+            success = false;
+
+            continue;
+        }
+
         std::string sendmessage;
 
         bool portdone[100];
@@ -329,9 +339,9 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     {
                         for (int j = 0; j < numstrings; j++)
                         {
-                            if (portdone[i+j])
+                            if (portdone[i + j])
                             {
-                                logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
+                                logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j);
                                 wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
                                 success = false;
                             }
@@ -342,16 +352,31 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 if (_outputs == 2) string *= 4;
                                 int s = portstart + (i + j - 1) * channelsperstring;
                                 int e = s + channelsperstring - 1;
+                                long sc = 1;
+                                outputManager->GetOutput(first->GetFirstChannel() + 1, sc);
+
+                                if (_outputs == 12 && usedoutputs.size() > 1)
+                                {
+                                    // P12 only supports 1 universe per output
+                                    logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 1.",
+                                        (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
+                                    wxMessageBox(wxString::Format("Attempt to upload port %d more than 1 universe %d.", i, (int)usedoutputs.size()));
+                                    success = false;
+                                }
+                                else if (_outputs == 2 && usedoutputs.size() > 4)
+                                {
+                                    // P2 only supports 4 universes per output
+                                    logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 4.",
+                                        (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
+                                    wxMessageBox(wxString::Format("Attempt to upload port %d more than 4 universes %d.", i, (int)usedoutputs.size()));
+                                    success = false;
+                                }
+
                                 for (auto it = usedoutputs.begin(); it != usedoutputs.end(); ++it)
                                 {
                                     if ((*it)->GetStartChannel() <= e && (*it)->GetEndChannel() >= s)
                                     {
-                                        long sc = 1;
-                                        if (_outputs == 12)
-                                        {
-                                            outputManager->GetOutput(first->GetFirstChannel()+1, sc);
-                                        }
-                                        int pixels = (*it)->GetChannels() / 3;
+                                        int pixels = ((*it)->GetChannels() - sc + 1) / 3;
                                         if (_outputs == 12)
                                         {
                                             pixels = (last->GetLastChannel() - first->GetFirstChannel() + 1) / 3;
@@ -368,6 +393,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                                 requestSerial += "&";
                                             requestSerial += BuildSerialPort(string++, DecodeSerialPortProtocol(*protocol), DecodeProtocolSpeed(*protocol), (*it)->GetUniverse(), parent);
                                         }
+                                        sc = 1;
                                     }
                                 }
                             }
@@ -377,7 +403,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     {
                         if (portdone[i])
                         {
-                            logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
+                            logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
                             wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
                             success = false;
                         }
@@ -386,14 +412,29 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                             portdone[i] = true;
                             int string = first->GetPort() - 1;
                             if (_outputs == 2) string *= 4;
+                            long sc = 1;
+                            outputManager->GetOutput(first->GetFirstChannel() + 1, sc);
+
+                            if (_outputs == 12 && usedoutputs.size() > 1)
+                            {
+                                // P12 only supports 1 universe per output
+                                logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 1.",
+                                    (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
+                                wxMessageBox(wxString::Format("Attempt to upload port %d more than 1 universe %d.", i, (int)usedoutputs.size()));
+                                success = false;
+                            }
+                            else if (_outputs == 2 && usedoutputs.size() > 4)
+                            {
+                                // P2 only supports 4 universes per output
+                                logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 4.",
+                                    (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
+                                wxMessageBox(wxString::Format("Attempt to upload port %d more than 4 universes %d.", i, (int)usedoutputs.size()));
+                                success = false;
+                            }
+
                             for (auto it = usedoutputs.begin(); it != usedoutputs.end(); ++it)
                             {
-                                long sc = 1;
-                                if (_outputs == 12)
-                                {
-                                    outputManager->GetOutput(first->GetFirstChannel()+1, sc);
-                                }
-                                int pixels = (*it)->GetChannels() / 3;
+                                int pixels = ((*it)->GetChannels() - sc + 1) / 3;
                                 if (_outputs == 12)
                                 {
                                     pixels = (last->GetLastChannel() - first->GetFirstChannel() + 1) / 3;
@@ -410,6 +451,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                         requestSerial += "&";
                                     requestSerial += BuildSerialPort(string++, DecodeSerialPortProtocol(*protocol), DecodeProtocolSpeed(*protocol), (*it)->GetUniverse(), parent);
                                 }
+                                sc = 1;
                             }
                         }
                     }
@@ -493,12 +535,12 @@ std::string J1Sys::BuildStringPort(int string, char protocol, int speed, int sta
         string, protocol, universe, startChannel, pixels);
 
     return wxString::Format("sA%c=1&sT%c=%c&sB%c=%d&sU%c=%d&sS%c=%d&sC%c=%d",
-                            out,
-                            out, protocol,
-                            out, speed,
-                            out, universe,
-                            out, startChannel,
-                            out, pixels).ToStdString();
+        out,
+        out, protocol,
+        out, speed,
+        out, universe,
+        out, startChannel,
+        out, pixels).ToStdString();
 }
 
 std::string J1Sys::BuildSerialPort(int string, char protocol, int speed, int universe, wxWindow* parent)
@@ -524,7 +566,10 @@ void J1Sys::ResetStringOutputs()
 
 void J1Sys::ResetSerialOutputs()
 {
-    PutURL("/protect/portConfig.htm","");
+    if (_outputs == 12)
+    {
+        PutURL("/protect/portConfig.htm", "");
+    }
 }
 
 void J1Sys::Reboot()
