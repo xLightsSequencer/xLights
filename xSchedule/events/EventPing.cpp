@@ -7,12 +7,14 @@ EventPing::EventPing() : EventBase()
 {
     _failures = 1;
     _ip = "All";
+    _onceOnly = true;
 }
 
 EventPing::EventPing(wxXmlNode* node) : EventBase(node)
 {
     _failures = wxAtoi(node->GetAttribute("Failures", "1"));
     _ip = node->GetAttribute("IP", "All");
+    _onceOnly = (node->GetAttribute("OnceOnly", "False") == "True");
 }
 
 wxXmlNode* EventPing::Save()
@@ -20,6 +22,10 @@ wxXmlNode* EventPing::Save()
     wxXmlNode* en = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "EventPing");
     en->AddAttribute("Failures", wxString::Format("%d", _failures));
     en->AddAttribute("IP", _ip);
+    if (_onceOnly)
+    {
+        en->AddAttribute("OnceOnly", "True");
+    }
     EventBase::Save(en);
     return en;
 }
@@ -59,6 +65,11 @@ void EventPing::Process(bool success, const std::string& ip, ScheduleManager* sc
             std::string msg;
             scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
             logger_base.debug("    Event processed.");
+        }
+
+        if (!_onceOnly && _count[ip] >= _failures)
+        {
+            _count[ip] = 0;
         }
     }
 }

@@ -10,6 +10,7 @@ class EventPing: public EventBase
     int _failures;
     std::string _ip;
     std::map<std::string, int> _count;
+    bool _onceOnly;
 
 	public:
         EventPing();
@@ -21,6 +22,8 @@ class EventPing: public EventBase
         int GetFailures() const { return _failures; }
         void SetIP(std::string ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
         std::string GetIP() const { return _ip; }
+        void SetOnceOnly(bool onceOnly) { if (_onceOnly != onceOnly) { _onceOnly = onceOnly; _changeCount++; } }
+        bool GetOnceOnly() const { return _onceOnly; }
         virtual void Process(bool success, const std::string& ip, ScheduleManager* scheduleManager) override;
         static std::string GetParmToolTip();
 };

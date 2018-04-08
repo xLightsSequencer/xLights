@@ -4,6 +4,7 @@
 #include "EventPanel.h"
 
 //(*Headers(EventPingPanel)
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -24,6 +25,7 @@ class EventPingPanel: public EventPanel
         virtual void Load(EventBase* event) override;
 
 		//(*Declarations(EventPingPanel)
+		wxCheckBox* CheckBox_FireOnce;
 		wxChoice* Choice_IPs;
 		wxSpinCtrl* SpinCtrl_PingFailures;
 		wxStaticText* StaticText1;
@@ -37,6 +39,7 @@ class EventPingPanel: public EventPanel
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL1;
+		static const long ID_CHECKBOX1;
 		//*)
 
 	private:

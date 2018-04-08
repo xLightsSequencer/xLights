@@ -13,6 +13,7 @@ const long EventPingPanel::ID_STATICTEXT2 = wxNewId();
 const long EventPingPanel::ID_CHOICE1 = wxNewId();
 const long EventPingPanel::ID_STATICTEXT1 = wxNewId();
 const long EventPingPanel::ID_SPINCTRL1 = wxNewId();
+const long EventPingPanel::ID_CHECKBOX1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EventPingPanel,wxPanel)
@@ -46,6 +47,10 @@ EventPingPanel::EventPingPanel(wxWindow* parent, OutputManager* outputManager, w
 	SpinCtrl_PingFailures = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 10, 1, _T("ID_SPINCTRL1"));
 	SpinCtrl_PingFailures->SetValue(_T("1"));
 	FlexGridSizer1->Add(SpinCtrl_PingFailures, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_FireOnce = new wxCheckBox(this, ID_CHECKBOX1, _("Fire once only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_FireOnce->SetValue(true);
+	FlexGridSizer1->Add(CheckBox_FireOnce, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -92,6 +97,7 @@ void EventPingPanel::Save(EventBase* event)
     EventPing* e = (EventPing*)event;
     e->SetFailures(SpinCtrl_PingFailures->GetValue());
     e->SetIP(Choice_IPs->GetStringSelection().ToStdString());
+    e->SetOnceOnly(CheckBox_FireOnce->GetValue());
 }
 
 void EventPingPanel::Load(EventBase* event)
@@ -103,4 +109,5 @@ void EventPingPanel::Load(EventBase* event)
     {
         Choice_IPs->SetSelection(0);
     }
+    CheckBox_FireOnce->SetValue(e->GetOnceOnly());
 }
