@@ -1220,8 +1220,18 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static bool reentered = false;
     static int last = -1;
+
     if (__schedule == nullptr) return;
+
+    if (reentered)
+    {
+        logger_base.warn("Frame timer was re-entered ... dropping this frame.");
+        return;
+    }
+    reentered = true;
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
@@ -1246,6 +1256,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     }
 
     CorrectTimer(rate);
+
+    reentered = false;
 }
 
 void xScheduleFrame::UpdateSchedule()
