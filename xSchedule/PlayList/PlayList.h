@@ -18,7 +18,7 @@ class PlayList
 protected:
 
     #pragma region Member Variables
-    std::recursive_mutex _stepLock;
+    int _reentrancyCounter;
     wxUint32 _id;
     std::list<PlayListStep*> _steps;
     std::list<Schedule*> _schedules;

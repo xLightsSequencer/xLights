@@ -887,6 +887,8 @@ private:
 
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxArrayString filters;
 
     filters.push_back("SuperStar File (*.sup)|*.sup");
@@ -933,9 +935,13 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 
     if (file.ShowModal() == wxID_OK) {
 
-        if (config != nullptr)
+        if (config != nullptr && file.GetFilterIndex() >= 0 && file.GetFilterIndex() < filters.size())
         {
             config->Write("xLightsLastImportType", filters[file.GetFilterIndex()]);
+        }
+        else
+        {
+            logger_base.warn("XLightsLastImportType not saved due to invalid filter index %d.", file.GetFilterIndex());
         }
 
         wxFileName fn = file.GetPath();
@@ -1169,9 +1175,9 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
         }
     }
 
-    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); ++i)
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
     {
-        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         ModelElement * model = nullptr;
         for (size_t x=0; x<mSequenceElements.GetElementCount();++x) {
@@ -1685,13 +1691,13 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
     dlg.InitImport();
 
-    if (dlg.ShowModal() != wxID_OK) {
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return;
     }
 
-    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); i++)
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); i++)
     {
-        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement * model = nullptr;
@@ -2506,7 +2512,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
 
     dlg.InitImport();
 
-    if (dlg.ShowModal() != wxID_OK) {
+    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
     }
 
@@ -2547,9 +2553,9 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         }
     }
 
-    for (size_t i = 0; i < dlg.dataModel->GetChildCount(); ++i)
+    for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i)
     {
-        xLightsImportModelNode* m = dlg.dataModel->GetNthChild(i);
+        xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
         Model *mc = GetModel(modelName);
         ModelElement* model = nullptr;
@@ -3968,4 +3974,3 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
-

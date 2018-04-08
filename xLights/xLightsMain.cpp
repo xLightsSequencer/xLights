@@ -1861,7 +1861,8 @@ xLightsFrame::~xLightsFrame()
 
     if (reenter)
     {
-        logger_base.error("~xLightsFrame re-entered ... this wont end well.");
+        logger_base.error("~xLightsFrame re-entered ... this wont end well ... so bailing now.");
+        return;
     }
     reenter = true;
 

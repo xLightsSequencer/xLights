@@ -17,7 +17,7 @@ class PlayListStep
 protected:
 
 #pragma region Member Variables
-    std::recursive_mutex _itemLock;
+    int _reentrancyCounter;
     std::list<PlayListItem*> _items;
     int _lastSavedChangeCount;
     int _changeCount;

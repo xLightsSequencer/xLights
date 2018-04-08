@@ -299,7 +299,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
-        if (mSelectedEffect == nullptr || MultipleEffectsSelected() || mSelectedEffect->IsLocked())
+        if (mSelectedEffect == nullptr || 
+            MultipleEffectsSelected() || 
+            mSelectedEffect->IsLocked())
         {
             menu_effect_timing->Enable(false);
         }

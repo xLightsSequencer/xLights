@@ -1436,43 +1436,46 @@ void PixelTestDialog::SetTreeTooltip(wxTreeListCtrl* tree, wxTreeListItem& item)
     if (tree == TreeListCtrl_Outputs)
     {
         TestItemBase* tib = (TestItemBase*)tree->GetItemData(item);
-        if (tib->GetType() == "Controller" || tib->GetType() == "Channel")
+        if (tib != nullptr)
         {
-            std::string tt = "";
-            for (auto it = _models.begin(); it != _models.end(); ++it)
+            if (tib->GetType() == "Controller" || tib->GetType() == "Channel")
             {
-                if ((*it)->ContainsChannelRange(tib->GetFirstChannel(), tib->GetLastChannel()))
+                std::string tt = "";
+                for (auto it = _models.begin(); it != _models.end(); ++it)
                 {
-                    if (tt != "")
+                    if ((*it)->ContainsChannelRange(tib->GetFirstChannel(), tib->GetLastChannel()))
                     {
-                        tt += "\n";
+                        if (tt != "")
+                        {
+                            tt += "\n";
+                        }
+                        tt = tt + (*it)->GetModelName();
                     }
-                    tt = tt + (*it)->GetModelName();
                 }
-            }
-            if (tt != "")
-            {
-                if (tib->GetFirstChannel() == tib->GetLastChannel())
+                if (tt != "")
                 {
-                    tt = "[" + std::string(wxString::Format(wxT("%ld"), tib->GetFirstChannel())) + "] maps to\n" + tt;
+                    if (tib->GetFirstChannel() == tib->GetLastChannel())
+                    {
+                        tt = "[" + std::string(wxString::Format(wxT("%ld"), tib->GetFirstChannel())) + "] maps to\n" + tt;
+                    }
+                    else
+                    {
+                        tt = "[" + std::string(wxString::Format(wxT("%ld"), tib->GetFirstChannel())) + "-" + std::string(wxString::Format(wxT("%ld"), tib->GetLastChannel())) + "] maps to\n" + tt;
+                    }
+#ifdef __WXOSX__
+                    tree->SetToolTip(tt);
+#else
+                    tree->GetView()->SetToolTip(tt);
+#endif
                 }
                 else
                 {
-                    tt = "[" + std::string(wxString::Format(wxT("%ld"), tib->GetFirstChannel())) + "-" + std::string(wxString::Format(wxT("%ld"), tib->GetLastChannel())) + "] maps to\n" + tt;
+#ifdef __WXOSX__
+                    tree->UnsetToolTip();
+#else
+                    tree->GetView()->UnsetToolTip();
+#endif
                 }
-#ifdef __WXOSX__
-                tree->SetToolTip(tt);
-#else
-                tree->GetView()->SetToolTip(tt);
-#endif
-            }
-            else
-            {
-#ifdef __WXOSX__
-                tree->UnsetToolTip();
-#else
-                tree->GetView()->UnsetToolTip();
-#endif
             }
         }
         else

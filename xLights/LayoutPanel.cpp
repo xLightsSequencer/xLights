@@ -1014,7 +1014,9 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
         Model *model = it->second;
         if (model->GetDisplayAs() != "ModelGroup") {
-            if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
+            if (group == "All Models" ||
+                model->GetLayoutGroup() == group ||
+                (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                 prev_models.push_back(model);
                 modelsAdded.insert(model->name);
             }
@@ -1023,19 +1025,21 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
 
     // add in any models that were not in preview but belong to a group that is in the preview
     std::string selected_group_name = "";
-    if( mSelectedGroup.IsOk() && filtering) {
+    if (mSelectedGroup.IsOk() && filtering) {
         selected_group_name = TreeListViewModels->GetItemText(mSelectedGroup);
     }
 
     for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
         Model *model = it->second;
         bool mark_selected = false;
-        if( mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name) ) {
+        if (mSelectedGroup.IsOk() && filtering && (model->name == selected_group_name)) {
             mark_selected = true;
         }
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)(model);
-            if (group == "All Models" || model->GetLayoutGroup() == group || (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
+            if (group == "All Models" ||
+                model->GetLayoutGroup() == group ||
+                (model->GetLayoutGroup() == "All Previews" && group != "Unassigned")) {
                 for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
                     Model *m = xlights->AllModels[*it2];
                     if (m != nullptr) {
@@ -1046,7 +1050,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             if (mark_selected) {
                                 prev_models.push_back(m);
                             }
-                        } else if (m->DisplayAs == "ModelGroup") {
+                        }
+                        else if (m->DisplayAs == "ModelGroup") {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
                                 for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); it3++) {
@@ -1056,7 +1061,8 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                     }
                                 }
                             }
-                        } else if (modelsAdded.find(*it2) == modelsAdded.end()) {
+                        }
+                        else if (modelsAdded.find(*it2) == modelsAdded.end()) {
                             modelsAdded.insert(*it2);
                             prev_models.push_back(m);
                         }
@@ -1067,12 +1073,12 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
     }
 
     // only run this for layout group previews
-    if( layout_grp != nullptr ) {
+    if (layout_grp != nullptr) {
         layout_grp->SetModels(prev_models);
         ModelPreview* preview = layout_grp->GetModelPreview();
-        if( layout_grp->GetPreviewCreated() ) {
+        if (layout_grp->GetPreviewCreated()) {
             preview->SetModels(layout_grp->GetModels());
-            if( preview->GetActive() ) {
+            if (preview->GetActive()) {
                 preview->Refresh();
                 preview->Update();
             }
@@ -1359,7 +1365,7 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
-    for (size_t i=0; i<modelPreview->GetModels().size(); i++)
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->Selected = false;
         modelPreview->GetModels()[i]->GroupSelected = false;
@@ -1389,12 +1395,12 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             }
         }
         wxPGProperty* p = propertyEditor->Append(new xlImageProperty("Background Image",
-                                                   "BkgImage",
-                                                    previewBackgroundFile,
-                                                    background));
+            "BkgImage",
+            previewBackgroundFile,
+            background));
         p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
         propertyEditor->Append(new wxBoolProperty("Fill", "BkgFill", previewBackgroundScaled))->SetAttribute("UseCheckbox", 1);
-        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+        if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Width", "BkgSizeWidth", modelPreview->GetVirtualCanvasWidth()));
             prop->SetAttribute("Min", 0);
             prop->SetAttribute("Max", 4096);
@@ -2828,6 +2834,8 @@ void LayoutPanel::DeleteSelectedModel() {
 
 void LayoutPanel::ReplaceModel()
 {
+    if (selectedModel == nullptr) return;
+
     Model* modelToReplaceItWith = selectedModel;
 
     wxArrayString choices;
@@ -2853,6 +2861,8 @@ void LayoutPanel::ReplaceModel()
                 replaceModel = modelPreview->GetModels()[i];
             }
         }
+
+        if (replaceModel == nullptr) return;
 
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
         replaceModel->Rename("Iamgoingtodeletethismodel");
@@ -3743,7 +3753,7 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     if (item.IsOk()) {
 
         ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-        Model *model = data != nullptr ? data->GetModel() : nullptr;
+        Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
         if (model != nullptr) {
             if (model->GetDisplayAs() == "ModelGroup") {
                 mSelectedGroup = item;
@@ -3778,7 +3788,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     std::vector<Model *> models;
 
     UpdateModelList(full_refresh, models);
-    if( full_refresh ) return;
+    if (full_refresh) return;
 
     TreeListViewModels->Freeze();
 
@@ -3791,7 +3801,8 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr) {
-            if (data->GetModel() == grp) {
+            if (data->GetModel()->GetFullName() == grp->GetFullName()) 
+            {
                 bool expanded = TreeListViewModels->IsExpanded(item);
                 wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
                 while (child.IsOk()) {
@@ -3802,8 +3813,10 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     Model *m = xlights->AllModels[*it];
                     if (m != nullptr)
                     {
-                        if (currentLayoutGroup == "All Models" || m->GetLayoutGroup() == currentLayoutGroup
-                            || (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
+                        if (currentLayoutGroup == "All Models" || 
+                            m->GetLayoutGroup() == currentLayoutGroup ||
+                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) 
+                        {
                             AddModelToTree(m, &item, true);
                         }
                         if (m->DisplayAs == "SubModel"
@@ -3815,8 +3828,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                 if (expanded) {
                     TreeListViewModels->Expand(item);
                 }
-            } else if (data->GetModel()->GetDisplayAs() != "ModelGroup"
-                       && data->GetModel()->GetDisplayAs() != "SubModel") {
+            }
+            else if (data->GetModel()->GetDisplayAs() != "ModelGroup"
+                && data->GetModel()->GetDisplayAs() != "SubModel") {
                 if (std::find(models.begin(), models.end(), data->GetModel()) == models.end()) {
                     toRemove.push_back(item);
                 }

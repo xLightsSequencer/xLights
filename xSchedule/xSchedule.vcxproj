@@ -505,6 +505,7 @@
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
     <ClInclude Include="Projector.h" />
     <ClInclude Include="ProjectorDetailsDialog.h" />
+    <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />

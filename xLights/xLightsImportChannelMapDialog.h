@@ -346,7 +346,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
         bool InitImport();
-        xLightsImportTreeModel *dataModel;
+        xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
 		wxButton* Button_AutoMap;

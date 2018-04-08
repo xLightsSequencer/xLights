@@ -9,6 +9,7 @@
 #include "PlayListSimpleDialog.h"
 #include "../xScheduleMain.h"
 #include "../xScheduleApp.h"
+#include "../ReentrancyCounter.h"
 
 int __playlistid = 0;
 
@@ -19,6 +20,7 @@ bool compare_sched(const Schedule* first, const Schedule* second)
 
 PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
 {
+    _reentrancyCounter = 0;
     _commandAtEndOfCurrentStep = "";
     _commandParametersAtEndOfCurrentStep = "";
     _loops = -1;
@@ -43,8 +45,16 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
 
 void PlayList::ForgetChildren()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList forgetting our children but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
         _steps.clear();
         _schedules.clear();
     }
@@ -63,7 +73,7 @@ PlayList& PlayList::operator=(PlayList& playlist)
     _id = playlist._id;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         RemoveAllSteps();
 
         for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
@@ -88,6 +98,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Copying playlist %s steps %d.", (const char*)playlist.GetName().c_str(), playlist.GetSteps().size());
 
+    _reentrancyCounter = 0;
     _commandAtEndOfCurrentStep = "";
     _commandParametersAtEndOfCurrentStep = "";
     _forceNextStep = "";
@@ -116,7 +127,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     }
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
         {
             _steps.push_back(new PlayListStep(**it));
@@ -126,6 +137,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
 
 PlayList::PlayList()
 {
+    _reentrancyCounter = 0;
     _commandAtEndOfCurrentStep = "";
     _commandParametersAtEndOfCurrentStep = "";
     _loops = -1;
@@ -152,13 +164,24 @@ PlayList::PlayList()
 
 void PlayList::DeleteChildren()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     RemoveAllSteps();
 
-    while (_schedules.size() > 0)
     {
-        auto toremove = _schedules.front();
-        _schedules.remove(toremove);
-        delete toremove;
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList deleting children but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
+        while (_schedules.size() > 0)
+        {
+            auto toremove = _schedules.front();
+            _schedules.remove(toremove);
+            delete toremove;
+        }
     }
 }
 
@@ -172,8 +195,16 @@ PlayList::~PlayList()
 
 void PlayList::RemoveAllSteps()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList removing all steps but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
         while (_steps.size() > 0)
         {
             auto toremove = _steps.front();
@@ -200,7 +231,7 @@ wxXmlNode* PlayList::Save()
     res->AddAttribute("Name", _name);
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             res->AddChild((*it)->Save());
@@ -217,8 +248,16 @@ wxXmlNode* PlayList::Save()
 
 void PlayList::Load(OutputManager* outputManager, wxXmlNode* node)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList loading but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
         _steps.clear();
         _schedules.clear();
     }
@@ -271,7 +310,7 @@ bool PlayList::IsDirty()
     bool res = _lastSavedChangeCount != _changeCount;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         auto it = _steps.begin();
         while (!res && it != _steps.end())
         {
@@ -304,7 +343,7 @@ void PlayList::AddStep(PlayListStep* item, int pos)
     bool inserted = false;
     int i = 0;
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if (i == pos)
@@ -333,7 +372,7 @@ void PlayList::ClearDirty()
     _lastSavedChangeCount = _changeCount;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             (*it)->ClearDirty();
@@ -348,8 +387,16 @@ void PlayList::ClearDirty()
 
 void PlayList::RemoveStep(PlayListStep* step)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList removing step but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
         _steps.remove(step);
     }
     _changeCount++;
@@ -357,14 +404,25 @@ void PlayList::RemoveStep(PlayListStep* step)
 
 void PlayList::RemoveSchedule(Schedule* schedule)
 {
-    _schedules.remove(schedule);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+     
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList removing schedule but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
+        _schedules.remove(schedule);
+    }
     _changeCount++;
 }
 
 void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_steps.size() == 1 || (afterthis != nullptr && movethis->GetId() == afterthis->GetId())) return;
 
         if (afterthis == nullptr)
@@ -395,7 +453,7 @@ int PlayList::GetPos(PlayListStep* step)
 {
     int i = 0;
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it)->GetId() == step->GetId())
@@ -445,7 +503,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
     if (_steps.size() == 0) return;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
 
         _loops = loops;
         _looping = loop;
@@ -507,7 +565,7 @@ void PlayList::Stop()
     logger_base.info("******** Playlist %s stopping.", (const char*)GetName().c_str());
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         _currentStep->Stop();
         _currentStep = nullptr;
     }
@@ -520,7 +578,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
     if (_currentStep == nullptr) return nullptr;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_lastOnlyOnce && _steps.back() == _currentStep) return nullptr;
 
         // this will contain a step name if this is to be our forced next step
@@ -610,7 +668,7 @@ PlayListStep* PlayList::GetPriorStep()
     if (_currentStep == nullptr) return nullptr;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         PlayListStep* last = _steps.back();
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
@@ -629,7 +687,7 @@ size_t PlayList::GetLengthMS()
 {
     size_t length = 0;
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             length += (*it)->GetLengthMS();
@@ -820,7 +878,7 @@ bool PlayList::JumpToEndStepsAtEndOfCurrentStep()
 PlayListStep* PlayList::GetStep(const std::string& step)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if (wxString((*it)->GetNameNoTime()).Lower() == wxString(step).Lower()) return (*it);
@@ -833,7 +891,7 @@ PlayListStep* PlayList::GetStep(const std::string& step)
 PlayListStep* PlayList::GetStep(wxUint32 step)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it)->GetId() == step) return (*it);
@@ -848,7 +906,7 @@ bool PlayList::SupportsRandom()
     int count = _steps.size();
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if (_steps.front()->GetId() == (*it)->GetId() && _firstOnlyOnce)
@@ -878,7 +936,7 @@ PlayListStep* PlayList::GetRandomStep()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (SupportsRandom())
         {
             int selected = rand() % _steps.size();
@@ -920,7 +978,7 @@ PlayListStep* PlayList::GetRandomStep()
 bool PlayList::LoopStep(const std::string step)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep == nullptr || wxString(_currentStep->GetNameNoTime()).Lower() != wxString(step).Lower())
         {
             JumpToStep(step);
@@ -936,7 +994,7 @@ bool PlayList::LoopStep(const std::string step)
 std::string PlayList::GetActiveSyncItemFSEQ()
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep != nullptr)
         {
             return _currentStep->GetActiveSyncItemFSEQ();
@@ -949,7 +1007,7 @@ std::string PlayList::GetActiveSyncItemFSEQ()
 std::string PlayList::GetActiveSyncItemMedia()
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep != nullptr)
         {
             return _currentStep->GetActiveSyncItemMedia();
@@ -964,7 +1022,7 @@ PlayListStep* PlayList::GetStepAtTime(long ms)
     long at = 0;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if (at + (*it)->GetLengthMS() > ms)
@@ -983,7 +1041,7 @@ size_t PlayList::GetPosition()
 {
     size_t pos = 0;
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it) == GetRunningStep())
@@ -1015,7 +1073,7 @@ std::string PlayList::GetName()
 bool PlayList::IsSimple()
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if (!(*it)->IsSimple())
@@ -1031,7 +1089,7 @@ bool PlayList::IsSimple()
 Schedule* PlayList::GetSchedule(int id)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
         {
             if ((*it)->GetId() == id) return *it;
@@ -1044,7 +1102,7 @@ Schedule* PlayList::GetSchedule(int id)
 Schedule* PlayList::GetSchedule(const std::string& name)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
         {
             if (wxString((*it)->GetName()).Lower() == wxString(name).Lower()) return *it;
@@ -1056,10 +1114,18 @@ Schedule* PlayList::GetSchedule(const std::string& name)
 
 void PlayList::RemoveEmptySteps()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     std::list<PlayListStep*> toremove;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayList removing empty steps but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it)->GetItems().size() == 0)
@@ -1078,7 +1144,7 @@ void PlayList::RemoveEmptySteps()
 PlayListItemText* PlayList::GetRunningText(const std::string& name)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep == nullptr) return nullptr;
 
         return _currentStep->GetTextItem(name);
@@ -1088,7 +1154,7 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
 int PlayList::GetFrameMS()
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep == nullptr)
         {
             return 50;
@@ -1103,7 +1169,7 @@ int PlayList::GetFrameMS()
 PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it)->IsRunningFSEQ(fseqFile))
@@ -1119,7 +1185,7 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 PlayListStep* PlayList::GetStepWithTimingName(const std::string timingName)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             size_t ms;
@@ -1138,7 +1204,7 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item)
     PlayListItem *pli = nullptr;
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             pli = (*it)->FindRunProcessNamed(item);
@@ -1153,7 +1219,7 @@ PlayListItem* PlayList::FindRunProcessNamed(const std::string& item)
 PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             if ((*it)->GetItem(id) != nullptr)
@@ -1171,7 +1237,7 @@ std::string PlayList::GetNextScheduledTime()
     wxDateTime nextdt = wxDateTime((time_t)0);
 
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _schedules.begin(); it != _schedules.end(); ++it)
         {
             wxDateTime dt = (*it)->GetNextTriggerDateTime();
@@ -1206,7 +1272,7 @@ std::string PlayList::GetNextScheduledTime()
 PlayListItem* PlayList::GetItem(wxUint32 id)
 {
     {
-        std::unique_lock<std::recursive_mutex> locker(_stepLock);
+        ReentrancyCounter rec(_reentrancyCounter);
         for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
             auto i = (*it)->GetItem(id);

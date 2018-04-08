@@ -1872,8 +1872,8 @@ void Model::ApplyTransform(const std::string &type,
 }
 
 void Model::InitRenderBufferNodes(const std::string &type,
-                                  const std::string &transform,
-                                  std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
+    const std::string &transform,
+    std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     int firstNode = newNodes.size();
@@ -1893,7 +1893,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
     if (type == DEFAULT) {
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
-    } else if (type == SINGLE_LINE) {
+    }
+    else if (type == SINGLE_LINE) {
         bufferHt = 1;
         bufferWi = newNodes.size();
         int cnt = 0;
@@ -1907,7 +1908,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
             }
             cnt++;
         }
-    } else if (type == AS_PIXEL) {
+    }
+    else if (type == AS_PIXEL) {
         bufferHt = 1;
         bufferWi = 1;
         for (int x = firstNode; x < newNodes.size(); x++) {
@@ -1919,7 +1921,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 SetCoords(*it2, 0, 0);
             }
         }
-    } else if (type == HORIZ_PER_STRAND) {
+    }
+    else if (type == HORIZ_PER_STRAND) {
         bufferWi = GetNumStrands();
         bufferHt = 1;
         for (int x = 0; x < bufferWi; x++) {
@@ -1933,7 +1936,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 strand++;
                 strandLen = GetStrandLength(strand);
                 cnt = 0;
-            } else {
+            }
+            else {
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
@@ -1945,7 +1949,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 x++;
             }
         }
-    } else if (type == VERT_PER_STRAND) {
+    }
+    else if (type == VERT_PER_STRAND) {
         bufferHt = GetNumStrands();
         bufferWi = 1;
         for (int x = 0; x < bufferHt; x++) {
@@ -1959,7 +1964,8 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 strand++;
                 strandLen = GetStrandLength(strand);
                 cnt = 0;
-            } else {
+            }
+            else {
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
@@ -1971,12 +1977,13 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 x++;
             }
         }
-    } else if (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET) {
+    }
+    else if (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET) {
         float maxX = -1000000;
         float minX = 1000000;
         float maxY = -1000000;
         float minY = 1000000;
-        float sx,sy;
+        float sx, sy;
         GetModelScreenLocation().PrepareToDraw();
 
         for (int x = firstNode; x < newNodes.size(); x++) {
@@ -2040,11 +2047,13 @@ void Model::InitRenderBufferNodes(const std::string &type,
         if (!noOff) {
             bufferHt++;
             bufferWi++;
-        } else {
+        }
+        else {
             bufferHt = std::round(maxY - minY + 1.0f);
             bufferWi = std::round(maxX - minX + 1.0f);
         }
-    } else {
+    }
+    else {
         bufferHt = this->BufferHt;
         bufferWi = this->BufferWi;
     }
