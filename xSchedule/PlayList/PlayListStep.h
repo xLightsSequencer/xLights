@@ -3,6 +3,7 @@
 #include <list>
 #include <string>
 #include <wx/wx.h>
+#include <mutex>
 
 class OutputManager;
 class PlayListItemText;
@@ -16,6 +17,7 @@ class PlayListStep
 protected:
 
 #pragma region Member Variables
+    std::recursive_mutex _itemLock;
     std::list<PlayListItem*> _items;
     int _lastSavedChangeCount;
     int _changeCount;
@@ -44,21 +46,21 @@ public:
     bool operator==(const PlayListStep& rhs) const { return _id == rhs._id; }
 
 #pragma region Getters and Setters
-    PlayListItemText* GetTextItem(const std::string& name) const;
+    PlayListItemText* GetTextItem(const std::string& name);
     wxUint32 GetId() const { return _id; }
-    PlayListItem* GetTimeSource(size_t& ms) const;
+    PlayListItem* GetTimeSource(size_t& ms);
     std::list<PlayListItem*> GetItems();
-    bool IsDirty() const;
+    bool IsDirty();
     void ClearDirty();
-    std::string GetStatus(bool ms = false) const;
+    std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
-    std::string GetName() const;
-    std::string GetNameNoTime() const;
+    std::string GetName();
+    std::string GetNameNoTime();
     std::string GetRawName() const { return _name; }
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     void Start(int _loops);
-    bool IsSimple() const;
+    bool IsSimple();
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { _loops--; }
     bool IsMoreLoops() const { return _loops > 0; }
@@ -68,22 +70,22 @@ public:
     void Suspend(bool suspend);
     void Restart();
     void Pause(bool pause);
-    std::string GetActiveSyncItemFSEQ() const;
-    std::string GetActiveSyncItemMedia() const;
+    std::string GetActiveSyncItemFSEQ();
+    std::string GetActiveSyncItemMedia();
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);
     bool Frame(wxByte* buffer, size_t size, bool outputframe);
-    size_t GetPosition() const;
-    PlayListItem* GetItem(const std::string item) const;
-    PlayListItem* GetItem(const wxUint32 id) const;
-    size_t GetLengthMS() const;
-    size_t GetFrameMS() const;
+    size_t GetPosition();
+    PlayListItem* GetItem(const std::string item);
+    PlayListItem* GetItem(const wxUint32 id);
+    size_t GetLengthMS();
+    size_t GetFrameMS();
     void AdjustTime(wxTimeSpan by);
     bool IsRunningFSEQ(const std::string& fseqFile);
     void SetSyncPosition(size_t ms, bool force = false);
-    PlayListItem* FindRunProcessNamed(const std::string& item) const;
-    AudioManager* GetAudioManager() const;
+    PlayListItem* FindRunProcessNamed(const std::string& item);
+    AudioManager* GetAudioManager();
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();
