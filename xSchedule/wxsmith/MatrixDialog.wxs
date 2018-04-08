@@ -68,6 +68,7 @@
 			<object class="sizeritem">
 				<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_StrandsPerString" member="yes">
 					<value>1</value>
+					<min>1</min>
 					<max>8192</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

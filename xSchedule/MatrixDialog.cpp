@@ -38,9 +38,9 @@ MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::
     _outputManager = outputManager;
 
 	//(*Initialize(MatrixDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, id, _("Matrix Configuration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -63,7 +63,7 @@ MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::
 	FlexGridSizer1->Add(SpinCtrl_StringLength, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Strands Per String:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_StrandsPerString = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 0, 8192, 1, _T("ID_SPINCTRL3"));
+	SpinCtrl_StrandsPerString = new wxSpinCtrl(this, ID_SPINCTRL3, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 8192, 1, _T("ID_SPINCTRL3"));
 	SpinCtrl_StrandsPerString->SetValue(_T("1"));
 	FlexGridSizer1->Add(SpinCtrl_StrandsPerString, 1, wxALL|wxEXPAND, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start Channel:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));

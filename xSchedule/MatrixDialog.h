@@ -2,13 +2,13 @@
 #define MATRIXDIALOG_H
 
 //(*Headers(MatrixDialog)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class OutputManager;
@@ -30,23 +30,23 @@ class MatrixDialog: public wxDialog
 		virtual ~MatrixDialog();
 
 		//(*Declarations(MatrixDialog)
-		wxChoice* Choice_Orientation;
-		wxButton* Button_Ok;
-		wxTextCtrl* TextCtrl_Name;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxSpinCtrl* SpinCtrl_StringLength;
-		wxStaticText* StaticText8;
-		wxSpinCtrl* SpinCtrl_StrandsPerString;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxSpinCtrl* SpinCtrl_Strings;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxChoice* Choice_Orientation;
 		wxChoice* Choice_StartLocation;
-		wxTextCtrl* TextCtrl_StartChannel;
+		wxSpinCtrl* SpinCtrl_StrandsPerString;
+		wxSpinCtrl* SpinCtrl_StringLength;
+		wxSpinCtrl* SpinCtrl_Strings;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxTextCtrl* TextCtrl_Name;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:
