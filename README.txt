@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.10 Apr 9, 2018
    -- enh (cjd)    Add -c/-x options to run xCapture/xSchedule via main binary on linux
    -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
    -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
