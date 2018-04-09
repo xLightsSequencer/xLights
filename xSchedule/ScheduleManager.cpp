@@ -727,9 +727,16 @@ int ScheduleManager::Frame(bool outputframe)
 
     if (running != nullptr || _xyzzy != nullptr)
     {
-        std::string fseq = running->GetActiveSyncItemFSEQ();
-        std::string media = running->GetActiveSyncItemMedia();
-        rate = running->GetFrameMS();
+        rate = 50;
+        std::string fseq = "";
+        std::string media = "";
+
+        if (running != nullptr)
+        {
+            fseq = running->GetActiveSyncItemFSEQ();
+            media = running->GetActiveSyncItemMedia();
+            rate = running->GetFrameMS();
+        }
 
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
 
@@ -859,11 +866,14 @@ int ScheduleManager::Frame(bool outputframe)
 
         if (done)
         {
-            SendFPPSync(fseq, 0xFFFFFFFF, rate);
-            SendFPPSync(media, 0xFFFFFFFF, rate);
+            if (running != nullptr)
+            {
+                SendFPPSync(fseq, 0xFFFFFFFF, rate);
+                SendFPPSync(media, 0xFFFFFFFF, rate);
 
-            // playlist is done
-            StopPlayList(running, false);
+                // playlist is done
+                StopPlayList(running, false);
+            }
 
             wxCommandEvent event(EVT_DOCHECKSCHEDULE);
             wxPostEvent(wxGetApp().GetTopWindow(), event);
