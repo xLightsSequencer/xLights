@@ -56,6 +56,10 @@
 		671130BB1E4EB29B00AF09A7 /* EzGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B51E4EB29B00AF09A7 /* EzGrid.cpp */; };
 		671130BC1E4EB29B00AF09A7 /* FastComboEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B71E4EB29B00AF09A7 /* FastComboEditor.cpp */; };
 		671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */; };
+		671142E8207BAB9D00F45296 /* PlayListItemSetColour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */; };
+		671142E9207BAB9D00F45296 /* PlayListItemSetColourPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */; };
+		671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142EB207BACF200F45296 /* ESPixelStick.cpp */; };
+		671142EF207BAD5400F45296 /* WebSocketClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671142EE207BAD5400F45296 /* WebSocketClient.cpp */; };
 		6711F04B1AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */; };
 		67145C2D1D6607AE00A35D4B /* SubModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67145C2B1D6607AE00A35D4B /* SubModel.cpp */; };
 		6715B4FA1F5F15CF00D60087 /* HousePreviewPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6715B4F91F5F15CF00D60087 /* HousePreviewPanel.cpp */; };
@@ -767,6 +771,14 @@
 		671130B81E4EB29B00AF09A7 /* FastComboEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FastComboEditor.h; path = support/FastComboEditor.h; sourceTree = "<group>"; };
 		671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GridCellChoiceRenderer.cpp; path = support/GridCellChoiceRenderer.cpp; sourceTree = "<group>"; };
 		671130BA1E4EB29B00AF09A7 /* GridCellChoiceRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GridCellChoiceRenderer.h; path = support/GridCellChoiceRenderer.h; sourceTree = "<group>"; };
+		671142E4207BAB9C00F45296 /* PlayListItemSetColourPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemSetColourPanel.h; path = PlayList/PlayListItemSetColourPanel.h; sourceTree = "<group>"; };
+		671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSetColour.cpp; path = PlayList/PlayListItemSetColour.cpp; sourceTree = "<group>"; };
+		671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemSetColourPanel.cpp; path = PlayList/PlayListItemSetColourPanel.cpp; sourceTree = "<group>"; };
+		671142E7207BAB9D00F45296 /* PlayListItemSetColour.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemSetColour.h; path = PlayList/PlayListItemSetColour.h; sourceTree = "<group>"; };
+		671142EA207BACF100F45296 /* ESPixelStick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ESPixelStick.h; path = controllers/ESPixelStick.h; sourceTree = "<group>"; };
+		671142EB207BACF200F45296 /* ESPixelStick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ESPixelStick.cpp; path = controllers/ESPixelStick.cpp; sourceTree = "<group>"; };
+		671142ED207BAD5400F45296 /* WebSocketClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebSocketClient.h; path = controllers/WebSocketClient.h; sourceTree = "<group>"; };
+		671142EE207BAD5400F45296 /* WebSocketClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebSocketClient.cpp; path = controllers/WebSocketClient.cpp; sourceTree = "<group>"; };
 		6711F0491AEF12E600B56ED0 /* StrandNodeNamesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StrandNodeNamesDialog.cpp; sourceTree = "<group>"; };
 		6711F04A1AEF12E600B56ED0 /* StrandNodeNamesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StrandNodeNamesDialog.h; sourceTree = "<group>"; };
 		67145C2B1D6607AE00A35D4B /* SubModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SubModel.cpp; path = models/SubModel.cpp; sourceTree = "<group>"; };
@@ -2281,6 +2293,10 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				671142EE207BAD5400F45296 /* WebSocketClient.cpp */,
+				671142ED207BAD5400F45296 /* WebSocketClient.h */,
+				671142EB207BACF200F45296 /* ESPixelStick.cpp */,
+				671142EA207BACF100F45296 /* ESPixelStick.h */,
 				67BF7FF41F278956002F118D /* SimpleFTP.h */,
 				67BF7FF51F278956002F118D /* SimpleFTP.cpp */,
 				67BF7FF61F278956002F118D /* SanDevices.h */,
@@ -2963,6 +2979,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */,
+				671142E7207BAB9D00F45296 /* PlayListItemSetColour.h */,
+				671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */,
+				671142E4207BAB9C00F45296 /* PlayListItemSetColourPanel.h */,
 				674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */,
 				674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */,
 				674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */,
@@ -3138,6 +3158,7 @@
 				TargetAttributes = {
 					67480D0B2072575400B3ED60 = {
 						CreatedOnToolsVersion = 9.3;
+						DevelopmentTeam = U8ZT9RPC6S;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 0;
@@ -3145,6 +3166,7 @@
 						};
 					};
 					67E7086C17B51AB400A22034 = {
+						DevelopmentTeam = U8ZT9RPC6S;
 						LastSwiftMigration = 0810;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
@@ -3154,6 +3176,7 @@
 					};
 					67F23F201E32994400F8B985 = {
 						CreatedOnToolsVersion = 8.2.1;
+						DevelopmentTeam = U8ZT9RPC6S;
 					};
 				};
 			};
@@ -3426,6 +3449,7 @@
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
 				67276C481CB424B300A245CA /* DrawGLUtils31.cpp in Sources */,
+				671142EF207BAD5400F45296 /* WebSocketClient.cpp in Sources */,
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
@@ -3545,6 +3569,7 @@
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
 				67B2CFEC1C3A186A003C17CA /* GlediatorEffect.cpp in Sources */,
 				675D1E951D0B54B800CC6C02 /* LayoutGroup.cpp in Sources */,
+				671142EC207BACF200F45296 /* ESPixelStick.cpp in Sources */,
 				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				676C5EAF1C99D8AF0031A033 /* CandyCaneModel.cpp in Sources */,
@@ -3699,6 +3724,7 @@
 				67F240131E32A03F00F8B985 /* PixelNetOutput.cpp in Sources */,
 				67F240141E32A03F00F8B985 /* RenardOutput.cpp in Sources */,
 				67F240151E32A03F00F8B985 /* serial_osx.cpp in Sources */,
+				671142E8207BAB9D00F45296 /* PlayListItemSetColour.cpp in Sources */,
 				67F240161E32A03F00F8B985 /* serial.cpp in Sources */,
 				67F240171E32A03F00F8B985 /* SerialOutput.cpp in Sources */,
 				6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */,
@@ -3729,6 +3755,7 @@
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */,
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
+				671142E9207BAB9D00F45296 /* PlayListItemSetColourPanel.cpp in Sources */,
 				6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */,
 				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,
