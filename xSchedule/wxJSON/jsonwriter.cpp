@@ -13,7 +13,7 @@
 #endif
 
 
-#include <wx/jsonwriter.h>
+#include "jsonwriter.h"
 
 #include <wx/sstream.h>
 #include <wx/mstream.h>

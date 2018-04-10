@@ -1029,6 +1029,7 @@ private:
     void UploadJ1SYSOutput();
     void UploadESPixelStickOutput();
     void UploadPixlite16Output();
+    void UploadFPPStringOuputs(const std::string &controllers, int maxport, int maxdmx);
 	void PingController(Output* e);
 
     void DeleteSelectedNetworks();

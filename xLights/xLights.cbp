@@ -352,6 +352,13 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
@@ -924,12 +931,6 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="64bit MinGW_Debug" />
-			<Option target="64bit MinGW_Release" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />

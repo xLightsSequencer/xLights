@@ -70,6 +70,23 @@ const long xLightsFrame::ID_NETWORK_UCOPIXLITE16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
+const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
+
+const long ID_NETWORK_UCOFPP_F4B = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B_16 = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B_20 = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B_EXP = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B_EXP_32 = wxNewId();
+const long ID_NETWORK_UCOFPP_F8B_EXP_36 = wxNewId();
+const long ID_NETWORK_UCOFPP_F16B = wxNewId();
+const long ID_NETWORK_UCOFPP_F16B_32 = wxNewId();
+const long ID_NETWORK_UCOFPP_F16B_48 = wxNewId();
+const long ID_NETWORK_UCOFPP_F32B = wxNewId();
+const long ID_NETWORK_UCOFPP_F32B_48 = wxNewId();
+const long ID_NETWORK_UCOFPP_RGBCape24 = wxNewId();
+const long ID_NETWORK_UCOFPP_RGBCape48C = wxNewId();
+const long ID_NETWORK_UCOFPP_RGBCape48F = wxNewId();
 
 void CleanupIpAddress(wxString& IpAddr)
 {
@@ -1096,21 +1113,15 @@ void xLightsFrame::SetupLOR(Output* e, int after)
 
     Output* newoutput = serial->Configure(this, &_outputManager);
 
-    if (newoutput == nullptr)
-    {
-        if (e != serial)
-        {
+    if (newoutput == nullptr) {
+        if (e != serial) {
             _outputManager.DeleteOutput(serial);
         }
-    }
-    else if (newoutput != serial)
-    {
+    } else if (newoutput != serial) {
         _outputManager.Replace(serial, newoutput);
         NetworkChange();
         UpdateNetworkList(true);
-    }
-    else
-    {
+    } else {
         NetworkChange();
         UpdateNetworkList(true);
     }
@@ -1144,8 +1155,7 @@ void xLightsFrame::NetworkChange()
 
 bool xLightsFrame::SaveNetworksFile()
 {
-    if (_outputManager.Save())
-    {
+    if (_outputManager.Save()) {
         UnsavedNetworkChanges = false;
 #ifdef __WXOSX__
         ButtonSaveSetup->SetForegroundColour(*wxBLACK);
@@ -1158,9 +1168,7 @@ bool xLightsFrame::SaveNetworksFile()
         ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
 #endif
         return true;
-    }
-    else
-    {
+    } else {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.warn("Unable to save network definition file");
         wxMessageBox(_("Unable to save network definition file"), _("Error"));
@@ -1178,8 +1186,7 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
 {
     wxDirDialog dialog(this);
     dialog.SetPath(mediaDirectory);
-    if (dialog.ShowModal() == wxID_OK)
-    {
+    if (dialog.ShowModal() == wxID_OK) {
         mediaDirectory = dialog.GetPath();
         ObtainAccessToURL(mediaDirectory.ToStdString());
         wxConfigBase* config = wxConfigBase::Get();
@@ -1206,8 +1213,7 @@ int xLightsFrame::GetNetworkSelectedItemCount() const
 {
     int selected = 0;
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1)
-    {
+    while (item != -1) {
         selected++;
         item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
@@ -1219,10 +1225,8 @@ bool xLightsFrame::AllSelectedSupportIP()
 {
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
-    while (item != -1)
-    {
-        if (!_outputManager.GetOutput(item)->IsIpOutput())
-        {
+    while (item != -1) {
+        if (!_outputManager.GetOutput(item)->IsIpOutput()) {
             return false;
         }
 
@@ -1232,14 +1236,51 @@ bool xLightsFrame::AllSelectedSupportIP()
     return true;
 }
 
+static bool CheckAllAreSameIPType(OutputManager &outputManager, wxListCtrl *GridNetwork, bool allowAllMulticasts, bool checkTypes) {
+    bool valid = true;
+    // check all are multicast or one ip address
+    wxString ip;
+    wxString type;
+    
+    int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    
+    while (item != -1) {
+        Output* o = outputManager.GetOutput(item);
+        
+        if (allowAllMulticasts && o->GetIP() == "MULTICAST") {
+            //
+        } else if (ip != o->GetIP()) {
+            if (ip == "") {
+                ip = o->GetIP();
+            } else {
+                valid = false;
+                break;
+            }
+        }
+        
+        if (checkTypes) {
+            if (type == "") {
+                type = o->GetType();
+            } else {
+                if (type != o->GetType()) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        
+        item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+    return valid;
+}
+
+
 bool xLightsFrame::AllSelectedSupportChannels()
 {
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
-    while (item != -1)
-    {
-        if (!_outputManager.GetOutput(item)->IsOutputable())
-        {
+    while (item != -1) {
+        if (!_outputManager.GetOutput(item)->IsOutputable()) {
             return false;
         }
 
@@ -1270,147 +1311,37 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenu* mnuUCInput = new wxMenu();
 
     wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCIFPPB->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCIFPPB->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (o->GetIP() == "MULTICAST")
-                {
-                }
-                else if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
             beUCIFPPB->Enable(valid);
         }
     }
 
     wxMenuItem* beUCIFalcon = mnuUCInput->Append(ID_NETWORK_UCIFALCON, "Falcon");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCIFalcon->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCIFalcon->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (o->GetIP() == "MULTICAST")
-                {
-                }
-                else if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
             beUCIFalcon->Enable(valid);
         }
     }
 
     wxMenuItem* beUCISanDevices = mnuUCInput->Append(ID_NETWORK_UCISANDEVICES, "SanDevices");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCISanDevices->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCISanDevices->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-            wxString type;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                if (type == "")
-                {
-                    type = o->GetType();
-                }
-                else
-                {
-                    if (type != o->GetType())
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
             beUCISanDevices->Enable(valid);
         }
     }
@@ -1420,269 +1351,110 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
     wxMenu* mnuUCOutput = new wxMenu();
 
-#if 0 // controller output upload ... not built yet but coming
+#if 0
     wxMenuItem* beUCOFPPB = mnuUCOutput->Append(ID_NETWORK_UCOFPPB, "FPP Bridge Mode");
     beUCOFPPB->Enable(selcnt == 1);
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOFPPB->Enable(false);
     }
 #endif
 
     wxMenuItem* beUCOFalcon = mnuUCOutput->Append(ID_NETWORK_UCOFALCON, "Falcon");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOFalcon->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCOFalcon->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (o->GetIP() == "MULTICAST")
-                {
-                }
-                else if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
             beUCOFalcon->Enable(valid);
         }
     }
 
     wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "Pixlite");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOPixlite16->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else  {
+        if (selcnt == 1) {
             beUCOPixlite16->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (o->GetIP() == "MULTICAST")
-                {
-                }
-                else if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
             beUCOPixlite16->Enable(valid);
         }
     }
 
     wxMenuItem* beUCOSanDevices = mnuUCOutput->Append(ID_NETWORK_UCOSANDEVICES, "SanDevices");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOSanDevices->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCOSanDevices->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-            wxString type;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (ip != o->GetIP())
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                if (type == "")
-                {
-                    type = o->GetType();
-                }
-                else
-                {
-                    if (type != o->GetType())
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
             beUCOSanDevices->Enable(valid);
         }
     }
 
     wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOJ1SYS->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCOJ1SYS->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-            wxString type;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (ip != o->GetIP() && o->GetIP() != "MULTICAST")
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                if (type == "")
-                {
-                    type = o->GetType();
-                }
-                else
-                {
-                    if (type != o->GetType())
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
             beUCOJ1SYS->Enable(valid);
         }
     }
 
+    bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
+    bool allSupportIp = AllSelectedSupportIP();
+    bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
+    
+    wxMenu* fppOutput = new wxMenu();
+    mnuUCOutput->AppendSubMenu(fppOutput, "FPP Capes/Hats");
+    fppOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
+    wxMenuItem* item = fppOutput->Append(ID_NETWORK_UCOFPP_F4B, "F4-B");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B, "F8-B (8 serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_16, "F8-B (4 serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_20, "F8-B (No serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP, "F8-B w/ Expansion (8 serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_32, "F8-B w/ Expansion (4 serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F8B_EXP_36, "F8-B w/ Expansion (No serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B, "F16-B");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_32, "F16-B w/ 32 outputs");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F16B_48, "F16-B w/ 48 outputs (No Serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B, "F32-B");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_F32B_48, "F32-B (No Serial)");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape24, "RGBCape24");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48C, "RGBCape48C");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_RGBCape48F, "RGBCape48F");
+    item->Enable(doEnable);
+    item = fppOutput->Append(ID_NETWORK_UCOFPP_PIHAT, "PiHat");
+    item->Enable(doEnable);
+
     wxMenuItem* beUCOESPixelStick = mnuUCOutput->Append(ID_NETWORK_UCOESPIXELSTICK, "ES Pixel Stick");
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beUCOESPixelStick->Enable(false);
-    }
-    else
-    {
-        if (selcnt == 1)
-        {
+    } else {
+        if (selcnt == 1) {
             beUCOESPixelStick->Enable(true);
-        }
-        else
-        {
-            bool valid = true;
-            // check all are multicast or one ip address
-            wxString ip;
-            wxString type;
-
-            int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-            while (item != -1)
-            {
-                Output* o = _outputManager.GetOutput(item);
-
-                if (ip != o->GetIP() && o->GetIP() != "MULTICAST")
-                {
-                    if (ip == "")
-                    {
-                        ip = o->GetIP();
-                    }
-                    else
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                if (type == "")
-                {
-                    type = o->GetType();
-                }
-                else
-                {
-                    if (type != o->GetType())
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-
-                item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            }
+        } else {
+            bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, true, true);
             beUCOESPixelStick->Enable(valid);
         }
     }
@@ -1696,14 +1468,12 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenu* mnuBulkEdit = new wxMenu();
     wxMenuItem* beip = mnuBulkEdit->Append(ID_NETWORK_BEIPADDR, "IP Address");
     beip->Enable(selcnt > 0);
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         beip->Enable(false);
     }
     wxMenuItem* bech = mnuBulkEdit->Append(ID_NETWORK_BECHANNELS, "Channels");
     bech->Enable(selcnt > 0);
-    if (!AllSelectedSupportChannels())
-    {
+    if (!AllSelectedSupportChannels()) {
         bech->Enable(false);
     }
     mnuBulkEdit->Append(ID_NETWORK_BEDESCRIPTION, "Description")->Enable(selcnt > 0);
@@ -1720,8 +1490,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     wxMenuItem* be = mnu.Append(ID_NETWORK_BULKEDIT, "Bulk Edit", mnuBulkEdit, "");
     mnu.AppendSeparator();
 
-    if (!ButtonAddE131->IsEnabled())
-    {
+    if (!ButtonAddE131->IsEnabled()) {
         ma->Enable(false);
         be->Enable(false);
     }
@@ -1740,37 +1509,30 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
     oc->Enable(selcnt == 1);
 
-    if (!AllSelectedSupportIP())
-    {
+    if (!AllSelectedSupportIP()) {
         oc->Enable(false);
-    }
-    else
-    {
+    } else {
         int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         if (item != -1) {
             Output* o = _outputManager.GetOutput(item);
-            if (o->GetIP() == "MULTICAST")
-            {
+            if (o->GetIP() == "MULTICAST") {
                 oc->Enable(false);
             }
         }
     }
 
 	pc->Enable(false);
-	if (selcnt == 1)
-	{
+	if (selcnt == 1) {
 		int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item != -1) {
 			Output* o = _outputManager.GetOutput(item);
-			if (o->CanPing())
-			{
+			if (o->CanPing()) {
 				pc->Enable(true);
 			}
 		}
 	}
 
-    if (!ButtonAddE131->IsEnabled())
-    {
+    if (!ButtonAddE131->IsEnabled()) {
         mia->Enable(false);
         mid->Enable(false);
         mide->Enable(false);
@@ -1786,111 +1548,92 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     int id = event.GetId();
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
-    if (id == ID_NETWORK_ADDUSB)
-    {
+    if (id == ID_NETWORK_ADDUSB) {
         SetupDongle(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDNULL)
-    {
+    } else if (id == ID_NETWORK_ADDNULL) {
         SetupNullOutput(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDE131)
-    {
+    } else if (id == ID_NETWORK_ADDE131) {
         SetupE131(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDARTNET)
-    {
+    } else if (id == ID_NETWORK_ADDARTNET) {
         SetupArtNet(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDLOR)
-    {
+    } else if (id == ID_NETWORK_ADDLOR) {
         SetupLOR(nullptr, item+1);
-    }
-    else if (id == ID_NETWORK_ADDDDP)
-    {
+    } else if (id == ID_NETWORK_ADDDDP) {
         SetupDDP(nullptr, item + 1);
-    }
-    else if (id == ID_NETWORK_UCIFPPB)
-    {
+    } else if (id == ID_NETWORK_UCIFPPB) {
         UploadFPPBridgeInput();
-    }
-    else if (id == ID_NETWORK_UCOFPPB)
-    {
+    } else if (id == ID_NETWORK_UCOFPPB) {
         UploadFPPBridgeOutput();
-    }
-    else if (id == ID_NETWORK_UCIFALCON)
-    {
+    } else if (id == ID_NETWORK_UCIFALCON) {
         UploadFalconInput();
-    }
-    else if (id == ID_NETWORK_UCOFALCON)
-    {
+    } else if (id == ID_NETWORK_UCOFALCON) {
         UploadFalconOutput();
-    }
-    else if (id == ID_NETWORK_UCISANDEVICES)
-    {
+    } else if (id == ID_NETWORK_UCISANDEVICES) {
         UploadSanDevicesInput();
-    }
-    else if (id == ID_NETWORK_UCOSANDEVICES)
-    {
+    } else if (id == ID_NETWORK_UCOSANDEVICES) {
         UploadSanDevicesOutput();
-    }
-    else if (id == ID_NETWORK_UCOJ1SYS)
-    {
+    } else if (id == ID_NETWORK_UCOJ1SYS) {
         UploadJ1SYSOutput();
-    }
-    else if (id == ID_NETWORK_UCOESPIXELSTICK)
-    {
+    } else if (id == ID_NETWORK_UCOESPIXELSTICK) {
         UploadESPixelStickOutput();
-    }
-    else if (id == ID_NETWORK_UCOPIXLITE16)
-    {
+    } else if (id == ID_NETWORK_UCOFPP_F4B) {
+        UploadFPPStringOuputs("F4-B", 4, 1);
+    } else if (id == ID_NETWORK_UCOFPP_F8B) {
+        UploadFPPStringOuputs("F8-B", 12, 8);
+    } else if (id == ID_NETWORK_UCOFPP_F8B_16) {
+        UploadFPPStringOuputs("F8-B-16", 16, 4);
+    } else if (id == ID_NETWORK_UCOFPP_F8B_20) {
+        UploadFPPStringOuputs("F8-B-20", 20, 0);
+    } else if (id == ID_NETWORK_UCOFPP_F8B_EXP) {
+        UploadFPPStringOuputs("F8-B-EXP", 28, 8);
+    } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_32) {
+        UploadFPPStringOuputs("F8-B-EXP-32", 32, 4);
+    } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_36) {
+        UploadFPPStringOuputs("F8-B-EXP-36", 36, 0);
+    } else if (id == ID_NETWORK_UCOFPP_F16B) {
+        UploadFPPStringOuputs("F16-B", 16, 8);
+    } else if (id == ID_NETWORK_UCOFPP_F16B_32) {
+        UploadFPPStringOuputs("F16-B-32", 32, 8);
+    } else if (id == ID_NETWORK_UCOFPP_F16B_48) {
+        UploadFPPStringOuputs("F16-B-48", 48, 0);
+    } else if (id == ID_NETWORK_UCOFPP_F32B) {
+        UploadFPPStringOuputs("F32-B", 40, 8);
+    } else if (id == ID_NETWORK_UCOFPP_F32B_48) {
+        UploadFPPStringOuputs("F32-B-48", 48, 0);
+    } else if (id == ID_NETWORK_UCOFPP_RGBCape24) {
+        UploadFPPStringOuputs("RGBCape24", 48, 0);
+    } else if (id == ID_NETWORK_UCOFPP_RGBCape48C) {
+        UploadFPPStringOuputs("RGBCape48C", 48, 0);
+    } else if (id == ID_NETWORK_UCOFPP_RGBCape48F) {
+        UploadFPPStringOuputs("RGBCape48F", 48, 0);
+    } else if (id == ID_NETWORK_UCOFPP_PIHAT) {
+        UploadFPPStringOuputs("PiHat", 2, 0);
+    } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
-    }
-    else if (id == ID_NETWORK_BEIPADDR)
-    {
+    } else if (id == ID_NETWORK_BEIPADDR) {
         UpdateSelectedIPAddresses();
-    }
-    else if (id == ID_NETWORK_BECHANNELS)
-    {
+    } else if (id == ID_NETWORK_BECHANNELS) {
         UpdateSelectedChannels();
-    }
-    else if (id == ID_NETWORK_BEDESCRIPTION)
-    {
+    } else if (id == ID_NETWORK_BEDESCRIPTION) {
         UpdateSelectedDescriptions();
-    }
-    else if (id == ID_NETWORK_BESUPPRESSDUPLICATESYES)
-    {
+    } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESYES) {
         UpdateSelectedSuppressDuplicates(true);
-    }
-    else if (id == ID_NETWORK_BESUPPRESSDUPLICATESNO)
-    {
+    } else if (id == ID_NETWORK_BESUPPRESSDUPLICATESNO) {
         UpdateSelectedSuppressDuplicates(false);
-    }
-    else if (id == ID_NETWORK_DELETE)
-    {
+    } else if (id == ID_NETWORK_DELETE) {
         DeleteSelectedNetworks();
-    }
-    else if (id == ID_NETWORK_ACTIVATE)
-    {
+    } else if (id == ID_NETWORK_ACTIVATE) {
         ActivateSelectedNetworks(true);
-    }
-    else if (id == ID_NETWORK_DEACTIVATE)
-    {
+    } else if (id == ID_NETWORK_DEACTIVATE) {
         ActivateSelectedNetworks(false);
-    }
-    else if (id == ID_NETWORK_DEACTIVATEUNUSED)
-    {
+    } else if (id == ID_NETWORK_DEACTIVATEUNUSED) {
         DeactivateUnusedNetworks();
-    }
-    else if (id == ID_NETWORK_OPENCONTROLLER)
-    {
+    } else if (id == ID_NETWORK_OPENCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         if (o != nullptr) {
             ::wxLaunchDefaultBrowser("http://" + o->GetIP());
         }
-    }
-    else if (id == ID_NETWORK_PINGCONTROLLER)
-    {
+    } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
     }
@@ -1914,17 +1657,14 @@ void xLightsFrame::OnGridNetworkKeyDown(wxListEvent& event)
     switch (uc)
     {
     case WXK_DELETE:
-        if (GridNetwork->GetSelectedItemCount() > 0)
-        {
+        if (GridNetwork->GetSelectedItemCount() > 0) {
             DeleteSelectedNetworks();
         }
         break;
     case 'A':
-        if (::wxGetKeyState(WXK_CONTROL))
-        {
+        if (::wxGetKeyState(WXK_CONTROL)) {
             int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL);
-            while (item != -1)
-            {
+            while (item != -1) {
                 GridNetwork->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
                 item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL);
             }
@@ -1939,18 +1679,13 @@ std::list<int> xLightsFrame::GetSelectedOutputs(wxString& ip)
 {
     std::list<int> selected;
     int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1)
-    {
+    while (item != -1) {
         selected.push_back(item);
-        if (ip == "")
-        {
+        if (ip == "") {
             Output* e = _outputManager.GetOutput(item);
 
-            if (e->GetIP() == "MULTICAST")
-            {
-            }
-            else if (ip != e->GetIP())
-            {
+            if (e->GetIP() == "MULTICAST") {
+            } else if (ip != e->GetIP()) {
                 ip = e->GetIP();
             }
         }
@@ -1969,11 +1704,9 @@ void xLightsFrame::UploadFPPBridgeInput()
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "FPP Bridge Mode Controller IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -1997,53 +1730,37 @@ void xLightsFrame::UploadFPPBridgeInput()
 
         wxString theUser = "fpp";
         wxString thePassword = "true";
-        for (int i = 0; i < count; i++)
-        {
-            if (ips[i] == ip)
-            {
+        for (int i = 0; i < count; i++) {
+            if (ips[i] == ip) {
                 theUser = users[i];
                 thePassword = passwords[i];
             }
         }
 
-        if (thePassword == "true")
-        {
-            if (theUser == "pi")
-            {
+        if (thePassword == "true") {
+            if (theUser == "pi") {
                 password = "raspberry";
-            }
-            else if (theUser == "fpp")
-            {
+            } else if (theUser == "fpp") {
                 password = "falcon";
-            }
-            else
-            {
+            } else {
                 wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
-                if (ted.ShowModal() == wxID_OK)
-                {
+                if (ted.ShowModal() == wxID_OK) {
                     password = ted.GetValue();
                 }
             }
-        }
-        else
-        {
+        } else {
             wxTextEntryDialog ted(this, "Enter password for " + theUser, "Password", ip);
-            if (ted.ShowModal() == wxID_OK)
-            {
+            if (ted.ShowModal() == wxID_OK) {
                 password = ted.GetValue();
             }
         }
 
         FPP fpp(&_outputManager, ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
 
-        if (fpp.IsConnected())
-        {
-            if (fpp.SetInputUniversesBridge(selected, this))
-            {
+        if (fpp.IsConnected()) {
+            if (fpp.SetInputUniversesBridge(selected, this)) {
                 SetStatusText("FPP Input Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("FPP Input Upload Failed.");
             }
         }
@@ -2066,11 +1783,9 @@ void xLightsFrame::UploadFalconInput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2078,14 +1793,10 @@ void xLightsFrame::UploadFalconInput()
         }
 
         Falcon falcon(ip.ToStdString());
-        if (falcon.IsConnected())
-        {
-            if (falcon.SetInputUniverses(&_outputManager, selected))
-            {
+        if (falcon.IsConnected()) {
+            if (falcon.SetInputUniverses(&_outputManager, selected)) {
                 SetStatusText("Falcon Input Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("Falcon Input Upload Failed.");
             }
         }
@@ -2102,11 +1813,9 @@ void xLightsFrame::UploadFalconOutput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "Falcon IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2114,20 +1823,41 @@ void xLightsFrame::UploadFalconOutput()
         }
 
         Falcon falcon(ip.ToStdString());
-        if (falcon.IsConnected())
-        {
-            if (falcon.SetOutputs(&AllModels, &_outputManager, selected, this))
-            {
+        if (falcon.IsConnected()) {
+            if (falcon.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("Falcon Output Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("Falcon Output Upload Failed.");
             }
-        }
-        else
-        {
+        } else {
             SetStatusText("Falcon Output Upload Failed.");
+        }
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxport, int maxdmx) {
+    SetStatusText("");
+    if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
+        SetCursor(wxCURSOR_WAIT);
+        wxString ip;
+        std::list<int> selected = GetSelectedOutputs(ip);
+        
+        if (ip == "") {
+            wxTextEntryDialog dlg(this, "FPP IP Address", "IP Address", ip);
+            if (dlg.ShowModal() != wxID_OK) {
+                SetCursor(wxCURSOR_ARROW);
+                return;
+            }
+            ip = dlg.GetValue();
+        }
+        
+        FPP fpp(&_outputManager, ip.ToStdString(), "fpp", "falcon");
+        if (fpp.IsConnected()) {
+            if (fpp.SetOutputs(controller, &AllModels, selected, this, maxport, maxdmx)) {
+                SetStatusText("FPP Upload Complete.");
+            } else {
+                SetStatusText("FPP Upload Failed.");
+            }
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -2142,11 +1872,9 @@ void xLightsFrame::UploadPixlite16Output()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "Pixlite IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2154,14 +1882,10 @@ void xLightsFrame::UploadPixlite16Output()
         }
 
         Pixlite16 pixlite(ip.ToStdString());
-        if (pixlite.IsConnected())
-        {
-            if (pixlite.SetOutputs(&AllModels, &_outputManager, selected, this))
-            {
+        if (pixlite.IsConnected()) {
+            if (pixlite.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("Pixlite Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("Pixlite Upload Failed.");
             }
         }
@@ -2178,11 +1902,9 @@ void xLightsFrame::UploadSanDevicesInput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2190,14 +1912,10 @@ void xLightsFrame::UploadSanDevicesInput()
         }
 
         SanDevices sanDevices(ip.ToStdString());
-        if (sanDevices.IsConnected())
-        {
-            if (sanDevices.SetInputUniverses(&_outputManager, selected))
-            {
+        if (sanDevices.IsConnected()) {
+            if (sanDevices.SetInputUniverses(&_outputManager, selected)) {
                 SetStatusText("SanDevices Input Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("SanDevices Input Upload Failed.");
             }
         }
@@ -2214,11 +1932,9 @@ void xLightsFrame::UploadSanDevicesOutput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "SanDevices IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2226,14 +1942,10 @@ void xLightsFrame::UploadSanDevicesOutput()
         }
 
         SanDevices sanDevices(ip.ToStdString());
-        if (sanDevices.IsConnected())
-        {
-            if (sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this))
-            {
+        if (sanDevices.IsConnected()) {
+            if (sanDevices.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("SanDevices Output Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("SanDevices Output Upload Failed.");
             }
         }
@@ -2250,11 +1962,9 @@ void xLightsFrame::UploadJ1SYSOutput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "J1SYS IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2262,14 +1972,10 @@ void xLightsFrame::UploadJ1SYSOutput()
         }
 
         J1Sys j1sys(ip.ToStdString());
-        if (j1sys.IsConnected())
-        {
-            if (j1sys.SetOutputs(&AllModels, &_outputManager, selected, this))
-            {
+        if (j1sys.IsConnected()) {
+            if (j1sys.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("J1SYS Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("J1SYS Upload Failed.");
             }
         }
@@ -2286,11 +1992,9 @@ void xLightsFrame::UploadESPixelStickOutput()
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
-        if (ip == "")
-        {
+        if (ip == "") {
             wxTextEntryDialog dlg(this, "ES Pixel Stick IP Address", "IP Address", ip);
-            if (dlg.ShowModal() != wxID_OK)
-            {
+            if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
             }
@@ -2298,14 +2002,10 @@ void xLightsFrame::UploadESPixelStickOutput()
         }
 
         ESPixelStick esPixelStick(ip.ToStdString());
-        if (esPixelStick.IsConnected())
-        {
-            if (esPixelStick.SetOutputs(&AllModels, &_outputManager, selected, this))
-            {
+        if (esPixelStick.IsConnected()) {
+            if (esPixelStick.SetOutputs(&AllModels, &_outputManager, selected, this)) {
                 SetStatusText("ES Pixel Stick Upload Complete.");
-            }
-            else
-            {
+            } else {
                 SetStatusText("ES Pixel Stick Upload Failed.");
             }
         }
@@ -2318,16 +2018,12 @@ void xLightsFrame::PingController(Output* e)
 	if (e != nullptr)
 	{
 		std::string name;
-		if (e->IsIpOutput())
-		{
+		if (e->IsIpOutput()) {
 			name = e->GetIP() + " " + e->GetDescription();
-		}
-		else
-		{
+		} else {
 			name = e->GetCommPort() + " " + e->GetDescription();
 		}
-		switch (e->Ping())
-		{
+		switch (e->Ping()) {
 			case PING_OK:
 			case PING_WEBOK:
 				wxMessageBox("Pinging the Controller was Successful: " + name);
