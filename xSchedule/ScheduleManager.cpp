@@ -3080,6 +3080,11 @@ RunningSchedule* ScheduleManager::GetRunningSchedule(const std::string& schedule
 
 void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool interactive)
 {
+    // prevent this function being reentered
+    static bool reenter = false;
+    if (reenter) return;
+    reenter = true;
+
     if (_outputManager != nullptr)
     {
         if (otl)
@@ -3105,6 +3110,8 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
             }
         }
     }
+
+    reenter = false;
 }
 
 void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
