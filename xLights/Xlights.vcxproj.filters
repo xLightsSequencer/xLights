@@ -342,6 +342,7 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="VideoRenderCacher.cpp" />
+    <ClCompile Include="effects\WarpEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -679,6 +680,7 @@
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="VideoRenderCacher.h" />
+    <ClInclude Include="effects\WarpEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

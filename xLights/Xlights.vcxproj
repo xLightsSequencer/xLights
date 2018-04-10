@@ -77,7 +77,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;./ffmpeg-dev/include;$(ProjectDir);</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;./ffmpeg-dev/lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib;C:\xLights_dev\wxWidgets\lib\vc_x64_lib</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -98,6 +98,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -105,6 +106,9 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);ImageHlp.Lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;iphlpapi.lib;WS2_32.Lib;liquidfund.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\xLights_dev\wxWidgets-3.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -115,12 +119,16 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;WS2_32.Lib;liquidfund.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;WS2_32.Lib;liquidfund.lib;wxbase31ud.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\xLights_dev\wxWidgets-3.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -131,6 +139,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +150,9 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\xLights_dev\wxWidgets-3.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -151,6 +163,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,6 +173,9 @@
       <Profile>true</Profile>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;WS2_32.Lib;liquidfun.lib</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\xLights_dev\wxWidgets-3.1.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\xSchedule\md5.cpp" />
@@ -184,6 +200,7 @@
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
+    <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
@@ -523,6 +540,7 @@
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
+    <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FolderSelection.h" />
     <ClInclude Include="FontManager.h" />
