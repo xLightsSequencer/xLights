@@ -2046,7 +2046,7 @@ void PixelTestDialog::OnTimer(long curtime)
 	unsigned int i;
 	bool ColorChange;
 
-	int NotebookSelection = Notebook1->GetSelection();
+	int NotebookSelection = Notebook2->GetSelection();
 	if (NotebookSelection != LastNotebookSelection)
 	{
 		LastNotebookSelection = NotebookSelection;
