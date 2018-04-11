@@ -782,7 +782,20 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
 
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
 {
-    double res = SettingsMap.GetDouble("TEXTCTRL_" + name, def);
+    double res = def;
+
+    const std::string sn = "SLIDER_" + name;
+    const std::string tn = "TEXTCTRL_" + name;
+    //bool slider = false;
+    if (SettingsMap.Contains(sn))
+    {
+        res = SettingsMap.GetDouble(sn, def);
+        //slider = true;
+    }
+    else if (SettingsMap.Contains(tn))
+    {
+        res = SettingsMap.GetDouble(tn, def);
+    }
 
     wxString vn = "VALUECURVE_" + name;
     wxString vc = SettingsMap.Get(vn, "");
@@ -794,7 +807,16 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
         {
             valc.SetLimits(min, max);
             valc.SetDivisor(divisor);
-            res = valc.GetOutputValueAtDivided(offset);
+
+            // If we ask for a double we always want it pre-divided
+            //if (slider)
+            //{
+            //    res = valc.GetOutputValueAt(offset);
+            //}
+            //else
+            //{
+                res = valc.GetOutputValueAtDivided(offset);
+            //}
 
             if (needsUpgrade)
             {
@@ -811,9 +833,11 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
     int res = def;
     const std::string sn = "SLIDER_" + name;
     const std::string tn = "TEXTCTRL_" + name;
+    //bool slider = false;
     if (SettingsMap.Contains(sn))
     {
         res = SettingsMap.GetInt(sn, def);
+        //slider = true;
     }
     else if (SettingsMap.Contains(tn))
     {
@@ -833,7 +857,15 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
         valc.Deserialise(vc.ToStdString());
         if (valc.IsActive())
         {
-            res = valc.GetOutputValueAtDivided(offset);
+            // If we ask for an int then we seem to want it undivided
+            //if (!slider)
+            //{
+                res = valc.GetOutputValueAt(offset);
+            //}
+            //else
+            //{
+            //    res = valc.GetOutputValueAtDivided(offset);
+            //}
 
             if (needsUpgrade)
             {
@@ -844,6 +876,3 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
 
     return res;
 }
-
-
-

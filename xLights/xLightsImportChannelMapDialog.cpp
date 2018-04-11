@@ -1498,7 +1498,6 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
     return wxDragMove;
 }
 
-
 bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
     wxLogNull logNo; //kludge: Prevent wx logging

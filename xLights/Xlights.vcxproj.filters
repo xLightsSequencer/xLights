@@ -331,6 +331,9 @@
     <ClCompile Include="SequenceVideoPreview.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
+    <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
