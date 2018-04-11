@@ -13,8 +13,8 @@
 #include "UtilFunctions.h"
 #include <wx/msgdlg.h>
 
-#include "jsonreader.h"
-#include "jsonwriter.h"
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
 
 FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
