@@ -493,6 +493,7 @@
 		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NoteImportDialog.cpp" />
 		<Unit filename="NoteImportDialog.h" />
+		<Unit filename="OpenGLShaders.cpp" />
 		<Unit filename="OptionChooser.cpp" />
 		<Unit filename="OptionChooser.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
@@ -816,6 +817,8 @@
 		<Unit filename="effects/VideoEffect.h" />
 		<Unit filename="effects/VideoPanel.cpp" />
 		<Unit filename="effects/VideoPanel.h" />
+		<Unit filename="effects/WarpEffect.cpp" />
+		<Unit filename="effects/WarpEffect.h" />
 		<Unit filename="effects/WaveEffect.cpp" />
 		<Unit filename="effects/WaveEffect.h" />
 		<Unit filename="effects/WavePanel.cpp" />
