@@ -334,6 +334,7 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
+    <ClCompile Include="LayerSelectDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -662,6 +663,7 @@
     <ClInclude Include="SequenceVideoPreview.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
+    <ClInclude Include="LayerSelectDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

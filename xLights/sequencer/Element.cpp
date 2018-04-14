@@ -81,6 +81,21 @@ EffectLayer* Element::GetEffectLayer(int index) const
     return mEffectLayers[index];
 }
 
+int Element::GetLayerNumberFromIndex(int index)
+{
+    int i = 0;
+    for (auto it = mEffectLayers.begin(); it != mEffectLayers.end(); ++it)
+    {
+        if ((*it)->GetIndex() == index)
+        {
+            return i + 1;
+        }
+        i++;
+    }
+
+    return -1;
+}
+
 EffectLayer* Element::AddEffectLayer()
 {
     EffectLayer* new_layer = AddEffectLayerInternal();

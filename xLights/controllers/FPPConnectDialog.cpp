@@ -312,7 +312,7 @@ void FPPConnectDialog::LoadConnectionDetails()
     // they should all be the same size ... but if not base it off the smallest
     int count = std::min(ips.size(), std::min(users.size(), passwords.size()));
 
-    while (descriptions.size() < count)
+    while ((int)descriptions.size() < count)
     {
         descriptions.push_back("");
     }

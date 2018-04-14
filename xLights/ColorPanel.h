@@ -56,6 +56,7 @@ public:
         wxString GetColorString();
         wxString GetRandomColorString();
         void SetSupports(bool linear, bool radial);
+        void ValidateWindow();
 
         bool PaletteChanged;
         bool EffectChanged;
@@ -65,7 +66,6 @@ public:
         ColorPanelTouchBar *SetupTouchBar(xlTouchBarSupport &tbs);
         ColorPanelTouchBar *GetTouchBar() const { return touchBar; }
 private:
-        void ValidateWindow();
         std::string GetCurrentPalette() const;
         wxString FindPaletteFile(const wxString& filename, const wxString& palette) const;
         wxColour GetPaletteColor(int idx) const;

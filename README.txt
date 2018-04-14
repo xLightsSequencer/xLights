@@ -11,8 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs
+   -- enh (keith)  Add the ability to select the layers included in Canvas blend mode
+   -- bug (keith)  Rework the value curve fix
+   -- bug (keith)  Some fixes to FPP event sending in xSchedule
+   -- bug (keith)  Fix test mode RGB modes
+   -- bug (keith)  Fix some xSchedule crashes
 2018.10 Apr 9, 2018
    -- enh (cjd)    Add -c/-x options to run xCapture/xSchedule via main binary on linux
    -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 

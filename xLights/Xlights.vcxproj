@@ -195,6 +195,7 @@
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
@@ -518,6 +519,7 @@
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
+    <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\ImageModel.h" />
