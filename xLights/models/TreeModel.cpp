@@ -26,7 +26,7 @@ TreeModel::~TreeModel()
 void TreeModel::InitModel() {
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    
+
     int firstStrand = 0;
     if (zeroBased && ModelXml->GetAttribute("exportFirstStrand") != "") {
         firstStrand = wxAtoi(ModelXml->GetAttribute("exportFirstStrand")) - 1;
@@ -48,7 +48,7 @@ void TreeModel::InitModel() {
     rotation = wxAtof(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
     botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
-    perspective = wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    perspective = 0.0f; //wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
 }
@@ -66,20 +66,20 @@ void TreeModel::SetTreeCoord(long degrees) {
         double angle;
         RenderHt=BufferHt * 3;
         RenderWi=((double)RenderHt)/1.8;
-        
+
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
         double topradius=radius/botTopRatio;
-        
+
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
         if (degrees < 350 && BufferWi > 1) {
             AngleIncr=radians/double(BufferWi - 1);
         }
-        
+
         //shift a tiny bit to make the strands in back not line up exactly with the strands in front
         StartAngle += toRadians(rotation);
-        
+
         std::vector<float> yPos(BufferHt);
         std::vector<float> xInc(BufferHt);
         for (int x = 0; x < BufferHt; x ++) {
@@ -124,12 +124,12 @@ void TreeModel::SetTreeCoord(long degrees) {
                 curLightInSeg++;
             }
         }
-        
-        
+
+
         double topYoffset = std::abs(perspective * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
         double ybot = std::abs(perspective * radius * cos(M_PI));
-        
+
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
             size_t CoordCount=GetCoordCount(n);
@@ -139,8 +139,12 @@ void TreeModel::SetTreeCoord(long degrees) {
                 angle=StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
-                double yb = ybot - perspective * radius * cos(angle);
-                double yt = ytop - perspective * topradius * cos(angle);
+                double zb=radius * cos(angle);
+                double zt=topradius * cos(angle);
+                double yb = ybot;
+                double yt = ytop;
+                //double yb = ybot - perspective * radius * cos(angle);
+                //double yt = ytop - perspective * topradius * cos(angle);
                 double posOnString = 0.5;
                 if (BufferHt > 1) {
                     posOnString = yPos[bufferY]/(double)(BufferHt-1.0);
@@ -148,6 +152,7 @@ void TreeModel::SetTreeCoord(long degrees) {
 
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                 Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
+                Nodes[n]->Coords[c].screenZ = zb + (zt - zb) * posOnString;
             }
         }
     } else {
@@ -155,7 +160,7 @@ void TreeModel::SetTreeCoord(long degrees) {
         double botWid = BufferWi * treeScale;
         RenderHt=BufferHt * 2.0;
         RenderWi=(botWid + 2);
-        
+
         double offset = 0.5;
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
@@ -164,20 +169,20 @@ void TreeModel::SetTreeCoord(long degrees) {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
-                    
+
                     double posOnString = 0.5;
                     if (BufferHt > 1) {
                         posOnString = (bufferY/(double)(BufferHt-1.0));
                     }
-                    
+
                     double newh = RenderHt * posOnString;
                     Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = 0;
                     if (BufferHt > 1) {
                         posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
@@ -187,7 +192,7 @@ void TreeModel::SetTreeCoord(long degrees) {
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = 1;
                     if (BufferHt > 1) {
                         posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
@@ -197,12 +202,12 @@ void TreeModel::SetTreeCoord(long degrees) {
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
                 }
-                
+
             } else {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double posOnString = 0.5;
@@ -281,13 +286,13 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
         TREE_STYLES.Add("Ribbon");
     }
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
-    
+
     wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "360");
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", treeType == 0 ? rotation : 3));
     p->SetAttribute("Min", "-360");
     p->SetAttribute("Max", "360");
@@ -295,14 +300,14 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
     p->SetAttribute("Min", "-20");
     p->SetAttribute("Max", "20");
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", treeType == 0 ? botTopRatio : 6.0));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "50");

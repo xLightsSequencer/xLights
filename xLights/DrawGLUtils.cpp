@@ -114,7 +114,7 @@ public:
         Draw(data, type, enableCapability);
         data.Reset();
     }
-    
+
     void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
             return;
@@ -122,10 +122,10 @@ public:
         bool textsBound = false;
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-        
+
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
         LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
-        
+
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
             if (it->textureId != -1) {
                 LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -159,7 +159,56 @@ public:
                 LOG_GL_ERRORV(glDisable(it->enableCapability));
             }
         }
-        
+
+        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+    }
+
+    void Draw(DrawGLUtils::xl3Accumulator &va) override {
+        if (va.count == 0) {
+            return;
+        }
+        bool textsBound = false;
+        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+
+        LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
+
+        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+            if (it->textureId != -1) {
+                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                if (!textsBound) {
+                    LOG_GL_ERRORV(glTexCoordPointer(3, GL_FLOAT, 0, va.tvertices));
+                    textsBound = true;
+                }
+                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                float trans = it->textureAlpha;
+                trans /= 255.0f;
+                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, trans));
+            }
+            if (it->type == GL_POINTS) {
+                LOG_GL_ERRORV(glPointSize(it->extra));
+            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                DrawGLUtils::SetLineWidth(it->extra);
+            }
+            if (it->enableCapability != 0) {
+                LOG_GL_ERRORV(glEnable(it->enableCapability));
+            }
+            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+            if (it->textureId != -1) {
+                LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+            }
+            if (it->enableCapability != 0) {
+                LOG_GL_ERRORV(glDisable(it->enableCapability));
+            }
+        }
+
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
     }
@@ -216,7 +265,7 @@ public:
 
         LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
         LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, va.vertices));
-        
+
         if (va.alpha != 255) {
             float intensity = va.alpha;
             intensity /= 255;
@@ -232,8 +281,8 @@ public:
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         }
-        
-        
+
+
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -243,6 +292,22 @@ public:
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
+	void Draw(DrawGLUtils::xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) override {
+		if (va.count == 0) {
+			return;
+		}
+		if (enableCapability != 0) {
+			LOG_GL_ERRORV(glEnable(enableCapability));
+		}
+		LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
+		LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+		LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
+		LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+		LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+		if (enableCapability != 0) {
+			LOG_GL_ERRORV(glDisable(enableCapability));
+		}
+	}
 
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
@@ -251,6 +316,21 @@ public:
         LOG_GL_ERRORV(glOrtho(topleft_x, bottomright_x, bottomright_y, topleft_y, -1, 1));
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
         LOG_GL_ERRORV(glLoadIdentity());
+    }
+
+    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+        LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
+        LOG_GL_ERRORV(glLoadIdentity());
+
+        LOG_GL_ERRORV(glFrustum((float)topleft_x, (float)bottomright_x, (float)topleft_y, (float)bottomright_y, 0.1f, 100.0f););
+        LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
+        LOG_GL_ERRORV(glLoadIdentity());
+    }
+
+    virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
+        LOG_GL_ERRORV(glTranslatef(0, 0, cameraDistance));
+        LOG_GL_ERRORV(glRotatef(cameraAngleX, 1, 0, 0)); // pitch
+        LOG_GL_ERRORV(glRotatef(cameraAngleY, 0, 1, 0)); // heading
     }
 
     void PushMatrix() override {
@@ -331,6 +411,24 @@ void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
 }
 
+void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
+    int x, y, x2, y2;
+    x = topleft_x;
+    y = topleft_y;
+    x2 = bottomright_x;
+    y2 = bottomright_y;
+
+    xlSetRetinaCanvasViewport(win, x,y,x2,y2);  // TBD - this may need reworking for 3D
+    LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
+	LOG_GL_ERRORV(glScissor(0, 0, x2 - x, y2 - y));
+    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y);
+	LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
+	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+}
+
+void DrawGLUtils::SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
+	currentCache->SetCamera((float)cameraAngleX, (float)cameraAngleY, (float)cameraDistance);
+}
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();
 }
@@ -355,6 +453,10 @@ void DrawGLUtils::Draw(xlAccumulator &va) {
     currentCache->Draw(va);
 }
 
+void DrawGLUtils::Draw(xl3Accumulator &va) {
+    currentCache->Draw(va);
+}
+
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {
     currentCache->Draw(va, color, type, enableCapability);
 }
@@ -365,6 +467,10 @@ void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapabil
 
 void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability) {
     currentCache->Draw(va, type, enableCapability);
+}
+
+void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) {
+	currentCache->Draw(va, color, type, enableCapability);
 }
 
 void DrawGLUtils::PreAlloc(int verts) {
@@ -577,6 +683,22 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
     }
 }
 
+void DrawGLUtils::xl3Accumulator::Finish(int type, int enableCapability, float extra) {
+    if (!types.empty()
+        && types.back().textureId == -1
+        && types.back().type == type
+        && types.back().enableCapability == enableCapability && types.back().extra == extra) {
+        //same params, just extent the previous
+        types.back().count += count - start;
+        start = count;
+        return;
+    }
+    if (count != start) {
+        types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
+        start = count;
+    }
+}
+
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
@@ -584,9 +706,29 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulato
     count += va.count;
 }
 
+void DrawGLUtils::xl3Accumulator::Load(const DrawGLUtils::xlVertex3ColorAccumulator& va) {
+    PreAlloc(va.count);
+    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
+    memcpy(&colors[count*4], va.colors, va.count*4);
+    count += va.count;
+}
+
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    int i = count * 4;
+    for (int x = 0; x < va.count; x++) {
+        colors[i++] = c.Red();
+        colors[i++] = c.Green();
+        colors[i++] = c.Blue();
+        colors[i++] = c.Alpha();
+    }
+    count += va.count;
+}
+
+void DrawGLUtils::xl3Accumulator::Load(const DrawGLUtils::xlVertex3Accumulator& va, const xlColor &c) {
+    PreAlloc(va.count);
+    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
     int i = count * 4;
     for (int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
@@ -612,6 +754,13 @@ void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
     }
 }
 
+void DrawGLUtils::xl3Accumulator::DoRealloc(int newMax) {
+    DrawGLUtils::xlVertex3ColorAccumulator::DoRealloc(newMax);
+    if (tvertices != nullptr) {
+        tvertices = (float*)realloc(tvertices, sizeof(float)*newMax*3);
+    }
+}
+
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
@@ -621,7 +770,7 @@ void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
 
 void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
     PreAllocTexture(1);
-    
+
     int i = count*2;
     vertices[i] = x;
     tvertices[i] = tx;
@@ -659,7 +808,59 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
     }
 }
 
+void DrawGLUtils::xlVertex3ColorAccumulator::AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor &color) {
+    // Line 1
+    float xs = x1<x2?x1:x2;
+    float xf = x1>x2?x1:x2;
+    for(float x = xs; x <= xf; x += 8)
+    {
+        AddVertex(x, y1, 0, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y1, 0, color);
+        AddVertex(x, y2, 0, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y2, 0, color);
+    }
+    // Line 2
+    int ys = y1<y2?y1:y2;
+    int yf = y1>y2?y1:y2;
+    for(int y=ys;y<=yf;y+=8)
+    {
+        AddVertex(x1, y, 0, color);
+        AddVertex(x1, y + 4 < yf ? y + 4 : yf, 0, color);
+        AddVertex(x2, y, 0, color);
+        AddVertex(x2, y + 4 < yf ? y + 4 : yf, 0, color);
+    }
+}
+
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
+    xlColor start;
+    xlColor end;
+    int cnt = colors.size();
+    if (cnt == 0) {
+        return;
+    }
+    start = colors[0 + offset];
+    start.ApplyMask(colorMask);
+    if (cnt == 1) {
+        AddHBlendedRectangle(start, start, x1, y1, x2, y2);
+        return;
+    }
+    int xl = x1;
+    start = colors[0+offset];
+    start.ApplyMask(colorMask);
+    for (int x = 1+offset; x < cnt; x++) {
+        end =  colors[x];
+        end.ApplyMask(colorMask);
+        int xr = x1 + (x2 - x1) * x / (cnt  - 1);
+        if (x == (cnt - 1)) {
+            xr = x2;
+        }
+        AddHBlendedRectangle(start, end, xl, y1, xr, y2);
+        start = end;
+        xl = xr;
+    }
+}
+
+void DrawGLUtils::xlVertex3ColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
     xlColor start;
     xlColor end;
     int cnt = colors.size();
@@ -697,7 +898,20 @@ void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &
     AddVertex(x1, y1, left);
 }
 
+void DrawGLUtils::xlVertex3ColorAccumulator::AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2) {
+    AddVertex(x1, y1, 0, left);
+    AddVertex(x1, y2, 0, left);
+    AddVertex(x2, y2, 0, right);
+    AddVertex(x2, y2, 0, right);
+    AddVertex(x2, y1, 0, right);
+    AddVertex(x1, y1, 0, left);
+}
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
+    AddTrianglesCircle(x, y, radius, color, color);
+}
+
+void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
     AddTrianglesCircle(x, y, radius, color, color);
 }
 
@@ -710,10 +924,10 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
     float theta = 2 * 3.1415926 / float(num_segments);
     float tangetial_factor = tanf(theta);//calculate the tangential factor
     float radial_factor = cosf(theta);//calculate the radial factor
-    
+
     float x = radius;//we start at angle = 0
     float y = 0;
-    
+
     for(int ii = 0; ii < num_segments; ii++) {
         AddVertex(x + cx, y + cy, edge);
         //calculate the tangential vector
@@ -721,7 +935,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         //to get the tangential vector we flip those coordinates and negate one of them
         float tx = -y;
         float ty = x;
-        
+
         //add the tangential vector
         x += tx * tangetial_factor;
         y += ty * tangetial_factor;
@@ -729,6 +943,37 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         y *= radial_factor;
         AddVertex(x + cx, y + cy, edge);
         AddVertex(cx, cy, center);
+    }
+}
+
+void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+
+    float x = radius;//we start at angle = 0
+    float y = 0;
+
+    for(int ii = 0; ii < num_segments; ii++) {
+        AddVertex(x + cx, y + cy, 0, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        AddVertex(x + cx, y + cy, 0, edge);
+        AddVertex(cx, cy, 0, center);
     }
 }
 
@@ -823,9 +1068,9 @@ public:
                    float mh, float mw, float md,
                    std::vector<float> w)
         : data(d), maxH(mh), maxW(mw), maxD(md), widths(w) {
-        
+
     }
-    
+
     const char * const *data;
     float maxH;
     float maxW;
@@ -851,7 +1096,7 @@ public:
     ~FontTexture() {};
 
     bool Valid() { return currentCache->HasTextureId(fontIdx);}
-    
+
     bool Create(int size) {
         switch (size) {
             CASEFONT(10);
@@ -898,7 +1143,7 @@ public:
                 }
             }
         }
-        
+
         bool scaledW, scaledH, mAlpha;
         int width, height;
         GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
@@ -906,7 +1151,7 @@ public:
     }
     void ForceCreate(int size) {
         wxString faceName = "Gil Sans";
-        
+
         bool useAA = USEAA;
         if (size <= 12)  {
             useAA = false;
@@ -934,10 +1179,10 @@ public:
             maxD = std::max(maxD, (float)desc);
         }
         delete ctx;
-        
+
         maxW += 1.0; // allow room to possibly have to handle some kerning
-        
-        
+
+
         int imgh = (maxH + 5) * 6;
         int imgw = (maxW + 5) * 16;
         float power_of_two_that_gives_correct_width=std::log((float)imgw)/std::log(2.0);
@@ -945,7 +1190,7 @@ public:
         imgw=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_width)) );
         imgh=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_height)) );
 
-        
+
         wxImage cimg(imgw, imgh);
         cimg.InitAlpha();
 
@@ -967,8 +1212,8 @@ public:
         }
         delete ctx;
          */
-        
-        
+
+
         ctx = wxGraphicsContext::Create(cimg);
         ctx->SetPen( *wxWHITE_PEN );
         ctx->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_BEST);
@@ -981,7 +1226,7 @@ public:
             ctx->SetAntialiasMode(wxANTIALIAS_NONE);
             ctx->SetFont(ctx->CreateFont(size, faceName, wxFONTFLAG_NOT_ANTIALIASED, *wxWHITE));
         }
-        
+
         int count = 0;
         int line = 0;
         widths.clear();
@@ -989,7 +1234,7 @@ public:
         for (char c = ' '; c <= '~'; c++) {
             wxString s = c;
             ctx->DrawText(s, 2 + (count * (maxW + 5)), 2 + line * (maxH + 5));
-            
+
             double width, height, desc, el;
             ctx->GetTextExtent(s, &width, &height, &desc, &el);
             widths[c - ' '] = width;
@@ -1001,7 +1246,7 @@ public:
         }
         delete ctx;
 
-        
+
         for (int l = 0; l < NUMLINES; l++) {
             for (int c = 0; c < NUMCHARS; c++) {
                 bool kerned = false;
@@ -1037,8 +1282,8 @@ public:
                  */
             }
         }
-        
-        
+
+
          //used to output data that can be used to static generation above
         /*
         wxString fn = wxString::Format("/tmp/font_%d.png", size);
@@ -1072,8 +1317,8 @@ public:
         }
         printf("});\n");
         */
-        
-        
+
+
         InitializeImage(cimg);
     }
 
@@ -1101,12 +1346,12 @@ public:
 
             float tx = 1 + (pos * (maxW + 5));
             float tx2 = tx + widths[ch - ' '];
-            
+
             float x2 = x + float(widths[ch - ' ']) / factor;
-            
+
             float ty2 = textureHeight - 3 - (line * (maxH + 5));
             float ty = ty2 - maxH;
-            
+
             float y = yBase;
             float y2 = yBase - float(maxH) / factor;
             /*
@@ -1114,29 +1359,29 @@ public:
                 printf("%c   %f %f    %f %f     %f %f\n", ch, x, x2, tx, tx2,  (x2-x), (tx2-tx));
             }
              */
-            
+
             tx /= textureWidth;
             tx2 /= textureWidth;
-            
+
             ty2 /= textureHeight;
             ty /= textureHeight;
-            
+
             //samples need to be from the MIDDLE of the pixel
             ty -= 0.5 / textureHeight;
             ty2 += 0.75 / textureHeight;
-            
+
             tx += 0.5 / textureWidth;
             tx2 += 1.0 / textureWidth;
-            
+
             y += 0.25/factor;
             y2 -= 0.75/factor;
             x -= 0.25/factor;
             x2 += 0.25/factor;
-            
+
             /*
             if (ch == '1') {
                 DrawGLUtils::DrawFillRectangle(xlWHITE, 255,x,y, image.textureWidth / factor, image.textureHeight / factor);
-                
+
                 ty = 0.0;
                 ty2 = 1.0 - ty;
                 tx = 0.0;
@@ -1147,7 +1392,7 @@ public:
             }
             */
             //printf("%c   %f %f    %f %f\n", ch, tx, tx2, ty, ty2);
-            
+
             va.AddVertex(x, y, tx, ty);
             va.AddVertex(x, y2, tx, ty2);
             va.AddVertex(x2, y2, tx2, ty2);
@@ -1178,7 +1423,7 @@ public:
         }
         return w / factor;
     }
-    
+
     float maxD, maxW, maxH;
     std::vector<float> widths;
     int fontIdx;

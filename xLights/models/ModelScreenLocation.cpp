@@ -84,7 +84,11 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 }
 
-ModelScreenLocation::ModelScreenLocation(int sz) : RenderWi(0), RenderHt(0), previewW(800), previewH(600), mHandlePosition(sz) {
+ModelScreenLocation::ModelScreenLocation(int sz)
+: RenderWi(0), RenderHt(0), previewW(800), previewH(600),
+  worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
+  scale_x(1.0f), scale_y(1.0f), scale_z(1.0f), mHandlePosition(sz)
+{
     _locked = false;
 }
 
@@ -119,6 +123,32 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
         PreviewScaleY = 0.33f;
     }
     PreviewRotation=wxAtoi(ModelNode->GetAttribute("PreviewRotation","0"));
+
+    worldPos_x = wxAtof(ModelNode->GetAttribute("worldPos_x","0.0"));
+    if( worldPos_x < 0 ) {
+        worldPos_x = 0.0f;
+    }
+    worldPos_y = wxAtof(ModelNode->GetAttribute("worldPos_y","0.0"));
+    if( worldPos_y < 0 ) {
+        worldPos_y = 0.0f;
+    }
+    worldPos_z = wxAtof(ModelNode->GetAttribute("worldPos_z","0.0"));
+    if( worldPos_z < 0 ) {
+        worldPos_z = 0.0f;
+    }
+    scale_x = wxAtof(ModelNode->GetAttribute("scale_x","3.0"));
+    if( scale_x < 0 ) {
+        scale_x = 0.0f;
+    }
+    scale_y = wxAtof(ModelNode->GetAttribute("scale_y","3.0"));
+    if( scale_y < 0 ) {
+        scale_y = 0.0f;
+    }
+    scale_z = wxAtof(ModelNode->GetAttribute("scale_z","3.0"));
+    if( scale_z < 0 ) {
+        scale_z = 0.0f;
+    }
+
     _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
 
@@ -129,6 +159,12 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("PreviewScaleX");
     ModelXml->DeleteAttribute("PreviewScaleY");
     ModelXml->DeleteAttribute("PreviewRotation");
+    ModelXml->DeleteAttribute("worldPos_x");
+    ModelXml->DeleteAttribute("worldPos_y");
+    ModelXml->DeleteAttribute("worldPos_z");
+    ModelXml->DeleteAttribute("scale_x");
+    ModelXml->DeleteAttribute("scale_y");
+    ModelXml->DeleteAttribute("scale_z");
     ModelXml->DeleteAttribute("Locked");
     ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
     ModelXml->AddAttribute("offsetYpct", wxString::Format("%6.4f",offsetYpct));
@@ -139,18 +175,26 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
         ModelXml->AddAttribute("PreviewScaleY", wxString::Format("%6.4f",PreviewScaleY));
     }
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
+    ModelXml->AddAttribute("worldPos_x", wxString::Format("%6.4f",worldPos_x));
+    ModelXml->AddAttribute("worldPos_y", wxString::Format("%6.4f",worldPos_y));
+    ModelXml->AddAttribute("worldPos_z", wxString::Format("%6.4f",worldPos_z));
+    ModelXml->AddAttribute("scale_x", wxString::Format("%6.4f",scale_x));
+    ModelXml->AddAttribute("scale_y", wxString::Format("%6.4f",scale_y));
+    ModelXml->AddAttribute("scale_z", wxString::Format("%6.4f",scale_z));
     if (_locked)
     {
         ModelXml->AddAttribute("Locked", "1");
     }
 }
 
-void BoxedScreenLocation::TranslatePoint(float &sx, float &sy) const {
-    sx = (sx*scalex);
-    sy = (sy*scaley);
+void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const {
+    sx = (sx*scale_x*3);
+    sy = (sy*scale_y * 3);
+	sz = (sz*scale_z * 3);
     TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx += centerx;
-    sy += centery;
+    sx += worldPos_x;
+    sy += worldPos_y;
+	sz += 100;
 }
 
 bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
@@ -249,8 +293,9 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
             // draw node on screen
             float sx = coord->screenX;
             float sy = coord->screenY;
+            float sz = coord->screenZ;
 
-            TranslatePoint(sx, sy);
+            TranslatePoint(sx, sy, sz);
 
             if (sx<mMinScreenX) {
                 mMinScreenX = sx;
@@ -277,6 +322,8 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
     }
 }
 
+void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
+}
 
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.PreAlloc(6 * 5);
@@ -578,7 +625,7 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     matrix = new glm::mat3(mat3);
 }
 
-void TwoPointScreenLocation::TranslatePoint(float &x, float &y) const {
+void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const {
     glm::vec3 v = *matrix * glm::vec3(x, y, 1);
     x = v.x;
     y = v.y;
@@ -655,6 +702,9 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) c
     }
     handle = -1;
     return wxCURSOR_DEFAULT;
+}
+
+void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 }
 
 void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
@@ -790,7 +840,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     else if (!_locked && "ModelX2" == name) {
         x2 = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } 
+    }
     else if (_locked && "ModelX2" == name) {
         event.Veto();
         return 0;
@@ -832,13 +882,14 @@ void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 
     float sx = - float(RenderWi) / 2.0;
     float sy = 0;
-    box.TranslatePoint(sx, sy);
+    float sz = 0;
+    box.TranslatePoint(sx, sy, sz);
     x1 = sx / (float)previewW;
     y1 = sy / (float)previewH;
 
     sx = float(RenderWi) / 2.0;
     sy = 0;
-    box.TranslatePoint(sx, sy);
+    box.TranslatePoint(sx, sy, sz);
 
     x2 = sx / (float)previewW;
     y2 = sy / (float)previewH;
@@ -1185,6 +1236,9 @@ int ThreePointScreenLocation::GetMHeight() const
     return GetHeight() * RenderHt;
 }
 
+void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
+}
+
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
     float sx1 = (x1 + x2) * previewW / 2.0;
@@ -1293,7 +1347,8 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 
     float x1 = RenderWi / 2.0;
     float y1 = RenderHt;
-    box.TranslatePoint(x1, y1);
+    float z1 = 0;
+    box.TranslatePoint(x1, y1, z1);
 
     TwoPointScreenLocation::ProcessOldNode(old);
 
@@ -1483,7 +1538,7 @@ void PolyPointScreenLocation::PrepareToDraw() const {
     main_matrix = new glm::mat3(mat3);
 }
 
-void PolyPointScreenLocation::TranslatePoint(float &x, float &y) const {
+void PolyPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const {
     glm::vec3 v = *main_matrix * glm::vec3(x, y, 1);
     x = v.x;
     y = v.y;
@@ -1583,6 +1638,9 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) 
     }
     handle = -1;
     return wxCURSOR_DEFAULT;
+}
+
+void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 }
 
 void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {

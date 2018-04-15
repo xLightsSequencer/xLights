@@ -61,15 +61,18 @@ class xlGLCanvas
 
         virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
+        void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);
         void OnEraseBackGround(wxEraseEvent& event) {};
 
         void CreateGLContext();
-    
-    
+
+
         virtual bool UsesVertexTextureAccumulator() {return true;}
         virtual bool UsesVertexColorAccumulator() {return true;}
         virtual bool UsesVertexAccumulator() {return true;}
+        virtual bool UsesVertex3Accumulator() {return false;}
+        virtual bool UsesVertex3ColorAccumulator() {return false;}
         virtual bool UsesAddVertex() {return true;}
 
         DrawGLUtils::xlGLCacheInfo *cache;

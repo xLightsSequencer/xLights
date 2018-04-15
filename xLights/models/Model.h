@@ -27,6 +27,7 @@ typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
 namespace DrawGLUtils {
     class xlAccumulator;
+    class xl3Accumulator;
 }
 
 class Model
@@ -246,6 +247,7 @@ public:
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
     virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

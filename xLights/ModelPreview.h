@@ -14,6 +14,7 @@ class Model;
 class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
+class xlVertex3Accumulator;
 
 class ModelPreview : public xlGLCanvas
 {
@@ -55,6 +56,9 @@ public:
     void SetScaleBackgroundImage(bool b);
     bool GetScaleBackgroundImage() const { return scaleImage; }
 
+	void SetCameraView(int camerax, int cameray, bool latch);
+	void SetCameraPos(int camerax, int cameray, bool latch);
+
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
 
@@ -85,6 +89,8 @@ protected:
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return true;}
+    virtual bool UsesVertex3Accumulator() {return true;}
+    virtual bool UsesVertex3ColorAccumulator() {return true;}
 
 private:
 	void render(wxPaintEvent& event);
@@ -99,6 +105,7 @@ private:
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
     void OnPopup(wxCommandEvent& event);
+	void drawGrid(float size, float step);
 
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
@@ -120,6 +127,13 @@ private:
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
     xLightsFrame* xlights;
+    int cameraAngleY;
+    int cameraAngleX;
+	int cameraPosX;
+	int cameraPosY;
+	int cameraDistance;
+	DrawGLUtils::xlVertex3Accumulator gridlines;
+	DrawGLUtils::xl3Accumulator accumulator3d;
 
     double currentPixelScaleFactor = 1.0;
 

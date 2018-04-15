@@ -136,24 +136,24 @@ public:
             "}\n");
 
         ProgramIDtexture = LinkProgram(VertexShaderIDtx, FragmentShaderIDtxt);
-        
+
         LOG_GL_ERRORV(glDeleteShader(VertexShaderIDtx));
         LOG_GL_ERRORV(glDeleteShader(FragmentShaderIDtxt));
         LOG_GL_ERRORV(glDeleteShader(VertexShaderIDc));
         LOG_GL_ERRORV(glDeleteShader(VertexShaderIDsc));
         LOG_GL_ERRORV(glDeleteShader(FragmentShaderID));
 
-        
+
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
         LOG_GL_ERRORV(MatrixIDc = glGetUniformLocation(ProgramIDcolors, "MVP"));
         LOG_GL_ERRORV(MatrixIDsc = glGetUniformLocation(ProgramIDstaticColor, "MVP"));
         LOG_GL_ERRORV(MatrixIDt = glGetUniformLocation(ProgramIDcolors, "MVP"));
-        
-        
+
+
         isIntel = wxString(glGetString(GL_VENDOR)).Contains("Intel");
         //isIntel = true;
     }
-    
+
     GLuint CompileShader(GLenum type, const char *text) {
         GLuint shad = glCreateShader(type);
         GLint Result = GL_FALSE;
@@ -161,7 +161,7 @@ public:
 
         LOG_GL_ERRORV(glShaderSource(shad, 1, &text , nullptr));
         LOG_GL_ERRORV(glCompileShader(shad));
-        
+
         glGetShaderiv(shad, GL_COMPILE_STATUS, &Result);
         glGetShaderiv(shad, GL_INFO_LOG_LENGTH, &InfoLogLength);
         if (!Result && InfoLogLength > 0 ) {
@@ -180,12 +180,12 @@ public:
     GLuint LinkProgram(GLuint VertexShaderID, GLuint FragmentShaderID) {
         GLint Result = GL_FALSE;
         int InfoLogLength;
-        
+
         GLuint ProgramID = glCreateProgram();
-        
+
         LOG_GL_ERRORV(glAttachShader(ProgramID, VertexShaderID));
         LOG_GL_ERRORV(glAttachShader(ProgramID, FragmentShaderID));
-        
+
         LOG_GL_ERRORV(glLinkProgram(ProgramID));
         glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
         glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
@@ -204,7 +204,7 @@ public:
         LOG_GL_ERRORV(glDetachShader(ProgramID, FragmentShaderID));
         return ProgramID;
     }
-    
+
     ~OpenGL21Cache() {
         if (matrix) {
             delete matrix;
@@ -224,41 +224,68 @@ public:
         }
     }
 
-    void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
-        if (va.count == 0) {
-            return;
-        }
-        LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
-        SetMVP(ProgramIDstaticColor);
+	void Draw(DrawGLUtils::xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) override {
+		if (va.count == 0) {
+			return;
+		}
+		LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
+		SetMVP(ProgramIDstaticColor);
 
-        GLuint vattrib = glGetAttribLocation( ProgramIDstaticColor, "vertexPosition_modelspace" );
-        LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
-        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
-        GLuint cid = glGetUniformLocation(ProgramIDstaticColor, "color");
-        glUniform4f(cid,
-                    ((float)color.Red())/255.0,
-                    ((float)color.Green())/255.0,
-                    ((float)color.Blue())/255.0,
-                    ((float)color.Alpha())/255.0
-                    );
-        
-        if (enableCapability != 0) {
-            glEnable(enableCapability);
-        }
-        LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
-        if (enableCapability > 0) {
-            glDisable(enableCapability);
-        }
-        LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
-    }
-    void CalcSmoothPointParams(float ps) {
+		GLuint vattrib = glGetAttribLocation(ProgramIDstaticColor, "vertexPosition_modelspace");
+		LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+		LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
+		GLuint cid = glGetUniformLocation(ProgramIDstaticColor, "color");
+		glUniform4f(cid,
+			((float)color.Red()) / 255.0,
+			((float)color.Green()) / 255.0,
+			((float)color.Blue()) / 255.0,
+			((float)color.Alpha()) / 255.0
+		);
+
+		if (enableCapability != 0) {
+			glEnable(enableCapability);
+		}
+		LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+		if (enableCapability > 0) {
+			glDisable(enableCapability);
+		}
+		LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+	}
+	void Draw(DrawGLUtils::xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) override {
+		if (va.count == 0) {
+			return;
+		}
+		LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
+		SetMVP(ProgramIDstaticColor);
+
+		GLuint vattrib = glGetAttribLocation(ProgramIDstaticColor, "vertexPosition_modelspace");
+		LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+		LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
+		GLuint cid = glGetUniformLocation(ProgramIDstaticColor, "color");
+		glUniform4f(cid,
+			((float)color.Red()) / 255.0,
+			((float)color.Green()) / 255.0,
+			((float)color.Blue()) / 255.0,
+			((float)color.Alpha()) / 255.0
+		);
+
+		if (enableCapability != 0) {
+			glEnable(enableCapability);
+		}
+		LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+		if (enableCapability > 0) {
+			glDisable(enableCapability);
+		}
+		LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+	}
+	void CalcSmoothPointParams(float ps) {
         glPointSize(ps+1);
         float delta = 1.0 / (ps+1);
         float mid = 0.35 + 0.15 * ((ps - 1.0f)/25.0f);
         if (mid > 0.5) {
             mid = 0.5;
         }
-        
+
         float min = std::max(0.0f, mid - delta);
         float max = std::min(1.0f, mid + delta);
         glUniform1f(glGetUniformLocation(ProgramIDcolors, "PointSmoothMin"), min);
@@ -270,8 +297,8 @@ public:
         CalcSmoothPointParams(ps);
         return ps;
     }
-    
-    
+
+
     void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
             return;
@@ -279,11 +306,11 @@ public:
         bool intelMapped = false;
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
         SetMVP(ProgramIDcolors);
-        
+
         GLuint vattrib = glGetAttribLocation( ProgramIDcolors, "vertexPosition_modelspace" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
-        
+
         GLuint cattrib = glGetAttribLocation( ProgramIDcolors, "vertexColor" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
@@ -328,7 +355,7 @@ public:
                 LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
             } else {
                 int enableCapability = it->enableCapability;
-                
+
                 float ps = 2.0;
                 if (it->textureId != -1) {
                     LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
@@ -350,7 +377,7 @@ public:
                     }
                     GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
                     glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
-                    
+
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
                 }
@@ -395,13 +422,141 @@ public:
                 }
             }
         }
-        
+
         LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
     }
 
-    
-    
+    void Draw(DrawGLUtils::xl3Accumulator &va) override {
+        if (va.count == 0) {
+            return;
+        }
+        bool intelMapped = false;
+        LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+        SetMVP(ProgramIDcolors);
+
+        GLuint vattrib = glGetAttribLocation( ProgramIDcolors, "vertexPosition_modelspace" );
+        LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
+
+        GLuint cattrib = glGetAttribLocation( ProgramIDcolors, "vertexColor" );
+        LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
+        LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
+
+        bool textBound = false;
+        GLuint tattrib = 0;
+        GLuint tvattrib = 0;
+
+        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+            if (it->type == GL_POINTS) {
+                LOG_GL_ERRORV(glPointSize(it->extra));
+            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                DrawGLUtils::SetLineWidth(it->extra);
+            }
+            if (isIntel && it->enableCapability == GL_POINT_SMOOTH) {
+                if (it->enableCapability != 0) {
+                    glEnable(it->enableCapability);
+                }
+                LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
+                LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+
+                LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+                LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                if (!intelMapped) {
+                    intelMapped = true;
+                    LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+                    LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
+                }
+                LOG_GL_ERRORV(glUseProgram(0));
+                LOG_GL_ERRORV(glPushMatrix());
+                LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(*matrix)));
+                LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                LOG_GL_ERRORV(glPopMatrix());
+                LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+                LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+
+                if (it->enableCapability != 0) {
+                    glDisable(it->enableCapability);
+                }
+                LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
+                LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+            } else {
+                int enableCapability = it->enableCapability;
+
+                float ps = 2.0;
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
+                    LOG_GL_ERRORV(glUseProgram(ProgramIDtexture));
+                    if (!textBound) {
+                        SetMVP(ProgramIDtexture);
+                        tattrib = glGetAttribLocation( ProgramIDtexture, "texturePos" );
+                        tvattrib = glGetAttribLocation( ProgramIDtexture, "vertexPosition_modelspace" );
+                        LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(ProgramIDtexture, "tex"), 0));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(tvattrib));
+                    if (vattrib != tvattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(tvattrib, 3, GL_FLOAT, false, 0, va.vertices));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(tattrib));
+                    if (tattrib == cattrib || tattrib == vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 3, GL_FLOAT, true, 0, va.tvertices));
+                    }
+                    GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+                    glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
+
+                    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                }
+                if (enableCapability != 0) {
+                    if (enableCapability == GL_POINT_SMOOTH) {
+                        //LOG_GL_ERRORV(glEnable(enableCapability));
+                        GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                        glUniform1i(cid, 1);
+                        ps = CalcSmoothPointParams();
+                        LOG_GL_ERRORV(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                        LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
+                        LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
+                    } else {
+                        LOG_GL_ERRORV(glEnable(enableCapability));
+                    }
+                }
+                LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(tattrib));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(tvattrib));
+                    LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
+                    if (tvattrib != vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
+                    }
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
+                    if (tattrib == cattrib || tattrib == vattrib) {
+                        LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
+                    }
+                }
+                if (enableCapability > 0) {
+                    if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
+                        GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                        glUniform1i(cid, 0);
+                        LOG_GL_ERRORV(glPointSize(ps));
+                        LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
+                        LOG_GL_ERRORV(glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
+                    } else {
+                        glDisable(enableCapability);
+                    }
+                }
+            }
+        }
+
+        LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
+        LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
+    }
+
+
+
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
@@ -413,11 +568,11 @@ public:
             LOG_GL_ERRORV(glEnable(enableCapability));
             LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
             LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-            
+
             LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
             LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
-            
+
             LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
             LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
             LOG_GL_ERRORV(glPopMatrix());
@@ -426,7 +581,7 @@ public:
         }
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
         SetMVP(ProgramIDcolors);
-        
+
         GLuint vattrib = glGetAttribLocation( ProgramIDcolors, "vertexPosition_modelspace" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, &va.vertices[0]));
@@ -434,7 +589,7 @@ public:
         GLuint cattrib = glGetAttribLocation( ProgramIDcolors, "vertexColor" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
-        
+
         float ps = 2.0;
         if (enableCapability != 0) {
             if (enableCapability == GL_POINT_SMOOTH) {
@@ -470,24 +625,24 @@ public:
         }
         LOG_GL_ERRORV(glUseProgram(ProgramIDtexture));
         SetMVP(ProgramIDtexture);
-        
+
         GLuint vattrib = glGetAttribLocation( ProgramIDtexture, "vertexPosition_modelspace" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 2, GL_FLOAT, false, 0, va.vertices));
-        
+
         GLuint cattrib = glGetAttribLocation( ProgramIDtexture, "texturePos" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 2, GL_FLOAT, true, 0, va.tvertices));
-        
+
         LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(ProgramIDtexture, "tex"), 0));
 
         GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
         glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0);
 
-        
+
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, va.id));
-        
+
         if (enableCapability != 0) {
             glEnable(enableCapability);
         }
@@ -500,7 +655,7 @@ public:
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
     }
 
-    
+
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
         data.AddVertex(x, y, c);
@@ -519,17 +674,17 @@ public:
 
     void DrawTexture(GLuint texture, float x, float y, float x2, float y2,
                      float tx, float ty, float tx2, float ty2) override {
-        
+
         DrawGLUtils::xlVertexTextureAccumulator va(texture);
         va.PreAlloc(6);
-        
+
         va.AddVertex(x - 0.4, y, tx, ty);
         va.AddVertex(x - 0.4, y2, tx, ty2);
         va.AddVertex(x2 - 0.4, y2, tx2, ty2);
         va.AddVertex(x2 - 0.4, y2, tx2, ty2);
         va.AddVertex(x2 - 0.4, y, tx2, ty);
         va.AddVertex(x - 0.4, y, tx, ty);
-        
+
         Draw(va, GL_TRIANGLES, 0);
     }
 
@@ -543,6 +698,21 @@ public:
         glm::mat4 m = glm::ortho((float)topleft_x, (float)bottomright_x, (float)bottomright_y, (float)topleft_y);
         matrix = new glm::mat4(m);
     }
+
+    void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+        if (matrix) {
+            delete matrix;
+        }
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(bottomright_y-topleft_y), 0.1f, 100.0f);
+        matrix = new glm::mat4(m);
+    }
+
+    virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
+        Translate(0, 0, cameraDistance);
+        Rotate(cameraAngleX, 1, 0, 0);
+        Rotate(cameraAngleY, 0, 1, 0);
+    }
+
     void PushMatrix() override {
         matrixStack.push(matrix);
         matrix = new glm::mat4(*matrix);
@@ -596,13 +766,13 @@ protected:
     GLuint ProgramIDcolors;
     GLuint ProgramIDstaticColor;
     GLuint ProgramIDtexture;
-    
+
     GLuint MatrixIDc;
     GLuint MatrixIDsc;
     GLuint MatrixIDt;
 
     std::stack<glm::mat4*> matrixStack;
-    
+
     bool isIntel;
 
     glm::mat4 *matrix;

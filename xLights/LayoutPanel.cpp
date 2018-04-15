@@ -207,7 +207,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr)
+    ModelGroupWindow(nullptr), m_mouse_down(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1749,7 +1749,11 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if( m_polyline_active )
+	m_mouse_down = true;
+	m_last_mouse_x = event.GetX();
+	m_last_mouse_y = event.GetY();
+
+	if( m_polyline_active )
     {
         Model *m = newModel;
         int y = event.GetY();
@@ -1852,6 +1856,9 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
     if( m_polyline_active ) return;
 
+	m_mouse_down = false;
+	modelPreview->SetCameraView(0, 0, true);
+
     int y = event.GetY();
 
     if (m_creating_bound_rect)
@@ -1936,6 +1943,12 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
+
+	if (m_mouse_down) {
+		int delta_x = event.GetPosition().x - m_last_mouse_x;
+		int delta_y = event.GetPosition().y - m_last_mouse_y;
+		modelPreview->SetCameraView(delta_x, delta_y, false);
+	}
 
     if (m_creating_bound_rect)
     {

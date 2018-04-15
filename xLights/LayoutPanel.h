@@ -233,8 +233,10 @@ class LayoutPanel: public wxPanel
         int m_over_handle;
         bool m_moving_handle;
         bool m_polyline_active;
-        int m_previous_mouse_x, m_previous_mouse_y;
-        int mPointSize;
+		bool m_mouse_down;
+		int m_last_mouse_x, m_last_mouse_y;
+		int m_previous_mouse_x, m_previous_mouse_y;
+		int mPointSize;
         int mHitTestNextSelectModelIndex;
         int mNumGroups;
         bool mPropGridActive;

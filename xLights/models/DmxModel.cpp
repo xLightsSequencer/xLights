@@ -798,7 +798,7 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 
 // display model using colors
 void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
-    float sx,sy;
+    float sx,sy,sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
@@ -808,7 +808,8 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
 
     sx=0;
     sy=0;
-    GetModelScreenLocation().TranslatePoint(sx, sy);
+    sz=0;
+    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
     if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
         DrawSkullModelOnWindow(preview, va, c, sx, sy, !allowSelected);

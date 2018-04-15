@@ -205,9 +205,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         ::DestroyWindow(m_hWnd);
         m_hWnd = nullptr;
         m_hDC = nullptr;
-        
+
         int r = CreateWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name);
-        
+
         PIXELFORMATDESCRIPTOR pfd = {
             sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
             1,                     // version number
@@ -365,7 +365,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
@@ -511,7 +511,9 @@ void xlGLCanvas::SetCurrentGLContext() {
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),
                                   UsesVertexAccumulator(),
-                                  UsesAddVertex()));
+                                  UsesAddVertex(),
+								  UsesVertex3Accumulator(),
+                                  UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr && ver >=2
             && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
@@ -613,4 +615,9 @@ void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright
     mWindowResized = false;
 }
 
+void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
+{
+    DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
+    mWindowResized = false;
+}
 

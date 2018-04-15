@@ -233,11 +233,15 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     float y2 = 0.5;
     float y3 = 0.5;
     float y4 = -0.5;
+    float z1 = 0;
+    float z2 = 0;
+    float z3 = 0;
+    float z4 = 0;
 
-    GetModelScreenLocation().TranslatePoint(x1, y1);
-    GetModelScreenLocation().TranslatePoint(x2, y2);
-    GetModelScreenLocation().TranslatePoint(x3, y3);
-    GetModelScreenLocation().TranslatePoint(x4, y4);
+    GetModelScreenLocation().TranslatePoint(x1, y1, z1);
+    GetModelScreenLocation().TranslatePoint(x2, y2, z2);
+    GetModelScreenLocation().TranslatePoint(x3, y3, z3);
+    GetModelScreenLocation().TranslatePoint(x4, y4, z4);
 
     DrawModelOnWindow(preview, va, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
 

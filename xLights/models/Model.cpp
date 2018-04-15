@@ -1976,7 +1976,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         float minX = 1000000;
         float maxY = -1000000;
         float minY = 1000000;
-        float sx,sy;
+        float sx,sy,sz;
         GetModelScreenLocation().PrepareToDraw();
 
         for (int x = firstNode; x < newNodes.size(); x++) {
@@ -1987,8 +1987,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 sx = it2->screenX;
                 sy = it2->screenY;
+                sz = 0;
 
-                GetModelScreenLocation().TranslatePoint(sx, sy);
+                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
                 if (sx > maxX) {
                     maxX = sx;
@@ -2020,8 +2021,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 sx = it2->screenX;
                 sy = it2->screenY;
+                sz = 0;
 
-                GetModelScreenLocation().TranslatePoint(sx, sy);
+                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
                 if (it2->bufX > bufferWi) {
@@ -2511,7 +2513,7 @@ void Model::ExportAsCustomXModel() const {
     f.Close();
 }
 
-std::string Model::ChannelLayoutHtml(OutputManager* outputManager) 
+std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 {
     size_t NodeCount = GetNodeCount();
 
@@ -2519,7 +2521,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     chmap.resize(BufferHt * BufferWi, 0);
 
     bool IsCustom = DisplayAs == "Custom";
-    
+
     std::string direction;
     if (IsCustom) {
         direction = "n/a";
@@ -2700,9 +2702,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     va.PreAlloc(maxVertexCount);
 
-    int first = 0; 
+    int first = 0;
     int last = NodeCount;
-    int buffFirst = -1; 
+    int buffFirst = -1;
     int buffLast = -1;
     bool left = true;
 
@@ -2746,7 +2748,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             // draw node on screen
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;
-            GetModelScreenLocation().TranslatePoint(sx, sy);
+            float sz = 0;
+            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
             if (pixelStyle < 2) {
                 if (splitRGB) {
@@ -2775,6 +2778,136 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                     xlColor c3(color);
                     ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
                     va.AddVertex(sx, sy, c3);
+                }
+            } else {
+                xlColor ccolor(color);
+                xlColor ecolor(color);
+                int trans = color == xlBLACK ? blackTransparency : transparency;
+                ApplyTransparency(ccolor, trans);
+                ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+                va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
+            }
+        }
+    }
+    if (pixelStyle > 1) {
+        va.Finish(GL_TRIANGLES);
+    } else {
+        va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
+    }
+    if (Selected && c != nullptr && allowSelected) {
+        GetModelScreenLocation().DrawHandles(va);
+    }
+}
+
+// display model using colors stored in each node
+// used when preview is running
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, bool allowSelected) {
+    size_t NodeCount = Nodes.size();
+    xlColor color;
+    if (c != nullptr) {
+        color = *c;
+    }
+
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
+
+	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
+	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
+
+    screenLocation.PrepareToDraw();
+
+    int vcount = 0;
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        vcount += it->get()->Coords.size();
+    }
+    if (pixelStyle > 1) {
+        int f = pixelSize;
+        if (pixelSize < 16) {
+            f = 16;
+        }
+        vcount = vcount * f * 3;
+    }
+    if (vcount > maxVertexCount) {
+        maxVertexCount = vcount;
+    }
+    va.PreAlloc(maxVertexCount);
+
+    int first = 0;
+    int last = NodeCount;
+    int buffFirst = -1;
+    int buffLast = -1;
+    bool left = true;
+
+    while (first < last) {
+        int n;
+        if (left) {
+            n = first;
+            first++;
+            if (NodeRenderOrder() == 1) {
+                if (buffFirst == -1) {
+                    buffFirst = Nodes[n]->Coords[0].bufX;
+                }
+                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                    left = false;
+                }
+            }
+        } else {
+            last--;
+            n = last;
+            if (buffLast == -1) {
+                buffLast = Nodes[n]->Coords[0].bufX;
+            }
+            if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                left = true;
+            }
+        }
+        if (c == nullptr) {
+            Nodes[n]->GetColor(color);
+            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                Nodes[n]->model->modelDimmingCurve->reverse(color);
+            }
+            if (Nodes[n]->model->StrobeRate) {
+                int r = rand() % 5;
+                if (r != 0) {
+                    color = xlBLACK;
+                }
+            }
+        }
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c2=0; c2 < CoordCount; c2++) {
+            // draw node on screen
+            float sx = Nodes[n]->Coords[c2].screenX;;
+            float sy = Nodes[n]->Coords[c2].screenY;
+            float sz = Nodes[n]->Coords[c2].screenZ;
+            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+
+            if (pixelStyle < 2) {
+                if (splitRGB) {
+                    if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
+                        xlColor c3(color);
+                        ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                        va.AddVertex(sx, sy, sz, c3);
+                    } else {
+                        xlColor c3(color.Red(), 0 , 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, sz, c3);
+                        }
+                        c3.Set(0, color.Green(), 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx, sy-pixelSize, sz, c3);
+                        }
+                        c3.Set(0, 0, color.Blue());
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, sz, c3);
+                        }
+                    }
+                } else {
+                    xlColor c3(color);
+                    ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                    va.AddVertex(sx, sy, sz, c3);
                 }
             } else {
                 xlColor ccolor(color);

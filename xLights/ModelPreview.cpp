@@ -38,18 +38,19 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         wxString tip =_model->GetNodeNear(this, event.GetPosition());
         SetToolTip(tip);
     }
+
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
-    event.ResumePropagation(1);
-    event.Skip (); // continue the event
+	event.ResumePropagation(1);
+	event.Skip(); // continue the event
 }
 
 void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
-    event.ResumePropagation(1);
-    event.Skip (); // continue the event
+	event.ResumePropagation(1);
+	event.Skip(); // continue the event
 }
 
 void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
@@ -104,7 +105,7 @@ void ModelPreview::Render()
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
-            (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, color, allowSelected);
+            (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, color, allowSelected);
         }
     }
 }
@@ -118,7 +119,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
-                (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator);
+                (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d);
             }
         }
         EndDrawing(swapBuffers);
@@ -171,6 +172,11 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     image = nullptr;
     sprite = nullptr;
     _model = nullptr;
+    cameraAngleX = 45;
+    cameraAngleY = -45;
+	cameraDistance = -50.0f;
+	cameraPosX = -200;
+	cameraPosY = -100;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
 : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
@@ -331,49 +337,128 @@ void ModelPreview::SetActive(bool show) {
     }
 }
 
+void ModelPreview::SetCameraView(int camerax, int cameray, bool latch)
+{
+	static int last_offsetx = 0;
+	static int last_offsety = 0;
+	static int latched_x = cameraAngleX;
+	static int latched_y = cameraAngleY;
+
+	if (latch) {
+		cameraAngleX = latched_x + last_offsetx;
+		cameraAngleY = latched_y + last_offsety;
+		latched_x = cameraAngleX;
+		latched_y = cameraAngleY;
+	}
+	else {
+		cameraAngleX = latched_x + cameray;
+		cameraAngleY = latched_y + camerax;
+		last_offsetx = cameray;
+		last_offsety = camerax;
+	}
+}
+
+void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
+{
+	static int last_offsetx = 0;
+	static int last_offsety = 0;
+	static int latched_x = cameraPosX;
+	static int latched_y = cameraPosY;
+
+	if (latch) {
+		cameraPosX = latched_x + last_offsetx;
+		cameraPosY = latched_y + last_offsety;
+		latched_x = cameraPosX;
+		latched_y = cameraPosY;
+	}
+	else {
+		cameraPosX = latched_x + camerax;
+		cameraPosY = latched_y + cameray;
+		last_offsetx = camerax;
+		last_offsety = cameray;
+	}
+	//cameraDistance += cameray;
+}
+
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+	bool is_3d = true;
     if (!IsShownOnScreen()) return false;
     if (!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
-    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-
-    LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-    DrawGLUtils::PushMatrix();
-    // Rotate Axis and translate
-    DrawGLUtils::Rotate(180,0,0,1);
-    DrawGLUtils::Rotate(180,0,1,0);
-    accumulator.PreAlloc(maxVertexCount);
-    currentPixelScaleFactor = 1.0;
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
-        int i = (int)mWindowHeight;
-        DrawGLUtils::Translate(0,-i,0);
-        double scaleh= double(mWindowHeight) / double(virtualHeight);
-        double scalew = double(mWindowWidth) / double(virtualWidth);
-        DrawGLUtils::Scale(scalew, scaleh, 1.0);
+		LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
+		if (is_3d)
+		{
+			prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
+			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+			DrawGLUtils::PushMatrix();
+			//DrawGLUtils::SetCamera(0, 0, cameraDistance);
+			DrawGLUtils::SetCamera(cameraAngleX, cameraAngleY, -2000);
+			DrawGLUtils::Translate(cameraPosX - 300, cameraPosY, 0);
+			accumulator.PreAlloc(maxVertexCount);
+			currentPixelScaleFactor = 1.0;
+			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+			accumulator.Finish(GL_TRIANGLES);
+			drawGrid(mWindowWidth, mWindowWidth / 40);
+		}
+		else
+		{
+			prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
 
-        if (scalew < scaleh) {
-            scaleh = scalew;
-        }
-        currentPixelScaleFactor = scaleh;
-        LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
-        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-        accumulator.Finish(GL_TRIANGLES);
+			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+			DrawGLUtils::PushMatrix();
+			// Rotate Axis and translate
+			DrawGLUtils::Rotate(180,0,0,1);
+			DrawGLUtils::Rotate(180,0,1,0);
+			accumulator.PreAlloc(maxVertexCount);
+			currentPixelScaleFactor = 1.0;
+			int i = (int)mWindowHeight;
+			DrawGLUtils::Translate(0,-i,0);
+			double scaleh= double(mWindowHeight) / double(virtualHeight);
+			double scalew = double(mWindowWidth) / double(virtualWidth);
+			DrawGLUtils::Scale(scalew, scaleh, 1.0);
+
+			if (scalew < scaleh) {
+				scaleh = scalew;
+			}
+			currentPixelScaleFactor = scaleh;
+			LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
+			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+			accumulator.Finish(GL_TRIANGLES);
+
+		}
     } else if (virtualWidth == 0 && virtualHeight == 0) {
+		LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+
+        LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+        DrawGLUtils::PushMatrix();
+        // Rotate Axis and translate
+        DrawGLUtils::Rotate(180,0,0,1);
+        DrawGLUtils::Rotate(180,0,1,0);
+        accumulator.PreAlloc(maxVertexCount);
+        currentPixelScaleFactor = 1.0;
         int i = (int)mWindowHeight;
         DrawGLUtils::Translate(0, -i, 0);
     } else {
-        DrawGLUtils::Translate(0, -virtualHeight, 0);
-        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-        accumulator.Finish(GL_TRIANGLES);
-    }
+        prepare3DViewport(0,0,mWindowWidth, mWindowHeight);
+        LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+        DrawGLUtils::PushMatrix();
+		//DrawGLUtils::SetCamera(0, 0, cameraDistance);
+		DrawGLUtils::SetCamera(cameraAngleX, cameraAngleY, -2000);
+		DrawGLUtils::Translate(cameraPosX-300, cameraPosY, 0);
+		accumulator.PreAlloc(maxVertexCount);
+        currentPixelScaleFactor = 1.0;
+		accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+		accumulator.Finish(GL_TRIANGLES);
+		drawGrid(mWindowWidth, mWindowWidth / 40);
+	}
 
     if(mBackgroundImageExists)
     {
@@ -420,12 +505,47 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     if (accumulator.count > maxVertexCount) {
         maxVertexCount= accumulator.count;
     }
-    DrawGLUtils::Draw(accumulator);
-    DrawGLUtils::PopMatrix();
+	DrawGLUtils::Draw(gridlines, xlGREEN, GL_LINES);
+	DrawGLUtils::Draw(accumulator);
+	DrawGLUtils::Draw(accumulator3d);
+	DrawGLUtils::PopMatrix();
 	 if (swapBuffers)
 	 {
 		 LOG_GL_ERRORV(SwapBuffers());
 	 }
-    accumulator.Reset();
+	 gridlines.Reset();
+	 accumulator3d.Reset();
+	 accumulator.Reset();
     mIsDrawing = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// draw a grid on the xz plane
+///////////////////////////////////////////////////////////////////////////////
+void ModelPreview::drawGrid(float size, float step)
+{
+	gridlines.PreAlloc(size/step * 24);
+
+	for (float i = 0; i <= size; i += step)
+	{
+		gridlines.AddVertex(-size, 0, i);   // lines parallel to X-axis
+		gridlines.AddVertex(size, 0, i);
+		gridlines.AddVertex(-size, 0, -i);   // lines parallel to X-axis
+		gridlines.AddVertex(size, 0, -i);
+
+		gridlines.AddVertex(i, 0, -size);   // lines parallel to Z-axis
+		gridlines.AddVertex(i, 0, size);
+		gridlines.AddVertex(-i, 0, -size);   // lines parallel to Z-axis
+		gridlines.AddVertex(-i, 0, size);
+	}
+
+	// x-axis
+	//glColor3f(0.5f, 0, 0);
+	//gridlines.AddVertex(-size, 0, 0);
+	//gridlines.AddVertex(size, 0, 0);
+
+	// z-axis
+	//glColor3f(0, 0, 0.5f);
+	//glVertex3f(0, 0, -size);
+	//glVertex3f(0, 0, size);
 }
