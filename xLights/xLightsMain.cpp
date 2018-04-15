@@ -4546,15 +4546,15 @@ void xLightsFrame::CheckSequence(bool display)
 
             if (ostart != nullptr && oend == nullptr)
             {
-                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
                 LogAndWrite(f, msg.ToStdString());
-                warncount++;
+                errcount++;
             }
             else if (ostart == nullptr || oend == nullptr)
             {
-                wxString msg = wxString::Format("    WARN: Model '%s' is not configured for a controller.", it->first);
+                wxString msg = wxString::Format("    ERR: Model '%s' is not configured for a controller.", it->first);
                 LogAndWrite(f, msg.ToStdString());
-                warncount++;
+                errcount++;
             }
             else if (ostart->GetType() != oend->GetType())
             {
