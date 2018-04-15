@@ -578,6 +578,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     }
     else if (scale_to_fit == "Scale Keep Aspect Ratio")
     {
+        image = rawimage;
         float xr = (float)BufferWi / (float)image.GetWidth();
         float yr = (float)BufferHt / (float)image.GetHeight();
         float sc = std::min(xr, yr);
