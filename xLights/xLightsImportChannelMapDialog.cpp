@@ -422,6 +422,7 @@ END_EVENT_TABLE()
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    TreeListCtrl_Mapping = nullptr;
     _dataModel = nullptr;
     _sortOrder = 0;
     _allowTimingOffset = allowTimingOffset;
@@ -542,11 +543,14 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 
     // disconnect the model and then delete it ... this ensures the destructors are called
     // which stops memory leaks
-    TreeListCtrl_Mapping->AssociateModel(nullptr);
-    if (_dataModel != nullptr)
+    if (TreeListCtrl_Mapping != nullptr)
     {
-        delete _dataModel;
-        _dataModel = nullptr;
+        TreeListCtrl_Mapping->AssociateModel(nullptr);
+        if (_dataModel != nullptr)
+        {
+            delete _dataModel;
+            _dataModel = nullptr;
+        }
     }
 
     // clear any stashed mappings
@@ -712,7 +716,7 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         }
     }
 
-    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), "", true, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
+    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
     _dataModel->Insert(lastmodel, ms++);
 
     for (int s = 0; s < m->GetNumSubModels(); s++) {
@@ -754,11 +758,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end())
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, channelColors.find(nn.ToStdString())->second.asWxColor());
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, channelColors.find(nn.ToStdString())->second.asWxColor());
             }
             else
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, *wxWHITE);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, *wxWHITE);
             }
             laststrand->Insert(lastnode, n);
         }
