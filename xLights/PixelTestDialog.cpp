@@ -435,9 +435,16 @@ class SubModelTestItem : public TestItemBase
 
 public:
     virtual ~SubModelTestItem() {}
-    SubModelTestItem(const std::string& name, SubModel* subModel, bool channelsAvailable) : TestItemBase()
+    SubModelTestItem(const std::string& name, SubModel* subModel, bool channelsAvailable, bool useLongName) : TestItemBase()
     {
-        _subModelName = subModel->GetName();
+        if (useLongName)
+        {
+            _subModelName = subModel->GetFullName();
+        }
+        else
+        {
+            _subModelName = subModel->GetName();
+        }
         _subModel = subModel;
         _modelName = subModel->GetParent()->GetName();
         _channelsAvailable = channelsAvailable;
@@ -534,7 +541,7 @@ public:
 
             for (auto it = model->GetSubModels().begin(); it != model->GetSubModels().end(); ++it)
             {
-                _subModels.push_back(new SubModelTestItem((*it)->GetFullName(), (SubModel*)*it, channelsAvailable));
+                _subModels.push_back(new SubModelTestItem((*it)->GetFullName(), (SubModel*)*it, channelsAvailable, false));
             }
 
             _nodes = model->GetNodeCount();
@@ -644,7 +651,8 @@ class ModelGroupTestItem : public TestItemBase
     bool _channelsAvailable;
     std::list<ModelTestItem*> _models;
     std::list<ModelGroupTestItem*> _modelGroups;
-
+    std::list<SubModelTestItem*> _subModels;
+    
     void Process(ModelGroup* modelGroup)
     {
         
@@ -658,6 +666,16 @@ public:
             delete _models.front();
             _models.pop_front();
         }
+        //while (_subModels.size() > 0)
+        //{
+        //    delete _subModels.front();
+        //    _subModels.pop_front();
+        //}
+        //while (_modelGroups.size() > 0)
+        //{
+        //    delete _modelGroups.front();
+        //    _modelGroups.pop_front();
+        //}
     }
     ModelGroupTestItem(const std::string name, ModelManager& modelManager, bool channelsAvailable) : TestItemBase()
     {
@@ -670,7 +688,7 @@ public:
             // channels are not likely contiguous
             for (auto it = modelGroup->Models().begin(); it != modelGroup->Models().end(); ++it)
             {
-                if ((*it)->GetDisplayAs() != "ModelGroup")
+                if ((*it)->GetDisplayAs() != "ModelGroup" && (*it)->GetDisplayAs() != "SubModel")
                 {
                     _models.push_back(new ModelTestItem((*it)->GetName(), modelManager, channelsAvailable));
 
@@ -685,7 +703,7 @@ public:
                         }
                     }
                 }
-                else
+                else if ((*it)->GetDisplayAs() == "ModelGroup")
                 {
                     _modelGroups.push_back(new ModelGroupTestItem((*it)->GetName(), modelManager, channelsAvailable));
                     long ch = _modelGroups.back()->GetFirstChannel();
@@ -693,6 +711,16 @@ public:
                     {
                         _nonContiguousChannels.push_back(ch);
                         ch = _modelGroups.back()->GetNextChannel();
+                    }
+                }
+                else
+                {
+                    _subModels.push_back(new SubModelTestItem((*it)->GetFullName(), (SubModel*)*it, channelsAvailable, true));
+                    long ch = _subModels.back()->GetFirstChannel();
+                    while (ch > 0)
+                    {
+                        _nonContiguousChannels.push_back(ch);
+                        ch = _subModels.back()->GetNextChannel();
                     }
                 }
             }
@@ -711,6 +739,7 @@ public:
         }
     }
     std::list<ModelGroupTestItem*> GetModelGroups() const { return _modelGroups; }
+    std::list<SubModelTestItem*> GetSubModels() const { return _subModels; }
     std::list<ModelTestItem*> GetModels() const { return _models; }
     virtual bool IsClickable() const override { return _channelsAvailable; }
     virtual std::string GetType() const override { return "ModelGroup"; }
@@ -1260,6 +1289,13 @@ void PixelTestDialog::AddModelGroup(wxTreeListItem parent, Model* m)
             (*it2)->SetTreeListItem(modelitem);
         }
 
+        auto submodels = modelgroupcontroller->GetSubModels();
+        for (auto it2 = submodels.begin(); it2 != submodels.end(); ++it2)
+        {
+            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
+            (*it2)->SetTreeListItem(submodelitem);
+        }
+
         auto groups = modelgroupcontroller->GetModelGroups();
         for (auto it = groups.begin(); it != groups.end(); ++it)
         {
@@ -1280,6 +1316,13 @@ void PixelTestDialog::AddModelGroup(wxTreeListItem parent, ModelGroupTestItem* m
         {
             wxTreeListItem modelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
             (*it2)->SetTreeListItem(modelitem);
+        }
+
+        auto submodels = mgti->GetSubModels();
+        for (auto it2 = submodels.begin(); it2 != submodels.end(); ++it2)
+        {
+            wxTreeListItem submodelitem = TreeListCtrl_ModelGroups->AppendItem(modelgroupitem, (*it2)->GetName(), -1, -1, (wxClientData*)*it2);
+            (*it2)->SetTreeListItem(submodelitem);
         }
 
         auto groups = mgti->GetModelGroups();
