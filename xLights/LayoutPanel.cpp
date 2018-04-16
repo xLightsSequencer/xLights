@@ -67,6 +67,8 @@ const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
 const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
+const long LayoutPanel::ID_CHECKBOX_Selection = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
@@ -257,7 +259,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
 	PreviewGLSizer->AddGrowableRow(1);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
 	FlexGridSizer1->Add(ToolSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
@@ -269,6 +271,12 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizer1->Add(StaticText1, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 40);
 	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer1->Add(ChoiceLayoutGroups, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_3D = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
+	CheckBox_3D->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Selection = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_Selection, _("Selection Tool"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Selection"));
+	CheckBox_Selection->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Selection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
 	LayoutGLSizer = new wxFlexGridSizer(0, 2, 0, 0);
 	LayoutGLSizer->AddGrowableCol(0);
@@ -279,7 +287,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ScrollBarLayoutHorz = new wxScrollBar(PreviewGLPanel, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
 	ScrollBarLayoutHorz->SetScrollbar(0, 1, 10, 1);
 	LayoutGLSizer->Add(ScrollBarLayoutHorz, 1, wxALL|wxEXPAND, 0);
-	LayoutGLSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	LayoutGLSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	PreviewGLSizer->Add(LayoutGLSizer, 1, wxALL|wxEXPAND, 0);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
@@ -294,6 +302,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
+	Connect(ID_CHECKBOX_3D,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
+	Connect(ID_CHECKBOX_Selection,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_SelectionClick);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
@@ -341,6 +351,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
+    is_3d = config->ReadBool("LayoutMode3D", false);
+
+    CheckBox_3D->SetValue(is_3d);
+    modelPreview->Set3D(is_3d);
+    selection_mode = false;
 
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
@@ -409,7 +424,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
     }
-
 
     mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
 
@@ -1749,11 +1763,13 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-	m_mouse_down = true;
-	m_last_mouse_x = event.GetX();
-	m_last_mouse_y = event.GetY();
+    if (!selection_mode && is_3d) {
+        m_mouse_down = true;
+        m_last_mouse_x = event.GetX();
+        m_last_mouse_y = event.GetY();
+    }
 
-	if( m_polyline_active )
+    if( m_polyline_active )
     {
         Model *m = newModel;
         int y = event.GetY();
@@ -1769,6 +1785,14 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
     ShowPropGrid(true);
     modelPreview->SetFocus();
+
+    if (!selection_mode && is_3d) {
+        m_moving_handle = false;
+        m_creating_bound_rect = false;
+        m_dragging = false;
+        return;
+    }
+
     int y = event.GetY();
     if (event.ControlDown())
     {
@@ -1854,10 +1878,12 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
-    if( m_polyline_active ) return;
+    m_mouse_down = false;
+    if (!selection_mode && is_3d) {
+        modelPreview->SetCameraView(0, 0, true);
+    }
 
-	m_mouse_down = false;
-	modelPreview->SetCameraView(0, 0, true);
+    if( m_polyline_active ) return;
 
     int y = event.GetY();
 
@@ -1944,11 +1970,15 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
 
-	if (m_mouse_down) {
-		int delta_x = event.GetPosition().x - m_last_mouse_x;
-		int delta_y = event.GetPosition().y - m_last_mouse_y;
-		modelPreview->SetCameraView(delta_x, delta_y, false);
-	}
+    if (!selection_mode && is_3d) {
+        if (m_mouse_down) {
+            int delta_x = event.GetPosition().x - m_last_mouse_x;
+            int delta_y = event.GetPosition().y - m_last_mouse_y;
+            modelPreview->SetCameraView(delta_x, delta_y, false);
+            UpdatePreview();
+            return;
+        }
+    }
 
     if (m_creating_bound_rect)
     {
@@ -3950,4 +3980,18 @@ std::string CopyPasteModel::Serialise() const
         doc.DetachRoot();
         return copyData;
     }
+}
+
+void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
+{
+    is_3d = CheckBox_3D->GetValue();
+    modelPreview->Set3D(is_3d);
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("LayoutMode3D", is_3d);
+    Refresh();
+}
+
+void LayoutPanel::OnCheckBox_SelectionClick(wxCommandEvent& event)
+{
+    selection_mode = CheckBox_Selection->GetValue();
 }

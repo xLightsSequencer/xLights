@@ -98,9 +98,9 @@ protected:
     float worldPos_x;
     float worldPos_y;
     float worldPos_z;
-    float scale_x;
-    float scale_y;
-    float scale_z;
+    float scalex;
+    float scaley;
+    float scalez;
 
     struct xlPoint {
         int x;
@@ -147,33 +147,32 @@ public:
     virtual bool IsCenterBased() const override {return true;};
 
     virtual float GetHcenterOffset() const override {
-        return (float)offsetXpct;
+        return (float)worldPos_x;
     }
     virtual float GetVcenterOffset() const override {
-        return (float)offsetYpct;
+        return (float)worldPos_y;
     }
     virtual void SetHcenterOffset(float f) override {
-        offsetXpct = f;
+		worldPos_x = f;
     }
     virtual void SetVcenterOffset(float f) override {
-        offsetYpct = f;
+		worldPos_y = f;
     }
 
     virtual void SetOffset(float xPct, float yPct) override {
-        offsetXpct=xPct;
-        offsetYpct=yPct;
+		worldPos_x =xPct;
+		worldPos_y =yPct;
     }
     virtual void AddOffset(float xPct, float yPct) override {
 
         if (_locked) return;
 
-        offsetXpct+=xPct;
-        offsetYpct+=yPct;
+		worldPos_x +=xPct;
+		worldPos_y +=yPct;
     }
     void SetScale(float x, float y) {
-        PreviewScaleX = x;
-        PreviewScaleY = y;
-        singleScale = false;
+        scalex = x;
+        scaley = y;
     }
     void SetRotation(int r) {
         PreviewRotation = r;
@@ -192,37 +191,17 @@ public:
     virtual int GetMWidth() const override;
     virtual int GetMHeight() const override;
 
-    virtual float GetScaleX() const {
-        return PreviewScaleX;
-    }
-
-    virtual float GetScaleY() const {
-        return PreviewScaleY;
-    }
-
     int GetRotation() const {
         return PreviewRotation;
     }
 
-    void SetScaleX(float scaleX)
-    {
-        PreviewScaleX = scaleX;
-    }
-
-    void SetScaleY(float scaleY)
-    {
-        PreviewScaleY = scaleY;
-    }
+    float GetScaleX() { return scalex; }
+    float GetScaleY() { return scaley; }
 
 private:
-    float offsetXpct,offsetYpct;
-    bool singleScale;
-    float PreviewScaleX, PreviewScaleY;
     int PreviewRotation;
 
     mutable float radians;
-    mutable float scalex;
-    mutable float scaley;
     mutable float centerx;
     mutable float centery;
 

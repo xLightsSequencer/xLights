@@ -394,14 +394,14 @@ namespace DrawGLUtils
             colors[i] = c.Alpha();
             count++;
         }
-        void AddRect(float x1, float y1, float x2, float y2, const xlColor &c) {
+        void AddRect(float x1, float y1, float x2, float y2, float z1, const xlColor &c) {
             PreAlloc(6);
-            AddVertex(x1, y1, 0, c);
-            AddVertex(x1, y2, 0, c);
-            AddVertex(x2, y2, 0, c);
-            AddVertex(x2, y2, 0, c);
-            AddVertex(x2, y1, 0, c);
-            AddVertex(x1, y1, 0, c);
+            AddVertex(x1, y1, z1, c);
+            AddVertex(x1, y2, z1, c);
+            AddVertex(x2, y2, z1, c);
+            AddVertex(x2, y2, z1, c);
+            AddVertex(x2, y1, z1, c);
+            AddVertex(x1, y1, z1, c);
         }
         void AddLinesRect(float x1, float y1, float x2, float y2, const xlColor &c) {
             PreAlloc(8);
@@ -618,6 +618,8 @@ namespace DrawGLUtils
                          float width, float height,
                          const xlDisplayList & dl,
                          xlVertexColorAccumulator &bg);
+
+
 }
 
 #endif

@@ -1485,4 +1485,3 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     Draw(vat, GL_TRIANGLES, GL_BLEND);
 }
-

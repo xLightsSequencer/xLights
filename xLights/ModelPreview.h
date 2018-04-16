@@ -79,6 +79,7 @@ public:
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
+    void Set3D(bool value) { is_3d = value; }
 
 	 virtual void render(const wxSize& size=wxSize(0,0)) override;
 
@@ -134,6 +135,9 @@ private:
 	int cameraDistance;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
 	DrawGLUtils::xl3Accumulator accumulator3d;
+    bool is_3d;
+    bool m_mouse_down;
+    int m_last_mouse_x, m_last_mouse_y;
 
     double currentPixelScaleFactor = 1.0;
 

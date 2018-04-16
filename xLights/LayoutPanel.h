@@ -49,9 +49,9 @@ public:
     bool IsOk() const { return _ok; }
     wxXmlNode* GetModelXml() const
     {
-        if (_xmlNode == nullptr) 
-            return _xmlNode; 
-        else 
+        if (_xmlNode == nullptr)
+            return _xmlNode;
+        else
             // we return a new copy assuming the recipient will delete it
             return new wxXmlNode(*_xmlNode);
     }
@@ -70,6 +70,8 @@ class LayoutPanel: public wxPanel
 		//(*Declarations(LayoutPanel)
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
+		wxCheckBox* CheckBox_3D;
+		wxCheckBox* CheckBox_Selection;
 		wxChoice* ChoiceLayoutGroups;
 		wxFlexGridSizer* ToolSizer;
 		wxPanel* FirstPanel;
@@ -97,6 +99,8 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL5;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
+		static const long ID_CHECKBOX_3D;
+		static const long ID_CHECKBOX_Selection;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;
@@ -158,6 +162,8 @@ class LayoutPanel: public wxPanel
 		void OnCharHook(wxKeyEvent& event);
 		void OnChar(wxKeyEvent& event);
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
+		void OnCheckBox_3DClick(wxCommandEvent& event);
+		void OnCheckBox_SelectionClick(wxCommandEvent& event);
 		//*)
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
@@ -233,8 +239,6 @@ class LayoutPanel: public wxPanel
         int m_over_handle;
         bool m_moving_handle;
         bool m_polyline_active;
-		bool m_mouse_down;
-		int m_last_mouse_x, m_last_mouse_y;
 		int m_previous_mouse_x, m_previous_mouse_y;
 		int mPointSize;
         int mHitTestNextSelectModelIndex;
@@ -324,6 +328,11 @@ class LayoutPanel: public wxPanel
         wxPanel* main_sequencer;
         wxImageList* m_imageList;
         bool ignore_next_event;
+
+        bool is_3d;
+        bool selection_mode;
+        bool m_mouse_down;
+        int m_last_mouse_x, m_last_mouse_y;
 
         void OnSelectionChanged(wxTreeListEvent& event);
         void OnItemContextMenu(wxTreeListEvent& event);

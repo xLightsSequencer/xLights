@@ -65,7 +65,7 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-									<cols>3</cols>
+									<cols>5</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxFlexGridSizer" variable="ToolSizer" member="yes">
@@ -93,6 +93,24 @@
 											<handler function="OnChoiceLayoutGroupsSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_3D" variable="CheckBox_3D" member="yes">
+											<label>3D</label>
+											<handler function="OnCheckBox_3DClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Selection" variable="CheckBox_Selection" member="yes">
+											<label>Selection Tool</label>
+											<handler function="OnCheckBox_SelectionClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
