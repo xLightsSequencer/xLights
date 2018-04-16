@@ -1860,7 +1860,10 @@ void LayoutPanel::FinalizeModel()
 {
     if( m_polyline_active && m_over_handle > 1 ) {
         Model *m = newModel;
-        m->DeleteHandle(m_over_handle);
+        if (m != nullptr)
+        {
+            m->DeleteHandle(m_over_handle);
+        }
     }
     m_moving_handle = false;
     m_dragging = false;

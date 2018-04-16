@@ -1545,13 +1545,13 @@ std::string SafeGetAttrValue(SP_XmlStartTagEvent* event, const char* name)
 
 void xLightsFrame::ImportVix(const wxFileName &filename) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxStopWatch sw; // start a stopwatch timer
 
-    std::string msg;
+    logger_base.debug("Importing vixen file %s.", (const char *)filename.GetFullName().c_str());
+
     std::vector<unsigned char> VixSeqData;
-    long cnt = 0;
     std::vector<std::string> context;
-    //long MaxIntensity = 255;
 
     int time = 0;
     int frameTime = 50;
@@ -1573,105 +1573,115 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int chanColor = -1;
 
     //pass 1, read the length, determine number of networks, units/network, channels per unit
+    logger_base.debug("Reading vixen file.");
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
+    long cnt = 0;
     while (!done) {
         if (!event) {
             read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0) {
                 done = true;
-            } else {
+            }
+            else {
                 parser->append(bytes, read);
             }
-        } else {
-            switch(event -> getEventType()) {
-                case SP_XmlPullEvent::eEndDocument:
-                    done = true;
-                    break;
-                case SP_XmlPullEvent::eStartTag:
-                {
-                    SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                    std::string NodeName = stagEvent->getName();
-                    context.push_back(NodeName);
-                    cnt++;
-                    if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
-                        chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
-                        NodeName = SafeGetAttrValue(stagEvent, "name");
-                        if (NodeName != "") {
-                            dlg.channelNames.push_back(NodeName);
-                            unsortedChannels.push_back(NodeName);
+        }
+        else {
+            switch (event->getEventType()) {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag:
+            {
+                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                std::string NodeName = stagEvent->getName();
+                context.push_back(NodeName);
+                cnt++;
+                if (cnt > 1 && context[1] == "Channels" && NodeName == "Channel") {
+                    chanColor = wxAtoi(stagEvent->getAttrValue("color")) & 0xFFFFFF;
+                    NodeName = SafeGetAttrValue(stagEvent, "name");
+                    if (NodeName != "") {
+                        dlg.channelNames.push_back(NodeName);
+                        unsortedChannels.push_back(NodeName);
 
-                            xlColor c(chanColor, false);
-                            CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
+                        xlColor c(chanColor, false);
+                        CheckForVixenRGB(NodeName, dlg.channelNames, c, dlg.channelColors);
 
-                            context.pop_back();
-                            context.push_back("IgnoreChannelElement");
+                        context.pop_back();
+                        context.push_back("IgnoreChannelElement");
+                    }
+                }
+            }
+            break;
+            case SP_XmlPullEvent::eCData:
+            {
+                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                if (cnt >= 2) {
+                    std::string NodeValue = stagEvent->getText();
+                    if (context[1] == "MaximumLevel") {
+                        //MaxIntensity = wxAtoi(NodeValue);
+                    }
+                    else if (context[1] == "EventPeriodInMilliseconds") {
+                        frameTime = wxAtoi(NodeValue);
+                    }
+                    else if (context[1] == "Time") {
+                        time = wxAtoi(NodeValue);
+                    }
+                    else if (context[1] == "Profile") {
+                        wxArrayInt VixChannels;
+                        wxArrayString VixChannelNames;
+                        SequenceData seqData;
+                        ConvertParameters params(filename.GetFullPath(),
+                            seqData,
+                            nullptr,
+                            ConvertParameters::ReadMode::READ_MODE_NORMAL,
+                            this,
+                            nullptr,
+                            nullptr);
+
+                        std::vector<xlColor> colors;
+                        FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
+                        for (int x = 0; x < VixChannelNames.size(); x++) {
+                            std::string name = VixChannelNames[x].ToStdString();
+                            xlColor c = colors[x];
+                            dlg.channelNames.push_back(name);
+                            unsortedChannels.push_back(name);
+
+                            CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
                         }
+
+                    }
+                    else if (context[1] == "EventValues") {
+                        //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
+                        if (carryOver.size() > 0) {
+                            NodeValue.insert(0, carryOver);
+                        }
+                        int i = base64_decode(NodeValue, VixSeqData);
+                        if (i != 0) {
+                            int start = NodeValue.size() - i - 1;
+                            carryOver = NodeValue.substr(start, start + i);
+                        }
+                        else {
+                            carryOver.clear();
+                        }
+                    }
+                    else if (context[1] == "Channels" && context[2] == "Channel") {
+                        dlg.channelNames.push_back(NodeValue);
+                        unsortedChannels.push_back(NodeValue);
+
+                        xlColor c(chanColor, false);
+                        CheckForVixenRGB(NodeValue, dlg.channelNames, c, dlg.channelColors);
                     }
                 }
                 break;
-                case SP_XmlPullEvent::eCData:
-                {
-                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
-                    if (cnt >= 2) {
-                        std::string NodeValue = stagEvent->getText();
-                        if (context[1] == "MaximumLevel") {
-                            //MaxIntensity = wxAtoi(NodeValue);
-                        } else if (context[1] == "EventPeriodInMilliseconds") {
-                            frameTime = wxAtoi(NodeValue);
-                        } else if (context[1] == "Time") {
-                            time = wxAtoi(NodeValue);
-                        } else if (context[1] == "Profile") {
-                            wxArrayInt VixChannels;
-                            wxArrayString VixChannelNames;
-                            SequenceData seqData;
-                            ConvertParameters params(filename.GetFullPath(),
-                                              seqData,
-                                              nullptr,
-                                              ConvertParameters::ReadMode::READ_MODE_NORMAL,
-                                              this,
-                                              nullptr,
-                                              nullptr);
-
-                            std::vector<xlColor> colors;
-                            FileConverter::LoadVixenProfile(params, NodeValue, VixChannels, VixChannelNames, colors);
-                            for (int x = 0; x < VixChannelNames.size(); x++) {
-                                std::string name = VixChannelNames[x].ToStdString();
-                                xlColor c = colors[x];
-                                dlg.channelNames.push_back(name);
-                                unsortedChannels.push_back(name);
-
-                                CheckForVixenRGB(name, dlg.channelNames, c, dlg.channelColors);
-                            }
-
-                        } else if (context[1] == "EventValues") {
-                            //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
-                            if (carryOver.size() > 0) {
-                                NodeValue.insert(0, carryOver);
-                            }
-                            int i = base64_decode(NodeValue, VixSeqData);
-                            if (i != 0) {
-                                int start = NodeValue.size() - i - 1;
-                                carryOver = NodeValue.substr(start, start + i);
-                            } else {
-                                carryOver.clear();
-                            }
-                        } else if (context[1] == "Channels" && context[2] == "Channel") {
-                            dlg.channelNames.push_back(NodeValue);
-                            unsortedChannels.push_back(NodeValue);
-
-                            xlColor c(chanColor, false);
-                            CheckForVixenRGB(NodeValue, dlg.channelNames, c, dlg.channelColors);
-                        }
-                    }
-                    break;
+            }
+            case SP_XmlPullEvent::eEndTag:
+                if (cnt > 0) {
+                    context.pop_back();
                 }
-                case SP_XmlPullEvent::eEndTag:
-                    if (cnt > 0) {
-                        context.pop_back();
-                    }
-                    cnt = context.size();
-                    break;
+                cnt = context.size();
+                break;
             }
             delete event;
         }
@@ -1679,7 +1689,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
             event = parser->getNext();
         }
     }
-    delete [] bytes;
+    delete[] bytes;
     delete parser;
     file.Close();
 
@@ -1689,12 +1699,14 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
 
     std::sort(dlg.channelNames.begin(), dlg.channelNames.end(), stdlistNumberAwareStringCompare);
 
+    logger_base.debug("Showing mapping dialog.");
     dlg.InitImport();
 
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return;
     }
 
+    logger_base.debug("Doing the import of the mapped channels.");
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); i++)
     {
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
@@ -1783,7 +1795,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
         }
     }
 
-    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
