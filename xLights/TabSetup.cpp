@@ -248,18 +248,17 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     long LinkFlag=0;
     config->Read(_("LinkFlag"), &LinkFlag);
     if( LinkFlag ) {
-        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINK")),wxART_OTHER));
-        Button_Change_Media_Dir->Enable(false);
         mediaDirectory = CurrentDir;
         config->Write(_("MediaDir"), mediaDirectory);
-        MediaDirectoryLabel->SetLabel(mediaDirectory);
-        MediaDirectoryLabel->GetParent()->Layout();
         logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
-        BitmapButton_Link_Dirs->SetToolTip("Unlink Directories");
-    } else {
-        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
-        Button_Change_Media_Dir->Enable(true);
-        BitmapButton_Link_Dirs->SetToolTip("Link Directories");
+    }
+
+    long fseqLinkFlag = 0;
+    config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
+    if (fseqLinkFlag) {
+        fseqDirectory = CurrentDir;
+        config->Write(_("FSEQDir"), fseqDirectory);
+        logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
     }
 
     while (Notebook1->GetPageCount() > FixedPages)
@@ -1179,23 +1178,6 @@ bool xLightsFrame::SaveNetworksFile()
 void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event)
 {
     SaveNetworksFile();
-}
-
-
-void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
-{
-    wxDirDialog dialog(this);
-    dialog.SetPath(mediaDirectory);
-    if (dialog.ShowModal() == wxID_OK) {
-        mediaDirectory = dialog.GetPath();
-        ObtainAccessToURL(mediaDirectory.ToStdString());
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("MediaDir"), mediaDirectory);
-        MediaDirectoryLabel->SetLabel(mediaDirectory);
-        MediaDirectoryLabel->GetParent()->Layout();
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
-    }
 }
 
 void xLightsFrame::SetSyncUniverse(int syncUniverse)

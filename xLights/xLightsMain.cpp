@@ -45,6 +45,7 @@
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
 #include "SequenceVideoPanel.h"
+#include "FolderSelection.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -58,8 +59,8 @@
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -155,11 +156,9 @@ const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
+const long xLightsFrame::ID_BUTTON_OTHER_FOLDERS = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
-const long xLightsFrame::ID_BUTTON_CHANGE_MEDIA_DIR = wxNewId();
-const long xLightsFrame::ID_ANY = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_Link_Dirs = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_DONGLE = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
@@ -481,52 +480,51 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Bind(wxEVT_IDLE, &xLightsFrame::OnIdle, this);
 
     //(*Initialize(xLightsFrame)
-    wxStaticBoxSizer* StaticBoxSizer2;
-    wxMenuItem* MenuItem31;
-    wxMenu* MenuHelp;
-    wxMenuItem* MenuItem8;
-    wxFlexGridSizer* FlexGridSizerSetup;
-    wxMenuItem* MenuItem26;
-    wxMenuItem* MenuItem25;
-    wxMenuItem* MenuItem5;
-    wxMenuItem* MenuItem2;
-    wxGridBagSizer* GridBagSizer1;
-    wxMenuItem* MenuItem46;
-    wxMenuItem* MenuItem4;
-    wxMenuItem* MenuItem14;
-    wxMenuItem* MenuItem11;
-    wxStaticText* StaticText38;
-    wxFlexGridSizer* FlexGridSizer9;
-    wxMenuItem* MenuItem22;
-    wxPanel* Panel1;
-    wxMenuItem* MenuItem17;
-    wxMenuItem* MenuItem13;
-    wxMenuItem* MenuItem10;
-    wxMenu* MenuItem_Grid_Icon_Backgrounds;
-    wxMenuItem* MenuItem12;
-    wxMenuItem* MenuItem24;
-    wxMenuItem* MenuItem27;
-    wxMenuItem* MenuItem44;
-    wxFlexGridSizer* FlexGridSizerNetworks;
-    wxMenuItem* MenuItem20;
-    wxFlexGridSizer* FlexGridSizerPreview;
-    wxMenuItem* MenuItem28;
-    wxMenuItem* MenuItemDisplayElements;
-    wxMenuItem* MenuItem6;
-    wxMenuItem* MenuItem23;
-    wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
-    wxStaticBoxSizer* StaticBoxSizer1;
-    wxMenuItem* MenuItem21;
-    wxMenu* Menu2;
-    wxMenuItem* MenuItem9;
-    wxMenuItem* MenuItem45;
-    wxMenuItem* MenuItemBatchRender;
-    wxMenuItem* MenuItem47;
-    wxMenuItem* MenuItem30;
-    wxMenuItem* MenuItem48;
-    wxMenuItem* MenuItem19;
     wxButton* Button03;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxFlexGridSizer* FlexGridSizerNetworks;
+    wxFlexGridSizer* FlexGridSizerPreview;
+    wxFlexGridSizer* FlexGridSizerSetup;
+    wxGridBagSizer* GridBagSizer1;
+    wxMenu* Menu2;
+    wxMenu* MenuHelp;
+    wxMenu* MenuItem_Grid_Icon_Backgrounds;
+    wxMenuItem* MenuItem10;
+    wxMenuItem* MenuItem11;
+    wxMenuItem* MenuItem12;
+    wxMenuItem* MenuItem13;
+    wxMenuItem* MenuItem14;
+    wxMenuItem* MenuItem17;
+    wxMenuItem* MenuItem19;
+    wxMenuItem* MenuItem20;
+    wxMenuItem* MenuItem21;
+    wxMenuItem* MenuItem22;
+    wxMenuItem* MenuItem23;
+    wxMenuItem* MenuItem24;
+    wxMenuItem* MenuItem25;
+    wxMenuItem* MenuItem26;
+    wxMenuItem* MenuItem27;
+    wxMenuItem* MenuItem28;
+    wxMenuItem* MenuItem2;
+    wxMenuItem* MenuItem30;
+    wxMenuItem* MenuItem31;
+    wxMenuItem* MenuItem44;
+    wxMenuItem* MenuItem45;
+    wxMenuItem* MenuItem46;
+    wxMenuItem* MenuItem47;
+    wxMenuItem* MenuItem48;
+    wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem5;
+    wxMenuItem* MenuItem6;
+    wxMenuItem* MenuItem8;
+    wxMenuItem* MenuItem9;
+    wxMenuItem* MenuItemBatchRender;
+    wxMenuItem* MenuItemDisplayElements;
+    wxPanel* Panel1;
+    wxStaticBoxSizer* StaticBoxSizer1;
+    wxStaticBoxSizer* StaticBoxSizer2;
+    wxStaticText* StaticText38;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
@@ -645,19 +643,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridBagSizer1 = new wxGridBagSizer(0, 0);
     StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonOtherFolders = new wxButton(PanelSetup, ID_BUTTON_OTHER_FOLDERS, _("Other Folders.."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OTHER_FOLDERS"));
+    GridBagSizer1->Add(ButtonOtherFolders, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button03 = new wxButton(PanelSetup, ID_BUTTON3, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     GridBagSizer1->Add(Button03, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText28 = new wxStaticText(PanelSetup, wxID_ANY, _("Media Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText28, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Change_Media_Dir = new wxButton(PanelSetup, ID_BUTTON_CHANGE_MEDIA_DIR, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CHANGE_MEDIA_DIR"));
-    GridBagSizer1->Add(Button_Change_Media_Dir, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    MediaDirectoryLabel = new wxStaticText(PanelSetup, ID_ANY, _("{Media Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_ANY"));
-    GridBagSizer1->Add(MediaDirectoryLabel, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Link_Dirs = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON_Link_Dirs, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Link_Dirs"));
-    BitmapButton_Link_Dirs->SetToolTip(_("Link Directories"));
-    GridBagSizer1->Add(BitmapButton_Link_Dirs, wxGBPosition(0, 3), wxGBSpan(2, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Lighting Networks"));
@@ -1117,9 +1108,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
+    Connect(ID_BUTTON_OTHER_FOLDERS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonOtherFoldersClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
-    Connect(ID_BUTTON_CHANGE_MEDIA_DIR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeMediaDirectory);
-    Connect(ID_BITMAPBUTTON_Link_Dirs,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_Link_DirsClick);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON_ADD_DONGLE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDongleClick);
     Connect(ID_BUTTON_ADD_E131,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddE131Click);
@@ -1190,7 +1180,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
-    Connect( ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -1567,7 +1556,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     ObtainAccessToURL(mediaDirectory.ToStdString());
 
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
-    MediaDirectoryLabel->SetLabel(mediaDirectory);
+
+    if (!xLightsApp::fseqDir.IsNull())
+    {
+        fseqDirectory = xLightsApp::fseqDir;
+    }
+    else if (ok && !config->Read(_("FSEQDir"), &fseqDirectory))
+    {
+        fseqDirectory = dir;
+    }
+    ObtainAccessToURL(fseqDirectory.ToStdString());
+
+    logger_base.debug("FSEQ directory %s.", (const char *)fseqDirectory.c_str());
 
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
@@ -3167,34 +3167,6 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
             playAnimation = true;
         }
 	}
-}
-
-void xLightsFrame::OnBitmapButton_Link_DirsClick(wxCommandEvent& event)
-{
-    wxConfigBase* config = wxConfigBase::Get();
-    long LinkFlag=0;
-    config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag )
-    {
-        LinkFlag = 0;
-        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_UNLINK")),wxART_OTHER));
-        Button_Change_Media_Dir->Enable(true);
-        BitmapButton_Link_Dirs->SetToolTip("Link Directories");
-    }
-    else
-    {
-        LinkFlag = 1;
-        BitmapButton_Link_Dirs->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_LINK")),wxART_OTHER));
-        Button_Change_Media_Dir->Enable(false);
-        mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), mediaDirectory);
-        MediaDirectoryLabel->SetLabel(mediaDirectory);
-        MediaDirectoryLabel->GetParent()->Layout();
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
-        BitmapButton_Link_Dirs->SetToolTip("Unlink Directories");
-    }
-    config->Write(_("LinkFlag"), LinkFlag);
 }
 
 void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
@@ -7493,3 +7465,24 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
    m_mgr->Update();
 }
 
+
+void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
+{
+    FolderSelection dlg(this,showDirectory,mediaDirectory,fseqDirectory);
+
+    int res = dlg.ShowModal();
+
+    if (res == wxID_OK)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write(_("MediaDir"), dlg.MediaDirectory);
+        config->Write(_("FSEQDir"), dlg.FseqDirectory);
+        config->Write(_("FSEQLinkFlag"), dlg.LinkFSEQDir);
+        config->Write(_("LinkFlag"), dlg.LinkMediaDir);
+        fseqDirectory = dlg.FseqDirectory;
+        logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
+        mediaDirectory = dlg.MediaDirectory;
+        logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
+    }
+}
