@@ -629,7 +629,7 @@
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_OTHER_FOLDERS" variable="ButtonOtherFolders" member="yes">
-														<label>Other Folders..</label>
+														<label>Subfolders..</label>
 														<handler function="OnButtonOtherFoldersClick" entry="EVT_BUTTON" />
 													</object>
 													<col>3</col>
