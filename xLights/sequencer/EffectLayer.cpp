@@ -1025,7 +1025,7 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
     int count = 0;
     for (int i = 0; i<mEffects.size(); i++)
     {
-        if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
+        if ((effectName == "" || effectName == mEffects[i]->GetEffectName(-1)) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))

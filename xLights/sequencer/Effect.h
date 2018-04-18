@@ -37,6 +37,7 @@ class Effect
         void SetEffectIndex(int effectIndex);
 
         const std::string &GetEffectName() const;
+        const std::string &GetEffectName(int index) const;
         void SetEffectName(const std::string & name);
 
         wxString GetDescription() const;

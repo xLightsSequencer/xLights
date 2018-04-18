@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xScheduleFrame">
-		<title>xLights Scheduler</title>
+		<title>xSchedule</title>
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
 			<cols>1</cols>
@@ -130,7 +130,6 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>10</minsize>
 					<orientation>vertical</orientation>
 					<size>52,39</size>
 					<minsize>10,10</minsize>
@@ -141,7 +140,6 @@
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
 								<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW2" variable="SplitterWindow2" member="yes">
-									<minsize>10</minsize>
 									<minsize>10,10</minsize>
 									<object class="wxPanel" name="ID_PANEL6" variable="Panel6" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">

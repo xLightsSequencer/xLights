@@ -25,21 +25,21 @@
 class BrightnessControl;
 
 //(*Headers(xScheduleFrame)
-#include <wx/listctrl.h>
-#include <wx/treectrl.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/menu.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
-#include <wx/filedlg.h>
 #include <wx/bmpbuttn.h>
-#include <wx/statbmp.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
+#include <wx/filedlg.h>
 #include <wx/frame.h>
-#include <wx/timer.h>
+#include <wx/listctrl.h>
+#include <wx/menu.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/splitter.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
 #include <wx/statusbr.h>
+#include <wx/timer.h>
+#include <wx/treectrl.h>
 //*)
 
 #include "../xLights/xLightsTimer.h"
@@ -270,73 +270,73 @@ public:
         static const long ID_BUTTON_USER;
 
         //(*Declarations(xScheduleFrame)
-        wxMenuItem* MenuItem_AddPlayList;
-        wxStaticText* StaticText_PacketsPerSec;
-        wxFlexGridSizer* FlexGridSizer4;
-        wxBitmapButton* BitmapButton_StepLoop;
-        wxBitmapButton* BitmapButton_PLLoop;
-        wxBitmapButton* BitmapButton_IsScheduled;
-        wxMenuItem* MenuItem_ConfigureOSC;
-        wxStaticText* StaticText_Time;
-        wxPanel* Panel5;
-        wxMenuItem* MenuItem_OSCRemote;
-        wxBitmapButton* BitmapButton_VolumeUp;
-        wxBitmapButton* BitmapButton_OutputToLights;
-        wxBitmapButton* BitmapButton_Unsaved;
-        wxMenuItem* MenuItem_FPPMaster;
-        wxStaticText* StaticText2;
-        wxPanel* Panel4;
-        wxMenuItem* MenuItem_EditEvents;
-        wxMenu* Menu3;
-        wxButton* Button_Schedule;
-        wxSplitterWindow* SplitterWindow2;
-        wxMenuItem* MenuItem_Matrices;
-        wxMenuItem* MenuItem_FPPUnicastRemote;
-        xLightsTimer _timer;
-        wxMenuItem* MenuItem_Save;
-        wxPanel* Panel1;
-        wxFileDialog* FileDialog1;
-        wxMenuItem* MenuItem_FPPOSCMaster;
-        wxMenuItem* MenuItem_OSCMaster;
-        wxMenuItem* MenuItem_BackgroundPlaylist;
-        wxPanel* Panel6;
-        wxPanel* Panel3;
-        wxStaticText* StaticText_ShowDir;
-        wxMenuItem* MenuItem_CheckSchedule;
-        wxPanel* Panel7;
-        wxButton* Button_Delete;
-        wxStatusBar* StatusBar1;
-        wxDirDialog* DirDialog1;
-        wxMenuItem* MenuItem_ARTNetTimeCodeMaster;
-        wxListView* ListView_Ping;
-        wxTimer _timerSchedule;
-        wxListView* ListView_Running;
-        wxMenuItem* MenuItem_FPPRemote;
-        wxButton* Button_Edit;
-        wxTreeCtrl* TreeCtrl_PlayListsSchedules;
-        wxMenuItem* MenuItem_EditFPPRemotes;
-        wxMenuItem* MenuItem_ShowFolder;
-        wxBitmapButton* BitmapButton_Random;
-        wxBitmapButton* BitmapButton_Playing;
-        wxButton* Button_Add;
-        VolumeDisplay* Custom_Volume;
-        wxMenuItem* MenuItem_Standalone;
-        wxPanel* Panel2;
-        wxFlexGridSizer* FlexGridSizer1;
-        wxStaticBitmap* StaticBitmap_WebIcon;
-        wxSplitterWindow* SplitterWindow1;
-        wxMenuItem* MenuItem_WebInterface;
-        wxStaticText* StaticText_IP;
-        wxMenuItem* MenuItem_ImportxLights;
-        wxMenuItem* MenuItem_VirtualMatrices;
-        wxMenuItem* MenuItem_ARTNetTimeCodeSlave;
-        wxMenuItem* MenuItem_Options;
         BrightnessControl* Brightness;
-        wxMenuItem* Menu_OutputProcessing;
-        wxMenuItem* MenuItem_ViewLog;
-        wxMenu* Menu5;
+        VolumeDisplay* Custom_Volume;
+        wxBitmapButton* BitmapButton_IsScheduled;
+        wxBitmapButton* BitmapButton_OutputToLights;
+        wxBitmapButton* BitmapButton_PLLoop;
+        wxBitmapButton* BitmapButton_Playing;
+        wxBitmapButton* BitmapButton_Random;
+        wxBitmapButton* BitmapButton_StepLoop;
+        wxBitmapButton* BitmapButton_Unsaved;
         wxBitmapButton* BitmapButton_VolumeDown;
+        wxBitmapButton* BitmapButton_VolumeUp;
+        wxButton* Button_Add;
+        wxButton* Button_Delete;
+        wxButton* Button_Edit;
+        wxButton* Button_Schedule;
+        wxDirDialog* DirDialog1;
+        wxFileDialog* FileDialog1;
+        wxFlexGridSizer* FlexGridSizer1;
+        wxFlexGridSizer* FlexGridSizer4;
+        wxListView* ListView_Ping;
+        wxListView* ListView_Running;
+        wxMenu* Menu3;
         wxMenu* Menu4;
+        wxMenu* Menu5;
+        wxMenuItem* MenuItem_ARTNetTimeCodeMaster;
+        wxMenuItem* MenuItem_ARTNetTimeCodeSlave;
+        wxMenuItem* MenuItem_AddPlayList;
+        wxMenuItem* MenuItem_BackgroundPlaylist;
+        wxMenuItem* MenuItem_CheckSchedule;
+        wxMenuItem* MenuItem_ConfigureOSC;
+        wxMenuItem* MenuItem_EditEvents;
+        wxMenuItem* MenuItem_EditFPPRemotes;
+        wxMenuItem* MenuItem_FPPMaster;
+        wxMenuItem* MenuItem_FPPOSCMaster;
+        wxMenuItem* MenuItem_FPPRemote;
+        wxMenuItem* MenuItem_FPPUnicastRemote;
+        wxMenuItem* MenuItem_ImportxLights;
+        wxMenuItem* MenuItem_Matrices;
+        wxMenuItem* MenuItem_OSCMaster;
+        wxMenuItem* MenuItem_OSCRemote;
+        wxMenuItem* MenuItem_Options;
+        wxMenuItem* MenuItem_Save;
+        wxMenuItem* MenuItem_ShowFolder;
+        wxMenuItem* MenuItem_Standalone;
+        wxMenuItem* MenuItem_ViewLog;
+        wxMenuItem* MenuItem_VirtualMatrices;
+        wxMenuItem* MenuItem_WebInterface;
+        wxMenuItem* Menu_OutputProcessing;
+        wxPanel* Panel1;
+        wxPanel* Panel2;
+        wxPanel* Panel3;
+        wxPanel* Panel4;
+        wxPanel* Panel5;
+        wxPanel* Panel6;
+        wxPanel* Panel7;
+        wxSplitterWindow* SplitterWindow1;
+        wxSplitterWindow* SplitterWindow2;
+        wxStaticBitmap* StaticBitmap_WebIcon;
+        wxStaticText* StaticText2;
+        wxStaticText* StaticText_IP;
+        wxStaticText* StaticText_PacketsPerSec;
+        wxStaticText* StaticText_ShowDir;
+        wxStaticText* StaticText_Time;
+        wxStatusBar* StatusBar1;
+        wxTimer _timerSchedule;
+        wxTreeCtrl* TreeCtrl_PlayListsSchedules;
+        xLightsTimer _timer;
         //*)
 
         DECLARE_EVENT_TABLE()

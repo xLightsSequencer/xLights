@@ -767,7 +767,8 @@ bool IsBulkEditAvailable(wxWindow* w)
     // if it is an effect setting maybe i should check more than 1 of that effect are selected
     if (GetPanelName(w) == "Effect")
     {
-        std::string effect = ((EffectsPanel*)GetPanel(w))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+        std::string effect = xLightsApp::GetFrame()->GetEffectManager().GetEffectName(((EffectsPanel*)GetPanel(w))->EffectChoicebook->GetSelection());
+
         if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect) < 2)
         {
             logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
