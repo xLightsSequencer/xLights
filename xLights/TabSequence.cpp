@@ -17,15 +17,8 @@
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
-    if (!filename.IsEmpty()) {
-        wxFileName fn(filename);
-        fn.SetPath(fseqDirectory);
-        xlightsFilename = fn.GetFullPath();
-        FileNameText->SetLabel(fn.GetFullPath());
-    } else {
-        xlightsFilename = filename;
-        FileNameText->SetLabel(filename);
-    }
+    xlightsFilename = filename;
+    FileNameText->SetLabel(filename);
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
