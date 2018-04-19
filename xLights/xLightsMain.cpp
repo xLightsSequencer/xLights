@@ -2419,7 +2419,15 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     //  first make sure there is a Backup sub directory
 
-    wxString newDirBackup = CurrentDir + wxFileName::GetPathSeparator() + "Backup";
+    wxString newDirBackup = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+
+	if (wxFileName(backupDirectory) != wxFileName(showDirectory)) {
+		//If not using the Show Folder, Create a Subfolder called "'Show Folder'_Backup" to prevent confusion for ppl who change show folders alot
+		wxFileName showDir(CurrentDir);
+		newDirBackup = wxString::Format( "%s%c%s_Backup",
+			backupDirectory, wxFileName::GetPathSeparator(), showDir.GetName());
+	}
+
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
         logger_base.error("Unable to create backup directory '%s'", (const char *)newDirBackup.c_str());
@@ -2427,8 +2435,8 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         return;
     }
 
-    wxString newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
-        "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+    wxString newDir = wxString::Format( "%s%c%s-%s", 
+		newDirBackup, wxFileName::GetPathSeparator(),
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
     if (startup)
     {
@@ -2440,8 +2448,8 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     {
         logger_base.warn("Backup directory '%s' already existed ... trying again", (const char *)newDir.c_str());
 
-        newDir = CurrentDir + wxFileName::GetPathSeparator() + wxString::Format(
-            "Backup%c%s-%s", wxFileName::GetPathSeparator(),
+        newDir = wxString::Format( "%s%c%s-%s", 
+			newDirBackup, wxFileName::GetPathSeparator(),
             curTime.FormatISODate(), curTime.Format("%H%M%S")) + "_" + char(65 + tries);
         if (startup)
         {
@@ -7484,8 +7492,7 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 
     int res = dlg.ShowModal();
 
-    if (res == wxID_OK)
-    {
+    if (res == wxID_OK) {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), dlg.MediaDirectory);

@@ -6,6 +6,7 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<rows>4</rows>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticBoxSizer" variable="StaticBoxSizerMediaDir" member="no">
 					<label>Media Directory</label>
@@ -14,12 +15,14 @@
 							<label>Use Show Folder</label>
 							<handler function="OnCheckBoxMediaUseShowClick" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_MEDIA_DIRECTORY" variable="TextCtrlMediaDirectory" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_MEDIA_DIRECTORY" variable="TextCtrlMediaDirectory" member="yes">
+							<size>200,-1</size>
+							<handler function="OnTextCtrlMediaDirectoryText" entry="EVT_TEXT" />
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>2</option>
@@ -33,7 +36,7 @@
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -45,12 +48,14 @@
 							<label>Use Show Folder</label>
 							<handler function="OnCheckBoxFSEQUseShowClick" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_FSEQ_DIRECTORY" variable="TextCtrlFSEQDirectory" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_FSEQ_DIRECTORY" variable="TextCtrlFSEQDirectory" member="yes">
+							<size>200,-1</size>
+							<handler function="OnTextCtrlFSEQDirectoryText" entry="EVT_TEXT" />
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>2</option>
@@ -64,7 +69,7 @@
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -76,12 +81,14 @@
 							<label>Use Show Folder</label>
 							<handler function="OnCheckBoxBackupUseShowClick" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_BACKUP_DIRECTORY" variable="TextCtrlBackupDirectory" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_BACKUP_DIRECTORY" variable="TextCtrlBackupDirectory" member="yes">
+							<size>200,-1</size>
+							<handler function="OnTextCtrlBackupDirectoryText" entry="EVT_TEXT" />
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>2</option>
@@ -121,7 +128,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

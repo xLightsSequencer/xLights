@@ -40,29 +40,30 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(4, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	StaticBoxSizerMediaDir = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Media Directory"));
 	CheckBoxMediaUseShow = new wxCheckBox(this, ID_CHECKBOX_MEDIA_USE_SHOW, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MEDIA_USE_SHOW"));
 	CheckBoxMediaUseShow->SetValue(false);
-	StaticBoxSizerMediaDir->Add(CheckBoxMediaUseShow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlMediaDirectory = new wxTextCtrl(this, ID_TEXTCTRL_MEDIA_DIRECTORY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_MEDIA_DIRECTORY"));
+	StaticBoxSizerMediaDir->Add(CheckBoxMediaUseShow, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	TextCtrlMediaDirectory = new wxTextCtrl(this, ID_TEXTCTRL_MEDIA_DIRECTORY, wxEmptyString, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_MEDIA_DIRECTORY"));
 	StaticBoxSizerMediaDir->Add(TextCtrlMediaDirectory, 2, wxALL|wxEXPAND, 5);
 	ButtonFindMediaDir = new wxButton(this, ID_BUTTON_FIND_MEDIA_DIR, _("..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_FIND_MEDIA_DIR"));
 	StaticBoxSizerMediaDir->Add(ButtonFindMediaDir, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer1->Add(StaticBoxSizerMediaDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticBoxSizerMediaDir, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizerFreqDir = new wxStaticBoxSizer(wxHORIZONTAL, this, _("FSEQ Directory"));
 	CheckBoxFSEQUseShow = new wxCheckBox(this, ID_CHECKBOX_FSEQ_USE_SHOW, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FSEQ_USE_SHOW"));
 	CheckBoxFSEQUseShow->SetValue(false);
-	StaticBoxSizerFreqDir->Add(CheckBoxFSEQUseShow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlFSEQDirectory = new wxTextCtrl(this, ID_TEXTCTRL_FSEQ_DIRECTORY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_FSEQ_DIRECTORY"));
+	StaticBoxSizerFreqDir->Add(CheckBoxFSEQUseShow, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	TextCtrlFSEQDirectory = new wxTextCtrl(this, ID_TEXTCTRL_FSEQ_DIRECTORY, wxEmptyString, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_FSEQ_DIRECTORY"));
 	StaticBoxSizerFreqDir->Add(TextCtrlFSEQDirectory, 2, wxALL|wxEXPAND, 5);
 	ButtonFindFSEQDir = new wxButton(this, ID_BUTTON_FIND_FSEQ_DIR, _("..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_FIND_FSEQ_DIR"));
 	StaticBoxSizerFreqDir->Add(ButtonFindFSEQDir, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer1->Add(StaticBoxSizerFreqDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticBoxSizerFreqDir, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizerBackupDir = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Backup Directory"));
 	CheckBoxBackupUseShow = new wxCheckBox(this, ID_CHECKBOX_BACKUP_USE_SHOW, _("Use Show Folder"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BACKUP_USE_SHOW"));
 	CheckBoxBackupUseShow->SetValue(false);
-	StaticBoxSizerBackupDir->Add(CheckBoxBackupUseShow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlBackupDirectory = new wxTextCtrl(this, ID_TEXTCTRL_BACKUP_DIRECTORY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_BACKUP_DIRECTORY"));
+	StaticBoxSizerBackupDir->Add(CheckBoxBackupUseShow, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	TextCtrlBackupDirectory = new wxTextCtrl(this, ID_TEXTCTRL_BACKUP_DIRECTORY, wxEmptyString, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("ID_TEXTCTRL_BACKUP_DIRECTORY"));
 	StaticBoxSizerBackupDir->Add(TextCtrlBackupDirectory, 2, wxALL|wxEXPAND, 5);
 	ButtonFindBackupDirectory = new wxButton(this, ID_BUTTON_FIND_BACKUP_DIRECTORY, _("..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_FIND_BACKUP_DIRECTORY"));
 	StaticBoxSizerBackupDir->Add(ButtonFindBackupDirectory, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
@@ -72,16 +73,19 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
 	FlexGridSizer2->Add(ButtonFolderSelectOk, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonFolderSelectCancel = new wxButton(this, ID_BUTTON_FOLDER_SELECT_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_FOLDER_SELECT_CANCEL"));
 	FlexGridSizer2->Add(ButtonFolderSelectCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX_MEDIA_USE_SHOW,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FolderSelection::OnCheckBoxMediaUseShowClick);
+	Connect(ID_TEXTCTRL_MEDIA_DIRECTORY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FolderSelection::OnTextCtrlMediaDirectoryText);
 	Connect(ID_BUTTON_FIND_MEDIA_DIR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FolderSelection::OnButtonFindMediaDirClick);
 	Connect(ID_CHECKBOX_FSEQ_USE_SHOW,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FolderSelection::OnCheckBoxFSEQUseShowClick);
+	Connect(ID_TEXTCTRL_FSEQ_DIRECTORY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FolderSelection::OnTextCtrlFSEQDirectoryText);
 	Connect(ID_BUTTON_FIND_FSEQ_DIR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FolderSelection::OnButtonFindFSEQDirClick);
 	Connect(ID_CHECKBOX_BACKUP_USE_SHOW,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FolderSelection::OnCheckBoxBackupUseShowClick);
+	Connect(ID_TEXTCTRL_BACKUP_DIRECTORY,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FolderSelection::OnTextCtrlBackupDirectoryText);
 	Connect(ID_BUTTON_FIND_BACKUP_DIRECTORY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FolderSelection::OnButtonFindBackupDirectoryClick);
 	Connect(ID_BUTTON_FOLDER_SELECT_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FolderSelection::OnButtonFolderSelectOkClick);
 	Connect(ID_BUTTON_FOLDER_SELECT_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FolderSelection::OnButtonFolderSelectCancelClick);
@@ -91,7 +95,7 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
     MediaDirectory = mediaDirectory;
     FseqDirectory = fseqDirectory;
     BackupDirectory = backupDirectory;
-    LinkMediaDir = 0;
+    LinkMediaDir = 1;
     LinkFSEQDir = 1;
     LinkBackupDir = 1;
 
@@ -105,8 +109,7 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
             TextCtrlMediaDirectory->Enable(false);
             ButtonFindMediaDir->Enable(false);
             TextCtrlMediaDirectory->SetLabel(MediaDirectory);
-        }
-        else {
+        } else {
             CheckBoxMediaUseShow->SetValue(false);
             TextCtrlMediaDirectory->Enable(true);
             ButtonFindMediaDir->Enable(true);
@@ -119,8 +122,7 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
             TextCtrlFSEQDirectory->Enable(false);
             ButtonFindFSEQDir->Enable(false);
             TextCtrlFSEQDirectory->SetLabel(FseqDirectory);
-        }
-        else {
+        } else {
             CheckBoxFSEQUseShow->SetValue(false);
             TextCtrlFSEQDirectory->Enable(true);
             ButtonFindFSEQDir->Enable(true);
@@ -134,8 +136,7 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
             TextCtrlBackupDirectory->Enable(false);
             ButtonFindBackupDirectory->Enable(false);
             TextCtrlBackupDirectory->SetLabel(BackupDirectory);
-        }
-        else {
+        } else {
             CheckBoxBackupUseShow->SetValue(false);
             TextCtrlBackupDirectory->Enable(true);
             ButtonFindBackupDirectory->Enable(true);
@@ -153,6 +154,43 @@ FolderSelection::~FolderSelection()
 
 void FolderSelection::OnButtonFolderSelectOkClick(wxCommandEvent& event)
 {
+	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+	if (wxFileName(MediaDirectory) == wxFileName(ShowDirectory)) {
+		LinkMediaDir = 1;
+		MediaDirectory = ShowDirectory;
+	}
+
+	if (wxFileName(FseqDirectory) == wxFileName(ShowDirectory)) {
+		LinkFSEQDir = 1;
+		FseqDirectory = ShowDirectory;
+	}
+
+	if (wxFileName(BackupDirectory) == wxFileName(ShowDirectory)) {
+		LinkBackupDir = 1;
+		BackupDirectory = ShowDirectory;
+	}
+
+	ObtainAccessToURL(MediaDirectory.ToStdString());
+	ObtainAccessToURL(FseqDirectory.ToStdString());
+	ObtainAccessToURL(BackupDirectory.ToStdString());
+
+	if (!wxDir::Exists(MediaDirectory)) {
+		logger_base.error("Media Directory is non-existent '%s'", (const char *)MediaDirectory.c_str());
+		wxMessageBox("Media Directory is Invalid!", "Error", wxICON_ERROR | wxOK);
+		return;
+	}
+	if (!wxDir::Exists(FseqDirectory)) {
+		logger_base.error("FSEQ Directory is non-existent '%s'", (const char *)FseqDirectory.c_str());
+		wxMessageBox("FSEQ Directory is Invalid!", "Error", wxICON_ERROR | wxOK);
+		return;
+	}
+	if (!wxDir::Exists(BackupDirectory)) {
+		logger_base.error("Backup Directory is non-existent '%s'", (const char *)BackupDirectory.c_str());
+		wxMessageBox("Backup Directory is Invalid!", "Error", wxICON_ERROR | wxOK);
+		return;
+	}
+
     EndDialog(wxID_OK);
 }
 
@@ -166,9 +204,7 @@ void FolderSelection::OnButtonFindMediaDirClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(MediaDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        MediaDirectory = dialog.GetPath();
-        ObtainAccessToURL(_mediaDirectory.ToStdString());
-        TextCtrlMediaDirectory->SetLabel(MediaDirectory);
+        TextCtrlMediaDirectory->SetLabel(dialog.GetPath());
     }
 }
 
@@ -177,22 +213,28 @@ void FolderSelection::OnButtonFindFSEQDirClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(FseqDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        FseqDirectory = dialog.GetPath();
-        ObtainAccessToURL(_fseqDirectory.ToStdString());
-        TextCtrlFSEQDirectory->SetLabel(FseqDirectory);
+        TextCtrlFSEQDirectory->SetLabel(dialog.GetPath());
     }
+}
+
+void FolderSelection::OnButtonFindBackupDirectoryClick(wxCommandEvent& event)
+{
+	wxDirDialog dialog(this);
+	dialog.SetPath(BackupDirectory);
+	if (dialog.ShowModal() == wxID_OK) {
+		TextCtrlBackupDirectory->SetLabel(dialog.GetPath());
+	}
 }
 
 void FolderSelection::OnCheckBoxFSEQUseShowClick(wxCommandEvent& event)
 {
-    if (CheckBoxFSEQUseShow->IsChecked()) {
+    if (event.IsChecked()) {
         LinkFSEQDir = 1;
         FseqDirectory = ShowDirectory;
         TextCtrlFSEQDirectory->Enable(false);
         ButtonFindFSEQDir->Enable(false);
         TextCtrlFSEQDirectory->SetLabel(FseqDirectory);
-    }
-    else {
+    } else {
         LinkFSEQDir = 0;
         TextCtrlFSEQDirectory->Enable(true);
         ButtonFindFSEQDir->Enable(true);
@@ -202,14 +244,13 @@ void FolderSelection::OnCheckBoxFSEQUseShowClick(wxCommandEvent& event)
 
 void FolderSelection::OnCheckBoxMediaUseShowClick(wxCommandEvent& event)
 {
-    if (CheckBoxMediaUseShow->IsChecked()) {
+    if (event.IsChecked()) {
         LinkMediaDir = 1;
         MediaDirectory = ShowDirectory;
         TextCtrlMediaDirectory->Enable(false);
         ButtonFindMediaDir->Enable(false);
         TextCtrlMediaDirectory->SetLabel(MediaDirectory);
-    }
-    else {
+    } else {
         LinkMediaDir = 0;
         TextCtrlMediaDirectory->Enable(true);
         ButtonFindMediaDir->Enable(true);
@@ -219,28 +260,30 @@ void FolderSelection::OnCheckBoxMediaUseShowClick(wxCommandEvent& event)
 
 void FolderSelection::OnCheckBoxBackupUseShowClick(wxCommandEvent& event)
 {
-    if (CheckBoxBackupUseShow->IsChecked()) {
+    if (event.IsChecked()) {
         LinkBackupDir = 1;
         BackupDirectory = ShowDirectory;
         TextCtrlBackupDirectory->Enable(false);
         ButtonFindBackupDirectory->Enable(false);
-        TextCtrlMediaDirectory->SetLabel(BackupDirectory);
-    }
-    else {
+		TextCtrlBackupDirectory->SetLabel(BackupDirectory);
+    } else {
         LinkBackupDir = 0;
         TextCtrlBackupDirectory->Enable(true);
         ButtonFindBackupDirectory->Enable(true);
-        TextCtrlMediaDirectory->SetLabel(BackupDirectory);
+        TextCtrlBackupDirectory->SetLabel(BackupDirectory);
     }
 }
-
-void FolderSelection::OnButtonFindBackupDirectoryClick(wxCommandEvent& event)
+void FolderSelection::OnTextCtrlMediaDirectoryText(wxCommandEvent& event)
 {
-    wxDirDialog dialog(this);
-    dialog.SetPath(BackupDirectory);
-    if (dialog.ShowModal() == wxID_OK) {
-        FseqDirectory = dialog.GetPath();
-        ObtainAccessToURL(BackupDirectory.ToStdString());
-        TextCtrlMediaDirectory->SetLabel(BackupDirectory);
-    }
+	MediaDirectory = event.GetString();
+}
+
+void FolderSelection::OnTextCtrlFSEQDirectoryText(wxCommandEvent& event)
+{
+	FseqDirectory = event.GetString();
+}
+
+void FolderSelection::OnTextCtrlBackupDirectoryText(wxCommandEvent& event)
+{
+	BackupDirectory = event.GetString();
 }

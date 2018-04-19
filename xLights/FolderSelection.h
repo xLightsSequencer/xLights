@@ -67,6 +67,9 @@ class FolderSelection: public wxDialog
 		void OnCheckBoxMediaUseShowClick(wxCommandEvent& event);
 		void OnCheckBoxBackupUseShowClick(wxCommandEvent& event);
 		void OnButtonFindBackupDirectoryClick(wxCommandEvent& event);
+		void OnTextCtrlMediaDirectoryText(wxCommandEvent& event);
+		void OnTextCtrlFSEQDirectoryText(wxCommandEvent& event);
+		void OnTextCtrlBackupDirectoryText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

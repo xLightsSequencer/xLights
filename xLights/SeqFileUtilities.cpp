@@ -259,26 +259,21 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         bool fseqFound = false;
 
-        if (fseq_file.FileExists())
-        {
+        if (fseq_file.FileExists()) {
             //Found in FSEQ Folder
             fseqFound = true;
 
             /***************************/
-            //TODO: Maybe remove this if Keith/Gil/Dan think it's bad- Scott
-            if (fseq_fileShow.FileExists() && fseqDirectory != showDirectory)
-            {
+            //TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
+            if (fseq_fileShow.FileExists() && wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
                 //remove file from show directory
                 logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_fileShow.GetPath().c_str());
                 wxRemoveFile(fseq_fileShow.GetFullPath());//
             }
             /***************************/
-        }
-        else if(fseqDirectory != showDirectory) // Only go in here if folder are unlinked
-        {
+        } else if(wxFileName(fseqDirectory) != wxFileName(showDirectory)) { // Only go in here if folder are unlinked
             //file found in show folder
-            if (fseq_fileShow.FileExists())
-            {
+            if (fseq_fileShow.FileExists()) {
                 //move files to fseq folder
                 logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_fileShow.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
                 fseqFound = wxCopyFile(fseq_fileShow.GetFullPath(), fseq_file.GetFullPath());
