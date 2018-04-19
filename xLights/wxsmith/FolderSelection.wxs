@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="FolderSelection">
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
-			<rows>3</rows>
+			<rows>4</rows>
 			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizerMediaDir" member="no">
 					<label>Media Directory</label>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_MEDIA_USE_SHOW" variable="CheckBoxMediaUseShow" member="yes">
@@ -39,7 +38,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizerFreqDir" member="no">
 					<label>FSEQ Directory</label>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_FSEQ_USE_SHOW" variable="CheckBoxFSEQUseShow" member="yes">
@@ -66,6 +65,37 @@
 					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizerBackupDir" member="no">
+					<label>Backup Directory</label>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_BACKUP_USE_SHOW" variable="CheckBoxBackupUseShow" member="yes">
+							<label>Use Show Folder</label>
+							<handler function="OnCheckBoxBackupUseShowClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_BACKUP_DIRECTORY" variable="TextCtrlBackupDirectory" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>2</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_FIND_BACKUP_DIRECTORY" variable="ButtonFindBackupDirectory" member="yes">
+							<label>...</label>
+							<handler function="OnButtonFindBackupDirectoryClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+						<border>5</border>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

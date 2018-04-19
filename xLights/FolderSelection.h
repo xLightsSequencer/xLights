@@ -15,16 +15,19 @@ class FolderSelection: public wxDialog
 {
 	public:
 
-		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory, const wxString &backupDirectory, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FolderSelection();
 
 		//(*Declarations(FolderSelection)
+		wxButton* ButtonFindBackupDirectory;
 		wxButton* ButtonFindFSEQDir;
 		wxButton* ButtonFindMediaDir;
 		wxButton* ButtonFolderSelectCancel;
 		wxButton* ButtonFolderSelectOk;
+		wxCheckBox* CheckBoxBackupUseShow;
 		wxCheckBox* CheckBoxFSEQUseShow;
 		wxCheckBox* CheckBoxMediaUseShow;
+		wxTextCtrl* TextCtrlBackupDirectory;
 		wxTextCtrl* TextCtrlFSEQDirectory;
 		wxTextCtrl* TextCtrlMediaDirectory;
 		//*)
@@ -32,8 +35,10 @@ class FolderSelection: public wxDialog
         wxString ShowDirectory;
         wxString MediaDirectory;
         wxString FseqDirectory;
+        wxString BackupDirectory;
         long LinkMediaDir;
         long LinkFSEQDir;
+        long LinkBackupDir;
 
 	protected:
 
@@ -44,6 +49,9 @@ class FolderSelection: public wxDialog
 		static const long ID_CHECKBOX_FSEQ_USE_SHOW;
 		static const long ID_TEXTCTRL_FSEQ_DIRECTORY;
 		static const long ID_BUTTON_FIND_FSEQ_DIR;
+		static const long ID_CHECKBOX_BACKUP_USE_SHOW;
+		static const long ID_TEXTCTRL_BACKUP_DIRECTORY;
+		static const long ID_BUTTON_FIND_BACKUP_DIRECTORY;
 		static const long ID_BUTTON_FOLDER_SELECT_OK;
 		static const long ID_BUTTON_FOLDER_SELECT_CANCEL;
 		//*)
@@ -57,9 +65,9 @@ class FolderSelection: public wxDialog
 		void OnButtonFindFSEQDirClick(wxCommandEvent& event);
 		void OnCheckBoxFSEQUseShowClick(wxCommandEvent& event);
 		void OnCheckBoxMediaUseShowClick(wxCommandEvent& event);
+		void OnCheckBoxBackupUseShowClick(wxCommandEvent& event);
+		void OnButtonFindBackupDirectoryClick(wxCommandEvent& event);
 		//*)
-
-
 
 		DECLARE_EVENT_TABLE()
 };

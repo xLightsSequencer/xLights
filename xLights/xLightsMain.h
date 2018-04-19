@@ -1049,6 +1049,7 @@ private:
     wxString showDirectory;
     wxString mediaDirectory;
     wxString fseqDirectory;
+    wxString backupDirectory;
     SeqDataType SeqData;
     wxTimer _scrollTimer;
 

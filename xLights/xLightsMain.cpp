@@ -1569,6 +1569,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     logger_base.debug("FSEQ directory %s.", (const char *)fseqDirectory.c_str());
 
+    if (!xLightsApp::backupDir.IsNull())
+    {
+        backupDirectory = xLightsApp::backupDir;
+    }
+    else if (ok && !config->Read(_("BackupDir"), &backupDirectory))
+    {
+        backupDirectory = dir;
+    }
+    ObtainAccessToURL(backupDirectory.ToStdString());
+
+    logger_base.debug("Backup directory %s.", (const char *)backupDirectory.c_str());
+
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
     {
@@ -7468,7 +7480,7 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
-    FolderSelection dlg(this,showDirectory,mediaDirectory,fseqDirectory);
+    FolderSelection dlg(this,showDirectory,mediaDirectory,fseqDirectory, backupDirectory);
 
     int res = dlg.ShowModal();
 
@@ -7477,12 +7489,18 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), dlg.MediaDirectory);
+        config->Write(_("LinkFlag"), dlg.LinkMediaDir);
         config->Write(_("FSEQDir"), dlg.FseqDirectory);
         config->Write(_("FSEQLinkFlag"), dlg.LinkFSEQDir);
-        config->Write(_("LinkFlag"), dlg.LinkMediaDir);
-        fseqDirectory = dlg.FseqDirectory;
-        logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
+
+        config->Write(_("BackupDir"), dlg.BackupDirectory);
+        config->Write(_("BackupLinkFlag"), dlg.LinkBackupDir);
+
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
+        fseqDirectory = dlg.FseqDirectory;
+        logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
+        backupDirectory = dlg.BackupDirectory;
+        logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
     }
 }

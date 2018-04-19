@@ -36,6 +36,7 @@ public:
     static wxString showDir;
     static wxString mediaDir;
     static wxString fseqDir;
+    static wxString backupDir;
     static wxArrayString sequenceFiles;
     static xLightsFrame* __frame;
 
