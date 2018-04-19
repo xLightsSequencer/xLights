@@ -265,7 +265,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             fseqFound = true;
 
             /***************************/
-            //TODO: Maybe remove this if Keith/Gil/Dan - Scott
+            //TODO: Maybe remove this if Keith/Gil/Dan think it's bad- Scott
             if (fseq_fileShow.FileExists() && fseqDirectory != showDirectory)
             {
                 //remove file from show directory
