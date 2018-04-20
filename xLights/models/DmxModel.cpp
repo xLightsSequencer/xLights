@@ -771,7 +771,7 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
         xlColor color, proxy;
         int w, h;
 
-        GetModelScreenLocation().PrepareToDraw();
+        GetModelScreenLocation().PrepareToDraw(false, false);
 
         va.PreAlloc(maxVertexCount);
 
@@ -797,12 +797,12 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
     float sx,sy,sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-    GetModelScreenLocation().PrepareToDraw();
+    GetModelScreenLocation().PrepareToDraw(false, false);
 
     va.PreAlloc(maxVertexCount);
 

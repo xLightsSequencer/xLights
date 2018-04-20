@@ -8,6 +8,7 @@
 #include <map>
 #include "wx/glcanvas.h"
 #include "Color.h"
+#include <glm/mat4x4.hpp>
 
 class xlGLCanvas;
 
@@ -511,7 +512,7 @@ namespace DrawGLUtils
 
         virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
         virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
-        virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) = 0;
+        virtual void SetCamera(glm::mat4& view_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;
         virtual void Translate(float x, float y, float z) = 0;
@@ -536,7 +537,7 @@ namespace DrawGLUtils
 
     void SetViewport(xlGLCanvas &win, int x1, int y1, int x2, int y2);
     void SetViewport3D(xlGLCanvas &win, int x1, int y1, int x2, int y2);
-	void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance);
+    void SetCamera(glm::mat4& view_matrix);
 	void PushMatrix();
     void PopMatrix();
     void Translate(float x, float y, float z);
@@ -619,6 +620,7 @@ namespace DrawGLUtils
                          const xlDisplayList & dl,
                          xlVertexColorAccumulator &bg);
 
+    void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
 
 }
 

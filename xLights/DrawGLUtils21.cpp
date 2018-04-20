@@ -703,14 +703,12 @@ public:
         if (matrix) {
             delete matrix;
         }
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(bottomright_y-topleft_y), 0.1f, 100.0f);
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(bottomright_y-topleft_y), 1.0f, 10000.0f);
         matrix = new glm::mat4(m);
     }
 
-    virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
-        Translate(0, 0, cameraDistance);
-        Rotate(cameraAngleX, 1, 0, 0);
-        Rotate(cameraAngleY, 0, 1, 0);
+    virtual void SetCamera(glm::mat4& view_matrix) {
+        *matrix = *matrix * view_matrix;
     }
 
     void PushMatrix() override {

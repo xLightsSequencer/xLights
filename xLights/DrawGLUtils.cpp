@@ -8,6 +8,8 @@
 #else
  #include <GL/gl.h>
 #endif
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
@@ -322,15 +324,15 @@ public:
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
 
-        LOG_GL_ERRORV(glFrustum((float)topleft_x, (float)bottomright_x, (float)topleft_y, (float)bottomright_y, 0.1f, 100.0f););
+        LOG_GL_ERRORV(glFrustum((float)topleft_x, (float)bottomright_x, (float)topleft_y, (float)bottomright_y, 1.0f, 10000.0f));
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
-    virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
-        LOG_GL_ERRORV(glTranslatef(0, 0, cameraDistance));
-        LOG_GL_ERRORV(glRotatef(cameraAngleX, 1, 0, 0)); // pitch
-        LOG_GL_ERRORV(glRotatef(cameraAngleY, 0, 1, 0)); // heading
+    virtual void SetCamera(glm::mat4& view_matrix) {
+        // we want the inverse of the camera location to be on the matrix stack
+        glm::mat4 InverseViewMatrix = glm::inverse(view_matrix);
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(InverseViewMatrix)));
     }
 
     void PushMatrix() override {
@@ -426,8 +428,8 @@ void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, i
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
-void DrawGLUtils::SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
-	currentCache->SetCamera((float)cameraAngleX, (float)cameraAngleY, (float)cameraDistance);
+void DrawGLUtils::SetCamera(glm::mat4& view_matrix) {
+	currentCache->SetCamera(view_matrix);
 }
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();
@@ -1484,4 +1486,65 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
     }
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     Draw(vat, GL_TRIANGLES, GL_BLEND);
+}
+
+void DrawGLUtils::DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va)
+{
+    // FIXME:  draw a square until I get a good sphere routine
+
+    // front
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z + radius, color);
+
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x - radius, y - radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z + radius, color);
+
+    // back
+    va.AddVertex(x - radius, y + radius, z - radius, color);
+    va.AddVertex(x + radius, y + radius, z - radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+
+    va.AddVertex(x - radius, y + radius, z - radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+
+    // left side
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x - radius, y - radius, z + radius, color);
+    va.AddVertex(x - radius, y - radius, z - radius, color);
+
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x - radius, y + radius, z - radius, color);
+    va.AddVertex(x - radius, y - radius, z - radius, color);
+    
+    // right side
+    va.AddVertex(x + radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+
+    va.AddVertex(x + radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y + radius, z - radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+
+    // top side
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y + radius, z + radius, color);
+    va.AddVertex(x - radius, y + radius, z - radius, color);
+
+    va.AddVertex(x - radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y + radius, z + radius, color);
+    va.AddVertex(x + radius, y + radius, z - radius, color);
+
+    // bottom side
+    va.AddVertex(x - radius, y - radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z + radius, color);
+    va.AddVertex(x - radius, y - radius, z - radius, color);
+
+    va.AddVertex(x - radius, y - radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z + radius, color);
+    va.AddVertex(x + radius, y - radius, z - radius, color);
+
+    va.Finish(GL_TRIANGLES);
 }

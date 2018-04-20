@@ -898,10 +898,8 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    virtual void SetCamera(float cameraAngleX, float cameraAngleY, float cameraDistance) {
-        Translate(0, 0, cameraDistance);
-        Rotate(cameraAngleX, 1, 0, 0);
-        Rotate(cameraAngleY, 0, 1, 0);
+    virtual void SetCamera(glm::mat4& view_matrix) {
+        *matrix = *matrix * view_matrix;
     }
 
     void PushMatrix() override {

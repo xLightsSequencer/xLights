@@ -6,7 +6,10 @@
 
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
-#include <log4cpp/Category.hh>
+
+#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define SNAP_RANGE                  5
 #define RECT_HANDLE_WIDTH           6
@@ -88,13 +91,59 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
-  scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz)
+  scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz), ModelMatrix(glm::mat4(1.0f)),
+  aabb_min(0.0f, 0.0f, 0.0f), aabb_max(0.0f, 0.0f, 0.0f),
+  active_handle(-1), arrows_active(false), handles_active(false)
 {
+    draw_3d = false;
     _locked = false;
 }
 
+void ModelScreenLocation::DrawAxisArrows(float x, float y, float z, DrawGLUtils::xl3Accumulator &va)
+{
+    int num_points = 18;
+    float radius = 4.0f;
+    float arrow_length = 60.0f;
+    float head_length = 12.0f;
+    float os = (float)RECT_HANDLE_WIDTH;
+
+    float tip = x + arrow_length;
+    for (size_t i = 0; i < num_points; i++) {
+        float u1 = i / (float)num_points;
+        float u2 = i + 1 / (float)num_points;
+        va.AddVertex(tip, y, z, xlRED);
+        va.AddVertex(tip - head_length, y + radius * cos(2.0 * M_PI*u1), z + radius * sin(2.0 * M_PI*u1), xlRED);
+        va.AddVertex(tip - head_length, y + radius * cos(2.0 * M_PI*u2), z + radius * sin(2.0 * M_PI*u2), xlRED);
+    }
+    tip = y + arrow_length;
+    for (size_t i = 0; i < num_points; i++) {
+        float u1 = i / (float)num_points;
+        float u2 = i + 1 / (float)num_points;
+        va.AddVertex(x, tip, z, xlGREEN);
+        va.AddVertex(x + radius * cos(2.0 * M_PI*u1), tip - head_length,  z + radius * sin(2.0 * M_PI*u1), xlGREEN);
+        va.AddVertex(x + radius * cos(2.0 * M_PI*u2), tip - head_length,  z + radius * sin(2.0 * M_PI*u2), xlGREEN);
+    }
+    tip = z + arrow_length;
+    for (size_t i = 0; i < num_points; i++) {
+        float u1 = i / (float)num_points;
+        float u2 = i + 1 / (float)num_points;
+        va.AddVertex(x, y, tip, xlBLUE);
+        va.AddVertex(x + radius * cos(2.0 * M_PI*u1), y + radius * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
+        va.AddVertex(x + radius * cos(2.0 * M_PI*u2), y + radius * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
+    }
+    va.Finish(GL_TRIANGLES);
+
+    va.AddVertex(x + os, y, z, xlRED);
+    va.AddVertex(x + arrow_length - head_length, y, z, xlRED);
+    va.AddVertex(x, y + os, z, xlGREEN);
+    va.AddVertex(x, y + arrow_length - head_length, z, xlGREEN);
+    va.AddVertex(x, y, z + os, xlBLUE);
+    va.AddVertex(x, y, z + arrow_length - head_length, xlBLUE);
+    va.Finish(GL_LINES);
+}
+
 BoxedScreenLocation::BoxedScreenLocation()
-: ModelScreenLocation(9), PreviewRotation(0)
+: ModelScreenLocation(9), PreviewRotation(0), perspective(0.0f)
 {
 }
 
@@ -102,16 +151,6 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
     worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
     worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
     worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
-
-    if (worldPos_x < 0) {
-        worldPos_x = 0.0f;
-    }
-    if (worldPos_y < 0) {
-        worldPos_y = 0.0f;
-    }
-    if (worldPos_z < 0) {
-        worldPos_z = 0.0f;
-    }
 
     scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
 	scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
@@ -156,9 +195,18 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
 
 void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const {
     sx = (sx*scalex);
-    sy = ((sy+RenderHt/2)*scaley);
+    sy = (sy*scaley);
 	sz = (sz*scalez);
     TranslatePointDoubles(radians,sx,sy,sx,sy);
+
+    if (!draw_3d) {
+        glm::vec4 position = glm::vec4(glm::vec3(sx, sy, sz), 1.0);
+        glm::mat4 rm = glm::rotate(glm::mat4(1.0f), perspective, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::vec4 model_position = rm * position;
+        sx = model_position.x;
+        sy = model_position.y;
+        sz = model_position.z;
+    }
     sx += worldPos_x;
     sy += worldPos_y;
 	sz += worldPos_z;
@@ -207,7 +255,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
         return GetResizeCursor(2, PreviewRotation);
     } else if (x>mHandlePosition[3].x && x<mHandlePosition[3].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[3].y && y<mHandlePosition[3].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_R_BOTTOM_HANDLE;
+        handle = OVER_L_BOTTOM_HANDLE;
         return GetResizeCursor(3, PreviewRotation);
     } else if (x>mHandlePosition[4].x && x<mHandlePosition[4].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[4].y && y<mHandlePosition[4].y+RECT_HANDLE_WIDTH) {
@@ -227,23 +275,75 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     return wxCURSOR_SIZING;
 }
 
+void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
+{
+    if (Nodes.size() > 0) {
+        aabb_min = glm::vec3(100000.0f, 100000.0f, 100000.0f);
+        aabb_max = glm::vec3(0.0f, 0.0f, 0.0f);
 
-void BoxedScreenLocation::PrepareToDraw() const {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+            for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
+                // draw node on screen
+                float sx = coord->screenX;
+                float sy = coord->screenY;
+                float sz = coord->screenZ;
+
+                //aabb vectors need to be the untranslated / unscaled limits
+                if (sx < aabb_min.x) {
+                    aabb_min.x = sx;
+                }
+                if (sy < aabb_min.y) {
+                    aabb_min.y = sy;
+                }
+                if (sz < aabb_min.z) {
+                    aabb_min.z = sz;
+                }
+                if (sx > aabb_max.x) {
+                    aabb_max.x = sx;
+                }
+                if (sy > aabb_max.y) {
+                    aabb_max.y = sy;
+                }
+                if (sz > aabb_max.z) {
+                    aabb_max.z = sz;
+                }
+            }
+        }
+        // scale the bounding box for selection logic
+        aabb_min.x = aabb_min.x * scalex;
+        aabb_min.y = aabb_min.y * scaley;
+        aabb_min.z = aabb_min.z * scalez;
+        aabb_max.x = aabb_max.x * scalex;
+        aabb_max.y = aabb_max.y * scaley;
+        aabb_max.z = aabb_max.z * scalez;
+    }
+}
+
+void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     radians = toRadians(PreviewRotation);
     centerx = worldPos_x;
     centery = worldPos_y;
+    draw_3d = is_3d;
+    if (is_3d && allow_selected) {
+        glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), radians, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 TranslationMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+        ModelMatrix = TranslationMatrix * RotateZ;
+    }
 }
 
 void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
     previewW = w;
     previewH = h;
 
-    PrepareToDraw();
+    PrepareToDraw(draw_3d, false);
 
     mMinScreenX = w;
     mMinScreenY = h;
     mMaxScreenX = 0;
     mMaxScreenY = 0;
+
+    UpdateBoundingBox(Nodes);
+
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
             // draw node on screen
@@ -281,6 +381,8 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.PreAlloc(32 * 5);
 
+    float color1[4] = { 1, 0, 0, 1 };
+
     float w1 = worldPos_x;
     float h1 = worldPos_y;
     float sz1 = worldPos_z + RenderWi * scalez / 2;
@@ -292,59 +394,56 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
         handleColor = xlRED;
     }
 
+    xlColor color = handleColor;
+
     // Upper Left Handle
-    float sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET - RECT_HANDLE_WIDTH;
+    float sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET;
     float sy = (RenderHt * scaley / 2) + BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz1, handleColor);
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
     mHandlePosition[0].z = sz1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz2, handleColor);
     mHandlePosition[5].x = sx;
     mHandlePosition[5].y = sy;
     mHandlePosition[5].z = sz2;
+
     // Upper Right Handle
     sx = (RenderWi*scalex / 2) + BOUNDING_RECT_OFFSET;
     sy = (RenderHt*scaley / 2) + BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz1, handleColor);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
     mHandlePosition[1].z = sz1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz2, handleColor);
     mHandlePosition[6].x = sx;
     mHandlePosition[6].y = sy;
     mHandlePosition[6].z = sz2;
+
     // Lower Right Handle
     sx = (RenderWi*scalex / 2) + BOUNDING_RECT_OFFSET;
-    sy = (-RenderHt*scaley / 2) - BOUNDING_RECT_OFFSET - RECT_HANDLE_WIDTH;
+    sy = (-RenderHt*scaley / 2) - BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz1, handleColor);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
     mHandlePosition[2].z = sz1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz2, handleColor);
     mHandlePosition[7].x = sx;
     mHandlePosition[7].y = sy;
     mHandlePosition[7].z = sz2;
+
     // Lower Left Handle
-    sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET - RECT_HANDLE_WIDTH;
-    sy = (-RenderHt*scaley / 2) -BOUNDING_RECT_OFFSET - RECT_HANDLE_WIDTH;
+    sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET;
+    sy = (-RenderHt*scaley / 2) -BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx = sx + w1;
     sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz1, handleColor);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
     mHandlePosition[3].z = sz1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, sz2, handleColor);
     mHandlePosition[8].x = sx;
     mHandlePosition[8].y = sy;
     mHandlePosition[8].z = sz2;
@@ -355,11 +454,10 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx += w1;
     sy += h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, worldPos_z, handleColor);
-    // Save rotate handle
     mHandlePosition[4].x = sx;
     mHandlePosition[4].y = sy;
     mHandlePosition[4].z = worldPos_z;
+
     // Draw rotation handle from center to 25 over rendered height
     sx = 0;
     sy = ((RenderHt*scaley/2) + 50);
@@ -367,7 +465,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     sx += w1;
     sy += h1;
 
-    va.Finish(GL_TRIANGLES);
+   // va.Finish(GL_TRIANGLES);
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
     va.AddVertex(w1, h1, worldPos_z, xlWHITE);
@@ -399,13 +497,24 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.AddVertex(mHandlePosition[3].x, mHandlePosition[3].y, mHandlePosition[3].z, xlWHITE);
     va.AddVertex(mHandlePosition[8].x, mHandlePosition[8].y, mHandlePosition[8].z, xlWHITE);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+
+    if (handles_active) {
+        for (size_t h = 0; h < mHandlePosition.size(); h++) {
+            color = (active_handle == h) ? xlGREEN : handleColor;
+            DrawGLUtils::DrawSphere(mHandlePosition[h].x, mHandlePosition[h].y, mHandlePosition[h].z, (double)(RECT_HANDLE_WIDTH), color, va);
+        }
+    }
+
+    if (arrows_active && (active_handle != -1)) {
+        DrawAxisArrows(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+    }
 }
 
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.PreAlloc(6 * 5);
 
     float w1 = worldPos_x;
-    float h1 = worldPos_y + RenderHt/2*scaley;
+    float h1 = worldPos_y;
 
     xlColor handleColor = xlBLUE;
     if (_locked)
@@ -431,8 +540,6 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Draw Handle - sx: %6.4f sy: %6.4f ", sx, sy);
     // Lower Right Handle
     sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
     sy = (-RenderHt*scaley / 2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
@@ -492,15 +599,15 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Width", "ScaleX", scalex));
+    prop = propertyEditor->Append(new wxFloatProperty("ScaleX", "ScaleX", scalex));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Height", "ScaleY", scaley));
+    prop = propertyEditor->Append(new wxFloatProperty("ScaleY", "ScaleY", scaley));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxFloatProperty("Depth", "ScaleZ", scalez));
+    prop = propertyEditor->Append(new wxFloatProperty("ScaleZ", "ScaleZ", scalez));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
@@ -573,58 +680,80 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     return 0;
 }
 
-int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
+int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return 0;
 
     if (handle == OVER_ROTATE_HANDLE) {
-        int sx = mouseX-centerx;
-        int sy = mouseY-centery;
+        int sx = mouseX - centerx;
+        int sy = mouseY - centery;
         //Calculate angle of mouse from center.
-        float tan = (float)sx/(float)sy;
+        float tan = (float)sx / (float)sy;
         int angle = -toDegrees((float)atan(tan));
-        if(sy>=0) {
+        if (sy >= 0) {
             PreviewRotation = angle;
-        } else if (sx<=0) {
-            PreviewRotation = 90+(90+angle);
-        } else {
-            PreviewRotation = -90-(90-angle);
         }
-        if(ShiftKeyPressed) {
-            PreviewRotation = (int)(PreviewRotation/5) * 5;
+        else if (sx <= 0) {
+            PreviewRotation = 90 + (90 + angle);
         }
-    } else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (handle == OVER_L_TOP_HANDLE || handle == OVER_R_TOP_HANDLE) {
-            float sx = float(mouseX) - centerx;
-            float sy = float(mouseY) - centery;
-            float radians = -toRadians(PreviewRotation); // negative angle to reverse translation
-            TranslatePointDoubles(radians, sx, sy, sx, sy);
-            sx = fabs(sx);
-            sy = fabs(sy);
-            sx -= BOUNDING_RECT_OFFSET;
-            sy -= BOUNDING_RECT_OFFSET;
-            sx = sx * 2 / RenderWi;
-            sy = sy / RenderHt;
-            SetScale(sx, sy);
-            logger_base.debug("Move Handle - cx: %6.4f cy: %6.4f sx: %6.4f  sy: %6.4f mouseX: %i  mousey: %i", centerx, centery, sx, sy, mouseX, mouseY);
+        else {
+            PreviewRotation = -90 - (90 - angle);
         }
-        else if (handle == OVER_L_BOTTOM_HANDLE || handle == OVER_R_BOTTOM_HANDLE) {
-            float sx = float(mouseX) - centerx;
-            float sy = float(mouseY) - centery;
-            float radians = -toRadians(PreviewRotation); // negative angle to reverse translation
-            TranslatePointDoubles(radians, sx, sy, sx, sy);
-            sx = fabs(sx);
-            sy = fabs(sy);
-            sx -= BOUNDING_RECT_OFFSET;
-            sy -= BOUNDING_RECT_OFFSET;
-            sx = sx * 2 / RenderWi;
-            sy = (sy + RenderHt) * 4 / RenderHt;
-            SetScale(sx, sy);
-            logger_base.debug("Move Handle - cx: %6.4f cy: %6.4f sx: %6.4f  sy: %6.4f mouseX: %i  mousey: %i", centerx, centery, sx, sy, mouseX, mouseY);
+        if (ShiftKeyPressed) {
+            PreviewRotation = (int)(PreviewRotation / 5) * 5;
         }
     }
+    else {
+        if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_R_TOP_HANDLE)) {
+            if (float(mouseY) <= (centery - RenderHt / 2 * scaley)) return 0;
+        }
+        if ((handle == OVER_L_BOTTOM_HANDLE) || (handle == OVER_R_BOTTOM_HANDLE)) {
+            if (float(mouseY) >= (centery + RenderHt / 2 * scaley)) return 0;
+        }
+        if ((handle == OVER_R_TOP_HANDLE) || (handle == OVER_R_BOTTOM_HANDLE)) {
+            if (float(mouseX) <= (centerx - RenderWi / 2 * scalex)) return 0;
+        }
+        if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_L_BOTTOM_HANDLE)) {
+            if (float(mouseX) >= (centerx + RenderWi / 2 * scalex)) return 0;
+        }
+        float sx = float(mouseX) - centerx;
+        float sy = float(mouseY) - centery;
+        float radians = -toRadians(PreviewRotation); // negative angle to reverse translation
+        TranslatePointDoubles(radians, sx, sy, sx, sy);
+        sx = fabs(sx);
+        sy = fabs(sy);
+        float current_width = RenderWi * scalex;
+        float current_height = RenderHt * scaley;
+        float new_width = sx + (RenderWi / 2 * scalex);
+        float new_height = sy + (RenderHt / 2 * scaley);
+        new_width -= BOUNDING_RECT_OFFSET;
+        new_height -= BOUNDING_RECT_OFFSET;
+        if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_L_BOTTOM_HANDLE)) {
+            worldPos_x += (current_width - new_width) / 2;
+        }
+        else {
+            worldPos_x -= (current_width - new_width) / 2;
+        }
+        if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_R_TOP_HANDLE)) {
+            worldPos_y -= (current_height - new_height) / 2;
+        }
+        else {
+            worldPos_y += (current_height - new_height) / 2;
+        }
+        sx = new_width / RenderWi;
+        sy = new_height / RenderHt;
+        SetScale(sx, sy);
+    }
     return 0;
+}
+
+void BoxedScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
+
+    if (_locked) return;
+
+    worldPos_x += xPct * previewW;
+    worldPos_y += yPct * previewH;
+    worldPos_z += zPct * previewH;
 }
 
 int BoxedScreenLocation::GetTop() const {
@@ -718,7 +847,7 @@ void TwoPointScreenLocation::Write(wxXmlNode *node) {
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 
-void TwoPointScreenLocation::PrepareToDraw() const {
+void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     float x1p = x1 * (float)previewW;
     float x2p = x2 * (float)previewW;
     float y1p = y1 * (float)previewH;
@@ -747,6 +876,7 @@ void TwoPointScreenLocation::PrepareToDraw() const {
         delete matrix;
     }
     matrix = new glm::mat3(mat3);
+    draw_3d = is_3d;
 }
 
 void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const {
@@ -985,6 +1115,10 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     return 0;
 }
 
+void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
+{
+}
+
 void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
     previewH = h;
     previewW = w;
@@ -1002,7 +1136,7 @@ void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     std::vector<NodeBaseClassPtr> Nodes;
     box.SetPreviewSize(previewW, previewH, Nodes);
     box.SetRenderSize(RenderWi, RenderHt);
-    box.PrepareToDraw();
+    box.PrepareToDraw(false, false);
 
     float sx = - float(RenderWi) / 2.0;
     float sy = 0;
@@ -1056,8 +1190,8 @@ void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
     x2 -= diffx;
 }
 
-void TwoPointScreenLocation::AddOffset(float xPct, float yPct) {
-
+void TwoPointScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
+//FIXME: Update for zPct
     if (_locked) return;
 
     y1 += yPct;
@@ -1467,7 +1601,7 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     std::vector<NodeBaseClassPtr> Nodes;
     box.SetPreviewSize(previewW, previewH, Nodes);
     box.SetRenderSize(RenderWi, RenderHt);
-    box.PrepareToDraw();
+    box.PrepareToDraw(false, false);
 
     float x1 = RenderWi / 2.0;
     float y1 = RenderHt;
@@ -1477,7 +1611,7 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
     TwoPointScreenLocation::ProcessOldNode(old);
 
     height = 1.0;
-    PrepareToDraw();
+    PrepareToDraw(false, false);
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(x1, y1, 1);
     height = height * v.y / RenderHt;
@@ -1596,7 +1730,7 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
     }
 }
 
-void PolyPointScreenLocation::PrepareToDraw() const {
+void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     minX = 100.0;
     minY = 100.0;
     maxX = 0.0;
@@ -1660,6 +1794,7 @@ void PolyPointScreenLocation::PrepareToDraw() const {
         delete main_matrix;
     }
     main_matrix = new glm::mat3(mat3);
+    draw_3d = is_3d;
 }
 
 void PolyPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const {
@@ -2097,6 +2232,10 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
     return 0;
 }
 
+void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
+{
+}
+
 void PolyPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
     previewH = h;
     previewW = w;
@@ -2148,8 +2287,8 @@ void PolyPointScreenLocation::SetOffset(float xPct, float yPct) {
     SetVcenterOffset(yPct);
 }
 
-void PolyPointScreenLocation::AddOffset(float xPct, float yPct) {
-
+void PolyPointScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
+// FIXME:  update for zPct
     if (_locked) return;
 
     for(int i = 0; i < num_points; ++i ) {

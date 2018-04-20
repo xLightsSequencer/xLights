@@ -215,7 +215,8 @@ public:
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
 
-    bool Selected=false;
+    bool Selected = false;
+    bool Highlighted = false;
     bool GroupSelected=false;
     std::string ModelStartChannel;
     bool CouldComputeStartChannel;
@@ -234,7 +235,7 @@ public:
     int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
-    void AddOffset(double xPct, double yPct);
+    void AddOffset(double xPct, double yPct, double zPct);
     unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
@@ -246,8 +247,8 @@ public:
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

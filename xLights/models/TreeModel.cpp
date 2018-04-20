@@ -48,7 +48,8 @@ void TreeModel::InitModel() {
     rotation = wxAtof(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
     botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
-    perspective = 0.0f; //wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    perspective =  wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    screenLocation.SetPerspective2D(perspective);
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
 }
@@ -126,9 +127,9 @@ void TreeModel::SetTreeCoord(long degrees) {
         }
 
 
-        double topYoffset = std::abs(perspective * topradius * cos(M_PI));
+        double topYoffset = 0.0; // std::abs(perspective * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
-        double ybot = std::abs(perspective * radius * cos(M_PI));
+        double ybot = 0.0; // std::abs(perspective * radius * cos(M_PI));
 
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {

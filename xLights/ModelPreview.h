@@ -10,6 +10,10 @@
 #include "Color.h"
 #include "xlGLCanvas.h"
 
+#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 class Model;
 class PreviewPane;
 class LayoutGroup;
@@ -80,8 +84,10 @@ public:
     void SetActive(bool show);
     bool GetActive();
     void Set3D(bool value) { is_3d = value; }
+    glm::mat4& GetViewMatrix() { return ViewMatrix; }
+    glm::mat4& GetProjMatrix() { return ProjMatrix; }
 
-	 virtual void render(const wxSize& size=wxSize(0,0)) override;
+	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
     DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
 protected:
@@ -128,16 +134,18 @@ private:
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
     xLightsFrame* xlights;
-    int cameraAngleY;
-    int cameraAngleX;
-	int cameraPosX;
-	int cameraPosY;
-	int cameraDistance;
+    float cameraAngleY;
+    float cameraAngleX;
+	float cameraDistance;
+	float cameraPosX;
+	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
 	DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;
     bool m_mouse_down;
     int m_last_mouse_x, m_last_mouse_y;
+    glm::mat4 ViewMatrix;
+    glm::mat4 ProjMatrix;
 
     double currentPixelScaleFactor = 1.0;
 

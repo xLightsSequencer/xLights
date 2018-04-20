@@ -119,9 +119,9 @@ void ModelPreview::Render()
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
             if( is_3d )
-                (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, color, allowSelected);
+                (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
             else
-                (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, color, allowSelected);
+                (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
         }
     }
 }
@@ -136,9 +136,9 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
                 if( is_3d )
-                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d);
+                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d, true);
                 else
-                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator);
+                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator, false);
             }
         }
         EndDrawing(swapBuffers);
@@ -191,11 +191,11 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     image = nullptr;
     sprite = nullptr;
     _model = nullptr;
-    cameraAngleX = 45;
-    cameraAngleY = -45;
-	cameraDistance = -50.0f;
-	cameraPosX = -200;
-	cameraPosY = -100;
+    cameraAngleX = 20;
+    cameraAngleY = 5;
+	cameraDistance = -2000.0f;
+    cameraPosX = -500;
+    cameraPosY = -100;
 }
 ModelPreview::ModelPreview(wxPanel* parent)
 : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
@@ -416,10 +416,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-			//DrawGLUtils::SetCamera(0, 0, cameraDistance);
-			DrawGLUtils::SetCamera(cameraAngleX, cameraAngleY, -2000);
-			DrawGLUtils::Translate(cameraPosX - 300, cameraPosY, 0);
-			accumulator.PreAlloc(maxVertexCount);
+            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance));  // FIXME:  cameraPosY not working with selection logic
+            glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
+            ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
+            DrawGLUtils::SetCamera(ViewMatrix);
+            accumulator.PreAlloc(maxVertexCount);
 			currentPixelScaleFactor = 1.0;
 			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
 			accumulator.Finish(GL_TRIANGLES);
@@ -428,6 +430,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 		else
 		{
 			prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+            DrawGLUtils::SetCamera(glm::mat4(1.0));
 
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
@@ -453,6 +456,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 		}
     } else if (virtualWidth == 0 && virtualHeight == 0) {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        DrawGLUtils::SetCamera(glm::mat4(1.0));
 
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::PushMatrix();
@@ -468,9 +472,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0,0,mWindowWidth, mWindowHeight);
             LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
             DrawGLUtils::PushMatrix();
-		    //DrawGLUtils::SetCamera(0, 0, cameraDistance);
-		    DrawGLUtils::SetCamera(cameraAngleX, cameraAngleY, -2000);
-		    DrawGLUtils::Translate(cameraPosX-300, cameraPosY, 0);
+            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, 0.0f, cameraDistance));  // FIXME:  cameraPosY not working with selection logic
+            glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
+            ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
+            ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
+            DrawGLUtils::SetCamera(ViewMatrix);
 		    accumulator.PreAlloc(maxVertexCount);
             currentPixelScaleFactor = 1.0;
 		    accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);

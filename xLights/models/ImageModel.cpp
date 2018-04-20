@@ -190,7 +190,7 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
     if(success) {
         DrawGLUtils::xlAccumulator va(maxVertexCount);
 
-        GetModelScreenLocation().PrepareToDraw();
+        GetModelScreenLocation().PrepareToDraw(false, false);
 
         int w, h;
         preview->GetSize(&w, &h);
@@ -218,9 +218,9 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected)
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected)
 {
-    GetModelScreenLocation().PrepareToDraw();
+    GetModelScreenLocation().PrepareToDraw(false, false);
 
     int w, h;
     preview->GetVirtualCanvasSize(w, h);

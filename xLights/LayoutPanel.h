@@ -35,6 +35,10 @@ class wxScrolledWindow;
 class LayoutGroup;
 class wxStringInputStream;
 
+#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
 class CopyPasteModel
@@ -71,7 +75,6 @@ class LayoutPanel: public wxPanel
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
 		wxCheckBox* CheckBox_3D;
-		wxCheckBox* CheckBox_Selection;
 		wxChoice* ChoiceLayoutGroups;
 		wxFlexGridSizer* ToolSizer;
 		wxPanel* FirstPanel;
@@ -100,7 +103,6 @@ class LayoutPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_PREVIEWS;
 		static const long ID_CHECKBOX_3D;
-		static const long ID_CHECKBOX_Selection;
 		static const long ID_SCROLLBAR1;
 		static const long ID_SCROLLBAR2;
 		static const long ID_PANEL1;
@@ -149,6 +151,7 @@ class LayoutPanel: public wxPanel
 		void OnPreviewLeftUp(wxMouseEvent& event);
 		void OnPreviewMouseLeave(wxMouseEvent& event);
 		void OnPreviewLeftDown(wxMouseEvent& event);
+        void OnPreviewLeftDClick(wxMouseEvent& event);
 		void OnPreviewRightDown(wxMouseEvent& event);
 		void OnPreviewMouseMove(wxMouseEvent& event);
 		void OnPreviewModelPopup(wxCommandEvent &event);
@@ -164,6 +167,7 @@ class LayoutPanel: public wxPanel
 		void OnChoiceLayoutGroupsSelect(wxCommandEvent& event);
 		void OnCheckBox_3DClick(wxCommandEvent& event);
 		void OnCheckBox_SelectionClick(wxCommandEvent& event);
+		void OnCheckBox_XZClick(wxCommandEvent& event);
 		//*)
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
@@ -212,6 +216,26 @@ class LayoutPanel: public wxPanel
         void SelectAllInBoundingRect();
         void SetSelectedModelToGroupSelected();
         void Nudge(int key);
+        bool SelectSingleModel3D(int x, int y);
+        bool SelectModelHandles3D(int x, int y);
+
+        void ScreenPosToWorldRay(
+            int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
+            int screenWidth, int screenHeight,  // Window size, in pixels
+            glm::mat4 ViewMatrix,               // Camera position and orientation
+            glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
+            glm::vec3& out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
+            glm::vec3& out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
+        );
+
+        bool TestRayOBBIntersection(
+            glm::vec3 ray_origin,        // Ray origin, in world space
+            glm::vec3 ray_direction,     // Ray direction (NOT target position!), in world space. Must be normalize()'d.
+            glm::vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
+            glm::vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+            glm::mat4 ModelMatrix,       // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+            float& intersection_distance // Output : distance between ray_origin and the intersection with the OBB
+        );
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
 
@@ -250,6 +274,9 @@ class LayoutPanel: public wxPanel
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
         Model *selectedModel;
+        Model *highlightedModel;
+        bool selectionLatched;
+        bool handleLatched;
 
         void refreshModelList();
         void resetPropertyGrid();
@@ -330,7 +357,6 @@ class LayoutPanel: public wxPanel
         bool ignore_next_event;
 
         bool is_3d;
-        bool selection_mode;
         bool m_mouse_down;
         int m_last_mouse_x, m_last_mouse_y;
 
@@ -352,6 +378,7 @@ class LayoutPanel: public wxPanel
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
+        void Unselect3DItems();
         void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style);
         int GetModelTreeIcon(Model* model, bool open);

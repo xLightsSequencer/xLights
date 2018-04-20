@@ -68,7 +68,6 @@ const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
 const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
 const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
-const long LayoutPanel::ID_CHECKBOX_Selection = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
 const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
@@ -205,11 +204,11 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
+    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr), highlightedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false)
+    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), handleLatched(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -274,9 +273,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	CheckBox_3D = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
 	CheckBox_3D->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Selection = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_Selection, _("Selection Tool"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Selection"));
-	CheckBox_Selection->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_Selection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
 	LayoutGLSizer = new wxFlexGridSizer(0, 2, 0, 0);
 	LayoutGLSizer->AddGrowableCol(0);
@@ -303,7 +299,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_CHECKBOX_3D,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
-	Connect(ID_CHECKBOX_Selection,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_SelectionClick);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
@@ -321,6 +316,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
+    modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
+    
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -355,7 +352,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     CheckBox_3D->SetValue(is_3d);
     modelPreview->Set3D(is_3d);
-    selection_mode = false;
 
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
@@ -1391,6 +1387,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     for (size_t i=0; i<modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->Selected = false;
+        modelPreview->GetModels()[i]->Highlighted = false;
         modelPreview->GetModels()[i]->GroupSelected = false;
         modelPreview->GetModels()[i]->SelectHandle(-1);
     }
@@ -1540,6 +1537,9 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
 
     selectedModel = m;
+    selectedModel->GetModelScreenLocation().SetHandlesActive(true);
+    selectionLatched = true;
+
     if (CheckBoxOverlap->GetValue()) {
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
               item.IsOk();
@@ -1644,7 +1644,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         if (ia > ib)
             return 1;
         if (ia < ib)
-            return -1;
+    return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
     return NumberAwareStringCompare(a->name, b->name);
@@ -1652,10 +1652,10 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
 
 int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
 {
-    return SortElementsFunction( treelist, first, second, column);
+    return SortElementsFunction(treelist, first, second, column);
 }
 
-int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
+int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
 {
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
@@ -1682,7 +1682,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
         mHitTestNextSelectModelIndex = 0;
         return true;
     }
-    else if (modelCount>1)
+    else if (modelCount > 1)
     {
         for (int i = 0; i < modelCount; i++)
         {
@@ -1696,6 +1696,327 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
         }
     }
     return false;
+}
+
+bool LayoutPanel::SelectSingleModel3D(int x, int y)
+{
+    std::vector<int> found;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    static int last_selection = -1;
+
+    // GIL: Not sure why this was needed but it reverses the sign of the rotation around the x-axis for the view matrix
+    //      Selection was not working correctly without it
+    glm::mat4 view_mat = modelPreview->GetViewMatrix();
+    view_mat[0][1] = -view_mat[0][1];
+    view_mat[1][2] = -view_mat[1][2];
+    view_mat[2][1] = -view_mat[2][1];
+
+    // GIL: Also apparently need to invert the sign of CameraPosY
+    view_mat[3][1] = -view_mat[3][1];
+
+    ScreenPosToWorldRay(
+        x, y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        view_mat,
+        modelPreview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+
+    float distance = 1000000000.0f;
+    int which_model = -1;
+
+    // Test each each Oriented Bounding Box (OBB).
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
+
+        // GIL: Also not sure why this was needed but it reverses the sign of the worldPos_y coordinate of the model matrix
+        glm::mat4 model_mat = modelPreview->GetModels()[i]->GetModelScreenLocation().GetModelMatrix();
+        model_mat[3][1] = -model_mat[3][1];
+
+        if (TestRayOBBIntersection(
+            ray_origin,
+            ray_direction,
+            modelPreview->GetModels()[i]->GetModelScreenLocation().GetAABB_Min(),
+            modelPreview->GetModels()[i]->GetModelScreenLocation().GetAABB_Max(),
+            model_mat,
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                which_model = i;
+            }
+        }
+    }
+
+    bool ret_value = false;
+
+    if (which_model == -1)
+    {
+        if (highlightedModel != nullptr) {
+            ret_value = true;
+            highlightedModel->Highlighted = false;
+            highlightedModel = nullptr;
+        }
+    }
+    else
+    {
+        if (which_model != last_selection) {
+            UnSelectAllModels();
+            last_selection = which_model;
+        }
+        highlightedModel = modelPreview->GetModels()[which_model];
+        highlightedModel->Highlighted = true;
+        ret_value = true;
+    }
+    return ret_value;
+}
+
+bool LayoutPanel::SelectModelHandles3D(int x, int y)
+{
+    if (selectedModel == nullptr) return false;
+
+    std::vector<int> found;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    static int last_handle = -1;
+
+    // GIL: Not sure why this was needed but it reverses the sign of the rotation around the x-axis for the view matrix
+    //      Selection was not working correctly without it
+    glm::mat4 view_mat = modelPreview->GetViewMatrix();
+    view_mat[0][1] = -view_mat[0][1];
+    view_mat[1][2] = -view_mat[1][2];
+    view_mat[2][1] = -view_mat[2][1];
+
+    // GIL: Also apparently need to invert the sign of CameraPosY
+    view_mat[3][1] = -view_mat[3][1];
+
+    ScreenPosToWorldRay(
+        x, y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        view_mat,
+        modelPreview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+
+    float distance = 1000000000.0f;
+    int which_handle = -1;
+    int hw = 6;
+
+    glm::mat4 model_mat = selectedModel->GetModelScreenLocation().GetModelMatrix();
+
+    std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
+    int num_handles = handles.size();
+    if (num_handles > 9) return false;  // error protection
+    glm::vec3 aabb_min[9];
+    glm::vec3 aabb_max[9];
+
+    for (size_t h = 0; h < num_handles; h++) {
+        aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
+        aabb_min[h].y = -handles[h].y - model_mat[3][1] - hw;
+        aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
+        aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
+        aabb_max[h].y = -handles[h].y - model_mat[3][1] + hw;
+        aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
+    }
+
+    // Test each each Oriented Bounding Box (OBB).
+    for (size_t i = 0; i < num_handles; i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
+
+        if (TestRayOBBIntersection(
+            ray_origin,
+            ray_direction,
+            aabb_min[i],
+            aabb_max[i],
+            model_mat,
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                which_handle = i;
+            }
+        }
+    }
+
+    selectedModel->GetModelScreenLocation().SetActiveHandle(which_handle);
+
+    if (which_handle != last_handle) {
+        last_handle = which_handle;
+        return true;
+    }
+
+    return false;
+}
+
+void LayoutPanel::ScreenPosToWorldRay(
+    int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
+    int screenWidth, int screenHeight,  // Window size, in pixels
+    glm::mat4 ViewMatrix,               // Camera position and orientation
+    glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
+    glm::vec3& out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
+    glm::vec3& out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
+) {
+
+    // The ray Start and End positions, in Normalized Device Coordinates (Have you read Tutorial 4 ?)
+    glm::vec4 lRayStart_NDC(
+        ((float)mouseX / (float)screenWidth - 0.5f) * 2.0f, // [0,1024] -> [-1,1]
+        ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f, // [0, 768] -> [-1,1]
+        -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
+        1.0f
+    );
+    glm::vec4 lRayEnd_NDC(
+        ((float)mouseX / (float)screenWidth - 0.5f) * 2.0f,
+        ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f,
+        0.0,
+        1.0f
+    );
+
+    // The Projection matrix goes from Camera Space to NDC.
+    // So inverse(ProjectionMatrix) goes from NDC to Camera Space.
+    glm::mat4 InverseProjectionMatrix = glm::inverse(ProjectionMatrix);
+
+    // The View Matrix goes from World Space to Camera Space.
+    // So inverse(ViewMatrix) goes from Camera Space to World Space.
+    glm::mat4 InverseViewMatrix = glm::inverse(ViewMatrix);
+
+    glm::vec4 lRayStart_camera = InverseProjectionMatrix * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
+    glm::vec4 lRayStart_world = InverseViewMatrix * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
+    glm::vec4 lRayEnd_camera = InverseProjectionMatrix * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
+    glm::vec4 lRayEnd_world = InverseViewMatrix * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
+
+    // Faster way (just one inverse)
+    //glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
+    //glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
+    //glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
+
+    glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
+    lRayDir_world = glm::normalize(lRayDir_world);
+
+    out_origin = glm::vec3(lRayStart_world);
+    out_direction = glm::normalize(lRayDir_world);
+}
+
+bool LayoutPanel::TestRayOBBIntersection(
+    glm::vec3 ray_origin,        // Ray origin, in world space
+    glm::vec3 ray_direction,     // Ray direction (NOT target position!), in world space. Must be normalize()'d.
+    glm::vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
+    glm::vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+    glm::mat4 ModelMatrix,       // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+    float& intersection_distance // Output : distance between ray_origin and the intersection with the OBB
+) {
+
+    // Intersection method from Real-Time Rendering and Essential Mathematics for Games
+
+    float tMin = 0.0f;
+    float tMax = 100000.0f;
+
+    glm::vec3 OBBposition_worldspace(ModelMatrix[3].x, ModelMatrix[3].y, ModelMatrix[3].z);
+
+    glm::vec3 delta = OBBposition_worldspace - ray_origin;
+
+    // Test intersection with the 2 planes perpendicular to the OBB's X axis
+    {
+        glm::vec3 xaxis(ModelMatrix[0].x, ModelMatrix[0].y, ModelMatrix[0].z);
+        float e = glm::dot(xaxis, delta);
+        float f = glm::dot(ray_direction, xaxis);
+
+        if (fabs(f) > 0.001f) { // Standard case
+
+            float t1 = (e + aabb_min.x) / f; // Intersection with the "left" plane
+            float t2 = (e + aabb_max.x) / f; // Intersection with the "right" plane
+                                             // t1 and t2 now contain distances betwen ray origin and ray-plane intersections
+
+                                             // We want t1 to represent the nearest intersection, 
+                                             // so if it's not the case, invert t1 and t2
+            if (t1>t2) {
+                float w = t1; t1 = t2; t2 = w; // swap t1 and t2
+            }
+
+            // tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
+            if (t2 < tMax)
+                tMax = t2;
+            // tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
+            if (t1 > tMin)
+                tMin = t1;
+
+            // And here's the trick :
+            // If "far" is closer than "near", then there is NO intersection.
+            // See the images in the tutorials for the visual explanation.
+            if (tMax < tMin)
+                return false;
+
+        }
+        else { // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
+            if (-e + aabb_min.x > 0.0f || -e + aabb_max.x < 0.0f)
+                return false;
+        }
+    }
+
+
+    // Test intersection with the 2 planes perpendicular to the OBB's Y axis
+    // Exactly the same thing than above.
+    {
+        glm::vec3 yaxis(ModelMatrix[1].x, ModelMatrix[1].y, ModelMatrix[1].z);
+        float e = glm::dot(yaxis, delta);
+        float f = glm::dot(ray_direction, yaxis);
+
+        if (fabs(f) > 0.001f) {
+
+            float t1 = (e + aabb_min.y) / f;
+            float t2 = (e + aabb_max.y) / f;
+
+            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
+
+            if (t2 < tMax)
+                tMax = t2;
+            if (t1 > tMin)
+                tMin = t1;
+            if (tMin > tMax)
+                return false;
+
+        }
+        else {
+            if (-e + aabb_min.y > 0.0f || -e + aabb_max.y < 0.0f)
+                return false;
+        }
+    }
+
+
+    // Test intersection with the 2 planes perpendicular to the OBB's Z axis
+    // Exactly the same thing than above.
+    {
+        glm::vec3 zaxis(ModelMatrix[2].x, ModelMatrix[2].y, ModelMatrix[2].z);
+        float e = glm::dot(zaxis, delta);
+        float f = glm::dot(ray_direction, zaxis);
+
+        if (fabs(f) > 0.001f) {
+
+            float t1 = (e + aabb_min.z) / f;
+            float t2 = (e + aabb_max.z) / f;
+
+            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
+
+            if (t2 < tMax)
+                tMax = t2;
+            if (t1 > tMin)
+                tMin = t1;
+            if (tMin > tMax)
+                return false;
+
+        }
+        else {
+            if (-e + aabb_min.z > 0.0f || -e + aabb_max.z < 0.0f)
+                return false;
+        }
+    }
+
+    intersection_distance = tMin;
+    return true;
 }
 
 void LayoutPanel::SelectAllInBoundingRect()
@@ -1761,127 +2082,254 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
     }
 }
 
+void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    Unselect3DItems();
+}
+
+void LayoutPanel::Unselect3DItems()
+{
+    if (selectedModel != nullptr) {
+        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);  // deselect active handle
+        selectedModel->GetModelScreenLocation().SetArrowsActive(false);
+        selectedModel->GetModelScreenLocation().SetHandlesActive(false);
+    }
+    selectionLatched = false;
+    handleLatched = false;
+    highlightedModel = nullptr;
+    UnSelectAllModels();
+}
+
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if (!selection_mode && is_3d) {
-        m_mouse_down = true;
+    // process 3d independently until we determine what can be combined
+    if (is_3d) {
+
+         // don't mark mouse down if a selection is being made
+       if (highlightedModel != nullptr) {
+            if (selectionLatched) {
+                if (selectedModel->GetModelScreenLocation().GetActiveHandle() != -1) {
+                    selectedModel->GetModelScreenLocation().SetArrowsActive(true);
+                    handleLatched = true;
+                    UpdatePreview();
+                }
+                m_mouse_down = true;
+            }
+            else {
+                SelectModel(highlightedModel);
+                selectionLatched = true;
+            }
+        }
+        else {
+            m_mouse_down = true;
+        }
+
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
-    }
 
-    if( m_polyline_active )
-    {
-        Model *m = newModel;
-        int y = event.GetY();
-        y = modelPreview->GetVirtualCanvasHeight() - y;
-        m->AddHandle(modelPreview, event.GetPosition().x, y);
-        m->UpdateXmlWithScale();
-        m->InitModel();
-        xlights->MarkEffectsFileDirty(true);
-        UpdatePreview();
-        m_over_handle++;
-        return;
-    }
+        if (selectedButton != nullptr) {
+            // FIXME:  need to work on new model creation
+        }
 
-    ShowPropGrid(true);
-    modelPreview->SetFocus();
+        ShowPropGrid(true);
+        modelPreview->SetFocus();
 
-    if (!selection_mode && is_3d) {
         m_moving_handle = false;
         m_creating_bound_rect = false;
         m_dragging = false;
         return;
-    }
 
-    int y = event.GetY();
-    if (event.ControlDown())
-    {
-        ignore_next_event = true;
-        SelectMultipleModels(event.GetX(),y);
-        m_dragging = true;
-        m_previous_mouse_x = event.GetX();
-        m_previous_mouse_y = event.GetY();
-    }
-    else if (event.ShiftDown())
-    {
-        m_creating_bound_rect = true;
-        m_bound_start_x = event.GetX();
-        m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
-    }
-    else if (m_over_handle != -1)
-    {
-        m_moving_handle = true;
-        if( selectedModel != nullptr ) {
-            selectedModel->SelectHandle(m_over_handle);
-            UpdatePreview();
+        int y = event.GetY();
+        if (event.ControlDown())
+        {
+            //ignore_next_event = true;
+            //SelectMultipleModels(event.GetX(), y);
+            //m_dragging = true;
+            //m_previous_mouse_x = event.GetX();
+            //m_previous_mouse_y = event.GetY();
         }
-    }
-    else if (selectedButton != nullptr)
-    {
-        //create a new model
-        int wi, ht;
-        modelPreview->GetVirtualCanvasSize(wi, ht);
-        m_previous_mouse_x = event.GetX();
-        m_previous_mouse_y = event.GetY();
-        int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
-        if (m_previous_mouse_x < wi
-            && cy < ht
-            && cy >= 0) {
+        else if (event.ShiftDown())
+        {
+            //m_creating_bound_rect = true;
+            //m_bound_start_x = event.GetX();
+            //m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+        }
+        else if (m_over_handle != -1)
+        {
+            //m_moving_handle = true;
+            ///if (selectedModel != nullptr) {
+             //   selectedModel->SelectHandle(m_over_handle);
+             //   UpdatePreview();
+            //}
+        }
+        else if (selectedButton != nullptr)
+        {
+           /* //create a new model
+            int wi, ht;
+            modelPreview->GetVirtualCanvasSize(wi, ht);
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
+            if (m_previous_mouse_x < wi
+                && cy < ht
+                && cy >= 0) {
 
-            m_moving_handle = true;
+                m_moving_handle = true;
+                m_creating_bound_rect = false;
+                const std::string& model_type = selectedButton->GetModelType();
+                newModel = CreateNewModel(model_type);
+                newModel->SetLayoutGroup(currentLayoutGroup);
+
+                if (newModel != nullptr) {
+                    if (model_type == "Poly Line") {
+                        m_polyline_active = true;
+                    }
+
+                    newModel->Selected = true;
+                    if (wi > 0 && ht > 0)
+                    {
+                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y));
+                        newModel->UpdateXmlWithScale();
+                    }
+                    lastModelName = newModel->name;
+                    modelPreview->GetModels().push_back(newModel);
+                }
+            }*/
+        }
+        else
+        {
+            m_moving_handle = false;
             m_creating_bound_rect = false;
-            const std::string& model_type = selectedButton->GetModelType();
-            newModel = CreateNewModel(model_type);
-            newModel->SetLayoutGroup(currentLayoutGroup);
 
-            if (newModel != nullptr) {
-                if( model_type == "Poly Line" ) {
-                    m_polyline_active = true;
-                }
+            if (!event.wxKeyboardState::ControlDown())
+            {
+                UnSelectAllModels();
+            }
 
-                newModel->Selected = true;
-                if (wi > 0 && ht > 0)
-                {
-                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
-                    newModel->UpdateXmlWithScale();
-                }
-                lastModelName = newModel->name;
-                modelPreview->GetModels().push_back(newModel);
+            if (SelectSingleModel3D(event.GetX(), y))
+            {
+                m_dragging = true;
+                m_previous_mouse_x = event.GetX();
+                m_previous_mouse_y = event.GetY();
+                xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
+            }
+            else
+            {
+                m_creating_bound_rect = true;
+                m_bound_start_x = event.GetX();
+                m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
             }
         }
     }
     else
     {
-        m_moving_handle = false;
-        m_creating_bound_rect = false;
-
-        if(!event.wxKeyboardState::ControlDown())
+        if (m_polyline_active)
         {
-            UnSelectAllModels();
+            Model *m = newModel;
+            int y = event.GetY();
+            y = modelPreview->GetVirtualCanvasHeight() - y;
+            m->AddHandle(modelPreview, event.GetPosition().x, y);
+            m->UpdateXmlWithScale();
+            m->InitModel();
+            xlights->MarkEffectsFileDirty(true);
+            UpdatePreview();
+            m_over_handle++;
+            return;
         }
 
-        if (SelectSingleModel(event.GetX(), y))
+        ShowPropGrid(true);
+        modelPreview->SetFocus();
+
+        int y = event.GetY();
+        if (event.ControlDown())
         {
+            ignore_next_event = true;
+            SelectMultipleModels(event.GetX(), y);
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
-            xlights->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         }
-        else
+        else if (event.ShiftDown())
         {
             m_creating_bound_rect = true;
             m_bound_start_x = event.GetX();
             m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+        }
+        else if (m_over_handle != -1)
+        {
+            m_moving_handle = true;
+            if (selectedModel != nullptr) {
+                selectedModel->SelectHandle(m_over_handle);
+                UpdatePreview();
+            }
+        }
+        else if (selectedButton != nullptr)
+        {
+            //create a new model
+            int wi, ht;
+            modelPreview->GetVirtualCanvasSize(wi, ht);
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
+            if (m_previous_mouse_x < wi
+                && cy < ht
+                && cy >= 0) {
+
+                m_moving_handle = true;
+                m_creating_bound_rect = false;
+                const std::string& model_type = selectedButton->GetModelType();
+                newModel = CreateNewModel(model_type);
+                newModel->SetLayoutGroup(currentLayoutGroup);
+
+                if (newModel != nullptr) {
+                    if (model_type == "Poly Line") {
+                        m_polyline_active = true;
+                    }
+
+                    newModel->Selected = true;
+                    if (wi > 0 && ht > 0)
+                    {
+                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y));
+                        newModel->UpdateXmlWithScale();
+                    }
+                    lastModelName = newModel->name;
+                    modelPreview->GetModels().push_back(newModel);
+                }
+            }
+        }
+        else
+        {
+            m_moving_handle = false;
+            m_creating_bound_rect = false;
+
+            if (!event.wxKeyboardState::ControlDown())
+            {
+                UnSelectAllModels();
+            }
+
+            if (SelectSingleModel(event.GetX(), y))
+            {
+                m_dragging = true;
+                m_previous_mouse_x = event.GetX();
+                m_previous_mouse_y = event.GetY();
+                xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
+            }
+            else
+            {
+                m_creating_bound_rect = true;
+                m_bound_start_x = event.GetX();
+                m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+            }
         }
     }
 }
 
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
-    m_mouse_down = false;
-    if (!selection_mode && is_3d) {
+    if (is_3d && m_mouse_down) {
         modelPreview->SetCameraView(0, 0, true);
     }
+    m_mouse_down = false;
 
     if( m_polyline_active ) return;
 
@@ -1970,14 +2418,26 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
 
-    if (!selection_mode && is_3d) {
-        if (m_mouse_down) {
-            int delta_x = event.GetPosition().x - m_last_mouse_x;
-            int delta_y = event.GetPosition().y - m_last_mouse_y;
-            modelPreview->SetCameraView(delta_x, delta_y, false);
-            UpdatePreview();
-            return;
-        }
+    if (is_3d) {
+            if (m_mouse_down) {
+                int delta_x = event.GetPosition().x - m_last_mouse_x;
+                int delta_y = event.GetPosition().y - m_last_mouse_y;
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                UpdatePreview();
+            }
+            else {
+                if (!selectionLatched) {
+                    if (SelectSingleModel3D(event.GetX(), event.GetY())) {
+                        UpdatePreview();
+                    }
+                }
+                else if( !handleLatched) {
+                    if (SelectModelHandles3D(event.GetX(), event.GetY())) {
+                        UpdatePreview();
+                    }
+                }
+            }
+        return;
     }
 
     if (m_creating_bound_rect)
@@ -2019,7 +2479,12 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 {
                     CreateUndoPoint("SingleModel", m->name, "location");
 
-                    modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
+                    // FIXME:  MOVE model logic needs fixin
+                   // if( is_xz && is_3d) {
+                   //     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, 0.0, -delta_y/ht);
+                   // } else {
+                        modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht, 0.0);
+                   // }
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->MarkEffectsFileDirty(true);
@@ -2749,7 +3214,9 @@ void LayoutPanel::Nudge(int key)
             else if (key == WXK_RIGHT) {
                 xpct = 1.0 / wi;
             }
-            (*it)->AddOffset(xpct, ypct);
+            // FIXME:  Only nudges in X/Z plane currently
+            (*it)->AddOffset(xpct, 0.0, ypct);
+
             (*it)->UpdateXmlWithScale();
             SetupPropGrid(*it);
         }
@@ -2848,7 +3315,12 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             break;
 
         case WXK_ESCAPE:
-            FinalizeModel();
+            if (m_polyline_active) {
+                FinalizeModel();
+            }
+            else if (is_3d) {
+                Unselect3DItems();
+            }
             break;
 
         default:
@@ -3003,7 +3475,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     newModel->GetModelXml()->DeleteAttribute("name");
                     newModel->Lock(false);
                     newModel->GetModelXml()->AddAttribute("name", name);
-                    newModel->AddOffset(0.02, 0.02);
+                    newModel->AddOffset(0.02, 0.02, 0.0);
                     newModel->UpdateXmlWithScale();
                     xlights->AllModels.AddModel(newModel);
                     lastModelName = name;
@@ -3404,6 +3876,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         Model *model = it->second;
         model->Selected = false;
         model->GroupSelected = false;
+        model->Highlighted = false;
     }
 
     std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
@@ -3989,9 +4462,4 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
     Refresh();
-}
-
-void LayoutPanel::OnCheckBox_SelectionClick(wxCommandEvent& event)
-{
-    selection_mode = CheckBox_Selection->GetValue();
 }

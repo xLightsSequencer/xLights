@@ -1691,11 +1691,11 @@ void Model::Lock(bool lock)
     IncrementChangeCount();
 }
 
-void Model::AddOffset(double xPct, double yPct) {
+void Model::AddOffset(double xPct, double yPct, double zPct) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().AddOffset(xPct, yPct);
+    GetModelScreenLocation().AddOffset(xPct, yPct, zPct);
     IncrementChangeCount();
 }
 
@@ -1977,7 +1977,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
         float maxY = -1000000;
         float minY = 1000000;
         float sx,sy,sz;
-        GetModelScreenLocation().PrepareToDraw();
+        GetModelScreenLocation().PrepareToDraw(false, false);
 
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
@@ -2671,7 +2671,7 @@ void Model::ApplyTransparency(xlColor &color, int transparency) const
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -2684,7 +2684,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
 	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
 
-    screenLocation.PrepareToDraw();
+    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
 
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -2748,7 +2749,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             // draw node on screen
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;
-            float sz = 0;
+            float sz = Nodes[n]->Coords[c2].screenZ;
             GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
             if (pixelStyle < 2) {
@@ -2794,14 +2795,14 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if (Selected && c != nullptr && allowSelected) {
+    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -2814,7 +2815,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
 	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
 	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
 
-    screenLocation.PrepareToDraw();
+    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
 
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -2924,7 +2926,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if (Selected && c != nullptr && allowSelected) {
+    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
