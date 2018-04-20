@@ -274,9 +274,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         } else if(wxFileName(fseqDirectory) != wxFileName(showDirectory)) { // Only go in here if folder are unlinked
             //file found in show folder
             if (fseq_fileShow.FileExists()) {
-                //move files to fseq folder
+                //move file to fseq folder
                 logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_fileShow.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
-                fseqFound = wxCopyFile(fseq_fileShow.GetFullPath(), fseq_file.GetFullPath());
+                fseqFound = wxRenameFile(fseq_fileShow.GetFullPath(), fseq_file.GetFullPath());
             }
         }
 
