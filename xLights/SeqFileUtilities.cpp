@@ -507,6 +507,29 @@ bool xLightsFrame::CloseSequence()
                 wxYield();
             }
         }
+        else
+        {
+            // We discarded the sequence so make sure the sequence file is newer than the backup
+            wxFileName fn(CurrentSeqXmlFile->GetLongPath());
+            wxFileName xx = fn;
+            xx.SetExt("xbkp");
+            wxString asfile = xx.GetLongPath();
+
+            if (wxFile::Exists(asfile))
+            {
+                // the autosave file exists
+                wxDateTime xmltime = fn.GetModificationTime();
+                wxFileName asfn(asfile);
+                wxDateTime xbkptime = asfn.GetModificationTime();
+
+                if (xbkptime > xmltime)
+                {
+                    //set the backup to be older than the XML files to avoid re-promting
+                    xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                    asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                }
+            }
+        }
     }
 
     // just in case there is still rendering going on
