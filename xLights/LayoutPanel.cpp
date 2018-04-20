@@ -208,7 +208,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), handleLatched(false)
+    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), handleLatched(false), m_last_handle(-1)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1762,32 +1762,32 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     if (which_model == -1)
     {
         if (highlightedModel != nullptr) {
-            ret_value = true;
             highlightedModel->Highlighted = false;
             highlightedModel = nullptr;
+            UpdatePreview();
         }
     }
     else
     {
         if (which_model != last_selection) {
             UnSelectAllModels();
-            last_selection = which_model;
+            highlightedModel = modelPreview->GetModels()[which_model];
+            highlightedModel->Highlighted = true;
+            UpdatePreview();
         }
-        highlightedModel = modelPreview->GetModels()[which_model];
-        highlightedModel->Highlighted = true;
         ret_value = true;
     }
+    last_selection = which_model;
     return ret_value;
 }
 
-bool LayoutPanel::SelectModelHandles3D(int x, int y)
+int LayoutPanel::SelectModelHandles3D(int x, int y)
 {
-    if (selectedModel == nullptr) return false;
+    if (selectedModel == nullptr) return -1;
 
     std::vector<int> found;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
-    static int last_handle = -1;
 
     // GIL: Not sure why this was needed but it reverses the sign of the rotation around the x-axis for the view matrix
     //      Selection was not working correctly without it
@@ -1816,7 +1816,7 @@ bool LayoutPanel::SelectModelHandles3D(int x, int y)
 
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
     int num_handles = handles.size();
-    if (num_handles > 9) return false;  // error protection
+    if (num_handles > 9) return -1;  // error protection
     glm::vec3 aabb_min[9];
     glm::vec3 aabb_max[9];
 
@@ -1849,14 +1849,7 @@ bool LayoutPanel::SelectModelHandles3D(int x, int y)
         }
     }
 
-    selectedModel->GetModelScreenLocation().SetActiveHandle(which_handle);
-
-    if (which_handle != last_handle) {
-        last_handle = which_handle;
-        return true;
-    }
-
-    return false;
+    return which_handle;
 }
 
 void LayoutPanel::ScreenPosToWorldRay(
@@ -2091,6 +2084,7 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     Unselect3DItems();
+    m_mouse_down = false;
 }
 
 void LayoutPanel::Unselect3DItems()
@@ -2103,6 +2097,7 @@ void LayoutPanel::Unselect3DItems()
     selectionLatched = false;
     handleLatched = false;
     highlightedModel = nullptr;
+    m_last_handle = -1;
     UnSelectAllModels();
 }
 
@@ -2111,15 +2106,19 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     // process 3d independently until we determine what can be combined
     if (is_3d) {
 
-         // don't mark mouse down if a selection is being made
+        // don't mark mouse down if a selection is being made
        if (highlightedModel != nullptr) {
             if (selectionLatched) {
-                if (selectedModel->GetModelScreenLocation().GetActiveHandle() != -1) {
+                int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+                if( handle != -1 ) {
+                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
                     selectedModel->GetModelScreenLocation().SetArrowsActive(true);
-                    handleLatched = true;
                     UpdatePreview();
+                    handleLatched = true;
                 }
-                m_mouse_down = true;
+                else {
+                    m_mouse_down = true;
+                }
             }
             else {
                 SelectModel(highlightedModel);
@@ -2436,14 +2435,15 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             }
             else {
                 if (!selectionLatched) {
-                    if (SelectSingleModel3D(event.GetX(), event.GetY())) {
-                        UpdatePreview();
-                    }
+                    SelectSingleModel3D(event.GetX(), event.GetY());
                 }
-                else if( !handleLatched) {
-                    if (SelectModelHandles3D(event.GetX(), event.GetY())) {
+                else if (!handleLatched) {
+                    int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+                    if (handle != m_last_handle) {
                         UpdatePreview();
                     }
+                    m_last_handle = handle;
                 }
             }
         return;

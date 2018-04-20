@@ -217,7 +217,7 @@ class LayoutPanel: public wxPanel
         void SetSelectedModelToGroupSelected();
         void Nudge(int key);
         bool SelectSingleModel3D(int x, int y);
-        bool SelectModelHandles3D(int x, int y);
+        int SelectModelHandles3D(int x, int y);
 
         void ScreenPosToWorldRay(
             int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
@@ -359,6 +359,7 @@ class LayoutPanel: public wxPanel
         bool is_3d;
         bool m_mouse_down;
         int m_last_mouse_x, m_last_mouse_y;
+        int m_last_handle;
 
         void OnSelectionChanged(wxTreeListEvent& event);
         void OnItemContextMenu(wxTreeListEvent& event);
