@@ -11,6 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Fix tendril crash when movement was set to zero
+   -- bug (keith)  Upgrade some check sequence warnings to errors
+   -- bug (keith)  More fixes for images on resizing buffers
+   -- bug (keith)  Fix test dialog issues for model groups that contain submodels
+   -- bug (keith)  Fix import from sequence with nothing to import causes crash
+2018.11 Apr 14, 2018
+   -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
+   -- enh (dkulp)  Update FPP to support v2 channel input and output configs
+   -- enh (keith)  Add the ability to select the layers included in Canvas blend mode
+   -- bug (keith)  Rework the value curve fix
+   -- bug (keith)  Some fixes to FPP event sending in xSchedule
+   -- bug (keith)  Fix test mode RGB modes
+   -- bug (keith)  Fix some xSchedule crashes
+2018.10 Apr 9, 2018
+   -- enh (cjd)    Add -c/-x options to run xCapture/xSchedule via main binary on linux
    -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
    -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
    -- bug (keith)  Some fixes to value curves with divisors
@@ -19,6 +34,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add the ability to delete timeline tags
    -- enh (keith)  Add the ability to schedule a playlist every n days
    -- enh (keith)  Add a play list item that sets a range of pixels to a particular colour
+   -- enh (keith)  Add controller upload support for ECG-P12S firmware 3.3
+   -- enh (keith)  Add conttoller upload for ESPixelStick firmware 3.0
 2018.9 Apr 1, 2018
    -- enh (gil/dkulp)  Added ability to render a waveform range selection.  Fixes #489.
    -- enh (keith)  Add xCapture for capturing E131/ArtNET data from the network and save it to a FSEQ or ESEQ file

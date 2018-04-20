@@ -71,9 +71,9 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.Skip (); // continue the event
 }
 
-void ModelPreview::render( wxPaintEvent& event )
+void ModelPreview::render(wxPaintEvent& event)
 {
-    if(mIsDrawing) return;
+    if (mIsDrawing) return;
 
     //if(!mIsInitialized) { InitializeGLCanvas(); }
     //SetCurrentGLContext();
@@ -81,8 +81,9 @@ void ModelPreview::render( wxPaintEvent& event )
 
     if (_model != nullptr) {
         _model->DisplayEffectOnWindow(this, 2);
-    } else {
-        if(!StartDrawing(mPointSize)) return;
+    }
+    else {
+        if (!StartDrawing(mPointSize)) return;
         Render();
         EndDrawing();
     }
@@ -107,14 +108,16 @@ void ModelPreview::Render()
         }
 
         for (int i = 0; i < PreviewModels->size(); ++i) {
-			const xlColor *color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-			if (((*PreviewModels)[i])->Selected) {
-				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-			} else if (((*PreviewModels)[i])->GroupSelected) {
-				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-			} else if (((*PreviewModels)[i])->Overlapping && isModelSelected) {
-				color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
-			}
+            const xlColor *color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+            if (((*PreviewModels)[i])->Selected) {
+                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
+            }
+            else if (((*PreviewModels)[i])->GroupSelected) {
+                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
+            }
+            else if (((*PreviewModels)[i])->Overlapping && isModelSelected) {
+                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+            }
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
@@ -129,9 +132,9 @@ void ModelPreview::Render()
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
     if (StartDrawing(mPointSize)) {
         if (PreviewModels != nullptr) {
-            for (int m=0; m<PreviewModels->size(); m++) {
-                int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
-                for(size_t n=0; n<NodeCnt; ++n) {
+            for (int m = 0; m < PreviewModels->size(); m++) {
+                int NodeCnt = (*PreviewModels)[m]->GetNodeCount();
+                for (size_t n = 0; n < NodeCnt; ++n) {
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
@@ -148,13 +151,13 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 
 void ModelPreview::rightClick(wxMouseEvent& event) {
-    if( allowPreviewChange && xlights != nullptr) {
+    if (allowPreviewChange && xlights != nullptr) {
         wxMenu mnuSelectPreview;
-        mnuSelectPreview.Append(1,"House Preview");
+        mnuSelectPreview.Append(1, "House Preview");
         int index = 2;
-        for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); it++) {
+        for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); ++it) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
-            mnuSelectPreview.Append(index++,grp->GetName());
+            mnuSelectPreview.Append(index++, grp->GetName());
         }
         mnuSelectPreview.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
         PopupMenu(&mnuSelectPreview);
@@ -164,14 +167,15 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
 void ModelPreview::OnPopup(wxCommandEvent& event)
 {
     int id = event.GetId() - 1;
-    if(id == 0) {
+    if (id == 0) {
         SetModels(*HouseModels);
         SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness());
         SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-    } else if (id > 0 && id <= LayoutGroups->size()) {
-        SetModels( (*LayoutGroups)[id-1]->GetModels());
-        SetBackgroundBrightness((*LayoutGroups)[id-1]->GetBackgroundBrightness());
-        SetbackgroundImage((*LayoutGroups)[id-1]->GetBackgroundImage());
+    }
+    else if (id > 0 && id <= LayoutGroups->size()) {
+        SetModels((*LayoutGroups)[id - 1]->GetModels());
+        SetBackgroundBrightness((*LayoutGroups)[id - 1]->GetBackgroundBrightness());
+        SetbackgroundImage((*LayoutGroups)[id - 1]->GetBackgroundImage());
     }
     Refresh();
     Update();
@@ -197,8 +201,9 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     cameraPosX = -500;
     cameraPosY = -100;
 }
+
 ModelPreview::ModelPreview(wxPanel* parent)
-: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
 {
     _model = nullptr;
     maxVertexCount = 5000;
@@ -209,6 +214,7 @@ ModelPreview::ModelPreview(wxPanel* parent)
     sprite = nullptr;
     xlights = nullptr;
 }
+
 ModelPreview::~ModelPreview()
 {
     if (image) {
@@ -227,11 +233,13 @@ void ModelPreview::SetCanvasSize(int width,int height)
 {
     SetVirtualCanvasSize(width, height);
 }
+
 void ModelPreview::SetVirtualCanvasSize(int width, int height) {
     virtualWidth = width;
     virtualHeight = height;
 }
-void ModelPreview::InitializePreview(wxString img,int brightness)
+
+void ModelPreview::InitializePreview(wxString img, int brightness)
 {
     if (img != mBackgroundImage) {
         if (image) {
@@ -247,23 +255,24 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
             sprite = nullptr;
         }
         mBackgroundImage = img;
-        mBackgroundImageExists = wxFileExists(mBackgroundImage)&&wxIsReadable(mBackgroundImage)?true:false;
+        mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) ? true : false;
     }
     mBackgroundBrightness = brightness;
 }
 
 void ModelPreview::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen()) return;
+    if (!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     if (allowSelected) {
         LOG_GL_ERRORV(glClearColor(0.8f, 0.8f, 0.8f, 1.0f)); // Black Background
-    } else {
+    }
+    else {
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
-    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+    LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     mIsInitialized = true;
 }
@@ -271,6 +280,7 @@ void ModelPreview::InitializeGLCanvas()
 void ModelPreview::SetOrigin()
 {
 }
+
 void ModelPreview::SetScaleBackgroundImage(bool b) {
     scaleImage = b;
     Refresh();
@@ -311,6 +321,7 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
     mPointSize = pointSize;
     LOG_GL_ERRORV(glPointSize( mPointSize ));
 }
+
 double ModelPreview::calcPixelSize(double i) {
     double d = translateToBacking(i * currentPixelScaleFactor);
     if (d < 1.0) {
@@ -330,7 +341,7 @@ void ModelPreview::render(const wxSize& size/*wxSize(0,0)*/)
     wxSize origSize(0, 0);
     wxSize origVirtSize(virtualWidth, virtualHeight);
     if (size != wxSize(0, 0)) {
-		origSize = wxSize(mWindowWidth, mWindowHeight);
+        origSize = wxSize(mWindowWidth, mWindowHeight);
         mWindowWidth = ((float)size.GetWidth() / GetContentScaleFactor());
         mWindowHeight = ((float)size.GetHeight() / GetContentScaleFactor());
         float mult = float(mWindowWidth) / origSize.GetWidth();
@@ -349,9 +360,10 @@ void ModelPreview::render(const wxSize& size/*wxSize(0,0)*/)
 }
 
 void ModelPreview::SetActive(bool show) {
-    if( show ) {
+    if (show) {
         mPreviewPane->Show();
-    } else {
+    }
+    else {
         mPreviewPane->Hide();
     }
 }
@@ -499,7 +511,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         }
 	}
 
-    if(mBackgroundImageExists)
+    if (mBackgroundImageExists)
     {
         if (image == nullptr)
         {
@@ -507,7 +519,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
                 (const char *)mBackgroundImage.c_str(),
                 (const char *)GetName().c_str());
             image = new Image(mBackgroundImage);
-           sprite = new xLightsDrawable(image);
+            sprite = new xLightsDrawable(image);
         }
         float scaleh = 1.0;
         float scalew = 1.0;
@@ -517,7 +529,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             if (nscalew < nscaleh) {
                 scaleh = 1.0;
                 scalew = nscalew / nscaleh;
-            } else {
+            }
+            else {
                 scaleh = nscaleh / nscalew;
                 scalew = 1.0;
             }
@@ -525,12 +538,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         accumulator.PreAllocTexture(6);
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        accumulator.AddTextureVertex(0, 0, tx1, -0.5/(image->textureHeight));
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        accumulator.AddTextureVertex(0, 0, tx1, -0.5 / (image->textureHeight));
+        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
         accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
         accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5/(image->textureHeight));
+        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
         accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         int i = mBackgroundBrightness * 255 / 100;
@@ -542,7 +555,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
     if (accumulator.count > maxVertexCount) {
-        maxVertexCount= accumulator.count;
+        maxVertexCount = accumulator.count;
     }
 	DrawGLUtils::Draw(gridlines, xlColor(0, 128, 0), GL_LINES);
 	DrawGLUtils::Draw(accumulator);

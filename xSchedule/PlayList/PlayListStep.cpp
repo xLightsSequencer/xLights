@@ -26,11 +26,13 @@
 #include <wx/filename.h>
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../ReentrancyCounter.h"
 
 int __playliststepid = 0;
 
 PlayListStep::PlayListStep(OutputManager* outputManager, wxXmlNode* node)
 {
+    _reentrancyCounter = 0;
     _loops = -1;
     _pause = 0;
     _suspend = 0;
@@ -50,6 +52,7 @@ bool compare_priority(const PlayListItem* first, const PlayListItem* second)
 
 PlayListStep::PlayListStep()
 {
+    _reentrancyCounter = 0;
     _loops = -1;
     _pause = 0;
     _suspend = 0;
@@ -64,6 +67,7 @@ PlayListStep::PlayListStep()
 
 PlayListStep::PlayListStep(const PlayListStep& step)
 {
+    _reentrancyCounter = 0;
     _startTime = 0;
     _pause = 0;
     _suspend = 0;
@@ -74,30 +78,47 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _changeCount = step._changeCount;
     _excludeFromRandom = step._excludeFromRandom;
     _id = step._id;
-    for (auto it = step._items.begin(); it != step._items.end(); ++it)
     {
-        _items.push_back((*it)->Copy());
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = step._items.begin(); it != step._items.end(); ++it)
+        {
+            _items.push_back((*it)->Copy());
+        }
+        _items.sort(compare_priority);
     }
-    _items.sort(compare_priority);
 }
 
 void PlayListStep::ClearDirty()
 {
     _lastSavedChangeCount = _changeCount;
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->ClearDirty();
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->ClearDirty();
+        }
     }
 }
 
 PlayListStep::~PlayListStep()
 {
-    while (_items.size() > 0)
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     {
-        auto toremove = _items.front();
-        _items.remove(toremove);
-        delete toremove;
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayListStep being destroyed but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
+        while (_items.size() > 0)
+        {
+            auto toremove = _items.front();
+            _items.remove(toremove);
+            delete toremove;
+        }
     }
 }
 
@@ -111,9 +132,12 @@ wxXmlNode* PlayListStep::Save()
         res->AddAttribute("ExcludeRandom", "TRUE");
     }
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        res->AddChild((*it)->Save());
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            res->AddChild((*it)->Save());
+        }
     }
 
     return res;
@@ -223,15 +247,18 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
     _items.sort(compare_priority);
 }
 
-bool PlayListStep::IsDirty() const
+bool PlayListStep::IsDirty()
 {
     bool res = _lastSavedChangeCount != _changeCount;
 
-    auto it = _items.begin();
-    while (!res && it != _items.end())
     {
-        res = res || (*it)->IsDirty();
-        ++it;
+        ReentrancyCounter rec(_reentrancyCounter);
+        auto it = _items.begin();
+        while (!res && it != _items.end())
+        {
+            res = res || (*it)->IsDirty();
+            ++it;
+        }
     }
 
     return res;
@@ -239,11 +266,22 @@ bool PlayListStep::IsDirty() const
 
 void PlayListStep::RemoveItem(PlayListItem* item)
 {
-    _items.remove(item);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+
+        if (!rec.SoleReference())
+        {
+            logger_base.warn("PlayListStep removing an item but we appear to be manipulating it elsewhere. This may not end well.");
+        }
+
+        _items.remove(item);
+    }
     _changeCount++;
 }
 
-std::string PlayListStep::GetName() const
+std::string PlayListStep::GetName()
 {
     std::string duration = "";
     if (GetLengthMS() != 0)
@@ -253,82 +291,91 @@ std::string PlayListStep::GetName() const
 
     if (_name != "") return _name + duration;
 
-    if (_items.size() == 0) return "<unnamed>" + duration;
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+        if (_items.size() == 0) return "<unnamed>" + duration;
 
-    return _items.front()->GetNameNoTime() + duration;
+        return _items.front()->GetNameNoTime() + duration;
+    }
 }
 
-std::string PlayListStep::GetNameNoTime() const
+std::string PlayListStep::GetNameNoTime()
 {
     if (_name != "") return _name;
 
-    if (_items.size() == 0) return "<unnamed>";
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+        if (_items.size() == 0) return "<unnamed>";
 
-    return _items.front()->GetNameNoTime();
+        return _items.front()->GetNameNoTime();
+    }
 }
 
-PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
+PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 {
     ms = 9999;
     PlayListItem* timesource = nullptr;
 
-    // Prioritise the highest priotity FSEQ for timing
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if ((*it)->GetTitle() == "FSEQ" || (*it)->GetTitle() == "FSEQ & Video")
+        ReentrancyCounter rec(_reentrancyCounter);
+        // Prioritise the highest priotity FSEQ for timing
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            if ((*it)->GetTitle() == "FSEQ" || (*it)->GetTitle() == "FSEQ & Video")
+            {
+                size_t msec = (*it)->GetFrameMS();
+                if (timesource == nullptr)
+                {
+                    timesource = *it;
+                    ms = msec;
+                }
+                else
+                {
+                    if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                    {
+                        timesource = *it;
+                        ms = msec;
+                    }
+                }
+            }
+        }
+
+        if (timesource != nullptr)
+        {
+            if (ms == 9999)
+            {
+                ms = 50;
+            }
+
+            return timesource;
+        }
+
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
             size_t msec = (*it)->GetFrameMS();
-            if (timesource == nullptr)
+
+            if ((*it)->ControlsTiming())
             {
-                timesource = *it;
-                ms = msec;
-            }
-            else
-            {
-                if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                if (timesource == nullptr)
                 {
                     timesource = *it;
                     ms = msec;
                 }
-            }
-        }
-    }
-
-    if (timesource != nullptr)
-    {
-        if (ms == 9999)
-        {
-            ms = 50;
-        }
-
-        return timesource;
-    }
-
-    for (auto it = _items.begin(); it != _items.end(); ++it)
-    {
-        size_t msec = (*it)->GetFrameMS();
-
-        if ((*it)->ControlsTiming())
-        {
-            if (timesource == nullptr)
-            {
-                timesource = *it;
-                ms = msec;
-            }
-            else
-            {
-                if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                else
                 {
-                    timesource = *it;
-                    ms = msec;
+                    if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                    {
+                        timesource = *it;
+                        ms = msec;
+                    }
                 }
             }
-        }
-        else if (timesource == nullptr)
-        {
-            if (msec != 0 && msec < ms)
+            else if (timesource == nullptr)
             {
-                ms = msec;
+                if (msec != 0 && msec < ms)
+                {
+                    ms = msec;
+                }
             }
         }
     }
@@ -343,6 +390,8 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms) const
 
 bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
+        ReentrancyCounter rec(_reentrancyCounter);
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     size_t msPerFrame = 1000;
@@ -389,7 +438,7 @@ bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
     }
 }
 
-size_t PlayListStep::GetFrameMS() const
+size_t PlayListStep::GetFrameMS()
 {
     size_t ms = 0;
     GetTimeSource(ms);
@@ -403,9 +452,12 @@ void PlayListStep::Start(int loops)
 
     _loops = loops;
     _startTime = wxGetUTCTimeMillis().GetLo();
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Start(GetLengthMS());
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->Start(GetLengthMS());
+        }
     }
 }
 
@@ -424,9 +476,12 @@ void PlayListStep::Pause(bool pause)
         _pause = 0;
     }
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Pause(pause);
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->Pause(pause);
+        }
     }
 }
 
@@ -448,9 +503,12 @@ void PlayListStep::Suspend(bool suspend)
         }
     }
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Suspend(suspend);
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->Suspend(suspend);
+        }
     }
 }
 
@@ -460,9 +518,12 @@ void PlayListStep::Restart()
     logger_base.info("Playlist step %s restarting.", (const char*)GetNameNoTime().c_str());
 
     _startTime = wxGetUTCTimeMillis().GetLo();
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Restart();
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->Restart();
+        }
     }
 }
 
@@ -471,13 +532,16 @@ void PlayListStep::Stop()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("         ######## Playlist step %s stopping.", (const char*)GetNameNoTime().c_str());
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        (*it)->Stop();
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
+        {
+            (*it)->Stop();
+        }
     }
 }
 
-size_t PlayListStep::GetPosition() const
+size_t PlayListStep::GetPosition()
 {
     size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
@@ -510,7 +574,7 @@ size_t PlayListStep::GetPosition() const
     return frameMS;
 }
 
-size_t PlayListStep::GetLengthMS() const
+size_t PlayListStep::GetLengthMS()
 {
     size_t msPerFrame = 1000;
     PlayListItem* timesource = GetTimeSource(msPerFrame);
@@ -521,28 +585,30 @@ size_t PlayListStep::GetLengthMS() const
     }
     else
     {
-        size_t len = 0;
-        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            len = std::max(len, (*it)->GetDurationMS());
-        }
-
-        if (len == 0)
-        {
+            ReentrancyCounter rec(_reentrancyCounter);
+            size_t len = 0;
             for (auto it = _items.begin(); it != _items.end(); ++it)
             {
-                len = std::max(len, (*it)->GetDurationMS(msPerFrame));
+                len = std::max(len, (*it)->GetDurationMS());
             }
 
-            if (len == 0) len = msPerFrame;
-        }
+            if (len == 0)
+            {
+                for (auto it = _items.begin(); it != _items.end(); ++it)
+                {
+                    len = std::max(len, (*it)->GetDurationMS(msPerFrame));
+                }
 
-        wxASSERT(len != 0);
-        return len;
+                if (len == 0) len = msPerFrame;
+            }
+            wxASSERT(len != 0);
+            return len;
+        }
     }
 }
 
-std::string PlayListStep::GetActiveSyncItemFSEQ() const
+std::string PlayListStep::GetActiveSyncItemFSEQ()
 {
     std::string res;
     size_t ms;
@@ -555,17 +621,20 @@ std::string PlayListStep::GetActiveSyncItemFSEQ() const
 
     if (res == "")
     {
-        for (auto it = _items.rbegin(); it != _items.rend(); ++it)
         {
-            res = (*it)->GetSyncItemFSEQ();
-            if (res != "") break;
+            ReentrancyCounter rec(_reentrancyCounter);
+            for (auto it = _items.rbegin(); it != _items.rend(); ++it)
+            {
+                res = (*it)->GetSyncItemFSEQ();
+                if (res != "") break;
+            }
         }
     }
 
     return res;
 }
 
-std::string PlayListStep::GetActiveSyncItemMedia() const
+std::string PlayListStep::GetActiveSyncItemMedia()
 {
     std::string res;
     size_t ms;
@@ -578,10 +647,13 @@ std::string PlayListStep::GetActiveSyncItemMedia() const
 
     if (res == "")
     {
-        for (auto it = _items.rbegin(); it != _items.rend(); ++it)
         {
-            res = (*it)->GetSyncItemMedia();
-            if (res != "") break;
+            ReentrancyCounter rec(_reentrancyCounter);
+            for (auto it = _items.rbegin(); it != _items.rend(); ++it)
+            {
+                res = (*it)->GetSyncItemMedia();
+                if (res != "") break;
+            }
         }
     }
 
@@ -603,88 +675,91 @@ void PlayListStep::SetSyncPosition(size_t ms, bool force)
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if ((*it)->GetTitle() == "FSEQ")
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
-            if (fseq == pli->GetFSEQFileName())
+            if ((*it)->GetTitle() == "FSEQ")
             {
-                // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
-
-                int frame = ms / pli->GetFrameMS();
-                if (force)
+                PlayListItemFSEQ* pli = (PlayListItemFSEQ*)(*it);
+                if (fseq == pli->GetFSEQFileName())
                 {
-                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
-                    pli->SetPosition(frame, ms);
-                    if (xScheduleFrame::GetScheduleManager() != nullptr)
-                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
-                }
-                else
-                {
-                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                    // only adjust position if we are more that one frame out of sync
+                    // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
-                    int adjustment = 0;
-                    if (timeDiff == 0)
+                    int frame = ms / pli->GetFrameMS();
+                    if (force)
                     {
+                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                        pli->SetPosition(frame, ms);
+                        if (xScheduleFrame::GetScheduleManager() != nullptr)
+                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                     }
-                    else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                    else
                     {
-                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
-                    }
-                    else if (abs(timeDiff) > pli->GetFrameMS())
-                    {
-                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
-                    }
+                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                        // only adjust position if we are more that one frame out of sync
 
-                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
-                    if (xScheduleFrame::GetScheduleManager() != nullptr)
-                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                        int adjustment = 0;
+                        if (timeDiff == 0)
+                        {
+                        }
+                        else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                        {
+                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                        }
+                        else if (abs(timeDiff) > pli->GetFrameMS())
+                        {
+                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                        }
+
+                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                        if (xScheduleFrame::GetScheduleManager() != nullptr)
+                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                    }
+                    break;
                 }
-                break;
             }
-        }
-        else if ((*it)->GetTitle() == "FSEQ & Video")
-        {
-            PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
-            if (fseq == pli->GetFSEQFileName())
+            else if ((*it)->GetTitle() == "FSEQ & Video")
             {
-                //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
-                int frame = ms / pli->GetFrameMS();
-                if (force)
+                PlayListItemFSEQVideo* pli = (PlayListItemFSEQVideo*)(*it);
+                if (fseq == pli->GetFSEQFileName())
                 {
-                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
-                    pli->SetPosition(frame, ms);
-                    if (xScheduleFrame::GetScheduleManager() !=  nullptr)
-                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
-                }
-                else
-                {
-                    long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                    // only adjust position if we are more that one frame out of sync
-
-                    int adjustment = 0;
-                    if (timeDiff == 0)
-                    {                        
-                    }
-                    else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                    //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
+                    int frame = ms / pli->GetFrameMS();
+                    if (force)
                     {
-                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                        pli->SetPosition(frame, ms);
+                        if (xScheduleFrame::GetScheduleManager() != nullptr)
+                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                     }
-                    else if (abs(timeDiff) > pli->GetFrameMS())
+                    else
                     {
-                        adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                        // only adjust position if we are more that one frame out of sync
+
+                        int adjustment = 0;
+                        if (timeDiff == 0)
+                        {
+                        }
+                        else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                        {
+                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                        }
+                        else if (abs(timeDiff) > pli->GetFrameMS())
+                        {
+                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                        }
+
+                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+
+                        if (xScheduleFrame::GetScheduleManager() != nullptr)
+                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
                     }
-
-                    logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
-
-                    if (xScheduleFrame::GetScheduleManager() != nullptr)
-                        xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                    break;
                 }
-                break;
             }
         }
     }
@@ -707,7 +782,7 @@ std::string PlayListStep::FormatTime(size_t timems, bool ms) const
     }
 }
 
-std::string PlayListStep::GetStatus(bool ms) const
+std::string PlayListStep::GetStatus(bool ms)
 {
     std::string fps = "Unknown";
 
@@ -721,70 +796,89 @@ std::string PlayListStep::GetStatus(bool ms) const
 
 std::list<PlayListItem*> PlayListStep::GetItems()
 {
-    _items.sort(compare_priority);
-    return _items;
+    {
+        ReentrancyCounter rec(_reentrancyCounter);
+        _items.sort(compare_priority);
+        return _items;
+    }
 }
 
-bool PlayListStep::IsSimple() const
+bool PlayListStep::IsSimple()
 {
-    if (_items.size() != 1) return false;
-
-    auto type = _items.front()->GetTitle();
-
-    if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video")
     {
-        return true;
+        ReentrancyCounter rec(_reentrancyCounter);
+        if (_items.size() == 0) return true;
+        if (_items.size() != 1) return false;
+
+        auto type = _items.front()->GetTitle();
+
+        if (type == "FSEQ" || type == "Audio" || type == "FSEQ & Video")
+        {
+            return true;
+        }
     }
 
     return false;
 }
 
-PlayListItemText* PlayListStep::GetTextItem(const std::string& name) const
+PlayListItemText* PlayListStep::GetTextItem(const std::string& name)
 {
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if ((*it)->GetTitle() == "Text" && wxString((*it)->GetNameNoTime()).Lower() == wxString(name).Lower())
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            return (PlayListItemText*)*it;
+            if ((*it)->GetTitle() == "Text" && wxString((*it)->GetNameNoTime()).Lower() == wxString(name).Lower())
+            {
+                return (PlayListItemText*)*it;
+            }
         }
     }
 
     return nullptr;
 }
 
-PlayListItem* PlayListStep::GetItem(const std::string item) const
+PlayListItem* PlayListStep::GetItem(const std::string item)
 {
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if (wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            return *it;
+            if (wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+            {
+                return *it;
+            }
         }
     }
 
     return nullptr;
 }
 
-PlayListItem* PlayListStep::GetItem(const wxUint32 id) const
+PlayListItem* PlayListStep::GetItem(const wxUint32 id)
 {
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if ((*it)->GetId() == id)
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            return *it;
+            if ((*it)->GetId() == id)
+            {
+                return *it;
+            }
         }
     }
 
     return nullptr;
 }
 
-PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item) const
+PlayListItem* PlayListStep::FindRunProcessNamed(const std::string& item)
 {
-    for (auto it = _items.begin(); it != _items.end(); ++it)
     {
-        if ((*it)->GetTitle() == "Run Process" && wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+        ReentrancyCounter rec(_reentrancyCounter);
+        for (auto it = _items.begin(); it != _items.end(); ++it)
         {
-            return (*it);
+            if ((*it)->GetTitle() == "Run Process" && wxString((*it)->GetNameNoTime()).Lower() == wxString(item).Lower())
+            {
+                return (*it);
+            }
         }
     }
 
@@ -813,7 +907,7 @@ AudioManager* PlayListStep::GetAudioManager(PlayListItem* pli) const
     return nullptr;
 }
 
-AudioManager* PlayListStep::GetAudioManager() const
+AudioManager* PlayListStep::GetAudioManager()
 {
     size_t ms;
     auto pli = GetTimeSource(ms);
@@ -824,11 +918,14 @@ AudioManager* PlayListStep::GetAudioManager() const
     }
     else
     {
-        for (auto it=  _items.begin(); it != _items.end(); ++it)
         {
-            if (GetAudioManager(*it) != nullptr)
+            ReentrancyCounter rec(_reentrancyCounter);
+            for (auto it = _items.begin(); it != _items.end(); ++it)
             {
-                return GetAudioManager(*it);
+                if (GetAudioManager(*it) != nullptr)
+                {
+                    return GetAudioManager(*it);
+                }
             }
         }
     }

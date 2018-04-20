@@ -187,7 +187,7 @@ void BufferSizeDialog::OnValueCurve_Click(wxCommandEvent& event)
     vc->ToggleActive();
     if (vc->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), true);
         if (vcd.ShowModal() != wxOK)
         {
             vc->SetActive(false);

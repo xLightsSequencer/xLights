@@ -248,6 +248,7 @@ void BulkEditSliderDialog::OnBitmapButton_VCClick(wxCommandEvent& event)
 {
     ValueCurveButton * vc = (ValueCurveButton*)event.GetEventObject();
 
+    bool slideridd = false;
     wxString name = vc->GetName();
     name.Replace("IDD_VALUECURVE_", "ID_SLIDER_");
     name.Replace("ID_VALUECURVE_", "ID_SLIDER_");
@@ -258,6 +259,10 @@ void BulkEditSliderDialog::OnBitmapButton_VCClick(wxCommandEvent& event)
         name.Replace("IDD_VALUECURVE_", "IDD_SLIDER_");
         name.Replace("ID_VALUECURVE_", "IDD_SLIDER_");
         slider = (wxSlider*)vc->GetParent()->FindWindowByName(name);
+        if (slider != nullptr)
+        {
+            slideridd = true;
+        }
     }
 
     name = vc->GetName();
@@ -275,7 +280,7 @@ void BulkEditSliderDialog::OnBitmapButton_VCClick(wxCommandEvent& event)
     vc->ToggleActive();
     if (vc->GetValue()->IsActive())
     {
-        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue());
+        ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd);
         if (vcd.ShowModal() == wxOK)
         {
             if (slider != nullptr)

@@ -322,20 +322,20 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _suspendOTL = false;
 
     //(*Initialize(xScheduleFrame)
-    wxMenuItem* MenuItem2;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxMenuItem* MenuItem1;
-    wxFlexGridSizer* FlexGridSizer5;
+    wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer2;
-    wxMenu* Menu1;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
-    wxBoxSizer* BoxSizer1;
-    wxMenuBar* MenuBar1;
-    wxFlexGridSizer* FlexGridSizer6;
+    wxMenu* Menu1;
     wxMenu* Menu2;
+    wxMenuBar* MenuBar1;
+    wxMenuItem* MenuItem1;
+    wxMenuItem* MenuItem2;
 
-    Create(parent, id, _("xLights Scheduler"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
+    Create(parent, id, _("xSchedule"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(1);
@@ -369,7 +369,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer1->Add(Panel2, 1, wxALL|wxEXPAND, 0);
     SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxSize(52,39), wxSP_3D, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetMinSize(wxSize(10,10));
-    SplitterWindow1->SetMinimumPaneSize(10);
     SplitterWindow1->SetSashGravity(0.5);
     Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -377,7 +376,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer2->AddGrowableRow(0);
     SplitterWindow2 = new wxSplitterWindow(Panel3, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW2"));
     SplitterWindow2->SetMinSize(wxSize(10,10));
-    SplitterWindow2->SetMinimumPaneSize(10);
     SplitterWindow2->SetSashGravity(0.5);
     Panel6 = new wxPanel(SplitterWindow2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1220,8 +1218,18 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static bool reentered = false;
     static int last = -1;
+
     if (__schedule == nullptr) return;
+
+    if (reentered)
+    {
+        logger_base.warn("Frame timer was re-entered ... dropping this frame.");
+        return;
+    }
+    reentered = true;
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
@@ -1246,6 +1254,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     }
 
     CorrectTimer(rate);
+
+    reentered = false;
 }
 
 void xScheduleFrame::UpdateSchedule()

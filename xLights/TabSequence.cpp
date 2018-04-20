@@ -486,9 +486,12 @@ void xLightsFrame::SaveModelsFile()
 
     if (!wxDir::Exists(CurrentDir + "/xScheduleData"))
     {
+        logger_base.debug("Creating xScheduleData folder.");
         wxDir sd(CurrentDir);
         sd.Make(CurrentDir + "/xScheduleData");
     }
+
+    logger_base.debug("Creating models JSON file: %s.", (const char *)filename.c_str());
 
     wxFile modelsJSON;
     if (!modelsJSON.Create(filename, true) || !modelsJSON.IsOpened())
@@ -506,7 +509,12 @@ void xLightsFrame::SaveModelsFile()
         if (model->GetDisplayAs() == "ModelGroup")
         {
             // Dont export model groups ... they arent useful
-            // if this is added then move the first check
+
+            //if (!first)
+            //{
+            //    modelsJSON.Write(",");
+            //}
+            //first = false;
 
             //ModelGroup* mg = static_cast<ModelGroup*>(model);
             //modelsJSON.Write("{\"name\":\"" + mg->name +
@@ -515,15 +523,32 @@ void xLightsFrame::SaveModelsFile()
             //    "\",\"channels\":\"" + wxString::Format("%i", mg->GetChanCount()) +
             //    "\",\"stringtype\":\"\"}");
         }
+        else if (model->GetDisplayAs() == "SubModel")
+        {
+            // Dont export sub models ... they arent useful
+
+            //if (!first)
+            //{
+            //    modelsJSON.Write(",");
+            //}
+            //first = false;
+
+            //SubModel* sm = static_cast<SubModel*>(model);
+            //int ch = sm->GetNumberFromChannelString(sm->ModelStartChannel);
+            //modelsJSON.Write("{\"name\":\"" + sm->name +
+            //    "\",\"type\":\"" + sm->GetDisplayAs() +
+            //    "\",\"startchannel\":\"" + wxString::Format("%i", ch) +
+            //    "\",\"channels\":\"" + wxString::Format("%i", sm->GetChanCount()) +
+            //    "\",\"stringtype\":\"" + sm->GetStringType() + "\"}");
+        }
         else
         {
-            // move this if model groups are added
             if (!first)
             {
                 modelsJSON.Write(",");
             }
             first = false;
-            // end move
+
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             modelsJSON.Write("{\"name\":\""+model->name+
                               "\",\"type\":\""+model->GetDisplayAs()+
@@ -534,6 +559,8 @@ void xLightsFrame::SaveModelsFile()
     }
 
     modelsJSON.Write("]}");
+
+    logger_base.debug("     models JSON file done.");
 }
 
 // returns true on success

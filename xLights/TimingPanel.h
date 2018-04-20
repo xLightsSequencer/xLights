@@ -5,6 +5,7 @@
 
 //(*Headers(TimingPanel)
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/notebook.h>
@@ -20,13 +21,20 @@ class Model;
 
 class TimingPanel: public wxPanel
 {
+    std::string _layersSelected;
+    int _startLayer;
+    int _endLayer;
+
 	public:
 
 		TimingPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TimingPanel();
 
+        void SetLayersBelow(int start, int end) { _startLayer = start; _endLayer = end; }
         wxString GetTimingString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
+        void ValidateWindow();
+        void SetLayersSelected(std::string layersSelected) { _layersSelected = layersSelected; }
 
 		//(*Declarations(TimingPanel)
 		BulkEditCheckBox* CheckBox_In_Reverse;
@@ -44,6 +52,7 @@ class TimingPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxBitmapButton* BitmapButton_EffectLayerMix;
+		wxButton* Button_Layers;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxNotebook* Notebook1;
@@ -54,16 +63,17 @@ class TimingPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText4;
 		//*)
-       
+
 	protected:
 
 		//(*Identifiers(TimingPanel)
 		static const long ID_CHECKBOX_ResetTimingPanel;
 		static const long ID_CHECKBOX_LayerMorph;
-		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
-		static const long ID_CHOICE_LayerMethod;
 		static const long ID_SLIDER_EffectLayerMix;
 		static const long IDD_TEXTCTRL_EffectLayerMix;
+		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
+		static const long ID_CHOICE_LayerMethod;
+		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_CHOICE_In_Transition_Type;
 		static const long ID_STATICTEXT_Fadein;
@@ -95,7 +105,9 @@ class TimingPanel: public wxPanel
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event);
-        //*)
+		void OnButton_LayersClick(wxCommandEvent& event);
+		void OnChoice_LayerMethodSelect(wxCommandEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

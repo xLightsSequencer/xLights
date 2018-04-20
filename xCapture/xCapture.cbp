@@ -9,7 +9,7 @@
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xCapture" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wd" />
+				<Option object_output=".objs_wd32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -54,7 +54,7 @@
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xCapture" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr" />
+				<Option object_output=".objs_wr32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -167,7 +167,7 @@
 			<Target title="64bit_MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin64/xCapture" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr" />
+				<Option object_output=".objs_wr64" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />

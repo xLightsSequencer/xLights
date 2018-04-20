@@ -349,6 +349,7 @@ wxDEFINE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_RANDOMIZE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
@@ -391,6 +392,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_ROW_CHANGED, xLightsFrame::SelectedRowChanged)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_CHANGED, xLightsFrame::EffectChanged)
+    EVT_COMMAND(wxID_ANY, EVT_UPDATE_EFFECT, xLightsFrame::EffectUpdated)
     EVT_COMMAND(wxID_ANY, EVT_UNSELECTED_EFFECT, xLightsFrame::UnselectedEffect)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL_EFFECT, xLightsFrame::PlayModelEffect)
@@ -1861,7 +1863,8 @@ xLightsFrame::~xLightsFrame()
 
     if (reenter)
     {
-        logger_base.error("~xLightsFrame re-entered ... this wont end well.");
+        logger_base.error("~xLightsFrame re-entered ... this wont end well ... so bailing now.");
+        return;
     }
     reenter = true;
 
@@ -1955,15 +1958,14 @@ void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
     if (inMenuAction) {
         return;
     }
-    inMenuAction= true;
+    inMenuAction = true;
     wxWindow *w = FindFocus();
     evt.Skip();
-    if (w != nullptr && w->GetEventHandler()) {
+    if (w != nullptr && w->GetEventHandler() != nullptr) {
         w->GetEventHandler()->ProcessEventLocally(evt);
     }
-    inMenuAction= false;
+    inMenuAction = false;
 }
-
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
@@ -2009,7 +2011,7 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
         break;
     }
 
-    play_mode=newmode;
+    play_mode = newmode;
     starttime = wxDateTime::UNow();
 }
 
@@ -2021,9 +2023,10 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     switch (Notebook1->GetSelection())
     {
     case NEWSEQUENCER:
-        if( playAnimation ) {
+        if (playAnimation) {
             TimerRgbSeq(curtime * playSpeed);
-        } else {
+        }
+        else {
             TimerRgbSeq(curtime);
         }
         break;
@@ -2035,44 +2038,44 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 
 void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
 {
-    wxString caption,msg;
+    wxString caption, msg;
 
     switch (Notebook1->GetSelection())
     {
     case SETUPTAB:
-        caption=_("Setup Tab");
-        msg=_("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
+        caption = _("Setup Tab");
+        msg = _("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
         break;
     case LAYOUTTAB:
-        caption=_("Layout Tab");
-        msg=_("Create display elements by clicking on the Models buttons. You can drag your cursor across the preview area to move the element. Don't forget to click the Save button to save your preview!\n\nClick the Open button to select an xLights sequence to be previewed. Note that any xLights sequence can be previewed, not just those created on the Sequencer tab. Click Play to start preview playback. Use the Pause button to stop play, and then the Play button to resume. You can drag the slider that appears across the top of the preview area to move playback to any spot in your sequence. The Stop Now button in the upper left will also stop playback.");
+        caption = _("Layout Tab");
+        msg = _("Create display elements by clicking on the Models buttons. You can drag your cursor across the preview area to move the element. Don't forget to click the Save button to save your preview!\n\nClick the Open button to select an xLights sequence to be previewed. Note that any xLights sequence can be previewed, not just those created on the Sequencer tab. Click Play to start preview playback. Use the Pause button to stop play, and then the Play button to resume. You can drag the slider that appears across the top of the preview area to move playback to any spot in your sequence. The Stop Now button in the upper left will also stop playback.");
         break;
     case NEWSEQUENCER:
-        caption=_("Sequencer Tab");
-        msg=_("The Sequencer tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
+        caption = _("Sequencer Tab");
+        msg = _("The Sequencer tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
         break;
     default:
         break;
     }
-    wxMessageBox(msg,caption);
+    wxMessageBox(msg, caption);
 }
 
 void xLightsFrame::ResetAllSequencerWindows()
 {
-	wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
-	bool update = false;
-	for (size_t x = 0; x < info.size(); x++)
-	{
-		if (info[x].IsFloating() && info[x].IsShown())
-		{
-			info[x].Dock();
-			update = true;
-		}
-	}
-	if (update)
-	{
-		m_mgr->Update();
-	}
+    wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
+    bool update = false;
+    for (size_t x = 0; x < info.size(); x++)
+    {
+        if (info[x].IsFloating() && info[x].IsShown())
+        {
+            info[x].Dock();
+            update = true;
+        }
+    }
+    if (update)
+    {
+        m_mgr->Update();
+    }
 }
 
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
@@ -2088,11 +2091,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     }
     wxAuiPaneInfoArray &info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show)
+    if (show && savedPaneShown.size() > 0)
     {
-        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show");
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - show %d %d", (int)info.size(), (int)savedPaneShown.size());
         for (size_t x = 0; x < info.size(); x++)
         {
+            logger_base.debug("     %s", (const char*)info[x].name.c_str());
             if (info[x].IsOk() &&
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name])
@@ -2106,9 +2110,10 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     else
     {
         savedPaneShown.clear();
-        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide");
+        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - hide %d", (int)info.size());
         for (size_t x = 0; x < info.size(); x++)
         {
+            logger_base.debug("     %s", (const char*)info[x].name.c_str());
             savedPaneShown[info[x].name] = false;
             if (info[x].IsOk())
             {
@@ -2130,21 +2135,22 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - update");
         m_mgr->Update();
     }
+
     // show/hide Layout Previews
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
     for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
-        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews");
         LayoutGroup* grp = *it;
         if (grp != nullptr) {
             if (grp->GetMenuItem() == nullptr)
             {
                 logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
             }
-            if( grp->GetMenuItem()->IsChecked() ) {
+            if (grp->GetMenuItem()->IsChecked()) {
                 grp->SetPreviewActive(show);
             }
         }
-        logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
     }
+    logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
 void xLightsFrame::RecalcModels(bool force)
@@ -2374,19 +2380,21 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     ShowHideAllSequencerWindows(false);
 
+    logger_base.debug("Destroying %d preview windows.", (int)PreviewWindows.size());
     // destroy preview windows
     for (auto it = PreviewWindows.begin(); it != PreviewWindows.end(); ++it) {
         ModelPreview* preview = *it;
         delete preview;
     }
 
+    logger_base.debug("Heartbeat exit.");
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
 	logger_base.info("xLights Closed.");
 
     inClose = false;
-}
+    }
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
@@ -2838,10 +2846,10 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
-	int frameCount = SeqData.NumFrames();
+    int frameCount = SeqData.NumFrames();
 
-	if (CurrentSeqXmlFile == nullptr || frameCount == 0)
-		return;
+    if (CurrentSeqXmlFile == nullptr || frameCount == 0)
+        return;
 
     bool visible = m_mgr->GetPane("HousePreview").IsShown();
     if (!visible)
@@ -2855,77 +2863,77 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         return;
 
     const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
-	wxFileDialog *pExportDlg = new wxFileDialog(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-   int exportChoice = pExportDlg->ShowModal();
+    wxFileDialog *pExportDlg = new wxFileDialog(this, _("Export House Preview Video"), wxEmptyString, CurrentSeqXmlFile->GetName(), wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    int exportChoice = pExportDlg->ShowModal();
 
-   if (exportChoice != wxID_OK)
-   {
-      delete pExportDlg;
-      return;
-   }
+    if (exportChoice != wxID_OK)
+    {
+        delete pExportDlg;
+        return;
+    }
 
-	wxString path( pExportDlg->GetPath() );
-   delete pExportDlg;
+    wxString path(pExportDlg->GetPath());
+    delete pExportDlg;
 
-   int playStatus = mainSequencer->GetPlayStatus();
-   mainSequencer->SetPlayStatus( PLAY_TYPE_STOPPED );
+    int playStatus = mainSequencer->GetPlayStatus();
+    mainSequencer->SetPlayStatus(PLAY_TYPE_STOPPED);
 
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-	logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Writing house-preview video to %s.", (const char *)path.c_str());
 
-	int width = housePreview->getWidth();
-	int height = housePreview->getHeight();
-	double contentScaleFactor = GetContentScaleFactor();
+    int width = housePreview->getWidth();
+    int height = housePreview->getHeight();
+    double contentScaleFactor = GetContentScaleFactor();
 
-	int audioChannelCount = 0;
-	int audioSampleRate = 0;
-	AudioManager *audioMgr = CurrentSeqXmlFile->GetMedia();
-	if (audioMgr != nullptr)
-	{
-		audioSampleRate = audioMgr->GetRate();
-		audioChannelCount = audioMgr->GetChannels();
-	}
-	int audioFrameIndex = 0;
+    int audioChannelCount = 0;
+    int audioSampleRate = 0;
+    AudioManager *audioMgr = CurrentSeqXmlFile->GetMedia();
+    if (audioMgr != nullptr)
+    {
+        audioSampleRate = audioMgr->GetRate();
+        audioChannelCount = audioMgr->GetChannels();
+    }
+    int audioFrameIndex = 0;
 
-	VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
+    VideoExporter videoExporter(this, width, height, contentScaleFactor, SeqData.FrameTime(), SeqData.NumFrames(), audioChannelCount, audioSampleRate, logger_base);
 
-	videoExporter.SetGetAudioFrameCallback(
-		[audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
-		   int trackSize = audioMgr->GetTrackSize();
-			int clampedSize = std::min(frameSize, trackSize - audioFrameIndex );
+    videoExporter.SetGetAudioFrameCallback(
+        [audioMgr, &audioFrameIndex](float *samples, int frameSize, int numChannels) {
+        int trackSize = audioMgr->GetTrackSize();
+        int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
 
-			const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
-			const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+        const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+        const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
 
-			memcpy(samples, leftptr, clampedSize * sizeof(float));
-			samples += clampedSize;
-			memcpy(samples, rightptr, clampedSize * sizeof(float));
+        memcpy(samples, leftptr, clampedSize * sizeof(float));
+        samples += clampedSize;
+        memcpy(samples, rightptr, clampedSize * sizeof(float));
 
-			audioFrameIndex += frameSize;
-			return true;
-	   }
-	);
+        audioFrameIndex += frameSize;
+        return true;
+    }
+    );
 
-   xlGLCanvas::CaptureHelper captureHelper( width, height, contentScaleFactor );
+    xlGLCanvas::CaptureHelper captureHelper(width, height, contentScaleFactor);
 
-	videoExporter.SetGetVideoFrameCallback(
-		[this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
-			const FrameData frameData = this->SeqData[frameIndex];
-			const unsigned char *data = frameData[0];
-         //logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
-			housePreview->Render(data, false);
-         //logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
-			bool convertStatus = captureHelper.ToRGB(buf, bufSize, true);
-         //logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
-         return convertStatus;
-		}
-	);
+    videoExporter.SetGetVideoFrameCallback(
+        [this, housePreview, &captureHelper](unsigned char *buf, int bufSize, int width, int height, float scaleFactor, unsigned frameIndex) {
+        const FrameData frameData = this->SeqData[frameIndex];
+        const unsigned char *data = frameData[0];
+        //logger_base.debug( "Requesting house-preview frame %d for video-export", frameIndex );
+        housePreview->Render(data, false);
+        //logger_base.debug( "Received house-preview frame %d for video-export", frameIndex );
+        bool convertStatus = captureHelper.ToRGB(buf, bufSize, true);
+        //logger_base.debug( " CaptureHelper RGB conversion %s", convertStatus ? "successful" : "failed" );
+        return convertStatus;
+    }
+    );
 
-   captureHelper.SetActive( true );
-	bool exportStatus = videoExporter.Export(path.c_str());
-	captureHelper.SetActive(false);
+    captureHelper.SetActive(true);
+    bool exportStatus = videoExporter.Export(path.c_str());
+    captureHelper.SetActive(false);
 
-   mainSequencer->SetPlayStatus( playStatus );
+    mainSequencer->SetPlayStatus(playStatus);
 
     if (!visible)
     {
@@ -2933,14 +2941,14 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         m_mgr->Update();
     }
 
-    if ( exportStatus )
+    if (exportStatus)
     {
-       logger_base.debug( "Finished writing house-preview video." );
+        logger_base.debug("Finished writing house-preview video.");
     }
     else
     {
-       logger_base.error( "Exporting house-preview video failed!" );
-       wxMessageBox( _( "Exporting house preview video failed" ), _( "Export failure" ), wxOK | wxCENTRE, this );
+        logger_base.error("Exporting house-preview video failed!");
+        wxMessageBox(_("Exporting house preview video failed"), _("Export failure"), wxOK | wxCENTRE, this);
     }
 }
 
@@ -2957,10 +2965,12 @@ bool AUIToolbarButtonWrapper::IsChecked()
 {
     return toolbar->GetToolToggled(id);
 }
+
 void AUIToolbarButtonWrapper::SetValue(bool b)
 {
     toolbar->ToggleTool(id, b);
 }
+
 void AUIToolbarButtonWrapper::SetBitmap(const wxBitmap &bmp)
 {
     toolbar->SetToolBitmap(id,bmp);
@@ -4543,15 +4553,15 @@ void xLightsFrame::CheckSequence(bool display)
 
             if (ostart != nullptr && oend == nullptr)
             {
-                wxString msg = wxString::Format("    WARN: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
                 LogAndWrite(f, msg.ToStdString());
-                warncount++;
+                errcount++;
             }
             else if (ostart == nullptr || oend == nullptr)
             {
-                wxString msg = wxString::Format("    WARN: Model '%s' is not configured for a controller.", it->first);
+                wxString msg = wxString::Format("    ERR: Model '%s' is not configured for a controller.", it->first);
                 LogAndWrite(f, msg.ToStdString());
-                warncount++;
+                errcount++;
             }
             else if (ostart->GetType() != oend->GetType())
             {

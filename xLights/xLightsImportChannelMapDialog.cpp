@@ -422,6 +422,8 @@ END_EVENT_TABLE()
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    TreeListCtrl_Mapping = nullptr;
+    _dataModel = nullptr;
     _sortOrder = 0;
     _allowTimingOffset = allowTimingOffset;
     _allowTimingTrack = allowTimingTrack;
@@ -541,8 +543,15 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 
     // disconnect the model and then delete it ... this ensures the destructors are called
     // which stops memory leaks
-    TreeListCtrl_Mapping->AssociateModel(nullptr);
-    delete dataModel;
+    if (TreeListCtrl_Mapping != nullptr)
+    {
+        TreeListCtrl_Mapping->AssociateModel(nullptr);
+        if (_dataModel != nullptr)
+        {
+            delete _dataModel;
+            _dataModel = nullptr;
+        }
+    }
 
     // clear any stashed mappings
     while (_stashedMappings.size() > 0)
@@ -564,9 +573,13 @@ int CountChar(wxString& line, char c)
 }
 
 bool xLightsImportChannelMapDialog::InitImport() {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (channelNames.size() == 0)
     {
         wxMessageBox("No models to import from. Source sequence had no data.");
+        logger_base.warn("Import Dialog: No models to import from. Source sequence had no data.");
         return false;
     }
 
@@ -593,10 +606,10 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     PopulateAvailable(false);
 
-    dataModel = new xLightsImportTreeModel();
+    _dataModel = new xLightsImportTreeModel();
 
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES, wxDefaultValidator);
-    TreeListCtrl_Mapping->AssociateModel(dataModel);
+    TreeListCtrl_Mapping->AssociateModel(_dataModel);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 1, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
@@ -635,14 +648,15 @@ bool xLightsImportChannelMapDialog::InitImport() {
         }
     }
 
-    if (dataModel->GetChildCount() == 0)
+    if (_dataModel->GetChildCount() == 0)
     {
         wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
+        logger_base.warn("Import Dialog: No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
     else
     {
-        dataModel->Resort();
+        _dataModel->Resort();
     }
 
     return true;
@@ -695,15 +709,15 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
 
     if (m == nullptr) return;
 
-    for (size_t x = 0; x < dataModel->GetChildCount(); ++x) {
-        xLightsImportModelNode * tmp = dataModel->GetNthChild(x);
-        if (tmp->_model == m->GetName()) {
+    for (size_t x = 0; x < _dataModel->GetChildCount(); ++x) {
+        xLightsImportModelNode * tmp = _dataModel->GetNthChild(x);
+        if (tmp != nullptr && tmp->_model == m->GetName()) {
             return;
         }
     }
 
-    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), "", true, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
-    dataModel->Insert(lastmodel, ms++);
+    xLightsImportModelNode *lastmodel = new xLightsImportModelNode(nullptr, m->GetName(), std::string(""), true, *wxWHITE, (m->GetDisplayAs() == "ModelGroup"));
+    _dataModel->Insert(lastmodel, ms++);
 
     for (int s = 0; s < m->GetNumSubModels(); s++) {
         Model *subModel = m->GetSubModel(s);
@@ -744,11 +758,11 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
             xLightsImportModelNode* lastnode;
             if (channelColors.find(nn.ToStdString()) != channelColors.end())
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, channelColors.find(nn.ToStdString())->second.asWxColor());
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, channelColors.find(nn.ToStdString())->second.asWxColor());
             }
             else
             {
-                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, "", true, *wxWHITE);
+                lastnode = new xLightsImportModelNode(laststrand, m->GetName(), sn, nn, std::string(""), true, *wxWHITE);
             }
             laststrand->Insert(lastnode, n);
         }
@@ -852,7 +866,7 @@ wxString xLightsImportChannelMapDialog::FindTab(wxString &line) {
 wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::string strand, std::string node)
 {
     wxDataViewItemArray models;
-    dataModel->GetChildren(wxDataViewItem(0), models);
+    _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
         xLightsImportModelNode* amodel = (xLightsImportModelNode*)models[i].GetID();
@@ -865,7 +879,7 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::s
             else
             {
                 wxDataViewItemArray strands;
-                dataModel->GetChildren(models[i], strands);
+                _dataModel->GetChildren(models[i], strands);
                 for (size_t j = 0; j < strands.size(); j++)
                 {
                     xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
@@ -878,7 +892,7 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::s
                         else
                         {
                             wxDataViewItemArray nodes;
-                            dataModel->GetChildren(strands[j], nodes);
+                            _dataModel->GetChildren(strands[j], nodes);
                             for (size_t k = 0; k < nodes.size(); k++)
                             {
                                 xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
@@ -899,9 +913,9 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string model, std::s
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string model, std::string strand, std::string node)
 {
-    for (size_t i = 0; i < dataModel->GetChildCount(); i++)
+    for (size_t i = 0; i < _dataModel->GetChildCount(); i++)
     {
-        xLightsImportModelNode* m = dataModel->GetNthChild(i);
+        xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->_model.ToStdString() == model)
         {
             if (strand == "")
@@ -954,7 +968,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
-        dataModel->ClearMapping();
+        _dataModel->ClearMapping();
 
         for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it)
         {
@@ -1067,11 +1081,11 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
         // expand all models that have strands that have a value
         wxDataViewItemArray models;
-        dataModel->GetChildren(wxDataViewItem(0), models);
+        _dataModel->GetChildren(wxDataViewItem(0), models);
         for (size_t i = 0; i < models.size(); i++)
         {
             wxDataViewItemArray strands;
-            dataModel->GetChildren(models[i], strands);
+            _dataModel->GetChildren(models[i], strands);
             for (size_t j = 0; j < strands.size(); j++)
             {
                 xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
@@ -1080,7 +1094,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                     TreeListCtrl_Mapping->Expand(models[i]);
                 }
                 wxDataViewItemArray nodes;
-                dataModel->GetChildren(strands[j], nodes);
+                _dataModel->GetChildren(strands[j], nodes);
                 for (size_t k = 0; k < nodes.size(); k++)
                 {
                     xLightsImportModelNode* anode = (xLightsImportModelNode*)nodes[k].GetID();
@@ -1103,19 +1117,19 @@ void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString("false\n");
-        int modelcount = dataModel->GetMappedChildCount();
+        int modelcount = _dataModel->GetMappedChildCount();
         text.WriteString(wxString::Format("%d\n", modelcount));
-        for (size_t i = 0; i < dataModel->GetChildCount(); i++)
+        for (size_t i = 0; i < _dataModel->GetChildCount(); i++)
         {
-            xLightsImportModelNode* m = dataModel->GetNthChild(i);
+            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
             if (m->HasMapping())
             {
                 text.WriteString(m->_model + "\n");
             }
         }
-        for (size_t i = 0; i < dataModel->GetChildCount(); i++)
+        for (size_t i = 0; i < _dataModel->GetChildCount(); i++)
         {
-            xLightsImportModelNode* m = dataModel->GetNthChild(i);
+            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
             if (m->HasMapping())
             {
                 wxString mn = m->_model;
@@ -1236,7 +1250,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
     int bottom = TreeListCtrl_Mapping->GetItemRect(item).GetBottom();
 
     wxDataViewItemArray models;
-    dataModel->GetChildren(wxDataViewItem(0), models);
+    _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
         int mtop = TreeListCtrl_Mapping->GetItemRect(models[i]).GetTop();
@@ -1248,7 +1262,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
         if (TreeListCtrl_Mapping->IsExpanded(models[i]))
         {
             wxDataViewItemArray strands;
-            dataModel->GetChildren(models[i], strands);
+            _dataModel->GetChildren(models[i], strands);
             for (size_t j = 0; j < strands.size(); j++)
             {
                 int stop = TreeListCtrl_Mapping->GetItemRect(strands[j]).GetTop();
@@ -1260,7 +1274,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetNextTreeItem(const wxDataViewIt
                 if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
                 {
                     wxDataViewItemArray nodes;
-                    dataModel->GetChildren(strands[j], nodes);
+                    _dataModel->GetChildren(strands[j], nodes);
                     for (size_t k = 0; k < nodes.size(); k++)
                     {
                         int ntop = TreeListCtrl_Mapping->GetItemRect(nodes[k]).GetTop();
@@ -1282,7 +1296,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewI
     if (top == 0) top = -2;
 
     wxDataViewItemArray models;
-    dataModel->GetChildren(wxDataViewItem(0), models);
+    _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); i++)
     {
         int mbottom = TreeListCtrl_Mapping->GetItemRect(models[i]).GetBottom();
@@ -1293,7 +1307,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewI
         if (TreeListCtrl_Mapping->IsExpanded(models[i]))
         {
             wxDataViewItemArray strands;
-            dataModel->GetChildren(models[i], strands);
+            _dataModel->GetChildren(models[i], strands);
             for (size_t j = 0; j < strands.size(); j++)
             {
                 int sbottom = TreeListCtrl_Mapping->GetItemRect(strands[j]).GetBottom();
@@ -1305,7 +1319,7 @@ wxDataViewItem xLightsImportChannelMapDialog::GetPriorTreeItem(const wxDataViewI
                 if (TreeListCtrl_Mapping->IsExpanded(strands[j]))
                 {
                     wxDataViewItemArray nodes;
-                    dataModel->GetChildren(strands[j], nodes);
+                    _dataModel->GetChildren(strands[j], nodes);
                     for (size_t k = 0; k < nodes.size(); k++)
                     {
                         int nbottom = TreeListCtrl_Mapping->GetItemRect(nodes[k]).GetBottom();
@@ -1378,7 +1392,7 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
 {
     wxLogNull logNo; //kludge: Prevent wx logging
 
-    if (dataModel->GetChildCount() == 0) return;
+    if (_dataModel->GetChildCount() == 0) return;
 
     _dragItem = wxDataViewItem(nullptr);
     if (ListCtrl_Available->GetSelectedItemCount() == 0) return;
@@ -1427,7 +1441,7 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
     if (((xLightsImportTreeModel*)_tree->GetModel())->GetChildCount() == 0) return wxDragMove;
 
     wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
-    y -= rect.GetHeight();
+    //y += rect.GetHeight();
 
     static int MINSCROLLDELAY = 10;
     static int STARTSCROLLDELAY = 300;
@@ -1488,7 +1502,6 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
     return wxDragMove;
 }
 
-
 bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
     wxLogNull logNo; //kludge: Prevent wx logging
@@ -1496,7 +1509,7 @@ bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
     if (_tree != nullptr)
     {
         wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
-        y -= rect.GetHeight();
+        //y -= rect.GetHeight();
     }
 
     long mousePos = x;
@@ -1596,10 +1609,10 @@ void xLightsImportChannelMapDialog::MarkUsed()
     std::list<std::string> used;
 
     // go through each tree row where mapping is not blank
-    for (unsigned int i = 0; i < dataModel->GetChildCount(); ++i)
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i)
     {
         bool found = false;
-        auto model = dataModel->GetNthChild(i);
+        auto model = _dataModel->GetNthChild(i);
         if (model->_mapping != "")
         {
             if (std::find(used.begin(), used.end(), model->_mapping) == used.end())
@@ -1688,11 +1701,11 @@ bool xLightsImportChannelMapDialog::AnyStashedMappingExists(wxString modelName, 
 
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
-    if (dataModel == nullptr) return;
+    if (_dataModel == nullptr) return;
 
-    for (unsigned int i = 0; i < dataModel->GetChildCount(); ++i)
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i)
     {
-        auto model = dataModel->GetNthChild(i);
+        auto model = _dataModel->GetNthChild(i);
         if (model != nullptr)
         {
             if (model->_mapping == "")

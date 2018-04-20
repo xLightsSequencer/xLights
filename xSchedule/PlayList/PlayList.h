@@ -2,6 +2,7 @@
 #define PLAYLIST_H
 #include <list>
 #include <map>
+#include <mutex>
 #include <wx/wx.h>
 
 class OutputManager;
@@ -17,6 +18,7 @@ class PlayList
 protected:
 
     #pragma region Member Variables
+    int _reentrancyCounter;
     wxUint32 _id;
     std::list<PlayListStep*> _steps;
     std::list<Schedule*> _schedules;
@@ -41,7 +43,7 @@ protected:
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
-    PlayListStep* GetPriorStep() const;
+    PlayListStep* GetPriorStep();
     void ForgetChildren();
     void DeleteChildren();
 
@@ -49,7 +51,7 @@ public:
 
     #pragma region Constructors and Destructors
     PlayList(OutputManager* outputManager, wxXmlNode* node);
-    PlayList(const PlayList& playlist, bool newid = false);
+    PlayList(PlayList& playlist, bool newid = false);
     PlayList();
     virtual ~PlayList();
     #pragma endregion Constructors and Destructors
@@ -66,17 +68,17 @@ public:
     PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
     std::list<PlayListStep*> GetSteps() const { return _steps; }
-    std::string GetNextScheduledTime() const;
+    std::string GetNextScheduledTime();
     std::list<Schedule*> GetSchedules() const { return _schedules; }
-    size_t GetLengthMS() const;
-    bool IsDirty() const;
+    size_t GetLengthMS();
+    bool IsDirty();
     void ClearDirty();
-    PlayListItem* FindRunProcessNamed(const std::string& item) const;
-    int GetFrameMS() const;
-    Schedule* GetSchedule(int id) const;
-    Schedule* GetSchedule(const std::string& name) const;
+    PlayListItem* FindRunProcessNamed(const std::string& item);
+    int GetFrameMS();
+    Schedule* GetSchedule(int id);
+    Schedule* GetSchedule(const std::string& name);
     int GetChangeCount() const { return _changeCount; }
-    bool SupportsRandom() const;
+    bool SupportsRandom();
     bool IsRandom() const { return _random; }
     bool SetRandom(bool random) { _random = random; return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
@@ -84,9 +86,9 @@ public:
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
     void ClearStepLooping() { _loopStep = false; }
-    PlayListStep* GetStepAtTime(long ms) const;
-    size_t GetPosition() const;
-    std::string GetName() const;
+    PlayListStep* GetStepAtTime(long ms);
+    size_t GetPosition();
+    std::string GetName();
     std::string GetRawName() const {  return _name; };
     std::string GetNameNoTime() const { if (_name == "") return "<unnamed>"; else return _name; };
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
@@ -100,9 +102,9 @@ public:
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }
-    bool IsSimple() const;
-    std::string GetActiveSyncItemFSEQ() const;
-    std::string GetActiveSyncItemMedia() const;
+    bool IsSimple();
+    std::string GetActiveSyncItemFSEQ();
+    std::string GetActiveSyncItemMedia();
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);
@@ -124,7 +126,7 @@ public:
     bool JumpToStep(const std::string& step);
     bool JumpToEndStepsAtEndOfCurrentStep();
     void RestartCurrentStep();
-    PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
+    PlayListStep* GetStepContainingPlayListItem(wxUint32 id);
     PlayListStep* GetStep(const std::string& step);
     PlayListStep* GetStep(wxUint32 id);
     PlayListItem* GetItem(wxUint32 id);
@@ -132,7 +134,7 @@ public:
     PlayListStep* GetStepWithTimingName(const std::string timingName);
     PlayListStep* GetRandomStep();
     bool LoopStep(const std::string step);
-    PlayListItemText* GetRunningText(const std::string& name) const;
+    PlayListItemText* GetRunningText(const std::string& name);
     #pragma endregion Getters and Setters
 
     wxXmlNode* Save();

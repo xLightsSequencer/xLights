@@ -17,6 +17,8 @@ MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strand
     _orientation = orientation;
     _startLocation = startLocation;
     _startChannel = startChannel;
+
+    if (_strandsPerString < 1) _strandsPerString = 1;
 }
 
 MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strandsPerString, int stringLength, const std::string& orientation, const std::string& startLocation, const std::string& startChannel, const std::string& name)
@@ -31,6 +33,8 @@ MatrixMapper::MatrixMapper(OutputManager* outputManager, int strings, int strand
     _orientation = MatrixMapper::EncodeOrientation(orientation);
     _startLocation = MatrixMapper::EncodeStartLocation(startLocation);
     _startChannel = startChannel;
+
+    if (_strandsPerString < 1) _strandsPerString = 1;
 }
 
 MatrixMapper::MatrixMapper(OutputManager* outputManager, wxXmlNode* n)
@@ -45,6 +49,8 @@ MatrixMapper::MatrixMapper(OutputManager* outputManager, wxXmlNode* n)
     _orientation = (MMORIENTATION)wxAtoi(n->GetAttribute("Orientation", "0"));
     _startLocation = (MMSTARTLOCATION)wxAtoi(n->GetAttribute("StartLocation", "0"));
     _startChannel = n->GetAttribute("StartChannel", "1").ToStdString();
+
+    if (_strandsPerString < 1) _strandsPerString = 1;
 }
 
 wxXmlNode* MatrixMapper::Save()

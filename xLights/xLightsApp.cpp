@@ -441,27 +441,37 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
+        { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
 #endif
         { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
     };
 
-// Add option to run xschedule via xlights on linux (for AppImage usage)
+// Add option to run xschedule/xcapture via xlights on linux (for AppImage usage)
 #ifdef __LINUX__
        int run_xschedule = FALSE;
+       int run_xcapture = FALSE;
        wxFileName f(wxStandardPaths::Get().GetExecutablePath());
        wxString appPath(f.GetPath());
-       wxString cmdline(appPath+wxT("/xSchedule"));
+       wxString cmdlineC(appPath+wxT("/xCapture"));
+       wxString cmdlineS(appPath+wxT("/xSchedule"));
         for (int i=1; i< argc;i++) {
             if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
+	    } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
+                run_xcapture = TRUE;
             } else {
-                cmdline += wxT(" ");
-                cmdline += wxString::FromUTF8(argv[i]);
+                cmdlineS += wxT(" ");
+                cmdlineS += wxString::FromUTF8(argv[i]);
+                cmdlineC += wxT(" ");
+                cmdlineC += wxString::FromUTF8(argv[i]);
             }
         }
         if (run_xschedule) {
-            wxExecute(cmdline, wxEXEC_BLOCK,NULL,NULL);
+            wxExecute(cmdlineS, wxEXEC_BLOCK,NULL,NULL);
+            exit(0);
+	} else if (run_xcapture) {
+            wxExecute(cmdlineC, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
 #endif

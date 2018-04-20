@@ -66,6 +66,7 @@ class ValueCurveDialog: public wxDialog
 {
     ValueCurve* _vc;
     ValueCurve _backup;
+    bool _slideridd;
     void ValidateWindow();
     void SetParameter(int p, float v);
     ValueCurvePanel* _vcp;
@@ -80,7 +81,7 @@ class ValueCurveDialog: public wxDialog
 
     public:
 
-		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slideridd, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ValueCurveDialog();
 
 		//(*Declarations(ValueCurveDialog)

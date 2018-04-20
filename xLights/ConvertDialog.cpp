@@ -255,6 +255,8 @@ void ConvertDialog::OnButtonCloseClick(wxCommandEvent& event)
 }
 
 void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
+    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
+
     if (flushBuffer && !msgBuffer.IsEmpty()) {
         msgBuffer.append(msg);
         TextCtrlConversionStatus->AppendText(msgBuffer);
@@ -271,19 +273,23 @@ void ConvertDialog::AppendConvertStatus(const wxString &msg, bool flushBuffer) {
         }
     }
 
-    static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-    logger_conversion.info("ConvertStatus: " + msg);
+    wxString m = msg;
+    if (m.EndsWith("\n")) m = m.Left(m.length() - 1);
+    logger_conversion.info("ConvertStatus: %s", (const char*)m.c_str());
 }
 
 bool ConvertDialog::mapEmptyChannels() {
     return CheckBoxMapEmptyChannels->IsChecked();
 }
+
 bool ConvertDialog::showChannelMapping() {
     return CheckBoxShowChannelMapping->IsChecked();
 }
+
 bool ConvertDialog::isSetOffAtEnd() {
     return CheckBoxOffAtEnd->IsChecked();
 }
+
 void ConvertDialog::SetStatusText(const wxString &msg) {
     StaticTextStatus->SetLabel(msg);
 }
@@ -293,6 +299,7 @@ void ConvertDialog::SetStatusText(const wxString &msg) {
 wxString ConvertDialog::FromAscii(const char *val) {
     return wxString::FromAscii(val);
 }
+
 void RemoveAt(wxArrayString &v, int i) {
     v.RemoveAt(i);
 }
@@ -1418,10 +1425,12 @@ static void mapLORInfo(const LORInfo &info, std::vector< std::vector<int> > *uni
 
 void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
 {
-    wxString NodeName, msg, EffectType, ChannelName, deviceType, networkAsString;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
-    int unit, circuit, startcsec, endcsec, intensity, startIntensity, endIntensity, rampdiff, ChannelColor;
-    int i, startper, endper, perdiff, twinklestate, nexttwinkle;
+    int unit, circuit, rampdiff;
+    int i, twinklestate;
     int twinkleperiod = 400;
     int curchannel = -1;
     int MappedChannelCnt = 0;
@@ -1439,7 +1448,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     _parent->ConversionInit();
     AppendConvertStatus(wxString("Reading LOR sequence\n"));
     SetStatusText(wxString("Reading LOR sequence"));
-
 
     int centisec = -1;
     int nodecnt = 0;
@@ -1709,7 +1717,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         unit = 1;
                     }
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
-                    ChannelName = getAttributeValueSafe(stagEvent, "name");
+                    wxString ChannelName = getAttributeValueSafe(stagEvent, "name");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
 
                     empty = rgbChannels[savedIndex].empty;
@@ -1754,7 +1762,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         }
                         MappedChannelCnt++;
                         ChannelNames[curchannel] = ChannelName;
-                        ChannelColor = getAttributeValueAsInt(stagEvent, "color");
+                        int ChannelColor = getAttributeValueAsInt(stagEvent, "color");
                         ChannelColors[curchannel] = ChannelColor;
                         if (showChannelMap)
                         {
@@ -1770,24 +1778,24 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                 {
                     empty = false;
                     EffectCnt++;
-                    startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
-                    endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
-                    intensity = getAttributeValueAsInt(stagEvent, "intensity");
-                    startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
-                    endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
-                    startper = startcsec * 10 / LORImportInterval;
-                    endper = endcsec * 10 / LORImportInterval;
-                    perdiff = endper - startper;  // # of ticks
+                    int startcsec = getAttributeValueAsInt(stagEvent, "startCentisecond");
+                    int endcsec = getAttributeValueAsInt(stagEvent, "endCentisecond");
+                    int intensity = getAttributeValueAsInt(stagEvent, "intensity");
+                    int startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
+                    int endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
+                    int startper = startcsec * 10 / LORImportInterval;
+                    int endper = endcsec * 10 / LORImportInterval;
+                    int perdiff = endper - startper;  // # of ticks
                     LorTimingList.insert(startper);
 
                     if (perdiff > 0)
                     {
-                        EffectType = getAttributeValueSafe(stagEvent, "type");
+                        wxString EffectType = getAttributeValueSafe(stagEvent, "type");
                         if (EffectType != "DMX intensity")
                         {
-                                intensity=intensity * 255 / MaxIntensity;
-                                startIntensity=startIntensity * 255 / MaxIntensity;
-                                endIntensity=endIntensity * 255 / MaxIntensity;
+                            intensity = intensity * 255 / MaxIntensity;
+                            startIntensity = startIntensity * 255 / MaxIntensity;
+                            endIntensity = endIntensity * 255 / MaxIntensity;
                         }
                         if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
@@ -1802,6 +1810,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             {
                                 // ramp
                                 rampdiff = endIntensity - startIntensity;
+                                if (rampdiff == 0) logger_base.crit("This is going to crash. AAA");
                                 for (i = 0; i < perdiff; i++)
                                 {
                                     intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
@@ -1816,7 +1825,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                                 intensity = MaxIntensity;
                             }
                             twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
-                            nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
+                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / LORImportInterval;
                             if (intensity > 0)
                             {
                                 for (i = 0; i < perdiff; i++)
@@ -1865,6 +1874,7 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                             {
                                 // ramp
                                 rampdiff = endIntensity - startIntensity;
+                                if (rampdiff == 0) logger_base.crit("This is going to crash. BBB");
                                 for (i = 0; i < perdiff; i++)
                                 {
                                     twinklestate = (startper + i) & 0x01;
@@ -1889,7 +1899,6 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
     delete[] bytes;
     delete parser;
     file.Close();
-
 
     AppendConvertStatus(string_format(wxString("# of mapped channels with effects=%d\n"), MappedChannelCnt), false);
     AppendConvertStatus(string_format(wxString("# of effects=%d\n"), EffectCnt), false);

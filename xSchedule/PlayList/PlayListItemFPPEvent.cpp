@@ -14,7 +14,7 @@ PlayListItemFPPEvent::PlayListItemFPPEvent(wxXmlNode* node) : PlayListItem(node)
     _started = false;
     _major = 1;
     _minor = 1;
-    _ip = "255.255.255.255";
+    _ip = "";
     PlayListItemFPPEvent::Load(node);
 }
 
@@ -23,7 +23,7 @@ void PlayListItemFPPEvent::Load(wxXmlNode* node)
     PlayListItem::Load(node);
     _major = wxAtoi(node->GetAttribute("Major", "1"));
     _minor = wxAtoi(node->GetAttribute("Minor", "1"));
-    _ip = node->GetAttribute("IP", "255.255.255.255");
+    _ip = node->GetAttribute("IP", "");
 }
 
 PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
@@ -31,7 +31,7 @@ PlayListItemFPPEvent::PlayListItemFPPEvent() : PlayListItem()
     _started = false;
     _major = 1;
     _minor = 1;
-    _ip = "255.255.255.255";
+    _ip = "";
 }
 
 PlayListItem* PlayListItemFPPEvent::Copy() const
@@ -109,6 +109,8 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
         }
         else
         {
+            // I am pretty sure this no longer works in FPP ... at least I dont seem to be able to make it work
+
             // Open the socket
             wxIPV4address localaddr;
             if (IPOutput::GetLocalIP() == "")

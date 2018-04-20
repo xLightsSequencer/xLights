@@ -56,6 +56,11 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
             if (e->GetName() == "network")
             {
                 _outputs.push_back(Output::Create(e));
+                if (_outputs.back() == nullptr)
+                {
+                    // this shouldnt happen unless we are loading a future file with an output type we dont recognise
+                    _outputs.pop_back();
+                }
             }
             else if (e->GetName() == "e131sync")
             {

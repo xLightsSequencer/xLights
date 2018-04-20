@@ -485,10 +485,15 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         scale_image = true;
 
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
+
+        // There seems to be a bug on linux where this function crashes occasionally
+#ifdef LINUX
+        logger_base.debug("About to count images in bitmap %s.", (const char *)NewPictureName.c_str());
+#endif
         cache->imageCount = wxImage::GetImageCount(NewPictureName);
         if (cache->imageCount <= 0)
         {
-            logger_base.error("Image %s reports %d frames which is invalid.", (const char *)NewPictureName.c_str(), cache->imageCount);
+            logger_base.error("Image %s reports %d frames which is invalid. Overriding it to be 1.", (const char *)NewPictureName.c_str(), cache->imageCount);
 
             // override it to 1
             cache->imageCount = 1;
@@ -573,6 +578,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     }
     else if (scale_to_fit == "Scale Keep Aspect Ratio")
     {
+        image = rawimage;
         float xr = (float)BufferWi / (float)image.GetWidth();
         float yr = (float)BufferHt / (float)image.GetHeight();
         float sc = std::min(xr, yr);

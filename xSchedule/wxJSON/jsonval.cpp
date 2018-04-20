@@ -2325,7 +2325,7 @@ wxJSONValue::GetInfo() const
             Size(),
             data->m_comments.GetCount() );
 #else
-    s.Printf( _T("Object: Type=%s Size=%d comments=%d\n"),
+    s.Printf( _T("Object: Type=%s Size=%d comments=%zu\n"),
             wxJSONValue::TypeToString( data->m_type ).c_str(),
             Size(), data->m_comments.GetCount() );
 #endif

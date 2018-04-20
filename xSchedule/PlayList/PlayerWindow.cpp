@@ -57,12 +57,14 @@ PlayerWindow::~PlayerWindow()
 
 void PlayerWindow::SetImage(const wxImage& image)
 {
-    wxASSERT(image.IsOk());
-    int width = 0;
-    int height = 0;
-    GetSize(&width, &height);
-    _image = image.Copy();
-    _image.Rescale(width, height, _quality);
+    if (image.IsOk())
+    {
+        int width = 0;
+        int height = 0;
+        GetSize(&width, &height);
+        _image = image.Copy();
+        _image.Rescale(width, height, _quality);
+    }
     Refresh(false);
 }
 

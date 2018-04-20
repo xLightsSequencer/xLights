@@ -238,6 +238,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
     SpinCtrl_Priority->SetValue(fseq->GetPriority());
     CheckBox_FastStartAudio->SetValue(fseq->GetFastStartAudio());
     CheckBox_CacheVideo->SetValue(fseq->GetCacheVideo());
+    CheckBox_LoopVideo->SetValue(fseq->GetLoopVideo());
     FilePickerCtrl_VideoFile->SetFileName(wxFileName(fseq->GetVideoFile()));
     CheckBox_Topmost->SetValue(fseq->GetTopMost());
     CheckBox_SuppressVirtualMatrix->SetValue(fseq->GetSuppressVirtualMatrix());
@@ -301,7 +302,6 @@ PlayListItemFSEQVideoPanel::~PlayListItemFSEQVideoPanel()
     _fseq->SetBlendMode(Choice_BlendMode->GetStringSelection().ToStdString());
     _fseq->SetPriority(SpinCtrl_Priority->GetValue());
     _fseq->SetCacheVideo(CheckBox_CacheVideo->GetValue());
-    _fseq->SetLoopVideo(CheckBox_LoopVideo->GetValue());
     _fseq->SetLoopVideo(CheckBox_LoopVideo->GetValue());
     _fseq->SetVideoFile(FilePickerCtrl_VideoFile->GetFileName().GetFullPath().ToStdString());
     _fseq->SetTopmost(CheckBox_Topmost->GetValue());

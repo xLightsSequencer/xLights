@@ -52,7 +52,7 @@ public:
         void SetName(const std::string& name) { if (name != _name) { _name = name; _changeCount++; } }
         void SetStrings(const int strings) { if (strings != _strings) { _strings = strings; _changeCount++; } }
         void SetStringLength(const int stringLength) { if (stringLength != _stringLength) { _stringLength = stringLength; _changeCount++; } }
-        void SetStrandsPerString(const int strandsPerString) { if (strandsPerString != _strandsPerString) { _strandsPerString = strandsPerString; _changeCount++; } }
+        void SetStrandsPerString(const int strandsPerString) { if (strandsPerString != _strandsPerString) { _strandsPerString = strandsPerString; if (_strandsPerString < 1) _strandsPerString = 1; _changeCount++; } }
         static void Test(OutputManager* outputManager);
         std::string GetConfigDescription() const;
 };

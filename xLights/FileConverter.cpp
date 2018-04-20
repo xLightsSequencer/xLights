@@ -220,16 +220,16 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxString NodeName,msg, deviceType,networkAsString;
+    wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
-    int unit,circuit, rampdiff;
+    int unit, circuit, rampdiff;
     int i, twinklestate;
     int twinkleperiod = 400;
     int curchannel = -1;
     int MappedChannelCnt = 0;
     int MaxIntensity = 100;
     int EffectCnt = 0;
-    int network,chindex = -1;
+    int network, chindex = -1;
     long cnt = 0;
     std::vector< std::vector<int> > noNetworkUnitSizes;
     std::vector< std::vector<int> > lorUnitSizes;
@@ -250,7 +250,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     params.SetStatusText(string_format("Reading LOR sequence: %s\n", params.inp_filename));
 
     int centisec = -1;
-    int nodecnt=0;
+    int nodecnt = 0;
     int channelCount = 0;
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
@@ -279,7 +279,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         }
         else
         {
-            switch(event -> getEventType())
+            switch (event->getEventType())
             {
             case SP_XmlPullEvent::eEndDocument:
                 done = true;
@@ -294,7 +294,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 nodecnt++;
                 if (nodecnt > 1000)
                 {
-                    nodecnt=0;
+                    nodecnt = 0;
                     wxYield();
                 }
                 if (NodeName == wxString("track"))
@@ -306,17 +306,17 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.AppendConvertStatus(string_format(wxString("Channels found so far: %d"),channelCount));
-                        params.SetStatusText(string_format(wxString("Channels found so far: %d"),channelCount));
+                        params.AppendConvertStatus(string_format(wxString("Channels found so far: %d"), channelCount));
+                        params.SetStatusText(string_format(wxString("Channels found so far: %d"), channelCount));
                     }
 
-                    deviceType = FromAscii( stagEvent->getAttrValue("deviceType") );
+                    deviceType = FromAscii(stagEvent->getAttrValue("deviceType"));
                     network = getAttributeValueAsInt(stagEvent, "network");
-                    networkAsString = FromAscii( stagEvent->getAttrValue("network") );
+                    networkAsString = FromAscii(stagEvent->getAttrValue("network"));
                     unit = getAttributeValueAsInt(stagEvent, "unit");
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
-                    wxString channelName = FromAscii( stagEvent->getAttrValue("name") );
+                    wxString channelName = FromAscii(stagEvent->getAttrValue("name"));
                     rgbChannels[savedIndex] = LORInfo(channelName, deviceType, network, unit, circuit, savedIndex);
                     rgbChannels[savedIndex].empty = !params.map_empty_channels;
                 }
@@ -325,7 +325,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     rgbChannels[savedIndex].empty = false;
                 }
                 else if (cnt > 3 && context[1] == wxString("channels") && context[2] == wxString("rgbChannel")
-                         && context[3] == wxString("channels") && NodeName == wxString("channel"))
+                    && context[3] == wxString("channels") && NodeName == wxString("channel"))
                 {
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
                     if (rgbChannels[savedIndex].empty == true)
@@ -334,7 +334,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
                         {
                             unitSizes = &dmxUnitSizes;
-                        } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
+                        }
+                        else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                             unitSizes = &noNetworkUnitSizes;
                         }
                         else
@@ -353,9 +354,11 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     std::vector< std::vector<int> > *unitSizes;
                     if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX") {
                         unitSizes = &dmxUnitSizes;
-                    } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
+                    }
+                    else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                         unitSizes = &noNetworkUnitSizes;
-                    } else {
+                    }
+                    else {
                         unitSizes = &lorUnitSizes;
                     }
                     mapLORInfo(rgbChannels[savedIndex], unitSizes);
@@ -363,7 +366,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 
                 if (cnt > 0)
                 {
-                    RemoveAt(context, cnt-1);
+                    RemoveAt(context, cnt - 1);
                 }
                 cnt = context.size();
                 break;
@@ -376,16 +379,16 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         }
     }
     delete parser;
-    params.AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds"),centisec), false);
+    params.AppendConvertStatus(string_format(wxString("Track 1 length = %d centiseconds"), centisec), false);
 
     if (centisec > 0)
     {
         int numFrames = centisec * 10 / params.sequence_interval;
         if (numFrames == 0)
         {
-            numFrames=1;
+            numFrames = 1;
         }
-        params.seq_data.init(params._outputManager->GetTotalChannels(), numFrames,  params.sequence_interval);
+        params.seq_data.init(params._outputManager->GetTotalChannels(), numFrames, params.sequence_interval);
     }
     else
     {
@@ -400,7 +403,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         {
             cnt += lorUnitSizes[network][u];
         }
-        params.AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels"),network,cnt), false);
+        params.AppendConvertStatus(string_format(wxString("LOR Network %d:  %d channels"), network, cnt), false);
     }
     for (network = 1; network < dmxUnitSizes.size(); network++)
     {
@@ -411,9 +414,9 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 cnt = dmxUnitSizes[network][u];
             }
         }
-        params.AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels"),network,cnt), false);
+        params.AppendConvertStatus(string_format(wxString("DMX Network %d:  %d channels"), network, cnt), false);
     }
-    params.AppendConvertStatus (string_format(wxString("Total channels = %d"),channelCount));
+    params.AppendConvertStatus(string_format(wxString("Total channels = %d"), channelCount));
 
     if (totalChannels < channelCount)
     {
@@ -450,7 +453,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         }
         else
         {
-            switch(event -> getEventType())
+            switch (event->getEventType())
             {
             case SP_XmlPullEvent::eEndDocument:
                 done = true;
@@ -458,7 +461,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
             case SP_XmlPullEvent::eEndTag:
                 if (cnt > 0)
                 {
-                    RemoveAt(context, cnt-1);
+                    RemoveAt(context, cnt - 1);
                 }
                 cnt = context.size();
                 if (cnt == 2)
@@ -466,7 +469,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     if (empty && curchannel >= 0)
                     {
                         chindex--;
-                        params.AppendConvertStatus (wxString("WARNING: ")+ChannelNames[curchannel] + " is empty");
+                        params.AppendConvertStatus(wxString("WARNING: ") + ChannelNames[curchannel] + " is empty");
                         ChannelNames[curchannel].clear();
                         MappedChannelCnt--;
                     }
@@ -483,14 +486,14 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 nodecnt++;
                 if (nodecnt > 1000)
                 {
-                    nodecnt=0;
+                    nodecnt = 0;
                     wxYield();
                 }
                 //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
                 //AppendConvertStatus (msg);
                 if (NodeName == wxString("sequence"))
                 {
-                    if( params.media_filename )
+                    if (params.media_filename)
                         *params.media_filename = getAttributeValueSafe(stagEvent, "musicFilename");
                 }
                 if (cnt == 3 && context[1] == wxString("channels") && NodeName == wxString("channel"))
@@ -498,8 +501,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.AppendConvertStatus (string_format(wxString("Channels converted so far: %d"),channelCount));
-                        params.SetStatusText(string_format(wxString("Channels converted so far: %d"),channelCount));
+                        params.AppendConvertStatus(string_format(wxString("Channels converted so far: %d"), channelCount));
+                        params.SetStatusText(string_format(wxString("Channels converted so far: %d"), channelCount));
                     }
 
                     deviceType = getAttributeValueSafe(stagEvent, "deviceType");
@@ -509,7 +512,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     unit = getAttributeValueAsInt(stagEvent, "unit");
                     if (unit < 0)
                     {
-                        unit+=256;
+                        unit += 256;
                     }
                     if (unit == 0)
                     {
@@ -522,10 +525,10 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     empty = rgbChannels[savedIndex].empty;
                     if (Left(deviceType, 3) == "DMX")
                     {
-                        chindex=circuit-1;
+                        chindex = circuit - 1;
                         network--;
                         network += lorUnitSizes.size();
-                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
+                        curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
                         if (curchannel < 0) curchannel = -1;
                     }
                     else if (Left(deviceType, 3) == "LOR")
@@ -535,12 +538,14 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         {
                             chindex += lorUnitSizes[network][z];
                         }
-                        chindex += circuit-1;
-                        curchannel = params._outputManager->GetAbsoluteChannel(network,chindex) - 1;
+                        chindex += circuit - 1;
+                        curchannel = params._outputManager->GetAbsoluteChannel(network, chindex) - 1;
                         if (curchannel < 0) curchannel = -1;
-                    } else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
+                    }
+                    else if ("" == deviceType && "" == networkAsString && !params.map_no_network_channels) {
                         curchannel = -1;
-                    } else {
+                    }
+                    else {
                         chindex++;
                         if (chindex < params._outputManager->GetTotalChannels())
                         {
@@ -556,8 +561,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         //params.AppendConvertStatus (string_format(wxString("curchannel %d"),curchannel));
                         if (ChannelNames[curchannel].size() != 0)
                         {
-                           params.AppendConvertStatus (string_format(wxString("WARNING: ")+ChannelNames[curchannel]+wxString(" and ")
-                                                                                       +ChannelName+wxString(" map to the same channel %d"), curchannel));
+                            params.AppendConvertStatus(string_format(wxString("WARNING: ") + ChannelNames[curchannel] + wxString(" and ")
+                                + ChannelName + wxString(" map to the same channel %d"), curchannel));
                         }
                         MappedChannelCnt++;
                         ChannelNames[curchannel] = ChannelName;
@@ -566,7 +571,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     }
                     else
                     {
-                        params.AppendConvertStatus (wxString("WARNING: channel '")+ChannelName+wxString("' is unmapped"));
+                        params.AppendConvertStatus(wxString("WARNING: channel '") + ChannelName + wxString("' is unmapped"));
                     }
                 }
                 if (cnt > 1 && context[1] == wxString("channels") && NodeName == wxString("effect") && curchannel >= 0)
@@ -587,27 +592,27 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         wxString EffectType = getAttributeValueSafe(stagEvent, "type");
                         if (EffectType != "DMX intensity")
                         {
-                                intensity=intensity * 255 / MaxIntensity;
-                                startIntensity=startIntensity * 255 / MaxIntensity;
-                                endIntensity=endIntensity * 255 / MaxIntensity;
+                            intensity = intensity * 255 / MaxIntensity;
+                            startIntensity = startIntensity * 255 / MaxIntensity;
+                            endIntensity = endIntensity * 255 / MaxIntensity;
                         }
                         if (EffectType == "intensity" || EffectType == "DMX intensity")
                         {
                             if (intensity > 0)
                             {
-                                for (i=0; i < perdiff; i++)
+                                for (i = 0; i < perdiff; i++)
                                 {
-                                    params.seq_data[startper+i][curchannel] = intensity;
+                                    params.seq_data[startper + i][curchannel] = intensity;
                                 }
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
                                 // ramp
-                                rampdiff=endIntensity - startIntensity;
-                                for (i=0; i < perdiff; i++)
+                                rampdiff = endIntensity - startIntensity;
+                                for (i = 0; i < perdiff; i++)
                                 {
-                                    intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    params.seq_data[startper+i][curchannel] = intensity;
+                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
+                                    params.seq_data[startper + i][curchannel] = intensity;
                                 }
                             }
                         }
@@ -615,36 +620,36 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         {
                             if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
                             {
-                                intensity=MaxIntensity;
+                                intensity = MaxIntensity;
                             }
-                            twinklestate=static_cast<int>(rand01()*2.0) & 0x01;
-                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod+100) / params.sequence_interval;
+                            twinklestate = static_cast<int>(rand01()*2.0) & 0x01;
+                            int nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
                             if (intensity > 0)
                             {
-                                for (i=0; i < perdiff; i++)
+                                for (i = 0; i < perdiff; i++)
                                 {
                                     params.seq_data[startper + i][curchannel] = intensity * twinklestate;
                                     nexttwinkle--;
                                     if (nexttwinkle <= 0)
                                     {
-                                        twinklestate=1-twinklestate;
-                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / params.sequence_interval;
+                                        twinklestate = 1 - twinklestate;
+                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
                                     }
                                 }
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
                                 // ramp
-                                rampdiff=endIntensity - startIntensity;
-                                for (i=0; i < perdiff; i++)
+                                rampdiff = endIntensity - startIntensity;
+                                for (i = 0; i < perdiff; i++)
                                 {
-                                    intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
+                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
                                     params.seq_data[startper + i][curchannel] = intensity * twinklestate;
                                     nexttwinkle--;
                                     if (nexttwinkle <= 0)
                                     {
-                                        twinklestate=1-twinklestate;
-                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / params.sequence_interval;
+                                        twinklestate = 1 - twinklestate;
+                                        nexttwinkle = static_cast<int>(rand01()*twinkleperiod + 100) / params.sequence_interval;
                                     }
                                 }
                             }
@@ -653,25 +658,25 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                         {
                             if (intensity == 0 && startIntensity == 0 && endIntensity == 0)
                             {
-                                intensity=MaxIntensity;
+                                intensity = MaxIntensity;
                             }
                             if (intensity > 0)
                             {
-                                for (i=0; i < perdiff; i++)
+                                for (i = 0; i < perdiff; i++)
                                 {
-                                    twinklestate=(startper + i) & 0x01;
-                                    params.seq_data[startper+i][curchannel] = intensity * twinklestate;
+                                    twinklestate = (startper + i) & 0x01;
+                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
                                 }
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
                             {
                                 // ramp
-                                rampdiff=endIntensity - startIntensity;
-                                for (i=0; i < perdiff; i++)
+                                rampdiff = endIntensity - startIntensity;
+                                for (i = 0; i < perdiff; i++)
                                 {
-                                    twinklestate=(startper + i) & 0x01;
-                                    intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    params.seq_data[startper+i][curchannel] = intensity * twinklestate;
+                                    twinklestate = (startper + i) & 0x01;
+                                    intensity = (int)((double)(i) / perdiff * rampdiff + startIntensity);
+                                    params.seq_data[startper + i][curchannel] = intensity * twinklestate;
                                 }
                             }
                         }
@@ -688,26 +693,26 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
             event = parser->getNext();
         }
     }
-    delete [] bytes;
+    delete[] bytes;
     delete parser;
     file.Close();
 
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(params.seq_data.NumFrames());
         params.data_layer->SetNumChannels(MappedChannelCnt);
     }
 
-    if( params.channels_off_at_end )
+    if (params.channels_off_at_end)
     {
         ClearLastPeriod(params.seq_data);
     }
 
-    params.AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d"),MappedChannelCnt), false);
-    params.AppendConvertStatus (string_format(wxString("# of effects=%d"),EffectCnt), false);
-    if( params.media_filename )
-        params.AppendConvertStatus (wxString("Media file=")+*params.media_filename, false);
-    params.AppendConvertStatus (string_format(wxString("New # of time periods=%ld"),params.seq_data.NumFrames()), false);
+    params.AppendConvertStatus(string_format(wxString("# of mapped channels with effects=%d"), MappedChannelCnt), false);
+    params.AppendConvertStatus(string_format(wxString("# of effects=%d"), EffectCnt), false);
+    if (params.media_filename)
+        params.AppendConvertStatus(wxString("Media file=") + *params.media_filename, false);
+    params.AppendConvertStatus(string_format(wxString("New # of time periods=%ld"), params.seq_data.NumFrames()), false);
     params.SetStatusText(wxString("LOR sequence converted successfully"));
 
     wxYield();
@@ -716,12 +721,12 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 void FileConverter::ReadXlightsFile(ConvertParameters& params)
 {
     wxFile f;
-    char hdr[512],filetype[10];
-    int fileversion,numch,numper;
+    char hdr[512], filetype[10];
+    int fileversion, numch, numper;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    long TotChannels=params._outputManager->GetTotalChannels();
+    long TotChannels = params._outputManager->GetTotalChannels();
     for (int x = 0; x < TotChannels; x++) {
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
@@ -732,27 +737,27 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
 
     if (!f.Open(params.inp_filename.c_str()))
     {
-        params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
 
-    f.Read(hdr,512);
-    int scancnt = sscanf(hdr,"%8s %2d %8d %8d",filetype,&fileversion,&numch,&numper);
-    if (scancnt != 4 || strncmp(filetype,"xLights",7) != 0 || numch <= 0 || numper <= 0)
+    f.Read(hdr, 512);
+    int scancnt = sscanf(hdr, "%8s %2d %8d %8d", filetype, &fileversion, &numch, &numper);
+    if (scancnt != 4 || strncmp(filetype, "xLights", 7) != 0 || numch <= 0 || numper <= 0)
     {
-        params.PlayerError(wxString("Invalid file header:\n")+params.inp_filename);
+        params.PlayerError(wxString("Invalid file header:\n") + params.inp_filename);
     }
     else
     {
         params.seq_data.init(numch, numper, 50);
         char * buf = new char[numper];
-        wxString filename=FromAscii(hdr+32);
+        wxString filename = FromAscii(hdr + 32);
 
-        if( params.media_filename ) {
+        if (params.media_filename) {
             *params.media_filename = filename;
         }
 
-        if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+        if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
             params.xLightsFrm->SetMediaFilename(filename);
         }
 
@@ -760,26 +765,26 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
             size_t readcnt = f.Read(buf, numper);
             if (readcnt < numper)
             {
-                params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+                params.PlayerError(wxString("Unable to read all event data from:\n") + params.inp_filename);
             }
             for (int p = 0; p < numper; p++) {
                 params.seq_data[p][x] = buf[p];
             }
         }
-        delete [] buf;
+        delete[] buf;
 #ifndef NDEBUG
-        params.AppendConvertStatus (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+        params.AppendConvertStatus(string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%d SeqData.NumChannels()=%d"), params.seq_data.NumFrames(), params.seq_data.NumChannels()));
 #endif
     }
     f.Close();
 
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(params.seq_data.NumFrames());
         params.data_layer->SetNumChannels(params.seq_data.NumChannels());
     }
 
-    if( params.channels_off_at_end )
+    if (params.channels_off_at_end)
     {
         ClearLastPeriod(params.seq_data);
     }
@@ -828,7 +833,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         }
         else
         {
-            switch(event -> getEventType())
+            switch (event->getEventType())
             {
             case SP_XmlPullEvent::eEndDocument:
                 done = true;
@@ -836,7 +841,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii( stagEvent->getName() );
+                NodeName = FromAscii(stagEvent->getName());
                 context.push_back(NodeName);
                 cnt++;
                 break;
@@ -847,7 +852,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    NodeValue = FromAscii( stagEvent -> getText());
+                    NodeValue = FromAscii(stagEvent->getText());
 
                     if (NodeName == wxString("MilliSecPerTimeUnit"))
                     {
@@ -903,7 +908,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                         }
                     }
 
-                    RemoveAt(context, cnt-1);
+                    RemoveAt(context, cnt - 1);
                 }
                 cnt = context.size();
                 break;
@@ -927,13 +932,15 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         int i = map[tmp + 1];
         int orig = params._outputManager->GetOutput(tmp / 2)->GetChannels();
         if (i < orig) {
-            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
+            params.AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
             i = orig;
-        } else if (i > orig) {
-            params.AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured."), map[tmp]), false);
-            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
-        } else {
-            params.AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld"), map[tmp], i, orig), false);
+        }
+        else if (i > orig) {
+            params.AppendConvertStatus(string_format(wxString("WARNING Universe: %ld contains more channels than you have configured."), map[tmp]), false);
+            params.AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d"), map[tmp], i, orig), false);
+        }
+        else {
+            params.AppendConvertStatus(string_format(wxString("Found Universe: %ld   Channels in Seq: %ld"), map[tmp], i, orig), false);
         }
 
 
@@ -941,9 +948,9 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         channels += i;
     }
 
-    params.AppendConvertStatus (string_format(wxString("TimeCells = %d"), timeCells), false);
-    params.AppendConvertStatus (string_format(wxString("msPerCell = %d ms"), msPerCell), false);
-    params.AppendConvertStatus (string_format(wxString("Channels = %d"), channels), false);
+    params.AppendConvertStatus(string_format(wxString("TimeCells = %d"), timeCells), false);
+    params.AppendConvertStatus(string_format(wxString("msPerCell = %d ms"), msPerCell), false);
+    params.AppendConvertStatus(string_format(wxString("Channels = %d"), channels), false);
     if (channels == 0)
     {
         return;
@@ -985,7 +992,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         }
         else
         {
-            switch(event -> getEventType())
+            switch (event->getEventType())
             {
             case SP_XmlPullEvent::eEndDocument:
                 done = true;
@@ -993,7 +1000,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii( stagEvent->getName() );
+                NodeName = FromAscii(stagEvent->getName());
                 context.push_back(NodeName);
                 cnt++;
                 break;
@@ -1004,7 +1011,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
-                    NodeValue = FromAscii( stagEvent -> getText());
+                    NodeValue = FromAscii(stagEvent->getText());
 
                     if (NodeName == wxString("ChanInfo"))
                     {
@@ -1020,7 +1027,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                     {
                         tmp = atol(NodeValue.c_str());
                         universe = tmp;
-                        for (tmp = 0; tmp < map.size() ; tmp += 2)
+                        for (tmp = 0; tmp < map.size(); tmp += 2)
                         {
                             if (universe == map[tmp])
                             {
@@ -1035,7 +1042,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
             {
                 if (nodecnt > 1000)
                 {
-                    nodecnt=0;
+                    nodecnt = 0;
                     wxYield();
                 }
                 nodecnt++;
@@ -1070,10 +1077,10 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
                         wxString o2 = params._outputManager->GetChannelName(channels);
-                        params.AppendConvertStatus (string_format("Map %s -> %s (%s)",
-                                                           ChannelNames[channels].c_str(),
-                                                           origName.c_str(),
-                                                           o2.c_str()), false);
+                        params.AppendConvertStatus(string_format("Map %s -> %s (%s)",
+                            ChannelNames[channels].c_str(),
+                            origName.c_str(),
+                            o2.c_str()), false);
                         for (unsigned long newper = 0; newper < params.seq_data.NumFrames(); newper++)
                         {
                             long intensity;
@@ -1084,7 +1091,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                         channels++;
                     }
 
-                    RemoveAt(context, cnt-1);
+                    RemoveAt(context, cnt - 1);
                 }
                 cnt = context.size();
                 break;
@@ -1097,17 +1104,17 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
             event = parser->getNext();
         }
     }
-    delete [] bytes;
+    delete[] bytes;
     delete parser;
     file.Close();
 
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(params.seq_data.NumFrames());
         params.data_layer->SetNumChannels(params.seq_data.NumChannels());
     }
 
-    if( params.channels_off_at_end )
+    if (params.channels_off_at_end)
     {
         ClearLastPeriod(params.seq_data);
     }
@@ -1116,10 +1123,10 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
 
 // return true on success
 bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& ProfileName,
-                                     wxArrayInt& VixChannels, wxArrayString& VixChannelNames,
-                                     std::vector<xlColor> &VixChannelColors)
+    wxArrayInt& VixChannels, wxArrayString& VixChannelNames,
+    std::vector<xlColor> &VixChannelColors)
 {
-    wxString tag,tempstr;
+    wxString tag, tempstr;
     long OutputChannel;
     wxFileName fn;
     fn.AssignDir(params.xLightsFrm->CurrentDir);
@@ -1128,29 +1135,29 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
         fn.AssignDir(wxFileName::FileName(params.inp_filename).GetPath());
         fn.SetFullName(ProfileName + ".pro");
     }
-    
+
     if (!fn.FileExists())
     {
-        params.ConversionError(wxString("Unable to find Vixen profile: ")+fn.GetFullPath()+wxString("\n\nMake sure a copy is in your xLights directory"));
+        params.ConversionError(wxString("Unable to find Vixen profile: ") + fn.GetFullPath() + wxString("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
-    wxXmlDocument doc( fn.GetFullPath() );
+    wxXmlDocument doc(fn.GetFullPath());
     if (doc.IsOk())
     {
         VixChannels.clear();
-        wxXmlNode* root=doc.GetRoot();
-        for( wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
+        wxXmlNode* root = doc.GetRoot();
+        for (wxXmlNode* e = root->GetChildren(); e != nullptr; e = e->GetNext())
         {
             tag = e->GetName();
             if (tag == wxString("ChannelObjects"))
             {
-                for( wxXmlNode* p=e->GetChildren(); p!=nullptr; p=p->GetNext() )
+                for (wxXmlNode* p = e->GetChildren(); p != nullptr; p = p->GetNext())
                 {
                     if (p->GetName() == wxString("Channel"))
                     {
                         if (p->HasAttribute("output"))
                         {
-                            tempstr=p->GetAttribute("output", "0");
+                            tempstr = p->GetAttribute("output", "0");
                             OutputChannel = atol(tempstr.c_str());
                             VixChannels.push_back(OutputChannel);
                         }
@@ -1162,7 +1169,8 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
                         {
                             if (p->GetChildren() != NULL) {
                                 VixChannelNames.push_back(p->GetChildren()->GetContent());
-                            } else {
+                            }
+                            else {
                                 VixChannelNames.push_back(p->GetContent());
                             }
                         }
@@ -1170,7 +1178,8 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
                             int chanColor = wxAtoi(p->GetAttribute("color")) & 0xFFFFFF;
                             xlColor c(chanColor, false);
                             VixChannelColors.push_back(c);
-                        } else {
+                        }
+                        else {
                             VixChannelColors.push_back(xlWHITE);
                         }
                     }
@@ -1181,14 +1190,14 @@ bool FileConverter::LoadVixenProfile(ConvertParameters& params, const wxString& 
     }
     else
     {
-        params.ConversionError(wxString("Unable to load Vixen profile: ")+ProfileName);
+        params.ConversionError(wxString("Unable to load Vixen profile: ") + ProfileName);
     }
     return false;
 }
 
 void FileConverter::ReadVixFile(ConvertParameters& params)
 {
-    wxString NodeName,NodeValue,msg;
+    wxString msg;
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
@@ -1196,7 +1205,6 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     wxArrayString context;
     long VixEventPeriod=-1;
     long MaxIntensity = 255;
-    int OutputChannel;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
@@ -1244,7 +1252,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
             case SP_XmlPullEvent::eStartTag:
             {
                 SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
-                NodeName = FromAscii( stagEvent->getName() );
+                wxString NodeName = FromAscii( stagEvent->getName() );
                 context.push_back(NodeName);
                 cnt++;
                 //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)"),cnt);
@@ -1272,7 +1280,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                 SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                 if (cnt == 2)
                 {
-                    NodeValue = FromAscii( stagEvent->getText() );
+                    wxString NodeValue = FromAscii( stagEvent->getText() );
                     if (context[1] == wxString("MaximumLevel"))
                     {
                         MaxIntensity = atol(NodeValue.c_str());
@@ -1371,18 +1379,16 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     }
     params.seq_data.init(numChannels, VixNumPeriods, VixEventPeriod);
 
-    // reorder channels according to output number, scale so that max intensity is 255
-    int intensity;
     for (size_t ch=0; ch < params.seq_data.NumChannels(); ch++)
     {
-        OutputChannel = VixChannels[ch] - min;
+        int OutputChannel = VixChannels[ch] - min;
         if (ch < VixChannelNames.size())
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
         for (size_t newper=0; newper < params.seq_data.NumFrames(); newper++)
         {
-            intensity=VixSeqData[ch*VixNumPeriods+newper];
+            int intensity = VixSeqData[ch*VixNumPeriods+newper];
             if (MaxIntensity != 255)
             {
                 intensity=intensity * 255 / MaxIntensity;
@@ -1506,7 +1512,7 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
     params.seq_data.init(0, 0, params.sequence_interval);
 
     if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
-        wxWindow* parent = nullptr;
+        wxWindow* parent;
         if (params.convertDialog != nullptr)
         {
             parent = params.convertDialog;
@@ -1566,28 +1572,22 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
 void FileConverter::ReadFalconFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-    wxUint16 fixedHeaderLength = 28;
-    wxFile f;
-    size_t readcnt;
-    int seqStepTime = 0;
-	int falconPeriods = 0;
-    int periodsRead = 0;
-    int i = 0;
-    char *tmpBuf = nullptr;
+    const wxUint16 fixedHeaderLength = 28;
 
-    if(params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN )
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN)
     {
         params.xLightsFrm->ConversionInit();
     }
 
+    wxFile f;
     if (!f.Open(params.inp_filename.c_str()))
     {
         logger_conversion.debug("Unable to load sequence: %s.", (const char *)params.inp_filename.c_str());
-        params.PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
     unsigned char hdr[1024];
-    f.Read(hdr,fixedHeaderLength);
+    f.Read(hdr, fixedHeaderLength);
 
     int dataOffset = hdr[4] + (hdr[5] << 8);
     if (dataOffset < 1024) {
@@ -1595,72 +1595,74 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         f.Read(hdr, dataOffset);
     }
     int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
-    seqStepTime = hdr[18] + (hdr[19] << 8);
+    int seqStepTime = hdr[18] + (hdr[19] << 8);
     wxString mf = "";
     if (dataOffset > 28 && hdr[30] == 'm' && hdr[31] == 'f') {
         mf = (char *)&hdr[32];
     }
 
-    if( params.media_filename ) {
+    if (params.media_filename) {
         *params.media_filename = mf;
     }
 
-    if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->SetMediaFilename(mf);
     }
 
-    falconPeriods = 0;
+    int falconPeriods = 0;
     if (numChannels > 0) falconPeriods = (f.Length() - dataOffset) / numChannels;
-    if( params.data_layer != nullptr )
+    if (params.data_layer != nullptr)
     {
         params.data_layer->SetNumFrames(falconPeriods);
         params.data_layer->SetNumChannels(numChannels);
     }
 
-    if(params.read_mode == ConvertParameters::READ_MODE_HEADER_ONLY )
+    if (params.read_mode == ConvertParameters::READ_MODE_HEADER_ONLY)
     {
         f.Close();
         return;
     }
 
-    if(params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
-       params.read_mode == ConvertParameters::READ_MODE_IMPORT )
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
+        params.read_mode == ConvertParameters::READ_MODE_IMPORT)
     {
         params.seq_data.init(numChannels, falconPeriods, seqStepTime);
     }
 
     int channel_offset = 0;
-    if( params.data_layer )
+    if (params.data_layer)
     {
         channel_offset = params.data_layer->GetChannelOffset();
     }
 
     f.Seek(dataOffset);
-    tmpBuf = new char[numChannels];
+    char *tmpBuf = new char[numChannels];
+    int periodsRead = 0;
+    size_t readcnt;
     while (periodsRead < falconPeriods)
     {
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
             readcnt = f.Read(&params.seq_data[periodsRead][0], numChannels);
             if (readcnt < numChannels)
             {
-                params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+                params.PlayerError(wxString("Unable to read all event data from:\n") + params.inp_filename);
             }
-            
-        } else {
+
+        }
+        else {
             readcnt = f.Read(tmpBuf, numChannels);
             if (readcnt < numChannels)
             {
-                params.PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+                params.PlayerError(wxString("Unable to read all event data from:\n") + params.inp_filename);
             }
 
-            int new_index;
-            for (i = 0; i < numChannels; i++)
+            for (int i = 0; i < numChannels; i++)
             {
-                new_index = i + channel_offset;
-                if( (new_index < 0) || (new_index >= numChannels) ) continue;
-                if(params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK )
+                int new_index = i + channel_offset;
+                if ((new_index < 0) || (new_index >= numChannels)) continue;
+                if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK)
                 {
-                    if( tmpBuf[i] != 0 )
+                    if (tmpBuf[i] != 0)
                     {
                         params.seq_data[periodsRead][new_index] = tmpBuf[i];
                     }
@@ -1673,21 +1675,21 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         }
         periodsRead++;
     }
-    delete []tmpBuf;
+    delete[]tmpBuf;
 
 #ifndef NDEBUG
-    params.AppendConvertStatus(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.AppendConvertStatus(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d"), params.seq_data.NumFrames(), params.seq_data.NumChannels()));
 #endif
 
     f.Close();
 }
 
-void FileConverter::WriteFalconPiFile( ConvertParameters& params )
+void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.debug("Start fseq write");
-	wxUint8 vMinor = 0;
-    wxUint8 vMajor = 1;
+    const wxUint8 vMinor = 0;
+    const wxUint8 vMajor = 1;
     wxUint16 fixedHeaderLength = 28;
     size_t stepSize = roundTo4(params.seq_data.NumChannels());
 
@@ -1705,9 +1707,9 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     // Step Size must be multiple of 4
     //wxUint8 buf[stepSize];
 
-    if (!f.Create(params.out_filename,true))
+    if (!f.Create(params.out_filename, true))
     {
-        params.ConversionError(wxString("Unable to create file: ")+params.out_filename);
+        params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
         return;
     }
 
@@ -1724,8 +1726,8 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     buf[6] = vMinor;
     buf[7] = vMajor;
     // Fixed header length
-    buf[8] = (wxUint8)(fixedHeaderLength%256);
-    buf[9] = (wxUint8)(fixedHeaderLength/256);
+    buf[8] = (wxUint8)(fixedHeaderLength % 256);
+    buf[9] = (wxUint8)(fixedHeaderLength / 256);
     // Step Size
     buf[10] = (wxUint8)(stepSize & 0xFF);
     buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
@@ -1752,29 +1754,28 @@ void FileConverter::WriteFalconPiFile( ConvertParameters& params )
     buf[26] = 0;
     buf[27] = 0;
 
-    if(params.media_filename) {
-        if((*params.media_filename).length() > 0) {
+    if (params.media_filename) {
+        if ((*params.media_filename).length() > 0) {
             int len = strlen((*params.media_filename).c_str()) + 5;
             buf[28] = (wxUint8)(len & 0xFF);
             buf[29] = (wxUint8)((len >> 8) & 0xFF);
             buf[30] = 'm';
             buf[31] = 'f';
-            strcpy((char *)&buf[32],(*params.media_filename).c_str());
+            strcpy((char *)&buf[32], (*params.media_filename).c_str());
             fixedHeaderLength += len;
             fixedHeaderLength = roundTo4(fixedHeaderLength);
         }
     }
     // Data offset
-    buf[4] = (wxUint8)(fixedHeaderLength%256);
-    buf[5] = (wxUint8)(fixedHeaderLength/256);
-    f.Write(buf,fixedHeaderLength);
+    buf[4] = (wxUint8)(fixedHeaderLength % 256);
+    buf[5] = (wxUint8)(fixedHeaderLength / 256);
+    f.Write(buf, fixedHeaderLength);
 
     size_t size = params.seq_data.NumFrames();
     size *= stepSize;
-    
+
     f.Write(&params.seq_data[0][0], size);
     f.Close();
     free(buf);
-	logger_conversion.debug("End fseq write");
+    logger_conversion.debug("End fseq write");
 }
-

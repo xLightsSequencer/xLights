@@ -312,6 +312,18 @@ const std::string &Effect::GetEffectName() const
     return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
 }
 
+const std::string& Effect::GetEffectName(int index) const
+{
+    if (index < 0)
+    {
+        return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
+    }
+    else
+    {
+        return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(index);
+    }
+}
+
 void Effect::SetEffectName(const std::string & name)
 {
     int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);

@@ -22,7 +22,6 @@ class SubBufferPanel;
 
 class BufferPanel: public wxPanel
 {
-    void ValidateWindow();
     void OnVCChanged(wxCommandEvent& event);
 
     int __blur;
@@ -40,7 +39,7 @@ public:
 
         wxString GetBufferString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
-
+        void ValidateWindow();
     
 		//(*Declarations(BufferPanel)
 		BulkEditCheckBox* CheckBox_OverlayBkg;

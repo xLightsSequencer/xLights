@@ -803,6 +803,19 @@ void xLightsFrame::EffectChanged(wxCommandEvent& event)
     selectedEffectString = "";  // force update to effect rendering
 }
 
+// flags something has changed in an effect but does not send the effect
+void xLightsFrame::EffectUpdated(wxCommandEvent& event)
+{
+    if (selectedEffect != nullptr)
+    {
+        // For canvas mode the timing panel needs to know how many layers are under this effect
+        int layers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
+        int start = selectedEffect->GetParentEffectLayer()->GetLayerNumber() + 1;
+        if (start > layers) start = -1;
+        timingPanel->SetLayersBelow(start, layers);
+    }
+}
+
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
     bool OnlyChoiceBookPage = event.effect==nullptr?true:false;
@@ -824,6 +837,13 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     else
     {
         effect = event.effect;
+
+        // For canvas mode the timing panel needs to know how many layers are under this effect
+        int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
+        int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
+        if (start > layers) start = -1;
+        timingPanel->SetLayersBelow(start, layers);
+
 		bool resetStrings = false;
         if ("Random" == effect->GetEffectName()) {
             std::string settings, palette;
@@ -1867,7 +1887,14 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
 	else if (name.StartsWith("T_"))
 	{
-		if (name == "T_CHECKBOX_OverlayBkg") {
+        // Layers selected is not stored in a control so we handle it here
+        if (name == "T_LayersSelected")
+        {
+            timingPanel->SetLayersSelected(value.ToStdString());
+            return;
+        }
+
+	    if (name == "T_CHECKBOX_OverlayBkg") {
 			//temporary until this key is remapped
 			ContextWin = bufferPanel;
 		}
@@ -1877,7 +1904,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 	}
 	else if (name.StartsWith("B_"))
 	{
-		ContextWin = bufferPanel;
+	    ContextWin = bufferPanel;
 	}
 	else if (name.StartsWith("C_"))
 	{
@@ -2061,6 +2088,10 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
     MixTypeChanged=true;
     FadesChanged=true;
+
+    timingPanel->ValidateWindow();
+    bufferPanel->ValidateWindow();
+    colorPanel->ValidateWindow();
 }
 
 std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
@@ -3114,6 +3145,7 @@ void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataV
 {
     mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
 }
+
 void xLightsFrame::PromoteEffects(wxCommandEvent &command) {
     ModelElement *el = dynamic_cast<ModelElement*>((Element*)command.GetClientData());
     DoPromoteEffects(el);
@@ -3133,7 +3165,7 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
 }
 void xLightsFrame::DoPromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
-    for (int x = 0;  x < element->GetStrandCount(); x++) {
+    for (int x = 0; x < element->GetStrandCount(); x++) {
         StrandElement *se = element->GetStrand(x);
         EffectLayer *target = se->GetEffectLayer(0);
         if (element->GetStrandCount() <= 1) {
@@ -3166,7 +3198,8 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
                             if (!equals(eff, nf, pal, set)) {
                                 collapse = false;
                             }
-                        } else {
+                        }
+                        else {
                             collapse = false;
                         }
                     }
@@ -3214,7 +3247,8 @@ void xLightsFrame::DoPromoteEffects(ModelElement *element) {
                         if (!equals(eff, nf, pal, set)) {
                             collapse = false;
                         }
-                    } else {
+                    }
+                    else {
                         collapse = false;
                     }
                 }

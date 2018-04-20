@@ -200,6 +200,12 @@ public:
     static bool IsProtocolValid(std::string protocol);
     int GetPort() const;
     std::string GetControllerConnection() const { return controller_connection; }
+    long GetStringStartChan(int x) const {
+        if (x < stringStartChan.size()) {
+            return stringStartChan[x];
+        }
+        return 1;
+    }
     void SetControllerConnection(const std::string& controllerConnection);
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);

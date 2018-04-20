@@ -1,8 +1,9 @@
 *.layout
 .vs/
-.objs_wr/
+.objs*/
 bin/
 Debug/
+Release/
 obj/
 x64/
 *.depend

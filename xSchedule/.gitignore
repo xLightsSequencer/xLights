@@ -8,3 +8,5 @@ Debug/
 *.xschedule
 *.vcxproj.user
 .vs/
+.objs*/
+Release/

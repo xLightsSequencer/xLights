@@ -9,7 +9,7 @@
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wd" />
+				<Option object_output=".objs_wd52" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -72,7 +72,7 @@
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_wr" />
+				<Option object_output=".objs_wr32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -226,7 +226,7 @@
 			<Target title="64bit MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_64" />
+				<Option object_output=".objs_wr64" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -287,7 +287,7 @@
 			<Target title="64bit MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin64/xLights" prefix_auto="1" extension_auto="1" />
-				<Option object_output=".objs_64d" />
+				<Option object_output=".objs_wd64" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -352,6 +352,13 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
+		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
+		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
@@ -441,6 +448,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LayerSelectDialog.cpp" />
+		<Unit filename="LayerSelectDialog.h" />
 		<Unit filename="LayoutGroup.cpp" />
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
@@ -581,6 +590,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ESPixelStick.cpp" />
+		<Unit filename="controllers/ESPixelStick.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -595,6 +606,8 @@
 		<Unit filename="controllers/SanDevices.h" />
 		<Unit filename="controllers/SimpleFTP.cpp" />
 		<Unit filename="controllers/SimpleFTP.h" />
+		<Unit filename="controllers/WebSocketClient.cpp" />
+		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="effects/BarsEffect.cpp" />
 		<Unit filename="effects/BarsEffect.h" />
@@ -1040,6 +1053,7 @@
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
+		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
@@ -1282,6 +1296,7 @@
 					<wxDialog wxs="wxsmith/LorControllerDialog.wxs" src="outputs/LorControllerDialog.cpp" hdr="outputs/LorControllerDialog.h" fwddecl="0" i18n="1" name="LorControllerDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
