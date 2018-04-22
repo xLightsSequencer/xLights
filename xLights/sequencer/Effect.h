@@ -130,9 +130,7 @@ class Effect
 
         DrawGLUtils::xlDisplayList background;
 };
+
 bool operator<(const Effect &e1, const Effect &e2);
-
-
-
 
 #endif // EFFECT_H

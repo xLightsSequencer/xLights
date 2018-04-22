@@ -5,16 +5,15 @@
 
 class EffectsGrid;
 
-
 class EffectDropTarget: public wxTextDropTarget
 {
     public:
         EffectDropTarget(EffectsGrid* parent);
         virtual ~EffectDropTarget();
-        virtual bool OnDrop(wxCoord x, wxCoord y);
-        virtual bool OnDropText(wxCoord x, wxCoord y,const wxString &data );
-        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult);
-    protected:
+        virtual bool OnDrop(wxCoord x, wxCoord y) override;
+        virtual bool OnDropText(wxCoord x, wxCoord y,const wxString &data ) override;
+        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult defResult) override;
+        virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) override;
     private:
         EffectsGrid* mParent;
 };

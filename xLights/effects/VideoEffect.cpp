@@ -84,6 +84,11 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
+bool VideoEffect::IsVideoFile(std::string filename)
+{
+    return VideoReader::IsVideoFile(filename);
+}
+
 wxPanel *VideoEffect::CreatePanel(wxWindow *parent) {
     return new VideoPanel(parent);
 }

@@ -112,6 +112,21 @@ void GlediatorEffect::SetSequenceElements(SequenceElements *els) {
     ((GlediatorPanel*)panel)->defaultDir = fn.GetPath();
 }
 
+bool GlediatorEffect::IsGlediatorFile(std::string filename)
+{
+    wxFileName fn(filename);
+    auto ext = fn.GetExt().Lower().ToStdString();
+
+    if (ext == "gled" ||
+        ext == "out"
+        )
+    {
+        return true;
+    }
+
+    return false;
+}
+
 wxPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
     return new GlediatorPanel(parent);
 }

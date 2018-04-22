@@ -367,6 +367,24 @@ std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &Sett
     return res;
 }
 
+bool PicturesEffect::IsPictureFile(std::string filename)
+{
+    wxFileName fn(filename);
+    auto ext = fn.GetExt().Lower().ToStdString();
+
+    if (ext == "gif" ||
+        ext == "jpg" ||
+        ext == "jpeg" ||
+        ext == "png" ||
+        ext == "bmp"
+        )
+    {
+        return true;
+    }
+
+    return false;
+}
+
 void PicturesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     Render(buffer,
            SettingsMap["CHOICE_Pictures_Direction"],

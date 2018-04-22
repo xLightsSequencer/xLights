@@ -127,6 +127,7 @@ wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECTFILE_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
@@ -1347,6 +1348,7 @@ private:
     void EffectUpdated( wxCommandEvent& event);
     void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
+    void EffectFileDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
     void RandomizeEffect(wxCommandEvent &event);

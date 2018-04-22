@@ -965,6 +965,107 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 
+void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
+{
+    auto parms = wxSplit(event.GetString(), '|');
+
+    if (parms.size() != 2) return;
+
+    std::string effectName = parms[0].ToStdString();
+    std::string filename = parms[1].ToStdString();
+
+    int effectIndex = 0;
+    for (int i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    {
+        if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName)
+        {
+            EffectsPanel1->EffectChoicebook->SetSelection(i);
+            effectIndex = i;
+            break;
+        }
+    }
+
+    wxASSERT(effectIndex != 0);
+
+    mSequenceElements.UnSelectAllEffects();
+    std::string palette;
+    std::string settings = GetEffectTextFromWindows(palette);
+    selectedEffect = nullptr;
+    Effect* last_effect_created = nullptr;
+
+    mSequenceElements.get_undo_mgr().CreateUndoStep();
+    for (int i = 0; i < mSequenceElements.GetSelectedRangeCount(); i++)
+    {
+        EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        if (el->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        // Delete Effects that are in same time range as dropped effect
+        el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
+            mSequenceElements.GetSelectedRange(i)->EndTime);
+        el->DeleteSelectedEffects(mSequenceElements.get_undo_mgr());
+        // Add dropped effect
+        Effect* effect = el->AddEffect(0, effectName, settings, palette,
+            mSequenceElements.GetSelectedRange(i)->StartTime,
+            mSequenceElements.GetSelectedRange(i)->EndTime,
+            EFFECT_SELECTED, false);
+
+        // Now set the filename
+        if (effectName == "Video")
+        {
+            effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
+        }
+        else if (effectName == "Pictures")
+        {
+            effect->GetSettings()["E_FILEPICKER_Pictures_Filename"] = filename;
+        }
+        else if (effectName == "Glediator")
+        {
+            effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
+        }
+
+        last_effect_created = effect;
+
+        mSequenceElements.get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
+
+        mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
+
+        if (playType == PLAY_TYPE_MODEL_PAUSED) {
+            DoStopSequence();
+            SetAudioControls();
+        }
+
+        if (playType != PLAY_TYPE_MODEL) {
+            playType = PLAY_TYPE_EFFECT;
+            playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime;
+            playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime;
+            playStartMS = -1;
+            RenderEffectForModel(el->GetParentElement()->GetModelName(), playStartTime, playEndTime);
+
+            playModel = GetModel(el->GetParentElement()->GetModelName());
+
+            SetAudioControls();
+        }
+    }
+
+    if (playType != PLAY_TYPE_MODEL && last_effect_created != nullptr)
+    {
+        SetEffectControls(last_effect_created->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+            last_effect_created->GetEffectName(), last_effect_created->GetSettings(),
+            last_effect_created->GetPaletteMap(), false);
+        selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
+        selectedEffect = last_effect_created;
+    }
+
+    RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
+
+    if (last_effect_created != nullptr) {
+        UpdateEffectAssistWindow(last_effect_created, eff);
+    }
+
+    mainSequencer->PanelEffectGrid->Refresh(false);
+}
+
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     std::string model = event.GetString().ToStdString();
