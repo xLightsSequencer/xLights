@@ -249,7 +249,6 @@ const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
-const long xLightsFrame::ID_ALT_BACKUPLOCATION = wxNewId();
 const long xLightsFrame::ID_MNU_BACKUP = wxNewId();
 const long xLightsFrame::ID_MNU_EXCLUDEPRESETS = wxNewId();
 const long xLightsFrame::ID_MNU_EXCLUDEAUDIOPKGSEQ = wxNewId();
@@ -865,7 +864,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItemEffectAssistWindow);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemSelectEffect);
-    MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Sequence Video"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem52);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
@@ -918,8 +917,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_BackupOnLaunch = new wxMenuItem(MenuSettings, ID_MENU_BACKUP_ON_LAUNCH, _("Backup On Launch"), _("Recommended."), wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupOnLaunch);
     MenuItem_BackupOnLaunch->Check(true);
-    mAltBackupLocationMenuItem = new wxMenuItem(MenuSettings, ID_ALT_BACKUPLOCATION, _("Alt Backup Location"), wxEmptyString, wxITEM_NORMAL);
-    MenuSettings->Append(mAltBackupLocationMenuItem);
     MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupSubfolders);
     MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
@@ -1200,7 +1197,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
-    Connect(ID_ALT_BACKUPLOCATION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupLocationMenuItemSelected);
     Connect(ID_MNU_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupSubfoldersSelected);
     Connect(ID_MNU_EXCLUDEPRESETS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected);
     Connect(ID_MNU_EXCLUDEAUDIOPKGSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected);
@@ -3891,26 +3887,6 @@ void xLightsFrame::OnmBackupOnSaveSelected(wxCommandEvent& event)
     mBackupOnSave = event.IsChecked();
 }
 
-void xLightsFrame::OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event)
-{
-    wxDirDialog dir(this, _("Select alternate backup directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
-    if (dir.ShowModal() == wxID_OK)
-    {
-        mAltBackupDir = dir.GetPath();
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Alternate backup location set to %s.", (const char *)mAltBackupDir.c_str());
-    }
-
-    if (wxDir::Exists(mAltBackupDir))
-    {
-        mAltBackupMenuItem->SetHelp(mAltBackupDir);
-    }
-    else
-    {
-        mAltBackupMenuItem->SetHelp("");
-    }
-}
-
 void xLightsFrame::DoAltBackup(bool prompt)
 {
 
@@ -3954,7 +3930,13 @@ void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
 {
     if (mAltBackupDir == "")
     {
-        OnmAltBackupLocationMenuItemSelected(event);
+        wxDirDialog dir(this, _("Select alternate backup directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+        if (dir.ShowModal() == wxID_OK)
+        {
+            mAltBackupDir = dir.GetPath();
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.info("Alternate backup location set to %s.", (const char *)mAltBackupDir.c_str());
+        }
     }
 
     if (mAltBackupDir == "")
@@ -7488,7 +7470,7 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
-    FolderSelection dlg(this,showDirectory,mediaDirectory,fseqDirectory, backupDirectory);
+    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, backupDirectory, mAltBackupDir);
 
     int res = dlg.ShowModal();
 
@@ -7499,9 +7481,9 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         config->Write(_("LinkFlag"), dlg.LinkMediaDir);
         config->Write(_("FSEQDir"), dlg.FseqDirectory);
         config->Write(_("FSEQLinkFlag"), dlg.LinkFSEQDir);
-
         config->Write(_("BackupDir"), dlg.BackupDirectory);
         config->Write(_("BackupLinkFlag"), dlg.LinkBackupDir);
+        config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
 
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
@@ -7509,5 +7491,7 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
         backupDirectory = dlg.BackupDirectory;
         logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
+        mAltBackupDir = dlg.AltBackupDirectory;
+        logger_base.debug("Alt Backup directory set to : %s.", (const char *)mAltBackupDir.c_str());
     }
 }

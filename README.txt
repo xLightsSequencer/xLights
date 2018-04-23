@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (scott)  Added Folder Setting dialog for Media, FSEQ, and Backup Directories.
+   -- enh (scott)  Added Folder Setting dialog for Media, FSEQ, Backup, and Alt Backup Directories.
    -- bug (keith)  Fix tendril crash when movement was set to zero
    -- bug (keith)  Upgrade some check sequence warnings to errors
    -- bug (keith)  More fixes for images on resizing buffers

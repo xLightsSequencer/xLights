@@ -460,7 +460,6 @@ public:
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
     void OnmBackupOnSaveSelected(wxCommandEvent& event);
-    void OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
@@ -695,7 +694,6 @@ private:
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
-    static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MNU_BACKUP;
     static const long ID_MNU_EXCLUDEPRESETS;
     static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
@@ -908,7 +906,6 @@ private:
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
     wxMenuItem* QuitMenuItem;
-    wxMenuItem* mAltBackupLocationMenuItem;
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenuItem* mExportModelsMenuItem;

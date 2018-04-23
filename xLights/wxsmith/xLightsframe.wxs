@@ -1323,10 +1323,6 @@
 					<handler function="OnMenuItem_BackupOnLaunchSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="ID_ALT_BACKUPLOCATION" variable="mAltBackupLocationMenuItem" member="yes">
-					<label>Alt Backup Location</label>
-					<handler function="OnmAltBackupLocationMenuItemSelected" entry="EVT_MENU" />
-				</object>
 				<object class="wxMenuItem" name="ID_MNU_BACKUP" variable="MenuItem_BackupSubfolders" member="yes">
 					<label>Backup Subfolders</label>
 					<handler function="OnMenuItem_BackupSubfoldersSelected" entry="EVT_MENU" />

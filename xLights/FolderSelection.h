@@ -15,18 +15,22 @@ class FolderSelection: public wxDialog
 {
 	public:
 
-		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory, const wxString &backupDirectory, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory, 
+			const wxString &backupDirectory, const wxString &altBackupDirectory, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~FolderSelection();
 
 		//(*Declarations(FolderSelection)
+		wxButton* ButtonFindAltBackupDirectory;
 		wxButton* ButtonFindBackupDirectory;
 		wxButton* ButtonFindFSEQDir;
 		wxButton* ButtonFindMediaDir;
 		wxButton* ButtonFolderSelectCancel;
 		wxButton* ButtonFolderSelectOk;
 		wxCheckBox* CheckBoxBackupUseShow;
+		wxCheckBox* CheckBoxEnableAltBackup;
 		wxCheckBox* CheckBoxFSEQUseShow;
 		wxCheckBox* CheckBoxMediaUseShow;
+		wxTextCtrl* TextCtrlAltBackupDirectory;
 		wxTextCtrl* TextCtrlBackupDirectory;
 		wxTextCtrl* TextCtrlFSEQDirectory;
 		wxTextCtrl* TextCtrlMediaDirectory;
@@ -36,6 +40,7 @@ class FolderSelection: public wxDialog
         wxString MediaDirectory;
         wxString FseqDirectory;
         wxString BackupDirectory;
+        wxString AltBackupDirectory;
         long LinkMediaDir;
         long LinkFSEQDir;
         long LinkBackupDir;
@@ -52,6 +57,9 @@ class FolderSelection: public wxDialog
 		static const long ID_CHECKBOX_BACKUP_USE_SHOW;
 		static const long ID_TEXTCTRL_BACKUP_DIRECTORY;
 		static const long ID_BUTTON_FIND_BACKUP_DIRECTORY;
+		static const long ID_CHECKBOX_ENABLE_ALT_BACKUP;
+		static const long ID_TEXTCTRL_ALT_BACKUP_DIRECTORY;
+		static const long ID_BUTTON_FIND_ALT_BACKUP_DIRECTORY;
 		static const long ID_BUTTON_FOLDER_SELECT_OK;
 		static const long ID_BUTTON_FOLDER_SELECT_CANCEL;
 		//*)
@@ -70,6 +78,9 @@ class FolderSelection: public wxDialog
 		void OnTextCtrlMediaDirectoryText(wxCommandEvent& event);
 		void OnTextCtrlFSEQDirectoryText(wxCommandEvent& event);
 		void OnTextCtrlBackupDirectoryText(wxCommandEvent& event);
+		void OnCheckBoxEnableAltBackupClick(wxCommandEvent& event);
+		void OnTextCtrlAltBackupDirectoryText(wxCommandEvent& event);
+		void OnButtonFindAltBackupDirectoryClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
