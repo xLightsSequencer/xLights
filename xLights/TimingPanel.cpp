@@ -22,8 +22,9 @@ const long TimingPanel::ID_SLIDER_EffectLayerMix = wxNewId();
 const long TimingPanel::IDD_TEXTCTRL_EffectLayerMix = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
 const long TimingPanel::ID_CHOICE_LayerMethod = wxNewId();
-const long TimingPanel::ID_BUTTON1 = wxNewId();
 const long TimingPanel::ID_BITMAPBUTTON_SLIDER_EffectLayerMix = wxNewId();
+const long TimingPanel::ID_CHECKBOX_Canvas = wxNewId();
+const long TimingPanel::ID_BUTTON1 = wxNewId();
 const long TimingPanel::ID_CHOICE_In_Transition_Type = wxNewId();
 const long TimingPanel::ID_STATICTEXT_Fadein = wxNewId();
 const long TimingPanel::ID_TEXTCTRL_Fadein = wxNewId();
@@ -119,15 +120,18 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Choice_LayerMethod->Append(_("Subtractive"));
 	Choice_LayerMethod->Append(_("Max"));
 	Choice_LayerMethod->Append(_("Min"));
-	Choice_LayerMethod->Append(_("Canvas"));
 	Choice_LayerMethod->SetToolTip(_("Layering defines how Effect 1 and Effect 2 will be mixed together.\nHere are the Choices\n* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. \n* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.\n* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.\n* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.\n* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.\n* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.\n* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2\n* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1\n* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2\n* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1\n* Layered: Effect 1 only shows in black regions of Effect 2.\n* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum\n* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display\n* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.\n* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.\n* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.\n* Max - Take the maximum value for each channel from both effects\n* Min - Take the minimum value for each channel from both effects\n* Canvas - Blend the selected layers into this layer"));
 	FlexGridSizer2->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON1, _("Layers ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer2->Add(Button_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_EffectLayerMix = new wxBitmapButton(ScrolledWindowTiming, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	CheckBox_Canvas = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_Canvas, _("Canvas"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Canvas"));
+	CheckBox_Canvas->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_Canvas, 1, wxALL|wxEXPAND, 5);
+	Button_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON1, _("Layers ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer2->Add(Button_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer5->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	Notebook1 = new wxNotebook(ScrolledWindowTiming, IDD_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("IDD_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
@@ -229,8 +233,9 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Connect(ID_CHECKBOX_ResetTimingPanel,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_ResetTimingPanelClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_LayerMethod,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnChoice_LayerMethodSelect);
-	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnButton_LayersClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_EffectLayerMix,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnLockButtonClick);
+	Connect(ID_CHECKBOX_Canvas,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_CanvasClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnButton_LayersClick);
 	Connect(ID_CHOICE_In_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
 	Connect(ID_CHOICE_Out_Transition_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TimingPanel::OnTransitionTypeSelect);
 	Panel_Sizer->Connect(wxEVT_SIZE,(wxObjectEventFunction)&TimingPanel::OnResize,0,this);
@@ -279,7 +284,7 @@ void TimingPanel::SetDefaultControls(const Model *model, bool optionbased) {
         _layersSelected = "";
         CheckBox_LayerMorph->SetValue(false);
         Choice_LayerMethod->SetSelection(0);
-        //Slider_EffectLayerMix->SetValue(0);
+        CheckBox_Canvas->SetValue(false);
 	    TextCtrl_EffectLayerMix->SetValue("0");
         TextCtrl_Fadein->SetValue("0.00");
         TextCtrl_Fadeout->SetValue("0.00");
@@ -314,8 +319,9 @@ wxString TimingPanel::GetTimingString()
                               Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection()));
     }
 
-    if (Choice_LayerMethod->GetStringSelection() == "Canvas")
+    if (CheckBox_Canvas->GetValue())
     {
+        s += "T_CHECKBOX_Canvas=1,";
         if (_layersSelected.length() > 0) {
             s += "T_LayersSelected=";
             s += _layersSelected;
@@ -437,7 +443,7 @@ void TimingPanel::OnChoice_LayerMethodSelect(wxCommandEvent& event)
 
 void TimingPanel::ValidateWindow()
 {
-    if (Choice_LayerMethod->GetStringSelection() == "Canvas" && _startLayer != -1)
+    if (CheckBox_Canvas->GetValue() && _startLayer != -1)
     {
         Button_Layers->Enable(true);
     }
@@ -446,4 +452,9 @@ void TimingPanel::ValidateWindow()
         _layersSelected = "";
         Button_Layers->Enable(false);
     }
+}
+
+void TimingPanel::OnCheckBox_CanvasClick(wxCommandEvent& event)
+{
+    ValidateWindow();
 }
