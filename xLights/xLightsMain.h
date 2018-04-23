@@ -23,20 +23,20 @@
 #endif
 
 //(*Headers(xLightsFrame)
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/menu.h>
-#include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/gbsizer.h>
 #include <wx/button.h>
+#include <wx/choice.h>
 #include <wx/frame.h>
-#include <wx/timer.h>
 #include <wx/gauge.h>
+#include <wx/gbsizer.h>
+#include <wx/listctrl.h>
+#include <wx/menu.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/timer.h>
 //*)
 
 #include <wx/stdpaths.h>
@@ -401,7 +401,6 @@ public:
     void OnButtonNewSequenceClick(wxCommandEvent& event);
     void OnButtonClickSaveAs(wxCommandEvent& event);
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
-    void ChangeMediaDirectory(wxCommandEvent& event);
     void ShowHideModelPreview(wxCommandEvent& event);
     void ShowHideHousePreview(wxCommandEvent& event);
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
@@ -462,7 +461,6 @@ public:
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
     void OnmBackupOnSaveSelected(wxCommandEvent& event);
-    void OnmAltBackupLocationMenuItemSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_BackupOnLaunchSelected(wxCommandEvent& event);
@@ -538,6 +536,7 @@ public:
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
+    void OnButtonOtherFoldersClick(wxCommandEvent& event);
     //*)
 private:
 
@@ -603,11 +602,9 @@ private:
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_AUIEFFECTSTOOLBAR;
+    static const long ID_BUTTON_OTHER_FOLDERS;
     static const long ID_BUTTON3;
     static const long ID_STATICTEXT4;
-    static const long ID_BUTTON_CHANGE_MEDIA_DIR;
-    static const long ID_ANY;
-    static const long ID_BITMAPBUTTON_Link_Dirs;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
@@ -698,7 +695,6 @@ private:
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
-    static const long ID_ALT_BACKUPLOCATION;
     static const long ID_MNU_BACKUP;
     static const long ID_MNU_EXCLUDEPRESETS;
     static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
@@ -781,163 +777,160 @@ private:
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
     //(*Declarations(xLightsFrame)
-    wxMenuItem* MenuItem_AutoShowHousePreview;
-    xlAuiToolBar* OutputToolBar;
-    wxMenuItem* MenuItem_VideoTutorials;
-    wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
-    wxButton* ButtonAddE131;
-    wxMenuItem* MenuItem_ImportEffects;
-    wxMenuItem* MenuItemViewSavePerspective;
-    wxButton* ButtonArtNET;
-    wxMenuItem* QuitMenuItem;
-    wxMenuItem* MenuItem33;
-    wxMenuItem* MenuItemLoadEditPerspective;
-    wxMenuItem* MenuItemGridNodeValuesOff;
-    wxMenuItem* MenuItem_SD_40;
-    wxMenuItem* MenuItem40;
-    wxMenuItem* MenuItem_PurgeVendorCache;
-    wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxMenu* ToolIconSizeMenu;
-    wxMenuItem* MenuItem_File_Open_Sequence;
-    wxAuiManager* m_mgr;
-    wxMenuItem* MenuItem_VQuietVol;
-    wxMenuItem* MenuItem49;
-    wxMenuItem* MenuItem50;
-    wxMenuItem* MenuItem_ExportEffects;
-    wxMenuItem* MenuItem_SmallWaveform;
     wxAuiManager* MainAuiManager;
-    wxMenuItem* MenuItem_SD_20;
-    wxMenuItem* MenuItemRenderCanvasMode;
-    wxMenuItem* MenuItem_BackupSubfolders;
-    wxMenu* MenuItem15;
-    wxMenuItem* MenuItemGridNodeValuesOn;
-    wxMenuItem* MenuItem_ModelBlendDefaultOff;
-    wxMenu* Menu3;
-    wxMenu* MenuItemRenderMode;
-    wxButton* Button_Change_Media_Dir;
-    wxMenuItem* mAltBackupLocationMenuItem;
-    wxMenuItem* MenuItemShiftEffects;
-    wxMenuItem* MenuItem_Donate;
-    wxMenuItem* MenuItem_File_Export_Video;
-    wxMenuItem* MenuItem36;
-    wxMenuItem* MenuItem_ACLIghts;
-    wxMenuItem* MenuItemCheckSequence;
-    wxButton* ButtonNetworkDeleteAll;
-    wxTimer EffectSettingsTimer;
-    wxMenuItem* MenuItemTimingEditMode;
-    wxMenuItem* MenuItemGridIconBackgroundOn;
-    wxMenuItem* MenuItem_File_Close_Sequence;
-    wxPanel* AUIStatusBar;
-    wxMenuItem* MenuItemSelectEffect;
-    xlAuiToolBar* ViewToolBar;
-    wxMenuItem* MenuItem37;
-    wxMenuItem* MenuItem_BackupOnLaunch;
-    wxMenuItem* MenuItem32;
-    wxMenuItem* MenuItem_ViewZoomIn;
-    wxPanel* PanelPreview;
-    xLightsTimer Timer1;
-    wxMenuItem* MenuItem_Help_Isue_Tracker;
-    wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
-    wxButton* ButtonAddLOR;
-    xlAuiToolBar* PlayToolBar;
-    wxMenu* Menu1;
-    wxFlexGridSizer* GaugeSizer;
-    wxPanel* PanelSequencer;
-    wxChoice* ChoiceParm2;
-    wxMenuItem* MenuItem42;
-    wxMenuItem* MenuItemEffectAssistAlwaysOn;
-    wxMenu* MenuItem7;
-    wxMenuItem* MenuItem_CrashXLights;
-    wxButton* ButtonAddDongle;
-    wxMenuItem* MenuItem_ViewZoomOut;
-    wxBitmapButton* BitmapButtonMoveNetworkUp;
-    wxMenuItem* MenuItem_SnapToTimingMarks;
-    wxMenuItem* MenuItemBackup;
-    xlAuiToolBar* WindowMgmtToolbar;
-    wxMenuItem* Menu_GenerateCustomModel;
-    wxMenuItem* MenuItem_PlayControlsOnPreview;
-    wxMenuItem* MenuItem39;
-    wxMenuItem* MenuItem38;
-    wxMenuItem* MenuItemViewSaveAsPerspective;
-    wxMenuItem* MenuItemRenderEraseMode;
-    wxMenuItem* MenuItem3;
-    wxMenuItem* mExportModelsMenuItem;
-    wxMenuItem* MenuItemConvert;
-    wxButton* ButtonNetworkChange;
-    wxMenuItem* MenuItem_Help_Facebook;
-    wxButton* ButtonAddNull;
-    wxMenuItem* MenuItem_QuietVol;
-    wxMenu* AutoSaveMenu;
-    wxMenuItem* MenuItem_Help_ReleaseNotes;
-    wxMenuItem* Menu_Settings_Sequence;
-    wxMenu* MenuSettings;
-    wxButton* ButtonNetworkDelete;
-    wxBitmapButton* BitmapButton_Link_Dirs;
-    wxMenuItem* MenuItemEffectAssistAlwaysOff;
-    wxMenuItem* MenuItem_FPP_Connect;
-    wxStaticText* StaticText5;
-    wxListCtrl* GridNetwork;
-    wxMenuItem* MenuItem_ForceLocalIP;
-    wxStaticText* ShowDirectoryLabel;
-    wxMenu* MenuFile;
+    wxAuiManager* m_mgr;
     wxAuiNotebook* Notebook1;
-    wxMenuItem* MenuItemTimingPlayMode;
-    wxMenuItem* MenuItem35;
-    wxMenuItem* MenuItem_PerspectiveAutosave;
-    wxMenu* OpenGLMenu;
-    wxStaticText* StatusText;
-    wxMenuItem* MenuItem_File_SaveAs_Sequence;
-    xlAuiToolBar* MainToolBar;
-    wxMenuItem* MenuItemEffectAssistToggleMode;
-    wxTimer Timer_AutoSave;
-    wxMenuItem* MenuItem_GenerateLyrics;
-    wxMenuItem* MenuItemColorManager;
-    wxMenuItem* MenuItem_LoudVol;
-    wxMenuItem* MenuItem51;
-    wxMenuItem* MenuItem52;
-    wxStaticText* MediaDirectoryLabel;
-    wxMenuItem* mRenderOnSaveMenuItem;
-    wxMenuItem* MenuItem41;
-    wxPanel* PanelSetup;
-    wxMenuItem* MenuItem_e131sync;
-    wxButton* ButtonSaveSetup;
-    wxMenu* MenuItem29;
+    wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* ButtonAddDDP;
-    wxMenuItem* MenuItem_ShowACRamps;
-    wxMenuItem* mBackupOnSaveMenuItem;
-    wxMenu* MenuItemPerspectives;
+    wxButton* ButtonAddDongle;
+    wxButton* ButtonAddE131;
+    wxButton* ButtonAddLOR;
+    wxButton* ButtonAddNull;
+    wxButton* ButtonArtNET;
+    wxButton* ButtonNetworkChange;
+    wxButton* ButtonNetworkDelete;
+    wxButton* ButtonNetworkDeleteAll;
+    wxButton* ButtonOtherFolders;
+    wxButton* ButtonSaveSetup;
     wxChoice* ChoiceParm1;
+    wxChoice* ChoiceParm2;
+    wxFlexGridSizer* GaugeSizer;
+    wxGauge* ProgressBar;
+    wxGridBagSizer* StatusBarSizer;
+    wxListCtrl* GridNetwork;
+    wxMenu* AudioMenu;
+    wxMenu* AutoSaveMenu;
     wxMenu* GridSpacingMenu;
-    wxMenuItem* MenuItem_PackageSequence;
-    wxStaticText* FileNameText;
-    wxMenuItem* mAltBackupMenuItem;
-    wxMenuItem* MenuItem_Help_Download;
-    wxMenuItem* MenuItem16;
-    wxMenuItem* MenuItem34;
-    wxMenuItem* MenuItem43;
-    wxMenuItem* MenuItemEffectAssistWindow;
-    wxMenuItem* ActionTestMenuItem;
-    wxMenuItem* MenuItem_File_Save;
+    wxMenu* Menu1;
+    wxMenu* Menu3;
+    wxMenu* MenuFile;
+    wxMenu* MenuItem15;
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
-    wxGauge* ProgressBar;
-    xlAuiToolBar* EffectsToolBar;
-    wxMenuItem* MenuItem_SD_None;
-    wxMenuItem* MenuItem_xSchedule;
-    wxMenuItem* MenuItem_Help_Forum;
-    wxMenuItem* MenuItem_Update;
-    wxGridBagSizer* StatusBarSizer;
+    wxMenu* MenuItem29;
+    wxMenu* MenuItem7;
+    wxMenu* MenuItemPerspectives;
+    wxMenu* MenuItemRenderMode;
+    wxMenu* MenuSettings;
     wxMenu* MenuView;
-    wxMenuItem* MenuItem_ViewLog;
-    wxMenu* AudioMenu;
-    wxMenuItem* MenuItem_SD_10;
-    xlAuiToolBar* EditToolBar;
-    wxMenuItem* MenuItemGridIconBackgroundOff;
+    wxMenu* OpenGLMenu;
+    wxMenu* ToolIconSizeMenu;
     wxMenuBar* MenuBar;
+    wxMenuItem* ActionTestMenuItem;
+    wxMenuItem* MenuItem16;
+    wxMenuItem* MenuItem32;
+    wxMenuItem* MenuItem33;
+    wxMenuItem* MenuItem34;
+    wxMenuItem* MenuItem35;
+    wxMenuItem* MenuItem36;
+    wxMenuItem* MenuItem37;
+    wxMenuItem* MenuItem38;
+    wxMenuItem* MenuItem39;
+    wxMenuItem* MenuItem3;
+    wxMenuItem* MenuItem40;
+    wxMenuItem* MenuItem41;
+    wxMenuItem* MenuItem42;
+    wxMenuItem* MenuItem43;
+    wxMenuItem* MenuItem49;
+    wxMenuItem* MenuItem50;
+    wxMenuItem* MenuItem51;
+    wxMenuItem* MenuItem52;
+    wxMenuItem* MenuItemBackup;
+    wxMenuItem* MenuItemCheckSequence;
+    wxMenuItem* MenuItemColorManager;
+    wxMenuItem* MenuItemConvert;
+    wxMenuItem* MenuItemEffectAssistAlwaysOff;
+    wxMenuItem* MenuItemEffectAssistAlwaysOn;
+    wxMenuItem* MenuItemEffectAssistToggleMode;
+    wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenuItem* MenuItemGridIconBackgroundOff;
+    wxMenuItem* MenuItemGridIconBackgroundOn;
+    wxMenuItem* MenuItemGridNodeValuesOff;
+    wxMenuItem* MenuItemGridNodeValuesOn;
+    wxMenuItem* MenuItemLoadEditPerspective;
+    wxMenuItem* MenuItemRenderCanvasMode;
+    wxMenuItem* MenuItemRenderEraseMode;
+    wxMenuItem* MenuItemSelectEffect;
+    wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItemTimingEditMode;
+    wxMenuItem* MenuItemTimingPlayMode;
+    wxMenuItem* MenuItemViewSaveAsPerspective;
+    wxMenuItem* MenuItemViewSavePerspective;
+    wxMenuItem* MenuItem_ACLIghts;
+    wxMenuItem* MenuItem_AutoShowHousePreview;
+    wxMenuItem* MenuItem_BackupOnLaunch;
+    wxMenuItem* MenuItem_BackupSubfolders;
+    wxMenuItem* MenuItem_CrashXLights;
+    wxMenuItem* MenuItem_Donate;
+    wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
+    wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
+    wxMenuItem* MenuItem_ExportEffects;
+    wxMenuItem* MenuItem_FPP_Connect;
+    wxMenuItem* MenuItem_File_Close_Sequence;
+    wxMenuItem* MenuItem_File_Export_Video;
+    wxMenuItem* MenuItem_File_Open_Sequence;
+    wxMenuItem* MenuItem_File_Save;
+    wxMenuItem* MenuItem_File_SaveAs_Sequence;
+    wxMenuItem* MenuItem_ForceLocalIP;
+    wxMenuItem* MenuItem_GenerateLyrics;
+    wxMenuItem* MenuItem_Help_Download;
+    wxMenuItem* MenuItem_Help_Facebook;
+    wxMenuItem* MenuItem_Help_Forum;
+    wxMenuItem* MenuItem_Help_Isue_Tracker;
+    wxMenuItem* MenuItem_Help_ReleaseNotes;
+    wxMenuItem* MenuItem_ImportEffects;
     wxMenuItem* MenuItem_LogRenderState;
+    wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;
+    wxMenuItem* MenuItem_ModelBlendDefaultOff;
+    wxMenuItem* MenuItem_PackageSequence;
+    wxMenuItem* MenuItem_PerspectiveAutosave;
+    wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem_PurgeVendorCache;
+    wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_SD_10;
+    wxMenuItem* MenuItem_SD_20;
+    wxMenuItem* MenuItem_SD_40;
+    wxMenuItem* MenuItem_SD_None;
+    wxMenuItem* MenuItem_ShowACRamps;
+    wxMenuItem* MenuItem_SmallWaveform;
+    wxMenuItem* MenuItem_SnapToTimingMarks;
+    wxMenuItem* MenuItem_Update;
+    wxMenuItem* MenuItem_VQuietVol;
+    wxMenuItem* MenuItem_VideoTutorials;
+    wxMenuItem* MenuItem_ViewLog;
+    wxMenuItem* MenuItem_ViewZoomIn;
+    wxMenuItem* MenuItem_ViewZoomOut;
+    wxMenuItem* MenuItem_e131sync;
+    wxMenuItem* MenuItem_xSchedule;
+    wxMenuItem* Menu_GenerateCustomModel;
+    wxMenuItem* Menu_Settings_Sequence;
+    wxMenuItem* QuitMenuItem;
+    wxMenuItem* mAltBackupMenuItem;
+    wxMenuItem* mBackupOnSaveMenuItem;
+    wxMenuItem* mExportModelsMenuItem;
+    wxMenuItem* mRenderOnSaveMenuItem;
+    wxPanel* AUIStatusBar;
+    wxPanel* PanelPreview;
+    wxPanel* PanelSequencer;
+    wxPanel* PanelSetup;
     wxSpinCtrl* SpinCtrl_SyncUniverse;
+    wxStaticText* FileNameText;
+    wxStaticText* ShowDirectoryLabel;
+    wxStaticText* StaticText5;
+    wxStaticText* StatusText;
+    wxTimer EffectSettingsTimer;
+    wxTimer Timer_AutoSave;
+    xLightsTimer Timer1;
     xlAuiToolBar* ACToolbar;
+    xlAuiToolBar* EditToolBar;
+    xlAuiToolBar* EffectsToolBar;
+    xlAuiToolBar* MainToolBar;
+    xlAuiToolBar* OutputToolBar;
+    xlAuiToolBar* PlayToolBar;
+    xlAuiToolBar* ViewToolBar;
+    xlAuiToolBar* WindowMgmtToolbar;
     //*)
 
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
@@ -1053,6 +1046,8 @@ private:
     wxString mediaFilename;
     wxString showDirectory;
     wxString mediaDirectory;
+    wxString fseqDirectory;
+    wxString backupDirectory;
     SeqDataType SeqData;
     wxTimer _scrollTimer;
 
