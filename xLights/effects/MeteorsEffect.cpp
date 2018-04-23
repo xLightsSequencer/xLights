@@ -130,6 +130,11 @@ void MeteorsEffect::SetDefaultParameters(Model *cls) {
     }
 
     mp->BitmapButton_Meteors_Count->SetActive(false);
+    mp->BitmapButton_Meteors_Length->SetActive(false);
+    mp->BitmapButton_Meteors_Speed->SetActive(false);
+    mp->BitmapButton_Meteors_Swirl_Intensity->SetActive(false);
+    mp->BitmapButton_Meteors_XOffsetVC->SetActive(false);
+    mp->BitmapButton_Meteors_YOffsetVC->SetActive(false);
 
     SetChoiceValue(mp->Choice_Meteors_Effect, "Down");
     SetChoiceValue(mp->Choice_Meteors_Type, "Rainbow");
