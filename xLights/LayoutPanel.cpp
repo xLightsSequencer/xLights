@@ -1713,19 +1713,10 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     static int last_selection = -1;
-
-    // GIL: Not sure why this was needed but it reverses the sign of the rotation around the x-axis for the view matrix
-    //      Selection was not working correctly without it
     glm::mat4 view_mat = modelPreview->GetViewMatrix();
-    view_mat[0][1] = -view_mat[0][1];
-    view_mat[1][2] = -view_mat[1][2];
-    view_mat[2][1] = -view_mat[2][1];
-
-    // GIL: Also apparently need to invert the sign of CameraPosY
-    view_mat[3][1] = -view_mat[3][1];
 
     ScreenPosToWorldRay(
-        x, y,
+        x, (modelPreview->getHeight() - y),
         modelPreview->getWidth(), modelPreview->getHeight(),
         view_mat,
         modelPreview->GetProjMatrix(),
@@ -1741,9 +1732,7 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
-        // GIL: Also not sure why this was needed but it reverses the sign of the worldPos_y coordinate of the model matrix
         glm::mat4 model_mat = modelPreview->GetModels()[i]->GetModelScreenLocation().GetModelMatrix();
-        model_mat[3][1] = -model_mat[3][1];
 
         if (TestRayOBBIntersection(
             ray_origin,
@@ -1791,19 +1780,10 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     std::vector<int> found;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
-
-    // GIL: Not sure why this was needed but it reverses the sign of the rotation around the x-axis for the view matrix
-    //      Selection was not working correctly without it
     glm::mat4 view_mat = modelPreview->GetViewMatrix();
-    view_mat[0][1] = -view_mat[0][1];
-    view_mat[1][2] = -view_mat[1][2];
-    view_mat[2][1] = -view_mat[2][1];
-
-    // GIL: Also apparently need to invert the sign of CameraPosY
-    view_mat[3][1] = -view_mat[3][1];
 
     ScreenPosToWorldRay(
-        x, y,
+        x, (modelPreview->getHeight() - y),
         modelPreview->getWidth(), modelPreview->getHeight(),
         view_mat,
         modelPreview->GetProjMatrix(),
@@ -1825,22 +1805,22 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
         glm::vec3 axisbb_min[3];
         glm::vec3 axisbb_max[3];
         axisbb_min[0].x = handles[active_handle].x - model_mat[3][0];
-        axisbb_min[0].y = -(handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+        axisbb_min[0].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
         axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
         axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[1].y = -handles[active_handle].y - model_mat[3][1];
+        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1];
         axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
         axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[2].y = -(handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+        axisbb_min[2].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
         axisbb_min[2].z = handles[active_handle].z - model_mat[3][2];
         axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH - model_mat[3][0];
-        axisbb_max[0].y = -(handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
+        axisbb_max[0].y = (handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
         axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
         axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[1].y = -(handles[active_handle].y + AXIS_ARROW_LENGTH) - model_mat[3][1];
+        axisbb_max[1].y = (handles[active_handle].y + AXIS_ARROW_LENGTH) - model_mat[3][1];
         axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
         axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[2].y = -(handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
+        axisbb_max[2].y = (handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
         axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH - model_mat[3][2];
 
         // see if an axis handle is selected
@@ -1875,10 +1855,10 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
 
     for (size_t h = 0; h < num_handles; h++) {
         aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
-        aabb_min[h].y = -handles[h].y - model_mat[3][1] - hw;
+        aabb_min[h].y = handles[h].y - model_mat[3][1] - hw;
         aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
         aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
-        aabb_max[h].y = -handles[h].y - model_mat[3][1] + hw;
+        aabb_max[h].y = handles[h].y - model_mat[3][1] + hw;
         aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
     }
 
@@ -1928,23 +1908,9 @@ void LayoutPanel::ScreenPosToWorldRay(
         1.0f
     );
 
-    // The Projection matrix goes from Camera Space to NDC.
-    // So inverse(ProjectionMatrix) goes from NDC to Camera Space.
-    glm::mat4 InverseProjectionMatrix = glm::inverse(ProjectionMatrix);
-
-    // The View Matrix goes from World Space to Camera Space.
-    // So inverse(ViewMatrix) goes from Camera Space to World Space.
-    glm::mat4 InverseViewMatrix = glm::inverse(ViewMatrix);
-
-    glm::vec4 lRayStart_camera = InverseProjectionMatrix * lRayStart_NDC;    lRayStart_camera /= lRayStart_camera.w;
-    glm::vec4 lRayStart_world = InverseViewMatrix * lRayStart_camera; lRayStart_world /= lRayStart_world.w;
-    glm::vec4 lRayEnd_camera = InverseProjectionMatrix * lRayEnd_NDC;      lRayEnd_camera /= lRayEnd_camera.w;
-    glm::vec4 lRayEnd_world = InverseViewMatrix * lRayEnd_camera;   lRayEnd_world /= lRayEnd_world.w;
-
-    // Faster way (just one inverse)
-    //glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
-    //glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
-    //glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
+    glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
+    glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
+    glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
 
     glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
     lRayDir_world = glm::normalize(lRayDir_world);
