@@ -253,10 +253,6 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     {
         MixType=Mix_Mask2;
     }
-    else if (MixName == "Canvas")
-    {
-        MixType=Mix_Canvas;
-    }
     else if (MixName == "1 is Unmask")
     {
         MixType=Mix_Unmask1;
@@ -353,7 +349,6 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         break;
     case Mix_Effect1:
     case Mix_Effect2:
-    case Mix_Canvas:
     {
         double emt, emtNot;
         if (!layers[layer]->effectMixVaries) {
@@ -1298,6 +1293,7 @@ void PixelBufferClass::SetPalette(int layer, xlColorVector& newcolors, xlColorCu
 static const std::string CHOICE_LayerMethod("CHOICE_LayerMethod");
 static const std::string SLIDER_EffectLayerMix("SLIDER_EffectLayerMix");
 static const std::string CHECKBOX_LayerMorph("CHECKBOX_LayerMorph");
+static const std::string CHECKBOX_Canvas("CHECKBOX_Canvas");
 static const std::string TEXTCTRL_Fadein("TEXTCTRL_Fadein");
 static const std::string TEXTCTRL_Fadeout("TEXTCTRL_Fadeout");
 static const std::string SLIDER_Blur("SLIDER_Blur");
@@ -1606,6 +1602,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0)/100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
+    inf->canvas = settingsMap.GetBool(CHECKBOX_Canvas, false);
 
     inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
@@ -2037,7 +2034,12 @@ MixTypes PixelBufferClass::GetMixType(int layer) const
 {
     return layers[layer]->mixType;
 }
-    
+
+bool PixelBufferClass::IsCanvasMix(int layer) const
+{
+    return layers[layer]->canvas;
+}
+
 void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 {
     if (!IsVariableSubBuffer(layer)) return;

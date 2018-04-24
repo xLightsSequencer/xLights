@@ -3,6 +3,23 @@
 
 #include "RenderableEffect.h"
 
+#define METEORS_COUNT_MIN 1
+#define METEORS_COUNT_MAX 100
+
+#define METEORS_LENGTH_MIN 1
+#define METEORS_LENGTH_MAX 100
+
+#define METEORS_SWIRL_MIN 0
+#define METEORS_SWIRL_MAX 20
+
+#define METEORS_SPEED_MIN 0
+#define METEORS_SPEED_MAX 50
+
+#define METEORS_XOFFSET_MIN -100
+#define METEORS_XOFFSET_MAX 100
+
+#define METEORS_YOFFSET_MIN -100
+#define METEORS_YOFFSET_MAX 100
 
 class MeteorsEffect : public RenderableEffect
 {

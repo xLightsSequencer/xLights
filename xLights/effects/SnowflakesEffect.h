@@ -3,6 +3,11 @@
 
 #include "RenderableEffect.h"
 
+#define SNOWFLAKES_COUNT_MIN 1
+#define SNOWFLAKES_COUNT_MAX 100
+
+#define SNOWFLAKES_SPEED_MIN 0
+#define SNOWFLAKES_SPEED_MAX 50
 
 class SnowflakesEffect : public RenderableEffect
 {

@@ -530,7 +530,7 @@ public:
             bool b = info.effectStates[layer];
 
             // Mix canvas pre-loads the buffer with data from underlying layers
-            if (buffer->GetMixType(layer) == Mix_Canvas && layer < numLayers - 1)
+            if (buffer->IsCanvasMix(layer) && layer < numLayers - 1)
             {
                 auto vl = info.validLayers;
                 if (info.settingsMaps[layer].Get("LayersSelected", "") != "")

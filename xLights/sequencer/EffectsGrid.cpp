@@ -24,6 +24,9 @@
 #include "../UtilFunctions.h"
 #include "../xLightsXmlFile.h"
 #include "EffectTimingDialog.h"
+#include "effects/GlediatorEffect.h"
+#include "effects/VideoEffect.h"
+#include "effects/PicturesEffect.h"
 
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1
@@ -758,12 +761,39 @@ bool EffectsGrid::DragOver(int x, int y)
 
 void EffectsGrid::OnDrop(int x, int y)
 {
-    if( mDragDropping )
+    if (mDragDropping)
     {
         RaiseEffectDropped(x,y);
         mDragDropping = false;
     }
+
     Refresh(false);
+}
+
+void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files)
+{
+    if (files.size() > 0)
+    {
+        wxString file = files.front();
+        std::string effectName = "";
+        if (VideoEffect::IsVideoFile(file))
+        {
+            effectName = "Video";
+        }
+        else if (PicturesEffect::IsPictureFile(file))
+        {
+            effectName = "Pictures";
+        }
+        else if (GlediatorEffect::IsGlediatorFile(file))
+        {
+            effectName = "Glediator";
+        }
+
+        if (effectName != "")
+        {
+            CreateEffectForFile(x, y, effectName, file.ToStdString());
+        }
+    }
 }
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
@@ -836,6 +866,31 @@ int EffectsGrid::GetClippedPositionFromTimeMS(int ms) {
         i = GetSize().x;
     }
     return i;
+}
+
+void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename)
+{
+    int row = GetRow(y);
+
+    if (row >= mSequenceElements->GetVisibleRowInformationSize()) {
+        return;
+    }
+
+    mSequenceElements->ClearSelectedRanges();
+
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
+
+    EffectRange effectRange;
+    effectRange.Layer = effectLayer;
+    // Store start and end time. The effect text will be supplied by parent class
+    effectRange.StartTime = mDropStartTimeMS;
+    effectRange.EndTime = mDropEndTimeMS;
+    mSequenceElements->AddSelectedRange(&effectRange);
+
+    // Raise event
+    wxCommandEvent eventDropped(EVT_EFFECTFILE_DROPPED);
+    eventDropped.SetString(effectName + "|" + filename);
+    wxPostEvent(GetParent(), eventDropped);
 }
 
 int MapHitLocationToEffectSelection(HitLocation location) {

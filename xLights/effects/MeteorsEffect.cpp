@@ -129,6 +129,13 @@ void MeteorsEffect::SetDefaultParameters(Model *cls) {
         return;
     }
 
+    mp->BitmapButton_Meteors_Count->SetActive(false);
+    mp->BitmapButton_Meteors_Length->SetActive(false);
+    mp->BitmapButton_Meteors_Speed->SetActive(false);
+    mp->BitmapButton_Meteors_Swirl_Intensity->SetActive(false);
+    mp->BitmapButton_Meteors_XOffsetVC->SetActive(false);
+    mp->BitmapButton_Meteors_YOffsetVC->SetActive(false);
+
     SetChoiceValue(mp->Choice_Meteors_Effect, "Down");
     SetChoiceValue(mp->Choice_Meteors_Type, "Rainbow");
 
@@ -146,23 +153,26 @@ void MeteorsEffect::SetDefaultParameters(Model *cls) {
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
 void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Count = SettingsMap.GetInt("SLIDER_Meteors_Count", 10);
-    int Length = SettingsMap.GetInt("SLIDER_Meteors_Length", 25);
-    int SwirlIntensity = SettingsMap.GetInt("SLIDER_Meteors_Swirl_Intensity", 0);
-    int mSpeed = SettingsMap.GetInt("SLIDER_Meteors_Speed", 10);
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int Count = GetValueCurveInt("Meteors_Count", 10, SettingsMap, oset, METEORS_COUNT_MIN, METEORS_COUNT_MAX);
+
+    int Length = GetValueCurveInt("Meteors_Length", 25, SettingsMap, oset, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX);
+    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", 0, SettingsMap, oset, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX);
+    int mSpeed = GetValueCurveInt("Meteors_Speed", 10, SettingsMap, oset, METEORS_SPEED_MIN, METEORS_SPEED_MAX);
 
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
     int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
-    int xoffset = SettingsMap.GetInt("TEXTCTRL_Meteors_XOffset", 0);
-    int yoffset = SettingsMap.GetInt("TEXTCTRL_Meteors_YOffset", 0);
+    int xoffset = GetValueCurveInt("Meteors_XOffset", 0, SettingsMap, oset, METEORS_XOFFSET_MIN, METEORS_XOFFSET_MAX);
+    int yoffset = GetValueCurveInt("Meteors_YOffset", 0, SettingsMap, oset, METEORS_YOFFSET_MIN, METEORS_YOFFSET_MAX);
     bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", false);
 
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false))
     {
-        if (buffer.GetMedia() != NULL) {
+        if (buffer.GetMedia() != nullptr) {
             float f = 0.0;
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != NULL)
+            if (pf != nullptr)
             {
                 f = *pf->begin();
             }

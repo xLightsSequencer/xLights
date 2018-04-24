@@ -427,6 +427,8 @@
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
 		<Unit filename="FlickerFreeBitmapButton.h" />
+		<Unit filename="FolderSelection.cpp" />
+		<Unit filename="FolderSelection.h" />
 		<Unit filename="FontManager.cpp" />
 		<Unit filename="FontManager.h" />
 		<Unit filename="GenerateCustomModelDialog.cpp" />
@@ -1045,6 +1047,7 @@
 		<Unit filename="wxsmith/FillPanel.wxs" />
 		<Unit filename="wxsmith/FirePanel.wxs" />
 		<Unit filename="wxsmith/FireworksPanel.wxs" />
+		<Unit filename="wxsmith/FolderSelection.wxs" />
 		<Unit filename="wxsmith/GalaxyPanel.wxs" />
 		<Unit filename="wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="wxsmith/GenerateCustomModelDialog.wxs" />
@@ -1297,6 +1300,7 @@
 					<wxPanel wxs="wxsmith/SelectPanel.wxs" src="SelectPanel.cpp" hdr="SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FolderSelection.wxs" src="FolderSelection.cpp" hdr="FolderSelection.h" fwddecl="0" i18n="1" name="FolderSelection" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

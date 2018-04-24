@@ -1,6 +1,7 @@
 #include "GlediatorPanel.h"
 #include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
+#include "wx/filedlg.h"
 
 //(*InternalHeaders(GlediatorPanel)
 #include <wx/sizer.h>
@@ -10,9 +11,6 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
-
-#include "wx/filedlg.h"
-
 
 //(*IdInit(GlediatorPanel)
 const long GlediatorPanel::ID_STATICTEXT2 = wxNewId();

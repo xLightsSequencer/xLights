@@ -697,6 +697,14 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
 
     int count = wxAtoi(stringsDoc.GetRoot()->GetAttribute("c"));
 
+    if (count == 0)
+    {
+        for (auto n = stringsDoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
+        {
+            count++;
+        }
+    }
+
     logger_base.debug("Strings.xml had %d entries.", count);
     if (count == 0) return 0;
 

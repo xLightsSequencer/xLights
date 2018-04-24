@@ -50,8 +50,8 @@ enum EFF_ALIGN_MODE {
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
-
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECTFILE_DROPPED, wxCommandEvent);
 
 struct EffectDropData;
 
@@ -74,6 +74,7 @@ public:
     void SetTimeline(TimeLine* timeline);
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
+    void OnDropFiles(int x, int y, const wxArrayString& files);
     void ForceRefresh();
     void SetTimingClickPlayMode(bool mode) {mTimingPlayOnDClick = mode;}
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
@@ -131,6 +132,7 @@ private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
     int GetClippedPositionFromTimeMS(int ms);
 
+    void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
 	void mouseMoved(wxMouseEvent& event);

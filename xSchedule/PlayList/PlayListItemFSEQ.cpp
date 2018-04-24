@@ -106,6 +106,7 @@ void PlayListItemFSEQ::LoadAudio()
     }
     else if (wxFile::Exists(af))
     {
+        logger_base.error("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
         _audioManager = new AudioManager(af);
 
         if (!_audioManager->IsOk())

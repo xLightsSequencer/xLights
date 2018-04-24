@@ -56,8 +56,7 @@ enum MixTypes
     Mix_Additive,
     Mix_Subtractive,
     Mix_Max,
-    Mix_Min,
-    Mix_Canvas
+    Mix_Min
 };
 
 class Effect;
@@ -95,6 +94,7 @@ private:
             mixType = Mix_Normal;
             effectMixThreshold = 0.0;
             effectMixVaries = false;
+            canvas = false;
             BufferHt = BufferWi = 0;
             persistent = false;
             usingModelBuffers = false;
@@ -165,6 +165,7 @@ private:
         MixTypes mixType;
         float effectMixThreshold;
         bool effectMixVaries;
+        bool canvas;
         bool persistent;
         int fadeInSteps;
         int fadeOutSteps;
@@ -233,6 +234,7 @@ public:
     int GetNodeCount() const;
     int GetChanCountPerNode() const;
     MixTypes GetMixType(int layer) const;
+    bool IsCanvasMix(int layer) const;
 
     bool IsVariableSubBuffer(int layer) const;
     void PrepareVariableSubBuffer(int EffectPeriod, int layer);

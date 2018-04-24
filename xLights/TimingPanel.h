@@ -53,6 +53,7 @@ class TimingPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
 		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxButton* Button_Layers;
+		wxCheckBox* CheckBox_Canvas;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxNotebook* Notebook1;
@@ -73,8 +74,9 @@ class TimingPanel: public wxPanel
 		static const long IDD_TEXTCTRL_EffectLayerMix;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
 		static const long ID_CHOICE_LayerMethod;
-		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
+		static const long ID_CHECKBOX_Canvas;
+		static const long ID_BUTTON1;
 		static const long ID_CHOICE_In_Transition_Type;
 		static const long ID_STATICTEXT_Fadein;
 		static const long ID_TEXTCTRL_Fadein;
@@ -107,6 +109,7 @@ class TimingPanel: public wxPanel
 		void OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event);
 		void OnButton_LayersClick(wxCommandEvent& event);
 		void OnChoice_LayerMethodSelect(wxCommandEvent& event);
+		void OnCheckBox_CanvasClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

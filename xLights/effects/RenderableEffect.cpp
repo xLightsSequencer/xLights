@@ -240,7 +240,7 @@ std::string RenderableEffect::GetEffectString() {
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2017.26", version);
+    return IsVersionOlder("2018.12", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
@@ -256,7 +256,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         // Fix #622 - circle and square explode on transition out ... this code stops me breaking existing sequences
         SettingsMap& sm = effect->GetSettings();
         if (sm.Get("T_CHOICE_Out_Transition_Type", "") == "Square Explode" ||
-            sm.Get("T_CHOICE_Out_Transition_Type" , "") == "Circle Explode")
+            sm.Get("T_CHOICE_Out_Transition_Type", "") == "Circle Explode")
         {
             if (sm.GetBool("T_CHECKBOX_Out_Transition_Reverse", false))
             {
@@ -297,6 +297,18 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             {
                 sm["B_VALUECURVE_Zoom"] = vc.Serialise();
             }
+        }
+    }
+
+    if (IsVersionOlder("2018.12", version))
+    {
+        SettingsMap& sm = effect->GetSettings();
+        wxString layerMethod = sm.Get("T_CHOICE_LayerMethod", "");
+
+        if (layerMethod == "Canvas")
+        {
+            sm["T_CHOICE_LayerMethod"] = "Effect 1";
+            sm["T_CHECKBOX_Canvas"] = "1";
         }
     }
 }

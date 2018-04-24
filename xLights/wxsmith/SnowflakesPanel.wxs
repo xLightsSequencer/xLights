@@ -14,9 +14,28 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" subclass="BulkEditSlider" variable="Slider_Snowflakes_Count" member="yes">
-					<value>5</value>
-					<min>1</min>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" subclass="BulkEditSlider" variable="Slider_Snowflakes_Count" member="yes">
+							<value>5</value>
+							<min>1</min>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Snowflakes_Count" subclass="BulkEditValueCurveButton" variable="BitmapButton_Snowflakes_Count" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
@@ -90,12 +109,31 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" subclass="BulkEditSlider" variable="Slider_Snowflakes_Speed" member="yes">
-					<value>10</value>
-					<max>50</max>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Snowflakes_Speed" subclass="BulkEditSlider" variable="Slider_Snowflakes_Speed" member="yes">
+							<value>10</value>
+							<max>50</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Snowflakes_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Snowflakes_Speed" member="yes">
+							<bitmap code="valuecurvenotselected_24" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -134,6 +172,7 @@
 						<item>Falling &amp; Accumulating</item>
 					</content>
 					<selection>0</selection>
+					<handler function="OnChoice_FallingSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
