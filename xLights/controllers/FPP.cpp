@@ -358,7 +358,7 @@ std::string FPP::SaveFPPUniversesV1(const std::string& onlyip, const std::list<i
                 }
                 onebasedcount += (*it)->GetChannels();
             } else if ((*it)->GetType() == OUTPUT_ARTNET) {
-                universes.Write(((*it)->IsEnabled() ? "1," : "0,") + (*it)->GetUniverseString() + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%ld"), (*it)->GetChannels()).ToStdString() + ",3," + (*it)->GetIP() + ",\r\n");
+                universes.Write(((*it)->IsEnabled() ? "1," : "0,") + wxString::Format("%d", (*it)->GetUniverse()) + "," + wxString::Format(wxT("%i"), c).ToStdString() + "," + wxString::Format(wxT("%ld"), (*it)->GetChannels()).ToStdString() + ",3," + (*it)->GetIP() + ",\r\n");
                 onebasedcount += (*it)->GetChannels();
             }
         }

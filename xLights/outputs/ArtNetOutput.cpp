@@ -293,7 +293,7 @@ void ArtNetOutput::AllOff()
 #pragma region Getters and Setters
 std::string ArtNetOutput::GetUniverseString() const
 {
-    return wxString::Format(wxT("%i:%i:%i"), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse()).ToStdString();
+    return wxString::Format(wxT("%i:%i:%i or %d"), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), GetUniverse()).ToStdString();
 }
 
 std::string ArtNetOutput::GetLongDescription() const

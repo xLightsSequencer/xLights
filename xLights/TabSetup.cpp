@@ -312,7 +312,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     return true;
 }
 
-void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output)
+void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud)
 {
     long ch = 0;
     Output* o = _outputManager.GetOutput(channel, ch);
@@ -323,20 +323,21 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
     ip = "";
     u = "";
     inactive = "";
+    baud = "";
 
     if (o != nullptr)
     {
         type = o->GetType();
         description = o->GetDescription();
+        u = o->GetUniverseString();
         if (o->IsIpOutput())
         {
             ip = o->GetIP();
-            u = o->GetUniverseString();
         }
         else
         {
             ip = o->GetCommPort();
-            u = wxString::Format(wxT("%i"), o->GetBaudRate()).ToStdString();
+            baud = wxString::Format(wxT("%i baud"), o->GetBaudRate()).ToStdString();
         }
         if (o->IsEnabled())
         {
@@ -391,10 +392,14 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
             GridNetwork->SetItem(newidx, 2, (*e)->GetIP());
             GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
         }
+        else if ((*e)->GetType() == "NULL")
+        {
+            GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
+        }
         else if ((*e)->IsSerialOutput())
         {
-            GridNetwork->SetItem(newidx, 2, (*e)->GetCommPort());
-            GridNetwork->SetItem(newidx, 3, (*e)->GetBaudRateString());
+            GridNetwork->SetItem(newidx, 2, (*e)->GetCommPort() + " : " + (*e)->GetBaudRateString() + " baud");
+            GridNetwork->SetItem(newidx, 3, (*e)->GetUniverseString());
         }
         GridNetwork->SetItem(newidx, 4, wxString::Format(wxT("%ld"), (*e)->GetChannels()));
         GridNetwork->SetItem(newidx, 5, wxString::Format(wxT("Channels %ld to %ld"), (*e)->GetStartChannel(), (*e)->GetEndChannel()));

@@ -3,7 +3,29 @@
 #include <wx/xml/xml.h>
 #include "NullOutputDialog.h"
 
+#pragma region Save
+void NullOutput::Save(wxXmlNode* node)
+{
+    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
+
+    Output::Save(node);
+}
+
+wxXmlNode* NullOutput::Save()
+{
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    Save(node);
+
+    return node;
+}
+#pragma endregion
+
 #pragma region Getters and Setters
+NullOutput::NullOutput(wxXmlNode* node) : Output(node)
+{
+    SetId(wxAtoi(node->GetAttribute("Id", "0")));
+}
+
 std::string NullOutput::GetLongDescription() const
 {
     std::string res = "";
