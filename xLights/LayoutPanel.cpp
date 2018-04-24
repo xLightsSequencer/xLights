@@ -37,6 +37,9 @@
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 
+static float AXIS_RADIUS = 4.0f;
+static float AXIS_ARROW_LENGTH = 60.0f;
+
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	wxRect r;
@@ -1815,10 +1818,60 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     glm::mat4 model_mat = selectedModel->GetModelScreenLocation().GetModelMatrix();
 
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
+
+    // test for a selected axis first
+    if (selectedModel->GetModelScreenLocation().GetArrowsActive()) {
+        int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+        glm::vec3 axisbb_min[3];
+        glm::vec3 axisbb_max[3];
+        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0];
+        axisbb_min[0].y = -(handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+        axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
+        axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
+        axisbb_min[1].y = -handles[active_handle].y - model_mat[3][1];
+        axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
+        axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
+        axisbb_min[2].y = -(handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2];
+        axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH - model_mat[3][0];
+        axisbb_max[0].y = -(handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
+        axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
+        axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
+        axisbb_max[1].y = -(handles[active_handle].y + AXIS_ARROW_LENGTH) - model_mat[3][1];
+        axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
+        axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
+        axisbb_max[2].y = -(handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
+        axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH - model_mat[3][2];
+
+        // see if an axis handle is selected
+        for (size_t i = 0; i < 3; i++)
+        {
+            float intersection_distance; // Output of TestRayOBBIntersection()
+
+            if (TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                axisbb_min[i],
+                axisbb_max[i],
+                model_mat,
+                intersection_distance)
+                ) {
+                if (intersection_distance < distance) {
+                    distance = intersection_distance;
+                    which_handle = i;
+                }
+            }
+        }
+    }
+
+    if (which_handle != -1) {
+        return which_handle | 0x100;
+    }
+
     int num_handles = handles.size();
-    if (num_handles > 9) return -1;  // error protection
-    glm::vec3 aabb_min[9];
-    glm::vec3 aabb_max[9];
+    if (num_handles > 10) return -1;  // error protection
+    glm::vec3 aabb_min[10];
+    glm::vec3 aabb_max[10];
 
     for (size_t h = 0; h < num_handles; h++) {
         aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
@@ -2106,15 +2159,22 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     // process 3d independently until we determine what can be combined
     if (is_3d) {
 
-        // don't mark mouse down if a selection is being made
+       // don't mark mouse down if a selection is being made
        if (highlightedModel != nullptr) {
             if (selectionLatched) {
                 int handle = SelectModelHandles3D(event.GetX(), event.GetY());
                 if( handle != -1 ) {
-                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
-                    selectedModel->GetModelScreenLocation().SetArrowsActive(true);
-                    UpdatePreview();
-                    handleLatched = true;
+                    if (handle >= 0x100) {
+                        // an axis was selected
+                        selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
+                        UpdatePreview();
+                    }
+                    else {
+                        selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+                        selectedModel->GetModelScreenLocation().SetArrowsActive(true);
+                        UpdatePreview();
+                        handleLatched = true;
+                    }
                 }
                 else {
                     m_mouse_down = true;
@@ -2332,6 +2392,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
     if (is_3d && m_mouse_down) {
+        if (selectedModel != nullptr) {
+            selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
+        }
         modelPreview->SetCameraView(0, 0, true);
     }
     m_mouse_down = false;

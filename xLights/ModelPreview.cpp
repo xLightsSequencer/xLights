@@ -380,7 +380,9 @@ void ModelPreview::SetCameraView(int camerax, int cameray, bool latch)
 		cameraAngleY = latched_y + last_offsety;
 		latched_x = cameraAngleX;
 		latched_y = cameraAngleY;
-	}
+        last_offsetx = 0;
+        last_offsety = 0;
+    }
 	else {
 		cameraAngleX = latched_x + cameray;
 		cameraAngleY = latched_y + camerax;

@@ -107,8 +107,11 @@ public:
     std::vector<xlPoint>& GetHandlePositions() { return mHandlePosition; }
     void SetActiveHandle(int handle) { active_handle = handle; }
     int GetActiveHandle() { return active_handle; }
+    void SetActiveAxis(int axis) { active_axis = axis; }
+    int GetActiveAxis() { return active_axis; }
     void SetHandlesActive(bool state) { handles_active = state; }
     void SetArrowsActive(bool state) { arrows_active = state; }
+    bool GetArrowsActive() { return arrows_active;  }
     static void DrawAxisArrows(float x, float y, float z, DrawGLUtils::xl3Accumulator &va);
  
 protected:
@@ -132,6 +135,7 @@ protected:
     bool arrows_active;
     bool handles_active;
     int active_handle;
+    int active_axis;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle

@@ -15,6 +15,9 @@
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
 
+static float AXIS_RADIUS = 4.0f;
+static float AXIS_ARROW_LENGTH = 60.0f;
+
 static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
     float s = sin(radians);
     float c = cos(radians);
@@ -91,9 +94,9 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
-  scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz), ModelMatrix(glm::mat4(1.0f)),
-  aabb_min(0.0f, 0.0f, 0.0f), aabb_max(0.0f, 0.0f, 0.0f),
-  active_handle(-1), arrows_active(false), handles_active(false)
+  scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
+  ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f, 0.0f, 0.0f), aabb_max(0.0f, 0.0f, 0.0f),
+  active_handle(-1), active_axis(-1), arrows_active(false), handles_active(false)
 {
     draw_3d = false;
     _locked = false;
@@ -102,48 +105,47 @@ ModelScreenLocation::ModelScreenLocation(int sz)
 void ModelScreenLocation::DrawAxisArrows(float x, float y, float z, DrawGLUtils::xl3Accumulator &va)
 {
     int num_points = 18;
-    float radius = 4.0f;
-    float arrow_length = 60.0f;
     float head_length = 12.0f;
     float os = (float)RECT_HANDLE_WIDTH;
 
-    float tip = x + arrow_length;
+    float tip = x + AXIS_ARROW_LENGTH;
     for (size_t i = 0; i < num_points; i++) {
         float u1 = i / (float)num_points;
         float u2 = i + 1 / (float)num_points;
         va.AddVertex(tip, y, z, xlRED);
-        va.AddVertex(tip - head_length, y + radius * cos(2.0 * M_PI*u1), z + radius * sin(2.0 * M_PI*u1), xlRED);
-        va.AddVertex(tip - head_length, y + radius * cos(2.0 * M_PI*u2), z + radius * sin(2.0 * M_PI*u2), xlRED);
+        va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlRED);
+        va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlRED);
     }
-    tip = y + arrow_length;
+    tip = y + AXIS_ARROW_LENGTH;
     for (size_t i = 0; i < num_points; i++) {
         float u1 = i / (float)num_points;
         float u2 = i + 1 / (float)num_points;
         va.AddVertex(x, tip, z, xlGREEN);
-        va.AddVertex(x + radius * cos(2.0 * M_PI*u1), tip - head_length,  z + radius * sin(2.0 * M_PI*u1), xlGREEN);
-        va.AddVertex(x + radius * cos(2.0 * M_PI*u2), tip - head_length,  z + radius * sin(2.0 * M_PI*u2), xlGREEN);
+        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length,  z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlGREEN);
+        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length,  z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlGREEN);
     }
-    tip = z + arrow_length;
+    tip = z + AXIS_ARROW_LENGTH;
     for (size_t i = 0; i < num_points; i++) {
         float u1 = i / (float)num_points;
         float u2 = i + 1 / (float)num_points;
         va.AddVertex(x, y, tip, xlBLUE);
-        va.AddVertex(x + radius * cos(2.0 * M_PI*u1), y + radius * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
-        va.AddVertex(x + radius * cos(2.0 * M_PI*u2), y + radius * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
+        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
+        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
     }
     va.Finish(GL_TRIANGLES);
 
     va.AddVertex(x + os, y, z, xlRED);
-    va.AddVertex(x + arrow_length - head_length, y, z, xlRED);
+    va.AddVertex(x + AXIS_ARROW_LENGTH - head_length, y, z, xlRED);
     va.AddVertex(x, y + os, z, xlGREEN);
-    va.AddVertex(x, y + arrow_length - head_length, z, xlGREEN);
+    va.AddVertex(x, y + AXIS_ARROW_LENGTH - head_length, z, xlGREEN);
     va.AddVertex(x, y, z + os, xlBLUE);
-    va.AddVertex(x, y, z + arrow_length - head_length, xlBLUE);
+    va.AddVertex(x, y, z + AXIS_ARROW_LENGTH - head_length, xlBLUE);
     va.Finish(GL_LINES);
+
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
-: ModelScreenLocation(9), PreviewRotation(0), perspective(0.0f)
+: ModelScreenLocation(10), PreviewRotation(0), perspective(0.0f)
 {
 }
 
@@ -448,6 +450,11 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     mHandlePosition[8].y = sy;
     mHandlePosition[8].z = sz2;
 
+    // Center Handle
+    mHandlePosition[9].x = worldPos_x;
+    mHandlePosition[9].y = worldPos_y;
+    mHandlePosition[9].z = worldPos_z;
+
     // Draw rotation handle square
     sx = -RECT_HANDLE_WIDTH / 2;
     sy = ((RenderHt*scaley/2) + 50);
@@ -503,10 +510,31 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
             color = (active_handle == h) ? xlGREEN : handleColor;
             DrawGLUtils::DrawSphere(mHandlePosition[h].x, mHandlePosition[h].y, mHandlePosition[h].z, (double)(RECT_HANDLE_WIDTH), color, va);
         }
+        color = (active_handle == 9) ? xlGREEN : xlColor(255, 128, 0);
+        DrawGLUtils::DrawSphere(mHandlePosition[9].x, mHandlePosition[9].y, mHandlePosition[9].z, (double)(RECT_HANDLE_WIDTH), color, va);
     }
 
     if (arrows_active && (active_handle != -1)) {
         DrawAxisArrows(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+        if (active_axis != -1) {
+            LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+            switch (active_axis)
+            {
+            case 0:  // x
+                va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
+                va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
+                break;
+            case 1:  // y
+                va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                break;
+            case 2:  // z
+                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, -1000000.0f, xlBLUE);
+                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, +1000000.0f, xlBLUE);
+                break;
+            }
+            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+        }
     }
 }
 
