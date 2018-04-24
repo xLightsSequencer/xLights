@@ -18,6 +18,8 @@
 
 #include <wx/dcclient.h>
 #include "NodesGridCellEditor.h"
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
 
 #ifndef wxEVT_GRID_CELL_CHANGE
 //until CodeBlocks is updated to wxWidgets 3.x
@@ -32,6 +34,8 @@ const long GenerateLyricsDialog::ID_STATICTEXT2 = wxNewId();
 const long GenerateLyricsDialog::ID_SPINCTRL1 = wxNewId();
 const long GenerateLyricsDialog::ID_PANEL1 = wxNewId();
 const long GenerateLyricsDialog::ID_GRID_COROFACES = wxNewId();
+const long GenerateLyricsDialog::ID_BUTTON3 = wxNewId();
+const long GenerateLyricsDialog::ID_BUTTON4 = wxNewId();
 const long GenerateLyricsDialog::ID_BUTTON1 = wxNewId();
 const long GenerateLyricsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -44,10 +48,10 @@ END_EVENT_TABLE()
 GenerateLyricsDialog::GenerateLyricsDialog(wxWindow* parent, long channels, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(GenerateLyricsDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, _("Generate Lyrics From Data"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -95,12 +99,18 @@ GenerateLyricsDialog::GenerateLyricsDialog(wxWindow* parent, long channels, wxWi
 	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
 	FlexGridSizer4->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer3->AddGrowableCol(2);
+	Button_Save = new wxButton(this, ID_BUTTON3, _("Save Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer3->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Load = new wxButton(this, ID_BUTTON4, _("Load Mapping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer3->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -111,8 +121,9 @@ GenerateLyricsDialog::GenerateLyricsDialog(wxWindow* parent, long channels, wxWi
 	Panel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&GenerateLyricsDialog::Paint,0,this);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&GenerateLyricsDialog::OnSingleNodeGridCellLeftClick);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&GenerateLyricsDialog::OnSingleNodeGridCellLeftDClick);
-	Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&GenerateLyricsDialog::OnSingleNodeGridCellChange);
 	Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&GenerateLyricsDialog::OnSingleNodeGridCellSelect);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateLyricsDialog::OnButton_SaveClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateLyricsDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateLyricsDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&GenerateLyricsDialog::OnButton_CancelClick);
 	//*)
@@ -285,4 +296,59 @@ void GenerateLyricsDialog::PaintFace(wxDC& dc, int x, int y, const char* xpm[])
     wxBitmap bmp(i);
 
     dc.DrawBitmap(bmp, x, y);
+}
+
+void GenerateLyricsDialog::OnButton_SaveClick(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, "mapping", "Mapping Files (*.xfacemap)|*.xfacemap", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxFileOutputStream output(dlg.GetPath());
+        wxTextOutputStream text(output);
+        
+        text.WriteString(wxString::Format("firstchannel\t%d\n", SpinCtrl_FirstChannel->GetValue()));
+
+        for (int i = 0; i < SingleNodeGrid->GetNumberRows(); i++)
+        {
+            text.WriteString(wxString::Format("%s\t%s\n", SingleNodeGrid->GetRowLabelValue(i), ((SingleNodeGrid->GetCellValue(i,0) == "") ? "NULL" : SingleNodeGrid->GetCellValue(i, 0))));
+        }
+    }
+}
+
+void GenerateLyricsDialog::OnButton_LoadClick(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xfacemap)|*.xfacemap", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() == wxID_OK) {
+
+        wxFileInputStream input(dlg.GetPath());
+        wxTextInputStream text(input, "\t");
+
+        wxString word = text.ReadWord();
+        while (word != "") {
+            if (word == "firstchannel")
+            {
+                int fc = wxAtoi(text.ReadWord());
+                SpinCtrl_FirstChannel->SetValue(fc);
+            }
+            else
+            {
+                for (int i = 0; i < SingleNodeGrid->GetNumberRows(); i++)
+                {
+                    if (SingleNodeGrid->GetRowLabelValue(i) == word)
+                    {
+                        wxString map = text.ReadWord();
+                        if (map == "NULL")
+                        {
+                            SingleNodeGrid->SetCellValue(i, 0, "");
+                        }
+                        else
+                        {
+                            SingleNodeGrid->SetCellValue(i, 0, map);
+                        }
+                        break;
+                    }
+                }
+            }
+            word = text.ReadWord();
+        }
+    }
 }

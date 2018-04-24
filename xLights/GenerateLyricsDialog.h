@@ -4,14 +4,14 @@
 #include <list>
 
 //(*Headers(GenerateLyricsDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/grid.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class GenerateLyricsDialog: public wxDialog
@@ -24,15 +24,17 @@ class GenerateLyricsDialog: public wxDialog
         std::string GetLyricName() const;
 
 		//(*Declarations(GenerateLyricsDialog)
+		wxButton* Button_Cancel;
+		wxButton* Button_Load;
 		wxButton* Button_Ok;
-		wxTextCtrl* TextCtrl_Name;
-		wxStaticText* StaticText2;
-		wxSpinCtrl* SpinCtrl_FirstChannel;
+		wxButton* Button_Save;
 		wxGrid* SingleNodeGrid;
 		wxPanel* Panel1;
+		wxSpinCtrl* SpinCtrl_FirstChannel;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
-		wxButton* Button_Cancel;
+		wxTextCtrl* TextCtrl_Name;
 		//*)
 
 	protected:
@@ -45,6 +47,8 @@ class GenerateLyricsDialog: public wxDialog
 		static const long ID_SPINCTRL1;
 		static const long ID_PANEL1;
 		static const long ID_GRID_COROFACES;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -61,6 +65,8 @@ class GenerateLyricsDialog: public wxDialog
 		void OnSpinCtrl_FirstChannelChange(wxSpinEvent& event);
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		void Paint(wxPaintEvent& event);
+		void OnButton_SaveClick(wxCommandEvent& event);
+		void OnButton_LoadClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
