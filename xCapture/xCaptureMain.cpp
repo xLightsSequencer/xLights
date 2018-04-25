@@ -27,6 +27,10 @@
 #include "ResultDialog.h"
 #include "../xLights/IPEntryDialog.h"
 
+#ifndef __WXMSW__
+#include <netinet/in.h>
+#endif
+
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
 #include "../include/xLights-32.xpm"
