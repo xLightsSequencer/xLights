@@ -29,6 +29,7 @@
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #endif
 
 #include "../include/xLights.xpm"
