@@ -2757,7 +2757,7 @@ void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 {
     std::string ip = event.GetItem().GetText().SubString(0, event.GetItem().GetText().Find(' ')-1).ToStdString();
-    if (IPOutput::IsIPValid(ip))
+    if (IPOutput::IsIPValidOrHostname(ip))
     {
         ::wxLaunchDefaultBrowser("http://" + ip);
     }

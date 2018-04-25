@@ -4446,7 +4446,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             if ((*n)->GetIP() != "MULTICAST")
             {
-                if (!IPOutput::IsIPValid((*n)->GetIP()))
+                if (!IPOutput::IsIPValidOrHostname((*n)->GetIP()))
                 {
                     wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                     LogAndWrite(f, msg.ToStdString());

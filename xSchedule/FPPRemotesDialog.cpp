@@ -128,7 +128,7 @@ void FPPRemotesDialog::EditItem(int item)
     wxTextEntryDialog dlg(this, "Remote IP Address", "IP Address", ip);
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (!IPOutput::IsIPValid(dlg.GetValue().ToStdString()))
+        if (!IPOutput::IsIPValidOrHostname(dlg.GetValue().ToStdString()))
         {
             wxMessageBox("Illegal ip address " + dlg.GetValue());
         }

@@ -1046,7 +1046,7 @@ bool Model::IsValidStartChannelString() const
         {
             wxString ip = parts[0].substr(1);
             Output* o = modelManager.GetOutputManager()->GetOutput(wxAtoi(parts[1]), ip.ToStdString());
-            if (IPOutput::IsIPValid(ip.ToStdString()) && o != nullptr &&
+            if (IPOutput::IsIPValidOrHostname(ip.ToStdString()) && o != nullptr &&
                 (parts[2].IsNumber() && wxAtol(parts[2]) > 0 && !parts[2].Contains('.')))
             {
                 return true;

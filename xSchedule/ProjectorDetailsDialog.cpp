@@ -103,7 +103,7 @@ void ProjectorDetailsDialog::OnTextCtrl_NameText(wxCommandEvent& event)
 void ProjectorDetailsDialog::ValidateWindow()
 {
     if (TextCtrl_Name->GetValue() == "" &&
-        IPOutput::IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
+        IPOutput::IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         Button_Ok->Enable(false);
     }

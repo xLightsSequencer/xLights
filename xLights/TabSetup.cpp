@@ -614,7 +614,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
     wxTextEntryDialog dlg(this, "Change controller IP Address", "IP Address", o->GetIP());
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (!IPOutput::IsIPValid(dlg.GetValue().ToStdString()) && dlg.GetValue().ToStdString() != "MULTICAST")
+        if (!IPOutput::IsIPValidOrHostname(dlg.GetValue().ToStdString()) && dlg.GetValue().ToStdString() != "MULTICAST")
         {
             wxMessageBox("Illegal ip address " + dlg.GetValue().ToStdString());
         }

@@ -513,9 +513,9 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     dmxData["device"] = wxString(controller);
 
     
-    for (int x = 1; x <= maxport; x++) {
+    for (int x = 0; x < maxport; x++) {
         wxJSONValue port;
-        port["portNumber"] = (x - 1);
+        port["portNumber"] = x;
 
         stringData["outputs"].Append(port);
     }
@@ -535,15 +535,29 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             vs["reverse"] = 0;
             vs["colorOrder"] = wxString("RGB");
             vs["nullNodes"] = 0;
-            int zz = (*model)->GetNumStrings() / (*model)->GetNumStrands();
-            vs["zigZag"] = zz == 1 ? 0 : (*model)->NodesPerString() / zz;
+            vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
             vs["brightness"] = 100;
             vs["gamma"] = wxString("1.0");
 
             stringData["outputs"][port]["virtualStrings"].Append(vs);
         }
     }
-    
+    for (int x = 0; x < maxport; x++) {
+        if (stringData["outputs"][x]["virtualStrings"].IsNull() || stringData["outputs"][x]["virtualStrings"].Size() == 0) {
+            wxJSONValue vs;
+            vs["description"] = wxString("");
+            vs["startChannel"] = 0;
+            vs["pixelCount"] = 0;
+            vs["groupCount"] = 0;
+            vs["reverse"] = 0;
+            vs["colorOrder"] = wxString("RGB");
+            vs["nullNodes"] = 0;
+            vs["zigZag"] = 0;
+            vs["brightness"] = 100;
+            vs["gamma"] = wxString("1.0");
+            stringData["outputs"][x]["virtualStrings"].Append(vs);
+        }
+    }
     
     int maxChan = 0;
     int maxDmxPort = -1;

@@ -86,7 +86,7 @@ void IPEntryDialog::ValidateWindow()
     {
         Button_Ok->Enable();
     }
-    else if (IPOutput::IsIPValid(TextCtrl_IPAddress->GetValue().ToStdString()))
+    else if (IPOutput::IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         wxIPV4address localaddr;
         localaddr.Hostname(TextCtrl_IPAddress->GetValue());

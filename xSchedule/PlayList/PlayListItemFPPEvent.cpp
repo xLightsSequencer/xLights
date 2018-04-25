@@ -95,7 +95,7 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
 
         std::string eventstring = GetEventString();
 
-        if (IPOutput::IsIPValid(_ip) && _ip != "255.255.255.255")
+        if (IPOutput::IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
         {
             wxHTTP http;
             http.SetTimeout(1);
