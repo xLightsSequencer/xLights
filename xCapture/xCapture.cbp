@@ -221,6 +221,8 @@
 		</ResourceCompiler>
 		<Unit filename="../xLights/IPEntryDialog.cpp" />
 		<Unit filename="../xLights/IPEntryDialog.h" />
+		<Unit filename="../xLights/UtilFunctions.cpp" />
+		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="ResultDialog.cpp" />

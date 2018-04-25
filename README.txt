@@ -11,12 +11,21 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix crash if uploading zig zag settings to FPP controller
    -- enh (scott)  Added Folder Setting dialog for Media, FSEQ, Backup, and Alt Backup Directories.
    -- bug (keith)  Fix tendril crash when movement was set to zero
    -- bug (keith)  Upgrade some check sequence warnings to errors
    -- bug (keith)  More fixes for images on resizing buffers
    -- bug (keith)  Fix test dialog issues for model groups that contain submodels
    -- bug (keith)  Fix import from sequence with nothing to import causes crash
+   -- enh (keith)  Add value curves to snowflakes and meteors
+   -- bug (keith)  Fix discard on exit prompts for recovery when sequence next opened
+   -- bug (keith)  Fix bulk edit not working on some effects
+   -- enh (keith)  Add the ability to drop an image, video or glediator files onto grid and create the right effects
+   -- enh (keith)  Rework canvas blend style to support canvas and blend at the same time
+   -- bug (keith)  Fix a bunch of problems with output id's such as not saving them, missing on LOR etc
+   -- enh (keith)  Add the ability to save and load face mappings
+   -- bug (keith)  Get xCapture working correctly with multicast data
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs
