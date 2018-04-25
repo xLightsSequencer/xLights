@@ -37,6 +37,7 @@
 // Process Setup Panel Events
 
 #include "osxMacUtils.h"
+#include "UtilFunctions.h"
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
@@ -614,7 +615,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
     wxTextEntryDialog dlg(this, "Change controller IP Address", "IP Address", o->GetIP());
     if (dlg.ShowModal() == wxID_OK)
     {
-        if (!IPOutput::IsIPValidOrHostname(dlg.GetValue().ToStdString()) && dlg.GetValue().ToStdString() != "MULTICAST")
+        if (!IsIPValidOrHostname(dlg.GetValue().ToStdString()) && dlg.GetValue().ToStdString() != "MULTICAST")
         {
             wxMessageBox("Illegal ip address " + dlg.GetValue().ToStdString());
         }

@@ -354,7 +354,7 @@ void OSCPacket::Send(const std::string& ip, int port)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!IPOutput::IsIPValidOrHostname(ip))
+    if (!IsIPValidOrHostname(ip))
     {
         logger_base.warn("OSCPacket send failed due to invalid IP address %s.", (const char *)ip.c_str());
         return;

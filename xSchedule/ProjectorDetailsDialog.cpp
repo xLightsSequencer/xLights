@@ -4,6 +4,7 @@
 //(*InternalHeaders(ProjectorDetailsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "../xLights/UtilFunctions.h"
 //*)
 
 //(*IdInit(ProjectorDetailsDialog)
@@ -103,7 +104,7 @@ void ProjectorDetailsDialog::OnTextCtrl_NameText(wxCommandEvent& event)
 void ProjectorDetailsDialog::ValidateWindow()
 {
     if (TextCtrl_Name->GetValue() == "" &&
-        IPOutput::IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
+        IsIPValidOrHostname(TextCtrl_IPAddress->GetValue().ToStdString()))
     {
         Button_Ok->Enable(false);
     }

@@ -161,6 +161,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
+    <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="ResultDialog.cpp" />
     <ClCompile Include="UniverseEntryDialog.cpp" />
@@ -168,6 +170,8 @@
     <ClCompile Include="xCaptureMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\xLights\IPEntryDialog.h" />
+    <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="ResultDialog.h" />
     <ClInclude Include="UniverseEntryDialog.h" />

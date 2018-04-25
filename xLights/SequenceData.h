@@ -9,6 +9,7 @@
 #ifndef xLights_SequenceData_h
 #define xLights_SequenceData_h
 
+#include <wx/wx.h>
 
 class FrameData {
 public:
@@ -56,6 +57,9 @@ public:
     unsigned int NumFrames() const { return _numFrames;}
     unsigned int FrameTime() const { return _frameTime;}
     bool IsValidData() const { return _data != nullptr; }
+
+    // encodes contents of SeqData in channel order
+    wxString base64_encode();
 
 private:
     SequenceData(const SequenceData&);  //make sure we cannot "copy" these

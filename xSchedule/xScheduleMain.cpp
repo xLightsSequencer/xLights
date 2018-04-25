@@ -43,6 +43,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "Projector.h"
 #include "PlayList/PlayListItemOSC.h"
+#include "../xLights/UtilFunctions.h"
 
 //#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -2757,7 +2758,7 @@ void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 {
     std::string ip = event.GetItem().GetText().SubString(0, event.GetItem().GetText().Find(' ')-1).ToStdString();
-    if (IPOutput::IsIPValidOrHostname(ip))
+    if (IsIPValidOrHostname(ip))
     {
         ::wxLaunchDefaultBrowser("http://" + ip);
     }

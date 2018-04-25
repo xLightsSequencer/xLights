@@ -7,6 +7,7 @@
 
 #include "E131Output.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 //(*IdInit(E131Dialog)
 const long E131Dialog::ID_STATICTEXT4 = wxNewId();
@@ -237,7 +238,7 @@ void E131Dialog::OnButton_CancelClick(wxCommandEvent& event)
 void E131Dialog::ValidateWindow()
 {
     if (TextCtrlIpAddr->GetValue().IsEmpty() ||
-        ((RadioButtonUnicast->GetValue() && !IPOutput::IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString(), true)) ||
+        ((RadioButtonUnicast->GetValue() && !IsIPValidOrHostname(TextCtrlIpAddr->GetValue().ToStdString(), true)) ||
          SpinCtrl_StartUniv->GetValue() + SpinCtrl_NumUniv->GetValue() >= 64000)
         )
     {

@@ -25,6 +25,7 @@
 #include <wx/filedlg.h>
 #include <wx/numdlg.h>
 #include "ResultDialog.h"
+#include "../xLights/IPEntryDialog.h"
 
 #include "../include/xLights.xpm"
 #include "../include/xLights-16.xpm"
@@ -77,6 +78,9 @@ const long xCaptureFrame::ID_STATICLINE1 = wxNewId();
 const long xCaptureFrame::ID_STATICTEXT5 = wxNewId();
 const long xCaptureFrame::ID_CHECKBOX_E131 = wxNewId();
 const long xCaptureFrame::ID_CHECKBOX_ARTNET = wxNewId();
+const long xCaptureFrame::ID_STATICTEXT7 = wxNewId();
+const long xCaptureFrame::ID_STATICTEXT8 = wxNewId();
+const long xCaptureFrame::ID_BUTTON9 = wxNewId();
 const long xCaptureFrame::ID_STATICTEXT6 = wxNewId();
 const long xCaptureFrame::ID_STATICLINE2 = wxNewId();
 const long xCaptureFrame::ID_LISTVIEW_UNIVERSES = wxNewId();
@@ -165,10 +169,10 @@ void xCaptureFrame::StashPacket(long type, wxByte* packet, int len)
     _capturedPackets++;
 }
 
-bool xCaptureFrame::IsUniverseToBeCaptured(int universe)
+bool xCaptureFrame::IsUniverseToBeCaptured(int universe, bool ignoreall /*= false*/)
 {
     if (ListView_Universes->GetItemCount() == 1 &&
-        ListView_Universes->GetItemText(0) == "All")
+        ListView_Universes->GetItemText(0) == "All" && !ignoreall)
     {
         return true;
     }
@@ -277,8 +281,14 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     CheckBox_ArtNET = new wxCheckBox(this, ID_CHECKBOX_ARTNET, _("ArtNET"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ARTNET"));
     CheckBox_ArtNET->SetValue(false);
     FlexGridSizer6->Add(CheckBox_ArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Interface:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_IP = new wxStaticText(this, ID_STATICTEXT8, _("UNKNOWN"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer6->Add(StaticText_IP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(this, ID_BUTTON9, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
+    FlexGridSizer6->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
-    StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Note: Will not record locally generated Multicast or 127.0.0.1 traffic."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Note: If you want to record multicast then you must list the universes\nto listen to and must have the right interface specified."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticLine2 = new wxStaticLine(this, ID_STATICLINE2, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE2"));
     FlexGridSizer1->Add(StaticLine2, 1, wxALL|wxEXPAND, 5);
@@ -323,6 +333,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Connect(ID_CHECKBOX_TRIGGERONCHANNEL,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnCheckBox_TriggerOnChannelClick);
     Connect(ID_CHECKBOX_E131,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnCheckBox_E131Click);
     Connect(ID_CHECKBOX_ARTNET,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnCheckBox_ArtNETClick);
+    Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton1Click);
     Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnListView_UniversesItemSelect);
     Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xCaptureFrame::OnListView_UniversesItemActivated);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_AllClick);
@@ -353,7 +364,18 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     ListView_Universes->AppendColumn("Start");
     ListView_Universes->AppendColumn("  End  ");
 
+    wxIPV4address addr;
+    wxString fullhostname = wxGetFullHostName();
+    addr.AnyAddress();
+    wxDatagramSocket* testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
+    if (testSocket) delete testSocket;
+    addr.Hostname(fullhostname);
+
+    _defaultIP = addr.IPAddress();
+
     LoadState();
+
+    StaticText_IP->SetLabel(_localIP);
 
     UITimer.Start(1000);
 
@@ -365,12 +387,11 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
 
 void xCaptureFrame::LoadState()
 {
-    int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
-    x = config->ReadLong(_("xcWindowPosX"), 50);
-    y = config->ReadLong(_("xcWindowPosY"), 50);
-    w = config->ReadLong(_("xcWindowPosW"), 800);
-    h = config->ReadLong(_("xcWindowPosH"), 600);
+    int x = config->ReadLong(_("xcWindowPosX"), 50);
+    int y = config->ReadLong(_("xcWindowPosY"), 50);
+    int w = config->ReadLong(_("xcWindowPosW"), 800);
+    int h = config->ReadLong(_("xcWindowPosH"), 600);
 
     // limit weirdness
     if (x < -100) x = 0;
@@ -382,6 +403,16 @@ void xCaptureFrame::LoadState()
     SetSize(w, h);
 
     wxFrame::SendSizeEvent();
+
+    wxString localIP = config->Read(_("xcLocalIP"), "");
+    if (localIP != "")
+    {
+        _localIP = localIP;
+    }
+    else
+    {
+        _localIP = _defaultIP;
+    }
 
     wxString state = config->Read(_("xcState"), "");
     wxArrayString items = wxSplit(state, ',');
@@ -451,6 +482,15 @@ void xCaptureFrame::SaveState()
     config->Write(_("xcWindowPosY"), y);
     config->Write(_("xcWindowPosW"), w);
     config->Write(_("xcWindowPosH"), h);
+
+    if (_localIP == _defaultIP)
+    {
+        config->DeleteEntry(_("xcLocalIP"));
+    }
+    else
+    {
+        config->Write(_("xcLocalIP"), _localIP);
+    }
 
     wxString state;
     auto windows = GetChildren();
@@ -702,6 +742,7 @@ void xCaptureFrame::ValidateWindow()
 
 void xCaptureFrame::CreateE131Listener()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_e131Socket != nullptr) return;
 
     //Local address to bind to
@@ -710,6 +751,26 @@ void xCaptureFrame::CreateE131Listener()
     addr.Service(E131PORT);
     //create and bind to the address above
     _e131Socket = new wxDatagramSocket(addr);
+
+    logger_base.debug("E131 listening on %s", (const char*)_localIP.c_str());
+
+    for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
+    {
+        if (ListView_Universes->GetItemText(i) != "All")
+        {
+            int u = wxAtoi(ListView_Universes->GetItemText(i));
+
+            struct ip_mreq mreq;
+            wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
+            mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
+            mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
+            if (setsockopt(_e131Socket->GetSocket(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
+            {
+                logger_base.warn("Error opening E131 multicast listener %s.", (const char *)ip.c_str());
+            }
+        }
+    }
+
     //enable event handling
     _e131Socket->SetEventHandler(*this, ID_E131SOCKET);
     //Notify us about incomming data
@@ -720,6 +781,7 @@ void xCaptureFrame::CreateE131Listener()
 
 void xCaptureFrame::CreateArtNETListener()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_artNETSocket != nullptr) return;
 
     //Local address to bind to
@@ -728,6 +790,26 @@ void xCaptureFrame::CreateArtNETListener()
     addr.Service(ARTNETPORT);
     //create and bind to the address above
     _artNETSocket = new wxDatagramSocket(addr);
+
+    logger_base.debug("ARTNet listening on %s", (const char*)_localIP.c_str());
+
+    for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
+    {
+        if (ListView_Universes->GetItemText(i) != "All")
+        {
+            int u = wxAtoi(ListView_Universes->GetItemText(i));
+
+            struct ip_mreq mreq;
+            wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
+            mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
+            mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
+            if (setsockopt(_e131Socket->GetSocket(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
+            {
+                logger_base.warn("Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
+            }
+        }
+    }
+
     //enable event handling
     _artNETSocket->SetEventHandler(*this, ID_ARTNETSOCKET);
     //Notify us about incomming data
@@ -807,6 +889,10 @@ void xCaptureFrame::AddUniverseRange(int low, int high)
         ListView_Universes->InsertItem(insertat, wxString::Format("%d", low));
         ListView_Universes->SetItem(insertat, 1, wxString::Format("%d", high));
     }
+
+    // Need to redo sockets in case we have multicast
+    RestartInterfaces();
+    ValidateWindow();
 }
 
 void xCaptureFrame::OnResize(wxSizeEvent& event)
@@ -1240,6 +1326,20 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
     }
 }
 
+void xCaptureFrame::RestartInterfaces()
+{
+    CloseSockets(true);
+    if (CheckBox_E131->GetValue())
+    {
+        CreateE131Listener();
+    }
+    if (CheckBox_ArtNET->GetValue())
+    {
+        CreateArtNETListener();
+    }
+    ValidateWindow();
+}
+
 void xCaptureFrame::UpdateCaptureDesc()
 {
     if (_capturedData.size() == 0)
@@ -1370,4 +1470,24 @@ void xCaptureFrame::OnButton_AnalyseClick(wxCommandEvent& event)
 
     ResultDialog dlgLog(this, log);
     dlgLog.ShowModal();
+}
+
+void xCaptureFrame::OnButton1Click(wxCommandEvent& event)
+{
+    IPEntryDialog dlg(this);
+    dlg.TextCtrl_IPAddress->SetValue(_localIP);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        if (dlg.TextCtrl_IPAddress->GetValue() == "")
+        {
+            _localIP = _defaultIP;
+        }
+        else
+        {
+            _localIP = dlg.TextCtrl_IPAddress->GetValue();
+        }
+        StaticText_IP->SetLabel(_localIP);
+        RestartInterfaces();
+    }
 }

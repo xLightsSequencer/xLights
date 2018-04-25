@@ -100,3 +100,58 @@ const FrameData SequenceData::operator[](unsigned int frame) const {
     offset *= _bytesPerFrame;
     return FrameData(_numChannels, &_data[offset]);
 }
+
+wxString SequenceData::base64_encode()
+{
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    wxString ret;
+    int i = 0;
+
+    unsigned char char_array_3[3];
+    unsigned char char_array_4[4];
+
+    for (size_t channel = 0; channel < NumChannels(); channel++) {
+        for (size_t frame = 0; frame < NumFrames(); frame++) {
+            char_array_3[i++] = (*this)[frame][channel];
+            if (i == 3)
+            {
+                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+                char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+                char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+                char_array_4[3] = char_array_3[2] & 0x3f;
+
+                for (i = 0; (i <4); i++)
+                {
+                    ret += base64_chars[char_array_4[i]];
+                }
+                i = 0;
+            }
+        }
+    }
+
+    if (i)
+    {
+        for (int j = i; j < 3; j++)
+        {
+            char_array_3[j] = '\0';
+        }
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        char_array_4[3] = char_array_3[2] & 0x3f;
+
+        for (int j = 0; (j < i + 1); j++)
+        {
+            ret += base64_chars[char_array_4[j]];
+        }
+
+        while ((i++ < 3))
+        {
+            ret += '=';
+        }
+
+    }
+    return ret;
+}
