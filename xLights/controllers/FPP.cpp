@@ -535,7 +535,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             vs["reverse"] = 0;
             vs["colorOrder"] = wxString("RGB");
             vs["nullNodes"] = 0;
-            vs["zigZag"] = 0; // zig zagging should be done in xlights or the controller ... not both ... so we do it in xlights
+            vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
             vs["brightness"] = 100;
             vs["gamma"] = wxString("1.0");
 
