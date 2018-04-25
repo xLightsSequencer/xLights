@@ -171,7 +171,7 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
         AltBackupDirectory = wxString();
         CheckBoxEnableAltBackup->SetValue(false);
         TextCtrlAltBackupDirectory->Enable(false);
-        ButtonFindAltBackupDirectory->SetLabel(wxString());
+        TextCtrlAltBackupDirectory->SetLabel(wxString());
         ButtonFindAltBackupDirectory->Enable(false);
     }
 }
