@@ -358,6 +358,7 @@ class LayoutPanel: public wxPanel
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
         void Unselect3DItems();
+        void SelectModel3D();
         void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style);
         int GetModelTreeIcon(Model* model, bool open);

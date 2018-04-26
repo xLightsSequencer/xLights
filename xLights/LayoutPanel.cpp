@@ -1395,6 +1395,13 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
+    if (is_3d) {
+        selectionLatched = false;
+        handleLatched = false;
+        highlightedModel = nullptr;
+        m_last_handle = -1;
+    }
+
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->Selected = false;
@@ -1481,6 +1488,20 @@ void LayoutPanel::SetupPropGrid(Model *model) {
     propertyEditor->Thaw();
 }
 
+void LayoutPanel::SelectModel3D()
+{
+    if (is_3d) {
+        // latch center handle immediately
+        if (selectedModel != nullptr) {
+            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            selectedModel->GetModelScreenLocation().SetArrowsActive(true);
+            selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
+            highlightedModel = selectedModel;
+            selectionLatched = true;
+            handleLatched = true;
+        }
+    }
+}
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
 {
     Model *m = xlights->AllModels[name];
@@ -1579,6 +1600,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             }
         }
     }
+    SelectModel3D();
     UpdatePreview();
 }
 
@@ -1855,14 +1877,15 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     glm::vec3 aabb_min[10];
     glm::vec3 aabb_max[10];
 
-    for (size_t h = 0; h < num_handles; h++) {
+    //for (size_t h = 0; h < num_handles; h++) {
+    size_t h = OVER_CENTER_HANDLE;
         aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
         aabb_min[h].y = handles[h].y - model_mat[3][1] - hw;
         aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
         aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
         aabb_max[h].y = handles[h].y - model_mat[3][1] + hw;
         aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
-    }
+    //}
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
@@ -1958,15 +1981,6 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 
 void LayoutPanel::Unselect3DItems()
 {
-    if (selectedModel != nullptr) {
-        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);  // deselect active handle
-        selectedModel->GetModelScreenLocation().SetArrowsActive(false);
-        selectedModel->GetModelScreenLocation().SetHandlesActive(false);
-    }
-    selectionLatched = false;
-    handleLatched = false;
-    highlightedModel = nullptr;
-    m_last_handle = -1;
     UnSelectAllModels();
 }
 
@@ -1993,7 +2007,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                         }
                     }
                     else {
-                        if ((handle == 9 /* center handle */ ) &&
+                        if ((handle == OVER_CENTER_HANDLE ) &&
                             (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) &&
                             selectedModel->GetModelScreenLocation().GetArrowsActive() ) {
                             selectedModel->GetModelScreenLocation().AdvanceAxisTool();
@@ -2014,17 +2028,55 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             else {
                 SelectModel(highlightedModel);
                 selectionLatched = true;
+                // latch center handle immediately
+                selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+                selectedModel->GetModelScreenLocation().SetArrowsActive(true);
+                UpdatePreview();
+                handleLatched = true;
             }
         }
         else {
-            m_mouse_down = true;
+            if (selectedButton == nullptr) {
+                m_mouse_down = true;
+            }
         }
 
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
 
         if (selectedButton != nullptr) {
-            // FIXME:  need to work on new model creation
+            //create a new model
+            int wi, ht;
+            modelPreview->GetVirtualCanvasSize(wi, ht);
+            int cy = modelPreview->GetVirtualCanvasHeight() - event.GetY();
+            //if (m_last_mouse_x < wi
+            //    && cy < ht
+            //    && cy >= 0) {
+
+                m_moving_handle = true;
+                m_creating_bound_rect = false;
+                const std::string& model_type = selectedButton->GetModelType();
+                newModel = CreateNewModel(model_type);
+                newModel->SetLayoutGroup(currentLayoutGroup);
+
+                if (newModel != nullptr) {
+                    if (model_type == "Poly Line") {
+                        m_polyline_active = true;
+                    }
+
+                    newModel->Selected = true;
+                    newModel->GetModelScreenLocation().SetActiveHandle(0);
+                    selectionLatched = true;
+                    highlightedModel = newModel;
+                    if (wi > 0 && ht > 0)
+                    {
+                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+                        newModel->UpdateXmlWithScale();
+                    }
+                    lastModelName = newModel->name;
+                    modelPreview->GetModels().push_back(newModel);
+                }
+            //}
         }
 
         ShowPropGrid(true);
@@ -2056,40 +2108,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
              //   selectedModel->SelectHandle(m_over_handle);
              //   UpdatePreview();
             //}
-        }
-        else if (selectedButton != nullptr)
-        {
-           /* //create a new model
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi, ht);
-            m_previous_mouse_x = event.GetX();
-            m_previous_mouse_y = event.GetY();
-            int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
-            if (m_previous_mouse_x < wi
-                && cy < ht
-                && cy >= 0) {
-
-                m_moving_handle = true;
-                m_creating_bound_rect = false;
-                const std::string& model_type = selectedButton->GetModelType();
-                newModel = CreateNewModel(model_type);
-                newModel->SetLayoutGroup(currentLayoutGroup);
-
-                if (newModel != nullptr) {
-                    if (model_type == "Poly Line") {
-                        m_polyline_active = true;
-                    }
-
-                    newModel->Selected = true;
-                    if (wi > 0 && ht > 0)
-                    {
-                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y));
-                        newModel->UpdateXmlWithScale();
-                    }
-                    lastModelName = newModel->name;
-                    modelPreview->GetModels().push_back(newModel);
-                }
-            }*/
         }
         else
         {
@@ -2184,7 +2202,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                     newModel->Selected = true;
                     if (wi > 0 && ht > 0)
                     {
-                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y));
+                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y, modelPreview));
                         newModel->UpdateXmlWithScale();
                     }
                     lastModelName = newModel->name;
@@ -2302,13 +2320,13 @@ void LayoutPanel::FinalizeModel()
                 selectedButton = nullptr;
             }
             xlights->UpdateModelsList();
-            UpdatePreview();
             SelectModel(name);
         } else {
             newModel = nullptr;
             xlights->UpdateModelsList();
-            UpdatePreview();
         }
+        SelectModel3D();
+        UpdatePreview();
     }
 }
 
@@ -2344,12 +2362,14 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     SelectSingleModel3D(event.GetX(), event.GetY());
                 }
                 else if (!handleLatched) {
-                    int handle = SelectModelHandles3D(event.GetX(), event.GetY());
-                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
-                    if (handle != m_last_handle) {
-                        UpdatePreview();
+                    if (selectedModel != nullptr) {
+                        int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+                        selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+                        if (handle != m_last_handle) {
+                            UpdatePreview();
+                        }
+                        m_last_handle = handle;
                     }
-                    m_last_handle = handle;
                 }
             }
         return;

@@ -66,7 +66,7 @@ public:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) = 0;
     virtual void InsertHandle(int after_handle) = 0;
     virtual void DeleteHandle(int handle) = 0;
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
@@ -192,7 +192,7 @@ public:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
     virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -293,7 +293,7 @@ public:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override {}
     virtual void InsertHandle(int after_handle) override {}
     virtual void DeleteHandle(int handle) override {}
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
@@ -425,7 +425,7 @@ public:
     virtual void AddHandle(ModelPreview* preview, int mouseX, int mouseY) override;
     virtual void InsertHandle(int after_handle) override;
     virtual void DeleteHandle(int handle) override;
-    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) override;
+    virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;

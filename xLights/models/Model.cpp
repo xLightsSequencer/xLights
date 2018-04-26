@@ -2664,8 +2664,8 @@ wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x, wxCoord y) {
     return GetModelScreenLocation().CheckIfOverHandles(handle, x, y);
 }
 
-wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y) {
-    return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
+wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {
+    return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
 
 void Model::ApplyTransparency(xlColor &color, int transparency) const
@@ -3493,7 +3493,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
 
             int h1 = 1;
-            model->InitializeLocation(h1, l, b);
+            model->InitializeLocation(h1, l, b, nullptr);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r-l));
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t-b) / (float)std::abs(r-l));
             model->SetLayoutGroup(model->GetLayoutGroup());

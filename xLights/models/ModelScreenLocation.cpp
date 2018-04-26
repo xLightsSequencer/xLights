@@ -353,14 +353,29 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
     return wxCURSOR_DEFAULT;
 }
 
-wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
+wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
-    //VectorMath::ScreenPosToWorldRay(x, y, previewW, previewH, )
-    worldPos_x = (float)x/(float)previewW;
-    worldPos_y = (float)y/(float)previewH;
-    worldPos_z = 0.0f;
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    if (preview != nullptr) {
+        // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
+        // of the mouse click with the ground plane
+        worldPos_x = 0.0f;
+        worldPos_y = 0.0f;
+        worldPos_z = 0.0f;
+        active_axis = X_AXIS;
+        DragHandle(preview, x, y, true);
+        worldPos_x = saved_intersect.x;
+        worldPos_y = RenderHt / 2.0f;
+        worldPos_z = saved_intersect.z;
+    }
+    else {
+        worldPos_x = 0.0f;
+        worldPos_y = 0.0f;
+        worldPos_z = 0.0f;
+    }
     SetPreviewSize(previewW, previewH, Nodes);
-    handle = OVER_R_BOTTOM_HANDLE;
+    handle = OVER_CENTER_HANDLE;
     return wxCURSOR_SIZING;
 }
 
@@ -536,14 +551,14 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     mHandlePosition[8].x = sx;
     mHandlePosition[8].y = sy;
     mHandlePosition[8].z = sz2;
-
+ 
     // Center Handle
     mHandlePosition[9].x = worldPos_x;
     mHandlePosition[9].y = worldPos_y;
     mHandlePosition[9].z = worldPos_z;
 
     // Draw rotation handle square
-    sx = -RECT_HANDLE_WIDTH / 2;
+    /*sx = -RECT_HANDLE_WIDTH / 2;
     sy = ((RenderHt*scaley/2) + 50);
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx += w1;
@@ -557,13 +572,13 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     sy = ((RenderHt*scaley/2) + 50);
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx += w1;
-    sy += h1;
+    sy += h1;*/
 
    // va.Finish(GL_TRIANGLES);
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(w1, h1, worldPos_z, xlWHITE);
-    va.AddVertex(sx, sy, worldPos_z, xlWHITE);
+    //va.AddVertex(w1, h1, worldPos_z, xlWHITE);
+    //va.AddVertex(sx, sy, worldPos_z, xlWHITE);
     va.AddVertex(mHandlePosition[0].x, mHandlePosition[0].y, mHandlePosition[0].z, xlWHITE);
     va.AddVertex(mHandlePosition[1].x, mHandlePosition[1].y, mHandlePosition[1].z, xlWHITE);
     va.AddVertex(mHandlePosition[1].x, mHandlePosition[1].y, mHandlePosition[1].z, xlWHITE);
@@ -593,12 +608,11 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
     if (handles_active) {
-        for (size_t h = 0; h < mHandlePosition.size(); h++) {
-            color = (active_handle == h) ? xlGREEN : handleColor;
-            DrawGLUtils::DrawSphere(mHandlePosition[h].x, mHandlePosition[h].y, mHandlePosition[h].z, (double)(RECT_HANDLE_WIDTH), color, va);
-        }
-        color = (active_handle == 9) ? xlGREEN : xlColor(255, 128, 0);
-        DrawGLUtils::DrawSphere(mHandlePosition[9].x, mHandlePosition[9].y, mHandlePosition[9].z, (double)(RECT_HANDLE_WIDTH), color, va);
+        //for (size_t h = 0; h < mHandlePosition.size(); h++) {
+        //    color = (active_handle == h) ? xlGREEN : handleColor;
+        //    DrawGLUtils::DrawSphere(mHandlePosition[h].x, mHandlePosition[h].y, mHandlePosition[h].z, (double)(RECT_HANDLE_WIDTH), color, va);
+        //}
+        DrawGLUtils::DrawSphere(mHandlePosition[9].x, mHandlePosition[9].y, mHandlePosition[9].z, (double)(RECT_HANDLE_WIDTH), xlColor(255, 128, 0), va);
     }
 
     if (arrows_active && (active_handle != -1)) {
@@ -823,12 +837,25 @@ void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool S
             {
             case X_AXIS:
                 scalex = saved_scale.x * ((saved_size.x + drag_delta.x / 2.0f) / saved_size.x);
+                if (ShiftKeyPressed) {
+                    scalez = scalex;
+                }
                 break;
             case Y_AXIS:
-                scaley = saved_scale.y * ((saved_size.y + drag_delta.y / 2.0f) / saved_size.y);
+                if (ShiftKeyPressed) {
+                    float current_bottom = saved_position.y - (saved_scale.y * RenderHt / 2.0f);
+                    scaley = saved_scale.y * ((saved_size.y + drag_delta.y / 2.0f) / saved_size.y);
+                    worldPos_y = current_bottom + (scaley * RenderHt / 2.0f);
+                }
+                else {
+                    scaley = saved_scale.y * ((saved_size.y + drag_delta.y / 2.0f) / saved_size.y);
+                }
                 break;
             case Z_AXIS:
                 scalez = saved_scale.z * ((saved_size.z + drag_delta.z / 2.0f) / saved_size.z);
+                if (ShiftKeyPressed) {
+                    scalex = scalez;
+                }
                 break;
             }
         }
@@ -1199,7 +1226,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     }
     return 0;
 }
-wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
+wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     x1 = x2 = (float)x/(float)previewW;
     y1 = y2 = (float)y/(float)previewH;
     handle = 1;
@@ -2329,7 +2356,7 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
     selected_handle = -1;
 }
 
-wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
+wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
     mPos[0].x = (float)x/(float)previewW;
     mPos[0].y = (float)y/(float)previewH;
     mPos[1].x = (float)x/(float)previewW;
