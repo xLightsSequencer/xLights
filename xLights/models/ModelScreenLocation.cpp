@@ -6,10 +6,9 @@
 
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
-
-#include <glm/mat4x4.hpp>
+#include "../support/VectorMath.h"
+#include <log4cpp/Category.hh>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #define SNAP_RANGE                  5
 #define RECT_HANDLE_WIDTH           6
@@ -95,53 +94,137 @@ ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
-  ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f, 0.0f, 0.0f), aabb_max(0.0f, 0.0f, 0.0f),
-  active_handle(-1), active_axis(-1), arrows_active(false), handles_active(false)
+  ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
+  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), active_handle(-1), active_axis(-1),
+  arrows_active(false), handles_active(false), axis_tool(TOOL_TRANSLATE)
 {
     draw_3d = false;
     _locked = false;
 }
 
-void ModelScreenLocation::DrawAxisArrows(float x, float y, float z, DrawGLUtils::xl3Accumulator &va)
+void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const
 {
     int num_points = 18;
     float head_length = 12.0f;
     float os = (float)RECT_HANDLE_WIDTH;
 
-    float tip = x + AXIS_ARROW_LENGTH;
-    for (size_t i = 0; i < num_points; i++) {
-        float u1 = i / (float)num_points;
-        float u2 = i + 1 / (float)num_points;
-        va.AddVertex(tip, y, z, xlRED);
-        va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlRED);
-        va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlRED);
+    if (axis_tool == TOOL_TRANSLATE) {
+        float tip = x + AXIS_ARROW_LENGTH;
+        for (size_t i = 0; i < num_points; i++) {
+            float u1 = i / (float)num_points;
+            float u2 = i + 1 / (float)num_points;
+            va.AddVertex(tip, y, z, xlRED);
+            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlRED);
+            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlRED);
+        }
+        tip = y + AXIS_ARROW_LENGTH;
+        for (size_t i = 0; i < num_points; i++) {
+            float u1 = i / (float)num_points;
+            float u2 = i + 1 / (float)num_points;
+            va.AddVertex(x, tip, z, xlGREEN);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlGREEN);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlGREEN);
+        }
+        tip = z + AXIS_ARROW_LENGTH;
+        for (size_t i = 0; i < num_points; i++) {
+            float u1 = i / (float)num_points;
+            float u2 = i + 1 / (float)num_points;
+            va.AddVertex(x, y, tip, xlBLUE);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
+        }
+        va.Finish(GL_TRIANGLES);
     }
-    tip = y + AXIS_ARROW_LENGTH;
-    for (size_t i = 0; i < num_points; i++) {
-        float u1 = i / (float)num_points;
-        float u2 = i + 1 / (float)num_points;
-        va.AddVertex(x, tip, z, xlGREEN);
-        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length,  z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlGREEN);
-        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length,  z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlGREEN);
+    if (axis_tool == TOOL_SCALE) {
+        DrawGLUtils::DrawCube(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, AXIS_RADIUS * 2, xlRED, va);
+        DrawGLUtils::DrawCube(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, AXIS_RADIUS * 2, xlGREEN, va);
+        DrawGLUtils::DrawCube(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, xlBLUE, va);
+        va.Finish(GL_TRIANGLES);
     }
-    tip = z + AXIS_ARROW_LENGTH;
-    for (size_t i = 0; i < num_points; i++) {
-        float u1 = i / (float)num_points;
-        float u2 = i + 1 / (float)num_points;
-        va.AddVertex(x, y, tip, xlBLUE);
-        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
-        va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
-    }
-    va.Finish(GL_TRIANGLES);
 
-    va.AddVertex(x + os, y, z, xlRED);
-    va.AddVertex(x + AXIS_ARROW_LENGTH - head_length, y, z, xlRED);
-    va.AddVertex(x, y + os, z, xlGREEN);
-    va.AddVertex(x, y + AXIS_ARROW_LENGTH - head_length, z, xlGREEN);
-    va.AddVertex(x, y, z + os, xlBLUE);
-    va.AddVertex(x, y, z + AXIS_ARROW_LENGTH - head_length, xlBLUE);
-    va.Finish(GL_LINES);
+    if (axis_tool == TOOL_TRANSLATE || axis_tool == TOOL_SCALE) {
+        va.AddVertex(x + os, y, z, xlRED);
+        va.AddVertex(x + AXIS_ARROW_LENGTH, y, z, xlRED);
+        va.AddVertex(x, y + os, z, xlGREEN);
+        va.AddVertex(x, y + AXIS_ARROW_LENGTH, z, xlGREEN);
+        va.AddVertex(x, y, z + os, xlBLUE);
+        va.AddVertex(x, y, z + AXIS_ARROW_LENGTH, xlBLUE);
+        va.Finish(GL_LINES);
+    }
 
+}
+
+bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
+
+    if (latch) {
+        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        saved_scale = glm::vec3(scalex, scaley, scalez);
+        saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
+    }
+
+    //Get a world position for the mouse
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        mouseX, preview->getHeight() - mouseY,
+        preview->getWidth(), preview->getHeight(),
+        preview->GetViewMatrix(),
+        preview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+
+    glm::vec3 point(0.0f);
+    glm::vec3 normal(0.0f);
+    glm::vec3 intersect(0.0f);
+
+    switch (active_axis)
+    {
+    case X_AXIS:
+    case Z_AXIS:
+        normal = glm::vec3(0.0f, saved_position.y + AXIS_ARROW_LENGTH, 0.0f);
+        point = glm::vec3(0.0f, saved_position.y, 0.0f);
+        break;
+    case Y_AXIS:
+        normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
+        point = glm::vec3(0.0f, saved_position.y, 0.0f);
+        break;
+    }
+
+    bool found = VectorMath::GetPlaneIntersect(
+        ray_origin,         // Point origin  (x0, y0, z0)
+        ray_direction,      // Ray direction (x,  y,  z)
+        point,              // Point on the plane
+        normal,             // Normal to the plane
+        intersect);         // Output: intersect point
+
+    drag_delta = glm::vec3(0.0f);
+
+    if (found) {
+        if (latch) {
+            saved_intersect = intersect;
+        }
+        else {
+            switch (active_axis)
+            {
+            case X_AXIS:
+                drag_delta.x = intersect.x - saved_intersect.x;
+                break;
+            case Y_AXIS:
+                drag_delta.y = intersect.y - saved_intersect.y;
+                break;
+            case Z_AXIS:
+                drag_delta.z = intersect.z - saved_intersect.z;
+                break;
+            }
+        }
+    }
+    else {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.warn("MoveHandle3D: Intersect not found!");
+    }
+    return found;
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
@@ -201,6 +284,7 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
 	sz = (sz*scalez);
     TranslatePointDoubles(radians,sx,sy,sx,sy);
 
+    // FIXME:  Only want this for tree model
     if (!draw_3d) {
         glm::vec4 position = glm::vec4(glm::vec3(sx, sy, sz), 1.0);
         glm::mat4 rm = glm::rotate(glm::mat4(1.0f), perspective, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -270,8 +354,11 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
 }
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes) {
+
+    //VectorMath::ScreenPosToWorldRay(x, y, previewW, previewH, )
     worldPos_x = (float)x/(float)previewW;
     worldPos_y = (float)y/(float)previewH;
+    worldPos_z = 0.0f;
     SetPreviewSize(previewW, previewH, Nodes);
     handle = OVER_R_BOTTOM_HANDLE;
     return wxCURSOR_SIZING;
@@ -515,20 +602,20 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     }
 
     if (arrows_active && (active_handle != -1)) {
-        DrawAxisArrows(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+        DrawAxisTool(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
             switch (active_axis)
             {
-            case 0:  // x
+            case X_AXIS:
                 va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
                 va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
                 break;
-            case 1:  // y
+            case Y_AXIS:
                 va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
                 va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
                 break;
-            case 2:  // z
+            case Z_AXIS:
                 va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, -1000000.0f, xlBLUE);
                 va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, +1000000.0f, xlBLUE);
                 break;
@@ -653,7 +740,8 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     else if (_locked && "ModelRotation" == name) {
         event.Veto();
         return 0;
-    } else if (!_locked && "ScaleX" == name) {
+    }
+    else if (!_locked && "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
         return 3;
     }
@@ -676,14 +764,16 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     else if (_locked && "ScaleZ" == name) {
         event.Veto();
         return 0;
-    } else if (!_locked && "ModelX" == name) {
+    }
+    else if (!_locked && "ModelX" == name) {
         worldPos_x = event.GetValue().GetDouble();
         return 3;
     }
     else if (_locked && "ModelX" == name) {
         event.Veto();
         return 0;
-    } else if (!_locked && "ModelY" == name) {
+    }
+    else if (!_locked && "ModelY" == name) {
         worldPos_y = event.GetValue().GetDouble();
         return 3;
     }
@@ -706,6 +796,43 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
 
     return 0;
+}
+
+void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch) {
+    
+    if (!DragHandle(preview, mouseX, mouseY, latch)) return;
+
+    if (handle == OVER_CENTER_HANDLE) {
+
+        if (axis_tool == TOOL_TRANSLATE) {
+            switch (active_axis)
+            {
+            case X_AXIS:
+                worldPos_x = saved_position.x + drag_delta.x;
+                break;
+            case Y_AXIS:
+                worldPos_y = saved_position.y + drag_delta.y;
+                break;
+            case Z_AXIS:
+                worldPos_z = saved_position.z + drag_delta.z;
+                break;
+            }
+        }
+        else if (axis_tool == TOOL_SCALE) {
+            switch (active_axis)
+            {
+            case X_AXIS:
+                scalex = saved_scale.x * ((saved_size.x + drag_delta.x / 2.0f) / saved_size.x);
+                break;
+            case Y_AXIS:
+                scaley = saved_scale.y * ((saved_size.y + drag_delta.y / 2.0f) / saved_size.y);
+                break;
+            case Z_AXIS:
+                scalez = saved_scale.z * ((saved_size.z + drag_delta.z / 2.0f) / saved_size.z);
+                break;
+            }
+        }
+    }
 }
 
 int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
@@ -1027,6 +1154,11 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
     va.Finish(GL_TRIANGLES);
+}
+
+void TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch)
+{
+
 }
 
 int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
@@ -2031,6 +2163,11 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
     }
 
     va.Finish(GL_TRIANGLES);
+}
+
+void PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch)
+{
+
 }
 
 int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {

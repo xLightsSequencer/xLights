@@ -36,9 +36,11 @@
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
+#include "support/VectorMath.h"
 
 static float AXIS_RADIUS = 4.0f;
 static float AXIS_ARROW_LENGTH = 60.0f;
+static float AXIS_HEAD_LENGTH = 12.0f;
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -1713,12 +1715,11 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     static int last_selection = -1;
-    glm::mat4 view_mat = modelPreview->GetViewMatrix();
 
-    ScreenPosToWorldRay(
+    VectorMath::ScreenPosToWorldRay(
         x, (modelPreview->getHeight() - y),
         modelPreview->getWidth(), modelPreview->getHeight(),
-        view_mat,
+        modelPreview->GetViewMatrix(),
         modelPreview->GetProjMatrix(),
         ray_origin,
         ray_direction
@@ -1734,7 +1735,7 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
 
         glm::mat4 model_mat = modelPreview->GetModels()[i]->GetModelScreenLocation().GetModelMatrix();
 
-        if (TestRayOBBIntersection(
+        if (VectorMath::TestRayOBBIntersection(
             ray_origin,
             ray_direction,
             modelPreview->GetModels()[i]->GetModelScreenLocation().GetAABB_Min(),
@@ -1773,6 +1774,8 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     return ret_value;
 }
 
+#define RECT_HANDLE_WIDTH           6
+
 int LayoutPanel::SelectModelHandles3D(int x, int y)
 {
     if (selectedModel == nullptr) return -1;
@@ -1780,12 +1783,11 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     std::vector<int> found;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
-    glm::mat4 view_mat = modelPreview->GetViewMatrix();
 
-    ScreenPosToWorldRay(
+    VectorMath::ScreenPosToWorldRay(
         x, (modelPreview->getHeight() - y),
         modelPreview->getWidth(), modelPreview->getHeight(),
-        view_mat,
+        modelPreview->GetViewMatrix(),
         modelPreview->GetProjMatrix(),
         ray_origin,
         ray_direction
@@ -1804,31 +1806,31 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
         glm::vec3 axisbb_min[3];
         glm::vec3 axisbb_max[3];
-        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0];
+        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
         axisbb_min[0].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
         axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
         axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1];
+        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
         axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
         axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[2].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
-        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2];
-        axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH - model_mat[3][0];
-        axisbb_max[0].y = (handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
+        axisbb_min[2].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
+        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH + 3 - model_mat[3][0];
+        axisbb_max[0].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
         axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
         axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[1].y = (handles[active_handle].y + AXIS_ARROW_LENGTH) - model_mat[3][1];
+        axisbb_max[1].y = handles[active_handle].y + AXIS_ARROW_LENGTH + 3 - model_mat[3][1];
         axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
         axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[2].y = (handles[active_handle].y + AXIS_RADIUS) - model_mat[3][1];
-        axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH - model_mat[3][2];
+        axisbb_max[2].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
+        axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH + 3 - model_mat[3][2];
 
         // see if an axis handle is selected
         for (size_t i = 0; i < 3; i++)
         {
             float intersection_distance; // Output of TestRayOBBIntersection()
 
-            if (TestRayOBBIntersection(
+            if (VectorMath::TestRayOBBIntersection(
                 ray_origin,
                 ray_direction,
                 axisbb_min[i],
@@ -1867,7 +1869,7 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
-        if (TestRayOBBIntersection(
+        if (VectorMath::TestRayOBBIntersection(
             ray_origin,
             ray_direction,
             aabb_min[i],
@@ -1883,158 +1885,6 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     }
 
     return which_handle;
-}
-
-void LayoutPanel::ScreenPosToWorldRay(
-    int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
-    int screenWidth, int screenHeight,  // Window size, in pixels
-    glm::mat4 ViewMatrix,               // Camera position and orientation
-    glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
-    glm::vec3& out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
-    glm::vec3& out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
-) {
-
-    // The ray Start and End positions, in Normalized Device Coordinates (Have you read Tutorial 4 ?)
-    glm::vec4 lRayStart_NDC(
-        ((float)mouseX / (float)screenWidth - 0.5f) * 2.0f, // [0,1024] -> [-1,1]
-        ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f, // [0, 768] -> [-1,1]
-        -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
-        1.0f
-    );
-    glm::vec4 lRayEnd_NDC(
-        ((float)mouseX / (float)screenWidth - 0.5f) * 2.0f,
-        ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f,
-        0.0,
-        1.0f
-    );
-
-    glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
-    glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
-    glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
-
-    glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
-    lRayDir_world = glm::normalize(lRayDir_world);
-
-    out_origin = glm::vec3(lRayStart_world);
-    out_direction = glm::normalize(lRayDir_world);
-}
-
-bool LayoutPanel::TestRayOBBIntersection(
-    glm::vec3 ray_origin,        // Ray origin, in world space
-    glm::vec3 ray_direction,     // Ray direction (NOT target position!), in world space. Must be normalize()'d.
-    glm::vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
-    glm::vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-    glm::mat4 ModelMatrix,       // Transformation applied to the mesh (which will thus be also applied to its bounding box)
-    float& intersection_distance // Output : distance between ray_origin and the intersection with the OBB
-) {
-
-    // Intersection method from Real-Time Rendering and Essential Mathematics for Games
-
-    float tMin = 0.0f;
-    float tMax = 100000.0f;
-
-    glm::vec3 OBBposition_worldspace(ModelMatrix[3].x, ModelMatrix[3].y, ModelMatrix[3].z);
-
-    glm::vec3 delta = OBBposition_worldspace - ray_origin;
-
-    // Test intersection with the 2 planes perpendicular to the OBB's X axis
-    {
-        glm::vec3 xaxis(ModelMatrix[0].x, ModelMatrix[0].y, ModelMatrix[0].z);
-        float e = glm::dot(xaxis, delta);
-        float f = glm::dot(ray_direction, xaxis);
-
-        if (fabs(f) > 0.001f) { // Standard case
-
-            float t1 = (e + aabb_min.x) / f; // Intersection with the "left" plane
-            float t2 = (e + aabb_max.x) / f; // Intersection with the "right" plane
-                                             // t1 and t2 now contain distances betwen ray origin and ray-plane intersections
-
-                                             // We want t1 to represent the nearest intersection, 
-                                             // so if it's not the case, invert t1 and t2
-            if (t1>t2) {
-                float w = t1; t1 = t2; t2 = w; // swap t1 and t2
-            }
-
-            // tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
-            if (t2 < tMax)
-                tMax = t2;
-            // tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
-            if (t1 > tMin)
-                tMin = t1;
-
-            // And here's the trick :
-            // If "far" is closer than "near", then there is NO intersection.
-            // See the images in the tutorials for the visual explanation.
-            if (tMax < tMin)
-                return false;
-
-        }
-        else { // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
-            if (-e + aabb_min.x > 0.0f || -e + aabb_max.x < 0.0f)
-                return false;
-        }
-    }
-
-
-    // Test intersection with the 2 planes perpendicular to the OBB's Y axis
-    // Exactly the same thing than above.
-    {
-        glm::vec3 yaxis(ModelMatrix[1].x, ModelMatrix[1].y, ModelMatrix[1].z);
-        float e = glm::dot(yaxis, delta);
-        float f = glm::dot(ray_direction, yaxis);
-
-        if (fabs(f) > 0.001f) {
-
-            float t1 = (e + aabb_min.y) / f;
-            float t2 = (e + aabb_max.y) / f;
-
-            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
-
-            if (t2 < tMax)
-                tMax = t2;
-            if (t1 > tMin)
-                tMin = t1;
-            if (tMin > tMax)
-                return false;
-
-        }
-        else {
-            if (-e + aabb_min.y > 0.0f || -e + aabb_max.y < 0.0f)
-                return false;
-        }
-    }
-
-
-    // Test intersection with the 2 planes perpendicular to the OBB's Z axis
-    // Exactly the same thing than above.
-    {
-        glm::vec3 zaxis(ModelMatrix[2].x, ModelMatrix[2].y, ModelMatrix[2].z);
-        float e = glm::dot(zaxis, delta);
-        float f = glm::dot(ray_direction, zaxis);
-
-        if (fabs(f) > 0.001f) {
-
-            float t1 = (e + aabb_min.z) / f;
-            float t2 = (e + aabb_max.z) / f;
-
-            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
-
-            if (t2 < tMax)
-                tMax = t2;
-            if (t1 > tMin)
-                tMin = t1;
-            if (tMin > tMax)
-                return false;
-
-        }
-        else {
-            if (-e + aabb_min.z > 0.0f || -e + aabb_max.z < 0.0f)
-                return false;
-        }
-    }
-
-    intersection_distance = tMin;
-    return true;
 }
 
 void LayoutPanel::SelectAllInBoundingRect()
@@ -2125,17 +1975,32 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     // process 3d independently until we determine what can be combined
     if (is_3d) {
 
-       // don't mark mouse down if a selection is being made
+        m_moving_handle = false;
+        // don't mark mouse down if a selection is being made
        if (highlightedModel != nullptr) {
             if (selectionLatched) {
                 int handle = SelectModelHandles3D(event.GetX(), event.GetY());
                 if( handle != -1 ) {
                     if (handle >= 0x100) {
                         // an axis was selected
-                        selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                        UpdatePreview();
+                        if (selectedModel != nullptr) {
+                            int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                            selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
+                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.GetX(), event.GetY(), true);
+                            UpdatePreview();
+                            m_moving_handle = true;
+                            m_mouse_down = true;
+                        }
                     }
                     else {
+                        if ((handle == 9 /* center handle */ ) &&
+                            (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) &&
+                            selectedModel->GetModelScreenLocation().GetArrowsActive() ) {
+                            selectedModel->GetModelScreenLocation().AdvanceAxisTool();
+                        }
+                        else {
+                            selectedModel->GetModelScreenLocation().SetAxisTool(0); // translate tool
+                        }
                         selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
                         selectedModel->GetModelScreenLocation().SetArrowsActive(true);
                         UpdatePreview();
@@ -2165,7 +2030,6 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         ShowPropGrid(true);
         modelPreview->SetFocus();
 
-        m_moving_handle = false;
         m_creating_bound_rect = false;
         m_dragging = false;
         return;
@@ -2360,10 +2224,12 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     if (is_3d && m_mouse_down) {
         if (selectedModel != nullptr) {
             selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
+            UpdatePreview();
         }
         modelPreview->SetCameraView(0, 0, true);
     }
     m_mouse_down = false;
+    m_moving_handle = false;
 
     if( m_polyline_active ) return;
 
@@ -2456,11 +2322,22 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     int y = event.GetY();
 
     if (is_3d) {
-            if (m_mouse_down) {
-                int delta_x = event.GetPosition().x - m_last_mouse_x;
-                int delta_y = event.GetPosition().y - m_last_mouse_y;
-                modelPreview->SetCameraView(delta_x, delta_y, false);
-                UpdatePreview();
+        if (m_mouse_down) {
+                if (m_moving_handle) {
+                    if (selectedModel != nullptr) {
+                        int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.GetX(), y, false);
+                        SetupPropGrid(selectedModel);
+                        xlights->MarkEffectsFileDirty(true);
+                        UpdatePreview();
+                    }
+                }
+                else {
+                    int delta_x = event.GetPosition().x - m_last_mouse_x;
+                    int delta_y = event.GetPosition().y - m_last_mouse_y;
+                    modelPreview->SetCameraView(delta_x, delta_y, false);
+                    UpdatePreview();
+                }
             }
             else {
                 if (!selectionLatched) {

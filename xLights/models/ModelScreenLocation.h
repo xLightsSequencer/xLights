@@ -3,11 +3,24 @@
 
 
 #define OVER_NO_HANDLE              -1
-#define OVER_L_TOP_HANDLE           1
-#define OVER_R_TOP_HANDLE           2
-#define OVER_L_BOTTOM_HANDLE        3
-#define OVER_R_BOTTOM_HANDLE        4
-#define OVER_ROTATE_HANDLE          5
+#define OVER_L_TOP_HANDLE           0
+#define OVER_L_TOP_HANDLE_Z         5
+#define OVER_R_TOP_HANDLE           1
+#define OVER_R_TOP_HANDLE_Z         6
+#define OVER_L_BOTTOM_HANDLE        2
+#define OVER_L_BOTTOM_HANDLE_Z      7
+#define OVER_R_BOTTOM_HANDLE        3
+#define OVER_R_BOTTOM_HANDLE_Z      8
+#define OVER_ROTATE_HANDLE          4
+#define OVER_CENTER_HANDLE          9
+
+#define X_AXIS 0
+#define Y_AXIS 1
+#define Z_AXIS 2
+
+#define TOOL_TRANSLATE 0
+#define TOOL_SCALE     1
+#define TOOL_ROTATE    2
 
 class wxXmlNode;
 class ModelPreview;
@@ -29,7 +42,6 @@ namespace DrawGLUtils {
 class ModelScreenLocation
 {
 public:
-
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
 
@@ -43,6 +55,7 @@ public:
 	virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
 	virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch) = 0;
     virtual void SelectHandle(int handle) = 0;
     virtual int GetSelectedHandle() = 0;
     virtual int GetNumHandles() = 0;
@@ -110,9 +123,12 @@ public:
     void SetActiveAxis(int axis) { active_axis = axis; }
     int GetActiveAxis() { return active_axis; }
     void SetHandlesActive(bool state) { handles_active = state; }
+    void AdvanceAxisTool() { axis_tool += 1; axis_tool %= 2; }
+    void SetAxisTool(int mode) { axis_tool = mode; }
     void SetArrowsActive(bool state) { arrows_active = state; }
     bool GetArrowsActive() { return arrows_active;  }
-    static void DrawAxisArrows(float x, float y, float z, DrawGLUtils::xl3Accumulator &va);
+    bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
+    void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
  
 protected:
     ModelScreenLocation(int points);
@@ -128,6 +144,13 @@ protected:
     glm::vec3 aabb_min;
     glm::vec3 aabb_max;
 
+    // used for handle movement
+    glm::vec3 saved_intersect;  
+    glm::vec3 saved_position;
+    glm::vec3 saved_size;
+    glm::vec3 saved_scale;
+    glm::vec3 drag_delta;
+
     mutable bool draw_3d;
 
     mutable std::vector<xlPoint> mHandlePosition;
@@ -136,6 +159,7 @@ protected:
     bool handles_active;
     int active_handle;
     int active_axis;
+    int axis_tool;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -157,6 +181,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch);
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -257,6 +282,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch);
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -388,6 +414,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool latch);
     virtual void SelectHandle(int handle) override;
     virtual int GetSelectedHandle() override {return selected_handle;}
     virtual int GetNumHandles() override {return num_points;}

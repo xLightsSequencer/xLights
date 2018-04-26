@@ -620,6 +620,7 @@ namespace DrawGLUtils
                          const xlDisplayList & dl,
                          xlVertexColorAccumulator &bg);
 
+    void DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
 
 }

@@ -1491,60 +1491,66 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
 void DrawGLUtils::DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va)
 {
     // FIXME:  draw a square until I get a good sphere routine
+    DrawCube(x, y, z, radius*2, color, va);
+}
+
+void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va)
+{
+    double halfwidth = width / 2.0;
 
     // front
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z + radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
 
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x - radius, y - radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z + radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
 
     // back
-    va.AddVertex(x - radius, y + radius, z - radius, color);
-    va.AddVertex(x + radius, y + radius, z - radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - radius, y + radius, z - radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     // left side
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x - radius, y - radius, z + radius, color);
-    va.AddVertex(x - radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x - radius, y + radius, z - radius, color);
-    va.AddVertex(x - radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
     
     // right side
-    va.AddVertex(x + radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x + radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y + radius, z - radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     // top side
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y + radius, z + radius, color);
-    va.AddVertex(x - radius, y + radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y + radius, z + radius, color);
-    va.AddVertex(x + radius, y + radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
 
     // bottom side
-    va.AddVertex(x - radius, y - radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z + radius, color);
-    va.AddVertex(x - radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - radius, y - radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z + radius, color);
-    va.AddVertex(x + radius, y - radius, z - radius, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     va.Finish(GL_TRIANGLES);
 }

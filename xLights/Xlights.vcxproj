@@ -450,6 +450,7 @@
     <ClCompile Include="support\EzGrid.cpp" />
     <ClCompile Include="support\FastComboEditor.cpp" />
     <ClCompile Include="support\GridCellChoiceRenderer.cpp" />
+    <ClCompile Include="support\VectorMath.cpp" />
     <ClCompile Include="TabConvert.cpp" />
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
@@ -774,6 +775,7 @@
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
+    <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
