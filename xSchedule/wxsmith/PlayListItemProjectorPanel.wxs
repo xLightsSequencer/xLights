@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxPanel" name="PlayListItemPJLinkPanel">
+	<object class="wxPanel" name="PlayListItemProjectorPanel">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -8,15 +8,15 @@
 			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Projector:</label>
+					<label>Projector Protocol:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_Projector" member="yes">
-					<handler function="OnChoice_ProjectorSelect" entry="EVT_CHOICE" />
+				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_ProjectorProtocol" member="yes">
+					<handler function="OnChoice_ProjectorProtocolSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -32,28 +32,14 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxChoice" name="ID_CHOICE3" variable="Choice_Command" member="yes">
-					<content>
-						<item>Power On</item>
-						<item>Power Off</item>
-						<item>Change Input to RGB</item>
-						<item>Change Input to VIDEO</item>
-						<item>Change Input to NETWORK</item>
-						<item>Change Input to DIGITAL</item>
-						<item>Change Input to STORAGE</item>
-						<item>Video Mute On</item>
-						<item>Video Mute Off</item>
-						<item>Audio Mute On</item>
-						<item>Audio Mute Off</item>
-					</content>
 					<selection>0</selection>
-					<handler function="OnChoice_CommandSelect" entry="EVT_CHOICE" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
 					<label>Parameter:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -61,7 +47,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Parameter" member="yes">
+				<object class="wxChoice" name="ID_CHOICE4" variable="Choice_Parameter" member="yes">
 					<content>
 						<item>1</item>
 						<item>2</item>
@@ -80,6 +66,53 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+					<label>IP Address:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_IPAddress" member="yes">
+					<handler function="OnTextCtrl_IPAddressText" entry="EVT_TEXT" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+					<label>Password:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Password" member="yes" />
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+					<label>Comm Port:</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_CommPort" member="yes">
+					<selection>0</selection>
+					<handler function="OnChoice_CommPortSelect" entry="EVT_CHOICE" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
 					<label>Delay:</label>
 				</object>
@@ -91,6 +124,7 @@
 				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Delay" member="yes">
 					<value>0.000</value>
 					<style>wxTE_RIGHT</style>
+					<handler function="OnTextCtrl_DelayText" entry="EVT_TEXT" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

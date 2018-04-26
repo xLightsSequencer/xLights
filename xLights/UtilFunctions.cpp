@@ -510,4 +510,3 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
     }
     return false;
 }
-

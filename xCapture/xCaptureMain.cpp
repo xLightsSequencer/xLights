@@ -769,7 +769,7 @@ void xCaptureFrame::CreateE131Listener()
             wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
             mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
             mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
-            if (setsockopt(_e131Socket->GetSocket(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
+            if (_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
             {
                 logger_base.warn("Error opening E131 multicast listener %s.", (const char *)ip.c_str());
             }
@@ -808,7 +808,7 @@ void xCaptureFrame::CreateArtNETListener()
             wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
             mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
             mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
-            if (setsockopt(_e131Socket->GetSocket(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
+            if (_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)) == -1)
             {
                 logger_base.warn("Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
             }

@@ -50,4 +50,27 @@ double ScaleWithSystemDPI(double val);
 double ScaleWithSystemDPI(double scalingFactor, double val);
 double UnScaleWithSystemDPI(double val);
 double UnScaleWithSystemDPI(double scalingFactor, double val);
+
+inline bool isHexChar(char c)
+{
+    return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
+}
+
+inline char HexToChar(char c)
+{
+    if (c >= '0' && c <= '9')
+    {
+        return (int)c - 0x30;
+    }
+    if (c >= 'A' && c <= 'F')
+    {
+        return (int)c - 65 + 10;
+    }
+    return (int)c - 97 + 10;
+}
+
+inline char HexToChar(char c1, char c2)
+{
+    return (HexToChar(c1) << 8) + HexToChar(c2);
+}
 #endif

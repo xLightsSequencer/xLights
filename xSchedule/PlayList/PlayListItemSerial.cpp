@@ -89,29 +89,6 @@ std::string PlayListItemSerial::GetTooltip()
     return "Use \\xAA to enter binary values where AA is a hexadecimal value.\n\nAvailable variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule";
 }
 
-bool isHexChar(char c)
-{
-    return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
-}
-
-char HexToChar(char c)
-{
-    if (c >= '0' && c <= '9')
-    {
-        return (int)c - 0x30;
-    }
-    if (c >= 'A' && c <= 'F')
-    {
-        return (int)c - 65 + 10;
-    }
-    return (int)c - 97 + 10;
-}
-
-char HexToChar(char c1, char c2)
-{
-    return (HexToChar(c1) << 8) + HexToChar(c2);
-}
-
 unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 {
 	wxString working(s);

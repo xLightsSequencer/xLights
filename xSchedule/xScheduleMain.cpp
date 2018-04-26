@@ -41,7 +41,6 @@
 #include "Pinger.h"
 #include "EventsDialog.h"
 #include "../xLights/outputs/IPOutput.h"
-#include "Projector.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
 
@@ -765,12 +764,6 @@ void xScheduleFrame::LoadSchedule()
 void xScheduleFrame::AddIPs()
 {
     _pinger->RemoveNonOutputIPs();
-
-    auto projectors = __schedule->GetOptions()->GetProjectors();
-    for (auto it = projectors.begin(); it != projectors.end(); ++it)
-    {
-        _pinger->AddIP((*it)->GetIP(), "Projector");
-    }
 
     auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
     for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)

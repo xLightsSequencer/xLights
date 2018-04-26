@@ -26,7 +26,7 @@
 #include "PlayListItemESEQ.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemDelay.h"
-#include "PlayListItemPJLink.h"
+#include "PlayListItemProjector.h"
 
 #include "../xLights/osxMacUtils.h"
 
@@ -69,7 +69,7 @@ const long PlayListDialog::ID_MNU_ADDFILE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEST = wxNewId();
 const long PlayListDialog::ID_MNU_ADDRDS = wxNewId();
-const long PlayListDialog::ID_MNU_ADDPJLINK = wxNewId();
+const long PlayListDialog::ID_MNU_ADDPROJECTOR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
 const long PlayListDialog::ID_MNU_ADDSETCOLOUR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
@@ -554,7 +554,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
     mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
     mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
-    mnu.Append(ID_MNU_ADDPJLINK, "Add PJLink");
+    mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
     mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
     mnu.Append(ID_MNU_ADDRDS, "Add RDS");
     mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
@@ -705,9 +705,9 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         PlayListItemAudio* pli = new PlayListItemAudio();
         AddItem(_playlist, step, pli);
     }
-    else if (event.GetId() == ID_MNU_ADDPJLINK)
+    else if (event.GetId() == ID_MNU_ADDPROJECTOR)
     {
-        PlayListItemPJLink* pli = new PlayListItemPJLink();
+        PlayListItemProjector* pli = new PlayListItemProjector();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDESEQ)

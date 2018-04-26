@@ -426,10 +426,6 @@
 		<Unit filename="PlayList/PlayListItemAllOff.h" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemAllOffPanel.h" />
-		<Unit filename="PlayList/PlayListItemSetColour.cpp" />
-		<Unit filename="PlayList/PlayListItemSetColour.h" />
-		<Unit filename="PlayList/PlayListItemSetColourPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemSetColourPanel.h" />
 		<Unit filename="PlayList/PlayListItemAudio.cpp" />
 		<Unit filename="PlayList/PlayListItemAudio.h" />
 		<Unit filename="PlayList/PlayListItemAudioPanel.cpp" />
@@ -470,10 +466,10 @@
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.h" />
-		<Unit filename="PlayList/PlayListItemPJLink.cpp" />
-		<Unit filename="PlayList/PlayListItemPJLink.h" />
-		<Unit filename="PlayList/PlayListItemPJLinkPanel.cpp" />
-		<Unit filename="PlayList/PlayListItemPJLinkPanel.h" />
+		<Unit filename="PlayList/PlayListItemProjector.cpp" />
+		<Unit filename="PlayList/PlayListItemProjector.h" />
+		<Unit filename="PlayList/PlayListItemProjectorPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemProjectorPanel.h" />
 		<Unit filename="PlayList/PlayListItemRDS.cpp" />
 		<Unit filename="PlayList/PlayListItemRDS.h" />
 		<Unit filename="PlayList/PlayListItemRDSPanel.cpp" />
@@ -494,6 +490,10 @@
 		<Unit filename="PlayList/PlayListItemSerial.h" />
 		<Unit filename="PlayList/PlayListItemSerialPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemSerialPanel.h" />
+		<Unit filename="PlayList/PlayListItemSetColour.cpp" />
+		<Unit filename="PlayList/PlayListItemSetColour.h" />
+		<Unit filename="PlayList/PlayListItemSetColourPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemSetColourPanel.h" />
 		<Unit filename="PlayList/PlayListItemTest.cpp" />
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
@@ -518,9 +518,6 @@
 		<Unit filename="PlayList/PlayerWindow.h" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.cpp" />
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
-		<Unit filename="Projector.cpp" />
-		<Unit filename="ProjectorDetailsDialog.cpp" />
-		<Unit filename="ProjectorDetailsDialog.h" />
 		<Unit filename="RemapDialog.cpp" />
 		<Unit filename="RemapDialog.h" />
 		<Unit filename="RunningSchedule.cpp" />
@@ -646,7 +643,6 @@
 		<Unit filename="wxsmith/OutputProcessingDialog.wxs" />
 		<Unit filename="wxsmith/PlayListDialog.wxs" />
 		<Unit filename="wxsmith/PlayListItemAllOffPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
@@ -657,12 +653,13 @@
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemPJLinkPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunCommandPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRunProcessPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemScreenMapPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
@@ -699,7 +696,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemSetColourPanel.wxs" src="PlayList/PlayListItemSetColourPanel.cpp" hdr="PlayList/PlayListItemSetColourPanel.h" fwddecl="0" i18n="1" name="PlayListItemSetColourPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
-					<wxPanel wxs="wxsmith/PlayListItemPJLinkPanel.wxs" src="PlayList/PlayListItemPJLinkPanel.cpp" hdr="PlayList/PlayListItemPJLinkPanel.h" fwddecl="0" i18n="1" name="PlayListItemPJLinkPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemProjectorPanel.wxs" src="PlayList/PlayListItemProjectorPanel.cpp" hdr="PlayList/PlayListItemProjectorPanel.h" fwddecl="0" i18n="1" name="PlayListItemProjectorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRunCommandPanel.wxs" src="PlayList/PlayListItemRunCommandPanel.cpp" hdr="PlayList/PlayListItemRunCommandPanel.h" fwddecl="0" i18n="1" name="PlayListItemRunCommandPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemCURLPanel.wxs" src="PlayList/PlayListItemCURLPanel.cpp" hdr="PlayList/PlayListItemCURLPanel.h" fwddecl="0" i18n="1" name="PlayListItemCURLPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemSerialPanel.wxs" src="PlayList/PlayListItemSerialPanel.cpp" hdr="PlayList/PlayListItemSerialPanel.h" fwddecl="0" i18n="1" name="PlayListItemSerialPanel" language="CPP" />
