@@ -288,7 +288,7 @@ void SubModelsDialog::Save()
             child = child->GetNext();
         }
     }
-    for (auto a = subModels.begin(); a != subModels.end(); a++) {
+    for (auto a = subModels.begin(); a != subModels.end(); ++a) {
         child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
         child->AddAttribute("name", a->name);
         child->AddAttribute("layout", a->vertical ? "vertical" : "horizontal");
