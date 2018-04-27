@@ -399,7 +399,18 @@ void SubModelsDialog::Select(const wxString &name) {
         }
         for (int x = 0; x < sm.strands.size(); x++) {
             NodesGrid->AppendRows(1);
-            NodesGrid->SetRowLabelValue(x, wxString::Format("Line %d", (x + 1)));
+            if (x == 0)
+            {
+                NodesGrid->SetRowLabelValue(x, "Bottom");
+            }
+            else if (x == sm.strands.size() - 1)
+            {
+                NodesGrid->SetRowLabelValue(x, "Top");
+            }
+            else
+            {
+                NodesGrid->SetRowLabelValue(x, wxString::Format("Line %d", (x + 1)));
+            }
             NodesGrid->SetCellValue(x, 0, sm.strands[x]);
         }
         NodesGrid->EndBatch();
