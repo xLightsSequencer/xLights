@@ -2000,7 +2000,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                         if (selectedModel != nullptr) {
                             int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
                             selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.GetX(), event.GetY(), true);
+                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.ControlDown(), event.GetX(), event.GetY(), true);
                             UpdatePreview();
                             m_moving_handle = true;
                             m_mouse_down = true;
@@ -2344,7 +2344,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (m_moving_handle) {
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.GetX(), y, false);
+                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.ControlDown(), event.GetX(), y, false);
                         SetupPropGrid(selectedModel);
                         xlights->MarkEffectsFileDirty(true);
                         UpdatePreview();
