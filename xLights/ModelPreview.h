@@ -84,6 +84,7 @@ public:
     void SetActive(bool show);
     bool GetActive();
     void Set3D(bool value) { is_3d = value; }
+    bool Is3D() { return is_3d; }
     glm::mat4& GetViewMatrix() { return ViewMatrix; }
     glm::mat4& GetProjMatrix() { return ProjMatrix; }
 

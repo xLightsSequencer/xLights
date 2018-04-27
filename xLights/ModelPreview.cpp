@@ -153,6 +153,9 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if (allowPreviewChange && xlights != nullptr) {
         wxMenu mnuSelectPreview;
+        wxMenuItem* item = mnuSelectPreview.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
+        item->Check(is_3d);
+        mnuSelectPreview.AppendSeparator();
         mnuSelectPreview.Append(1, "House Preview");
         int index = 2;
         for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); ++it) {
@@ -176,6 +179,9 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         SetModels((*LayoutGroups)[id - 1]->GetModels());
         SetBackgroundBrightness((*LayoutGroups)[id - 1]->GetBackgroundBrightness());
         SetbackgroundImage((*LayoutGroups)[id - 1]->GetBackgroundImage());
+    }
+    else if (id == 0x1000) {
+        is_3d = !is_3d;
     }
     Refresh();
     Update();
@@ -423,6 +429,22 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mIsDrawing = true;
     SetCurrentGLContext();
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
+
+    if (is_3d) {
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, 0.0f, cameraDistance));
+        glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
+        ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
+        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
+    }
+    else {
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -virtualHeight, 0.0f));
+        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate;
+        ProjMatrix = glm::ortho((float)0, (float)mWindowWidth, (float)mWindowHeight, (float)0);
+    }
+
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
         && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
 		if (is_3d)
@@ -430,7 +452,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance));  // FIXME:  cameraPosY not working with selection logic
+            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance));
             glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
             glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
             ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
@@ -445,7 +467,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 		{
 			prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
             DrawGLUtils::SetCamera(glm::mat4(1.0));
-
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
 			// Rotate Axis and translate
@@ -486,11 +507,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0,0,mWindowWidth, mWindowHeight);
             LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
             DrawGLUtils::PushMatrix();
-            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, 0.0f, cameraDistance));  // FIXME:  cameraPosY not working with selection logic
-            glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
-            ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
-            ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
             DrawGLUtils::SetCamera(ViewMatrix);
 		    accumulator.PreAlloc(maxVertexCount);
             currentPixelScaleFactor = 1.0;
@@ -502,12 +518,9 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
             LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
             DrawGLUtils::PushMatrix();
-            // Rotate Axis and translate
-            DrawGLUtils::Rotate(180, 0, 0, 1);
-            DrawGLUtils::Rotate(180, 0, 1, 0);
+            DrawGLUtils::SetCamera(ViewMatrix);
             accumulator.PreAlloc(maxVertexCount);
             currentPixelScaleFactor = 1.0;
-            DrawGLUtils::Translate(0, -virtualHeight, 0);
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
         }

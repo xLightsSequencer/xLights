@@ -122,11 +122,8 @@ public:
     int GetActiveHandle() { return active_handle; }
     void SetActiveAxis(int axis) { active_axis = axis; }
     int GetActiveAxis() { return active_axis; }
-    void SetHandlesActive(bool state) { handles_active = state; }
     void AdvanceAxisTool() { axis_tool += 1; axis_tool %= 2; }
     void SetAxisTool(int mode) { axis_tool = mode; }
-    void SetArrowsActive(bool state) { arrows_active = state; }
-    bool GetArrowsActive() { return arrows_active;  }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
  
@@ -155,8 +152,6 @@ protected:
 
     mutable std::vector<xlPoint> mHandlePosition;
     bool _locked;
-    bool arrows_active;
-    bool handles_active;
     int active_handle;
     int active_axis;
     int axis_tool;

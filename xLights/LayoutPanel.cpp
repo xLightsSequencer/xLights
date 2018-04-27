@@ -213,7 +213,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), handleLatched(false), m_last_handle(-1)
+    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1397,9 +1397,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
     if (is_3d) {
         selectionLatched = false;
-        handleLatched = false;
         highlightedModel = nullptr;
-        m_last_handle = -1;
     }
 
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -1494,11 +1492,9 @@ void LayoutPanel::SelectModel3D()
         // latch center handle immediately
         if (selectedModel != nullptr) {
             selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-            selectedModel->GetModelScreenLocation().SetArrowsActive(true);
             selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
             highlightedModel = selectedModel;
             selectionLatched = true;
-            handleLatched = true;
         }
     }
 }
@@ -1569,7 +1565,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
 
     selectedModel = m;
-    selectedModel->GetModelScreenLocation().SetHandlesActive(true);
+    selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
     selectionLatched = true;
 
     if (CheckBoxOverlap->GetValue()) {
@@ -1824,46 +1820,44 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
 
     // test for a selected axis first
-    if (selectedModel->GetModelScreenLocation().GetArrowsActive()) {
-        int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-        glm::vec3 axisbb_min[3];
-        glm::vec3 axisbb_max[3];
-        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
-        axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
-        axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
-        axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-        axisbb_min[2].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
-        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH + 3 - model_mat[3][0];
-        axisbb_max[0].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
-        axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
-        axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[1].y = handles[active_handle].y + AXIS_ARROW_LENGTH + 3 - model_mat[3][1];
-        axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
-        axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-        axisbb_max[2].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
-        axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH + 3 - model_mat[3][2];
+    int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+    glm::vec3 axisbb_min[3];
+    glm::vec3 axisbb_max[3];
+    axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+    axisbb_min[0].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+    axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
+    axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
+    axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+    axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
+    axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
+    axisbb_min[2].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
+    axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+    axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH + 3 - model_mat[3][0];
+    axisbb_max[0].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
+    axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
+    axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
+    axisbb_max[1].y = handles[active_handle].y + AXIS_ARROW_LENGTH + 3 - model_mat[3][1];
+    axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
+    axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
+    axisbb_max[2].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
+    axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH + 3 - model_mat[3][2];
 
-        // see if an axis handle is selected
-        for (size_t i = 0; i < 3; i++)
-        {
-            float intersection_distance; // Output of TestRayOBBIntersection()
+    // see if an axis handle is selected
+    for (size_t i = 0; i < 3; i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
 
-            if (VectorMath::TestRayOBBIntersection(
-                ray_origin,
-                ray_direction,
-                axisbb_min[i],
-                axisbb_max[i],
-                model_mat,
-                intersection_distance)
-                ) {
-                if (intersection_distance < distance) {
-                    distance = intersection_distance;
-                    which_handle = i;
-                }
+        if (VectorMath::TestRayOBBIntersection(
+            ray_origin,
+            ray_direction,
+            axisbb_min[i],
+            axisbb_max[i],
+            model_mat,
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                which_handle = i;
             }
         }
     }
@@ -1981,6 +1975,10 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 
 void LayoutPanel::Unselect3DItems()
 {
+    if (selectedModel != nullptr) {
+        selectionLatched = false;
+        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);
+    }
     UnSelectAllModels();
 }
 
@@ -2000,7 +1998,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                         if (selectedModel != nullptr) {
                             int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
                             selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.ControlDown(), event.GetX(), event.GetY(), true);
+                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
                             UpdatePreview();
                             m_moving_handle = true;
                             m_mouse_down = true;
@@ -2008,17 +2006,14 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                     }
                     else {
                         if ((handle == OVER_CENTER_HANDLE ) &&
-                            (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) &&
-                            selectedModel->GetModelScreenLocation().GetArrowsActive() ) {
+                            (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) ) {
                             selectedModel->GetModelScreenLocation().AdvanceAxisTool();
                         }
                         else {
                             selectedModel->GetModelScreenLocation().SetAxisTool(0); // translate tool
                         }
                         selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
-                        selectedModel->GetModelScreenLocation().SetArrowsActive(true);
                         UpdatePreview();
-                        handleLatched = true;
                     }
                 }
                 else {
@@ -2030,15 +2025,11 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 selectionLatched = true;
                 // latch center handle immediately
                 selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-                selectedModel->GetModelScreenLocation().SetArrowsActive(true);
                 UpdatePreview();
-                handleLatched = true;
             }
         }
         else {
-            if (selectedButton == nullptr) {
                 m_mouse_down = true;
-            }
         }
 
         m_last_mouse_x = event.GetX();
@@ -2065,14 +2056,19 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                     }
 
                     newModel->Selected = true;
-                    newModel->GetModelScreenLocation().SetActiveHandle(0);
+                    newModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+                    newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
+                    newModel->GetModelScreenLocation().SetAxisTool(TOOL_SCALE);
                     selectionLatched = true;
                     highlightedModel = newModel;
+                    selectedModel = newModel;
+                    creating_model = true;
                     if (wi > 0 && ht > 0)
                     {
                         modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                         newModel->UpdateXmlWithScale();
                     }
+                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, OVER_CENTER_HANDLE, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
                     lastModelName = newModel->name;
                     modelPreview->GetModels().push_back(newModel);
                 }
@@ -2276,6 +2272,7 @@ void LayoutPanel::FinalizeModel()
     m_moving_handle = false;
     m_dragging = false;
     m_polyline_active = false;
+    creating_model = false;
 
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
@@ -2321,11 +2318,11 @@ void LayoutPanel::FinalizeModel()
             }
             xlights->UpdateModelsList();
             SelectModel(name);
+            SelectModel3D();
         } else {
             newModel = nullptr;
             xlights->UpdateModelsList();
         }
-        SelectModel3D();
         UpdatePreview();
     }
 }
@@ -2344,7 +2341,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (m_moving_handle) {
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown(), event.ControlDown(), event.GetX(), y, false);
+                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false);
                         SetupPropGrid(selectedModel);
                         xlights->MarkEffectsFileDirty(true);
                         UpdatePreview();
@@ -2360,16 +2357,6 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             else {
                 if (!selectionLatched) {
                     SelectSingleModel3D(event.GetX(), event.GetY());
-                }
-                else if (!handleLatched) {
-                    if (selectedModel != nullptr) {
-                        int handle = SelectModelHandles3D(event.GetX(), event.GetY());
-                        selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
-                        if (handle != m_last_handle) {
-                            UpdatePreview();
-                        }
-                        m_last_handle = handle;
-                    }
                 }
             }
         return;
@@ -2413,13 +2400,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
                     CreateUndoPoint("SingleModel", m->name, "location");
-
-                    // FIXME:  MOVE model logic needs fixin
-                   // if( is_xz && is_3d) {
-                   //     modelPreview->GetModels()[i]->AddOffset(delta_x/wi, 0.0, -delta_y/ht);
-                   // } else {
-                        modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht, 0.0);
-                   // }
+                    modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->MarkEffectsFileDirty(true);

@@ -95,8 +95,8 @@ ModelScreenLocation::ModelScreenLocation(int sz)
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
-  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), active_handle(-1), active_axis(-1),
-  arrows_active(false), handles_active(false), axis_tool(TOOL_TRANSLATE)
+  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f),
+  active_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE)
 {
     draw_3d = false;
     _locked = false;
@@ -268,7 +268,7 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
     ModelXml->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
     ModelXml->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
-    ModelXml->AddAttribute("ScaleX", wxString::Format("%6.4f",scalex));
+    ModelXml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
     ModelXml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
     ModelXml->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
@@ -358,24 +358,38 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     if (preview != nullptr) {
-        // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-        // of the mouse click with the ground plane
-        worldPos_x = 0.0f;
-        worldPos_y = 0.0f;
-        worldPos_z = 0.0f;
-        active_axis = X_AXIS;
-        DragHandle(preview, x, y, true);
-        worldPos_x = saved_intersect.x;
-        worldPos_y = RenderHt / 2.0f;
-        worldPos_z = saved_intersect.z;
+        if (preview->Is3D()) {
+            // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
+            // of the mouse click with the ground plane
+            worldPos_x = 0.0f;
+            worldPos_y = 0.0f;
+            worldPos_z = 0.0f;
+            active_axis = X_AXIS;
+            DragHandle(preview, x, y, true);
+            worldPos_x = saved_intersect.x;
+            worldPos_y = RenderHt / 2.0f;
+            worldPos_z = saved_intersect.z;
+            handle = OVER_CENTER_HANDLE;
+            active_axis = Y_AXIS;
+        }
+        else {
+            //worldPos_x = (float)x / (float)previewW;
+            //worldPos_y = (float)y / (float)previewH;
+            handle = OVER_R_BOTTOM_HANDLE;
+            worldPos_x = 0.0f;
+            worldPos_y = 0.0f;
+            worldPos_z = 0.0f;
+            active_axis = Y_AXIS;
+            DragHandle(preview, x, y, true);
+            worldPos_x = saved_intersect.x;
+            worldPos_y = (float)previewH - saved_intersect.y;
+            worldPos_z = 0.0f;
+        }
     }
     else {
-        worldPos_x = 0.0f;
-        worldPos_y = 0.0f;
-        worldPos_z = 0.0f;
+        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
     }
     SetPreviewSize(previewW, previewH, Nodes);
-    handle = OVER_CENTER_HANDLE;
     return wxCURSOR_SIZING;
 }
 
@@ -607,15 +621,8 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.AddVertex(mHandlePosition[8].x, mHandlePosition[8].y, mHandlePosition[8].z, xlWHITE);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
-    if (handles_active) {
-        //for (size_t h = 0; h < mHandlePosition.size(); h++) {
-        //    color = (active_handle == h) ? xlGREEN : handleColor;
-        //    DrawGLUtils::DrawSphere(mHandlePosition[h].x, mHandlePosition[h].y, mHandlePosition[h].z, (double)(RECT_HANDLE_WIDTH), color, va);
-        //}
+    if (active_handle != -1) {
         DrawGLUtils::DrawSphere(mHandlePosition[9].x, mHandlePosition[9].y, mHandlePosition[9].z, (double)(RECT_HANDLE_WIDTH), xlColor(255, 128, 0), va);
-    }
-
-    if (arrows_active && (active_handle != -1)) {
         DrawAxisTool(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));

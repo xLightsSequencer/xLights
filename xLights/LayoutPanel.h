@@ -254,7 +254,6 @@ class LayoutPanel: public wxPanel
         Model *selectedModel;
         Model *highlightedModel;
         bool selectionLatched;
-        bool handleLatched;
 
         void refreshModelList();
         void resetPropertyGrid();
@@ -337,7 +336,7 @@ class LayoutPanel: public wxPanel
         bool is_3d;
         bool m_mouse_down;
         int m_last_mouse_x, m_last_mouse_y;
-        int m_last_handle;
+        bool creating_model;
 
         void OnSelectionChanged(wxTreeListEvent& event);
         void OnItemContextMenu(wxTreeListEvent& event);
