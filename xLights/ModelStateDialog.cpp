@@ -226,7 +226,7 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
     modelPreview->SetModel(cls);
 
     for (std::map< std::string, std::map<std::string, std::string> >::iterator it = finfo.begin();
-         it != finfo.end(); it++) {
+         it != finfo.end(); ++it) {
 
         std::string name = it->first;
         std::map<std::string, std::string> &info = it->second;

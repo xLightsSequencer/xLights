@@ -718,13 +718,13 @@ void LayoutPanel::RefreshLayout()
 
 void LayoutPanel::RenderLayout()
 {
-    if(modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
+    if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
 
     modelPreview->Render();
-    if(m_creating_bound_rect)
+    if (m_creating_bound_rect)
     {
-        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y,
-                                                          ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
+            ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
         modelPreview->GetAccumulator().Finish(GL_LINES);
     }
     modelPreview->EndDrawing();
@@ -3786,6 +3786,8 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 
 void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
+    if (grp == nullptr) return;
+
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->modelsChangeCount++;
     std::vector<Model *> models;
@@ -3803,7 +3805,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     for (wxTreeListItem item = TreeListViewModels->GetFirstItem(); item.IsOk(); item = TreeListViewModels->GetNextItem(item))
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
-        if (data != nullptr) {
+        if (data != nullptr && data->GetModel() != nullptr) {
             if (data->GetModel()->GetFullName() == grp->GetFullName()) 
             {
                 bool expanded = TreeListViewModels->IsExpanded(item);

@@ -112,15 +112,23 @@ bool ModelGroup::Reset(bool zeroBased) {
             models.push_back(c);
             changeCount += c->GetChangeCount();
             nc += c->GetNodeCount();
-        } else {
+        }
+        else if (mn[x] == "")
+        {
+            // silently ignore blank models
+        }
+        else
+        {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Model group '%s' contains model '%s' that does not exist.", (const char *)GetFullName().c_str(), (const char *)mn[x].c_str());
             return false;
         }
     }
+
     if (nc) {
         Nodes.reserve(nc);
     }
+
     for (Model *c : models) {
         int bw, bh;
         LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
@@ -307,6 +315,7 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
 }
 
 void ModelGroup::CheckForChanges() const {
+
     unsigned long l = 0;
     for (auto it = models.begin(); it != models.end(); ++it) {
         l += (*it)->GetChangeCount();
@@ -314,7 +323,7 @@ void ModelGroup::CheckForChanges() const {
 
     if (l != changeCount) {
         ModelGroup *group = (ModelGroup*)this;
-        group->Reset();
+        if (group != nullptr) group->Reset();
     }
 }
 

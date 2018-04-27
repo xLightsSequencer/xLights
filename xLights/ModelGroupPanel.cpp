@@ -447,12 +447,15 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
 void ModelGroupPanel::SaveGroupChanges()
 {
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
+
+    if (g == nullptr) return;
+
     wxXmlNode *e = g->GetModelXml();
 
-    wxString ModelsInGroup="";
-    for(int i=0;i<ListBoxModelsInGroup->GetItemCount();i++)
+    wxString ModelsInGroup = "";
+    for (int i = 0; i < ListBoxModelsInGroup->GetItemCount(); i++)
     {
-        if (i<ListBoxModelsInGroup->GetItemCount()-1)
+        if (i < ListBoxModelsInGroup->GetItemCount() - 1)
         {
             ModelsInGroup += ListBoxModelsInGroup->GetItemText(i, 0) + ",";
         }
@@ -469,21 +472,21 @@ void ModelGroupPanel::SaveGroupChanges()
     e->DeleteAttribute("layout");
     e->AddAttribute("GridSize", wxString::Format("%d", SizeSpinCtrl->GetValue()));
     switch (ChoiceModelLayoutType->GetSelection()) {
-        case 0:
-            e->AddAttribute("layout", "grid");
-            break;
-        case 1:
-            e->AddAttribute("layout", "minimalGrid");
-            break;
-        case 2:
-            e->AddAttribute("layout", "horizontal");
-            break;
-        case 3:
-            e->AddAttribute("layout", "vertical");
-            break;
-        default:
-            e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
-            break;
+    case 0:
+        e->AddAttribute("layout", "grid");
+        break;
+    case 1:
+        e->AddAttribute("layout", "minimalGrid");
+        break;
+    case 2:
+        e->AddAttribute("layout", "horizontal");
+        break;
+    case 3:
+        e->AddAttribute("layout", "vertical");
+        break;
+    default:
+        e->AddAttribute("layout", ChoiceModelLayoutType->GetStringSelection());
+        break;
     }
     g->Reset();
     layoutPanel->ModelGroupUpdated(g, false);
