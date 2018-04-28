@@ -8,6 +8,7 @@ ListenerBase::ListenerBase(ListenerManager* listenerManager)
     _listenerManager = listenerManager;
     _stop = false;
     _thread = nullptr;
+    _isOk = false;
 }
 
 ListenerThread::ListenerThread(ListenerBase* listener)
@@ -35,9 +36,12 @@ void* ListenerThread::Entry()
 
     _listener->StartProcess();
 
-    while (!_stop)
+    if (_listener->IsOk())
     {
-        _listener->Poll();
+        while (!_stop)
+        {
+            _listener->Poll();
+        }
     }
 
     _running = false;

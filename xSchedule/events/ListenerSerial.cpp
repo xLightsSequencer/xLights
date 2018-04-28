@@ -74,6 +74,7 @@ void ListenerSerial::StartProcess()
     else
     {
         logger_base.debug("    Serial port %s open.", (const char *)_commPort.c_str());
+        _isOk = true;
     }
 }
 
@@ -85,6 +86,7 @@ void ListenerSerial::StopProcess()
         delete _serial;
         _serial = nullptr;
     }
+    _isOk = false;
 }
 
 void ListenerSerial::Poll()

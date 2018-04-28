@@ -82,6 +82,7 @@ void ListenerE131::StartProcess()
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("E131 reception datagram opened successfully.");
+        _isOk = true;
     }
 }
 
@@ -94,6 +95,7 @@ void ListenerE131::StopProcess()
         delete _socket;
         _socket = nullptr;
     }
+    _isOk = false;
 }
 
 void ListenerE131::Poll()
