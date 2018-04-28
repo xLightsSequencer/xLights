@@ -5,7 +5,6 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h" //xLightsFrame
-#include "../models/DmxModel.h"
 
 #include <math.h>
 

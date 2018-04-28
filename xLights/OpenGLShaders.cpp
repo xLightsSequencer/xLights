@@ -4,4 +4,11 @@
 #include <GL/gl.h>
 #endif
 
-//#include "DrawGLUtils.h"
+#include "OpenGLShaders.h"
+
+#include "DrawGLUtils.h"
+
+unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
+{
+   return 0;
+}
