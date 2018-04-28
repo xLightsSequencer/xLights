@@ -5,6 +5,7 @@
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../xLightsMain.h" //xLightsFrame
+#include "../OpenGLShaders.h"
 
 #include <math.h>
 
@@ -330,6 +331,7 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+    bool canUseShaders = OpenGLShaders::HasShaderSupport();
 
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, 100);
