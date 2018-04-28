@@ -620,6 +620,7 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool first = true;
     int ms = 0;
     int lastseq = 255;
 
@@ -655,12 +656,16 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
             }
             else
             {
-                logger_base.warn("Universe %d missing multiple packets from sequence %d", lastseq);
+                if (!first)
+                {
+                    logger_base.warn("Universe %d missing multiple packets from sequence %d", _universe, lastseq);
+                }
                 lastseq = (*it)->_seq;
             }
         }
         (*it)->_frameTimeMS = ms;
         ms += frameMS;
+        first = false;
     }
 }
 
@@ -769,7 +774,7 @@ void xCaptureFrame::CreateE131Listener()
             {
                 struct ip_mreq mreq;
                 wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                logger_base.warn("E131 registering for multicast on %s.", (const char *)ip.c_str());
+                logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
                 mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
                 mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
                 if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
@@ -812,7 +817,7 @@ void xCaptureFrame::CreateArtNETListener()
             {
                 struct ip_mreq mreq;
                 wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                logger_base.warn("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
+                logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
                 mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
                 mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
                 if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
@@ -974,6 +979,8 @@ void xCaptureFrame::OnKeyDown(wxKeyEvent& event)
 
 void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _capturing = !_capturing;
     if (_capturing)
     {
@@ -987,6 +994,17 @@ void xCaptureFrame::OnButton_StartStopClick(wxCommandEvent& event)
     {
         Button_StartStop->SetLabel("Start");
         UpdateCaptureDesc();
+
+        logger_base.debug("Capture stopped.");
+        for (auto it = _capturedData.begin(); it != _capturedData.end(); ++it)
+        {
+            logger_base.debug("    Protocol %s, Universe %d, Size %d, Frames %d",
+                (*it)->_protocol == ID_E131SOCKET ? "E131" : "ArtNET",
+                (*it)->_universe,
+                (*it)->_packets.size() > 0 ? (*it)->_packets.front()->_length : 0,
+                (int)(*it)->_packets.size()
+            );
+        }
     }
     ValidateWindow();
 }
