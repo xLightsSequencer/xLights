@@ -8,20 +8,20 @@
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
-class wxPanel;
-class wxGrid;
-class wxSplitterWindow;
-class wxStdDialogButtonSizer;
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxSplitterEvent;
-class wxNotebook;
-class wxStaticText;
-class wxListCtrl;
-class wxFlexGridSizer;
 class wxButton;
+class wxCheckBox;
+class wxFlexGridSizer;
+class wxGrid;
 class wxGridEvent;
+class wxListCtrl;
+class wxNotebook;
+class wxNotebookEvent;
+class wxPanel;
+class wxSplitterEvent;
+class wxSplitterWindow;
+class wxStaticText;
+class wxStdDialogButtonSizer;
+class wxTextCtrl;
 //*)
 
 class Model;
@@ -80,28 +80,28 @@ class SubModelsDialog: public wxDialog
         void Save();
 
 		//(*Declarations(SubModelsDialog)
-		wxCheckBox* LayoutCheckbox;
-		wxPanel* ModelPreviewPanelLocation;
-		wxFlexGridSizer* SubBufferSizer;
-		wxButton* Button_MoveUp;
-		wxButton* AddRowButton;
-		wxTextCtrl* TextCtrl_Name;
-		wxListCtrl* ListCtrl_SubModels;
-		wxPanel* SubBufferPanelHolder;
-		wxFlexGridSizer* PreviewSizer;
-		wxStaticText* StaticText1;
-		wxPanel* Panel3;
-		wxButton* Button_Generate;
-		wxStaticText* StaticTextName;
-		wxGrid* NodesGrid;
 		wxButton* AddButton;
-		wxNotebook* TypeNotebook;
+		wxButton* AddRowButton;
+		wxButton* Button_Generate;
 		wxButton* Button_MoveDown;
-		wxPanel* Panel2;
-		wxButton* DeleteButton;
-		wxSplitterWindow* SplitterWindow1;
+		wxButton* Button_MoveUp;
 		wxButton* Button_ReverseNodes;
+		wxButton* DeleteButton;
 		wxButton* DeleteRowButton;
+		wxCheckBox* LayoutCheckbox;
+		wxFlexGridSizer* PreviewSizer;
+		wxFlexGridSizer* SubBufferSizer;
+		wxGrid* NodesGrid;
+		wxListCtrl* ListCtrl_SubModels;
+		wxNotebook* TypeNotebook;
+		wxPanel* ModelPreviewPanelLocation;
+		wxPanel* Panel2;
+		wxPanel* Panel3;
+		wxPanel* SubBufferPanelHolder;
+		wxSplitterWindow* SplitterWindow1;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticTextName;
+		wxTextCtrl* TextCtrl_Name;
 		//*)
 
 	protected:
@@ -130,12 +130,12 @@ class SubModelsDialog: public wxDialog
 		static const long ID_PANEL1;
 		//*)
 
-
-		wxString GetSelectedName();
+		wxString GetSelectedName() const;
+		int GetSelectedIndex() const;
         wxString GetSelectedNames();
 		int GetSubModelInfoIndex(const wxString &str);
 		SubModelInfo *GetSubModelInfo(const wxString &str);
-		bool IsItemSelected(wxListCtrl* ctrl, int item);
+		bool IsItemSelected(wxListCtrl* ctrl, int item) const;
 
 		void AddSubModelToList(SubModelInfo *submodel, int index=-1, bool load=false);
 		void MoveSelectedModelsTo(int indexTo);
