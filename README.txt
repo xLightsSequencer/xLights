@@ -26,8 +26,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix a bunch of problems with output id's such as not saving them, missing on LOR etc
    -- enh (keith)  Add the ability to save and load face mappings
    -- bug (keith)  Get xCapture working correctly with multicast data
-   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which knows how to control many more projector models
-   -- enh (keith)  Add support for sparse submodel buffers
+   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which 
+                   knows how to control many more projector models
+   -- enh (keith)  Add support for sparse submodel buffers and label rows more clearly
+   -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the 
+                   number of missed pixels and the ability to process poor video
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs
