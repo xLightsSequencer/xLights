@@ -108,6 +108,7 @@ public:
     int previewW, previewH;
 
     glm::mat4& GetModelMatrix() { return ModelMatrix; }
+    glm::mat4& GetTranslateMatrix() { return TranslateMatrix; }
     glm::vec3& GetAABB_Min() { return aabb_min; }
     glm::vec3& GetAABB_Max() { return aabb_max; }
 
@@ -137,7 +138,11 @@ protected:
     float scalex;
     float scaley;
     float scalez;
+    int rotatex;
+    int rotatey;
+    int rotatez;
     mutable glm::mat4 ModelMatrix;
+    mutable glm::mat4 TranslateMatrix;
     glm::vec3 aabb_min;
     glm::vec3 aabb_max;
 
@@ -218,7 +223,7 @@ public:
     void BoxedScreenLocation::AddOffset(float xPct, float yPct, float zPct);
 
     void SetRotation(int r) {
-        PreviewRotation = r;
+        rotatez = r;
     }
     void SetPerspective2D(float p) {
         perspective = p;
@@ -238,14 +243,13 @@ public:
     virtual int GetMHeight() const override;
 
     int GetRotation() const {
-        return PreviewRotation;
+        return rotatez;
     }
 
     float GetScaleX() { return scalex; }
     float GetScaleY() { return scaley; }
 
 private:
-    int PreviewRotation;
     float perspective;
 
     mutable float radians;

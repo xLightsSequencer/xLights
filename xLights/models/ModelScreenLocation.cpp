@@ -94,6 +94,7 @@ ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
+  rotatex(0), rotatey(0), rotatez(0),
   ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
   saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f),
   active_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE)
@@ -228,7 +229,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
-: ModelScreenLocation(10), PreviewRotation(0), perspective(0.0f)
+: ModelScreenLocation(10), perspective(0.0f)
 {
 }
 
@@ -251,7 +252,19 @@ void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
 		scalez = 1.0f;
 	}
 
-    PreviewRotation=wxAtoi(ModelNode->GetAttribute("PreviewRotation","0"));
+    rotatex = wxAtoi(ModelNode->GetAttribute("RotateX", "0"));
+    rotatey = wxAtoi(ModelNode->GetAttribute("RotateY", "0"));
+    rotatez = wxAtoi(ModelNode->GetAttribute("RotateZ", "0"));
+
+    if (rotatex < -180 || rotatex > 180) {
+        rotatex = 0;
+    }
+    if (rotatey < -180 || rotatey > 180) {
+        rotatey = 0;
+    }
+    if (rotatez < -180 || rotatez > 180) {
+        rotatez = 0;
+    }
 
     _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
@@ -263,7 +276,9 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->DeleteAttribute("ScaleX");
     ModelXml->DeleteAttribute("ScaleY");
     ModelXml->DeleteAttribute("ScaleZ");
-    ModelXml->DeleteAttribute("PreviewRotation");
+    ModelXml->DeleteAttribute("RotateX");
+    ModelXml->DeleteAttribute("RotateY");
+    ModelXml->DeleteAttribute("RotateZ");
     ModelXml->DeleteAttribute("Locked");
     ModelXml->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
     ModelXml->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
@@ -271,7 +286,9 @@ void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
     ModelXml->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
     ModelXml->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
     ModelXml->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
-    ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
+    ModelXml->AddAttribute("RotateX", wxString::Format("%d", rotatex));
+    ModelXml->AddAttribute("RotateY", wxString::Format("%d", rotatey));
+    ModelXml->AddAttribute("RotateZ", wxString::Format("%d", rotatez));
     if (_locked)
     {
         ModelXml->AddAttribute("Locked", "1");
@@ -285,14 +302,14 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
     TranslatePointDoubles(radians,sx,sy,sx,sy);
 
     // FIXME:  Only want this for tree model
-    if (!draw_3d) {
+    /*if (!draw_3d) {
         glm::vec4 position = glm::vec4(glm::vec3(sx, sy, sz), 1.0);
         glm::mat4 rm = glm::rotate(glm::mat4(1.0f), perspective, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::vec4 model_position = rm * position;
         sx = model_position.x;
         sy = model_position.y;
         sz = model_position.z;
-    }
+    }*/
     sx += worldPos_x;
     sy += worldPos_y;
 	sz += worldPos_z;
@@ -330,19 +347,19 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord 
     if (x>mHandlePosition[0].x && x<mHandlePosition[0].x+RECT_HANDLE_WIDTH &&
         y>mHandlePosition[0].y && y<mHandlePosition[0].y+RECT_HANDLE_WIDTH) {
         handle = OVER_L_TOP_HANDLE;
-        return GetResizeCursor(0, PreviewRotation);
+        return GetResizeCursor(0, rotatez);
     } else if (x>mHandlePosition[1].x && x<mHandlePosition[1].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[1].y && y<mHandlePosition[1].y+RECT_HANDLE_WIDTH) {
         handle = OVER_R_TOP_HANDLE;
-        return GetResizeCursor(1, PreviewRotation);
+        return GetResizeCursor(1, rotatez);
     } else if (x>mHandlePosition[2].x && x<mHandlePosition[2].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[2].y && y<mHandlePosition[2].y+RECT_HANDLE_WIDTH) {
         handle = OVER_R_BOTTOM_HANDLE;
-        return GetResizeCursor(2, PreviewRotation);
+        return GetResizeCursor(2, rotatez);
     } else if (x>mHandlePosition[3].x && x<mHandlePosition[3].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[3].y && y<mHandlePosition[3].y+RECT_HANDLE_WIDTH) {
         handle = OVER_L_BOTTOM_HANDLE;
-        return GetResizeCursor(3, PreviewRotation);
+        return GetResizeCursor(3, rotatez);
     } else if (x>mHandlePosition[4].x && x<mHandlePosition[4].x+RECT_HANDLE_WIDTH &&
                y>mHandlePosition[4].y && y<mHandlePosition[4].y+RECT_HANDLE_WIDTH) {
         handle = OVER_ROTATE_HANDLE;
@@ -438,14 +455,21 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
 }
 
 void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
-    radians = toRadians(PreviewRotation);
+    radians = glm::radians((float)rotatez);
     centerx = worldPos_x;
     centery = worldPos_y;
     draw_3d = is_3d;
     if (is_3d && allow_selected) {
         glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), radians, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 TranslationMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-        ModelMatrix = TranslationMatrix * RotateZ;
+        glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+        ModelMatrix = Translate * RotateZ;
+
+        //glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+        //glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+        //glm::mat4 RotateY = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+        //glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, -1.0f));
+        //ModelMatrix = Translate * RotateZ * RotateY * RotateX;
+        TranslateMatrix = Translate;
     }
 }
 
@@ -747,7 +771,15 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
-    prop = propertyEditor->Append(new wxIntProperty("Rotation", "ModelRotation", PreviewRotation));
+    prop = propertyEditor->Append(new wxIntProperty("RotateX", "RotateX", rotatex));
+    prop->SetAttribute("Min", "-180");
+    prop->SetAttribute("Max", "180");
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxIntProperty("RotateY", "RotateY", rotatey));
+    prop->SetAttribute("Min", "-180");
+    prop->SetAttribute("Max", "180");
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxIntProperty("RotateZ", "RotateZ", rotatez));
     prop->SetAttribute("Min", "-180");
     prop->SetAttribute("Max", "180");
     prop->SetEditor("SpinCtrl");
@@ -755,14 +787,7 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
 
 int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if (!_locked && "ModelRotation" == name) {
-        PreviewRotation = event.GetValue().GetInteger();
-    }
-    else if (_locked && "ModelRotation" == name) {
-        event.Veto();
-        return 0;
-    }
-    else if (!_locked && "ScaleX" == name) {
+    if (!_locked && "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
         return 3;
     }
@@ -807,6 +832,30 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
         return 3;
     }
     else if (_locked && "ModelZ" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "RotateX" == name) {
+        rotatex = event.GetValue().GetDouble();
+        return 3;
+    }
+    else if (_locked && "RotateX" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "RotateY" == name) {
+        rotatey = event.GetValue().GetDouble();
+        return 3;
+    }
+    else if (_locked && "RotateY" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "RotateZ" == name) {
+        rotatez = event.GetValue().GetDouble();
+        return 3;
+    }
+    else if (_locked && "RotateZ" == name) {
         event.Veto();
         return 0;
     }
@@ -906,16 +955,16 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         float tan = (float)sx / (float)sy;
         int angle = -toDegrees((float)atan(tan));
         if (sy >= 0) {
-            PreviewRotation = angle;
+            rotatez = angle;
         }
         else if (sx <= 0) {
-            PreviewRotation = 90 + (90 + angle);
+            rotatez = 90 + (90 + angle);
         }
         else {
-            PreviewRotation = -90 - (90 - angle);
+            rotatez = -90 - (90 - angle);
         }
         if (ShiftKeyPressed) {
-            PreviewRotation = (int)(PreviewRotation / 5) * 5;
+            rotatez = (int)(rotatez / 5) * 5;
         }
     }
     else {
@@ -933,7 +982,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         }
         float sx = float(mouseX) - centerx;
         float sy = float(mouseY) - centery;
-        float radians = -toRadians(PreviewRotation); // negative angle to reverse translation
+        float radians = -glm::radians((float)rotatez); // negative angle to reverse translation
         TranslatePointDoubles(radians, sx, sy, sx, sy);
         sx = fabs(sx);
         sy = fabs(sy);

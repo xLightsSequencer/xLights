@@ -1813,9 +1813,10 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
 
     float distance = 1000000000.0f;
     int which_handle = -1;
-    int hw = 6;
+    int hw = RECT_HANDLE_WIDTH;
 
     glm::mat4 model_mat = selectedModel->GetModelScreenLocation().GetModelMatrix();
+    glm::mat4 trans_mat = selectedModel->GetModelScreenLocation().GetTranslateMatrix();
 
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
 
@@ -1824,7 +1825,7 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     glm::vec3 axisbb_min[3];
     glm::vec3 axisbb_max[3];
     axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-    axisbb_min[0].y = (handles[active_handle].y - AXIS_RADIUS) - model_mat[3][1];
+    axisbb_min[0].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
     axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
     axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
     axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
@@ -1852,7 +1853,7 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
             ray_direction,
             axisbb_min[i],
             axisbb_max[i],
-            model_mat,
+            trans_mat,      // axis is not rotated
             intersection_distance)
             ) {
             if (intersection_distance < distance) {
