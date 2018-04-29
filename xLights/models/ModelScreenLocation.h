@@ -7,10 +7,10 @@
 #define OVER_L_TOP_HANDLE_Z         5
 #define OVER_R_TOP_HANDLE           1
 #define OVER_R_TOP_HANDLE_Z         6
-#define OVER_L_BOTTOM_HANDLE        2
-#define OVER_L_BOTTOM_HANDLE_Z      7
-#define OVER_R_BOTTOM_HANDLE        3
-#define OVER_R_BOTTOM_HANDLE_Z      8
+#define OVER_R_BOTTOM_HANDLE        2
+#define OVER_R_BOTTOM_HANDLE_Z      7
+#define OVER_L_BOTTOM_HANDLE        3
+#define OVER_L_BOTTOM_HANDLE_Z      8
 #define OVER_ROTATE_HANDLE          4
 #define OVER_CENTER_HANDLE          9
 
@@ -51,7 +51,7 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(int x,int y) const = 0;
-    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const = 0;
+    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
 	virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
@@ -177,7 +177,7 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -277,7 +277,7 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -409,7 +409,7 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, int x, int y) const override;
+    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;

@@ -322,7 +322,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
-    
+    modelPreview->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheel, nullptr, this);
+
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -1792,7 +1793,7 @@ bool LayoutPanel::SelectSingleModel3D(int x, int y)
     return ret_value;
 }
 
-#define RECT_HANDLE_WIDTH           6
+#define RECT_HANDLE_WIDTH     6
 
 int LayoutPanel::SelectModelHandles3D(int x, int y)
 {
@@ -1874,12 +1875,12 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
 
     //for (size_t h = 0; h < num_handles; h++) {
     size_t h = OVER_CENTER_HANDLE;
-        aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
-        aabb_min[h].y = handles[h].y - model_mat[3][1] - hw;
-        aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
-        aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
-        aabb_max[h].y = handles[h].y - model_mat[3][1] + hw;
-        aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
+    aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
+    aabb_min[h].y = handles[h].y - model_mat[3][1] - hw;
+    aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
+    aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
+    aabb_max[h].y = handles[h].y - model_mat[3][1] + hw;
+    aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
     //}
 
     // Test each each Oriented Bounding Box (OBB).
@@ -1983,253 +1984,199 @@ void LayoutPanel::Unselect3DItems()
     UnSelectAllModels();
 }
 
-void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
+void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 {
-    // process 3d independently until we determine what can be combined
-    if (is_3d) {
-
-        m_moving_handle = false;
-        // don't mark mouse down if a selection is being made
-       if (highlightedModel != nullptr) {
-            if (selectionLatched) {
-                int handle = SelectModelHandles3D(event.GetX(), event.GetY());
-                if( handle != -1 ) {
-                    if (handle >= 0x100) {
-                        // an axis was selected
-                        if (selectedModel != nullptr) {
-                            int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                            selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
-                            UpdatePreview();
-                            m_moving_handle = true;
-                            m_mouse_down = true;
-                        }
-                    }
-                    else {
-                        if ((handle == OVER_CENTER_HANDLE ) &&
-                            (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) ) {
-                            selectedModel->GetModelScreenLocation().AdvanceAxisTool();
-                        }
-                        else {
-                            selectedModel->GetModelScreenLocation().SetAxisTool(0); // translate tool
-                        }
-                        selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+    m_moving_handle = false;
+    // don't mark mouse down if a selection is being made
+    if (highlightedModel != nullptr) {
+        if (selectionLatched) {
+            int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+            if (handle != -1) {
+                if (handle >= 0x100) {
+                    // an axis was selected
+                    if (selectedModel != nullptr) {
+                        int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                        selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
+                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
                         UpdatePreview();
+                        m_moving_handle = true;
+                        m_mouse_down = true;
                     }
                 }
                 else {
-                    m_mouse_down = true;
+                    if ((handle == OVER_CENTER_HANDLE) &&
+                        (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle)) {
+                        selectedModel->GetModelScreenLocation().AdvanceAxisTool();
+                    }
+                    else {
+                        selectedModel->GetModelScreenLocation().SetAxisTool(0); // translate tool
+                    }
+                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+                    UpdatePreview();
                 }
             }
             else {
-                SelectModel(highlightedModel);
-                selectionLatched = true;
-                // latch center handle immediately
-                selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-                UpdatePreview();
+                m_mouse_down = true;
             }
         }
         else {
-                m_mouse_down = true;
+            SelectModel(highlightedModel);
+            selectionLatched = true;
+            // latch center handle immediately
+            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            UpdatePreview();
         }
+    }
+    else {
+        m_mouse_down = true;
+    }
 
-        m_last_mouse_x = event.GetX();
-        m_last_mouse_y = event.GetY();
+    m_last_mouse_x = event.GetX();
+    m_last_mouse_y = event.GetY();
 
-        if (selectedButton != nullptr) {
-            //create a new model
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi, ht);
-            int cy = modelPreview->GetVirtualCanvasHeight() - event.GetY();
-            //if (m_last_mouse_x < wi
-            //    && cy < ht
-            //    && cy >= 0) {
-
-                m_moving_handle = true;
-                m_creating_bound_rect = false;
-                const std::string& model_type = selectedButton->GetModelType();
-                newModel = CreateNewModel(model_type);
-                newModel->SetLayoutGroup(currentLayoutGroup);
-
-                if (newModel != nullptr) {
-                    if (model_type == "Poly Line") {
-                        m_polyline_active = true;
-                    }
-
-                    newModel->Selected = true;
-                    newModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-                    newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
-                    newModel->GetModelScreenLocation().SetAxisTool(TOOL_SCALE);
-                    selectionLatched = true;
-                    highlightedModel = newModel;
-                    selectedModel = newModel;
-                    creating_model = true;
-                    if (wi > 0 && ht > 0)
-                    {
-                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-                        newModel->UpdateXmlWithScale();
-                    }
-                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, OVER_CENTER_HANDLE, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
-                    lastModelName = newModel->name;
-                    modelPreview->GetModels().push_back(newModel);
-                }
-            //}
-        }
-
-        ShowPropGrid(true);
-        modelPreview->SetFocus();
-
+    if (selectedButton != nullptr) {
+        //create a new model
+        int wi, ht;
+        modelPreview->GetVirtualCanvasSize(wi, ht);
+        m_moving_handle = true;
         m_creating_bound_rect = false;
-        m_dragging = false;
+        const std::string& model_type = selectedButton->GetModelType();
+        newModel = CreateNewModel(model_type);
+        newModel->SetLayoutGroup(currentLayoutGroup);
+
+        if (newModel != nullptr) {
+            if (model_type == "Poly Line") {
+                m_polyline_active = true;
+            }
+
+            newModel->Selected = true;
+            newModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
+            newModel->GetModelScreenLocation().SetAxisTool(TOOL_SCALE);
+            selectionLatched = true;
+            highlightedModel = newModel;
+            selectedModel = newModel;
+            creating_model = true;
+            if (wi > 0 && ht > 0)
+            {
+                modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+                newModel->UpdateXmlWithScale();
+            }
+            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, OVER_CENTER_HANDLE, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
+            lastModelName = newModel->name;
+            modelPreview->GetModels().push_back(newModel);
+        }
+    }
+    ShowPropGrid(true);
+    modelPreview->SetFocus();
+
+    m_creating_bound_rect = false;
+    m_dragging = false;
+}
+
+void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
+{
+    if (is_3d) {
+        ProcessLeftMouseClick3D(event);
         return;
+    }
 
+    if (m_polyline_active)
+    {
+        Model *m = newModel;
         int y = event.GetY();
-        if (event.ControlDown())
-        {
-            //ignore_next_event = true;
-            //SelectMultipleModels(event.GetX(), y);
-            //m_dragging = true;
-            //m_previous_mouse_x = event.GetX();
-            //m_previous_mouse_y = event.GetY();
+        y = modelPreview->GetVirtualCanvasHeight() - y;
+        m->AddHandle(modelPreview, event.GetPosition().x, y);
+        m->UpdateXmlWithScale();
+        m->InitModel();
+        xlights->MarkEffectsFileDirty(true);
+        UpdatePreview();
+        m_over_handle++;
+        return;
+    }
+
+    ShowPropGrid(true);
+    modelPreview->SetFocus();
+
+    int y = event.GetY();
+    if (event.ControlDown())
+    {
+        ignore_next_event = true;
+        SelectMultipleModels(event.GetX(), y);
+        m_dragging = true;
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+    }
+    else if (event.ShiftDown())
+    {
+        m_creating_bound_rect = true;
+        m_bound_start_x = event.GetX();
+        m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+    }
+    else if (m_over_handle != -1)
+    {
+        m_moving_handle = true;
+        if (selectedModel != nullptr) {
+            selectedModel->SelectHandle(m_over_handle);
+            UpdatePreview();
         }
-        else if (event.ShiftDown())
-        {
-            //m_creating_bound_rect = true;
-            //m_bound_start_x = event.GetX();
-            //m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
-        }
-        else if (m_over_handle != -1)
-        {
-            //m_moving_handle = true;
-            ///if (selectedModel != nullptr) {
-             //   selectedModel->SelectHandle(m_over_handle);
-             //   UpdatePreview();
-            //}
-        }
-        else
-        {
-            m_moving_handle = false;
+    }
+    else if (selectedButton != nullptr)
+    {
+        //create a new model
+        int wi, ht;
+        modelPreview->GetVirtualCanvasSize(wi, ht);
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+        int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
+        if (m_previous_mouse_x < wi
+            && cy < ht
+            && cy >= 0) {
+
+            m_moving_handle = true;
             m_creating_bound_rect = false;
+            const std::string& model_type = selectedButton->GetModelType();
+            newModel = CreateNewModel(model_type);
+            newModel->SetLayoutGroup(currentLayoutGroup);
 
-            if (!event.wxKeyboardState::ControlDown())
-            {
-                UnSelectAllModels();
-            }
+            if (newModel != nullptr) {
+                if (model_type == "Poly Line") {
+                    m_polyline_active = true;
+                }
 
-            if (SelectSingleModel3D(event.GetX(), y))
-            {
-                m_dragging = true;
-                m_previous_mouse_x = event.GetX();
-                m_previous_mouse_y = event.GetY();
-                xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
-            }
-            else
-            {
-                m_creating_bound_rect = true;
-                m_bound_start_x = event.GetX();
-                m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+                newModel->Selected = true;
+                if (wi > 0 && ht > 0)
+                {
+                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y, modelPreview));
+                    newModel->UpdateXmlWithScale();
+                }
+                lastModelName = newModel->name;
+                modelPreview->GetModels().push_back(newModel);
             }
         }
     }
     else
     {
-        if (m_polyline_active)
+        m_moving_handle = false;
+        m_creating_bound_rect = false;
+
+        if (!event.wxKeyboardState::ControlDown())
         {
-            Model *m = newModel;
-            int y = event.GetY();
-            y = modelPreview->GetVirtualCanvasHeight() - y;
-            m->AddHandle(modelPreview, event.GetPosition().x, y);
-            m->UpdateXmlWithScale();
-            m->InitModel();
-            xlights->MarkEffectsFileDirty(true);
-            UpdatePreview();
-            m_over_handle++;
-            return;
+            UnSelectAllModels();
         }
 
-        ShowPropGrid(true);
-        modelPreview->SetFocus();
-
-        int y = event.GetY();
-        if (event.ControlDown())
+        if (SelectSingleModel(event.GetX(), y))
         {
-            ignore_next_event = true;
-            SelectMultipleModels(event.GetX(), y);
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
+            xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
         }
-        else if (event.ShiftDown())
+        else
         {
             m_creating_bound_rect = true;
             m_bound_start_x = event.GetX();
             m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
-        }
-        else if (m_over_handle != -1)
-        {
-            m_moving_handle = true;
-            if (selectedModel != nullptr) {
-                selectedModel->SelectHandle(m_over_handle);
-                UpdatePreview();
-            }
-        }
-        else if (selectedButton != nullptr)
-        {
-            //create a new model
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi, ht);
-            m_previous_mouse_x = event.GetX();
-            m_previous_mouse_y = event.GetY();
-            int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
-            if (m_previous_mouse_x < wi
-                && cy < ht
-                && cy >= 0) {
-
-                m_moving_handle = true;
-                m_creating_bound_rect = false;
-                const std::string& model_type = selectedButton->GetModelType();
-                newModel = CreateNewModel(model_type);
-                newModel->SetLayoutGroup(currentLayoutGroup);
-
-                if (newModel != nullptr) {
-                    if (model_type == "Poly Line") {
-                        m_polyline_active = true;
-                    }
-
-                    newModel->Selected = true;
-                    if (wi > 0 && ht > 0)
-                    {
-                        modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y, modelPreview));
-                        newModel->UpdateXmlWithScale();
-                    }
-                    lastModelName = newModel->name;
-                    modelPreview->GetModels().push_back(newModel);
-                }
-            }
-        }
-        else
-        {
-            m_moving_handle = false;
-            m_creating_bound_rect = false;
-
-            if (!event.wxKeyboardState::ControlDown())
-            {
-                UnSelectAllModels();
-            }
-
-            if (SelectSingleModel(event.GetX(), y))
-            {
-                m_dragging = true;
-                m_previous_mouse_x = event.GetX();
-                m_previous_mouse_y = event.GetY();
-                xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
-            }
-            else
-            {
-                m_creating_bound_rect = true;
-                m_bound_start_x = event.GetX();
-                m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
-            }
         }
     }
 }
@@ -2333,6 +2280,18 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
     m_dragging = false;
 }
 
+void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
+{
+    int i = event.GetWheelRotation();
+    float delta = -0.1f;
+    if (i < 0)
+    {
+        delta *= -1.0f;
+    }
+    modelPreview->SetZoomDelta(delta);
+    UpdatePreview();
+}
+
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
     int y = event.GetY();
@@ -2382,8 +2341,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (m != newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        y = modelPreview->GetVirtualCanvasHeight() - y;
-        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
+        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         SetupPropGrid(m);
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
@@ -2417,7 +2375,19 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            modelPreview->SetCursor(m->CheckIfOverHandles(m_over_handle,event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+
+            VectorMath::ScreenPosToWorldRay(
+                event.GetX(), (modelPreview->getHeight() - event.GetY()),
+                modelPreview->getWidth(), modelPreview->getHeight(),
+                modelPreview->GetViewMatrix(),
+                modelPreview->GetProjMatrix(),
+                ray_origin,
+                ray_direction
+            );
+
+            modelPreview->SetCursor(m->GetModelScreenLocation().CheckIfOverHandles(m_over_handle, ray_origin, ray_direction));
         }
     }
 }
@@ -4384,6 +4354,16 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 {
     is_3d = CheckBox_3D->GetValue();
     modelPreview->Set3D(is_3d);
+    if (is_3d) {
+        if (selectedModel != nullptr) {
+            selectionLatched = true;
+            highlightedModel = selectedModel;
+            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+        }
+    }
+    else {
+        Unselect3DItems();
+    }
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
     Refresh();

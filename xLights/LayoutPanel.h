@@ -149,8 +149,9 @@ class LayoutPanel: public wxPanel
 		void OnPreviewLeftDown(wxMouseEvent& event);
         void OnPreviewLeftDClick(wxMouseEvent& event);
 		void OnPreviewRightDown(wxMouseEvent& event);
-		void OnPreviewMouseMove(wxMouseEvent& event);
-		void OnPreviewModelPopup(wxCommandEvent &event);
+        void OnPreviewMouseMove(wxMouseEvent& event);
+        void OnPreviewMouseWheel(wxMouseEvent& event);
+        void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
@@ -358,6 +359,7 @@ class LayoutPanel: public wxPanel
         void FinalizeModel();
         void Unselect3DItems();
         void SelectModel3D();
+        void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style);
         int GetModelTreeIcon(Model* model, bool open);

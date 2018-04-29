@@ -2660,10 +2660,6 @@ bool Model::HitTest(ModelPreview* preview, int x, int y) {
     return GetModelScreenLocation().HitTest(x, y1);
 }
 
-wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x, wxCoord y) {
-    return GetModelScreenLocation().CheckIfOverHandles(handle, x, y);
-}
-
 wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {
     return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }

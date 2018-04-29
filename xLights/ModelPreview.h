@@ -62,6 +62,7 @@ public:
 
 	void SetCameraView(int camerax, int cameray, bool latch);
 	void SetCameraPos(int camerax, int cameray, bool latch);
+    void SetZoomDelta(float delta);
 
     void Render();
     void Render(const unsigned char *data, bool swapBuffers=true);
@@ -137,8 +138,9 @@ private:
     xLightsFrame* xlights;
     float cameraAngleY;
     float cameraAngleX;
-	float cameraDistance;
-	float cameraPosX;
+    float cameraDistance;
+    float zoom;
+    float cameraPosX;
 	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
 	DrawGLUtils::xl3Accumulator accumulator3d;

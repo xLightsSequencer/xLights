@@ -28,7 +28,7 @@ EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
 EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
-//EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
+EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
 EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
@@ -69,6 +69,11 @@ void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
 void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
+}
+
+void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
+    event.ResumePropagation(1);
+    event.Skip(); // continue the event
 }
 
 void ModelPreview::render(wxPaintEvent& event)
@@ -148,8 +153,6 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
     }
 }
 
-void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
-
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if (allowPreviewChange && xlights != nullptr) {
         wxMenu mnuSelectPreview;
@@ -206,6 +209,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
 	cameraDistance = -2000.0f;
     cameraPosX = -500;
     cameraPosY = -100;
+    zoom = 1.0f;
 }
 
 ModelPreview::ModelPreview(wxPanel* parent)
@@ -416,7 +420,11 @@ void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
 		last_offsetx = camerax;
 		last_offsety = cameray;
 	}
-	//cameraDistance += cameray;
+}
+
+void ModelPreview::SetZoomDelta(float delta)
+{
+    zoom *= 1.0f + delta;
 }
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
@@ -431,17 +439,18 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
     if (is_3d) {
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, 0.0f, cameraDistance));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, 0.0f, cameraDistance * zoom));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
     }
     else {
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -virtualHeight, 0.0f));
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -(float)mWindowHeight*zoom, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate;
+        ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate * ViewScale;
         ProjMatrix = glm::ortho((float)0, (float)mWindowWidth, (float)mWindowHeight, (float)0);
     }
 
@@ -452,7 +461,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance));
+            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance * zoom));
             glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
             glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
             ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;

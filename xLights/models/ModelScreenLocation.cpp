@@ -336,38 +336,65 @@ bool BoxedScreenLocation::HitTest(int x, int y) const {
     }
 }
 
-wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, wxCoord x,wxCoord y) const {
-
+wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+{
     if (_locked)
     {
         handle = OVER_NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
+    
+    float distance = 1000000000.0f;
+    int which_handle = OVER_NO_HANDLE;
+    int hw = RECT_HANDLE_WIDTH;
 
-    if (x>mHandlePosition[0].x && x<mHandlePosition[0].x+RECT_HANDLE_WIDTH &&
-        y>mHandlePosition[0].y && y<mHandlePosition[0].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_L_TOP_HANDLE;
-        return GetResizeCursor(0, rotatez);
-    } else if (x>mHandlePosition[1].x && x<mHandlePosition[1].x+RECT_HANDLE_WIDTH &&
-               y>mHandlePosition[1].y && y<mHandlePosition[1].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_R_TOP_HANDLE;
-        return GetResizeCursor(1, rotatez);
-    } else if (x>mHandlePosition[2].x && x<mHandlePosition[2].x+RECT_HANDLE_WIDTH &&
-               y>mHandlePosition[2].y && y<mHandlePosition[2].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_R_BOTTOM_HANDLE;
-        return GetResizeCursor(2, rotatez);
-    } else if (x>mHandlePosition[3].x && x<mHandlePosition[3].x+RECT_HANDLE_WIDTH &&
-               y>mHandlePosition[3].y && y<mHandlePosition[3].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_L_BOTTOM_HANDLE;
-        return GetResizeCursor(3, rotatez);
-    } else if (x>mHandlePosition[4].x && x<mHandlePosition[4].x+RECT_HANDLE_WIDTH &&
-               y>mHandlePosition[4].y && y<mHandlePosition[4].y+RECT_HANDLE_WIDTH) {
-        handle = OVER_ROTATE_HANDLE;
-        return wxCURSOR_HAND;
-    } else {
-        handle = OVER_NO_HANDLE;
+    int num_handles = 5;
+    glm::vec3 aabb_min[5];
+    glm::vec3 aabb_max[5];
+
+    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 matrix = ModelMatrix * flipy * flipx;
+
+    for (size_t h = 0; h < num_handles; h++) {
+        aabb_min[h].x = mHandlePosition[h].x - matrix[3][0] - hw;
+        aabb_min[h].y = mHandlePosition[h].y - matrix[3][1] - hw;
+        aabb_min[h].z = mHandlePosition[h].z - matrix[3][2] - hw;
+        aabb_max[h].x = mHandlePosition[h].x - matrix[3][0] + hw;
+        aabb_max[h].y = mHandlePosition[h].y - matrix[3][1] + hw;
+        aabb_max[h].z = mHandlePosition[h].z - matrix[3][2] + hw;
     }
-    return wxCURSOR_DEFAULT;
+
+    // Test each each Oriented Bounding Box (OBB).
+    for (size_t i = 0; i < num_handles; i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
+
+        if (VectorMath::TestRayOBBIntersection(
+            origin,
+            direction,
+            aabb_min[i],
+            aabb_max[i],
+            matrix,
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                which_handle = i;
+            }
+        }
+    }
+    handle = which_handle;
+
+    if (handle == OVER_NO_HANDLE) {
+        return wxCURSOR_DEFAULT;
+    }
+    else if (handle == OVER_ROTATE_HANDLE) {
+        return wxCURSOR_HAND;
+    }
+    else {
+        return GetResizeCursor(which_handle, rotatez);
+    }
 }
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
@@ -470,6 +497,10 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
         //glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, -1.0f));
         //ModelMatrix = Translate * RotateZ * RotateY * RotateX;
         TranslateMatrix = Translate;
+    }
+    else {
+        ModelMatrix = glm::mat4(1.0f);
+        TranslateMatrix = glm::mat4(1.0f);
     }
 }
 
@@ -595,28 +626,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     mHandlePosition[9].y = worldPos_y;
     mHandlePosition[9].z = worldPos_z;
 
-    // Draw rotation handle square
-    /*sx = -RECT_HANDLE_WIDTH / 2;
-    sy = ((RenderHt*scaley/2) + 50);
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx += w1;
-    sy += h1;
-    mHandlePosition[4].x = sx;
-    mHandlePosition[4].y = sy;
-    mHandlePosition[4].z = worldPos_z;
-
-    // Draw rotation handle from center to 25 over rendered height
-    sx = 0;
-    sy = ((RenderHt*scaley/2) + 50);
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx += w1;
-    sy += h1;*/
-
-   // va.Finish(GL_TRIANGLES);
-
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    //va.AddVertex(w1, h1, worldPos_z, xlWHITE);
-    //va.AddVertex(sx, sy, worldPos_z, xlWHITE);
     va.AddVertex(mHandlePosition[0].x, mHandlePosition[0].y, mHandlePosition[0].z, xlWHITE);
     va.AddVertex(mHandlePosition[1].x, mHandlePosition[1].y, mHandlePosition[1].z, xlWHITE);
     va.AddVertex(mHandlePosition[1].x, mHandlePosition[1].y, mHandlePosition[1].z, xlWHITE);
@@ -683,58 +693,60 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     }
 
     // Upper Left Handle
-    float sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-    float sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx = sx + w1;
-    sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
+    float sx = -RenderWi / 2;
+    float sy = RenderHt / 2;
+    float sz = 0.0f;
+    TranslatePoint(sx, sy, sz);
+    sx += -BOUNDING_RECT_OFFSET;
+    sy += BOUNDING_RECT_OFFSET;
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH/2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
+    mHandlePosition[0].z = sz;
     // Upper Right Handle
-    sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
-    sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx = sx + w1;
-    sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
+    sx = RenderWi / 2;
+    sy = RenderHt / 2;
+    sz = 0.0f;
+    TranslatePoint(sx, sy, sz);
+    sx += BOUNDING_RECT_OFFSET;
+    sy += BOUNDING_RECT_OFFSET;
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
+    mHandlePosition[1].z = sz;
     // Lower Right Handle
-    sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
-    sy = (-RenderHt*scaley / 2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx = sx + w1;
-    sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
+    sx = RenderWi / 2;
+    sy = -RenderHt / 2;
+    sz = 0.0f;
+    TranslatePoint(sx, sy, sz);
+    sx += BOUNDING_RECT_OFFSET;
+    sy += -BOUNDING_RECT_OFFSET;
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
+    mHandlePosition[2].z = sz;
     // Lower Left Handle
-    sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-    sy = (-RenderHt * scaley / 2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx = sx + w1;
-    sy = sy + h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
+    sx = -RenderWi / 2;
+    sy = -RenderHt / 2;
+    sz = 0.0f;
+    TranslatePoint(sx, sy, sz);
+    sx += -BOUNDING_RECT_OFFSET;
+    sy += -BOUNDING_RECT_OFFSET;
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
+    mHandlePosition[3].z = sz;
 
     // Draw rotation handle square
-    sx = -RECT_HANDLE_WIDTH/2;
-    sy = ((RenderHt*scaley/2) + 50);
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx += w1;
-    sy += h1;
-    va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
+    sx = 0.0f;
+    sy = RenderHt / 2 + (50/scaley);
+    sz = 0.0f;
+    TranslatePoint(sx, sy, sz);
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     // Save rotate handle
     mHandlePosition[4].x = sx;
     mHandlePosition[4].y = sy;
-    // Draw rotation handle from center to 25 over rendered height
-    sx = 0;
-    sy = ((RenderHt*scaley/2) + 50);
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
-    sx += w1;
-    sy += h1;
+    mHandlePosition[4].z = sz;
 
     va.Finish(GL_TRIANGLES);
 
@@ -948,9 +960,24 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
 
     if (_locked) return 0;
 
+    glm::vec3 origin;
+    glm::vec3 direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        mouseX, preview->getHeight() - mouseY,
+        preview->getWidth(), preview->getHeight(),
+        preview->GetViewMatrix(),
+        preview->GetProjMatrix(),
+        origin,
+        direction
+    );
+
+    int posx = origin.x;
+    int posy = origin.y;
+
     if (handle == OVER_ROTATE_HANDLE) {
-        int sx = mouseX - centerx;
-        int sy = mouseY - centery;
+        int sx = posx - centerx;
+        int sy = posy - centery;
         //Calculate angle of mouse from center.
         float tan = (float)sx / (float)sy;
         int angle = -toDegrees((float)atan(tan));
@@ -969,19 +996,19 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     }
     else {
         if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_R_TOP_HANDLE)) {
-            if (float(mouseY) <= (centery - RenderHt / 2 * scaley)) return 0;
+            if (float(posy) <= (centery - RenderHt / 2 * scaley)) return 0;
         }
         if ((handle == OVER_L_BOTTOM_HANDLE) || (handle == OVER_R_BOTTOM_HANDLE)) {
-            if (float(mouseY) >= (centery + RenderHt / 2 * scaley)) return 0;
+            if (float(posy) >= (centery + RenderHt / 2 * scaley)) return 0;
         }
         if ((handle == OVER_R_TOP_HANDLE) || (handle == OVER_R_BOTTOM_HANDLE)) {
-            if (float(mouseX) <= (centerx - RenderWi / 2 * scalex)) return 0;
+            if (float(posx) <= (centerx - RenderWi / 2 * scalex)) return 0;
         }
         if ((handle == OVER_L_TOP_HANDLE) || (handle == OVER_L_BOTTOM_HANDLE)) {
-            if (float(mouseX) >= (centerx + RenderWi / 2 * scalex)) return 0;
+            if (float(posx) >= (centerx + RenderWi / 2 * scalex)) return 0;
         }
-        float sx = float(mouseX) - centerx;
-        float sy = float(mouseY) - centery;
+        float sx = float(posx) - centerx;
+        float sy = float(posy) - centery;
         float radians = -glm::radians((float)rotatez); // negative angle to reverse translation
         TranslatePointDoubles(radians, sx, sy, sx, sy);
         sx = fabs(sx);
@@ -1203,21 +1230,21 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);
 }
 
-wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
-
+wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+{
     if (_locked)
     {
         handle = OVER_NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
-
+    /*
     for (size_t h = 0; h < mHandlePosition.size(); h++) {
         if (x>mHandlePosition[h].x && x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
             y>mHandlePosition[h].y && y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
             handle = h;
             return wxCURSOR_SIZING;
         }
-    }
+    }*/
     handle = -1;
     return wxCURSOR_DEFAULT;
 }
@@ -2133,14 +2160,14 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
     return false;
 }
 
-wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) const {
-
+wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+{
     if (_locked)
     {
         handle = OVER_NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
-
+    /*
     // check handle of selected curve first
     if( selected_segment != -1 ) {
         if( mPos[selected_segment].has_curve ) {
@@ -2163,7 +2190,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, int x, int y) 
             handle = h;
             return wxCURSOR_SIZING;
         }
-    }
+    }*/
     handle = -1;
     return wxCURSOR_DEFAULT;
 }
