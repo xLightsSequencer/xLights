@@ -144,6 +144,7 @@ class SubModelsDialog: public wxDialog
 		void PopulateList();
 		void ValidateWindow();
 		void Select(const wxString &name);
+        void SelectAll(const wxString &names);
 		void UnSelectAll();
 
 		void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);

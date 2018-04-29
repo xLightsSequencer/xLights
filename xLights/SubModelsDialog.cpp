@@ -91,7 +91,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(10,10));
+    SplitterWindow1->SetMinSize(wxSize(1000,400));
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -254,7 +254,6 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    SplitterWindow1->SetMinSize(wxSize(1000,400));
 
     SubModelTextDropTarget *mdt = new SubModelTextDropTarget(this, ListCtrl_SubModels, "SubModel");
     ListCtrl_SubModels->SetDropTarget(mdt);
@@ -935,6 +934,21 @@ void SubModelsDialog::Select(const wxString &name)
     ValidateWindow();
 }
 
+void SubModelsDialog::SelectAll(const wxString &names) {
+    if (names == "") { return; }
+    wxStringTokenizer tokenizer(names, ",");
+    while (tokenizer.HasMoreTokens()) {
+        int idx = GetSubModelInfoIndex(tokenizer.GetNextToken());
+        for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
+        {
+            if (i==idx) {
+                ListCtrl_SubModels->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            }
+        }
+    }
+    ValidateWindow();
+}
+
 void SubModelsDialog::DisplayRange(const wxString &range)
 {
     float x1 = 0;
@@ -1075,17 +1089,35 @@ void SubModelsDialog::GenerateSegment(SubModelsDialog::SubModelInfo* sm, int seg
 
 void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
 {
-    // TODO this looks like it is just moving one when it should move multiple
-    wxString name = GetSelectedName();
-    int indexFrom = GetSubModelInfoIndex(name);
-    if (indexTo == indexFrom) { return; }
     if (indexTo < 0) { return; }
+    wxString names = GetSelectedNames();
+    wxStringTokenizer tokenizer(names, ",");
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken();
+        int index = GetSubModelInfoIndex(token);
+        
+        SubModelInfo* sm = _subModels.at(index);
+        _subModels.erase(_subModels.begin() + GetSubModelInfoIndex(sm->name));
+        ListCtrl_SubModels->DeleteItem(index);
+        if (indexTo >= _subModels.size()) {
+            _subModels.push_back(sm);
+            long idx = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
+            ListCtrl_SubModels->SetItemPtrData(idx, (wxUIntPtr)sm);
 
-    SubModelInfo* sm = _subModels.at(indexFrom);
-    _subModels.erase(_subModels.begin() + GetSubModelInfoIndex(sm->name));
-    _subModels.insert(_subModels.begin()+indexTo, sm);
-    PopulateList();
-    Select(name);
+        } else {
+            _subModels.insert(_subModels.begin()+indexTo, sm);
+            ListCtrl_SubModels->InsertItem(indexTo, sm->name);
+            ListCtrl_SubModels->SetItemPtrData(indexTo, (wxUIntPtr)sm);
+        }
+        ++indexTo;
+    }
+    tokenizer.Reinit(names);
+    if (tokenizer.CountTokens() > 1) {
+        SelectAll(names);
+    } else {
+        wxString first = tokenizer.GetNextToken();
+        Select(first);
+    }
 }
 
 #pragma region Drag and Drop
