@@ -151,6 +151,8 @@ class LayoutPanel: public wxPanel
 		void OnPreviewRightDown(wxMouseEvent& event);
         void OnPreviewMouseMove(wxMouseEvent& event);
         void OnPreviewMouseWheel(wxMouseEvent& event);
+        void OnPreviewMouseWheelDown(wxMouseEvent& event);
+        void OnPreviewMouseWheelUp(wxMouseEvent& event);
         void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
@@ -241,6 +243,7 @@ class LayoutPanel: public wxPanel
         int m_bound_end_y;
         int m_over_handle;
         bool m_moving_handle;
+        bool m_wheel_down;
         bool m_polyline_active;
 		int m_previous_mouse_x, m_previous_mouse_y;
 		int mPointSize;
@@ -358,6 +361,7 @@ class LayoutPanel: public wxPanel
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
         void Unselect3DItems();
+        void GetWorldPosition(int& x, int& y);
         void SelectModel3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();

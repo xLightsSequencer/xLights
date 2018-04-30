@@ -213,7 +213,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false), selectionLatched(false), creating_model(false)
+    ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -323,7 +323,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
     modelPreview->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheel, nullptr, this);
-
+    modelPreview->Connect(wxEVT_MIDDLE_DOWN, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelDown, nullptr, this);
+    modelPreview->Connect(wxEVT_MIDDLE_UP, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelUp, nullptr, this);
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -1728,6 +1729,23 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     return false;
 }
 
+void LayoutPanel::GetWorldPosition(int& x, int& y)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        x, (modelPreview->getHeight() - y),
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetViewMatrix(),
+        modelPreview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+    x = ray_origin.x;
+    y = ray_origin.y;
+}
+
 bool LayoutPanel::SelectSingleModel3D(int x, int y)
 {
     std::vector<int> found;
@@ -2280,6 +2298,18 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
     m_dragging = false;
 }
 
+void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
+{
+    m_previous_mouse_x = event.GetX();
+    m_previous_mouse_y = event.GetY();
+    m_wheel_down = true;
+}
+
+void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
+{
+    m_wheel_down = false;
+}
+
 void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 {
     int i = event.GetWheelRotation();
@@ -2297,32 +2327,43 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     int y = event.GetY();
 
     if (is_3d) {
-        if (m_mouse_down) {
-                if (m_moving_handle) {
-                    if (selectedModel != nullptr) {
-                        int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                        if (selectedModel != newModel) {
-                            CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
-                        }
-                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false);
-                        selectedModel->UpdateXmlWithScale();
-                        SetupPropGrid(selectedModel);
-                        xlights->MarkEffectsFileDirty(true);
-                        UpdatePreview();
+        if (m_wheel_down)
+        {
+            float delta_x = event.GetX() - m_previous_mouse_x;
+            float delta_y = -(event.GetY() - m_previous_mouse_y);
+            delta_x /= modelPreview->GetZoom();
+            delta_y /= modelPreview->GetZoom();
+            modelPreview->SetPan(delta_x, delta_y);
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            UpdatePreview();
+        }
+        else if (m_mouse_down) {
+            if (m_moving_handle) {
+                if (selectedModel != nullptr) {
+                    int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                    if (selectedModel != newModel) {
+                        CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
                     }
-                }
-                else {
-                    int delta_x = event.GetPosition().x - m_last_mouse_x;
-                    int delta_y = event.GetPosition().y - m_last_mouse_y;
-                    modelPreview->SetCameraView(delta_x, delta_y, false);
+                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false);
+                    selectedModel->UpdateXmlWithScale();
+                    SetupPropGrid(selectedModel);
+                    xlights->MarkEffectsFileDirty(true);
                     UpdatePreview();
                 }
             }
             else {
-                if (!selectionLatched) {
-                    SelectSingleModel3D(event.GetX(), event.GetY());
-                }
+                int delta_x = event.GetPosition().x - m_last_mouse_x;
+                int delta_y = event.GetPosition().y - m_last_mouse_y;
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                UpdatePreview();
             }
+        }
+        else {
+            if (!selectionLatched) {
+                SelectSingleModel3D(event.GetX(), event.GetY());
+            }
+        }
         return;
     }
 
@@ -2332,6 +2373,17 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
         UpdatePreview();
         return;
+    }
+    else if (m_wheel_down)
+    {
+        float delta_x = event.GetX() - m_previous_mouse_x;
+        float delta_y = -(event.GetY() - m_previous_mouse_y);
+        delta_x /= modelPreview->GetZoom2D();
+        delta_y /= modelPreview->GetZoom2D();
+        modelPreview->SetPan(delta_x, delta_y);
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+        UpdatePreview();
     }
 
     Model *m = newModel;
@@ -4356,10 +4408,11 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
             highlightedModel = selectedModel;
             selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
         }
+        else {
+            Unselect3DItems();
+        }
     }
-    else {
-        Unselect3DItems();
-    }
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
     Refresh();

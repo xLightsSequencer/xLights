@@ -86,6 +86,7 @@ public:
     bool GetActive();
     float GetZoom() { return zoom; }
     float GetZoom2D() { return zoom2D; }
+    void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
     glm::mat4& GetViewMatrix() { return ViewMatrix; }
@@ -143,6 +144,10 @@ private:
     float cameraDistance;
     float zoom;
     float zoom2D;  // zoom works opposite in 2D
+    float panx;
+    float pany;
+    float zoom_corrx;
+    float zoom_corry;
     float cameraPosX;
 	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
