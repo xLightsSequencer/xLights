@@ -618,9 +618,23 @@ void xLightsFrame::CreateDefaultEffectsXml()
     UnsavedRgbEffectsChanges = true;
 }
 
+bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName)
+{
+    // TODO This needs work to ensure all the submodels are correctly ordered in all views
+
+    Model* model = AllModels[ModelName];
+    //Element* elementToCheck = mSequenceElements.GetElement(ModelName);
+
+//    _sequenceViewManager.EnsureSequenceElementsAreOrderedCorrectlyInViews(model);
+//    mSequenceElements.EnsureSequenceElementsAreOrderedCorrectlyInViews(model);
+
+    return true;
+}
+
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool internalsChanged = false;
 
     if (OldName == NewName) {
         return false;
@@ -629,13 +643,23 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 
     Element* elem_to_rename = mSequenceElements.GetElement(OldName);
-    if( elem_to_rename != nullptr )
+    if (elem_to_rename != nullptr)
     {
         elem_to_rename->SetName(NewName);
     }
-    bool internalsChanged = AllModels.Rename(OldName, NewName);
+
+    if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end())
+    {
+        internalsChanged = true;
+    }
+    else
+    {
+        internalsChanged = AllModels.Rename(OldName, NewName);
+    }
+
     RenameModelInViews(OldName, NewName);
     mSequenceElements.RenameModelInViews(OldName, NewName);
+
     UnsavedRgbEffectsChanges = true;
     return internalsChanged;
 }

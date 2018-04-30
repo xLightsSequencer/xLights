@@ -72,7 +72,7 @@ Model *ModelManager::operator[](const std::string &name) const {
 
 bool ModelManager::Rename(const std::string &oldName, const std::string &newName) {
     Model *model = GetModel(oldName);
-    if (model == nullptr) {
+    if (model == nullptr || model->GetDisplayAs() == "SubModel") {
         return false;
     }
     model->GetModelXml()->DeleteAttribute("name");

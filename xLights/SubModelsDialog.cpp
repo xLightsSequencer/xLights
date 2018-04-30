@@ -434,7 +434,7 @@ void SubModelsDialog::Save()
         // If the submodel name has changed ... we need to rename the model
         if ((*a)->oldName != (*a)->name)
         {
-            xlights->RenameModel((*a)->oldName.ToStdString(), (*a)->name.ToStdString());
+            xlights->RenameModel(model->GetName() + std::string("/") + (*a)->oldName.ToStdString(), model->GetName() + std::string("/") + (*a)->name.ToStdString());
         }
 
         if ((*a)->isRanges) {
@@ -446,6 +446,8 @@ void SubModelsDialog::Save()
         }
         root->AddChild(child);
     }
+
+    xlights->EnsureSequenceElementsAreOrderedCorrectly(model->GetName());
 }
 
 #pragma region actions
