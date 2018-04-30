@@ -321,29 +321,71 @@ bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
 
-    if (mMinScreenX>=xs && mMaxScreenX<=xf && mMinScreenY>=ys && mMaxScreenY<=yf) {
+    if (aabb_min.x >= xs && aabb_max.x <= xf && aabb_min.y >= ys && aabb_max.y <= yf) {
         return true;
     } else {
         return false;
     }
 }
 
-bool BoxedScreenLocation::HitTest(int x, int y) const {
-    if (x>=mMinScreenX && x<=mMaxScreenX && y>=mMinScreenY && y <= mMaxScreenY) {
-        return true;
-    } else {
-        return false;
+bool BoxedScreenLocation::HitTest(ModelPreview* preview, int x, int y) const {
+    // NOTE:  This routine is designed for the 2D layout model selection only
+
+    bool return_value = false;
+    glm::vec3 origin;
+    glm::vec3 direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        x, preview->getHeight() - y,
+        preview->getWidth(), preview->getHeight(),
+        preview->GetViewMatrix(),
+        preview->GetProjMatrix(),
+        origin,
+        direction
+    );
+
+    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 matrix = ModelMatrix2D * flipy * flipx;
+
+    float intersection_distance; // Output of TestRayOBBIntersection()
+
+    if (VectorMath::TestRayOBBIntersection(
+        origin,
+        direction,
+        aabb_min,
+        aabb_max,
+        matrix,
+        intersection_distance)
+        ) {
+        return_value = true;
     }
+
+    return return_value;
 }
 
-wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
+    // NOTE:  This routine is designed for the 2D layout handle selection only
+
     if (_locked)
     {
         handle = OVER_NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
-    
+
+    glm::vec3 origin;
+    glm::vec3 direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        x, preview->getHeight() - y,
+        preview->getWidth(), preview->getHeight(),
+        preview->GetViewMatrix(),
+        preview->GetProjMatrix(),
+        origin,
+        direction
+    );
+
     float distance = 1000000000.0f;
     int which_handle = OVER_NO_HANDLE;
     int hw = RECT_HANDLE_WIDTH;
@@ -354,16 +396,47 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, 
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix = ModelMatrix * flipy * flipx;
+    //glm::mat4 Scale = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
+    glm::mat4 matrix = ModelMatrix2D * flipy * flipx;
 
-    for (size_t h = 0; h < num_handles; h++) {
-        aabb_min[h].x = mHandlePosition[h].x - matrix[3][0] - hw;
-        aabb_min[h].y = mHandlePosition[h].y - matrix[3][1] - hw;
-        aabb_min[h].z = mHandlePosition[h].z - matrix[3][2] - hw;
-        aabb_max[h].x = mHandlePosition[h].x - matrix[3][0] + hw;
-        aabb_max[h].y = mHandlePosition[h].y - matrix[3][1] + hw;
-        aabb_max[h].z = mHandlePosition[h].z - matrix[3][2] + hw;
-    }
+    // FIXME:  Find cleaner way to create handle bounding boxes.  They need to be the untranslated but scaled coordinates.
+    float sx = RenderWi / 2 * scalex;
+    float sy = RenderHt / 2 * scaley;
+    float sz = 0.0f;
+    
+    aabb_min[0].x = -sx - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_min[0].y = sy - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_min[0].z = sz;
+    aabb_min[1].x = sx - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_min[1].y = sy - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_min[1].z = sz;
+    aabb_min[2].x = sx - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_min[2].y = -sy - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_min[2].z = sz;
+    aabb_min[3].x = -sx - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_min[3].y = -sy - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_min[3].z = sz;
+
+    aabb_max[0].x = -sx + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_max[0].y = sy + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_max[0].z = sz;
+    aabb_max[1].x = sx + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_max[1].y = sy + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_max[1].z = sz;
+    aabb_max[2].x = sx + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
+    aabb_max[2].y = -sy + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_max[2].z = sz;
+    aabb_max[3].x = -sx + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_max[3].y = -sy + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
+    aabb_max[3].z = sz;
+
+    sy = (RenderHt / 2 * scaley) + 50;
+    aabb_min[4].x = -RECT_HANDLE_WIDTH;
+    aabb_min[4].y = sy - RECT_HANDLE_WIDTH;
+    aabb_min[4].z = sz;
+    aabb_max[4].x = RECT_HANDLE_WIDTH;
+    aabb_max[4].y = sy + RECT_HANDLE_WIDTH;
+    aabb_max[4].z = sz;
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
@@ -486,10 +559,13 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     centerx = worldPos_x;
     centery = worldPos_y;
     draw_3d = is_3d;
-    if (is_3d && allow_selected) {
+    //if (is_3d && allow_selected) {
+    if (allow_selected) {
         glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), radians, glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         ModelMatrix = Translate * RotateZ;
+        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
+        ModelMatrix2D = Translate2D * RotateZ;
 
         //glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         //glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -498,10 +574,10 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
         //ModelMatrix = Translate * RotateZ * RotateY * RotateX;
         TranslateMatrix = Translate;
     }
-    else {
-        ModelMatrix = glm::mat4(1.0f);
-        TranslateMatrix = glm::mat4(1.0f);
-    }
+    //else {
+    //    ModelMatrix = glm::mat4(1.0f);
+    //    TranslateMatrix = glm::mat4(1.0f);
+    //}
 }
 
 void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
@@ -509,11 +585,6 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
     previewH = h;
 
     PrepareToDraw(draw_3d, false);
-
-    mMinScreenX = w;
-    mMinScreenY = h;
-    mMaxScreenX = 0;
-    mMaxScreenY = 0;
 
     UpdateBoundingBox(Nodes);
 
@@ -525,29 +596,16 @@ void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBas
             float sz = coord->screenZ;
 
             TranslatePoint(sx, sy, sz);
-
-            if (sx<mMinScreenX) {
-                mMinScreenX = sx;
-            }
-            if (sx>mMaxScreenX) {
-                mMaxScreenX = sx;
-            }
-            if (sy<mMinScreenY) {
-                mMinScreenY = sy;
-            }
-            if (sy>mMaxScreenY) {
-                mMaxScreenY = sy;
-            }
         }
     }
     // Set minimum bounding rectangle
-    if(mMaxScreenY-mMinScreenY<4) {
-        mMaxScreenY+=2;
-        mMinScreenY-=2;
+    if (aabb_max.y - aabb_min.y < 4) {
+        aabb_max.y += 2;
+        aabb_min.y -= 2;
     }
-    if(mMaxScreenX-mMinScreenX<4) {
-        mMaxScreenX+=2;
-        mMinScreenX-=2;
+    if (aabb_max.x - aabb_min.x < 4) {
+        aabb_max.x += 2;
+        aabb_min.x -= 2;
     }
 }
 
@@ -1079,24 +1137,16 @@ void BoxedScreenLocation::SetMHeight(int h)
 }
 
 void BoxedScreenLocation::SetLeft(int x) {
-    float screenCenterX = previewW*worldPos_x;
-    float newCenterX = screenCenterX + (x-mMinScreenX);
-    worldPos_x = newCenterX/(float)previewW;
+    worldPos_x = x + RenderWi / 2;
 }
 void BoxedScreenLocation::SetRight(int i) {
-    float screenCenterX = previewW * worldPos_x;
-    float newCenterX = screenCenterX + (i-mMaxScreenX);
-    worldPos_x = newCenterX/(float)previewW;
+    worldPos_x = i - RenderWi / 2;
 }
 void BoxedScreenLocation::SetTop(int y) {
-    float screenCenterY = previewH*worldPos_y;
-    float newCenterY = screenCenterY + (y-mMaxScreenY);
-    worldPos_y = ((float)newCenterY/(float)previewH);
+    worldPos_y = y - RenderHt / 2;
 }
 void BoxedScreenLocation::SetBottom(int y) {
-    float screenCenterY = previewH*worldPos_y;
-    float newCenterY = screenCenterY + (y-mMinScreenY);
-    worldPos_y = ((float)newCenterY/(float)previewH);
+    worldPos_y = y + RenderHt / 2;
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(2),
@@ -1202,7 +1252,7 @@ bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
 }
 
-bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
+bool TwoPointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
     //invert the matrix, get into render space
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(sx, sy, 1);
@@ -1230,7 +1280,7 @@ bool TwoPointScreenLocation::HitTest(int sx,int sy) const {
     return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);
 }
 
-wxCursor TwoPointScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     if (_locked)
     {
@@ -1736,7 +1786,7 @@ bool ThreePointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const
     return xsi < xs && xfi > xf && ysi < ys && yfi > yf;
 }
 
-bool ThreePointScreenLocation::HitTest(int sx,int sy) const {
+bool ThreePointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
     //invert the matrix, get into render space
     glm::mat3 m = glm::inverse(*matrix);
     glm::vec3 v = m * glm::vec3(sx, sy, 1);
@@ -2119,7 +2169,7 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
     return false;
 }
 
-bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
+bool PolyPointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
     for( int i = 0; i < num_points-1; ++i ) {
         if( mPos[i].has_curve ) {
             if( mPos[i].curve->HitTest(sx, sy) ) {
@@ -2160,7 +2210,7 @@ bool PolyPointScreenLocation::HitTest(int sx,int sy) const {
     return false;
 }
 
-wxCursor PolyPointScreenLocation::CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const
+wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     if (_locked)
     {

@@ -2301,7 +2301,11 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (m_moving_handle) {
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                        if (selectedModel != newModel) {
+                            CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
+                        }
                         selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false);
+                        selectedModel->UpdateXmlWithScale();
                         SetupPropGrid(selectedModel);
                         xlights->MarkEffectsFileDirty(true);
                         UpdatePreview();
@@ -2350,6 +2354,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
+        delta_x /= modelPreview->GetZoom2D();
+        delta_y /= modelPreview->GetZoom2D();
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
@@ -2375,19 +2381,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            glm::vec3 ray_origin;
-            glm::vec3 ray_direction;
-
-            VectorMath::ScreenPosToWorldRay(
-                event.GetX(), (modelPreview->getHeight() - event.GetY()),
-                modelPreview->getWidth(), modelPreview->getHeight(),
-                modelPreview->GetViewMatrix(),
-                modelPreview->GetProjMatrix(),
-                ray_origin,
-                ray_direction
-            );
-
-            modelPreview->SetCursor(m->GetModelScreenLocation().CheckIfOverHandles(m_over_handle, ray_origin, ray_direction));
+            modelPreview->SetCursor(m->GetModelScreenLocation().CheckIfOverHandles(modelPreview, m_over_handle, event.GetX(), event.GetY()));
         }
     }
 }

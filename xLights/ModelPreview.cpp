@@ -210,6 +210,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     cameraPosX = -500;
     cameraPosY = -100;
     zoom = 1.0f;
+    zoom2D = 1.0f;
 }
 
 ModelPreview::ModelPreview(wxPanel* parent)
@@ -425,6 +426,7 @@ void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
 void ModelPreview::SetZoomDelta(float delta)
 {
     zoom *= 1.0f + delta;
+    zoom2D *= 1.0f - delta;
 }
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
@@ -446,8 +448,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
     }
     else {
-        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -(float)mWindowHeight*zoom, 0.0f));
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -(float)virtualHeight*zoom2D, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate * ViewScale;

@@ -50,8 +50,8 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
-    virtual bool HitTest(int x,int y) const = 0;
-    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const = 0;
+    virtual bool HitTest(ModelPreview* preview, int x,int y) const = 0;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
 	virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
@@ -142,6 +142,7 @@ protected:
     int rotatey;
     int rotatez;
     mutable glm::mat4 ModelMatrix;
+    mutable glm::mat4 ModelMatrix2D;
     mutable glm::mat4 TranslateMatrix;
     glm::vec3 aabb_min;
     glm::vec3 aabb_max;
@@ -176,8 +177,8 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
+    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -255,11 +256,6 @@ private:
     mutable float radians;
     mutable float centerx;
     mutable float centery;
-
-    int mMinScreenX;
-    int mMinScreenY;
-    int mMaxScreenX;
-    int mMaxScreenY;
 };
 
 //Location that uses two points to define start/end
@@ -276,8 +272,8 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
+    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -351,7 +347,7 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(int x,int y) const override;
+    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -408,8 +404,8 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(int x,int y) const override;
-    virtual wxCursor CheckIfOverHandles(int &handle, glm::vec3 origin, glm::vec3 direction) const;
+    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;

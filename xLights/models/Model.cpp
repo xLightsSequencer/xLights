@@ -2655,9 +2655,8 @@ bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
 }
 
 bool Model::HitTest(ModelPreview* preview, int x, int y) {
-    int y1 = preview->GetVirtualCanvasHeight() - y;
     SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().HitTest(x, y1);
+    return GetModelScreenLocation().HitTest(preview, x, y);
 }
 
 wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {
