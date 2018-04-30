@@ -308,7 +308,7 @@ void SubModelsDialog::Setup(Model *m)
 #pragma region helpers
 
 SubModelsDialog::SubModelInfo *SubModelsDialog::GetSubModelInfo(const wxString &name) {
-    for (int a=0; a < _subModels.size(); a++) {
+    for (int a = 0; a < _subModels.size(); a++) {
         if (_subModels[a]->name == name) {
             return _subModels[a];
         }
@@ -412,7 +412,6 @@ int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
 void SubModelsDialog::Save()
 {
     xLightsFrame* xlights = xLightsApp::GetFrame();
-    ModelManager allmodels = xlights->AllModels;
     wxXmlNode * root = model->GetModelXml();
     wxXmlNode * child = root->GetChildren();
     while (child != nullptr) {
@@ -425,13 +424,19 @@ void SubModelsDialog::Save()
             child = child->GetNext();
         }
     }
+
     for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
-        // todo (cp16net) need to potentially rename submodel here across groups and current sequence
         child = new wxXmlNode(wxXML_ELEMENT_NODE, "subModel");
         child->AddAttribute("name", (*a)->name);
         child->AddAttribute("layout", (*a)->vertical ? "vertical" : "horizontal");
         child->AddAttribute("type", (*a)->isRanges ? "ranges" : "subbuffer");
-        xlights->RenameModel((*a)->oldName.ToStdString(), (*a)->name.ToStdString());
+
+        // If the submodel name has changed ... we need to rename the model
+        if ((*a)->oldName != (*a)->name)
+        {
+            xlights->RenameModel((*a)->oldName.ToStdString(), (*a)->name.ToStdString());
+        }
+
         if ((*a)->isRanges) {
             for (int x = 0; x < (*a)->strands.size(); x++) {
                 child->AddAttribute(wxString::Format("line%d", x), (*a)->strands[x]);
@@ -441,8 +446,6 @@ void SubModelsDialog::Save()
         }
         root->AddChild(child);
     }
-//    CallAfter(&LayoutPanel::RefreshLayout);
-//    xlights->MarkEffectsFileDirty(true);
 }
 
 #pragma region actions
