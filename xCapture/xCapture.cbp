@@ -219,12 +219,22 @@
 		<ResourceCompiler>
 			<Add directory="$(#wx)/include" />
 		</ResourceCompiler>
+		<Unit filename="../xLights/IPEntryDialog.cpp" />
+		<Unit filename="../xLights/IPEntryDialog.h" />
+		<Unit filename="../xLights/UtilFunctions.cpp" />
+		<Unit filename="../xLights/UtilFunctions.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
 		<Unit filename="ResultDialog.cpp" />
 		<Unit filename="ResultDialog.h" />
 		<Unit filename="UniverseEntryDialog.cpp" />
 		<Unit filename="UniverseEntryDialog.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
 		<Unit filename="wxsmith/ResultDialog.wxs" />
 		<Unit filename="wxsmith/UniverseEntryDialog.wxs" />
 		<Unit filename="wxsmith/xCaptureframe.wxs" />
@@ -232,12 +242,6 @@
 		<Unit filename="xCaptureApp.h" />
 		<Unit filename="xCaptureMain.cpp" />
 		<Unit filename="xCaptureMain.h" />
-		<Unit filename="resource.rc">
-			<Option compilerVar="WINDRES" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="64bit_MinGW_Release" />
-		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

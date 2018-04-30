@@ -12,7 +12,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemRDS.h"
-#include "PlayListItemPJLink.h"
+#include "PlayListItemProjector.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemSetColour.h"
 #include "PlayListItemDelay.h"
@@ -188,7 +188,12 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         }
         else if (n->GetName() == "PLIPJLink")
         {
-            _items.push_back(new PlayListItemPJLink(n));
+            wxMessageBox("PJLink playlist item has been removed. Please re-create these using projector playlist item.");
+            _items.push_back(new PlayListItemProjector());
+        }
+        else if (n->GetName() == "PLIProjector")
+        {
+            _items.push_back(new PlayListItemProjector(n));
         }
         else if (n->GetName() == "PLIESEQ")
         {

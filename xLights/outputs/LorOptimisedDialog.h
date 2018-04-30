@@ -7,6 +7,7 @@
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -40,7 +41,10 @@ public:
     wxChoice* ChoiceBaudRate;
     wxChoice* ChoicePort;
     wxListView* ListView_Controllers;
+    wxSpinCtrl* SpinCtrl_Id;
+    wxStaticText* StaticText1;
     wxStaticText* StaticText2;
+    wxStaticText* StaticText3;
     wxStaticText* StaticTextExplanation;
     wxStaticText* StaticTextPort;
     wxStaticText* StaticTextRate;
@@ -51,6 +55,9 @@ protected:
 
     //(*Identifiers(LorOptimisedDialog)
     static const long ID_STATICTEXT_EXPLANATION;
+    static const long ID_STATICTEXT1;
+    static const long ID_SPINCTRL1;
+    static const long ID_STATICTEXT3;
     static const long ID_STATICTEXT_PORT;
     static const long ID_CHOICE_PORT;
     static const long ID_STATICTEXT_RATE;

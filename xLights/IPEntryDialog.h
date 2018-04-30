@@ -12,7 +12,7 @@
 class IPEntryDialog: public wxDialog
 {
     void ValidateWindow();
-
+    
 	public:
 
 		IPEntryDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);

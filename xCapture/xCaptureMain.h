@@ -79,14 +79,17 @@ class xCaptureFrame : public wxFrame
     bool _capturing;
     long _capturedPackets;
     std::string _capturedDesc;
+    wxString _localIP;
+    wxString _defaultIP;
 
+    void RestartInterfaces();
     void CloseSockets(bool force = false);
     void CreateE131Listener();
     void CreateArtNETListener();
     void AddUniverseRange(int low, int high);
     void PurgeCollectedData();
     void StashPacket(long type, wxByte* packet, int len);
-    bool IsUniverseToBeCaptured(int universe);
+    bool IsUniverseToBeCaptured(int universe, bool ignoreall = false);
     int GuessFrameMS();
     long GetChannelsPerFrame();
     wxDateTime GetStartTime();
@@ -128,6 +131,7 @@ private:
         void OnButton_DeleteClick(wxCommandEvent& event);
         void OnUITimerTrigger(wxTimerEvent& event);
         void OnButton_AnalyseClick(wxCommandEvent& event);
+        void OnButton1Click(wxCommandEvent& event);
         //*)
 
         //(*Identifiers(xCaptureFrame)
@@ -144,6 +148,9 @@ private:
         static const long ID_STATICTEXT5;
         static const long ID_CHECKBOX_E131;
         static const long ID_CHECKBOX_ARTNET;
+        static const long ID_STATICTEXT7;
+        static const long ID_STATICTEXT8;
+        static const long ID_BUTTON9;
         static const long ID_STATICTEXT6;
         static const long ID_STATICLINE2;
         static const long ID_LISTVIEW_UNIVERSES;
@@ -160,6 +167,7 @@ private:
         //*)
 
         //(*Declarations(xCaptureFrame)
+        wxButton* Button1;
         wxButton* Button_Add;
         wxButton* Button_All;
         wxButton* Button_Analyse;
@@ -184,6 +192,8 @@ private:
         wxStaticText* StaticText4;
         wxStaticText* StaticText5;
         wxStaticText* StaticText6;
+        wxStaticText* StaticText7;
+        wxStaticText* StaticText_IP;
         wxStatusBar* StatusBar1;
         wxTimer UITimer;
         //*)

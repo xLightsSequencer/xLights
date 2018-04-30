@@ -226,6 +226,8 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 
 void EffectsGrid::rightClick(wxMouseEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mSequenceElements == nullptr) {
         return;
     }
@@ -236,7 +238,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
     }
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+
+    if (ri == nullptr) 
+        logger_base.crit("EffectsGrid::rightClick No row information ... this is not going to end well.");
+
     Element* element = ri->element;
+    if (element == nullptr)
+        logger_base.crit("EffectsGrid::rightClick No row element ... this is not going to end well.");
     if (element->GetType() != ELEMENT_TYPE_TIMING)
     {
         wxMenu mnuLayer;

@@ -8,6 +8,7 @@
 #include "DDPOutput.h"
 #include "OutputManager.h"
 #include <wx/regex.h>
+#include "../xLights/UtilFunctions.h"
 
 //(*IdInit(DDPDialog)
 const long DDPDialog::ID_STATICTEXT1 = wxNewId();
@@ -157,7 +158,7 @@ void DDPDialog::ValidateWindow()
     }
     else
     {
-        if (IPOutput::IsIPValidOrHostname(ips, true))
+        if (IsIPValidOrHostname(ips, true))
         {
             ButtonOk->Enable();
         }

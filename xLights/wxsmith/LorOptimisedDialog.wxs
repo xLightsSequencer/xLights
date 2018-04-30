@@ -35,6 +35,42 @@
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>2</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+									<label>Id</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+									<cols>2</cols>
+									<growablecols>0</growablecols>
+									<object class="sizeritem">
+										<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Id" member="yes">
+											<value>64001</value>
+											<min>1</min>
+											<max>65535</max>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+											<label>Note: This is not the unit ID</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT_PORT" variable="StaticTextPort" member="yes">
 									<label>Port</label>

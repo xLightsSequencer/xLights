@@ -10,7 +10,6 @@
 class CommandManager;
 class wxXmlNode;
 class UserButton;
-class Projector;
 class OutputManager;
 class EventBase;
 
@@ -94,7 +93,6 @@ class ScheduleOptions
     std::string _wwwRoot;
     std::string _password;
     int _passwordTimeout;
-    std::list<Projector*> _projectors;
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
     std::list<VirtualMatrix*> _virtualMatrices;
@@ -127,10 +125,7 @@ class ScheduleOptions
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
         void SetArtNetTimeCodeFormat(int artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
         int GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
-        std::list<Projector*> GetProjectors() const;
         std::vector<UserButton*> GetButtons() const;
-        Projector* GetProjector(const std::string& projector);
-        void ClearProjectors();
         void ClearButtons();
         std::string GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const;
         int GetWebServerPort() const { return _port; }
@@ -144,7 +139,6 @@ class ScheduleOptions
         void SetDirty() { _changeCount++; }
         void SetAudioDevice(const std::string& audioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
-        void AddProjector(const std::string& name, const std::string& ip, const std::string& password);
         bool GetAPIOnly() const { return _webAPIOnly; }
         std::string GetPassword() const { return _password; }
         int GetPasswordTimeout() const { return _passwordTimeout; }

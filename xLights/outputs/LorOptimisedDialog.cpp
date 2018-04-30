@@ -14,6 +14,9 @@
 
 //(*IdInit(LorOptimisedDialog)
 const long LorOptimisedDialog::ID_STATICTEXT_EXPLANATION = wxNewId();
+const long LorOptimisedDialog::ID_STATICTEXT1 = wxNewId();
+const long LorOptimisedDialog::ID_SPINCTRL1 = wxNewId();
+const long LorOptimisedDialog::ID_STATICTEXT3 = wxNewId();
 const long LorOptimisedDialog::ID_STATICTEXT_PORT = wxNewId();
 const long LorOptimisedDialog::ID_CHOICE_PORT = wxNewId();
 const long LorOptimisedDialog::ID_STATICTEXT_RATE = wxNewId();
@@ -48,6 +51,7 @@ LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** se
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxStaticBoxSizer* StaticBoxSizer3;
@@ -63,6 +67,17 @@ LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** se
 	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Connection Details"));
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Id"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
+	SpinCtrl_Id = new wxSpinCtrl(this, ID_SPINCTRL1, _T("64001"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 64001, _T("ID_SPINCTRL1"));
+	SpinCtrl_Id->SetValue(_T("64001"));
+	FlexGridSizer7->Add(SpinCtrl_Id, 1, wxALL|wxEXPAND, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Note: This is not the unit ID"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 2);
 	StaticTextPort = new wxStaticText(this, ID_STATICTEXT_PORT, _("Port"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PORT"));
 	FlexGridSizer2->Add(StaticTextPort, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePort = new wxChoice(this, ID_CHOICE_PORT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PORT"));
@@ -136,6 +151,7 @@ LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** se
         ChoiceBaudRate->SetStringSelection(wxString::Format(wxT("%i"), (*_serial)->GetBaudRate()));
     }
     TextCtrl_Description->SetValue((*_serial)->GetDescription());
+    SpinCtrl_Id->SetValue((*_serial)->GetId());
 
     Button_Ok->SetDefault();
 
@@ -158,6 +174,7 @@ void LorOptimisedDialog::OnButton_OkClick(wxCommandEvent& event)
         (*_serial)->SetBaudRate(wxAtoi(ChoiceBaudRate->GetStringSelection()));
     }
     (*_serial)->SetDescription(TextCtrl_Description->GetValue().ToStdString());
+    (*_serial)->SetId(SpinCtrl_Id->GetValue());
 
     EndDialog(wxID_OK);
 }

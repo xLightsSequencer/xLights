@@ -162,4 +162,7 @@ void ListenerLor::Poll()
             }
         }
     }
+
+    // given we check for events in multiples of 100ms lets sleep to ensure that we release the CPU
+    wxMilliSleep(100);
 }

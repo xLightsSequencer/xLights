@@ -28,7 +28,6 @@
     <ClCompile Include="OptionsDialog.cpp" />
     <ClCompile Include="PlayList\PlayerWindow.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
-    <ClCompile Include="ProjectorDetailsDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
@@ -52,7 +51,6 @@
     <ClCompile Include="VirtualMatrixDialog.cpp" />
     <ClCompile Include="VirtualMatricesDialog.cpp" />
     <ClCompile Include="VirtualMatrix.cpp" />
-    <ClCompile Include="Projector.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
     <ClCompile Include="Blend.cpp" />
@@ -340,12 +338,6 @@
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
-    <ClCompile Include="PlayList\PlayListItemPJLink.cpp">
-      <Filter>PlayList</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayList\PlayListItemPJLinkPanel.cpp">
-      <Filter>PlayList</Filter>
-    </ClCompile>
     <ClCompile Include="PlayList\PlayListItemRDS.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
@@ -448,6 +440,12 @@
     <ClCompile Include="..\xLights\outputs\PixelNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemProjector.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemProjectorPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -467,7 +465,6 @@
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="PlayList\PlayerWindow.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
-    <ClInclude Include="ProjectorDetailsDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
@@ -485,7 +482,6 @@
     <ClInclude Include="VirtualMatricesDialog.h" />
     <ClInclude Include="VirtualMatrix.h" />
     <ClInclude Include="Control.h" />
-    <ClInclude Include="Projector.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="Blend.h" />
@@ -766,12 +762,6 @@
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h">
       <Filter>PlayList</Filter>
     </ClInclude>
-    <ClInclude Include="PlayList\PlayListItemPJLink.h">
-      <Filter>PlayList</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayList\PlayListItemPJLinkPanel.h">
-      <Filter>PlayList</Filter>
-    </ClInclude>
     <ClInclude Include="PlayList\PlayListItemRDS.h">
       <Filter>PlayList</Filter>
     </ClInclude>
@@ -870,6 +860,15 @@
     </ClInclude>
     <ClInclude Include="..\xLights\outputs\PixelNetOutput.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemProjector.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemProjectorPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectorCodes.h">
+      <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

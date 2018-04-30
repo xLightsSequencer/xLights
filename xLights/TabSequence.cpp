@@ -566,6 +566,8 @@ void xLightsFrame::SaveModelsFile()
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
     if (!lock.owns_lock()) return false;
@@ -590,11 +592,11 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     {
         if (backup)
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Unable to save backup of RGB effects file");
         }
         else
         {
+            logger_base.warn("Unable to save RGB effects file");
             wxMessageBox(_("Unable to save RGB effects file"), _("Error"));
         }
         return false;

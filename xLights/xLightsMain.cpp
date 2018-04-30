@@ -1471,7 +1471,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(2, itemCol);
 
-    itemCol.SetText(_T("Baud Rate or E1.31 Univ"));
+    itemCol.SetText(_T("Universe or Id"));
     itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
     GridNetwork->InsertColumn(3, itemCol);
 
@@ -3972,7 +3972,7 @@ void xLightsFrame::ExportModels(wxString filename)
     long minchannel = 99999999;
     long maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Universe,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
@@ -3992,7 +3992,7 @@ void xLightsFrame::ExportModels(wxString filename)
                     models += ", " + *it;
                 }
             }
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%s,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
@@ -4007,10 +4007,10 @@ void xLightsFrame::ExportModels(wxString filename)
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
             int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             if (ch == 0) ch = 1;
-            std::string type, description, ip, universe, inactive;
+            std::string type, description, ip, universe, inactive, baud;
             long channeloffset;
             int output;
-            GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output);
+            GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output, baud);
 
             std::string current = "";
 
@@ -4034,7 +4034,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
             }
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%li,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -4054,6 +4054,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 description,
                 output,
                 ip,
+                baud,
                 universe,
                 channeloffset,
                 inactive));
@@ -4445,7 +4446,7 @@ void xLightsFrame::CheckSequence(bool display)
         {
             if ((*n)->GetIP() != "MULTICAST")
             {
-                if (!IPOutput::IsIPValid((*n)->GetIP()))
+                if (!IsIPValidOrHostname((*n)->GetIP()))
                 {
                     wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                     LogAndWrite(f, msg.ToStdString());

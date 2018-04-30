@@ -98,7 +98,6 @@
 							<minsize>-1,130d</minsize>
 							<handler function="OnSingleNodeGridCellLeftClick" entry="EVT_CMD_GRID_CELL_LEFT_CLICK" />
 							<handler function="OnSingleNodeGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
-							<handler function="OnSingleNodeGridCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 							<handler function="OnSingleNodeGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -112,7 +111,31 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>3</cols>
+					<cols>5</cols>
+					<growablecols>2</growablecols>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON3" variable="Button_Save" member="yes">
+							<label>Save Mapping</label>
+							<handler function="OnButton_SaveClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON4" variable="Button_Load" member="yes">
+							<label>Load Mapping</label>
+							<handler function="OnButton_LoadClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_Ok" member="yes">
 							<label>Ok</label>
@@ -132,7 +155,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

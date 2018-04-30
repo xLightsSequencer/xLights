@@ -313,9 +313,13 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 wxString newM;
                 wxArrayString mn = wxSplit(orig, ',');
                 std::string modelsRemoved;
-                for (auto it2 = mn.begin(); it2 != mn.end(); it2++) {
+                for (auto it2 = mn.begin(); it2 != mn.end(); ++it2) {
                     auto m = models.find((*it2).ToStdString());
-                    if (m == models.end()) {
+                    if (*it2 == "")
+                    {
+                        // This can happen if a comma is left behind in the string ... just ignore it
+                    }
+                    else if (m == models.end()) {
                         modelsRemoved += "\n       " + *it2 + " not found";
                     } else {
                         if (newM != "") {
@@ -327,13 +331,19 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 g->GetModelXml()->DeleteAttribute("models");
                 g->GetModelXml()->AddAttribute("models", newM);
                 if (g->Reset()) {
-                    msg = "Could not process model group " + g->GetName()
+                    // Model successfully loaded
+                    if (modelsRemoved > "")
+                    {
+                        msg = "Could not process model group " + g->GetName()
                             + " due to models not being found.  The following models will be removed from the group:"
                             + modelsRemoved;
-                    wxMessageBox(msg);
+                        logger_base.warn("ModelManager::LoadGroups %s", (const char *)msg.c_str());
+                        wxMessageBox(msg);
+                    }
                     maxIter = toBeDone.size();
                     changed = true;
                 } else {
+                    // Load of the new group failed so reset it
                     msg += "\n" + g->GetName();
                     msg += modelsRemoved;
                     g->GetModelXml()->DeleteAttribute("models");

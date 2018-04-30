@@ -7,13 +7,17 @@ class NullOutput : public Output
 {
     int _id;
 
+    virtual void Save(wxXmlNode* node) override;
+
 public:
 
     #pragma region Constructors and Destructors
-    NullOutput(wxXmlNode* node) : Output(node) {}
+    NullOutput(wxXmlNode* node);
     NullOutput() : Output() { _channels = 512; _id = 64001; }
     virtual ~NullOutput() override {};
     #pragma endregion Constructors and Destructors
+
+    virtual wxXmlNode* Save() override;
 
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_NULL; }

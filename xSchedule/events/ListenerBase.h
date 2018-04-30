@@ -14,6 +14,7 @@ class ListenerBase
 	    bool _stop;
         ListenerManager* _listenerManager;
         ListenerThread* _thread;
+        bool _isOk;
 
 	public:
         ListenerBase(ListenerManager* listenerManager);
@@ -23,6 +24,7 @@ class ListenerBase
         virtual std::string GetType() const = 0;
         virtual void StartProcess() = 0;
         virtual void StopProcess() = 0;
+        bool IsOk() const { return _isOk; }
         virtual void Poll() {};
 };
 

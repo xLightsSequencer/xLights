@@ -29,55 +29,6 @@ IPOutput::IPOutput() : Output()
 #pragma endregion Constructors and Destructors
 
 #pragma region Static Functions
-bool IPOutput::IsIPValidOrHostname(const std::string &ip, bool iponly) {
-    if (IsIPValid(ip)) {
-        return true;
-    }
-
-    bool hasChar = false;
-    bool hasDot = false;
-    //hostnames need at least one char in it if fully qualified
-    //if not fully qualified (no .), then the hostname only COULD be just numeric
-    for (int y = 0; y < ip.length(); y++) {
-        char x = ip[y];
-        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
-            hasChar = true;
-        }
-        if (x == '.') {
-            hasDot = true;
-        }
-    }
-    if (hasChar || (!hasDot && !hasChar)) {
-        if (iponly) return true;
-        wxIPV4address addr;
-        addr.Hostname(ip);
-        wxString ipAddr = addr.IPAddress();
-        if (ipAddr != "0.0.0.0") {
-            return true;
-        }
-    }
-    return false;
-}
-bool IPOutput::IsIPValid(const std::string &ip)
-{
-    wxString ips = wxString(ip).Trim(false).Trim(true);
-    if (ips == "")
-    {
-        return false;
-    }
-    else
-    {
-        static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
-
-        if (regxIPAddr.Matches(ips))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 std::string IPOutput::CleanupIP(const std::string &ip)
 {
     bool hasChar = false;

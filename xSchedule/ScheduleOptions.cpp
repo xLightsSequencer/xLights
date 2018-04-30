@@ -6,7 +6,6 @@
 #include <wx/dir.h>
 #include "UserButton.h"
 #include "CommandManager.h"
-#include "Projector.h"
 #include "../xLights/AudioManager.h"
 #include <log4cpp/Category.hh>
 #include "events/EventBase.h"
@@ -45,11 +44,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
-        if (n->GetName() == "Projector")
-        {
-            _projectors.push_back(new Projector(n));
-        }
-        else if (n->GetName() == "Button")
+        if (n->GetName() == "Button")
         {
             _buttons.push_back(new UserButton(n));
         }
@@ -120,15 +115,6 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
     if (_oscOptions == nullptr) _oscOptions = new OSCOptions();
 }
 
-void ScheduleOptions::AddProjector(const std::string& name, const std::string& ip, const std::string& password)
-{
-    Projector* p = new Projector();
-    p->SetName(name);
-    p->SetIP(ip);
-    p->SetPassword(password);
-    _projectors.push_back(p);
-}
-
 void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
 {
     if (_audioDevice != audioDevice) {
@@ -173,12 +159,6 @@ ScheduleOptions::ScheduleOptions()
 
 ScheduleOptions::~ScheduleOptions()
 {
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
-    {
-        delete *it;
-    }
-    _projectors.clear();
-
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
         delete *it;
@@ -223,11 +203,6 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
     res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));
 
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
-    {
-        res->AddChild((*it)->Save());
-    }
-
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
         res->AddChild((*it)->Save());
@@ -262,37 +237,9 @@ wxXmlNode* ScheduleOptions::Save()
     return res;
 }
 
-std::list<Projector*> ScheduleOptions::GetProjectors() const
-{
-    return _projectors;
-}
-
 std::vector<UserButton*> ScheduleOptions::GetButtons() const
 {
     return _buttons;
-}
-
-Projector* ScheduleOptions::GetProjector(const std::string& projector)
-{
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
-    {
-        if ((*it)->GetName() == projector)
-        {
-            return *it;
-        }
-    }
-
-    return nullptr;
-}
-
-void ScheduleOptions::ClearProjectors()
-{
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
-    {
-        delete *it;
-    }
-    _projectors.clear();
-    _changeCount++;
 }
 
 void ScheduleOptions::ClearButtons()
@@ -346,11 +293,6 @@ bool ScheduleOptions::IsDirty() const
         res = res || (*it)->IsDirty();
     }
 
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
-    {
-        res = res || (*it)->IsDirty();
-    }
-
     for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
     {
         res = res || (*it)->IsDirty();
@@ -376,11 +318,6 @@ void ScheduleOptions::ClearDirty()
     _lastSavedChangeCount = _changeCount;
 
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
-    {
-        (*it)->ClearDirty();
-    }
-
-    for (auto it = _projectors.begin(); it != _projectors.end(); ++it)
     {
         (*it)->ClearDirty();
     }

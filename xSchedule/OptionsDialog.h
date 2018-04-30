@@ -22,7 +22,6 @@ class OptionsDialog: public wxDialog
     bool _dragging;
     CommandManager* _commandManager;
 
-    void LoadProjectors();
     void LoadButtons();
     void ValidateWindow();
     void OnButtonsDragEnd(wxMouseEvent& event);
@@ -33,20 +32,16 @@ class OptionsDialog: public wxDialog
 
 		OptionsDialog(wxWindow* parent, CommandManager* commandManager, ScheduleOptions* options, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~OptionsDialog();
-        void EditProjector(int row);
         void EditButton(int row);
 
 		//(*Declarations(OptionsDialog)
-		wxButton* Button_AddProjector;
 		wxButton* Button_ButtonAdd;
 		wxButton* Button_ButtonDelete;
 		wxButton* Button_ButtonEdit;
 		wxButton* Button_Cancel;
-		wxButton* Button_DeleteProjector;
 		wxButton* Button_Export;
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
-		wxButton* Button_ProjectorEdit;
 		wxCheckBox* CheckBox_APIOnly;
 		wxCheckBox* CheckBox_RunBackground;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
@@ -55,10 +50,8 @@ class OptionsDialog: public wxDialog
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
 		wxListView* ListView_Buttons;
-		wxListView* ListView_Projectors;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
 		wxSpinCtrl* SpinCtrl_WebServerPort;
-		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
@@ -77,11 +70,6 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX2;
-		static const long ID_STATICTEXT1;
-		static const long ID_LISTVIEW2;
-		static const long ID_BUTTON4;
-		static const long ID_BUTTON8;
-		static const long ID_BUTTON3;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;
@@ -111,11 +99,6 @@ class OptionsDialog: public wxDialog
 		//(*Handlers(OptionsDialog)
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnGrid_ButtonsResize(wxSizeEvent& event);
-		void OnGrid_ProjectorsResize(wxSizeEvent& event);
-		void OnButton_AddProjectorClick(wxCommandEvent& event);
-		void OnButton_ProjectorEditClick(wxCommandEvent& event);
-		void OnButton_DeleteProjectorClick(wxCommandEvent& event);
 		void OnButton_ButtonAddClick(wxCommandEvent& event);
 		void OnButton_ButtonEditClick(wxCommandEvent& event);
 		void OnButton_ButtonDeleteClick(wxCommandEvent& event);
@@ -124,9 +107,6 @@ class OptionsDialog: public wxDialog
 		void OnListView_ButtonsItemSelect(wxListEvent& event);
 		void OnListView_ButtonsItemActivated(wxListEvent& event);
 		void OnListView_ButtonsKeyDown(wxListEvent& event);
-		void OnListView_ProjectorsItemSelect(wxListEvent& event);
-		void OnListView_ProjectorsItemActivated(wxListEvent& event);
-		void OnListView_ProjectorsKeyDown(wxListEvent& event);
 		void OnButton_ImportClick(wxCommandEvent& event);
 		void OnButton_ExportClick(wxCommandEvent& event);
 		//*)

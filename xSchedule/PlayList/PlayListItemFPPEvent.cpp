@@ -8,6 +8,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "../Control.h"
 #include <wx/protocol/http.h>
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemFPPEvent::PlayListItemFPPEvent(wxXmlNode* node) : PlayListItem(node)
 {
@@ -95,7 +96,7 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
 
         std::string eventstring = GetEventString();
 
-        if (IPOutput::IsIPValid(_ip) && _ip != "255.255.255.255")
+        if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
         {
             wxHTTP http;
             http.SetTimeout(1);

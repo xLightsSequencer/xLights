@@ -27,6 +27,7 @@ SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
     {
         _baudRate = wxAtoi(node->GetAttribute("BaudRate", ""));
     }
+    SetId(wxAtoi(node->GetAttribute("Id", "0")));
 }
 
 SerialOutput::SerialOutput(SerialOutput* output) : Output(output)
@@ -67,6 +68,8 @@ void SerialOutput::Save(wxXmlNode* node)
     {
         node->AddAttribute("BaudRate", "n/a");
     }
+
+    node->AddAttribute("Id", wxString::Format(wxT("%i"), GetId()));
 
     Output::Save(node);
 }

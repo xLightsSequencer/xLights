@@ -327,7 +327,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
     // add nodes to root in reverse order
     wxXmlNode *node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventValues");
-    wxXmlNode *textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, base64_encode(SeqData));
+    wxXmlNode *textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, SeqData.base64_encode());
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Audio");
     node->AddAttribute("filename", mediaFilename);

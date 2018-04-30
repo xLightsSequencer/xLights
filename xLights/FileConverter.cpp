@@ -220,6 +220,11 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    logger_base.debug("ReadLorFile %s.", (const char *)params.inp_filename.c_str());
+    logger_base.debug("     Channels Off At End? %s.", params.channels_off_at_end ? "TRUE" :"FALSE");
+    logger_base.debug("     Map Empty Channels? %s.", params.map_empty_channels ? "TRUE" :"FALSE");
+    logger_base.debug("     Map No Network Channels? %s.", params.map_no_network_channels ? "TRUE" :"FALSE");
+
     wxString NodeName, msg, deviceType, networkAsString;
     wxArrayString context;
     int unit, circuit, rampdiff;

@@ -41,6 +41,10 @@ void ListenerMIDI::StartProcess()
             delete _midiIn;
             _midiIn = nullptr;
         }
+        else
+        {
+            _isOk = true;
+        }
     }
 }
 
@@ -50,6 +54,7 @@ void ListenerMIDI::StopProcess()
     _midiIn->Close();
     delete _midiIn;
     _midiIn = nullptr;
+    _isOk = false;
 }
 
 void ListenerMIDI::Poll()

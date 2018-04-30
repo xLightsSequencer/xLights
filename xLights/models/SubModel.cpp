@@ -40,31 +40,45 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                 } else {
                     start = end = wxAtoi(valstr);
                 }
-                start--;
-                end--;
-                bool done = false;
-                int n = start;
-                while (!done) {
-                    if (n < p->GetNodeCount()) {
-                        NodeBaseClass *node = p->Nodes[n]->clone();
-                        startChannel = std::min(startChannel, node->ActChan);
-                        Nodes.push_back(NodeBaseClassPtr(node));
-                        for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
-                            c->bufX = col;
-                            c->bufY = row;
-                        }
-                        if (vert) {
-                            row++;
-                        } else {
-                            col++;
-                        }
+                if (start == 0)
+                {
+                    if (vert) {
+                        row++;
                     }
-                    if (start > end) {
-                        n--;
-                        done = n < end;
-                    } else {
-                        n++;
-                        done = n > end;
+                    else {
+                        col++;
+                    }
+                }
+                else
+                {
+                    start--;
+                    end--;
+                    bool done = false;
+                    int nn = start;
+                    while (!done) {
+                        if (nn < p->GetNodeCount()) {
+                            NodeBaseClass *node = p->Nodes[nn]->clone();
+                            startChannel = std::min(startChannel, node->ActChan);
+                            Nodes.push_back(NodeBaseClassPtr(node));
+                            for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
+                                c->bufX = col;
+                                c->bufY = row;
+                            }
+                            if (vert) {
+                                row++;
+                            }
+                            else {
+                                col++;
+                            }
+                        }
+                        if (start > end) {
+                            nn--;
+                            done = nn < end;
+                        }
+                        else {
+                            nn++;
+                            done = nn > end;
+                        }
                     }
                 }
             }

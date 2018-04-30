@@ -41,8 +41,8 @@
 #include "Pinger.h"
 #include "EventsDialog.h"
 #include "../xLights/outputs/IPOutput.h"
-#include "Projector.h"
 #include "PlayList/PlayListItemOSC.h"
+#include "../xLights/UtilFunctions.h"
 
 //#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -764,12 +764,6 @@ void xScheduleFrame::LoadSchedule()
 void xScheduleFrame::AddIPs()
 {
     _pinger->RemoveNonOutputIPs();
-
-    auto projectors = __schedule->GetOptions()->GetProjectors();
-    for (auto it = projectors.begin(); it != projectors.end(); ++it)
-    {
-        _pinger->AddIP((*it)->GetIP(), "Projector");
-    }
 
     auto fppremotes = __schedule->GetOptions()->GetFPPRemotes();
     for (auto it = fppremotes.begin(); it != fppremotes.end(); ++it)
@@ -2757,7 +2751,7 @@ void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 {
     std::string ip = event.GetItem().GetText().SubString(0, event.GetItem().GetText().Find(' ')-1).ToStdString();
-    if (IPOutput::IsIPValid(ip))
+    if (IsIPValidOrHostname(ip))
     {
         ::wxLaunchDefaultBrowser("http://" + ip);
     }

@@ -76,6 +76,7 @@ void ListenerFPP::StartProcess()
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("FPP reception datagram opened successfully.");
+        _isOk = true;
     }
 }
 
@@ -88,6 +89,7 @@ void ListenerFPP::StopProcess()
         delete _socket;
         _socket = nullptr;
     }
+    _isOk = false;
 }
 
 void ListenerFPP::Poll()

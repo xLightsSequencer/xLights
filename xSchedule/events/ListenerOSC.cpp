@@ -69,6 +69,7 @@ void ListenerOSC::StartProcess()
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("OSC reception datagram opened successfully.");
+        _isOk = true;
     }
 }
 
@@ -81,6 +82,7 @@ void ListenerOSC::StopProcess()
         delete _socket;
         _socket = nullptr;
     }
+    _isOk = false;
 }
 
 void ListenerOSC::Poll()

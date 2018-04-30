@@ -2,9 +2,7 @@
 
 #include "ScheduleOptions.h"
 #include "ButtonDetailsDialog.h"
-#include "ProjectorDetailsDialog.h"
 #include "UserButton.h"
-#include "Projector.h"
 #include "CommandManager.h"
 #include "../xLights/xLightsVersion.h"
 #include <wx/xml/xml.h>
@@ -21,11 +19,6 @@ const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX5 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
-const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
-const long OptionsDialog::ID_LISTVIEW2 = wxNewId();
-const long OptionsDialog::ID_BUTTON4 = wxNewId();
-const long OptionsDialog::ID_BUTTON8 = wxNewId();
-const long OptionsDialog::ID_BUTTON3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -63,8 +56,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	//(*Initialize(OptionsDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
@@ -89,22 +80,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_Sync->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_Sync, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer3->AddGrowableCol(1);
-	FlexGridSizer3->AddGrowableRow(0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Projectors:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 5);
-	ListView_Projectors = new wxListView(this, ID_LISTVIEW2, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_NO_SORT_HEADER|wxVSCROLL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_LISTVIEW2"));
-	FlexGridSizer3->Add(ListView_Projectors, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	Button_AddProjector = new wxButton(this, ID_BUTTON4, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer4->Add(Button_AddProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_ProjectorEdit = new wxButton(this, ID_BUTTON8, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-	FlexGridSizer4->Add(Button_ProjectorEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_DeleteProjector = new wxButton(this, ID_BUTTON3, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer4->Add(Button_DeleteProjector, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
 	FlexGridSizer5->AddGrowableRow(0);
@@ -174,12 +149,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsItemSelect);
-	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsItemActivated);
-	Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&OptionsDialog::OnListView_ProjectorsKeyDown);
-	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_AddProjectorClick);
-	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_ProjectorEditClick);
-	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&OptionsDialog::OnButton_DeleteProjectorClick);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_BEGIN_DRAG,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsBeginDrag);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsItemSelect);
 	Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&OptionsDialog::OnListView_ButtonsItemActivated);
@@ -199,10 +168,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     {
         Choice_AudioDevice->Append(*it);
     }
-
-    ListView_Projectors->AppendColumn("Name");
-    ListView_Projectors->AppendColumn("IP");
-    ListView_Projectors->AppendColumn("Password");
 
     ListView_Buttons->AppendColumn("Label");
     ListView_Buttons->AppendColumn("Command");
@@ -229,8 +194,6 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
         Choice_AudioDevice->SetStringSelection("(Default)");
     }
 
-    LoadProjectors();
-
     LoadButtons();
 
     SetSize(800, 700);
@@ -246,28 +209,11 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     ListView_Buttons->SetColumnWidth(2, (w - colorw - namew - hotkeyw - 1) / 2);
     ListView_Buttons->SetColumnWidth(3, hotkeyw);
     ListView_Buttons->SetColumnWidth(4, colorw);
-    ListView_Projectors->SetColumnWidth(0, namew);
-    ListView_Projectors->SetColumnWidth(1, (w - namew - 1) / 2);
-    ListView_Projectors->SetColumnWidth(2, (w - namew - 1) / 2);
 
     SetEscapeId(Button_Cancel->GetId());
     SetAffirmativeId(Button_Ok->GetId());
 
     ValidateWindow();
-}
-
-void OptionsDialog::LoadProjectors()
-{
-    ListView_Projectors->DeleteAllItems();
-    auto ps = _options->GetProjectors();
-    int i = 0;
-    for (auto it = ps.begin(); it != ps.end(); ++it)
-    {
-        ListView_Projectors->InsertItem(i, (*it)->GetName());
-        ListView_Projectors->SetItem(i, 1, (*it)->GetIP());
-        ListView_Projectors->SetItem(i, 2, (*it)->GetPassword());
-        i++;
-    }
 }
 
 void OptionsDialog::LoadButtons()
@@ -299,7 +245,6 @@ OptionsDialog::~OptionsDialog()
 	//*)
 }
 
-
 void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _options->SetSync(CheckBox_Sync->GetValue());
@@ -323,13 +268,6 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
         _options->SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
         AudioManager::SetAudioDevice(Choice_AudioDevice->GetStringSelection().ToStdString());
     }
-    _options->ClearProjectors();
-    for (int i = 0; i < ListView_Projectors->GetItemCount(); i++)
-    {
-        _options->AddProjector(ListView_Projectors->GetItemText(i, 0).ToStdString(),
-                                ListView_Projectors->GetItemText(i, 1).ToStdString(),
-                                ListView_Projectors->GetItemText(i, 2).ToStdString());
-    }
 
     _options->ClearButtons();
     for (int i = 0; i < ListView_Buttons->GetItemCount(); i++)
@@ -352,62 +290,6 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 void OptionsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
-}
-
-void OptionsDialog::OnButton_AddProjectorClick(wxCommandEvent& event)
-{
-    std::string projector = "";
-    std::string ip = "";
-    std::string password = "";
-
-    ProjectorDetailsDialog dlg(this, projector, ip, password);
-
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        int row = ListView_Projectors->GetItemCount();
-        ListView_Projectors->InsertItem(row, projector);
-        ListView_Projectors->SetItem(row, 1, ip);
-        ListView_Projectors->SetItem(row, 2, password);
-    }
-
-    ValidateWindow();
-}
-
-void OptionsDialog::OnButton_ProjectorEditClick(wxCommandEvent& event)
-{
-    if (ListView_Projectors->GetSelectedItemCount() != 1) return;
-
-    int row = ListView_Projectors->GetFirstSelected();
-
-    EditProjector(row);
-}
-
-void OptionsDialog::EditProjector(int row)
-{
-    std::string projector = ListView_Projectors->GetItemText(row, 0).ToStdString();
-    std::string ip = ListView_Projectors->GetItemText(row, 1).ToStdString();
-    std::string password = ListView_Projectors->GetItemText(row, 2).ToStdString();
-
-    ProjectorDetailsDialog dlg(this, projector, ip, password);
-
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        ListView_Projectors->SetItemText(row, projector);
-        ListView_Projectors->SetItem(row, 1, ip);
-        ListView_Projectors->SetItem(row, 2, password);
-    }
-
-    ValidateWindow();
-}
-
-void OptionsDialog::OnButton_DeleteProjectorClick(wxCommandEvent& event)
-{
-    if (ListView_Projectors->GetSelectedItemCount() != 1) return;
-
-    int row = ListView_Projectors->GetFirstSelected();
-    ListView_Projectors->DeleteItem(row);
-
-    ValidateWindow();
 }
 
 void OptionsDialog::OnButton_ButtonAddClick(wxCommandEvent& event)
@@ -490,17 +372,6 @@ void OptionsDialog::ValidateWindow()
         Button_ButtonDelete->Enable(false);
         Button_ButtonEdit->Enable(false);
         Button_Export->Enable(false);
-    }
-
-    if (ListView_Projectors->GetSelectedItemCount() == 1)
-    {
-        Button_DeleteProjector->Enable(true);
-        Button_ProjectorEdit->Enable(true);
-    }
-    else
-    {
-        Button_DeleteProjector->Enable(false);
-        Button_ProjectorEdit->Enable(false);
     }
 
     if (TextCtrl_wwwRoot->GetValue() == "")
@@ -639,32 +510,6 @@ void OptionsDialog::OnListView_ButtonsKeyDown(wxListEvent& event)
         if (ListView_Buttons->GetSelectedItemCount() >= 0)
         {
             ListView_Buttons->DeleteItem(ListView_Buttons->GetFirstSelected());
-        }
-    }
-    ValidateWindow();
-}
-
-void OptionsDialog::OnListView_ProjectorsItemSelect(wxListEvent& event)
-{
-    ValidateWindow();
-}
-
-void OptionsDialog::OnListView_ProjectorsItemActivated(wxListEvent& event)
-{
-    if (ListView_Projectors->GetSelectedItemCount() >= 0)
-    {
-        EditProjector(ListView_Projectors->GetFirstSelected());
-    }
-    ValidateWindow();
-}
-
-void OptionsDialog::OnListView_ProjectorsKeyDown(wxListEvent& event)
-{
-    if (event.GetKeyCode() == WXK_DELETE)
-    {
-        if (ListView_Projectors->GetSelectedItemCount() >= 0)
-        {
-            ListView_Projectors->DeleteItem(ListView_Projectors->GetFirstSelected());
         }
     }
     ValidateWindow();

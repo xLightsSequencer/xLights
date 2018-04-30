@@ -2,6 +2,8 @@
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
 #include <wx/config.h>
+#include <wx/regex.h>
+#include <wx/sckaddr.h>
 
 bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {
@@ -213,7 +215,6 @@ std::string XmlSafe(const std::string& s)
     return res;
 }
 
-static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 inline bool is_base64(unsigned char c)
 {
     return (isalnum(c) || (c == '+') || (c == '/'));
@@ -222,6 +223,8 @@ inline bool is_base64(unsigned char c)
 //returns number of chars at the end that couldn't be decoded
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data)
 {
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
     size_t in_len = encoded_string.size();
     int i = 0;
     int in_ = 0;
@@ -274,60 +277,6 @@ int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &da
         }
     }
     return i;
-}
-
-// encodes contents of SeqData in channel order
-wxString base64_encode(SequenceData& SeqData)
-{
-    wxString ret;
-    int i = 0;
-
-    unsigned char char_array_3[3];
-    unsigned char char_array_4[4];
-
-    for (size_t channel = 0; channel < SeqData.NumChannels(); channel++) {
-        for (size_t frame = 0; frame < SeqData.NumFrames(); frame++) {
-            char_array_3[i++] = SeqData[frame][channel];
-            if (i == 3)
-            {
-                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-                char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-                char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-                char_array_4[3] = char_array_3[2] & 0x3f;
-
-                for (i = 0; (i <4); i++)
-                {
-                    ret += base64_chars[char_array_4[i]];
-                }
-                i = 0;
-            }
-        }
-    }
-
-    if (i)
-    {
-        for (int j = i; j < 3; j++)
-        {
-            char_array_3[j] = '\0';
-        }
-
-        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-        char_array_4[3] = char_array_3[2] & 0x3f;
-
-        for (int j = 0; (j < i + 1); j++)
-        {
-            ret += base64_chars[char_array_4[j]];
-        }
-
-        while ((i++ < 3))
-        {
-            ret += '=';
-        }
-
-    }
-    return ret;
 }
 
 bool IsVersionOlder(const std::string &compare, const std::string &version)
@@ -509,4 +458,55 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #else
     return val / scalingFactor;
 #endif
+}
+
+bool IsIPValid(const std::string &ip)
+{
+    wxString ips = wxString(ip).Trim(false).Trim(true);
+    if (ips == "")
+    {
+        return false;
+    }
+    else
+    {
+        static wxRegEx regxIPAddr("^(([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]{1}|[0-9]{2}|[0-1][0-9]{2}|2[0-4][0-9]|25[0-5])$");
+
+        if (regxIPAddr.Matches(ips))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool IsIPValidOrHostname(const std::string &ip, bool iponly)
+{
+    if (IsIPValid(ip)) {
+        return true;
+    }
+
+    bool hasChar = false;
+    bool hasDot = false;
+    //hostnames need at least one char in it if fully qualified
+    //if not fully qualified (no .), then the hostname only COULD be just numeric
+    for (int y = 0; y < ip.length(); y++) {
+        char x = ip[y];
+        if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z') || x == '-') {
+            hasChar = true;
+        }
+        if (x == '.') {
+            hasDot = true;
+        }
+    }
+    if (hasChar || (!hasDot && !hasChar)) {
+        if (iponly) return true;
+        wxIPV4address addr;
+        addr.Hostname(ip);
+        wxString ipAddr = addr.IPAddress();
+        if (ipAddr != "0.0.0.0") {
+            return true;
+        }
+    }
+    return false;
 }
