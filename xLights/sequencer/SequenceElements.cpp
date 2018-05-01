@@ -167,7 +167,7 @@ std::vector < Element*> SequenceElements::SearchForElements(const std::string &r
                 ModelElement* mel = dynamic_cast<ModelElement*>(el);
                 if (mel != nullptr)
                 {
-                    for (int x = 0; x < mel->GetSubModelCount(); ++x)
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
                     {
                         SubModelElement* sme = mel->GetSubModel(x);
                         if (sme != nullptr)
@@ -282,7 +282,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                     }
                 }
             }
-            for (int j = 0; j < elem->GetSubModelCount(); j++) {
+            for (int j = 0; j < elem->GetSubModelAndStrandCount(); j++) {
                 SubModelElement *se = elem->GetSubModel(j);
                 for (int l = 0; l < se->GetEffectLayerCount(); l++) {
                     EffectLayer* layer = se->GetEffectLayer(l);
@@ -400,7 +400,7 @@ Element* SequenceElements::GetElement(const std::string &name) const
             ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr)
             {
-                for (int x = 0; x < mel->GetSubModelCount(); ++x) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement* sme = mel->GetSubModel(x);
                     if (sme != nullptr)
                     {
@@ -564,14 +564,14 @@ Row_Information_Struct* SequenceElements::GetVisibleRowInformation(size_t index)
 
 Row_Information_Struct* SequenceElements::GetVisibleRowInformationFromRow(int row_number)
 {
-    for(size_t i=0;i<mVisibleRowInformation.size();i++)
+    for (size_t i = 0; i < mVisibleRowInformation.size(); i++)
     {
-        if(row_number == mVisibleRowInformation[i].RowNumber)
+        if (row_number == mVisibleRowInformation[i].RowNumber)
         {
             return &mVisibleRowInformation[i];
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 size_t SequenceElements::GetVisibleRowInformationSize()
@@ -626,8 +626,8 @@ int SequenceElements::GetRowInformationSize()
 
 void SequenceElements::SortElements()
 {
-    if (mAllViews[mCurrentView].size()>1) {
-        std::sort(mAllViews[mCurrentView].begin(),mAllViews[mCurrentView].end(),SortElementsByIndex);
+    if (mAllViews[mCurrentView].size() > 1) {
+        std::sort(mAllViews[mCurrentView].begin(), mAllViews[mCurrentView].end(), SortElementsByIndex);
     }
     if (mCurrentView == MASTER_VIEW) {
         mMasterViewChangeCount++;
@@ -1224,7 +1224,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
             }
         }
     } else if (elem->ShowStrands()) {
-        for (size_t s = 0; s < elem->GetSubModelCount(); s++) {
+        for (size_t s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement *se = elem->GetSubModel(s);
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {

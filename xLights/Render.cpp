@@ -247,7 +247,7 @@ public:
                         }
                     }
                 }
-                for (int x = 0; x < row->GetSubModelCount(); ++x) {
+                for (int x = 0; x < row->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement *se = row->GetSubModel(x);
                     if (se->HasEffects()) {
                         if (se->GetType() == ELEMENT_TYPE_STRAND) {
@@ -935,7 +935,7 @@ static bool HasEffects(ModelElement *me) {
         return true;
     }
 
-    for (int x = 0; x < me->GetSubModelCount(); ++x) {
+    for (int x = 0; x < me->GetSubModelAndStrandCount(); ++x) {
         if (me->GetSubModel(x)->HasEffects()) {
             return true;
         }

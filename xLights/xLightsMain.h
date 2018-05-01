@@ -1145,7 +1145,7 @@ public:
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
-    bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName);
+    bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder);
     void UpdateSequenceLength();
 
     void SetSequenceEnd(int ms);

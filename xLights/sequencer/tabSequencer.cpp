@@ -354,7 +354,7 @@ static bool HasEffects(ModelElement *el) {
     if (el->HasEffects()) {
         return true;
     }
-    for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
+    for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); sm++) {
         SubModelElement *sme = el->GetSubModel(sm);
 
         if (sme->HasEffects()) {
@@ -480,7 +480,7 @@ void xLightsFrame::CheckForValidModels()
                                       toMap, ignore);
                     }
                 } else {
-                    for (int x1 = 0; x1 < el->GetSubModelCount(); x1++) {
+                    for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
                         SubModelElement *sme = el->GetSubModel(x1);
                         if (dynamic_cast<StrandElement*>(sme) == nullptr
                             && m->GetSubModel(sme->GetName()) == nullptr) {
@@ -490,7 +490,7 @@ void xLightsFrame::CheckForValidModels()
                                 AllSMNames.push_back(m->GetSubModel(z)->GetName());
                                 ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                             }
-                            for (int z = 0; z < el->GetSubModelCount(); z++) {
+                            for (int z = 0; z < el->GetSubModelAndStrandCount(); z++) {
                                 Remove(AllSMNames, el->GetSubModel(z)->GetName());
                                 Remove(ModelSMNames, el->GetSubModel(z)->GetName());
                             }

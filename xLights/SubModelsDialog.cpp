@@ -447,7 +447,13 @@ void SubModelsDialog::Save()
         root->AddChild(child);
     }
 
-    xlights->EnsureSequenceElementsAreOrderedCorrectly(model->GetName());
+    std::vector<std::string> submodelOrder;
+    for (auto it = _subModels.begin(); it != _subModels.end(); ++it)
+    {
+        submodelOrder.push_back((*it)->name);
+    }
+
+    xlights->EnsureSequenceElementsAreOrderedCorrectly(model->GetName(), submodelOrder);
 }
 
 #pragma region actions
