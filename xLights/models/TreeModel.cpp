@@ -221,7 +221,7 @@ void TreeModel::SetTreeCoord(long degrees) {
             }
         }
     }
-    screenLocation.SetRenderSize(RenderWi, RenderHt);
+    screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
 int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {

@@ -96,15 +96,13 @@ public:
     virtual int GetMWidth() const = 0;
     virtual int GetMHeight() const = 0;
 
-    void SetRenderSize(float NewWi, float NewHt) {
-        RenderHt=NewHt;
-        RenderWi=NewWi;
-    }
+    void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     bool IsLocked() const { return _locked; }
     void Lock(bool value = true) { _locked = value; }
     float GetRenderHt() const { return RenderHt; }
     float GetRenderWi() const { return RenderWi; }
-    float RenderHt, RenderWi;  // size of the rendered output
+    float GetRenderDp() const { return RenderDp; }
+    float RenderHt, RenderWi, RenderDp;  // size of the rendered output
     int previewW, previewH;
 
     glm::mat4& GetModelMatrix() { return ModelMatrix; }

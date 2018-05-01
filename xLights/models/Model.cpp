@@ -2637,7 +2637,7 @@ void Model::CopyBufCoord2ScreenCoord() {
             Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY - yoffset;
         }
     }
-    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt);
+    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
 }
 
 void Model::UpdateXmlWithScale() {

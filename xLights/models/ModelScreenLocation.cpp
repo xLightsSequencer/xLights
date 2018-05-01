@@ -91,7 +91,7 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 }
 
 ModelScreenLocation::ModelScreenLocation(int sz)
-: RenderWi(0), RenderHt(0), previewW(800), previewH(600),
+: RenderWi(0), RenderHt(0), RenderDp(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   rotatex(0), rotatey(0), rotatez(0),
@@ -101,6 +101,12 @@ ModelScreenLocation::ModelScreenLocation(int sz)
 {
     draw_3d = false;
     _locked = false;
+}
+
+void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
+    RenderHt = NewHt;
+    RenderWi = NewWi;
+    RenderDp = NewDp;
 }
 
 void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const
@@ -301,15 +307,16 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
 	sz = (sz*scalez);
     TranslatePointDoubles(radians,sx,sy,sx,sy);
 
-    // FIXME:  Only want this for tree model
-    /*if (!draw_3d) {
+    // Give 2D tree model its perspective
+    if (!draw_3d) {
         glm::vec4 position = glm::vec4(glm::vec3(sx, sy, sz), 1.0);
         glm::mat4 rm = glm::rotate(glm::mat4(1.0f), perspective, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::vec4 model_position = rm * position;
         sx = model_position.x;
         sy = model_position.y;
         sz = model_position.z;
-    }*/
+    }
+
     sx += worldPos_x;
     sy += worldPos_y;
 	sz += worldPos_z;
@@ -396,47 +403,16 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //glm::mat4 Scale = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
-    glm::mat4 matrix = ModelMatrix2D * flipy * flipx;
+    glm::mat4 matrix = flipy * flipx;
 
-    // FIXME:  Find cleaner way to create handle bounding boxes.  They need to be the untranslated but scaled coordinates.
-    float sx = RenderWi / 2 * scalex;
-    float sy = RenderHt / 2 * scaley;
-    float sz = 0.0f;
-    
-    aabb_min[0].x = -sx - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_min[0].y = sy - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_min[0].z = sz;
-    aabb_min[1].x = sx - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_min[1].y = sy - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_min[1].z = sz;
-    aabb_min[2].x = sx - RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_min[2].y = -sy - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_min[2].z = sz;
-    aabb_min[3].x = -sx - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_min[3].y = -sy - RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_min[3].z = sz;
-
-    aabb_max[0].x = -sx + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_max[0].y = sy + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_max[0].z = sz;
-    aabb_max[1].x = sx + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_max[1].y = sy + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_max[1].z = sz;
-    aabb_max[2].x = sx + RECT_HANDLE_WIDTH + BOUNDING_RECT_OFFSET;
-    aabb_max[2].y = -sy + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_max[2].z = sz;
-    aabb_max[3].x = -sx + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_max[3].y = -sy + RECT_HANDLE_WIDTH - BOUNDING_RECT_OFFSET;
-    aabb_max[3].z = sz;
-
-    sy = (RenderHt / 2 * scaley) + 50;
-    aabb_min[4].x = -RECT_HANDLE_WIDTH;
-    aabb_min[4].y = sy - RECT_HANDLE_WIDTH;
-    aabb_min[4].z = sz;
-    aabb_max[4].x = RECT_HANDLE_WIDTH;
-    aabb_max[4].y = sy + RECT_HANDLE_WIDTH;
-    aabb_max[4].z = sz;
+    for (size_t h = 0; h < num_handles; h++) {
+        aabb_min[h].x = mHandlePosition[h].x - hw;
+        aabb_min[h].y = mHandlePosition[h].y - hw;
+        aabb_min[h].z = 0.0f;
+        aabb_max[h].x = mHandlePosition[h].x + hw;
+        aabb_max[h].y = mHandlePosition[h].y + hw;
+        aabb_max[h].z = 0.0f;
+    }
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
@@ -616,8 +592,8 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 
     float w1 = worldPos_x;
     float h1 = worldPos_y;
-    float sz1 = worldPos_z + RenderWi * scalez / 2;
-    float sz2 = worldPos_z - RenderWi * scalez / 2;
+    float sz1 = worldPos_z + RenderDp * scalez / 2;
+    float sz2 = worldPos_z - RenderDp * scalez / 2;
 
     xlColor handleColor = xlBLUE;
     if (_locked)
@@ -668,7 +644,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 
     // Lower Left Handle
     sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET;
-    sy = (-RenderHt*scaley / 2) -BOUNDING_RECT_OFFSET;
+    sy = (-RenderHt * scaley / 2) -BOUNDING_RECT_OFFSET;
     TranslatePointDoubles(radians, sx, sy, sx, sy);
     sx = sx + w1;
     sy = sy + h1;
