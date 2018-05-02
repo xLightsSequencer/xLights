@@ -2757,6 +2757,8 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 		}
 	}
 	SetAudioControls();
+
+    mSequenceElements.IncrementChangeCount(nullptr);
 }
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
