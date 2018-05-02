@@ -2069,8 +2069,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
             newModel->Selected = true;
             newModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-            newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
             newModel->GetModelScreenLocation().SetAxisTool(TOOL_SCALE);
+            newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
             selectionLatched = true;
             highlightedModel = newModel;
             selectedModel = newModel;

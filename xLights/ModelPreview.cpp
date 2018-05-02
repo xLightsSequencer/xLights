@@ -213,8 +213,10 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     zoom2D = 1.0f;
     panx = 0.0f;
     pany = 0.0f;
-    zoom_corrx = 0.0f;
-    zoom_corry = 0.0f;
+    panx2D = 0.0f;
+    pany2D = 0.0f;
+    zoom_corrx2D = 0.0f;
+    zoom_corry2D = 0.0f;
 }
 
 ModelPreview::ModelPreview(wxPanel* parent)
@@ -429,16 +431,26 @@ void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
 
 void ModelPreview::SetZoomDelta(float delta)
 {
-    zoom *= 1.0f + delta;
-    zoom2D *= 1.0f - delta;
-    zoom_corrx = ((mWindowWidth * zoom2D) - mWindowWidth) / 2.0f;
-    zoom_corry = ((mWindowHeight * zoom2D) - mWindowHeight) / 2.0f;
+    if (is_3d) {
+        zoom *= 1.0f + delta;
+    }
+    else {
+        zoom2D *= 1.0f - delta;
+        zoom_corrx2D = ((mWindowWidth * zoom2D) - mWindowWidth) / 2.0f;
+        zoom_corry2D = ((mWindowHeight * zoom2D) - mWindowHeight) / 2.0f;
+    }
 }
 
 void ModelPreview::SetPan(float deltax, float deltay)
 {
-    panx += deltax;
-    pany += deltay;
+    if (is_3d) {
+        panx += deltax;
+        pany += deltay;
+    }
+    else {
+        panx2D += deltax;
+        pany2D += deltay;
+    }
 }
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
@@ -461,7 +473,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     }
     else {
         glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx*zoom2D - zoom_corrx, (-(float)virtualHeight + pany)*zoom2D + zoom_corry, 0.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, (-(float)virtualHeight + pany2D)*zoom2D + zoom_corry2D, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate * ViewScale;

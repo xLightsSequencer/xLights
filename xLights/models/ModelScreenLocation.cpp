@@ -96,7 +96,7 @@ ModelScreenLocation::ModelScreenLocation(int sz)
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   rotatex(0), rotatey(0), rotatez(0),
   ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
-  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f),
+  saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), saved_rotate(0.0f),
   active_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE)
 {
     draw_3d = false;
@@ -109,6 +109,17 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
     RenderDp = NewDp;
 }
 
+void ModelScreenLocation::SetActiveAxis(int axis)
+{
+    if (axis_tool == TOOL_ROTATE && axis != -1) {
+        active_axis = (axis + 1) % NUM_TOOLS;
+    }
+    else {
+        active_axis = axis;
+    }
+}
+
+
 void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const
 {
     int num_points = 18;
@@ -119,7 +130,7 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
         float tip = x + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
-            float u2 = i + 1 / (float)num_points;
+            float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, y, z, xlRED);
             va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlRED);
             va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlRED);
@@ -127,7 +138,7 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
         tip = y + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
-            float u2 = i + 1 / (float)num_points;
+            float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, tip, z, xlGREEN);
             va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), xlGREEN);
             va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), xlGREEN);
@@ -135,17 +146,44 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
         tip = z + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
-            float u2 = i + 1 / (float)num_points;
+            float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, y, tip, xlBLUE);
             va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - head_length, xlBLUE);
             va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - head_length, xlBLUE);
         }
         va.Finish(GL_TRIANGLES);
     }
-    if (axis_tool == TOOL_SCALE) {
+    else if (axis_tool == TOOL_SCALE) {
         DrawGLUtils::DrawCube(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, AXIS_RADIUS * 2, xlRED, va);
         DrawGLUtils::DrawCube(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, AXIS_RADIUS * 2, xlGREEN, va);
         DrawGLUtils::DrawCube(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, xlBLUE, va);
+        va.Finish(GL_TRIANGLES);
+    }
+    else if (axis_tool == TOOL_ROTATE) {
+        float radius = AXIS_ARROW_LENGTH - AXIS_RADIUS;
+        for (size_t i = 30; i <= 150; i += 5) {
+            float u1 = (float)i;
+            float u2 = (float)(i + 5);
+            va.AddVertex(x, y + radius * cos(glm::radians(u1)), z + radius * sin(glm::radians(u1)), xlRED);
+            va.AddVertex(x, y + radius * cos(glm::radians(u2)), z + radius * sin(glm::radians(u2)), xlRED);
+        }
+        for (size_t i = 0; i <= 120; i += 5) {
+            float u1 = (float)i - 60.0f;;
+            float u2 = (float)(i + 5) - 60.0f;
+            va.AddVertex(x + radius * cos(glm::radians(u1)), y, z + radius * sin(glm::radians(u1)), xlGREEN);
+            va.AddVertex(x + radius * cos(glm::radians(u2)), y, z + radius * sin(glm::radians(u2)), xlGREEN);
+        }
+        for (size_t i = 30; i <= 150; i += 5) {
+            float u1 = (float)i;
+            float u2 = (float)(i + 5);
+            va.AddVertex(x + radius * cos(glm::radians(u1)), y + radius * sin(glm::radians(u1)), z, xlBLUE);
+            va.AddVertex(x + radius * cos(glm::radians(u2)), y + radius * sin(glm::radians(u2)), z, xlBLUE);
+        }
+        va.Finish(GL_LINES);
+
+        DrawGLUtils::DrawCube(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, AXIS_RADIUS * 2, xlGREEN, va);
+        DrawGLUtils::DrawCube(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, AXIS_RADIUS * 2, xlBLUE, va);
+        DrawGLUtils::DrawCube(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, xlRED, va);
         va.Finish(GL_TRIANGLES);
     }
 
@@ -158,7 +196,6 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
         va.AddVertex(x, y, z + AXIS_ARROW_LENGTH, xlBLUE);
         va.Finish(GL_LINES);
     }
-
 }
 
 bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
@@ -167,6 +204,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         saved_scale = glm::vec3(scalex, scaley, scalez);
         saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
+        saved_rotate = glm::vec3(rotatex, rotatey, rotatez);
     }
 
     //Get a world position for the mouse
@@ -186,17 +224,36 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     glm::vec3 normal(0.0f);
     glm::vec3 intersect(0.0f);
 
-    switch (active_axis)
-    {
-    case X_AXIS:
-    case Z_AXIS:
-        normal = glm::vec3(0.0f, saved_position.y + AXIS_ARROW_LENGTH, 0.0f);
-        point = glm::vec3(0.0f, saved_position.y, 0.0f);
-        break;
-    case Y_AXIS:
-        normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
-        point = glm::vec3(0.0f, saved_position.y, 0.0f);
-        break;
+    if (axis_tool == TOOL_ROTATE) {
+        switch (active_axis)
+        {
+        case X_AXIS:
+            normal = glm::vec3(saved_position.x + AXIS_ARROW_LENGTH, 0.0f, 0.0f);
+            point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+            break;
+        case Y_AXIS:
+            normal = glm::vec3(0.0f, saved_position.y + AXIS_ARROW_LENGTH, 0.0f);
+            point = glm::vec3(0.0f, saved_position.y, 0.0f);
+            break;
+        case Z_AXIS:
+            normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
+            point = glm::vec3(0.0f, 0.0f, saved_position.z);
+            break;
+        }
+    }
+    else {
+        switch (active_axis)
+        {
+        case X_AXIS:
+        case Z_AXIS:
+            normal = glm::vec3(0.0f, saved_position.y + AXIS_ARROW_LENGTH, 0.0f);
+            point = glm::vec3(0.0f, saved_position.y, 0.0f);
+            break;
+        case Y_AXIS:
+            normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
+            point = glm::vec3(0.0f, 0.0f, saved_position.z);
+            break;
+        }
     }
 
     bool found = VectorMath::GetPlaneIntersect(
@@ -213,18 +270,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             saved_intersect = intersect;
         }
         else {
-            switch (active_axis)
-            {
-            case X_AXIS:
-                drag_delta.x = intersect.x - saved_intersect.x;
-                break;
-            case Y_AXIS:
-                drag_delta.y = intersect.y - saved_intersect.y;
-                break;
-            case Z_AXIS:
-                drag_delta.z = intersect.z - saved_intersect.z;
-                break;
-            }
+            drag_delta = intersect - saved_intersect;
         }
     }
     else {
@@ -305,7 +351,9 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
     sx = (sx*scalex);
     sy = (sy*scaley);
 	sz = (sz*scalez);
-    TranslatePointDoubles(radians,sx,sy,sx,sy);
+    TranslatePointDoubles(glm::radians((float)rotatez), sx, sy, sx, sy);
+    TranslatePointDoubles(glm::radians((float)rotatey), sx, sz, sx, sz);
+    TranslatePointDoubles(glm::radians((float)rotatex), sz, sy, sz, sy);
 
     // Give 2D tree model its perspective
     if (!draw_3d) {
@@ -531,20 +579,20 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
 }
 
 void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
-    radians = glm::radians((float)rotatez);
     centerx = worldPos_x;
     centery = worldPos_y;
     draw_3d = is_3d;
     //if (is_3d && allow_selected) {
     if (allow_selected) {
-        glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), radians, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 RotateY = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-        ModelMatrix = Translate * RotateZ;
+        ModelMatrix = Translate * RotateZ * RotateY * RotateX;
         glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-        ModelMatrix2D = Translate2D * RotateZ;
+        ModelMatrix2D = Translate2D * RotateZ * RotateY * RotateX;
 
         //glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-        //glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
         //glm::mat4 RotateY = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
         //glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, -1.0f));
         //ModelMatrix = Translate * RotateZ * RotateY * RotateX;
@@ -592,8 +640,8 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 
     float w1 = worldPos_x;
     float h1 = worldPos_y;
-    float sz1 = worldPos_z + RenderDp * scalez / 2;
-    float sz2 = worldPos_z - RenderDp * scalez / 2;
+    float sz1 = RenderDp / 2;
+    float sz2 =  -RenderDp / 2;
 
     xlColor handleColor = xlBLUE;
     if (_locked)
@@ -604,57 +652,77 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     xlColor color = handleColor;
 
     // Upper Left Handle
-    float sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET;
-    float sy = (RenderHt * scaley / 2) + BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx = sx + w1;
-    sy = sy + h1;
+    float sx1 = (-RenderWi / 2) - BOUNDING_RECT_OFFSET / scalex;
+    float sy1 = (RenderHt / 2) + BOUNDING_RECT_OFFSET / scaley;
+    float sx = sx1;
+    float sy = sy1;
+    float sz = sz1;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[0].x = sx;
     mHandlePosition[0].y = sy;
-    mHandlePosition[0].z = sz1;
+    mHandlePosition[0].z = sz;
+    sx = sx1;
+    sy = sy1;
+    sz = sz2;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[5].x = sx;
     mHandlePosition[5].y = sy;
-    mHandlePosition[5].z = sz2;
+    mHandlePosition[5].z = sz;
 
     // Upper Right Handle
-    sx = (RenderWi*scalex / 2) + BOUNDING_RECT_OFFSET;
-    sy = (RenderHt*scaley / 2) + BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx = sx + w1;
-    sy = sy + h1;
+    sx1 = (RenderWi / 2) + BOUNDING_RECT_OFFSET / scalex;
+    sy1 = (RenderHt / 2) + BOUNDING_RECT_OFFSET / scaley;
+    sx = sx1;
+    sy = sy1;
+    sz = sz1;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[1].x = sx;
     mHandlePosition[1].y = sy;
-    mHandlePosition[1].z = sz1;
+    mHandlePosition[1].z = sz;
+    sx = sx1;
+    sy = sy1;
+    sz = sz2;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[6].x = sx;
     mHandlePosition[6].y = sy;
-    mHandlePosition[6].z = sz2;
+    mHandlePosition[6].z = sz;
 
     // Lower Right Handle
-    sx = (RenderWi*scalex / 2) + BOUNDING_RECT_OFFSET;
-    sy = (-RenderHt*scaley / 2) - BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx = sx + w1;
-    sy = sy + h1;
+    sx1 = (RenderWi / 2) + BOUNDING_RECT_OFFSET / scalex;
+    sy1 = (-RenderHt / 2) - BOUNDING_RECT_OFFSET / scaley;
+    sx = sx1;
+    sy = sy1;
+    sz = sz1;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[2].x = sx;
     mHandlePosition[2].y = sy;
-    mHandlePosition[2].z = sz1;
+    mHandlePosition[2].z = sz;
+    sx = sx1;
+    sy = sy1;
+    sz = sz2;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[7].x = sx;
     mHandlePosition[7].y = sy;
-    mHandlePosition[7].z = sz2;
+    mHandlePosition[7].z = sz;
 
     // Lower Left Handle
-    sx = (-RenderWi * scalex / 2) - BOUNDING_RECT_OFFSET;
-    sy = (-RenderHt * scaley / 2) -BOUNDING_RECT_OFFSET;
-    TranslatePointDoubles(radians, sx, sy, sx, sy);
-    sx = sx + w1;
-    sy = sy + h1;
+    sx1 = (-RenderWi / 2) - BOUNDING_RECT_OFFSET / scalex;
+    sy1 = (-RenderHt / 2) - BOUNDING_RECT_OFFSET / scaley;
+    sx = sx1;
+    sy = sy1;
+    sz = sz1;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[3].x = sx;
     mHandlePosition[3].y = sy;
-    mHandlePosition[3].z = sz1;
+    mHandlePosition[3].z = sz;
+    sx = sx1;
+    sy = sy1;
+    sz = sz2;
+    TranslatePoint(sx, sy, sz);
     mHandlePosition[8].x = sx;
     mHandlePosition[8].y = sy;
-    mHandlePosition[8].z = sz2;
- 
+    mHandlePosition[8].z = sz;
+
     // Center Handle
     mHandlePosition[9].x = worldPos_x;
     mHandlePosition[9].y = worldPos_y;
@@ -931,6 +999,38 @@ void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool S
                 break;
             case Z_AXIS:
                 worldPos_z = saved_position.z + drag_delta.z;
+                break;
+            }
+        }
+        else if (axis_tool == TOOL_ROTATE) {
+            double angle = 0.0f;
+            glm::vec3 start_vector = saved_intersect - saved_position;
+            glm::vec3 end_vector = start_vector + drag_delta;
+            switch (active_axis)
+            {
+            case X_AXIS:
+            {
+                double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                rotatex = saved_rotate.x + angle;
+            }
+                break;
+            case Y_AXIS:
+            {
+                double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                rotatey = saved_rotate.y - angle;
+            }
+                break;
+            case Z_AXIS:
+            {
+                double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                rotatez = saved_rotate.z + angle;
+            }
                 break;
             }
         }

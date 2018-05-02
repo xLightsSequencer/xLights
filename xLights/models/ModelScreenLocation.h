@@ -21,6 +21,7 @@
 #define TOOL_TRANSLATE 0
 #define TOOL_SCALE     1
 #define TOOL_ROTATE    2
+#define NUM_TOOLS      3
 
 class wxXmlNode;
 class ModelPreview;
@@ -119,9 +120,9 @@ public:
     std::vector<xlPoint>& GetHandlePositions() { return mHandlePosition; }
     void SetActiveHandle(int handle) { active_handle = handle; }
     int GetActiveHandle() { return active_handle; }
-    void SetActiveAxis(int axis) { active_axis = axis; }
+    void SetActiveAxis(int axis);
     int GetActiveAxis() { return active_axis; }
-    void AdvanceAxisTool() { axis_tool += 1; axis_tool %= 2; }
+    void AdvanceAxisTool() { axis_tool += 1; axis_tool %= NUM_TOOLS; }
     void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
@@ -150,6 +151,7 @@ protected:
     glm::vec3 saved_position;
     glm::vec3 saved_size;
     glm::vec3 saved_scale;
+    glm::vec3 saved_rotate;
     glm::vec3 drag_delta;
 
     mutable bool draw_3d;
@@ -251,7 +253,6 @@ public:
 private:
     float perspective;
 
-    mutable float radians;
     mutable float centerx;
     mutable float centery;
 };

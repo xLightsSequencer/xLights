@@ -146,8 +146,10 @@ private:
     float zoom2D;  // zoom works opposite in 2D
     float panx;
     float pany;
-    float zoom_corrx;
-    float zoom_corry;
+    float panx2D;
+    float pany2D;
+    float zoom_corrx2D;
+    float zoom_corry2D;
     float cameraPosX;
 	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
