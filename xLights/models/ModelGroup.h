@@ -16,6 +16,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
+        bool SubModelRenamed(const std::string &oldName, const std::string &newName);
         void AddModel(const std::string &name);
 
         bool IsSelected() const { return selected;}

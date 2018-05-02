@@ -314,6 +314,26 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
     return changed;
 }
 
+bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &newName) {
+    bool changed = false;
+    wxString newVal = "";
+    for (int x = 0; x < modelNames.size(); x++) {
+        if (modelNames[x] == oldName) {
+            modelNames[x] = newName;
+            changed = true;
+        }
+        if (x != 0) {
+            newVal += ",";
+        }
+        newVal += modelNames[x];
+    }
+    if (changed) {
+        ModelXml->DeleteAttribute("models");
+        ModelXml->AddAttribute("models", newVal);
+    }
+    return changed;
+}
+
 void ModelGroup::CheckForChanges() const {
 
     unsigned long l = 0;

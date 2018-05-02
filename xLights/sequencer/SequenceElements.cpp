@@ -1122,15 +1122,14 @@ int SequenceElements::GetSelectedTimingRow()
 }
 
 wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
-    wxXmlNode* e;
-    for(e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode * e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "model")
         {
             if (name == e->GetAttribute(STR_NAME)) return e;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void addSubModelElement(SubModelElement *elem,
@@ -1165,6 +1164,7 @@ void addSubModelElement(SubModelElement *elem,
         mRowInformation.push_back(ri);
     }
 }
+
 void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
@@ -1203,7 +1203,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     elem->Init(*cls);
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
         ModelGroup *grp = dynamic_cast<ModelGroup*>(cls);
-        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
             std::string modelName = *it;
             std::string subModel = "";
             int slsh = modelName.find('/');
@@ -1314,36 +1314,36 @@ void SequenceElements::addTimingElement(TimingElement *elem, std::vector<Row_Inf
 
 void SequenceElements::PopulateRowInformation()
 {
-    int rowIndex=0;
-    int timingColorIndex=0;
+    int rowIndex = 0;
+    int timingColorIndex = 0;
     mSelectedTimingRow = -1;
     mRowInformation.clear();
     mTimingRowCount = 0;
 
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
-		if (elem != nullptr)
-		{
-			if (elem->GetType() == ELEMENT_TYPE_TIMING)
-			{
+        if (elem != nullptr)
+        {
+            if (elem->GetType() == ELEMENT_TYPE_TIMING)
+            {
                 if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mCurrentView))
-				{
-					addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
-				}
-			}
-		}
+                {
+                    addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
+                }
+            }
+        }
     }
 
-    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
+    for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
     {
         Element* elem = mAllViews[mCurrentView][i];
-		if (elem != nullptr)
-		{
+        if (elem != nullptr)
+        {
             if (elem->GetVisible() && elem->GetType() == ELEMENT_TYPE_MODEL) {
                 addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
-			}
-		}
+            }
+        }
     }
     PopulateVisibleRowInformation();
 }

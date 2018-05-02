@@ -634,9 +634,6 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
                 xlights->MarkEffectsFileDirty(true);
             }
-        //} else if ("SubModels" == name) {
-            // skip submodel changes for now
-        //    int a = 0;
         } else {
             int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
             if (i & 0x0001) {
@@ -659,6 +656,12 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 printf("Did not handle %s   %s\n",
                        (const char *)event.GetPropertyName().c_str(),
                        (const char *)event.GetValue().GetString().c_str());
+            }
+
+            if ("SubModels" == name) {
+                // if the sequencer is open we need to force a refresh to make sure submodel names are right
+                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+                wxPostEvent(xlights, eventForceRefresh);
             }
         }
     }

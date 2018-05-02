@@ -688,9 +688,6 @@ bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string M
             delete *it;
         }
 
-        // Now update the sequence tab        
-        DoForceSequencerRefresh();
-
         return true;
     }
 
@@ -716,7 +713,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end())
     {
-        internalsChanged = true;
+        internalsChanged = AllModels.RenameSubModel(OldName, NewName);
     }
     else
     {

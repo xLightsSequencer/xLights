@@ -101,6 +101,22 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     return false;
 }
 
+bool ModelManager::RenameSubModel(const std::string &oldName, const std::string &newName) {
+
+    bool changed = false;
+
+    for (auto m = begin(); m != end(); ++m)
+    {
+        if (m->second->GetDisplayAs() == "ModelGroup")
+        {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m->second);
+            changed |= mg->SubModelRenamed(oldName, newName);
+        }
+    }
+
+    return changed;
+}
+
 bool ModelManager::RenameInListOnly(const std::string& oldName, const std::string& newName)
 {
     Model *model = GetModel(oldName);
