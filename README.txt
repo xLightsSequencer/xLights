@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Hostnames were not usable in several places, had to use IP addresses
+   -- enh (dkulp)  FPP Connect - upload output settings for DDP outputs
    -- bug (dkulp)  Fix crash if uploading zig zag settings to FPP controller
    -- enh (scott)  Added Folder Setting dialog for Media, FSEQ, Backup, and Alt Backup Directories.
    -- bug (keith)  Fix tendril crash when movement was set to zero

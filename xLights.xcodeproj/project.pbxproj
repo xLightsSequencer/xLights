@@ -212,6 +212,8 @@
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
+		6783D01A209758BF00C6F51D /* PlayListItemProjector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */; };
+		6783D01B209758BF00C6F51D /* PlayListItemProjectorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
 		6784F92A1A5653670018EC0C /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9211A5653670018EC0C /* Element.cpp */; };
 		6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9231A5653670018EC0C /* MainSequencer.cpp */; };
@@ -482,7 +484,6 @@
 		67DA0AFF1E39C8EB00E2A859 /* OutputProcessSet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0AF61E39C8EB00E2A859 /* OutputProcessSet.cpp */; };
 		67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */; };
 		67DA0B071E39C96F00E2A859 /* SetDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0B021E39C96F00E2A859 /* SetDialog.cpp */; };
-		67DA0B081E39C96F00E2A859 /* Projector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DA0B041E39C96F00E2A859 /* Projector.cpp */; };
 		67DAFDDB1CA1A63C004B3237 /* Binasc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDCE1CA1A63C004B3237 /* Binasc.cpp */; };
 		67DAFDDC1CA1A63C004B3237 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 67DAFDD01CA1A63C004B3237 /* LICENSE.txt */; };
 		67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67DAFDD11CA1A63C004B3237 /* MidiEvent.cpp */; };
@@ -526,7 +527,6 @@
 		67F23F631E329AD800F8B985 /* ScheduleOptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F481E329AD800F8B985 /* ScheduleOptions.cpp */; };
 		67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4C1E329AD800F8B985 /* WebServer.cpp */; };
 		67F23F661E329AD800F8B985 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
-		67F23F671E329AD800F8B985 /* ProjectorDetailsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F511E329AD800F8B985 /* ProjectorDetailsDialog.cpp */; };
 		67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F541E329AD800F8B985 /* ESEQFile.cpp */; };
 		67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F561E329AD800F8B985 /* FSEQFile.cpp */; };
 		67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib */; };
@@ -571,8 +571,6 @@
 		67F23FF31E329E7400F8B985 /* PlayListItemFSEQPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FC41E329E7400F8B985 /* PlayListItemFSEQPanel.cpp */; };
 		67F23FF41E329E7400F8B985 /* PlayListItemImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FC61E329E7400F8B985 /* PlayListItemImage.cpp */; };
 		67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FC81E329E7400F8B985 /* PlayListItemImagePanel.cpp */; };
-		67F23FF61E329E7400F8B985 /* PlayListItemPJLink.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FCA1E329E7400F8B985 /* PlayListItemPJLink.cpp */; };
-		67F23FF71E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FCC1E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp */; };
 		67F23FF81E329E7400F8B985 /* PlayListItemRDS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FCE1E329E7400F8B985 /* PlayListItemRDS.cpp */; };
 		67F23FF91E329E7400F8B985 /* PlayListItemRDSPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FD01E329E7400F8B985 /* PlayListItemRDSPanel.cpp */; };
 		67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23FD21E329E7400F8B985 /* PlayListItemRunCommand.cpp */; };
@@ -1066,6 +1064,10 @@
 		6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenerateLyricsDialog.cpp; sourceTree = "<group>"; };
 		6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LMSImportChannelMapDialog.cpp; sourceTree = "<group>"; };
 		6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LMSImportChannelMapDialog.h; sourceTree = "<group>"; };
+		6783D016209758BF00C6F51D /* PlayListItemProjectorPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemProjectorPanel.h; path = PlayList/PlayListItemProjectorPanel.h; sourceTree = "<group>"; };
+		6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemProjector.cpp; path = PlayList/PlayListItemProjector.cpp; sourceTree = "<group>"; };
+		6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemProjectorPanel.cpp; path = PlayList/PlayListItemProjectorPanel.cpp; sourceTree = "<group>"; };
+		6783D019209758BF00C6F51D /* PlayListItemProjector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemProjector.h; path = PlayList/PlayListItemProjector.h; sourceTree = "<group>"; };
 		6784F9201A5653670018EC0C /* EffectsGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectsGrid.cpp; path = sequencer/EffectsGrid.cpp; sourceTree = "<group>"; };
 		6784F9211A5653670018EC0C /* Element.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Element.cpp; path = sequencer/Element.cpp; sourceTree = "<group>"; };
 		6784F9231A5653670018EC0C /* MainSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainSequencer.cpp; path = sequencer/MainSequencer.cpp; sourceTree = "<group>"; };
@@ -1561,8 +1563,6 @@
 		67DA0B011E39C96F00E2A859 /* RemapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemapDialog.h; sourceTree = "<group>"; };
 		67DA0B021E39C96F00E2A859 /* SetDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SetDialog.cpp; sourceTree = "<group>"; };
 		67DA0B031E39C96F00E2A859 /* SetDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SetDialog.h; sourceTree = "<group>"; };
-		67DA0B041E39C96F00E2A859 /* Projector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Projector.cpp; sourceTree = "<group>"; };
-		67DA0B051E39C96F00E2A859 /* Projector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Projector.h; sourceTree = "<group>"; };
 		67DAFDCE1CA1A63C004B3237 /* Binasc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Binasc.cpp; path = MIDI/Binasc.cpp; sourceTree = "<group>"; };
 		67DAFDCF1CA1A63C004B3237 /* Binasc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Binasc.h; path = MIDI/Binasc.h; sourceTree = "<group>"; };
 		67DAFDD01CA1A63C004B3237 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE.txt; path = MIDI/LICENSE.txt; sourceTree = "<group>"; };
@@ -1638,8 +1638,6 @@
 		67F23F4D1E329AD800F8B985 /* ScheduleDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScheduleDialog.h; sourceTree = "<group>"; };
 		67F23F4F1E329AD800F8B985 /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = md5.cpp; sourceTree = "<group>"; };
 		67F23F501E329AD800F8B985 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
-		67F23F511E329AD800F8B985 /* ProjectorDetailsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ProjectorDetailsDialog.cpp; sourceTree = "<group>"; };
-		67F23F521E329AD800F8B985 /* ProjectorDetailsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProjectorDetailsDialog.h; sourceTree = "<group>"; };
 		67F23F531E329AD800F8B985 /* WebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebServer.h; sourceTree = "<group>"; };
 		67F23F541E329AD800F8B985 /* ESEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ESEQFile.cpp; sourceTree = "<group>"; };
 		67F23F551E329AD800F8B985 /* ESEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ESEQFile.h; sourceTree = "<group>"; };
@@ -1705,10 +1703,6 @@
 		67F23FC71E329E7400F8B985 /* PlayListItemImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemImage.h; path = PlayList/PlayListItemImage.h; sourceTree = "<group>"; };
 		67F23FC81E329E7400F8B985 /* PlayListItemImagePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemImagePanel.cpp; path = PlayList/PlayListItemImagePanel.cpp; sourceTree = "<group>"; };
 		67F23FC91E329E7400F8B985 /* PlayListItemImagePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemImagePanel.h; path = PlayList/PlayListItemImagePanel.h; sourceTree = "<group>"; };
-		67F23FCA1E329E7400F8B985 /* PlayListItemPJLink.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemPJLink.cpp; path = PlayList/PlayListItemPJLink.cpp; sourceTree = "<group>"; };
-		67F23FCB1E329E7400F8B985 /* PlayListItemPJLink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemPJLink.h; path = PlayList/PlayListItemPJLink.h; sourceTree = "<group>"; };
-		67F23FCC1E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemPJLinkPanel.cpp; path = PlayList/PlayListItemPJLinkPanel.cpp; sourceTree = "<group>"; };
-		67F23FCD1E329E7400F8B985 /* PlayListItemPJLinkPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemPJLinkPanel.h; path = PlayList/PlayListItemPJLinkPanel.h; sourceTree = "<group>"; };
 		67F23FCE1E329E7400F8B985 /* PlayListItemRDS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemRDS.cpp; path = PlayList/PlayListItemRDS.cpp; sourceTree = "<group>"; };
 		67F23FCF1E329E7400F8B985 /* PlayListItemRDS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemRDS.h; path = PlayList/PlayListItemRDS.h; sourceTree = "<group>"; };
 		67F23FD01E329E7400F8B985 /* PlayListItemRDSPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemRDSPanel.cpp; path = PlayList/PlayListItemRDSPanel.cpp; sourceTree = "<group>"; };
@@ -2846,14 +2840,30 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
-				67B022FB204A794100639D21 /* OutputProcessSustain.cpp */,
-				67B022FC204A794200639D21 /* OutputProcessSustain.h */,
-				67B022FD204A794200639D21 /* SustainDialog.cpp */,
-				67B022FE204A794200639D21 /* SustainDialog.h */,
-				67B6F3382040F63E00B847E0 /* wxMIDI */,
-				67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */,
-				67B6F3362040F5A600B847E0 /* EventMIDIPanel.h */,
-				67D75E352020ED4B005BAC6E /* events */,
+				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
+				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
+				67F23F291E32994400F8B985 /* Assets.xcassets */,
+				67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */,
+				67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */,
+				67BCD14D1E6DADFC00F99935 /* Blend.cpp */,
+				67BCD14E1E6DADFC00F99935 /* Blend.h */,
+				67F23F401E329AD800F8B985 /* ButtonDetailsDialog.cpp */,
+				67F23F4A1E329AD800F8B985 /* ButtonDetailsDialog.h */,
+				67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */,
+				67C581481E4B95A400932DFA /* ColourOrderDialog.h */,
+				67F23F411E329AD800F8B985 /* CommandManager.cpp */,
+				67F23F4B1E329AD800F8B985 /* CommandManager.h */,
+				1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */,
+				1ECB4F731FF635D6006D57AA /* ConfigureOSC.h */,
+				67FFB8171FA3F65D007F9FBB /* Control.h */,
+				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
+				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
+				67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */,
+				67DA0AE91E39C8EB00E2A859 /* DimDialog.h */,
+				67DA0AEA1E39C8EB00E2A859 /* DimWhiteDialog.cpp */,
+				67DA0AEB1E39C8EB00E2A859 /* DimWhiteDialog.h */,
+				67F23F541E329AD800F8B985 /* ESEQFile.cpp */,
+				67F23F551E329AD800F8B985 /* ESEQFile.h */,
 				67D75E262020ED19005BAC6E /* EventARTNetPanel.cpp */,
 				67D75E232020ED18005BAC6E /* EventARTNetPanel.h */,
 				67D75E272020ED19005BAC6E /* EventDataPanel.cpp */,
@@ -2864,123 +2874,103 @@
 				67D75E222020ED18005BAC6E /* EventE131Panel.h */,
 				67D75E212020ED18005BAC6E /* EventFPPPanel.cpp */,
 				67D75E1F2020ED17005BAC6E /* EventFPPPanel.h */,
+				67B6F3352040F5A600B847E0 /* EventMIDIPanel.cpp */,
+				67B6F3362040F5A600B847E0 /* EventMIDIPanel.h */,
 				67D75E1E2020ED17005BAC6E /* EventOSCPanel.cpp */,
 				67D75E242020ED18005BAC6E /* EventOSCPanel.h */,
 				67D75E2A2020ED19005BAC6E /* EventPanel.h */,
+				67D75E352020ED4B005BAC6E /* events */,
 				67D75E282020ED19005BAC6E /* EventsDialog.cpp */,
 				67D75E292020ED19005BAC6E /* EventsDialog.h */,
 				67D75E2C2020ED1A005BAC6E /* EventSerialPanel.cpp */,
 				67D75E252020ED19005BAC6E /* EventSerialPanel.h */,
-				67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */,
-				67F4145B1FFEE239009F2E74 /* OutputProcessThreeToFour.h */,
-				67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */,
-				67F414591FFEE238009F2E74 /* ThreeToFourDialog.h */,
-				67C78D091FBA2A4900B82E48 /* VideoCache.cpp */,
-				67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */,
-				1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */,
-				1ECB4F731FF635D6006D57AA /* ConfigureOSC.h */,
-				1ECB4F741FF635D7006D57AA /* OSCPacket.cpp */,
-				1ECB4F721FF635D5006D57AA /* OSCPacket.h */,
-				67FFB8171FA3F65D007F9FBB /* Control.h */,
-				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
-				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
-				67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */,
-				67FFB81A1FA3F65E007F9FBB /* OutputProcessDeadChannel.h */,
-				6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */,
-				6725FAEB1F943B19007F2D7C /* OutputProcessGamma.h */,
 				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
 				6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */,
+				67F23F561E329AD800F8B985 /* FSEQFile.cpp */,
+				67F23F571E329AD800F8B985 /* FSEQFile.h */,
 				6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */,
 				6725FAE41F943AD7007F2D7C /* GammaDialog.h */,
-				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
-				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
-				67BCD14D1E6DADFC00F99935 /* Blend.cpp */,
-				67BCD14E1E6DADFC00F99935 /* Blend.h */,
-				67C581361E4B95A400932DFA /* OutputProcessReverse.h */,
-				67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */,
-				67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */,
-				67C581391E4B95A400932DFA /* MatrixDialog.cpp */,
-				67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */,
-				67C5813B1E4B95A400932DFA /* Xyzzy.cpp */,
+				67F23F2E1E32994400F8B985 /* Info.plist */,
 				67C5813C1E4B95A400932DFA /* MatricesDialog.cpp */,
-				67C5813D1E4B95A400932DFA /* VirtualMatricesDialog.cpp */,
-				67C5813E1E4B95A400932DFA /* VirtualMatricesDialog.h */,
-				67C5813F1E4B95A400932DFA /* VirtualMatrix.cpp */,
-				67C581401E4B95A400932DFA /* VirtualMatrix.h */,
-				67C581411E4B95A400932DFA /* VirtualMatrixDialog.h */,
-				67C581421E4B95A400932DFA /* MatrixMapper.cpp */,
 				67C581431E4B95A400932DFA /* MatricesDialog.h */,
+				67C581391E4B95A400932DFA /* MatrixDialog.cpp */,
 				67C581441E4B95A400932DFA /* MatrixDialog.h */,
+				67C581421E4B95A400932DFA /* MatrixMapper.cpp */,
 				67C581451E4B95A400932DFA /* MatrixMapper.h */,
-				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
-				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
-				67C581481E4B95A400932DFA /* ColourOrderDialog.h */,
-				67C581491E4B95A400932DFA /* OutputProcessColourOrder.cpp */,
-				67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */,
-				67D640E71E41168F00381DDA /* BackgroundPlaylistDialog.cpp */,
-				67D640E81E41168F00381DDA /* BackgroundPlaylistDialog.h */,
-				67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */,
-				67DA0B011E39C96F00E2A859 /* RemapDialog.h */,
-				67DA0B021E39C96F00E2A859 /* SetDialog.cpp */,
-				67DA0B031E39C96F00E2A859 /* SetDialog.h */,
-				67DA0B041E39C96F00E2A859 /* Projector.cpp */,
-				67DA0B051E39C96F00E2A859 /* Projector.h */,
-				67DA0AE81E39C8EB00E2A859 /* DimDialog.cpp */,
-				67DA0AE91E39C8EB00E2A859 /* DimDialog.h */,
-				67DA0AEA1E39C8EB00E2A859 /* DimWhiteDialog.cpp */,
-				67DA0AEB1E39C8EB00E2A859 /* DimWhiteDialog.h */,
+				67F23F4F1E329AD800F8B985 /* md5.cpp */,
+				67F23F501E329AD800F8B985 /* md5.h */,
+				67F23F581E329AD800F8B985 /* MyTreeItemData.h */,
+				67F23F421E329AD800F8B985 /* OptionsDialog.cpp */,
+				67F23F431E329AD800F8B985 /* OptionsDialog.h */,
+				1ECB4F741FF635D7006D57AA /* OSCPacket.cpp */,
+				1ECB4F721FF635D5006D57AA /* OSCPacket.h */,
 				67DA0AEC1E39C8EB00E2A859 /* OutputProcess.cpp */,
 				67DA0AED1E39C8EB00E2A859 /* OutputProcess.h */,
+				67C581491E4B95A400932DFA /* OutputProcessColourOrder.cpp */,
+				67C581371E4B95A400932DFA /* OutputProcessColourOrder.h */,
+				67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */,
+				67FFB81A1FA3F65E007F9FBB /* OutputProcessDeadChannel.h */,
 				67DA0AEE1E39C8EB00E2A859 /* OutputProcessDim.cpp */,
 				67DA0AEF1E39C8EB00E2A859 /* OutputProcessDim.h */,
 				67DA0AF01E39C8EB00E2A859 /* OutputProcessDimWhite.cpp */,
 				67DA0AF11E39C8EB00E2A859 /* OutputProcessDimWhite.h */,
+				6725FAEA1F943B19007F2D7C /* OutputProcessGamma.cpp */,
+				6725FAEB1F943B19007F2D7C /* OutputProcessGamma.h */,
 				67DA0AF21E39C8EB00E2A859 /* OutputProcessingDialog.cpp */,
 				67DA0AF31E39C8EB00E2A859 /* OutputProcessingDialog.h */,
 				67DA0AF41E39C8EB00E2A859 /* OutputProcessRemap.cpp */,
-				1ECB4F7D1FF63621006D57AA /* Pinger.cpp */,
-				1ECB4F7E1FF63621006D57AA /* Pinger.h */,
 				67DA0AF51E39C8EB00E2A859 /* OutputProcessRemap.h */,
+				67C5814A1E4B95A400932DFA /* OutputProcessReverse.cpp */,
+				67C581361E4B95A400932DFA /* OutputProcessReverse.h */,
 				67DA0AF61E39C8EB00E2A859 /* OutputProcessSet.cpp */,
 				67DA0AF71E39C8EB00E2A859 /* OutputProcessSet.h */,
+				67B022FB204A794100639D21 /* OutputProcessSustain.cpp */,
+				67B022FC204A794200639D21 /* OutputProcessSustain.h */,
+				67F414581FFEE238009F2E74 /* OutputProcessThreeToFour.cpp */,
+				67F4145B1FFEE239009F2E74 /* OutputProcessThreeToFour.h */,
+				1ECB4F7D1FF63621006D57AA /* Pinger.cpp */,
+				1ECB4F7E1FF63621006D57AA /* Pinger.h */,
 				67F23FA91E329E6100F8B985 /* PlayList */,
+				67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */,
+				67DA0B011E39C96F00E2A859 /* RemapDialog.h */,
+				67F23F441E329AD800F8B985 /* RunningSchedule.cpp */,
+				67F23F451E329AD800F8B985 /* RunningSchedule.h */,
+				67F23F461E329AD800F8B985 /* Schedule.cpp */,
+				67F23F471E329AD800F8B985 /* Schedule.h */,
 				67F23F391E329AD800F8B985 /* ScheduleDialog.cpp */,
+				67F23F4D1E329AD800F8B985 /* ScheduleDialog.h */,
 				67F23F3A1E329AD800F8B985 /* ScheduleManager.cpp */,
 				67F23F3B1E329AD800F8B985 /* ScheduleManager.h */,
+				67F23F481E329AD800F8B985 /* ScheduleOptions.cpp */,
+				67F23F491E329AD800F8B985 /* ScheduleOptions.h */,
+				3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */,
+				67DA0B021E39C96F00E2A859 /* SetDialog.cpp */,
+				67DA0B031E39C96F00E2A859 /* SetDialog.h */,
+				67F23F261E32994400F8B985 /* Supporting Files */,
+				67B022FD204A794200639D21 /* SustainDialog.cpp */,
+				67B022FE204A794200639D21 /* SustainDialog.h */,
+				67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */,
+				67F414591FFEE238009F2E74 /* ThreeToFourDialog.h */,
+				1E3E24F61E371555001D48E3 /* UserButton.cpp */,
+				1E3E24F71E371555001D48E3 /* UserButton.h */,
+				3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */,
+				67C78D091FBA2A4900B82E48 /* VideoCache.cpp */,
+				67C78D0A1FBA2A4A00B82E48 /* VideoCache.h */,
+				67C5813D1E4B95A400932DFA /* VirtualMatricesDialog.cpp */,
+				67C5813E1E4B95A400932DFA /* VirtualMatricesDialog.h */,
+				67C5813F1E4B95A400932DFA /* VirtualMatrix.cpp */,
+				67C581401E4B95A400932DFA /* VirtualMatrix.h */,
+				67C5813A1E4B95A400932DFA /* VirtualMatrixDialog.cpp */,
+				67C581411E4B95A400932DFA /* VirtualMatrixDialog.h */,
+				67F23F4C1E329AD800F8B985 /* WebServer.cpp */,
+				67F23F531E329AD800F8B985 /* WebServer.h */,
+				67F23F941E329E1700F8B985 /* wxHTTPServer */,
+				67B6F3382040F63E00B847E0 /* wxMIDI */,
 				67F23F3C1E329AD800F8B985 /* xScheduleApp.cpp */,
 				67F23F3D1E329AD800F8B985 /* xScheduleApp.h */,
 				67F23F3E1E329AD800F8B985 /* xScheduleMain.cpp */,
 				67F23F3F1E329AD800F8B985 /* xScheduleMain.h */,
-				67F23F401E329AD800F8B985 /* ButtonDetailsDialog.cpp */,
-				67F23F411E329AD800F8B985 /* CommandManager.cpp */,
-				67F23F421E329AD800F8B985 /* OptionsDialog.cpp */,
-				67F23F431E329AD800F8B985 /* OptionsDialog.h */,
-				67F23F441E329AD800F8B985 /* RunningSchedule.cpp */,
-				67F23F451E329AD800F8B985 /* RunningSchedule.h */,
-				67F23F461E329AD800F8B985 /* Schedule.cpp */,
-				1E3E24F61E371555001D48E3 /* UserButton.cpp */,
-				1E3E24F71E371555001D48E3 /* UserButton.h */,
-				67F23F471E329AD800F8B985 /* Schedule.h */,
-				67F23F481E329AD800F8B985 /* ScheduleOptions.cpp */,
-				67F23F491E329AD800F8B985 /* ScheduleOptions.h */,
-				67F23F4A1E329AD800F8B985 /* ButtonDetailsDialog.h */,
-				67F23F4B1E329AD800F8B985 /* CommandManager.h */,
-				67F23F4C1E329AD800F8B985 /* WebServer.cpp */,
-				67F23F4D1E329AD800F8B985 /* ScheduleDialog.h */,
-				67F23F941E329E1700F8B985 /* wxHTTPServer */,
-				67F23F4F1E329AD800F8B985 /* md5.cpp */,
-				67F23F501E329AD800F8B985 /* md5.h */,
-				67F23F511E329AD800F8B985 /* ProjectorDetailsDialog.cpp */,
-				67F23F521E329AD800F8B985 /* ProjectorDetailsDialog.h */,
-				67F23F531E329AD800F8B985 /* WebServer.h */,
-				67F23F541E329AD800F8B985 /* ESEQFile.cpp */,
-				67F23F551E329AD800F8B985 /* ESEQFile.h */,
-				67F23F561E329AD800F8B985 /* FSEQFile.cpp */,
-				67F23F571E329AD800F8B985 /* FSEQFile.h */,
-				67F23F581E329AD800F8B985 /* MyTreeItemData.h */,
-				67F23F291E32994400F8B985 /* Assets.xcassets */,
-				67F23F2E1E32994400F8B985 /* Info.plist */,
-				67F23F261E32994400F8B985 /* Supporting Files */,
+				67C5813B1E4B95A400932DFA /* Xyzzy.cpp */,
 			);
 			path = xSchedule;
 			sourceTree = "<group>";
@@ -3014,6 +3004,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */,
+				6783D019209758BF00C6F51D /* PlayListItemProjector.h */,
+				6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */,
+				6783D016209758BF00C6F51D /* PlayListItemProjectorPanel.h */,
 				671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */,
 				671142E7207BAB9D00F45296 /* PlayListItemSetColour.h */,
 				671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */,
@@ -3085,10 +3079,6 @@
 				67F23FC71E329E7400F8B985 /* PlayListItemImage.h */,
 				67F23FC81E329E7400F8B985 /* PlayListItemImagePanel.cpp */,
 				67F23FC91E329E7400F8B985 /* PlayListItemImagePanel.h */,
-				67F23FCA1E329E7400F8B985 /* PlayListItemPJLink.cpp */,
-				67F23FCB1E329E7400F8B985 /* PlayListItemPJLink.h */,
-				67F23FCC1E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp */,
-				67F23FCD1E329E7400F8B985 /* PlayListItemPJLinkPanel.h */,
 				67F23FCE1E329E7400F8B985 /* PlayListItemRDS.cpp */,
 				67F23FCF1E329E7400F8B985 /* PlayListItemRDS.h */,
 				67F23FD01E329E7400F8B985 /* PlayListItemRDSPanel.cpp */,
@@ -3759,13 +3749,13 @@
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
 				676CFAF8207D2BBE002EB5E7 /* jsonwriter.cpp in Sources */,
 				67F2400F1E32A03F00F8B985 /* OpenDMXOutput.cpp in Sources */,
-				67DA0B081E39C96F00E2A859 /* Projector.cpp in Sources */,
 				67F240101E32A03F00F8B985 /* OpenPixelNetOutput.cpp in Sources */,
 				67F240111E32A03F00F8B985 /* Output.cpp in Sources */,
 				67F240121E32A03F00F8B985 /* OutputManager.cpp in Sources */,
 				67F240131E32A03F00F8B985 /* PixelNetOutput.cpp in Sources */,
 				67F240141E32A03F00F8B985 /* RenardOutput.cpp in Sources */,
 				67F240151E32A03F00F8B985 /* serial_osx.cpp in Sources */,
+				6783D01A209758BF00C6F51D /* PlayListItemProjector.cpp in Sources */,
 				671142E8207BAB9D00F45296 /* PlayListItemSetColour.cpp in Sources */,
 				67F240161E32A03F00F8B985 /* serial.cpp in Sources */,
 				67F240171E32A03F00F8B985 /* SerialOutput.cpp in Sources */,
@@ -3787,7 +3777,6 @@
 				67F23FE61E329E7400F8B985 /* PlayerWindow.cpp in Sources */,
 				67F23F5F1E329AD800F8B985 /* CommandManager.cpp in Sources */,
 				67F23FEC1E329E7400F8B985 /* PlayListItemAudio.cpp in Sources */,
-				67F23FF71E329E7400F8B985 /* PlayListItemPJLinkPanel.cpp in Sources */,
 				67DA0AFC1E39C8EB00E2A859 /* OutputProcessDimWhite.cpp in Sources */,
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
@@ -3815,7 +3804,6 @@
 				67F23F5D1E329AD800F8B985 /* xScheduleMain.cpp in Sources */,
 				67480D542072773F00B3ED60 /* EventPing.cpp in Sources */,
 				67F23FF01E329E7400F8B985 /* PlayListItemESEQ.cpp in Sources */,
-				67F23F671E329AD800F8B985 /* ProjectorDetailsDialog.cpp in Sources */,
 				67F23F5B1E329AD800F8B985 /* ScheduleManager.cpp in Sources */,
 				1ECB4F7C1FF635EE006D57AA /* PlayListItemOSCPanel.cpp in Sources */,
 				67D75E5D2020ED60005BAC6E /* EventE131.cpp in Sources */,
@@ -3857,6 +3845,7 @@
 				67D75E572020ED60005BAC6E /* ListenerBase.cpp in Sources */,
 				67F240021E329E7400F8B985 /* PlayListStepPanel.cpp in Sources */,
 				67480D532072773F00B3ED60 /* EventPingPanel.cpp in Sources */,
+				6783D01B209758BF00C6F51D /* PlayListItemProjectorPanel.cpp in Sources */,
 				67D75E552020ED60005BAC6E /* ListenerFPPUnicast.cpp in Sources */,
 				67D75E6F2020ED96005BAC6E /* PlayListItemFPPEvent.cpp in Sources */,
 				67F23FEF1E329E7400F8B985 /* PlayListItemDelayPanel.cpp in Sources */,
@@ -3873,7 +3862,6 @@
 				67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */,
 				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
-				67F23FF61E329E7400F8B985 /* PlayListItemPJLink.cpp in Sources */,
 				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
