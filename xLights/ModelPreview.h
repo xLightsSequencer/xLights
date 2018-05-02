@@ -84,8 +84,7 @@ public:
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
-    float GetZoom() { return zoom; }
-    float GetZoom2D() { return zoom2D; }
+    float GetZoom() { return (is_3d ? zoom : zoom2D); }
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
@@ -111,7 +110,9 @@ private:
 	void mouseLeftDown(wxMouseEvent& event);
 	void mouseLeftUp(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
-	//void mouseReleased(wxMouseEvent& event);
+    void mouseMiddleDown(wxMouseEvent& event);
+    void mouseMiddleUp(wxMouseEvent& event);
+    //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);
@@ -156,6 +157,7 @@ private:
 	DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;
     bool m_mouse_down;
+    bool m_wheel_down;
     int m_last_mouse_x, m_last_mouse_y;
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;

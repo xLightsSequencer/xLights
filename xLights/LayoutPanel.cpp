@@ -2378,8 +2378,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         float delta_x = event.GetX() - m_previous_mouse_x;
         float delta_y = -(event.GetY() - m_previous_mouse_y);
-        delta_x /= modelPreview->GetZoom2D();
-        delta_y /= modelPreview->GetZoom2D();
+        delta_x /= modelPreview->GetZoom();
+        delta_y /= modelPreview->GetZoom();
         modelPreview->SetPan(delta_x, delta_y);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
@@ -2406,8 +2406,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
-        delta_x /= modelPreview->GetZoom2D();
-        delta_y /= modelPreview->GetZoom2D();
+        delta_x /= modelPreview->GetZoom();
+        delta_y /= modelPreview->GetZoom();
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)

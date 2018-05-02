@@ -29,6 +29,8 @@ EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
 EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
+EVT_MIDDLE_DOWN(ModelPreview::mouseMiddleDown)
+EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
 EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
@@ -37,7 +39,16 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
-	}
+    }
+    else if (m_wheel_down) {
+        float delta_x = event.GetX() - m_last_mouse_x;
+        float delta_y = -(event.GetY() - m_last_mouse_y);
+        delta_x /= GetZoom();
+        delta_y /= GetZoom();
+        SetPan(delta_x, delta_y);
+        m_last_mouse_x = event.GetX();
+        m_last_mouse_y = event.GetY();
+    }
 
     if (_model != nullptr)
     {
@@ -72,8 +83,26 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
+    int i = event.GetWheelRotation();
+    float delta = -0.1f;
+    if (i < 0)
+    {
+        delta *= -1.0f;
+    }
+    SetZoomDelta(delta);
+
     event.ResumePropagation(1);
     event.Skip(); // continue the event
+}
+
+void ModelPreview::mouseMiddleDown(wxMouseEvent& event) {
+    m_wheel_down = true;
+    m_last_mouse_x = event.GetX();
+    m_last_mouse_y = event.GetY();
+}
+
+void ModelPreview::mouseMiddleUp(wxMouseEvent& event) {
+    m_wheel_down = false;
 }
 
 void ModelPreview::render(wxPaintEvent& event)
@@ -195,7 +224,8 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
-      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_), m_mouse_down(false), is_3d(false)
+      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
+      m_mouse_down(false), m_wheel_down(false), is_3d(false)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -487,10 +517,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-            glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance * zoom));
-            glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
-            glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
-            ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
+            //glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance * zoom));
+            //glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
+            //glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
+            //ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
             DrawGLUtils::SetCamera(ViewMatrix);
             accumulator.PreAlloc(maxVertexCount);
 			currentPixelScaleFactor = 1.0;
@@ -504,21 +534,22 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             DrawGLUtils::SetCamera(glm::mat4(1.0));
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-			// Rotate Axis and translate
-			DrawGLUtils::Rotate(180,0,0,1);
-			DrawGLUtils::Rotate(180,0,1,0);
+            DrawGLUtils::SetCamera(ViewMatrix);
+            // Rotate Axis and translate
+			//DrawGLUtils::Rotate(180,0,0,1);
+			//DrawGLUtils::Rotate(180,0,1,0);
 			accumulator.PreAlloc(maxVertexCount);
 			currentPixelScaleFactor = 1.0;
-			int i = (int)mWindowHeight;
-			DrawGLUtils::Translate(0,-i,0);
-			double scaleh= double(mWindowHeight) / double(virtualHeight);
-			double scalew = double(mWindowWidth) / double(virtualWidth);
-			DrawGLUtils::Scale(scalew, scaleh, 1.0);
+			//int i = (int)mWindowHeight;
+			//DrawGLUtils::Translate(0,-i,0);
+			//double scaleh= double(mWindowHeight) / double(virtualHeight);
+			//double scalew = double(mWindowWidth) / double(virtualWidth);
+			//DrawGLUtils::Scale(scalew, scaleh, 1.0);
 
-			if (scalew < scaleh) {
-				scaleh = scalew;
-			}
-			currentPixelScaleFactor = scaleh;
+			//if (scalew < scaleh) {
+		//		scaleh = scalew;
+			//}
+			//currentPixelScaleFactor = scaleh;
 			LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
 			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
 			accumulator.Finish(GL_TRIANGLES);
