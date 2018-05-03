@@ -476,6 +476,7 @@ void ModelElement::RemoveSubModel(const std::string &name) {
         if (name == (*a)->GetName()) {
             delete *a;
             mSubModels.erase(a);
+            break;
         }
     }
 }

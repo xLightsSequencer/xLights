@@ -773,7 +773,10 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         {
             std::vector<Model*> models = grp->Models();
             for (auto a = models.begin(); a != models.end(); ++a) {
-                AddModel(*a, ms);
+                if ((*a)->GetDisplayAs() != "SubModel")
+                {
+                    AddModel(*a, ms);
+                }
             }
         }
     }
