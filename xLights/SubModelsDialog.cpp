@@ -541,7 +541,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->strands[r] = NodesGrid->GetCellValue(sm->strands.size() - 1 - r, 0);
+    sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
     SelectRow(r);
     ValidateWindow();
 }
@@ -1407,7 +1407,7 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    sm->strands.push_back("");
+    sm->strands.insert(sm->strands.begin(), "");
     Select(GetSelectedName());
     SelectRow(NodesGrid->GetNumberRows() - 1);
     NodesGrid->SetGridCursor(NodesGrid->GetNumberRows() - 1, 0);
