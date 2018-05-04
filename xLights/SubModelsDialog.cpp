@@ -463,9 +463,36 @@ void SubModelsDialog::OnNameChoiceSelect(wxCommandEvent& event)
     Select(event.GetString());
 }
 
+wxString SubModelsDialog::GenerateSubModelName(wxString basename)
+{
+    basename += "-";
+
+    // Work out the next available default name
+    std::list<int> used;
+    for (int j = 0; j < ListCtrl_SubModels->GetItemCount(); j++)
+    {
+        wxString name = ListCtrl_SubModels->GetItemText(j);
+
+        if (name.StartsWith(basename) && name.Length() > basename.Length() && name.SubString(basename.Length(), name.Length() - 1).IsNumber())
+        {
+            int num = wxAtoi(name.SubString(basename.Length(), name.Length() - 1));
+            used.push_back(num);
+        }
+    }
+
+    int i = 1;
+    while (std::find(used.begin(), used.end(), i) != used.end())
+    {
+        i++;
+    }
+    
+    return wxString::Format("%s%d", basename, i);
+}
+
 void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
 {
-    wxString name = wxString::Format("SubModel-%d",(int)_subModels.size());
+    wxString name = GenerateSubModelName("SubModel");
+
     SubModelInfo* sm = new SubModelInfo(name);
     sm->vertical = false;
     sm->strands.clear();
@@ -477,6 +504,9 @@ void SubModelsDialog::OnAddButtonClick(wxCommandEvent& event)
     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
     ValidateWindow();
     Select(name);
+
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
 }
 
 void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
@@ -547,7 +577,6 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
     SubModelInfo* sm = GetSubModelInfo(name);
     sm->strands.push_back("");
     SelectRow(NodesGrid->GetNumberRows() - 1);
-    TextCtrl_Name->SetFocus();
 }
 
 void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
@@ -617,7 +646,7 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
         for (int i = 0; i < dialog.GetCount(); i++)
         {
             wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
-            wxString name = wxString::Format("%s-%i", basename, i + 1);
+            wxString name = GenerateSubModelName(basename);
 
             if (GetSubModelInfoIndex(name) != -1)
             {
