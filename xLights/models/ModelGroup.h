@@ -22,7 +22,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
-
+        Model* GetModel(std::string modelName);
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;

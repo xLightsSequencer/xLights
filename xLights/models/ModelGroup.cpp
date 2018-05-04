@@ -25,6 +25,19 @@ static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
+Model* ModelGroup::GetModel(std::string modelName)
+{
+    for (auto it = models.begin(); it != models.end(); ++it)
+    {
+        if ((*it)->GetFullName() == modelName)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
