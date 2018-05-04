@@ -1617,6 +1617,10 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
 {
+    unsigned col;
+    bool ascending;
+    treelist->GetSortColumn(&col, &ascending);
+
     ModelTreeData *data1 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item1));
     ModelTreeData *data2 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item2));
 
@@ -1632,11 +1636,17 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
             return NumberAwareStringCompare(a->name, b->name);
         }
         else {
-            return -1;
+            if (ascending)
+                return -1;
+            else
+                return 1;
         }
     }
     else if (b->GetDisplayAs() == "ModelGroup") {
-        return 1;
+        if (ascending)
+            return 1;
+        else
+            return -1;
     }
 
     if (sortColumn == 1) {
@@ -1667,9 +1677,23 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         int ia = data1->nativeOrder;
         int ib = data2->nativeOrder;
         if (ia > ib)
-            return 1;
+            if (ascending)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
         if (ia < ib)
-            return -1;
+            if (ascending)
+            {
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
     }
 
     return NumberAwareStringCompare(a->name, b->name);
@@ -1677,7 +1701,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
 
 int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned column, wxTreeListItem first, wxTreeListItem second)
 {
-    return SortElementsFunction( treelist, first, second, column);
+    return SortElementsFunction(treelist, first, second, column);
 }
 
 int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
