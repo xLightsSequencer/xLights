@@ -43,11 +43,13 @@ const long SubModelsDialog::ID_STATICTEXT_NAME = wxNewId();
 const long SubModelsDialog::ID_TEXTCTRL_NAME = wxNewId();
 const long SubModelsDialog::ID_CHECKBOX1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON6 = wxNewId();
+const long SubModelsDialog::ID_BUTTON8 = wxNewId();
 const long SubModelsDialog::ID_GRID1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON1 = wxNewId();
 const long SubModelsDialog::ID_BUTTON2 = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_UP = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_DOWN = wxNewId();
+const long SubModelsDialog::ID_BUTTON7 = wxNewId();
 const long SubModelsDialog::ID_PANEL2 = wxNewId();
 const long SubModelsDialog::ID_PANEL3 = wxNewId();
 const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
@@ -91,7 +93,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetMinSize(wxSize(1000,400));
+	SplitterWindow1->SetMinSize(wxSize(800,400));
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -132,13 +134,14 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer8 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer8->AddGrowableCol(0);
 	FlexGridSizer8->AddGrowableRow(1);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer6->AddGrowableCol(1);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	LayoutCheckbox = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Vertical Buffer Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	LayoutCheckbox->SetValue(false);
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ReverseNodes = new wxButton(Panel1, ID_BUTTON6, _("Reverse Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	FlexGridSizer6->Add(Button_ReverseNodes, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ReverseRows = new wxButton(Panel1, ID_BUTTON8, _("Reverse Rows"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+	FlexGridSizer6->Add(Button_ReverseRows, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
@@ -161,6 +164,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer5->Add(Button_MoveUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_MoveDown = new wxButton(Panel1, ID_BUTTON_MOVE_DOWN, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MOVE_DOWN"));
 	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_ReverseRow = new wxButton(Panel1, ID_BUTTON7, _("Reverse Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	FlexGridSizer5->Add(Button_ReverseRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Panel1->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel1);
@@ -210,14 +215,19 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_TEXTCTRL_NAME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SubModelsDialog::OnTextCtrl_NameText_Change);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
+	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowsClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
+	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveUpClick);
+	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveDownClick);
+	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
 	//*)
 
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
+    //Connect(ID_GRID1, wxEVT_CHAR, (wxObjectEventFunction)&SubModelsDialog::OnGridChar);
 
     wxListItem nm0;
     nm0.SetId(0);
@@ -259,6 +269,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     ListCtrl_SubModels->SetDropTarget(mdt);
 
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
+    NodesGrid->SetSelectionBackground(*wxLIGHT_GREY);
+    NodesGrid->SetCellHighlightColour(*wxLIGHT_GREY);
+    NodesGrid->SetCellHighlightROPenWidth(3);
+    NodesGrid->SetCellHighlightPenWidth(3);
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -271,6 +285,11 @@ SubModelsDialog::~SubModelsDialog()
     _subModels.clear();
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
 }
+
+//void SubModelsDialog::OnGridChar(wxKeyEvent& event)
+//{
+//    CallAfter(&SubModelsDialog::ValidateWindow);
+//}
 
 void SubModelsDialog::Setup(Model *m)
 {
@@ -485,7 +504,7 @@ wxString SubModelsDialog::GenerateSubModelName(wxString basename)
     {
         i++;
     }
-    
+
     return wxString::Format("%s%d", basename, i);
 }
 
@@ -554,11 +573,13 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     sm->strands[r] = NodesGrid->GetCellValue(r, 0);
     SelectRow(r);
+    ValidateWindow();
 }
 
 void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 {
     SelectRow(event.GetRow());
+    ValidateWindow();
 }
 
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
@@ -576,7 +597,11 @@ void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
 
     SubModelInfo* sm = GetSubModelInfo(name);
     sm->strands.push_back("");
+    Select(GetSelectedName());
     SelectRow(NodesGrid->GetNumberRows() - 1);
+    NodesGrid->SetGridCursor(NodesGrid->GetNumberRows() - 1, 0);
+    NodesGrid->SetFocus();
+    ValidateWindow();
 }
 
 void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
@@ -591,15 +616,21 @@ void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
     {
         sm->strands.front() = "";
         NodesGrid->SetCellValue(0, 0, "");
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(0, 0);
+        NodesGrid->SetFocus();
         SelectRow(0);
     }
     else
     {
         int row = NodesGrid->GetGridCursorRow();
         int sz = sm->strands.size();
-        sm->strands.erase(sm->strands.begin() + row);
+        sm->strands.erase(sm->strands.begin() + sm->strands.size() - 1 - row);
         sm->strands.resize(sz - 1);
         --row;
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        NodesGrid->SetFocus();
         SelectRow(row >= 0 ? row : 0);
     }
     ValidateWindow();
@@ -714,6 +745,35 @@ void SubModelsDialog::OnButton_GenerateClick(wxCommandEvent& event)
     }
 }
 
+wxString SubModelsDialog::ReverseRow(wxString row)
+{
+    wxString newStrand = "";
+    auto nodes = wxSplit(row, ',');
+    for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
+    {
+        if (nit != nodes.rbegin()) newStrand += ",";
+        if (nit->Contains('-'))
+        {
+            auto range = wxSplit(*nit, '-');
+            if (range.size() == 2)
+            {
+                newStrand += range[1] + "-" + range[0];
+            }
+            else
+            {
+                // not valid so just copy
+                newStrand += *nit;
+            }
+        }
+        else
+        {
+            newStrand += *nit;
+        }
+    }
+
+    return newStrand;
+}
+
 void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
@@ -723,32 +783,9 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
         std::vector<wxString> newStrands;
         for (auto it = sm->strands.begin(); it != sm->strands.end(); ++it)
         {
-            wxString newStrand = "";
-            auto nodes = wxSplit(*it, ',');
-            for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
-            {
-                if (newStrand != "") newStrand += ",";
-                if (nit->Contains('-'))
-                {
-                    auto range = wxSplit(*nit, '-');
-                    if (range.size() == 2)
-                    {
-                        newStrand += range[1] + "-" + range[0];
-                    }
-                    else
-                    {
-                        // not valid so just copy
-                        newStrand += *nit;
-                    }
-                }
-                else
-                {
-                    newStrand += *nit;
-                }
-            }
-            newStrands.push_back(newStrand);
+            *it = ReverseRow(*it);
         }
-        //Select(GetSelectedName());
+        Select(GetSelectedName());
     }
 }
 
@@ -821,7 +858,7 @@ void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
     }
 
     SubModelInfo* sm = (SubModelInfo*)ListCtrl_SubModels->GetItemData(index);
-    
+
     bool clash = false;
     for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
     {
@@ -884,7 +921,52 @@ void SubModelsDialog::ValidateWindow()
         NodesGrid->Enable();
         LayoutCheckbox->Enable();
         AddRowButton->Enable();
-        DeleteRowButton->Enable();
+        if (NodesGrid->GetGridCursorRow() >= 0)
+        {
+            DeleteRowButton->Enable();
+            if (NodesGrid->GetNumberRows() == 1)
+            {
+                Button_MoveUp->Disable();
+                Button_MoveDown->Disable();
+            }
+            else
+            {
+                //if (NodesGrid->GetGridCursorRow() == 0)
+                //{
+                //    Button_MoveUp->Disable();
+                //}
+                //else
+                {
+                    Button_MoveUp->Enable();
+                }
+                //if (NodesGrid->GetGridCursorRow() == NodesGrid->GetNumberRows() - 1)
+                //{
+                //    Button_MoveDown->Disable();
+                //}
+                //else
+                {
+                    Button_MoveDown->Enable();
+                }
+            }
+            Button_ReverseRow->Enable();
+        }
+        else
+        {
+            DeleteRowButton->Disable();
+            Button_MoveUp->Disable();
+            Button_MoveDown->Disable();
+            Button_ReverseRow->Disable();
+        }
+
+        if (NodesGrid->GetNumberRows() == 1)
+        {
+            Button_ReverseRows->Disable();
+        }
+        else
+        {
+            Button_ReverseRows->Enable();
+        }
+
         subBufferPanel->Enable();
         if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
         {
@@ -958,10 +1040,22 @@ void SubModelsDialog::Select(const wxString &name)
         if (NodesGrid->GetNumberRows() > 0) {
             NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
         }
-        for (int x = 0; x < sm->strands.size(); x++) {
+        for (int x = sm->strands.size() - 1; x >= 0; x--) {
+            int cellrow = (sm->strands.size() - 1) - x;
             NodesGrid->AppendRows(1);
-            NodesGrid->SetRowLabelValue(x, wxString::Format("Line %d", (x + 1)));
-            NodesGrid->SetCellValue(x, 0, sm->strands[x]);
+            if (x == 0)
+            {
+                NodesGrid->SetRowLabelValue(cellrow, "Bottom");
+            }
+            else if (x == sm->strands.size() - 1)
+            {
+                NodesGrid->SetRowLabelValue(cellrow, "Top");
+            }
+            else
+            {
+                NodesGrid->SetRowLabelValue(cellrow, wxString::Format("Line %d", (x + 1)));
+            }
+            NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
         }
         NodesGrid->EndBatch();
         NodesGrid->GoToCell(0, 0);
@@ -1135,7 +1229,7 @@ void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
     while (tokenizer.HasMoreTokens()) {
         wxString token = tokenizer.GetNextToken();
         int index = GetSubModelInfoIndex(token);
-        
+
         SubModelInfo* sm = _subModels.at(index);
         _subModels.erase(_subModels.begin() + GetSubModelInfoIndex(sm->name));
         ListCtrl_SubModels->DeleteItem(index);
@@ -1276,3 +1370,110 @@ bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& da
 }
 
 #pragma endregion Drag and Drop
+
+void SubModelsDialog::OnButton_ReverseRowsClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    if (sm->strands.size() == 1)
+    {
+        // nothing to do
+        return;
+    }
+
+    std::list<std::string> reordered;
+    for (auto it = sm->strands.begin(); it != sm->strands.end(); ++it)
+    {
+        reordered.push_front(*it);
+    }
+
+    int i = 0;
+    for (auto it = reordered.begin(); it != reordered.end(); ++it)
+    {
+        sm->strands[i] = *it;
+        i++;
+    }
+
+    Select(GetSelectedName());
+}
+
+void SubModelsDialog::OnButton_ReverseRowClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    sm->strands[sm->strands.size() - 1 - row] = ReverseRow(sm->strands[sm->strands.size() - 1 - row]);
+
+    Select(GetSelectedName());
+
+    NodesGrid->SetGridCursor(row, 0);
+    NodesGrid->SetFocus();
+
+    ValidateWindow();
+}
+
+void SubModelsDialog::OnButton_MoveDownClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    if (NodesGrid->GetNumberRows() == 1 || row == sm->strands.size() - 1 || row < 0)
+    {
+        // nothing to do
+    }
+    else
+    {
+        std::string swap = sm->strands[sm->strands.size() - 1 - row];
+        sm->strands[sm->strands.size() - 1 - row] = sm->strands[sm->strands.size() - 1 - (row + 1)];
+        sm->strands[sm->strands.size() - 1 - (row + 1)] = swap;
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(row + 1, 0);
+        SelectRow(row + 1);
+        NodesGrid->SetFocus();
+    }
+    ValidateWindow();
+}
+
+void SubModelsDialog::OnButton_MoveUpClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    int row = NodesGrid->GetGridCursorRow();
+
+    if (NodesGrid->GetNumberRows() == 1 || row <= 0)
+    {
+        // nothing to do
+    }
+    else
+    {
+        std::string swap = sm->strands[sm->strands.size() - 1 - row];
+        sm->strands[sm->strands.size() - 1 - row] = sm->strands[sm->strands.size() - 1 - (row - 1)];
+        sm->strands[sm->strands.size() - 1 - (row - 1)] = swap;
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(row - 1, 0);
+        SelectRow(row -1);
+        NodesGrid->SetFocus();
+    }
+    ValidateWindow();
+}

@@ -86,6 +86,8 @@ public:
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
     wxButton* Button_ReverseNodes;
+    wxButton* Button_ReverseRow;
+    wxButton* Button_ReverseRows;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -117,11 +119,13 @@ protected:
     static const long ID_TEXTCTRL_NAME;
     static const long ID_CHECKBOX1;
     static const long ID_BUTTON6;
+    static const long ID_BUTTON8;
     static const long ID_GRID1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON_MOVE_UP;
     static const long ID_BUTTON_MOVE_DOWN;
+    static const long ID_BUTTON7;
     static const long ID_PANEL2;
     static const long ID_PANEL3;
     static const long ID_NOTEBOOK1;
@@ -151,6 +155,7 @@ protected:
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString &range);
     void SelectRow(int r);
+    wxString ReverseRow(wxString row);
 
 private:
 
@@ -174,12 +179,17 @@ private:
     void OnListCtrl_SubModelsColumnClick(wxListEvent& event);
     void OnListCtrl_SubModelsKeyDown(wxListEvent& event);
     void OnTextCtrl_NameText_Change(wxCommandEvent& event);
+    void OnButton_ReverseRowsClick(wxCommandEvent& event);
+    void OnButton_ReverseRowClick(wxCommandEvent& event);
+    void OnButton_MoveDownClick(wxCommandEvent& event);
+    void OnButton_MoveUpClick(wxCommandEvent& event);
     //*)
 
     wxWindow* _parent;
     xLightsFrame* xlights;
 
     void OnDrop(wxCommandEvent& event);
+    //void OnGridChar(wxKeyEvent& event);
 
     DECLARE_EVENT_TABLE()
 };
