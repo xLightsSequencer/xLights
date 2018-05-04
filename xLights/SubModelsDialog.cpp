@@ -398,36 +398,6 @@ int SubModelsDialog::GetSubModelInfoIndex(const wxString &name) {
 
 #pragma endregion helpers
 
-// rename seems to be a pain in the ass here....
-// maybe a better way to handle this is to not do the save here but in the model.cpp where this was called from
-// and allow a method to get the submodel name map or something that can be better handled upstream than here.
-
-// i need to be able to access the layoutPanel and update the names. cant do that here right now.
-// option 1 might be to try to send in the layout panel from models? and do that update here.
-// option 2 might be to just all a method to get the data out of this class back to models where it *might*? have acess to layoutPanel?
-// either way i need layoutPanel...
-
-// [X] need to save the old model names in a list/map
-// [ ]
-
-// GOAL 1. need to update the submodel names in the layout groups
-//    should be very similar to the model rename code that i pasted here...
-
-// from LayoutPanel.cpp Line 602
-//        RenameModelInTree(selectedModel, safename);
-//        selectedModel = nullptr;
-//        xlights->RenameModel(oldname, (*a)->name);
-//        if (oldname == lastModelName) {
-//            lastModelName = safename;
-//        }
-//        SelectModel(safename);
-//        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-//        xlights->MarkEffectsFileDirty(true);
-
-// GOAL 2. update the current sequence submodel names.
-//    This might be handled in one of the submodel rename methods that might be available like xlights->RenameModel(old,new)
-//    NEED to keep a list of all the old model names in a variable on create/setup of dialog.
-
 void SubModelsDialog::Save()
 {
     xLightsFrame* xlights = xLightsApp::GetFrame();
@@ -571,7 +541,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->strands[r] = NodesGrid->GetCellValue(r, 0);
+    sm->strands[r] = NodesGrid->GetCellValue(sm->strands.size() - 1 - r, 0);
     SelectRow(r);
     ValidateWindow();
 }
@@ -586,54 +556,6 @@ void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     sm->vertical = LayoutCheckbox->GetValue();
-}
-
-void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
-{
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-
-    SubModelInfo* sm = GetSubModelInfo(name);
-    sm->strands.push_back("");
-    Select(GetSelectedName());
-    SelectRow(NodesGrid->GetNumberRows() - 1);
-    NodesGrid->SetGridCursor(NodesGrid->GetNumberRows() - 1, 0);
-    NodesGrid->SetFocus();
-    ValidateWindow();
-}
-
-void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
-{
-    wxString name = GetSelectedName();
-    if (name == "") {
-        return;
-    }
-    SubModelInfo* sm = GetSubModelInfo(name);
-
-    if (NodesGrid->GetNumberRows() == 1)
-    {
-        sm->strands.front() = "";
-        NodesGrid->SetCellValue(0, 0, "");
-        Select(GetSelectedName());
-        NodesGrid->SetGridCursor(0, 0);
-        NodesGrid->SetFocus();
-        SelectRow(0);
-    }
-    else
-    {
-        int row = NodesGrid->GetGridCursorRow();
-        int sz = sm->strands.size();
-        sm->strands.erase(sm->strands.begin() + sm->strands.size() - 1 - row);
-        sm->strands.resize(sz - 1);
-        --row;
-        Select(GetSelectedName());
-        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-        NodesGrid->SetFocus();
-        SelectRow(row >= 0 ? row : 0);
-    }
-    ValidateWindow();
 }
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
@@ -795,26 +717,6 @@ void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
     {
         Select(GetSelectedName());
     }
-}
-
-void SubModelsDialog::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
-{
-    if (ListCtrl_SubModels->GetSelectedItemCount() == 0) return;
-
-    wxString drag = "SubModel";
-    for (size_t i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
-    {
-        if (IsItemSelected(ListCtrl_SubModels, i))
-        {
-            drag += "," + ListCtrl_SubModels->GetItemText(i);
-        }
-    }
-
-    wxTextDataObject my_data(drag);
-    wxDropSource dragSource(this);
-    dragSource.SetData(my_data);
-    dragSource.DoDragDrop(wxDrag_DefaultMove);
-    SetCursor(wxCURSOR_ARROW);
 }
 
 void SubModelsDialog::OnListCtrl_SubModelsColumnClick(wxListEvent& event)
@@ -1255,6 +1157,25 @@ void SubModelsDialog::MoveSelectedModelsTo(int indexTo)
 }
 
 #pragma region Drag and Drop
+void SubModelsDialog::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
+{
+    if (ListCtrl_SubModels->GetSelectedItemCount() == 0) return;
+
+    wxString drag = "SubModel";
+    for (size_t i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
+    {
+        if (IsItemSelected(ListCtrl_SubModels, i))
+        {
+            drag += "," + ListCtrl_SubModels->GetItemText(i);
+        }
+    }
+
+    wxTextDataObject my_data(drag);
+    wxDropSource dragSource(this);
+    dragSource.SetData(my_data);
+    dragSource.DoDragDrop(wxDrag_DefaultMove);
+    SetCursor(wxCURSOR_ARROW);
+}
 
 void SubModelsDialog::OnDrop(wxCommandEvent& event)
 {
@@ -1368,9 +1289,9 @@ bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& da
 
     return false;
 }
-
 #pragma endregion Drag and Drop
 
+#pragma region Row Actions
 void SubModelsDialog::OnButton_ReverseRowsClick(wxCommandEvent& event)
 {
     wxString name = GetSelectedName();
@@ -1472,8 +1393,58 @@ void SubModelsDialog::OnButton_MoveUpClick(wxCommandEvent& event)
         sm->strands[sm->strands.size() - 1 - (row - 1)] = swap;
         Select(GetSelectedName());
         NodesGrid->SetGridCursor(row - 1, 0);
-        SelectRow(row -1);
+        SelectRow(row - 1);
         NodesGrid->SetFocus();
     }
     ValidateWindow();
 }
+
+void SubModelsDialog::OnAddRowButtonClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    sm->strands.push_back("");
+    Select(GetSelectedName());
+    SelectRow(NodesGrid->GetNumberRows() - 1);
+    NodesGrid->SetGridCursor(NodesGrid->GetNumberRows() - 1, 0);
+    NodesGrid->SetFocus();
+    ValidateWindow();
+}
+
+void SubModelsDialog::OnDeleteRowButtonClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+    SubModelInfo* sm = GetSubModelInfo(name);
+
+    if (NodesGrid->GetNumberRows() == 1)
+    {
+        sm->strands.front() = "";
+        NodesGrid->SetCellValue(0, 0, "");
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(0, 0);
+        NodesGrid->SetFocus();
+        SelectRow(0);
+    }
+    else
+    {
+        int row = NodesGrid->GetGridCursorRow();
+        int sz = sm->strands.size();
+        sm->strands.erase(sm->strands.begin() + sm->strands.size() - 1 - row);
+        sm->strands.resize(sz - 1);
+        --row;
+        Select(GetSelectedName());
+        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        NodesGrid->SetFocus();
+        SelectRow(row >= 0 ? row : 0);
+    }
+    ValidateWindow();
+}
+
+#pragma endregion
