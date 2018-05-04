@@ -662,6 +662,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 // if the sequencer is open we need to force a refresh to make sure submodel names are right
                 wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
                 wxPostEvent(xlights, eventForceRefresh);
+                CallAfter(&LayoutPanel::ReloadModelList);
             }
         }
     }
@@ -867,7 +868,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     return 0;
 }
 
-int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
+int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
 
@@ -896,7 +897,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     }
 
     for (int x = 0; x < model->GetNumSubModels(); x++) {
-        AddModelToTree(model->GetSubModel(x), &item);
+        AddModelToTree(model->GetSubModel(x), &item, false);
     }
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
@@ -914,12 +915,18 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
             }
             else
             {
-                AddModelToTree(m, &item, true);
+                AddModelToTree(m, &item, false, true);
             }
         }
     }
 
+    if (expanded) TreeListViewModels->Expand(item);
+
     return width;
+}
+
+void LayoutPanel::ReloadModelList() {
+    UpdateModelList(true);
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh) {
@@ -952,6 +959,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
+
     if (full_refresh) {
         int width = 0;
         TreeListViewModels->Freeze();
@@ -961,7 +969,13 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         //stored in the items may be invalid
         TreeListViewModels->SetItemComparator(nullptr);
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
+        std::list<std::string> expanded;
         while (child.IsOk()) {
+            if (TreeListViewModels->IsExpanded(child))
+            {
+                ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(child));
+                expanded.push_back(mitem->GetModel()->GetFullName());
+            }
             TreeListViewModels->DeleteItem(child);
             child = TreeListViewModels->GetFirstItem();
         }
@@ -975,7 +989,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             if (model->GetDisplayAs() == "ModelGroup") {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                    AddModelToTree(model, &root);
+                    bool expand = (std::find(expanded.begin(), expanded.end(), model->GetFullName()) != expanded.end());
+                    AddModelToTree(model, &root, expand);
                 }
             }
         }
@@ -984,7 +999,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         for (auto it = models.begin(); it != models.end(); ++it) {
             Model *model = *it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
-                width = std::max(width, AddModelToTree(model, &root));
+                bool expand = (std::find(expanded.begin(), expanded.end(), model->GetFullName()) != expanded.end());
+                width = std::max(width, AddModelToTree(model, &root, expand));
             }
         }
 
@@ -3832,7 +3848,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                             m->GetLayoutGroup() == currentLayoutGroup ||
                             (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) 
                         {
-                            AddModelToTree(m, &item, true);
+                            AddModelToTree(m, &item, false, true);
                         }
                         if (m->DisplayAs == "SubModel"
                             && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
@@ -3866,7 +3882,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
     for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
         TreeListViewModels->GetRootItem();
-        AddModelToTree(*a, &root);
+        AddModelToTree(*a, &root, false);
     }
 
     TreeListViewModels->Thaw();
