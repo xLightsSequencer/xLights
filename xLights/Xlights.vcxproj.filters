@@ -336,6 +336,9 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="FolderSelection.cpp" />
+    <ClCompile Include="..\xSchedule\md5.cpp" />
+    <ClCompile Include="VendorMusicDialog.cpp" />
+    <ClCompile Include="VendorMusicHelpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -666,6 +669,9 @@
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="FolderSelection.h" />
+    <ClInclude Include="..\xSchedule\md5.h" />
+    <ClInclude Include="VendorMusicDialog.h" />
+    <ClInclude Include="VendorMusicHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

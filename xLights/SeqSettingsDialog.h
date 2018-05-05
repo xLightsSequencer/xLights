@@ -40,6 +40,7 @@ class SeqSettingsDialog: public wxDialog
 		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
+		wxButton* Button_Download;
 		wxButton* Button_Layer_Delete;
 		wxButton* Button_Layer_Import;
 		wxButton* Button_Move_Down;
@@ -55,6 +56,7 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* PanelMetaData;
 		wxPanel* PanelTimings;
 		wxPanel* Panel_DataLayers;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText_File;
 		wxStaticText* StaticText_Filename;
 		wxStaticText* StaticText_Info;
@@ -75,6 +77,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Song;
 		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Website;
+		wxTextCtrl* TextCtrl_Hash;
 		wxTextCtrl* TextCtrl_SeqTiming;
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxTextCtrl* TextCtrl_Xml_Artist;
@@ -126,6 +129,9 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_STATICTEXT_Xml_MediaFile;
 		static const long ID_TEXTCTRL_Xml_Media_File;
 		static const long ID_BITMAPBUTTON_Xml_Media_File;
+		static const long ID_STATICTEXT1;
+		static const long ID_TEXTCTRL1;
+		static const long ID_BUTTON1;
 		static const long ID_STATICTEXT_Xml_Total_Length;
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
 		static const long ID_CHECKBOX_Overwrite_Tags;
@@ -225,6 +231,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnTextCtrl_SeqTimingText(wxCommandEvent& event);
 		void OnTextCtrl_SeqTimingTextEnter(wxCommandEvent& event);
 		void OnBitmapButton_ModifyTimingClick(wxCommandEvent& event);
+		void OnButton_DownloadClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -290,6 +297,8 @@ class SeqSettingsDialog: public wxDialog
         void WizardPage4();
         void WizardPage5();
         bool ImportDataLayer(const wxString& filetypes, ConvertLogDialog* plog);
+        void SetHash();
+        void MediaLoad(wxFileName filename);
         std::string selected_view;
 };
 

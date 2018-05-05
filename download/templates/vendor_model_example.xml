@@ -1,0 +1,70 @@
+<modelinventory>
+	<vendor>
+		<name>xxx</name>
+		<contact>xxx</contact>
+		<email>xxx@xxx.com</email>
+		<phone>xxx</phone>
+		<website>https://www.zzz.com/</website>
+		<facebook>https://www.facebook.com/zzz/</facebook>
+		<notes>xxx</notes>
+		<logolink>http://zzz.com/xlights/Images/Logo.jpg</logolink>
+	</vendor>
+	<categories>
+		<category>
+			<id>1</id>
+			<name>Christmas</name>
+			<categories>
+				<category>
+					<id>10</id>
+					<name>Stars</name>
+				</category>
+				<category>
+					<id>12</id>
+					<name>Snowflakes</name>
+					<categories>
+						<category>
+							<id>22</id>
+							<name>12" Snowflakes</name>
+						</category>
+						<category>
+							<id>23</id>
+							<name>16" Snowflakes</name>
+						</category>
+						<category>
+							<id>24</id>
+							<name>24" Snowflakes</name>
+						</category>
+						<category>
+							<id>25</id>
+							<name>36" Snowflakes</name>
+						</category>
+						<category>
+							<id>26</id>
+							<name>47" Snowflakes</name>
+						</category>
+					</categories>
+				</category>
+			</categories>
+		</category>
+	</categories>
+	<models>
+		<model>
+		   <id>141</id>
+		   <categoryid>13</categoryid>
+		   <name>xxx</name>
+		   <type>xxx</type>
+		   <weblink><![CDATA[https://www.zzz.com/xxx.php?]]></weblink>
+		   <material>xxx</material>
+		   <width>xxx</width>
+		   <height>xxx</height>
+		   <thickness>xxx</thickness>
+		   <pixelcount>126</pixelcount>
+		   <pixeldescription>12mm bullet or square</pixeldescription>
+		   <imagefile>http://zzz.com/xlights/Images/xxx.jpg</imagefile>
+		   <notes>xxx</notes>
+		   <wiring>
+			  <xmodellink>http://zzz.com/xlights/Models/xxx.xmodel</xmodellink>
+		   </wiring>
+		</model>
+	</models>
+</modelinventory>

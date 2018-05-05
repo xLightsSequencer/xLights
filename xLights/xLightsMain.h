@@ -538,6 +538,7 @@ public:
     void OnButtonAddDDPClick(wxCommandEvent& event);
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
     void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
+    void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -651,6 +652,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MNU_DOWNLOADSEQUENCES;
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long iD_MNU_VENDORCACHEPURGE;
@@ -876,6 +878,7 @@ private:
     wxMenuItem* MenuItem_BkpPYear;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
+    wxMenuItem* MenuItem_DownloadSequences;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;

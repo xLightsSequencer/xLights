@@ -1098,6 +1098,10 @@
 					<label>Package &amp;Sequence</label>
 					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_DOWNLOADSEQUENCES" variable="MenuItem_DownloadSequences" member="yes">
+					<label>Download Sequences/Lyrics</label>
+					<handler function="OnMenuItem_DownloadSequencesSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MENU_BATCH_RENDER" variable="MenuItemBatchRender" member="no">
 					<label>&amp;Batch Render</label>
 					<handler function="OnMenuItemBatchRenderSelected" entry="EVT_MENU" />

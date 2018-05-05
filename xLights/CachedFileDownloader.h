@@ -33,7 +33,7 @@ public:
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
     bool operator==(const wxURI& url) const;
-    bool DownloadURL(wxURI url, wxFileName filename) const;
+    static bool DownloadURL(wxURI url, wxFileName filename);
     std::string DownloadURLToTemp(wxURI url);
     void PurgeIfAged() const;
     bool ShouldSave() { PurgeIfAged();  return Exists() && (_cacheFor == CACHETIME_DAY || _cacheFor == CACHETIME_LONG); }

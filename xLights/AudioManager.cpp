@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "kiss_fft/tools/kiss_fftr.h"
 #include <log4cpp/Category.hh>
+#include "../xSchedule/md5.h"
 
 using namespace Vamp;
 
@@ -764,6 +765,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 
 	// save parameters and initialise defaults
     _ok = true;
+    _hash = "";
 	_job = nullptr;
     _jobAudioLoad = nullptr;
     _loadedData = 0;
@@ -2160,6 +2162,26 @@ xLightsVamp::xLightsVamp()
 }
 
 xLightsVamp::~xLightsVamp() {}
+
+std::string AudioManager::Hash()
+{
+    if (_hash == "")
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        while (!IsDataLoaded(_trackSize))
+        {
+            logger_base.debug("GetLeftDataPtr waiting for data to be loaded.");
+            wxMilliSleep(100);
+        }
+
+        MD5 md5;
+        md5.update((unsigned char *)_data[0], sizeof(float)*_trackSize);
+        md5.finalize();
+        _hash = md5.hexdigest();
+    }
+
+    return _hash;
+}
 
 // extract the features data from a Vamp plugins output
 void xLightsVamp::ProcessFeatures(Vamp::Plugin::FeatureList &feature, std::vector<int> &starts, std::vector<int> &ends, std::vector<std::string> &labels)
