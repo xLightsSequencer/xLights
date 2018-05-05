@@ -2380,24 +2380,40 @@ int GenerateCustomModelDialog::ApplyMinimumSeparation(std::list<GCMBulb>& lights
     int min = 9999999;
     for (auto it = lights.begin(); it != lights.end(); ++it)
     {
+        // No point looking at this light as it is already suppressed
         if (!it->isSupressed())
         {
             for (auto it2 = it; it2 != lights.end(); ++it2)
             {
-                if (it != it2 && !it2->isSupressed())
+                // No point looking at this light as it is already suppressed
+                if (!it2->isSupressed())
                 {
-                    if (IsWithin(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y, minseparation))
+                    // only do suppression if they are both tagged with the same number
+                    if (it->GetNum() == it2->GetNum())
                     {
-                        if (it->GetBrightness() >= it2->GetBrightness())
+                        // and they are not the same light
+                        if (it != it2)
                         {
-                            it2->TooClose();
-                        }
-                        else
-                        {
-                            it->TooClose();
+                            // If it is within our minimum separation distance
+                            if (IsWithin(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y, minseparation))
+                            {
+                                // Suppress the dimmer of the two under the assumption the reflection is more likely to be dimmer
+                                if (it->GetBrightness() >= it2->GetBrightness())
+                                {
+                                    it2->TooClose();
+                                }
+                                else
+                                {
+                                    it->TooClose();
+                                }
+                            }
                         }
                     }
-                    else
+
+                    // If both are not suppressed update the minimum separation
+                    // we need minimum separation so we can work out the minimal grid that puts each node in its
+                    // own cell
+                    if (it != it2 && !it->isSupressed() && !it2->isSupressed())
                     {
                         int d = GetSeparation(it->GetLocation().x, it->GetLocation().y, it2->GetLocation().x, it2->GetLocation().y);
                         if (d < min)

@@ -4,6 +4,7 @@
 #include <wx/config.h>
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
+#include <wx/dir.h>
 
 bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {
@@ -458,6 +459,69 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #else
     return val / scalingFactor;
 #endif
+}
+
+bool DeleteDirectory(std::string directory)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (wxDirExists(directory))
+    {
+        wxArrayString files;
+        wxDir::GetAllFiles(directory, &files, wxEmptyString, wxDIR_FILES);
+        for (auto it = files.begin(); it != files.end(); ++it)
+        {
+            if (!wxRemoveFile(*it))
+            {
+                logger_base.debug("    Could not delete file %s.", (const char *)it->c_str());
+                return false;
+            }
+        }
+
+        files.clear();
+        wxDir::GetAllFiles(directory, &files, wxEmptyString, wxDIR_FILES | wxDIR_DIRS);
+        for (auto it = files.begin(); it != files.end(); ++it)
+        {
+            DeleteDirectory(*it);
+        }
+
+        if (!wxRmdir(directory))
+        {
+            logger_base.debug("    Could not delete folder %s.", (const char *)directory.c_str());
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
+std::string Ordinal(int i)
+{
+    wxString ii = wxString::Format("%d", i);
+
+    if (ii.EndsWith("11") || ii.EndsWith("12") || ii.EndsWith("12"))
+    {
+        return (ii + "th").ToStdString();
+    }
+    else if (ii.EndsWith("1"))
+    {
+        return (ii + "st").ToStdString();
+    }
+    else if (ii.EndsWith("2"))
+    {
+        return (ii + "nd").ToStdString();
+    }
+    else if (ii.EndsWith("3"))
+    {
+        return (ii + "rd").ToStdString();
+    }
+    else
+    {
+        return (ii + "th").ToStdString();
+    }
 }
 
 bool IsIPValid(const std::string &ip)

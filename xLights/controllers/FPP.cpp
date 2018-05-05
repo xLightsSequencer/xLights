@@ -9,9 +9,11 @@
 #include "models/Model.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
+#include "outputs/DDPOutput.h"
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 #include <wx/msgdlg.h>
+
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
@@ -290,7 +292,10 @@ std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<i
             universes.Append(universe);
         } else if ((*it)->GetType() == OUTPUT_DDP) {
             if (!input) {
-                //FIXME - DDP output on FPP doesn't exist yet
+                universe["address"] = wxString((*it)->GetIP());
+                DDPOutput *ddp = (DDPOutput*)(*it);
+                universe["type"] = ddp->IsKeepChannelNumbers() ? 4 : 5;
+                universes.Append(universe);
             } else {
                 //don't need to do anything to configure DDP input
             }

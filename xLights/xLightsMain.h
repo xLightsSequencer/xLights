@@ -537,6 +537,7 @@ public:
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
+    void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -695,6 +696,12 @@ private:
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
+    static const long ID_MNU_BKPPURGE_NEVER;
+    static const long ID_MNU_BKPPURGE_YEAR;
+    static const long ID_MNU_BKPPURGE_QUARTER;
+    static const long ID_MNU_BKPPURGE_MONTH;
+    static const long ID_MNU_BKPPURGE_WEEK;
+    static const long ID_MNU_BKP_PURGE;
     static const long ID_MNU_BACKUP;
     static const long ID_MNU_EXCLUDEPRESETS;
     static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
@@ -812,6 +819,7 @@ private:
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
+    wxMenu* MenuItem_BackupPurge;
     wxMenu* MenuSettings;
     wxMenu* MenuView;
     wxMenu* OpenGLMenu;
@@ -861,6 +869,11 @@ private:
     wxMenuItem* MenuItem_AutoShowHousePreview;
     wxMenuItem* MenuItem_BackupOnLaunch;
     wxMenuItem* MenuItem_BackupSubfolders;
+    wxMenuItem* MenuItem_BkpPMonth;
+    wxMenuItem* MenuItem_BkpPNever;
+    wxMenuItem* MenuItem_BkpPQuarter;
+    wxMenuItem* MenuItem_BkpPWeek;
+    wxMenuItem* MenuItem_BkpPYear;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
@@ -987,6 +1000,8 @@ private:
 
     void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
+    int DecodeBackupPurgeDays(std::string s);
+    void DoBackupPurge();
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
     bool EnableOutputs();
@@ -1233,6 +1248,7 @@ private:
         std::list<RenderTreeData*> data;
     } renderTree;
     int AutoSaveInterval;
+    int BackupPurgeDays;
 
     Model *playModel;
     int playType;
