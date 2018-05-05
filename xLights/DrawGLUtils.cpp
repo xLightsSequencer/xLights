@@ -1513,7 +1513,7 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
-    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
     va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     // left side

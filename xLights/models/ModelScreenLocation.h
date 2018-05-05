@@ -2,17 +2,19 @@
 #define MODELSCREENLOCATION_H
 
 
-#define OVER_NO_HANDLE              -1
-#define OVER_L_TOP_HANDLE           0
-#define OVER_L_TOP_HANDLE_Z         5
-#define OVER_R_TOP_HANDLE           1
-#define OVER_R_TOP_HANDLE_Z         6
-#define OVER_R_BOTTOM_HANDLE        2
-#define OVER_R_BOTTOM_HANDLE_Z      7
-#define OVER_L_BOTTOM_HANDLE        3
-#define OVER_L_BOTTOM_HANDLE_Z      8
-#define OVER_ROTATE_HANDLE          4
-#define OVER_CENTER_HANDLE          9
+#define NO_HANDLE              -1
+#define CENTER_HANDLE          0
+#define L_TOP_HANDLE           1
+#define R_TOP_HANDLE           2
+#define R_BOT_HANDLE           3
+#define L_BOT_HANDLE           4
+#define ROTATE_HANDLE          5
+#define L_TOP_HANDLE_Z         6
+#define R_TOP_HANDLE_Z         7
+#define R_BOT_HANDLE_Z         8
+#define L_BOT_HANDLE_Z         9
+#define START_HANDLE           1
+#define END_HANDLE             2
 
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -118,33 +120,39 @@ public:
     };
 
     std::vector<xlPoint>& GetHandlePositions() { return mHandlePosition; }
-    void SetActiveHandle(int handle) { active_handle = handle; }
+    std::vector<int>& GetSelectableHandles() { return mSelectableHandles; }
+    std::vector<glm::vec3>& GetHandlesAABB_Min() { return handle_aabb_min; }
+    std::vector<glm::vec3>& GetHandlesAABB_Max() { return handle_aabb_max; }
+    virtual void SetActiveHandle(int handle) { active_handle = handle; }
     int GetActiveHandle() { return active_handle; }
     void SetActiveAxis(int axis);
     int GetActiveAxis() { return active_axis; }
-    void AdvanceAxisTool() { axis_tool += 1; axis_tool %= NUM_TOOLS; }
-    void SetAxisTool(int mode) { axis_tool = mode; }
+    virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= NUM_TOOLS; }
+    virtual void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
- 
+    void TranslateVector(glm::vec3& point) const;
+    virtual int GetDefaultHandle() { return CENTER_HANDLE; }
+    virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+
 protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
 
-    float worldPos_x;
-    float worldPos_y;
-    float worldPos_z;
-    float scalex;
-    float scaley;
-    float scalez;
+    mutable float worldPos_x;
+    mutable float worldPos_y;
+    mutable float worldPos_z;
+    mutable float scalex;
+    mutable float scaley;
+    mutable float scalez;
     int rotatex;
     int rotatey;
     int rotatez;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 ModelMatrix2D;
     mutable glm::mat4 TranslateMatrix;
-    glm::vec3 aabb_min;
-    glm::vec3 aabb_max;
+    mutable glm::vec3 aabb_min;
+    mutable glm::vec3 aabb_max;
 
     // used for handle movement
     glm::vec3 saved_intersect;  
@@ -156,7 +164,10 @@ protected:
 
     mutable bool draw_3d;
 
+    mutable std::vector<glm::vec3> handle_aabb_min;
+    mutable std::vector<glm::vec3> handle_aabb_max;
     mutable std::vector<xlPoint> mHandlePosition;
+    std::vector<int> mSelectableHandles;
     bool _locked;
     int active_handle;
     int active_axis;
@@ -250,6 +261,9 @@ public:
     float GetScaleX() { return scalex; }
     float GetScaleY() { return scaley; }
 
+    virtual int GetDefaultHandle() { return CENTER_HANDLE; }
+    virtual int GetDefaultTool() { return TOOL_SCALE; }
+
 private:
     float perspective;
 
@@ -322,16 +336,27 @@ public:
     }
     void FlipCoords();
 
+    virtual int GetDefaultHandle() { return END_HANDLE; }
+    virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+
+    virtual void SetActiveHandle(int handle);
+    virtual void AdvanceAxisTool();
+    virtual void SetAxisTool(int mode);
+
 protected:
     virtual void ProcessOldNode(wxXmlNode *n);
 
-    float x1, y1;
-    float x2, y2;
+    float x2, y2, z2;
+    mutable glm::vec3 origin;
+    mutable glm::vec3 point2;
+    mutable glm::vec3 saved_point;
+    mutable glm::vec3 center;
+    float saved_angle;
     float ymin, ymax;
     bool minMaxSet;
 
     wxXmlNode *old;
-    mutable glm::mat3 *matrix;
+    mutable glm::mat4 *matrix;
 };
 
 

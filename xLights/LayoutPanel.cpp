@@ -1493,7 +1493,7 @@ void LayoutPanel::SelectModel3D()
     if (is_3d) {
         // latch center handle immediately
         if (selectedModel != nullptr) {
-            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
             selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
             highlightedModel = selectedModel;
             selectionLatched = true;
@@ -1567,7 +1567,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
     }
 
     selectedModel = m;
-    selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+    selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
     selectionLatched = true;
 
     if (CheckBoxOverlap->GetValue()) {
@@ -1838,6 +1838,9 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     glm::mat4 trans_mat = selectedModel->GetModelScreenLocation().GetTranslateMatrix();
 
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
+    std::vector<int> selectable_handles = selectedModel->GetModelScreenLocation().GetSelectableHandles();
+    std::vector<glm::vec3> aabb_min = selectedModel->GetModelScreenLocation().GetHandlesAABB_Min();
+    std::vector<glm::vec3> aabb_max = selectedModel->GetModelScreenLocation().GetHandlesAABB_Max();
 
     // test for a selected axis first
     int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
@@ -1886,20 +1889,9 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
         return which_handle | 0x100;
     }
 
-    int num_handles = handles.size();
+    int num_handles = selectable_handles.size();
+    if (num_handles == 0) return -1;
     if (num_handles > 10) return -1;  // error protection
-    glm::vec3 aabb_min[10];
-    glm::vec3 aabb_max[10];
-
-    //for (size_t h = 0; h < num_handles; h++) {
-    size_t h = OVER_CENTER_HANDLE;
-    aabb_min[h].x = handles[h].x - model_mat[3][0] - hw;
-    aabb_min[h].y = handles[h].y - model_mat[3][1] - hw;
-    aabb_min[h].z = handles[h].z - model_mat[3][2] - hw;
-    aabb_max[h].x = handles[h].x - model_mat[3][0] + hw;
-    aabb_max[h].y = handles[h].y - model_mat[3][1] + hw;
-    aabb_max[h].z = handles[h].z - model_mat[3][2] + hw;
-    //}
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
@@ -2022,12 +2014,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                 }
                 else {
-                    if ((handle == OVER_CENTER_HANDLE) &&
-                        (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle)) {
+                    if (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) {
                         selectedModel->GetModelScreenLocation().AdvanceAxisTool();
-                    }
-                    else {
-                        selectedModel->GetModelScreenLocation().SetAxisTool(0); // translate tool
                     }
                     selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
                     UpdatePreview();
@@ -2041,7 +2029,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             SelectModel(highlightedModel);
             selectionLatched = true;
             // latch center handle immediately
-            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
             UpdatePreview();
         }
     }
@@ -2068,9 +2056,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             }
 
             newModel->Selected = true;
-            newModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
-            newModel->GetModelScreenLocation().SetAxisTool(TOOL_SCALE);
-            newModel->GetModelScreenLocation().SetActiveAxis(Y_AXIS);
+            newModel->GetModelScreenLocation().SetActiveHandle(newModel->GetModelScreenLocation().GetDefaultHandle());
+            newModel->GetModelScreenLocation().SetAxisTool(newModel->GetModelScreenLocation().GetDefaultTool());
             selectionLatched = true;
             highlightedModel = newModel;
             selectedModel = newModel;
@@ -2080,7 +2067,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                 newModel->UpdateXmlWithScale();
             }
-            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, OVER_CENTER_HANDLE, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
+            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true);
             lastModelName = newModel->name;
             modelPreview->GetModels().push_back(newModel);
         }
@@ -4406,7 +4393,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
         if (selectedModel != nullptr) {
             selectionLatched = true;
             highlightedModel = selectedModel;
-            selectedModel->GetModelScreenLocation().SetActiveHandle(OVER_CENTER_HANDLE);
+            selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
         }
         else {
             Unselect3DItems();
