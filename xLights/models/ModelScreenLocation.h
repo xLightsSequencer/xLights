@@ -356,7 +356,7 @@ protected:
     bool minMaxSet;
 
     wxXmlNode *old;
-    mutable glm::mat4 *matrix;
+    mutable glm::mat4 matrix;
 };
 
 

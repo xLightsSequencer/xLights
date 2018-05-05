@@ -32,20 +32,31 @@ static inline int toDegrees(float radians) {
     return (radians/(2*M_PI))*360.0;
 }
 
+// used to print matrix when debugging
+static void PrintMatrix(std::string name, glm::mat4& matrix)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Matrix Info: %s", name);
+    logger_base.debug("Row 0: %6.2f  %6.2f  %6.2f  %6.2f", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
+    logger_base.debug("Row 1: %6.2f  %6.2f  %6.2f  %6.2f", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
+    logger_base.debug("Row 2: %6.2f  %6.2f  %6.2f  %6.2f", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
+    logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
+}
+
 static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     int angleState;
     //LeftTop and RightBottom
     switch(cornerIndex) {
             // Left top when PreviewRotation = 0
-        case 0:
+        case L_TOP_HANDLE:
             angleState = (int)(PreviewRotation/22.5);
             break;
             // Right Top
-        case 1:
+        case R_TOP_HANDLE:
             angleState = ((int)(PreviewRotation/22.5)+4)%16;
             break;
             // Right Bottom
-        case 2:
+        case R_BOT_HANDLE:
             angleState = ((int)(PreviewRotation/22.5)+8)%16;
             break;
             // Right Bottom
@@ -467,11 +478,11 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     glm::mat4 matrix = flipy * flipx;
 
     for (size_t h = 0; h < num_handles; h++) {
-        aabb_min[h].x = mHandlePosition[h].x - hw;
-        aabb_min[h].y = mHandlePosition[h].y - hw;
+        aabb_min[h].x = mHandlePosition[h+1].x - hw;
+        aabb_min[h].y = mHandlePosition[h + 1].y - hw;
         aabb_min[h].z = 0.0f;
-        aabb_max[h].x = mHandlePosition[h].x + hw;
-        aabb_max[h].y = mHandlePosition[h].y + hw;
+        aabb_max[h].x = mHandlePosition[h + 1].x + hw;
+        aabb_max[h].y = mHandlePosition[h + 1].y + hw;
         aabb_max[h].z = 0.0f;
     }
 
@@ -490,7 +501,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
             ) {
             if (intersection_distance < distance) {
                 distance = intersection_distance;
-                which_handle = i;
+                which_handle = i+1;
             }
         }
     }
@@ -809,9 +820,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     sx += -BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
     va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH/2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
-    mHandlePosition[0].x = sx;
-    mHandlePosition[0].y = sy;
-    mHandlePosition[0].z = sz;
+    mHandlePosition[L_TOP_HANDLE].x = sx;
+    mHandlePosition[L_TOP_HANDLE].y = sy;
+    mHandlePosition[L_TOP_HANDLE].z = sz;
     // Upper Right Handle
     sx = RenderWi / 2;
     sy = RenderHt / 2;
@@ -820,9 +831,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     sx += BOUNDING_RECT_OFFSET;
     sy += BOUNDING_RECT_OFFSET;
     va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
-    mHandlePosition[1].x = sx;
-    mHandlePosition[1].y = sy;
-    mHandlePosition[1].z = sz;
+    mHandlePosition[R_TOP_HANDLE].x = sx;
+    mHandlePosition[R_TOP_HANDLE].y = sy;
+    mHandlePosition[R_TOP_HANDLE].z = sz;
     // Lower Right Handle
     sx = RenderWi / 2;
     sy = -RenderHt / 2;
@@ -831,9 +842,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     sx += BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
     va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
-    mHandlePosition[2].x = sx;
-    mHandlePosition[2].y = sy;
-    mHandlePosition[2].z = sz;
+    mHandlePosition[R_BOT_HANDLE].x = sx;
+    mHandlePosition[R_BOT_HANDLE].y = sy;
+    mHandlePosition[R_BOT_HANDLE].z = sz;
     // Lower Left Handle
     sx = -RenderWi / 2;
     sy = -RenderHt / 2;
@@ -842,9 +853,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     sx += -BOUNDING_RECT_OFFSET;
     sy += -BOUNDING_RECT_OFFSET;
     va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
-    mHandlePosition[3].x = sx;
-    mHandlePosition[3].y = sy;
-    mHandlePosition[3].z = sz;
+    mHandlePosition[L_BOT_HANDLE].x = sx;
+    mHandlePosition[L_BOT_HANDLE].y = sy;
+    mHandlePosition[L_BOT_HANDLE].z = sz;
 
     // Draw rotation handle square
     sx = 0.0f;
@@ -853,9 +864,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     TranslatePoint(sx, sy, sz);
     va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), handleColor);
     // Save rotate handle
-    mHandlePosition[4].x = sx;
-    mHandlePosition[4].y = sy;
-    mHandlePosition[4].z = sz;
+    mHandlePosition[ROTATE_HANDLE].x = sx;
+    mHandlePosition[ROTATE_HANDLE].y = sy;
+    mHandlePosition[ROTATE_HANDLE].z = sz;
 
     va.Finish(GL_TRIANGLES);
 
@@ -1206,11 +1217,11 @@ int BoxedScreenLocation::GetBottom() const {
 }
 
 int BoxedScreenLocation::GetMWidth() const {
-    return previewW*scalex;
+    return RenderWi*scalex;
 }
 
 int BoxedScreenLocation::GetMHeight() const {
-    return previewH*scaley;
+    return RenderHt*scaley;
 }
 
 void BoxedScreenLocation::SetMWidth(int w)
@@ -1237,7 +1248,7 @@ void BoxedScreenLocation::SetBottom(int y) {
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
-    old(nullptr), matrix(nullptr), minMaxSet(false), point2(glm::vec3(0.0f)), center(glm::vec3(0.0f))
+    old(nullptr), minMaxSet(false), point2(glm::vec3(0.0f)), center(glm::vec3(0.0f))
 {
     mSelectableHandles.push_back(CENTER_HANDLE);
     mSelectableHandles.push_back(START_HANDLE);
@@ -1250,10 +1261,8 @@ TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
     handle_aabb_max.push_back(glm::vec3(0.0f));
 }
 TwoPointScreenLocation::~TwoPointScreenLocation() {
-    if (matrix != nullptr) {
-        delete matrix;
-    }
 }
+
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
     if (!ModelNode->HasAttribute("X1") && ModelNode->HasAttribute("worldPos_x")) {
         old = ModelNode;
@@ -1296,6 +1305,11 @@ void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
 void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     origin = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     point2 = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    if (!is_3d) {
+        // allows 2D selection to work
+        origin.z = 0.0f;
+        point2.z = 0.0f;
+    }
     center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
 
     glm::vec3 a = point2 - origin;
@@ -1311,23 +1325,22 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
     glm::mat3 shear = glm::shearY(glm::mat3(1.0f), GetYShear());
     glm::mat4 shearMatrix = glm::mat4(shear);
     TranslateMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-    glm::mat4 mat4 = TranslateMatrix * rotationMatrix * shearMatrix * scalingMatrix;
-    ModelMatrix = TranslateMatrix * rotationMatrix * shearMatrix;
-    glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-    ModelMatrix2D = Translate2D * rotationMatrix * shearMatrix;
+    matrix = TranslateMatrix * rotationMatrix * shearMatrix * scalingMatrix;
 
-    if (matrix != nullptr) {
-        delete matrix;
+    if (allow_selected) {
+        // save processing time by skipping items not needed for view only preview
+        ModelMatrix = TranslateMatrix * rotationMatrix * shearMatrix;
+        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
+        ModelMatrix2D = Translate2D * rotationMatrix * shearMatrix;
+        glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
+        center = glm::vec3(ctr);
     }
-    matrix = new glm::mat4(mat4);
-    draw_3d = is_3d;
 
-    glm::vec4 ctr = *matrix * glm::vec4(center, 1.0f);
-    center = glm::vec3(ctr);
+    draw_3d = is_3d;
 }
 
 void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const {
-    glm::vec4 v = *matrix * glm::vec4(glm::vec3(x, y, z), 1.0f);
+    glm::vec4 v = matrix * glm::vec4(glm::vec3(x, y, z), 1.0f);
     x = v.x;
     y = v.y;
     z = v.z;
@@ -1378,7 +1391,9 @@ bool TwoPointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix = ModelMatrix2D * flipy * flipx;
+    glm::mat4 matrix2d = ModelMatrix2D * flipy * flipx;
+
+    PrintMatrix("ModelMatrix2D", ModelMatrix2D);
 
     float intersection_distance; // Output of TestRayOBBIntersection()
 
@@ -1387,7 +1402,7 @@ bool TwoPointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const
         direction,
         aabb_min,
         aabb_max,
-        matrix,
+        matrix2d,
         intersection_distance)
         ) {
         return_value = true;
@@ -1428,7 +1443,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix = flipy * flipx;
+    glm::mat4 matrix2D = flipy * flipx;
 
     for (size_t h = 0; h < num_handles; h++) {
         aabb_min[h].x = mHandlePosition[h + 1].x - hw;
@@ -1449,7 +1464,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
             direction,
             aabb_min[i],
             aabb_max[i],
-            matrix,
+            matrix2D,
             intersection_distance)
             ) {
             if (intersection_distance < distance) {
@@ -2577,7 +2592,7 @@ void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 
     height = 1.0;
     PrepareToDraw(false, false);
-    glm::mat4 m = glm::inverse(*matrix);
+    glm::mat4 m = glm::inverse(matrix);
     glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 1), 1.0f);
     height = height * v.y / RenderHt;
 
