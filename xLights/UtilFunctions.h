@@ -8,6 +8,8 @@
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", (ms) / 60000, ((ms) % 60000) / 1000, (ms) % 1000).c_str()
 
 // Consolidated set of utility functions
+std::string Ordinal(int i);
+bool DeleteDirectory(std::string directory);
 bool IsIPValid(const std::string &ip);
 bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);
 bool IsVersionOlder(const std::string &compare, const std::string &version);

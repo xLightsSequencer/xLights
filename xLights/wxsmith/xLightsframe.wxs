@@ -1323,6 +1323,34 @@
 					<handler function="OnMenuItem_BackupOnLaunchSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenu" name="ID_MNU_BKP_PURGE" variable="MenuItem_BackupPurge" member="yes">
+					<label>Backup Purge</label>
+					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_NEVER" variable="MenuItem_BkpPNever" member="yes">
+						<label>Never</label>
+						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_YEAR" variable="MenuItem_BkpPYear" member="yes">
+						<label>365 Days</label>
+						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_QUARTER" variable="MenuItem_BkpPQuarter" member="yes">
+						<label>90 Days</label>
+						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_MONTH" variable="MenuItem_BkpPMonth" member="yes">
+						<label>31 Days</label>
+						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_WEEK" variable="MenuItem_BkpPWeek" member="yes">
+						<label>7 Days</label>
+						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_BACKUP" variable="MenuItem_BackupSubfolders" member="yes">
 					<label>Backup Subfolders</label>
 					<handler function="OnMenuItem_BackupSubfoldersSelected" entry="EVT_MENU" />
