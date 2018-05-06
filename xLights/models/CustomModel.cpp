@@ -280,6 +280,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     }
 
     SetBufferSize(height,width);
+    screenLocation.RenderWi = 10;
 }
 std::string CustomModel::GetNodeName(size_t x, bool def) const {
     if (x < Nodes.size()) {

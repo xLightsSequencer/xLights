@@ -99,6 +99,8 @@ public:
         CoordStruct c;
         c.bufX=x;
         c.bufY=y;
+        c.bufZ=0;
+        c.screenZ = 0;
         Coords.push_back(c);
     }
 

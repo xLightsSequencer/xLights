@@ -46,7 +46,8 @@ void ImageModel::InitRenderBufferNodes(const std::string &type, const std::strin
 
 	newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
 	newNodes[0]->Coords[0].bufX=0;
-	newNodes[0]->Coords[0].bufY=0;
+    newNodes[0]->Coords[0].bufY=0;
+    newNodes[0]->Coords[0].bufZ=0;
 }
 
 void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {

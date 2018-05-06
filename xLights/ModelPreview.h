@@ -155,7 +155,7 @@ private:
     float cameraPosX;
 	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
-	DrawGLUtils::xl3Accumulator accumulator3d;
+    DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;
     bool m_mouse_down;
     bool m_wheel_down;

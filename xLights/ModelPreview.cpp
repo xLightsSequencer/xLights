@@ -492,7 +492,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
-	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
+    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
     if (is_3d) {
         glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX + (panx * zoom), cameraPosY + (pany * zoom), cameraDistance * zoom));
@@ -517,10 +517,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
-            //glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX, cameraPosY, cameraDistance * zoom));
-            //glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
-            //glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
-            //ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
             DrawGLUtils::SetCamera(ViewMatrix);
             accumulator.PreAlloc(maxVertexCount);
 			currentPixelScaleFactor = 1.0;
@@ -535,9 +531,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
 			DrawGLUtils::PushMatrix();
             DrawGLUtils::SetCamera(ViewMatrix);
-            // Rotate Axis and translate
-			//DrawGLUtils::Rotate(180,0,0,1);
-			//DrawGLUtils::Rotate(180,0,1,0);
 			accumulator.PreAlloc(maxVertexCount);
 			currentPixelScaleFactor = 1.0;
 			//int i = (int)mWindowHeight;
@@ -570,6 +563,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         DrawGLUtils::Translate(0, -i, 0);
     } else {
         if (is_3d) {
+            //glEnable(GL_DEPTH_TEST);
+            //LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+            //glDepthFunc(GL_LESS);
+
             prepare3DViewport(0,0,mWindowWidth, mWindowHeight);
             LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
             DrawGLUtils::PushMatrix();
