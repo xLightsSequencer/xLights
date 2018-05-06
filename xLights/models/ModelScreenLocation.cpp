@@ -1000,7 +1000,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     return 0;
 }
 
-void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch) {
+void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
     
     if (latch) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -1057,25 +1057,31 @@ void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool S
             }
         }
         else if (axis_tool == TOOL_SCALE) {
-            float change_x = ((saved_size.x + drag_delta.x / 2.0f) / saved_size.x);
-            float change_y = ((saved_size.y + drag_delta.y / 2.0f) / saved_size.y);
-            float change_z = ((saved_size.z + drag_delta.z / 2.0f) / saved_size.z);
+            float change_x = ((saved_size.x*saved_scale.x + drag_delta.x) / (saved_size.x*saved_scale.x));
+            float change_y = ((saved_size.y*saved_scale.y + drag_delta.y) / (saved_size.y*saved_scale.y));
+            float change_z = ((saved_size.z*saved_scale.z + drag_delta.z) / (saved_size.z*saved_scale.z));
             if (CtrlKeyPressed) {
                 switch (active_axis)
                 {
                 case X_AXIS:
                     scalex = saved_scale.x * change_x;
-                    scalez = scalex;
+                    if (scale_z) {
+                        scalez = scalex;
+                    }
                     scaley = saved_scale.y * change_x;
                     break;
                 case Y_AXIS:
                     scaley = saved_scale.y * change_y;
                     scalex = saved_scale.x * change_y;
-                    scalez = saved_scale.x * change_y;
+                    if (scale_z) {
+                        scalez = saved_scale.x * change_y;
+                    }
                     break;
                 case Z_AXIS:
-                    scalez = saved_scale.z * change_z;
-                    scalex = scalez;
+                    if (scale_z) {
+                        scalez = saved_scale.z * change_z;
+                    }
+                    scalex = saved_scale.z * change_z;
                     scaley = saved_scale.y * change_z;
                     break;
                 }
@@ -1089,7 +1095,7 @@ void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool S
                 {
                 case X_AXIS:
                     scalex = saved_scale.x * change_x;
-                    if (ShiftKeyPressed) {
+                    if (ShiftKeyPressed && scale_z) {
                         scalez = scalex;
                     }
                     break;
@@ -1101,9 +1107,11 @@ void BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool S
                     }
                     break;
                 case Z_AXIS:
-                    scalez = saved_scale.z * change_z;
+                    if (scale_z) {
+                        scalez = saved_scale.z * change_z;
+                    }
                     if (ShiftKeyPressed) {
-                        scalex = scalez;
+                        scalex = saved_scale.z * change_z;
                     }
                     break;
                 }
@@ -1681,7 +1689,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     va.Finish(GL_TRIANGLES);
 }
 
-void TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch)
+void TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (latch) {
         saved_angle = 0.0f;
@@ -2985,7 +2993,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
     va.Finish(GL_TRIANGLES);
 }
 
-void PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch)
+void PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
 
 }
