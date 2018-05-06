@@ -15,7 +15,8 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
@@ -32,6 +33,11 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         //void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, int width, int height, bool active);
         void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active);
+        void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c,
+                               float &x1, float &y1, float &z1,
+                               float &x2, float &y2, float &z2,
+                               float &x3, float &y3, float &z3,
+                               float &x4, float &y4, float &z4, bool active);
         int GetChannelValue(int channel);
 
         ImageModel(const ModelManager &manager);

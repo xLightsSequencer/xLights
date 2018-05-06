@@ -344,7 +344,9 @@ public:
 class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 
     ShaderProgram textureProgram;
+    ShaderProgram texture3Program;
     ShaderProgram singleColorProgram;
+    ShaderProgram singleColor3Program;
     ShaderProgram normalProgram;
     ShaderProgram normal3Program;
     ShaderProgram vbNormalProgram;
@@ -354,6 +356,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                        bool UsesVertexAccumulator,
                        bool UsesAddVertex,
 					   bool UsesVertex3Accumulator,
+                       bool UsesVertex3TextureAccumulator,
 					   bool UsesVertex3ColorAccumulator) {
         if (UsesVertexTextureAccumulator) {
             textureProgram.Init(
@@ -381,7 +384,33 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
                                 "}\n", 3);
         }
-		if (UsesVertexAccumulator) {
+        if (UsesVertex3TextureAccumulator) {
+            texture3Program.Init(
+                "#version 330 core\n"
+                "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                "layout(location = 2) in vec2 vertexUV;\n"
+                "out vec4 fragmentColor;\n"
+                "out vec2 UV;\n"
+                "uniform mat4 MVP;\n"
+                "uniform vec4 inColor;\n"
+                "void main(){\n"
+                "    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
+                "    fragmentColor = inColor;\n"
+                "    UV = vertexUV;\n"
+                "}\n",
+
+                "#version 330 core\n"
+                "in vec4 fragmentColor;\n"
+                "in vec2 UV;\n"
+                "out vec4 color;\n"
+                "uniform sampler2D tex;\n"
+                "uniform int RenderType;\n"
+                "void main(){\n"
+                "    vec4 c = texture(tex, UV);\n"
+                "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                "}\n", 3);
+        }
+        if (UsesVertexAccumulator) {
 			singleColorProgram.Init(
 				"#version 330 core\n"
 				"layout(location = 0) in vec2 vertexPosition_modelspace;\n"
@@ -411,7 +440,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"}\n", 1);
 		}
 		if (UsesVertex3Accumulator) {
-			singleColorProgram.Init(
+			singleColor3Program.Init(
 				"#version 330 core\n"
 				"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
 				"out vec4 fragmentColor;\n"
@@ -531,7 +560,9 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     }
     void Release33Shaders() {
         singleColorProgram.Cleanup();
+        singleColor3Program.Cleanup();
         textureProgram.Cleanup();
+        texture3Program.Cleanup();
         normalProgram.Cleanup();
         normal3Program.Cleanup();
         vbNormalProgram.Cleanup();
@@ -544,10 +575,11 @@ public:
                   bool UsesVertexAccumulator,
                   bool UsesAddVertex,
                   bool UsesVertex3Accumulator,
+                  bool UsesVertex3TextureAccumulator,
 		          bool UsesVertex3ColorAccumulator) : matrix(nullptr)
     {
         UsesVertexColorAccumulator |= UsesAddVertex;
-        Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3ColorAccumulator);
+        Load33Shaders(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3TextureAccumulator, UsesVertex3ColorAccumulator);
     }
     ~OpenGL33Cache() {
         if (matrix) {
@@ -683,11 +715,11 @@ public:
             int enableCapability = it->enableCapability;
 
             if (it->textureId != -1) {
-                textureProgram.UseProgram();
+                texture3Program.UseProgram();
                 if (!tverticesBound) {
-                    textureProgram.SetMatrix(*matrix);
-                    textureProgram.BindBuffer(2, va.tvertices, va.count * 3 * sizeof(GLfloat));
-                    LOG_GL_ERRORV(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                    texture3Program.SetMatrix(*matrix);
+                    texture3Program.BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
+                    LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     tverticesBound = true;
                 } else {
                     LOG_GL_ERRORV(glEnableVertexAttribArray(2));
@@ -695,9 +727,9 @@ public:
                 LOG_GL_ERRORV(glDisableVertexAttribArray(1));
                 LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texture3Program.ProgramID, "tex"), 0));
 
-                GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
+                GLuint cid = glGetUniformLocation(texture3Program.ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {
                 //POINT_SMOOTH, removed in OpenGL3.x
@@ -730,7 +762,7 @@ public:
 		normal3Program.UnbindBuffer(0);
 		normal3Program.UnbindBuffer(1);
         if (tverticesBound) {
-            textureProgram.UnbindBuffer(2);
+            texture3Program.UnbindBuffer(2);
         }
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
@@ -809,12 +841,12 @@ public:
 		if (va.count == 0) {
 			return;
 		}
-		singleColorProgram.UseProgram();
-		singleColorProgram.SetMatrix(*matrix);
-		int offset0 = singleColorProgram.BindBuffer(0, &va.vertices[0], va.count * 3 * sizeof(GLfloat)) / (3 * sizeof(GLfloat));
+		singleColor3Program.UseProgram();
+		singleColor3Program.SetMatrix(*matrix);
+		int offset0 = singleColor3Program.BindBuffer(0, &va.vertices[0], va.count * 3 * sizeof(GLfloat)) / (3 * sizeof(GLfloat));
 		LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
 
-		LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor"));
+		LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColor3Program.ProgramID, "inColor"));
 		LOG_GL_ERRORV(glUniform4f(cid,
 			((float)color.Red()) / 255.0,
 			((float)color.Green()) / 255.0,
@@ -824,21 +856,21 @@ public:
 		float ps = 0;
 		if (type == GL_POINTS && enableCapability == 0x0B10) {
 			//POINT_SMOOTH, removed in OpenGL3.x
-			singleColorProgram.SetRenderType(1);
-			ps = singleColorProgram.CalcSmoothPointParams();
+            singleColor3Program.SetRenderType(1);
+			ps = singleColor3Program.CalcSmoothPointParams();
 		}
 		else if (enableCapability > 0) {
 			LOG_GL_ERRORV(glEnable(enableCapability));
 		}
 		LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
 		if (type == GL_POINTS && enableCapability == 0x0B10) {
-			singleColorProgram.SetRenderType(0);
+            singleColor3Program.SetRenderType(0);
 			LOG_GL_ERRORV(glPointSize(ps));
 		}
 		else if (enableCapability > 0) {
 			LOG_GL_ERRORV(glDisable(enableCapability));
 		}
-		singleColorProgram.UnbindBuffer(0);
+        singleColor3Program.UnbindBuffer(0);
 	}
 
     virtual void SetCurrent() override {
@@ -846,8 +878,11 @@ public:
         data.Reset();
 
         textureProgram.Reset();
+        texture3Program.Reset();
         singleColorProgram.Reset();
+        singleColor3Program.Reset();
         normalProgram.Reset();
+        normal3Program.Reset();
         vbNormalProgram.Reset();
     }
 
@@ -962,6 +997,7 @@ DrawGLUtils::xlGLCacheInfo *Create33Cache(bool UsesVertexTextureAccumulator,
                                           bool UsesVertexAccumulator,
                                           bool UsesAddVertex,
                                           bool UsesVertex3Accumulator,
+                                          bool UsesVertex3TextureAccumulator,
 										  bool UsesVertex3ColorAccumulator) {
-    return new OpenGL33Cache(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertex3ColorAccumulator);
+    return new OpenGL33Cache(UsesVertexTextureAccumulator, UsesVertexColorAccumulator, UsesVertexAccumulator, UsesAddVertex, UsesVertex3Accumulator, UsesVertexTextureAccumulator, UsesVertex3ColorAccumulator);
 }

@@ -175,12 +175,15 @@ void ImageModel::InitModel()
     // the screenx/screeny positions are used to fake it into giving a bigger selection area
     Nodes[0]->Coords[0].screenX = -0.5f;
     Nodes[0]->Coords[0].screenY = -0.5f;
+    Nodes[0]->Coords[0].screenZ = -0.5f;
     Nodes[0]->AddBufCoord(0, 0);
     Nodes[0]->Coords[1].screenX = 0.5f;
     Nodes[0]->Coords[1].screenY = 0.5f;
+    Nodes[0]->Coords[1].screenZ = 0.5f;
 
     SetBufferSize(1, 1);
     screenLocation.SetRenderSize(1, 1);
+    screenLocation.RenderDp = 10;
 }
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
@@ -220,32 +223,66 @@ void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 // display model using colors
 void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected)
 {
-    GetModelScreenLocation().PrepareToDraw(false, false);
+    GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
 
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
-    float x1 = -0.5;
-    float x2 = -0.5;
-    float x3 = 0.5;
-    float x4 = 0.5;
-    float y1 = -0.5;
-    float y2 = 0.5;
-    float y3 = 0.5;
-    float y4 = -0.5;
-    float z1 = 0;
-    float z2 = 0;
-    float z3 = 0;
-    float z4 = 0;
+    float x1 = -0.5f;
+    float x2 = -0.5f;
+    float x3 = 0.5f;
+    float x4 = 0.5f;
+    float y1 = -0.5f;
+    float y2 = 0.5f;
+    float y3 = 0.5f;
+    float y4 = -0.5f;
+    float z1 = 0.0f;
+    float z2 = 0.0f;
+    float z3 = 0.0f;
+    float z4 = 0.0f;
 
     GetModelScreenLocation().TranslatePoint(x1, y1, z1);
     GetModelScreenLocation().TranslatePoint(x2, y2, z2);
     GetModelScreenLocation().TranslatePoint(x3, y3, z3);
     GetModelScreenLocation().TranslatePoint(x4, y4, z4);
 
+    GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawModelOnWindow(preview, va, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
 
-    if (Selected && c != nullptr && allowSelected) {
+    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+        GetModelScreenLocation().DrawHandles(va);
+    }
+}
+
+void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected)
+{
+    GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
+
+    float x1 = -0.5f;
+    float x2 = -0.5f;
+    float x3 = 0.5f;
+    float x4 = 0.5f;
+    float y1 = -0.5f;
+    float y2 = 0.5f;
+    float y3 = 0.5f;
+    float y4 = -0.5f;
+    float z1 = 0.0f;
+    float z2 = 0.0f;
+    float z3 = 0.0f;
+    float z4 = 0.0f;
+
+    GetModelScreenLocation().TranslatePoint(x1, y1, z1);
+    GetModelScreenLocation().TranslatePoint(x2, y2, z2);
+    GetModelScreenLocation().TranslatePoint(x3, y3, z3);
+    GetModelScreenLocation().TranslatePoint(x4, y4, z4);
+
+    GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
+    DrawModelOnWindow(preview, va, c, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, !allowSelected);
+
+    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -353,6 +390,87 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumul
     }
 }
 
+void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c,
+    float &x1, float &y1, float &z1,
+    float &x2, float &y2, float &z2,
+    float &x3, float &y3, float &z3,
+    float &x4, float &y4, float &z4, bool active)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    bool exists = false;
+    if (_images.find(preview->GetName().ToStdString()) == _images.end())
+    {
+        if (!wxFileExists(_imageFile))
+        {
+            va.AddVertex(x1, y1, z1, *wxRED);
+            va.AddVertex(x2, y2, z2, *wxRED);
+            va.AddVertex(x2, y2, z2, *wxRED);
+            va.AddVertex(x3, y3, z3, *wxRED);
+            va.AddVertex(x3, y3, z3, *wxRED);
+            va.AddVertex(x4, y4, z4, *wxRED);
+            va.AddVertex(x4, y4, z4, *wxRED);
+            va.AddVertex(x1, y1, z1, *wxRED);
+            va.AddVertex(x1, y1, z1, *wxRED);
+            va.AddVertex(x3, y3, z3, *wxRED);
+            va.AddVertex(x2, y2, z2, *wxRED);
+            va.AddVertex(x4, y4, z4, *wxRED);
+            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+        }
+        else
+        {
+            logger_base.debug("Loading image model %s file %s for preview %s.",
+                (const char *)GetName().c_str(),
+                (const char *)_imageFile.c_str(),
+                (const char *)preview->GetName().c_str());
+            _images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
+            exists = true;
+        }
+    }
+    else
+    {
+        exists = true;
+    }
+
+    if (exists)
+    {
+        Image* image = _images[preview->GetName().ToStdString()];
+
+        va.PreAllocTexture(6);
+        float tx1 = 0;
+        float tx2 = image->tex_coord_x;
+
+        va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+
+        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
+
+        int brightness = (100.0 - transparency) * 255.0 / 100.0;
+
+        if (active)
+        {
+            brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
+        }
+
+        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+    }
+
+    if (c != nullptr && (c->red != c->green || c->red != c->blue))
+    {
+        va.AddVertex(x1 - 2, y1 - 2, z1, *c);
+        va.AddVertex(x2 - 2, y2 + 2, z2, *c);
+        va.AddVertex(x2 - 2, y2 + 2, z2, *c);
+        va.AddVertex(x3 + 2, y3 + 2, z3, *c);
+        va.AddVertex(x3 + 2, y3 + 2, z3, *c);
+        va.AddVertex(x4 + 2, y4 - 2, z4, *c);
+        va.AddVertex(x4 + 2, y4 - 2, z4, *c);
+        va.AddVertex(x1 - 2, y1 - 2, z1, *c);
+        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+    }
+}
 int ImageModel::GetChannelValue(int channel)
 {
     wxASSERT(channel == 0);

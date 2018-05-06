@@ -455,6 +455,10 @@ namespace DrawGLUtils
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
 
+        void PreAllocTexture(int i);
+        void AddTextureVertex(float x, float y, float z, float tx, float ty);
+        void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);
+
         void Load(const xlVertex3ColorAccumulator &ca);
         void Load(const xlVertex3Accumulator &ca, const xlColor &c);
 

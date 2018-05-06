@@ -101,6 +101,7 @@ protected:
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return true;}
     virtual bool UsesVertex3Accumulator() {return true;}
+    virtual bool UsesVertex3TextureAccumulator() override { return true; }
     virtual bool UsesVertex3ColorAccumulator() {return true;}
 
 private:

@@ -766,14 +766,21 @@ void DrawGLUtils::xl3Accumulator::DoRealloc(int newMax) {
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
-        tvertices = (float*)malloc(sizeof(float)*max*2);
+        tvertices = (float*)malloc(sizeof(float)*max * 2);
+    }
+}
+
+void DrawGLUtils::xl3Accumulator::PreAllocTexture(int i) {
+    PreAlloc(i);
+    if (tvertices == nullptr) {
+        tvertices = (float*)malloc(sizeof(float)*max * 2);
     }
 }
 
 void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
     PreAllocTexture(1);
 
-    int i = count*2;
+    int i = count * 2;
     vertices[i] = x;
     tvertices[i] = tx;
     i++;
@@ -782,7 +789,28 @@ void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, fl
     count++;
 }
 
+void DrawGLUtils::xl3Accumulator::AddTextureVertex(float x, float y, float z, float tx, float ty) {
+    PreAllocTexture(1);
+
+    int i = count * 3;
+    vertices[i] = x;
+    i++;
+    vertices[i] = y;
+    i++;
+    vertices[i] = z;
+    i = count * 2;
+    tvertices[i] = tx;
+    i++;
+    tvertices[i] = ty;
+    count++;
+}
+
 void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
+    start = count;
+}
+
+void DrawGLUtils::xl3Accumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
     start = count;
 }

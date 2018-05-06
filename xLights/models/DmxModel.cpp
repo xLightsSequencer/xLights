@@ -819,7 +819,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
         DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
     }
 
-    if (Selected && c != nullptr && allowSelected) {
+    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }

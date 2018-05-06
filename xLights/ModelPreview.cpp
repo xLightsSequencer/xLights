@@ -155,7 +155,7 @@ void ModelPreview::Render()
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
-            if( is_3d )
+            if (is_3d )
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
             else
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
@@ -172,8 +172,8 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                     int start = (*PreviewModels)[m]->NodeStartChannel(n);
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
-                if( is_3d )
-                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d, true);
+                if (is_3d)
+                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d, false);
                 else
                     (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator, false);
             }

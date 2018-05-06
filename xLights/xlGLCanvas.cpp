@@ -365,7 +365,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
@@ -513,6 +513,7 @@ void xlGLCanvas::SetCurrentGLContext() {
                                   UsesVertexAccumulator(),
                                   UsesAddVertex(),
 								  UsesVertex3Accumulator(),
+                                  UsesVertex3TextureAccumulator(),
                                   UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr && ver >=2

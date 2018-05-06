@@ -72,7 +72,8 @@ class xlGLCanvas
         virtual bool UsesVertexColorAccumulator() {return true;}
         virtual bool UsesVertexAccumulator() {return true;}
         virtual bool UsesVertex3Accumulator() {return false;}
-        virtual bool UsesVertex3ColorAccumulator() {return false;}
+        virtual bool UsesVertex3ColorAccumulator() { return false; }
+        virtual bool UsesVertex3TextureAccumulator() { return false; }
         virtual bool UsesAddVertex() {return true;}
 
         DrawGLUtils::xlGLCacheInfo *cache;
