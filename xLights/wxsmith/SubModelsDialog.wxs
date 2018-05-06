@@ -17,9 +17,11 @@
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
 						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+							<minpanesize>200</minpanesize>
 							<orientation>vertical</orientation>
-							<minsize>800,400</minsize>
+							<minsize>950,400</minsize>
 							<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
+								<minsize>200,-1</minsize>
 								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 									<cols>1</cols>
 									<growablecols>0</growablecols>

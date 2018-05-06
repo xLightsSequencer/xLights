@@ -93,9 +93,11 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(800,400));
+	SplitterWindow1->SetMinSize(wxSize(950,400));
+	SplitterWindow1->SetMinimumPaneSize(200);
 	SplitterWindow1->SetSashGravity(0.5);
 	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	Panel2->SetMinSize(wxSize(200,-1));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer9->AddGrowableCol(0);
 	FlexGridSizer9->AddGrowableRow(1);
