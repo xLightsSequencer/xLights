@@ -46,6 +46,8 @@
 #include "VideoExporter.h"
 #include "SequenceVideoPanel.h"
 #include "FolderSelection.h"
+#include "EffectIconPanel.h"
+#include "JukeboxPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -229,6 +231,7 @@ const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -877,6 +880,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItemSelectEffect);
     MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem52);
+    MenuItem_Jukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem_Jukebox);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -1201,6 +1206,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
+    Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
+    Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -2681,6 +2688,11 @@ static void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString&
     wxString junk;
     if (node->GetAttribute(name, &junk)) node->DeleteAttribute(name); //kludge: avoid dups
     if (!value.empty()) node->AddAttribute(name, value);
+}
+
+void xLightsFrame::LoadJukebox(wxXmlNode* node)
+{
+    jukeboxPanel->Load(node);
 }
 
 //sigh; a function like this should have been built into wxWidgets
@@ -7688,4 +7700,12 @@ void xLightsFrame::OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event)
     {
         wxMessageBox("Unable to access online repositories.");
     }
+}
+
+void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
+{
+   wxAuiPaneInfo& pane = m_mgr->GetPane("Jukebox");
+
+   pane.IsShown() ? pane.Hide() : pane.Show();
+   m_mgr->Update();
 }

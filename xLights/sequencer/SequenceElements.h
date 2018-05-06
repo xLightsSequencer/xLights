@@ -79,6 +79,13 @@ public:
     int GetRowInformationSize();
     int GetMaxModelsDisplayed();
     int GetFirstVisibleModelRow();
+    void SelectEffectUsingDescription(std::string description);
+    void SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
+    std::list<std::string> GetAllEffectDescriptions();
+    std::list<std::string> GetAllElementNames();
+    int GetElementLayerCount(std::string elementName);
+    std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
+
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
     void SetVisibilityForAllModels(bool visibility, int view = MASTER_VIEW);

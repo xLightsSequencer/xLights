@@ -9,8 +9,8 @@
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -44,9 +44,9 @@ END_EVENT_TABLE()
 EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectManager(manager)
 {
     //(*Initialize(EffectsPanel)
-    wxFlexGridSizer* FlexGridSizer8;
-    wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer8;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);

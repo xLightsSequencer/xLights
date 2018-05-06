@@ -1216,6 +1216,11 @@
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM_VIDEOPREVIEW" variable="MenuItem52" member="yes">
 						<label>Video Preview</label>
+						<handler function="OnMenuItemShowHideVideoPreview" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_JUKEBOX" variable="MenuItem_Jukebox" member="yes">
+						<label>Jukebox</label>
+						<handler function="OnMenuItem_JukeboxSelected" entry="EVT_MENU" />
 					</object>
 					<object class="separator" />
 					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">

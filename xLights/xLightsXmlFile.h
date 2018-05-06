@@ -49,6 +49,7 @@ class xLightsXmlFile : public wxFileName
 
         bool Open(const wxString& ShowDir, bool ignore_audio=false);
 
+        void AddJukebox(wxXmlNode* node);
         void Save( SequenceElements& elements);
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
         DataLayerSet& GetDataLayers() { return mDataLayers; }
