@@ -259,6 +259,7 @@ void StarModel::InitModel() {
     }
 
     CopyBufCoord2ScreenCoord();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;

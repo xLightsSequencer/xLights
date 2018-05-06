@@ -184,7 +184,7 @@ void ImageModel::InitModel()
 
     SetBufferSize(1, 1);
     screenLocation.SetRenderSize(1, 1);
-    screenLocation.RenderDp = 10;
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 void ImageModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)

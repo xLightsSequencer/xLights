@@ -280,7 +280,9 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     }
 
     SetBufferSize(height,width);
-    screenLocation.RenderWi = 10;
+    if (screenLocation.RenderDp < 10.0f) {
+        screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
+    }
 }
 std::string CustomModel::GetNodeName(size_t x, bool def) const {
     if (x < Nodes.size()) {

@@ -61,7 +61,7 @@ void IciclesModel::InitModel() {
             Nodes[curNode]->Coords[curCoord].bufX = width;
             Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
             Nodes[curNode]->Coords[curCoord].screenX = width;
-            Nodes[curNode]->Coords[curCoord].screenY = y;
+            Nodes[curNode]->Coords[curCoord].screenY = -y;
             lights--;
             y++;
             curCoord++;

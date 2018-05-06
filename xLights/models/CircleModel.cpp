@@ -76,6 +76,7 @@ void CircleModel::InitModel() {
     }
     InitCircle();
     SetCircleCoord();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 int CircleModel::maxSize() {

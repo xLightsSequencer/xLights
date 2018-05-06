@@ -121,6 +121,7 @@ void MatrixModel::InitModel() {
         CopyBufCoord2ScreenCoord();
     }
     DisplayAs = "Matrix";
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 // initialize buffer coordinates

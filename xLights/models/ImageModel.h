@@ -29,6 +29,7 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual std::list<std::string> GetFileReferences() override;
         virtual std::list<std::string> CheckModelSettings() override;
+        virtual bool IsZScaleable() const override { return false; }
 
     protected:
         //void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, int width, int height, bool active);

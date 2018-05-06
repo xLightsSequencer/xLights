@@ -36,6 +36,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y) override;
         void ImportLORModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
         virtual void ExportXlightsModel() override;
+        virtual bool IsZScaleable() const override { return false; }
 
         virtual std::string ChannelLayoutHtml(OutputManager* outputManager) override;
         virtual std::string GetNodeName(size_t x, bool def = false) const override;

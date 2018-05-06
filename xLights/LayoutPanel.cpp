@@ -2007,11 +2007,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
                         selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                        bool scale_z = true;
-                        if (selectedModel->DisplayAs == "Image") {
-                            scale_z = false;
-                        }
-                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, scale_z);
+                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
                         UpdatePreview();
                         m_moving_handle = true;
                         m_mouse_down = true;
@@ -2071,11 +2067,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                 newModel->UpdateXmlWithScale();
             }
-            bool scale_z = true;
-            if (selectedModel->DisplayAs == "Image") {
-                scale_z = false;
-            }
-            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, scale_z);
+            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
             lastModelName = newModel->name;
             modelPreview->GetModels().push_back(newModel);
         }
@@ -2340,11 +2332,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     if (selectedModel != newModel) {
                         CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
                     }
-                    bool scale_z = true;
-                    if (selectedModel->DisplayAs == "Image") {
-                        scale_z = false;
-                    }
-                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, scale_z);
+                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
                     selectedModel->UpdateXmlWithScale();
                     SetupPropGrid(selectedModel);
                     xlights->MarkEffectsFileDirty(true);

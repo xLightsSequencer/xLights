@@ -15,6 +15,7 @@
 #define L_BOT_HANDLE_Z         9
 #define START_HANDLE           1
 #define END_HANDLE             2
+#define SHEAR_HANDLE           3
 
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -369,6 +370,7 @@ public:
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
+    virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(ModelPreview* preview, int x,int y) const override;

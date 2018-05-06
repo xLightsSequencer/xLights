@@ -209,7 +209,7 @@ void SpinnerModel::InitModel() {
     }
 
     SetSpinnerCoord();
-
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
     DisplayAs = "Spinner";
 }
 

@@ -17,6 +17,7 @@ WindowFrameModel::~WindowFrameModel()
  
 void WindowFrameModel::InitModel() {
     InitFrame();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 int WindowFrameModel::NodesPerString()

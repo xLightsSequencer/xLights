@@ -1445,9 +1445,9 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     int which_handle = NO_HANDLE;
     int hw = RECT_HANDLE_WIDTH;
 
-    int num_handles = 2;
-    glm::vec3 aabb_min[2];
-    glm::vec3 aabb_max[2];
+    int num_handles = mHandlePosition.size()-1; // 2D doesn't use center handle
+    glm::vec3 aabb_min[3];
+    glm::vec3 aabb_max[3];
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -2189,9 +2189,9 @@ void TwoPointScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
 
     if (_locked) return;
 
-    worldPos_x += xPct;
-    worldPos_y += yPct;
-    worldPos_z += zPct;
+    worldPos_x += xPct * previewW;
+    worldPos_y += yPct * previewH;
+    worldPos_z += zPct * previewH;
 }
 
 int TwoPointScreenLocation::GetTop() const {
@@ -2299,7 +2299,7 @@ void TwoPointScreenLocation::FlipCoords() {
 
 
 ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
-    mHandlePosition.resize(3);
+    mHandlePosition.resize(4);
 }
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
@@ -2428,37 +2428,7 @@ bool ThreePointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const
 }
 
 bool ThreePointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
-   /* //invert the matrix, get into render space
-    glm::mat3 m = glm::inverse(*matrix);
-    glm::vec3 v = m * glm::vec3(sx, sy, 1);
-
-    float min = ymin;
-    float max = ymax;
-    if (!minMaxSet) {
-        if (RenderHt < 4) {
-            float sx1 = (x1 + x2) * previewW / 2.0;
-            float sy1 = (y1 + y2) * previewH / 2.0;
-
-            glm::vec3 v2 = m * glm::vec3(sx1 + 3, sy1 + 3, 1);
-            glm::vec3 v3 = m * glm::vec3(sx1 + 3, sy1 - 3, 1);
-            glm::vec3 v4 = m * glm::vec3(sx1 - 3, sy1 + 3, 1);
-            glm::vec3 v5 = m * glm::vec3(sx1 - 3, sy1 - 3, 1);
-            max = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-            min = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
-        } else {
-            if( angle > -270 && angle < -90 ) {
-                min = -RenderHt;
-                max = 1;
-            } else {
-                min = -1;
-                max = RenderHt;
-            }
-        }
-    }
-
-    float y = v.y;
-    return (v.x >= -1 && v.x <= (RenderWi+1) && y >= min && y <= max);*/
-    return false;
+    return TwoPointScreenLocation::HitTest(preview, sx, sy);
 }
 
 void ThreePointScreenLocation::SetMWidth(int w)
@@ -2483,12 +2453,13 @@ int ThreePointScreenLocation::GetMHeight() const
 }
 
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
+    TwoPointScreenLocation::DrawHandles(va);
 }
 
 void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
-   /* float sx1 = (x1 + x2) * previewW / 2.0;
-    float sy1 = (y1 + y2) * previewH / 2.0;
+    float sx1 = center.x;
+    float sy1 = center.y;
 
     float max = ymax;
     if (!minMaxSet) {
@@ -2502,7 +2473,7 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const
         rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, max);
     }
 
-    glm::vec3 v1 = *matrix * glm::vec3(x, max, 1);
+    glm::vec3 v1 = glm::vec3(matrix * glm::vec4(glm::vec3(x, max, 1), 1.0f));
     float sx = v1.x;
     float sy = v1.y;
     LOG_GL_ERRORV(glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ));
@@ -2520,17 +2491,17 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const
 
     va.AddRect(sx - RECT_HANDLE_WIDTH/2.0, sy - RECT_HANDLE_WIDTH/2.0, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
     va.Finish(GL_TRIANGLES);
-    mHandlePosition[2].x = sx;
-    mHandlePosition[2].y = sy;*/
+    mHandlePosition[SHEAR_HANDLE].x = sx;
+    mHandlePosition[SHEAR_HANDLE].y = sy;
 }
 
 int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
     if (_locked) return 0;
-/*
-    if (handle == 2) {
-        glm::mat3 m = glm::inverse(*matrix);
-        glm::vec3 v = m * glm::vec3(mouseX, mouseY, 1);
+
+    if (handle == SHEAR_HANDLE) {
+        glm::mat4 m = glm::inverse(matrix);
+        glm::vec3 v = glm::vec3(m * glm::vec4(mouseX, mouseY, 1, 1));
         float max = ymax;
         if (!minMaxSet) {
             max = RenderHt;
@@ -2565,7 +2536,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         }
         return 1;
     }
-    */
+ 
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
@@ -2581,6 +2552,35 @@ float ThreePointScreenLocation::GetYShear() const {
         return shear;
     }
     return 0.0;
+}
+
+void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
+{
+    glm::vec3 a = point2 - origin;
+    aabb_min = glm::vec3(0.0f);
+    aabb_max = glm::vec3(RenderWi, RenderHt, 0.0f);
+
+    // scale the bounding box for selection logic
+    aabb_min.x = aabb_min.x * scalex;
+    aabb_min.y = aabb_min.y * scaley;
+    aabb_min.z = aabb_min.z * scalez;
+    aabb_max.x = aabb_max.x * scalex;
+    aabb_max.y = aabb_max.y * scaley;
+    aabb_max.z = aabb_max.z * scalez;
+
+    // Set minimum bounding rectangle
+    if (aabb_max.y - aabb_min.y < 8) {
+        aabb_max.y += 10;
+        aabb_min.y -= 10;
+    }
+    if (aabb_max.x - aabb_min.x < 8) {
+        aabb_max.x += 10;
+        aabb_min.x -= 10;
+    }
+    if (aabb_max.z - aabb_min.z < 8) {
+        aabb_max.z += 10;
+        aabb_min.z -= 10;
+    }
 }
 
 void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
