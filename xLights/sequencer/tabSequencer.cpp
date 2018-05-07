@@ -27,6 +27,8 @@
 #include <wx/config.h>
 #include "HousePreviewPanel.h"
 #include "UtilFunctions.h"
+#include "JukeboxPanel.h"
+#include "EffectIconPanel.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -96,7 +98,11 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Persepctive.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
+    logger_base.debug("        Effect.");
     effectPalettePanel = new EffectIconPanel(effectManager, PanelSequencer);
+
+    logger_base.debug("        Jukebox.");
+    jukeboxPanel = new JukeboxPanel(PanelSequencer);
 
     // DisplayElements Panel
     logger_base.debug("        Display Elements.");
@@ -122,6 +128,7 @@ void xLightsFrame::CreateSequencer()
         Left().Layer(1));
 
     m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).Top().Layer(0));
+    m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0));
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0));
     m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0));

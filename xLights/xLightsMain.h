@@ -72,7 +72,6 @@
 #include "TimingPanel.h"
 #include "ColorPanel.h"
 #include "PerspectivesPanel.h"
-#include "EffectIconPanel.h"
 #include "ViewsModelsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
@@ -92,6 +91,8 @@ class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SequenceVideoPanel;
+class EffectIconPanel;
+class JukeboxPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -539,6 +540,8 @@ public:
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
     void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
+    void OnMenuItem53Selected(wxCommandEvent& event);
+    void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -677,6 +680,7 @@ private:
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_VIDEOPREVIEW;
+    static const long ID_MNU_JUKEBOX;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -896,6 +900,7 @@ private:
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
+    wxMenuItem* MenuItem_Jukebox;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;
@@ -1334,6 +1339,7 @@ private:
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
     EffectIconPanel *effectPalettePanel;
+    JukeboxPanel *jukeboxPanel;
     BufferPanel *bufferPanel;
     ViewsModelsPanel *displayElementsPanel;
     TopEffectsPanel* effectsPnl;
@@ -1476,6 +1482,7 @@ public:
     ColorManager color_mgr;
     EffectTreeDialog *EffectTreeDlg;
 
+    void LoadJukebox(wxXmlNode* node);
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
     static std::string DecodeMidi(int midi);
 

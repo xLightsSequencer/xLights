@@ -339,6 +339,8 @@
     <ClCompile Include="..\xSchedule\md5.cpp" />
     <ClCompile Include="VendorMusicDialog.cpp" />
     <ClCompile Include="VendorMusicHelpers.cpp" />
+    <ClCompile Include="JukeboxPanel.cpp" />
+    <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -672,6 +674,8 @@
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="VendorMusicDialog.h" />
     <ClInclude Include="VendorMusicHelpers.h" />
+    <ClInclude Include="JukeboxPanel.h" />
+    <ClInclude Include="LinkJukeboxButtonDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

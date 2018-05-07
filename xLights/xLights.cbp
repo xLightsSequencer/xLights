@@ -448,6 +448,8 @@
 		<Unit filename="Images_png.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
+		<Unit filename="JukeboxPanel.cpp" />
+		<Unit filename="JukeboxPanel.h" />
 		<Unit filename="KeyBindings.cpp" />
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
@@ -458,6 +460,8 @@
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
+		<Unit filename="LinkJukeboxButtonDialog.cpp" />
+		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
@@ -1061,11 +1065,13 @@
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
+		<Unit filename="wxsmith/JukeboxPanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
@@ -1309,6 +1315,8 @@
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FolderSelection.wxs" src="FolderSelection.cpp" hdr="FolderSelection.h" fwddecl="0" i18n="1" name="FolderSelection" language="CPP" />
+					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

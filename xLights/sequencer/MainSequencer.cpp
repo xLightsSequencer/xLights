@@ -1087,6 +1087,48 @@ void MainSequencer::ApplyEffectSettingToSelected(const std::string effectName, c
     return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);
 }
 
+void MainSequencer::UnselectAllEffects()
+{
+    mSequenceElements->UnSelectAllEffects();
+}
+
+void MainSequencer::SelectEffectUsingDescription(std::string description)
+{
+    mSequenceElements->UnSelectAllEffects();
+    mSequenceElements->SelectEffectUsingDescription(description);
+}
+
+void MainSequencer::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+{
+    mSequenceElements->UnSelectAllEffects();
+    mSequenceElements->SelectEffectUsingElementLayerTime(element, layer, time);
+}
+
+void MainSequencer::SetChanged()
+{
+    mSequenceElements->IncrementChangeCount(nullptr);
+}
+
+std::list<std::string> MainSequencer::GetAllElementNames()
+{
+    return mSequenceElements->GetAllElementNames();
+}
+
+int MainSequencer::GetElementLayerCount(std::string elementName)
+{
+    return mSequenceElements->GetElementLayerCount(elementName);
+}
+
+std::list<Effect*> MainSequencer::GetElementLayerEffects(std::string elementName, int layer)
+{
+    return mSequenceElements->GetElementLayerEffects(elementName, layer);
+}
+
+std::list<std::string> MainSequencer::GetAllEffectDescriptions()
+{
+    return mSequenceElements->GetAllEffectDescriptions();
+}
+
 void MainSequencer::Paste(bool row_paste) {
     wxTextDataObject data;
     wxClipboard *cbd = wxClipboard::Get();

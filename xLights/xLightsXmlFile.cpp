@@ -2408,6 +2408,23 @@ void xLightsXmlFile::WriteEffects(EffectLayer *layer,
     }
 }
 
+void xLightsXmlFile::AddJukebox(wxXmlNode* node)
+{
+    wxXmlNode* root = seqDocument.GetRoot();
+
+    for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "Jukebox")
+        {
+            root->RemoveChild(n);
+            delete n;
+            break;
+        }
+    }
+
+    root->AddChild(node);
+}
+
 // function used to save sequence data
 void xLightsXmlFile::Save( SequenceElements& seq_elements)
 {

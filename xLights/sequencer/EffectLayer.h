@@ -36,6 +36,8 @@ class EffectLayer
         int SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetAllEffectsByTime(int startTimeMS, int endTimeMS);
+        bool SelectEffectUsingDescription(std::string description);
+        bool SelectEffectUsingTime(int time);
 
         int GetLayerNumber();
         int GetIndex();
@@ -57,6 +59,7 @@ class EffectLayer
         Effect* GetEffectAfterTime(int ms);
         Effect* GetEffectBeforeEmptyTime(int ms);
         Effect* GetEffectAfterEmptyTime(int ms);
+        std::list<Effect*> GetAllEffects();
 
         bool GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected = false);
 
@@ -95,6 +98,7 @@ class EffectLayer
     protected:
     private:
         void SortEffects();
+        void PlayEffect(Effect* effect);
 
         static std::atomic_int exclusive_index;
 
