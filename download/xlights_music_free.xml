@@ -5,9 +5,24 @@
 		<notes>These sequences are freely shared by xLights users</notes>
 		<logolink>https://xlights.org/wp-content/uploads/2017/03/XLNC_Main_Page.jpg</logolink>
 	</vendor>
+	<categories>
+		<category>
+			<id>Christmas</id>
+			<name>Christmas</name>
+		</category>
+		<category>
+			<id>Disney</id>
+			<name>Disney</name>
+		</category>
+		<category>
+			<id>Halloween</id>
+			<name>Halloween</name>
+		</category>
+	</categories>
 	<music>
 		<song>
 		   <hash>d678989f4b4ffb0df3476b5b22e879f6</hash>
+		   <categoryid>Christmas</categoryid>
 		   <title>Christmas Every Day</title>
 		   <artist>Simple Plan</artist>
 		   <lyric/>
@@ -17,6 +32,7 @@
 		</song>
 		<song>
 		   <hash>435e12b2ca865106be18ae82f2713a01</hash>
+		   <categoryid>Disney</categoryid>
 		   <title>You're Welcome</title>
 		   <artist>Dwayne Johnson</artist>
 		   <sequence/>

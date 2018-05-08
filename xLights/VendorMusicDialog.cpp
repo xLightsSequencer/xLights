@@ -242,16 +242,26 @@ bool VendorMusicDialog::LoadTree(std::string hash)
     for (auto it = _vendors.begin(); it != _vendors.end(); ++it)
     {
         wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, (*it)->_name, -1, -1, new MSLVendorTreeItemData(*it));
-        if (AddSequenceLyric(v, *it, hash))
+        if (hash == "")
         {
-            found = true;
+            AddHierachy(v, *it, (*it)->_categories);
+        }
+        else
+        {
+            if (AddSequenceLyric(v, *it, hash))
+            {
+                found = true;
+            }
         }
         TreeCtrl_Navigator->Expand(v);
     }
 
-    if (!found)
+    if (hash != "")
     {
-        return false;
+        if (!found)
+        {
+            return false;
+        }
     }
 
     if (_vendors.size() == 0)
@@ -261,6 +271,17 @@ bool VendorMusicDialog::LoadTree(std::string hash)
     }
 
     return true;
+}
+
+void VendorMusicDialog::AddHierachy(wxTreeItemId id, MSLVendor* vendor, std::list<MSLVendorCategory*> categories)
+{
+    for (auto it = categories.begin(); it != categories.end(); ++it)
+    {
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, (*it)->_name, -1, -1, new MSLCategoryTreeItemData(*it));
+        AddHierachy(tid, vendor, (*it)->_categories);
+        TreeCtrl_Navigator->Expand(tid);
+        AddSequenceLyricInCategory(tid, vendor, (*it)->_id);
+    }
 }
 
 bool VendorMusicDialog::AddSequenceLyric(wxTreeItemId v, MSLVendor* vendor, std::string hash)
@@ -286,6 +307,31 @@ bool VendorMusicDialog::AddSequenceLyric(wxTreeItemId v, MSLVendor* vendor, std:
             }
             label += (*it)->GetType();
         }
+        TreeCtrl_Navigator->AppendItem(v, label, -1, -1, new MSLSequenceLyricTreeItemData(*it));
+    }
+
+    return true;
+}
+
+bool VendorMusicDialog::AddSequenceLyricInCategory(wxTreeItemId v, MSLVendor* vendor, std::string category)
+{
+    auto msl = vendor->GetSequenceLyricsForCategory(category);
+
+    if (msl.size() == 0) return false;
+
+    for (auto it = msl.begin(); it != msl.end(); ++it)
+    {
+        std::string label = (*it)->_title;
+        if (label != "")
+        {
+            label += " - ";
+        }
+        if ((*it)->_artist != "")
+        {
+            label += (*it)->_artist;
+            label += " - ";
+        }
+        label += (*it)->GetType();
         TreeCtrl_Navigator->AppendItem(v, label, -1, -1, new MSLSequenceLyricTreeItemData(*it));
     }
 
@@ -382,6 +428,14 @@ void VendorMusicDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(1);
                 TreeCtrl_Navigator->SetFocus();
                 PopulateSequenceLyricPanel(((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric());
+            }
+            else
+            {
+                NotebookPanels->GetPage(0)->Show();
+                NotebookPanels->GetPage(1)->Hide();
+                NotebookPanels->SetSelection(0);
+                PopulateVendorPanel(((MSLCategoryTreeItemData*)tid)->GetCategory()->GetVendor());
+                TreeCtrl_Navigator->SetFocus();
             }
         }
         else

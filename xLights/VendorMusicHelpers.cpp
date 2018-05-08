@@ -1,6 +1,16 @@
 #include "VendorMusicHelpers.h"
 #include "CachedFileDownloader.h"
 
+bool MSLSequenceLyric::InCategory(std::string category)
+{
+    for (auto it = _categoryIds.begin(); it != _categoryIds.end(); ++it)
+    {
+        if (*it == category) return true;
+    }
+
+    return false;
+}
+
 MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 {
 	_vendor = vendor;
@@ -12,7 +22,11 @@ MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 		{
 			_hashes.push_back(l->GetNodeContent().ToStdString());
 		}
-		else if (nn == "creator")
+        else if (nn == "categoryid")
+        {
+            _categoryIds.push_back(l->GetNodeContent().ToStdString());
+        }
+        else if (nn == "creator")
 		{
 			_creator = l->GetNodeContent().ToStdString();
 		}
@@ -121,6 +135,21 @@ std::string MSLSequenceLyric::Download(std::string folder)
 	return _downloadFile.GetFullPath().ToStdString();
 }
 
+std::list<MSLSequenceLyric*> MSLVendor::GetSequenceLyricsForCategory(std::string categoryId)
+{
+    std::list<MSLSequenceLyric*> res;
+
+    for (auto it = _sequencesLyrics.begin(); it != _sequencesLyrics.end(); ++it)
+    {
+        if ((*it)->InCategory(categoryId))
+        {
+            res.push_back(*it);
+        }
+    }
+
+    return res;
+}
+
 std::list<MSLSequenceLyric*> MSLVendor::GetSequenceLyrics(std::string hash)
 {
 	std::list<MSLSequenceLyric*> res;
@@ -197,7 +226,7 @@ MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
 						{
 							_name = v->GetNodeContent().ToStdString();
 						}
-						else if (nn == "contact")
+                        else if (nn == "contact")
 						{
 							_contact = v->GetNodeContent().ToStdString();
 						}
@@ -236,7 +265,11 @@ MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
 						}
 					}
 				}
-				else if (nn == "music")
+                else if (nn == "categories")
+                {
+                    ParseCategories(e);
+                }
+                else if (nn == "music")
 				{
 					int items = 0;
 					for (wxXmlNode* m = e->GetChildren(); m != nullptr; m = m->GetNext())
@@ -263,8 +296,83 @@ MSLVendor::MSLVendor(wxXmlDocument* doc, int max, CachedFileDownloader* cache)
 
 MSLVendor::~MSLVendor()
 {
-	for (auto it = _sequencesLyrics.begin(); it != _sequencesLyrics.end(); ++it)
+    for (auto it = _categories.begin(); it != _categories.end(); ++it)
+    {
+        delete *it;
+    }
+
+    for (auto it = _sequencesLyrics.begin(); it != _sequencesLyrics.end(); ++it)
 	{
 		delete *it;
 	}
+}
+
+void MSLVendor::ParseCategories(wxXmlNode* n)
+{
+    for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+    {
+        wxString nn = l->GetName().Lower().ToStdString();
+        if (nn == "category")
+        {
+            _categories.push_back(new MSLVendorCategory(l, nullptr, this));
+        }
+    }
+}
+
+void MSLVendorCategory::ParseCategories(wxXmlNode *n)
+{
+    for (wxXmlNode* l = n->GetChildren(); l != nullptr; l = l->GetNext())
+    {
+        wxString nn = l->GetName().Lower().ToStdString();
+        if (nn == "category")
+        {
+            _categories.push_back(new MSLVendorCategory(l, this, _vendor));
+        }
+    }
+}
+
+std::string MSLVendorCategory::GetPath() const
+{
+    if (_parent != nullptr)
+    {
+        return _parent->GetPath() + "/" + _name;
+    }
+    else
+    {
+        return _name;
+    }
+}
+
+MSLVendorCategory::MSLVendorCategory(wxXmlNode* n, MSLVendorCategory* parent, MSLVendor* vendor)
+{
+    _vendor = vendor;
+    _parent = parent;
+    for (wxXmlNode* e = n->GetChildren(); e != nullptr; e = e->GetNext())
+    {
+        wxString nn = e->GetName().Lower();
+        if (nn == "id")
+        {
+            _id = e->GetNodeContent().ToStdString();
+        }
+        else if (nn == "name")
+        {
+            _name = e->GetNodeContent().ToStdString();
+        }
+        else if (nn == "categories")
+        {
+            ParseCategories(e);
+        }
+        else
+        {
+            wxASSERT(false);
+        }
+    }
+}
+  
+MSLVendorCategory::~MSLVendorCategory()
+{
+    for (auto it = _categories.begin(); it != _categories.end(); ++it)
+    {
+        delete *it;
+    }
 }

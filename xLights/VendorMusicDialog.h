@@ -33,10 +33,12 @@ class VendorMusicDialog: public wxDialog
     wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename) const;
     bool LoadTree(std::string hash);
     bool AddSequenceLyric(wxTreeItemId v, MSLVendor* vendor, std::string hash);
+    bool AddSequenceLyricInCategory(wxTreeItemId v, MSLVendor* vendor, std::string category);
     void ValidateWindow();
     void PopulateVendorPanel(MSLVendor* vendor);
     void PopulateSequenceLyricPanel(MSLSequenceLyric* msl);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
+    void AddHierachy(wxTreeItemId v, MSLVendor* vendor, std::list<MSLVendorCategory*> categories);
 
 	public:
 
