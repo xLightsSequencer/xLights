@@ -41,8 +41,10 @@ class JukeboxPanel: public wxPanel
     const int BUTTONHEIGHT = 20;
 
     std::map<int, ButtonControl*> _buttons;
-
+    wxColour _defaultColour;
+    
     void SetButtonTooltip(int b, std::string tooltip);
+    void ValidateWindow();
 
 	public:
 

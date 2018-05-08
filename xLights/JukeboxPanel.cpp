@@ -124,6 +124,8 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
         GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&JukeboxPanel::OnButtonClick);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&JukeboxPanel::OnButtonRClick);
+        if (i == 0)
+            _defaultColour = button->GetBackgroundColour();
     }
 
     wxSizeEvent evt;
@@ -131,6 +133,8 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 
     GridSizer1->Fit(this);
     GridSizer1->SetSizeHints(this);
+
+    ValidateWindow();
 }
 
 JukeboxPanel::~JukeboxPanel()
@@ -190,6 +194,7 @@ void JukeboxPanel::Load(wxXmlNode* node)
             SetButtonTooltip(b->_number, b->_tooltip);
         }
     }
+    ValidateWindow();
 }
 
 void JukeboxPanel::OnResize(wxSizeEvent& event)
@@ -221,6 +226,8 @@ void JukeboxPanel::OnButtonClick(wxCommandEvent& event)
     else
     {
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
+        xLightsApp::GetFrame()->GetMainSequencer()->SetPlayStatus(PLAY_TYPE_STOPPED);
+        xLightsApp::GetFrame()->UnselectEffect();
     }
 }
 
@@ -256,5 +263,30 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
         _buttons[button] = control;
         SetButtonTooltip(control->_number, control->_tooltip);
         xLightsApp::GetFrame()->GetMainSequencer()->SetChanged();
+        ValidateWindow();
+    }
+}
+
+void JukeboxPanel::ValidateWindow()
+{
+    auto children = GetChildren();
+
+    for (auto it = children.begin(); it != children.end(); ++it)
+    {
+        int b = wxAtoi((*it)->GetLabel());
+
+        if (b > 0)
+        {
+            ButtonControl* control = nullptr;
+            if (_buttons.find(b) != _buttons.end())
+            {
+                // button has a control
+                (*it)->SetBackgroundColour(_defaultColour);
+            }
+            else
+            {
+                (*it)->SetBackgroundColour(wxColour(255, 108, 108));
+            }
+        }
     }
 }
