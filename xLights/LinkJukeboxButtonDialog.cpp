@@ -191,7 +191,6 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
     TextCtrl_Number->SetValue(wxString::Format("%d", button));
 
     RadioButton_MLT->SetValue(true);
-
     LoadChoices();
 
     if (buttonControl != nullptr)
@@ -200,10 +199,15 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
         if (buttonControl->_type == ButtonControl::LOOKUPTYPE::LTDESCRIPTION)
         {
             RadioButton_ED->SetValue(true);
+            ValidateWindow();
+            LoadChoices();
             Choice_Description->SetStringSelection(buttonControl->_description);
         }
         else
         {
+            RadioButton_MLT->SetValue(true);
+            ValidateWindow();
+            LoadChoices();
             Choice_Model->SetStringSelection(buttonControl->_element);
             LoadChoices();
             Choice_Layer->SetStringSelection(wxString::Format("%d", buttonControl->_layer));

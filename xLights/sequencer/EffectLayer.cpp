@@ -578,7 +578,7 @@ bool EffectLayer::SelectEffectUsingTime(int time)
 {
     for (int i = 0; i < mEffects.size(); i++)
     {
-        if (time >= mEffects[i]->GetStartTimeMS() && time <= mEffects[i]->GetEndTimeMS())
+        if (time >= mEffects[i]->GetStartTimeMS() && time < mEffects[i]->GetEndTimeMS())
         {
             mEffects[i]->SetSelected(EFFECT_SELECTED);
             PlayEffect(mEffects[i]);

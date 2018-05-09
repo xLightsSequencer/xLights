@@ -25,7 +25,7 @@ ButtonControl::ButtonControl(int i)
 ButtonControl::ButtonControl(int i, std::string description, std::string tooltip)
 {
     _element = "";
-    _tooltip = "";
+    _tooltip = tooltip;
     _layer = -1;
     _time = -1;
     _number = i;
@@ -62,7 +62,7 @@ ButtonControl::ButtonControl(wxXmlNode* n)
         _number = wxAtoi(n->GetAttribute("Number", "-1"));
         _description = n->GetAttribute("Description", "").ToStdString();
         _tooltip = n->GetAttribute("Tooltip", "").ToStdString();
-        _type = n->GetAttribute("Type", "") == "Description" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
+        _type = n->GetAttribute("Type", "") == "DESCRIPTION" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
     }
 }
 
