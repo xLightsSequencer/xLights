@@ -15,6 +15,7 @@
 #include "../models/ModelGroup.h"
 #include "../UtilFunctions.h"
 #include "../SequenceViewManager.h"
+#include "../JukeboxPanel.h"
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");
@@ -834,6 +835,10 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
             }
         }
+        else if (e->GetName() == "Jukebox")
+        {
+            xframe->LoadJukebox(e);
+        }
         else if (e->GetName() == "ElementEffects")
         {
             for (wxXmlNode* elementNode = e->GetChildren(); elementNode != NULL; elementNode = elementNode->GetNext())
@@ -1609,6 +1614,124 @@ int SequenceElements::GetTotalNumberOfModelRows()
 int SequenceElements::GetFirstVisibleModelRow()
 {
     return mFirstVisibleModelRow;
+}
+
+void SequenceElements::SelectEffectUsingDescription(std::string description)
+{
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            if (e->SelectEffectUsingDescription(description))
+            {
+                return;
+            }
+        }
+    }
+}
+
+std::list<std::string> SequenceElements::GetAllEffectDescriptions()
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++)
+            {
+                EffectLayer* el = e->GetEffectLayer(j);
+                for (int k = 0; k < el->GetEffectCount(); k++)
+                {
+                    Effect* eff = el->GetEffect(k);
+
+                    if (eff->GetDescription() != "" && std::find(res.begin(), res.end(), eff->GetDescription().ToStdString()) == res.end())
+                    {
+                        res.push_back(eff->GetDescription().ToStdString());
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::list<std::string> SequenceElements::GetAllElementNames()
+{
+    std::list<std::string> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            if (std::find(res.begin(), res.end(), e->GetFullName()) == res.end())
+            {
+                res.push_back(e->GetFullName());
+            }
+        }
+    }
+
+    return res;
+}
+
+int SequenceElements::GetElementLayerCount(std::string elementName)
+{
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            if (e->GetFullName() == elementName)
+            {
+                return e->GetEffectLayerCount();
+            }
+        }
+    }
+
+    return -1;
+}
+
+std::list<Effect*> SequenceElements::GetElementLayerEffects(std::string elementName, int layer)
+{
+    std::list<Effect*> res;
+
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            if (e->GetFullName() == elementName)
+            {
+                if (layer < e->GetEffectLayerCount())
+                {
+                    EffectLayer* el = e->GetEffectLayer(layer);
+                    return el->GetAllEffects();
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+void SequenceElements::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+{
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            if (e->GetFullName() == element)
+            {
+                e->SelectEffectUsingLayerTime(layer, time);
+                return;
+            }
+        }
+    }
 }
 
 void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)

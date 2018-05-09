@@ -210,6 +210,7 @@ class AudioManager
 	bool _polyphonicTranscriptionDone;
     int _sdlid;
     bool _ok;
+    std::string _hash;
 
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
@@ -258,6 +259,7 @@ public:
 	std::string Artist() const { return _artist; };
 	std::string Album() const { return _album; };
 	std::string FileName() const { return _audio_file; };
+    std::string Hash();
 	long LengthMS() const { return _lengthMS; };
 	float GetRightData(long offset);
 	float GetLeftData(long offset);

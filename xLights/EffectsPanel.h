@@ -2,11 +2,11 @@
 #define EFFECTSPANEL_H
 
 //(*Headers(EffectsPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/bmpbuttn.h>
 #include <wx/choicebk.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
 //*)
 
 class AudioManager;
@@ -35,10 +35,10 @@ public:
     bool WantOverlayBkg(); //selectable clear canvas before render -DJ
 
     //(*Declarations(EffectsPanel)
-    wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_LayerEffect;
-    wxBitmapButton* BitmapButton_normal;
     wxBitmapButton* BitmapButton_locked;
+    wxBitmapButton* BitmapButton_normal;
+    wxBitmapButton* BitmapButton_random;
     wxChoicebook* EffectChoicebook;
     //*)
 

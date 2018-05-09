@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\xSchedule\md5.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\xSchedule\wxJSON\jsonwriter.cpp" />
@@ -196,7 +197,9 @@
     <ClCompile Include="GenerateLyricsDialog.cpp" />
     <ClCompile Include="HousePreviewPanel.cpp" />
     <ClCompile Include="IPEntryDialog.cpp" />
+    <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
+    <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
@@ -476,6 +479,8 @@
     <ClCompile Include="vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="vamp-hostsdk\RealTime.cpp" />
     <ClCompile Include="VAMPPluginDialog.cpp" />
+    <ClCompile Include="VendorMusicDialog.cpp" />
+    <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="VideoExporter.cpp" />
     <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
@@ -499,6 +504,7 @@
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="BatchRenderDialog.h" />
     <ClInclude Include="BulkEditControls.h" />
     <ClInclude Include="BulkEditSliderDialog.h" />
@@ -521,7 +527,9 @@
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GenerateLyricsDialog.h" />
     <ClInclude Include="HousePreviewPanel.h" />
+    <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LayerSelectDialog.h" />
+    <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\ImageModel.h" />
@@ -737,6 +745,7 @@
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
+    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SelectPanel.h" />
@@ -804,6 +813,8 @@
     <ClInclude Include="vamp-hostsdk\vamp.h" />
     <ClInclude Include="vamp-hostsdk\Window.h" />
     <ClInclude Include="VAMPPluginDialog.h" />
+    <ClInclude Include="VendorMusicDialog.h" />
+    <ClInclude Include="VendorMusicHelpers.h" />
     <ClInclude Include="VideoExporter.h" />
     <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />

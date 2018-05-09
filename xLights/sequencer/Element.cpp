@@ -432,9 +432,9 @@ void ModelElement::Init(Model &model) {
         //no strands for a whole house model
         return;
     }
-    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); sm++) {
+    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); ++sm) {
         bool found = false;
-        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); sm2++) {
+        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); ++sm2) {
             found |= ((*sm2)->GetName() == (*sm)->Name());
         }
         if (!found) {
@@ -529,3 +529,28 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
     return res;
 }
 
+bool Element::SelectEffectUsingDescription(std::string description)
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->SelectEffectUsingDescription(description))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Element::SelectEffectUsingLayerTime(int layer, int time)
+{
+    if (layer < GetEffectLayerCount())
+    {
+        EffectLayer* el = GetEffectLayer(layer);
+        if (el->SelectEffectUsingTime(time))
+        {
+            return true;
+        }
+    }
+    return false;
+}

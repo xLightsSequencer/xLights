@@ -138,15 +138,16 @@ public:
             || (blue != rgb.blue)
             || (green != rgb.green); //don't compare alpha
     }
+
     xlColor&operator=(const HSVValue& hsv) {
         fromHSV(hsv);
         return *this;
     }
+
     xlColor&operator=(const HSLValue& hsl) {
         fromHSL(hsl);
         return *this;
     }
-
 
     HSVValue asHSV() const {
         HSVValue v;

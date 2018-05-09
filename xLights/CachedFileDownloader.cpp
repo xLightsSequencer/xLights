@@ -52,7 +52,7 @@ bool FileCacheItem::operator==(const wxURI& url) const
 }
 
 // A major constraint of this function is that it does not support https
-bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename) const
+bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename)
 {
     bool ok = true;
 

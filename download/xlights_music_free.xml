@@ -1,0 +1,44 @@
+<musicinventory>
+	<vendor>
+		<name>xLights Google Drive</name>
+		<website><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3MUVzX0ZMc1pzY00?fref=gc&dti=628061113896314]]></website>
+		<notes>These sequences are freely shared by xLights users</notes>
+		<logolink>https://xlights.org/wp-content/uploads/2017/03/XLNC_Main_Page.jpg</logolink>
+	</vendor>
+	<categories>
+		<category>
+			<id>Christmas</id>
+			<name>Christmas</name>
+		</category>
+		<category>
+			<id>Disney</id>
+			<name>Disney</name>
+		</category>
+		<category>
+			<id>Halloween</id>
+			<name>Halloween</name>
+		</category>
+	</categories>
+	<music>
+		<song>
+		   <hash>d678989f4b4ffb0df3476b5b22e879f6</hash>
+		   <categoryid>Christmas</categoryid>
+		   <title>Christmas Every Day</title>
+		   <artist>Simple Plan</artist>
+		   <lyric/>
+		   <download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3c2FmRzRwVWZxNkk&authuser=0&export=download]]></download>
+		   <music><![CDATA[https://www.amazon.com/Christmas-Every-Day/dp/B01MYNSHTJ/ref=sr_1_1?ie=UTF8&qid=1525533227&sr=8-1&keywords=simple+plan+christmas+everyday]]></music>
+		   <creator>Bill Porter</creator>
+		</song>
+		<song>
+		   <hash>435e12b2ca865106be18ae82f2713a01</hash>
+		   <categoryid>Disney</categoryid>
+		   <title>You're Welcome</title>
+		   <artist>Dwayne Johnson</artist>
+		   <sequence/>
+		   <download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3ZTRDYm9sQTVueUk&authuser=0&export=download]]></download>
+		   <music><![CDATA[https://www.amazon.com/Original-Motion-Picture-Soundtrack-Deluxe/dp/B01M5GYB5N/ref=sr_1_3?ie=UTF8&qid=1525584402&sr=8-3&keywords=you%27re+welcome+dwayne+johnson]]></music>
+		   <creator>Johnathan Landingham</creator>
+		</song>
+	</music>
+</musicinventory>
