@@ -35,6 +35,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                    number of missed pixels and the ability to process poor video
    -- enh (keith)  Add jukebox
    -- enh (keith)  Add lyric track and sequence download   
+   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will 
+				   keep changing every time the effect is rendered.
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs

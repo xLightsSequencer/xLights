@@ -90,6 +90,7 @@
 								<item>Abs Sine</item>
 								<item>Decaying Sine</item>
 								<item>Square</item>
+								<item>Random</item>
 								<item>Custom</item>
 							</content>
 							<selection>0</selection>
