@@ -437,8 +437,6 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
-        { wxCMD_LINE_OPTION, "f", "fseq", "specify fseq directory" },
-        { wxCMD_LINE_OPTION, "b", "backup", "backup fseq directory" },
         { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
 #ifdef __LINUX__
@@ -525,20 +523,6 @@ bool xLightsApp::OnInit()
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
         }
-        if (parser.Found("f", &fseqDir)) {
-            logger_base.info("-m: FSEQ directory set to %s.", (const char *)fseqDir.c_str());
-            info += _("Setting FSEQ directory to ") + fseqDir + "\n";
-        }
-        else if (!showDir.IsNull()) {
-            fseqDir = showDir;
-        }
-        if (parser.Found("b", &backupDir)) {
-            logger_base.info("-b: Backup directory set to %s.", (const char *)fseqDir.c_str());
-            info += _("Setting Backup directory to ") + fseqDir + "\n";
-        }
-        else if (!showDir.IsNull()) {
-            fseqDir = showDir;
-        }
         for (size_t x = 0; x < parser.GetParamCount(); x++) {
             wxString sequenceFile = parser.GetParam(x);
             if (x == 0) {
@@ -613,6 +597,4 @@ bool xLightsApp::WantDebug = false;
 wxString xLightsApp::DebugPath;
 wxString xLightsApp::mediaDir;
 wxString xLightsApp::showDir;
-wxString xLightsApp::fseqDir;
-wxString xLightsApp::backupDir;
 wxArrayString xLightsApp::sequenceFiles;
