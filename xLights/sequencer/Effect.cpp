@@ -1,15 +1,16 @@
-
-#include "../UtilClasses.h"
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
 #include "../effects/EffectManager.h"
 #include "../ColorCurve.h"
-#include <log4cpp/Category.hh>
-#include <unordered_map>
 #include "../UtilFunctions.h"
 #include "../ValueCurve.h"
+#include "../UtilClasses.h"
+
+#include <unordered_map>
+
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
@@ -81,13 +82,14 @@ static std::vector<std::string> CHECKBOX_IDS {
     "C_CHECKBOX_Palette4", "C_CHECKBOX_Palette5", "C_CHECKBOX_Palette6",
     "C_CHECKBOX_Palette7", "C_CHECKBOX_Palette8"
 };
+
 static std::vector<std::string> BUTTON_IDS {
     "C_BUTTON_Palette1", "C_BUTTON_Palette2", "C_BUTTON_Palette3",
     "C_BUTTON_Palette4", "C_BUTTON_Palette5", "C_BUTTON_Palette6",
     "C_BUTTON_Palette7", "C_BUTTON_Palette8"
 };
 
-static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC) {
+void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC) {
     mColors.clear();
     mCC.clear();
     if (!mPaletteMap.empty()) {
@@ -109,6 +111,8 @@ static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors
         }
     }
 }
+
+#pragma region Constructors and Destructors
 
 Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
@@ -171,43 +175,128 @@ Effect::~Effect()
     }
 }
 
+#pragma endregion
 
-int Effect::GetID() const
+void Effect::SetEffectIndex(int effectIndex)
 {
-    return mID;
-}
-void Effect::SetID(int id)
-{
-    mID = id;
-}
-void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
-{
-    std::unique_lock<std::mutex> lock(settingsLock);
-
-    for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
+    if (mEffectIndex != effectIndex)
     {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_')
-        {
-            name = name.substr(2);
-        }
-        target[name] = it->second;
-    }
-    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
-    {
-        std::string name = it->first;
-        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) //only need the slider, checkbox and value curve entries
-        {
-            name = name.substr(2);
-            target[name] = it->second;
-        }
+        mEffectIndex = effectIndex;
+        IncrementChangeCount();
+        background.LockedClear();
     }
 }
-void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
+
+const std::string &Effect::GetEffectName() const
+{
+    if (mName != nullptr)
+    {
+        return *mName;
+    }
+    return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
+}
+
+const std::string& Effect::GetEffectName(int index) const
+{
+    if (index < 0)
+    {
+        return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
+    }
+    return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(index);
+}
+
+void Effect::SetEffectName(const std::string & name)
+{
+    int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
+    if (mEffectIndex != idx || mEffectIndex == -1)
+    {
+        mEffectIndex = idx;
+        if (mName != nullptr)
+        {
+            delete mName;
+            mName = nullptr;
+        }
+        if (mEffectIndex == -1)
+        {
+            mName = new std::string(name);
+        }
+        IncrementChangeCount();
+        background.LockedClear();
+    }
+}
+
+wxString Effect::GetDescription() const
+{
+    if (mSettings.Contains("X_Effect_Description"))
+    {
+        return mSettings["X_Effect_Description"];
+    }
+    return "";
+}
+
+void Effect::SetStartTimeMS(int startTimeMS)
+{
+    wxASSERT(!IsLocked());
+
+    if (startTimeMS > mStartTime)
+    {
+        IncrementChangeCount();
+        mStartTime = startTimeMS;
+    }
+    else
+    {
+        mStartTime = startTimeMS;
+        IncrementChangeCount();
+    }
+}
+
+void Effect::SetEndTimeMS(int endTimeMS)
+{
+    wxASSERT(!IsLocked());
+
+    if (endTimeMS < mEndTime)
+    {
+        IncrementChangeCount();
+        mEndTime = endTimeMS;
+    }
+    else
+    {
+        mEndTime = endTimeMS;
+        IncrementChangeCount();
+    }
+}
+
+bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
+{
+    return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
+}
+
+bool Effect::IsLocked() const
+{
+    return mSettings.Contains("X_Effect_Locked");
+}
+
+void Effect::SetLocked(bool lock)
+{
+    if (lock)
+    {
+        mSettings["X_Effect_Locked"] = "True";
+    }
+    else
+    {
+        mSettings.erase("X_Effect_Locked");
+    }
+}
+
+void Effect::IncrementChangeCount()
+{
+    mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
+}
+
+std::string Effect::GetSettingsAsString() const
 {
     std::unique_lock<std::mutex> lock(settingsLock);
-    target = mColors;
-    newcc = mCC;
+    return mSettings.AsString();
 }
 
 void Effect::SetSettings(const std::string &settings, bool keepxsettings)
@@ -230,7 +319,7 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
     {
         for (auto it = x.begin(); it != x.end(); ++it)
         {
-                mSettings[it->first] = it->second;
+            mSettings[it->first] = it->second;
         }
     }
     IncrementChangeCount();
@@ -266,10 +355,34 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
     IncrementChangeCount();
 }
 
-std::string Effect::GetSettingsAsString() const
+void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
     std::unique_lock<std::mutex> lock(settingsLock);
-    return mSettings.AsString();
+
+    for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
+    {
+        std::string name = it->first;
+        if (stripPfx && name[1] == '_')
+        {
+            name = name.substr(2);
+        }
+        target[name] = it->second;
+    }
+    for (std::map<std::string,std::string>::const_iterator it=mPaletteMap.begin(); it!=mPaletteMap.end(); ++it)
+    {
+        std::string name = it->first;
+        if (stripPfx && name[1] == '_'  && (name[2] == 'S' || name[2] == 'C' || name[2] == 'V')) //only need the slider, checkbox and value curve entries
+        {
+            name = name.substr(2);
+            target[name] = it->second;
+        }
+    }
+}
+
+std::string Effect::GetPaletteAsString() const
+{
+    std::unique_lock<std::mutex> lock(settingsLock);
+    return mPaletteMap.AsString();
 }
 
 void Effect::SetPalette(const std::string& i)
@@ -285,6 +398,14 @@ void Effect::SetPalette(const std::string& i)
     }
     ParseColorMap(mPaletteMap, mColors, mCC);
 }
+
+void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
+{
+    std::unique_lock<std::mutex> lock(settingsLock);
+    target = mColors;
+    newcc = mCC;
+}
+
 void Effect::PaletteMapUpdated() {
     std::unique_lock<std::mutex> lock(settingsLock);
     mColors.clear();
@@ -297,191 +418,11 @@ void Effect::PaletteMapUpdated() {
     ParseColorMap(mPaletteMap, mColors, mCC);
 }
 
-std::string Effect::GetPaletteAsString() const
-{
-    std::unique_lock<std::mutex> lock(settingsLock);
-    return mPaletteMap.AsString();
-}
-
-const std::string &Effect::GetEffectName() const
-{
-    if (mName != nullptr)
-    {
-        return *mName;
-    }
-    return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
-}
-
-const std::string& Effect::GetEffectName(int index) const
-{
-    if (index < 0)
-    {
-        return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
-    }
-    else
-    {
-        return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(index);
-    }
-}
-
-void Effect::SetEffectName(const std::string & name)
-{
-    int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
-    if (mEffectIndex != idx || mEffectIndex == -1)
-    {
-        mEffectIndex = idx;
-        if (mName != nullptr)
-        {
-            delete mName;
-            mName = nullptr;
-        }
-        if (mEffectIndex == -1)
-        {
-            mName = new std::string(name);
-        }
-        IncrementChangeCount();
-        background.LockedClear();
-    }
-}
-
-int Effect::GetEffectIndex() const
-{
-    return mEffectIndex;
-}
-
-void Effect::SetEffectIndex(int effectIndex)
-{
-    if (mEffectIndex != effectIndex)
-    {
-        mEffectIndex = effectIndex;
-        IncrementChangeCount();
-        background.LockedClear();
-    }
-}
-
-wxString Effect::GetDescription() const
-{
-    if (mSettings.Contains("X_Effect_Description"))
-    {
-        return mSettings["X_Effect_Description"];
-    }
-    return "";
-}
-
-bool Effect::IsLocked() const
-{
-    return mSettings.Contains("X_Effect_Locked");
-}
-
-void Effect::SetLocked(bool lock)
-{
-    if (lock)
-    {
-        mSettings["X_Effect_Locked"] = "True";
-    }
-    else
-    {
-        mSettings.erase("X_Effect_Locked");
-    }
-}
-
-int Effect::GetStartTimeMS() const
-{
-    return mStartTime;
-}
-
-void Effect::SetStartTimeMS(int startTimeMS)
-{
-    wxASSERT(!IsLocked());
-
-    if (startTimeMS > mStartTime)
-    {
-        IncrementChangeCount();
-        mStartTime = startTimeMS;
-    }
-    else
-    {
-        mStartTime = startTimeMS;
-        IncrementChangeCount();
-    }
-}
-int Effect::GetEndTimeMS() const
-{
-    return mEndTime;
-}
-
-bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
-{
-    return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
-}
-
-void Effect::SetEndTimeMS(int endTimeMS)
-{
-    wxASSERT(!IsLocked());
-
-    if (endTimeMS < mEndTime)
-    {
-        IncrementChangeCount();
-        mEndTime = endTimeMS;
-    }
-    else
-    {
-        mEndTime = endTimeMS;
-        IncrementChangeCount();
-    }
-}
-
-
-int Effect::GetSelected() const
-{
-    return mSelected;
-}
-
-void Effect::SetSelected(int selected)
-{
-    mSelected = selected;
-}
-
-bool Effect::GetTagged() const
-{
-    return mTagged;
-}
-
-void Effect::SetTagged(bool tagged)
-{
-    mTagged = tagged;
-}
-
-bool Effect::GetProtected() const
-{
-    return mProtected;
-}
-void Effect::SetProtected(bool Protected)
-{
-    mProtected = Protected;
-}
-
 bool operator<(const Effect &e1, const Effect &e2)
 {
-    if(e1.GetStartTimeMS() < e2.GetStartTimeMS())
+    if (e1.GetStartTimeMS() < e2.GetStartTimeMS())
+    {
         return true;
-    else
-        return false;
+    }
+    return false;
 }
-
-EffectLayer* Effect::GetParentEffectLayer() const
-{
-    return mParentLayer;
-}
-
-void Effect::SetParentEffectLayer(EffectLayer* parent)
-{
-    mParentLayer = parent;
-}
-
-void Effect::IncrementChangeCount()
-{
-    mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
-}
-
-

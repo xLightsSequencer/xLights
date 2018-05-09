@@ -745,6 +745,7 @@
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
+    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SelectPanel.h" />

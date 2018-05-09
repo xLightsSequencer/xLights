@@ -676,6 +676,7 @@
     <ClInclude Include="VendorMusicHelpers.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
+    <ClInclude Include="RenderUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
