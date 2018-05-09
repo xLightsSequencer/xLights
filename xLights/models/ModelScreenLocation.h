@@ -24,7 +24,8 @@
 #define TOOL_TRANSLATE 0
 #define TOOL_SCALE     1
 #define TOOL_ROTATE    2
-#define NUM_TOOLS      3
+#define TOOL_XY_TRANS  3
+#define NUM_TOOLS      4
 
 class wxXmlNode;
 class ModelPreview;
@@ -59,7 +60,7 @@ public:
 	virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
 	virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
 	virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
     virtual void SelectHandle(int handle) = 0;
     virtual int GetSelectedHandle() = 0;
     virtual int GetNumHandles() = 0;
@@ -124,17 +125,18 @@ public:
     std::vector<int>& GetSelectableHandles() { return mSelectableHandles; }
     std::vector<glm::vec3>& GetHandlesAABB_Min() { return handle_aabb_min; }
     std::vector<glm::vec3>& GetHandlesAABB_Max() { return handle_aabb_max; }
-    virtual void SetActiveHandle(int handle) { active_handle = handle; }
+    virtual void SetActiveHandle(int handle);
     int GetActiveHandle() { return active_handle; }
-    void SetActiveAxis(int axis);
+    virtual void SetActiveAxis(int axis);
     int GetActiveAxis() { return active_axis; }
-    virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= NUM_TOOLS; }
+    virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
     virtual void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
     void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
     void TranslateVector(glm::vec3& point) const;
     virtual int GetDefaultHandle() { return CENTER_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+    virtual void MouseOverHandle(int handle);
 
 protected:
     ModelScreenLocation(int points);
@@ -151,6 +153,7 @@ protected:
     int rotatez;
     mutable glm::mat4 ModelMatrix;
     mutable glm::mat4 ModelMatrix2D;
+    mutable glm::mat4 ModelMatrix3D;
     mutable glm::mat4 TranslateMatrix;
     mutable glm::vec3 aabb_min;
     mutable glm::vec3 aabb_max;
@@ -171,6 +174,7 @@ protected:
     std::vector<int> mSelectableHandles;
     bool _locked;
     int active_handle;
+    int highlighted_handle;
     int active_axis;
     int axis_tool;
 };
@@ -194,7 +198,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -291,7 +295,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -330,11 +334,6 @@ public:
     virtual int GetMHeight() const override;
 
     virtual float GetYShear() const {return 0.0;}
-    void SetYMinMax(float min, float max) {
-        minMaxSet = true;
-        ymin = min;
-        ymax = max;
-    }
     void FlipCoords();
 
     virtual int GetDefaultHandle() { return END_HANDLE; }
@@ -353,7 +352,6 @@ protected:
     mutable glm::vec3 saved_point;
     mutable glm::vec3 center;
     float saved_angle;
-    float ymin, ymax;
     bool minMaxSet;
 
     wxXmlNode *old;
@@ -373,10 +371,12 @@ public:
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     virtual float GetVScaleFactor() const override;
     virtual float GetYShear() const override;
 
@@ -405,12 +405,19 @@ public:
     int GetAngle() const {
         return angle;
     }
+
+    virtual void SetActiveHandle(int handle);
+    virtual void AdvanceAxisTool();
+    virtual void SetAxisTool(int mode);
+    virtual void SetActiveAxis(int axis);
+
 protected:
     virtual void ProcessOldNode(wxXmlNode *n) override;
 private:
     bool modelHandlesHeight;
     bool supportsAngle;
     bool supportsShear;
+    mutable glm::mat4 shearMatrix;
     float height;
     int angle;
     float shear;
@@ -435,7 +442,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     virtual void SelectHandle(int handle) override;
     virtual int GetSelectedHandle() override {return selected_handle;}
     virtual int GetNumHandles() override {return num_points;}

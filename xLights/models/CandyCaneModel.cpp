@@ -359,11 +359,6 @@ void CandyCaneModel::SetCaneCoord() {
             max = std::max(max, it2->screenY);
         }
     }
-    if (_sticks) {
-        screenLocation.SetRenderSize(width, height);
-    } else {
-        screenLocation.SetRenderSize(width, max - min + 1);
-    }
-    screenLocation.SetYMinMax(min, max);
-    
+
+    screenLocation.SetRenderSize(width, height);
 }

@@ -258,6 +258,7 @@ class LayoutPanel: public wxPanel
         Model *selectedModel;
         Model *highlightedModel;
         bool selectionLatched;
+        int over_handle;
 
         void refreshModelList();
         void resetPropertyGrid();

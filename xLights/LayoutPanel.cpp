@@ -40,6 +40,7 @@
 
 static float AXIS_RADIUS = 4.0f;
 static float AXIS_ARROW_LENGTH = 60.0f;
+static float XY_ARROW_LENGTH = 30.0f;
 static float AXIS_HEAD_LENGTH = 12.0f;
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
@@ -213,7 +214,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), creating_model(false)
+    ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), over_handle(-1), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1844,29 +1845,59 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
 
     // test for a selected axis first
     int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-    glm::vec3 axisbb_min[3];
-    glm::vec3 axisbb_max[3];
-    axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-    axisbb_min[0].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
-    axisbb_min[0].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
-    axisbb_min[1].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-    axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-    axisbb_min[1].z = handles[active_handle].z - AXIS_RADIUS - model_mat[3][2];
-    axisbb_min[2].x = handles[active_handle].x - AXIS_RADIUS - model_mat[3][0];
-    axisbb_min[2].y = handles[active_handle].y - AXIS_RADIUS - model_mat[3][1];
-    axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-    axisbb_max[0].x = handles[active_handle].x + AXIS_ARROW_LENGTH + 3 - model_mat[3][0];
-    axisbb_max[0].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
-    axisbb_max[0].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
-    axisbb_max[1].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-    axisbb_max[1].y = handles[active_handle].y + AXIS_ARROW_LENGTH + 3 - model_mat[3][1];
-    axisbb_max[1].z = handles[active_handle].z + AXIS_RADIUS - model_mat[3][2];
-    axisbb_max[2].x = handles[active_handle].x + AXIS_RADIUS - model_mat[3][0];
-    axisbb_max[2].y = handles[active_handle].y + AXIS_RADIUS - model_mat[3][1];
-    axisbb_max[2].z = handles[active_handle].z + AXIS_ARROW_LENGTH + 3 - model_mat[3][2];
+    int num_axis_handles = active_handle == SHEAR_HANDLE ? 4 : 3;
+    glm::vec3 axisbb_min[4];
+    glm::vec3 axisbb_max[4];
+    if (active_handle != SHEAR_HANDLE) {
+        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH + 3;
+    }
+    else {
+        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - XY_ARROW_LENGTH - 3;
+        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[3].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[3].y = handles[active_handle].y - model_mat[3][1] - XY_ARROW_LENGTH - 3;
+        axisbb_min[3].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+
+        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + XY_ARROW_LENGTH + 3;
+        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + XY_ARROW_LENGTH + 3;
+        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
+        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[3].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[3].y = handles[active_handle].y - model_mat[3][1] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
+        axisbb_max[3].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+    }
 
     // see if an axis handle is selected
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < num_axis_handles; i++)
     {
         float intersection_distance; // Output of TestRayOBBIntersection()
 
@@ -2007,7 +2038,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
                         selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
-                        selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
+                        selectedModel->GetModelScreenLocation().MouseOverHandle(-1);
+                        selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
                         UpdatePreview();
                         m_moving_handle = true;
                         m_mouse_down = true;
@@ -2054,7 +2086,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
-
+            Unselect3DItems();
             newModel->Selected = true;
             newModel->GetModelScreenLocation().SetActiveHandle(newModel->GetModelScreenLocation().GetDefaultHandle());
             newModel->GetModelScreenLocation().SetAxisTool(newModel->GetModelScreenLocation().GetDefaultTool());
@@ -2067,7 +2099,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                 newModel->UpdateXmlWithScale();
             }
-            selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
+            selectedModel->MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
             lastModelName = newModel->name;
             modelPreview->GetModels().push_back(newModel);
         }
@@ -2148,7 +2180,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 if (model_type == "Poly Line") {
                     m_polyline_active = true;
                 }
-
+                Unselect3DItems();
                 newModel->Selected = true;
                 if (wi > 0 && ht > 0)
                 {
@@ -2283,6 +2315,7 @@ void LayoutPanel::FinalizeModel()
 void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_dragging = false;
+    m_wheel_down = false;
 }
 
 void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
@@ -2332,8 +2365,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     if (selectedModel != newModel) {
                         CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
                     }
-                    selectedModel->GetModelScreenLocation().MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
-                    selectedModel->UpdateXmlWithScale();
+                    selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
                     SetupPropGrid(selectedModel);
                     xlights->MarkEffectsFileDirty(true);
                     UpdatePreview();
@@ -2349,6 +2381,16 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         else {
             if (!selectionLatched) {
                 SelectSingleModel3D(event.GetX(), event.GetY());
+            }
+            else {
+                int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+                if (selectedModel != nullptr) {
+                    selectedModel->GetModelScreenLocation().MouseOverHandle(handle);
+                    if (handle != over_handle) {
+                        over_handle = handle;
+                        UpdatePreview();
+                    }
+                }
             }
         }
         return;

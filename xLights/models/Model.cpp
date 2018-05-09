@@ -3178,6 +3178,18 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
     IncrementChangeCount();
 }
 
+void Model::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
+{
+    if (GetModelScreenLocation().IsLocked()) return;
+
+    int i = GetModelScreenLocation().MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
+    GetModelScreenLocation().Write(ModelXml);
+    if (i) {
+        SetFromXml(ModelXml);
+    }
+    IncrementChangeCount();
+}
+
 void Model::SelectHandle(int handle) {
     GetModelScreenLocation().SelectHandle(handle);
 }

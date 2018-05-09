@@ -263,6 +263,7 @@ public:
     void SetLayoutGroup(const std::string &grp);
     std::list<std::string> GetFaceFiles() const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
+    void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);
     int GetSelectedHandle();
     int GetNumHandles();
