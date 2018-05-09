@@ -377,6 +377,25 @@ void EventDialog::ValidateWindow()
         }
     }
 
+    if (!TextCtrl_P1->IsEnabled())
+    {
+        Disconnect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P1Text);
+        TextCtrl_P1->Clear();
+        Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P1Text);
+    }
+    if (!TextCtrl_P2->IsEnabled())
+    {
+        Disconnect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P2Text);
+        TextCtrl_P2->Clear();
+        Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P2Text);
+    }
+    if (!TextCtrl_P3->IsEnabled())
+    {
+        Disconnect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P3Text);
+        TextCtrl_P3->Clear();
+        Connect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&EventDialog::OnTextCtrl_P3Text);
+    }
+
     EventPanel* panel = (EventPanel*)Choicebook_EventType->GetPage(Choicebook_EventType->GetSelection());
     if ((TextCtrl_P1->IsEnabled() && TextCtrl_P1->GetValue().Trim().Trim(false) == "") ||
         (TextCtrl_P2->IsEnabled() && TextCtrl_P2->GetValue().Trim().Trim(false) == "") ||
