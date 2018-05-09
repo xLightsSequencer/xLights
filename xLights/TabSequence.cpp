@@ -14,6 +14,8 @@
 #include "UtilFunctions.h"
 #include <wx/config.h>
 #include "BufferPanel.h"
+#include "EffectIconPanel.h"
+#include "JukeboxPanel.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
@@ -942,6 +944,7 @@ void xLightsFrame::SaveSequence()
     wxStopWatch sw; // start a stopwatch timer
     SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
     logger_base.info("Saving XML file.");
+    CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     CurrentSeqXmlFile->Save(mSequenceElements);
     logger_base.info("XML file done.");
 
@@ -1136,6 +1139,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
+    enableAllChildControls(jukeboxPanel, enable && SeqData.NumFrames() > 0 && !IsACActive());
     UpdateACToolbar(enable);
 
     enableAllMenubarControls(MenuBar, enable);

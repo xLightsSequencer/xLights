@@ -72,7 +72,6 @@
 #include "TimingPanel.h"
 #include "ColorPanel.h"
 #include "PerspectivesPanel.h"
-#include "EffectIconPanel.h"
 #include "ViewsModelsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
@@ -92,6 +91,8 @@ class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SequenceVideoPanel;
+class EffectIconPanel;
+class JukeboxPanel;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -537,6 +538,10 @@ public:
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
+    void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
+    void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
+    void OnMenuItem53Selected(wxCommandEvent& event);
+    void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -650,6 +655,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MNU_DOWNLOADSEQUENCES;
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long iD_MNU_VENDORCACHEPURGE;
@@ -674,6 +680,7 @@ private:
     static const long ID_MENUITEM_EFFECT_ASSIST_WINDOW;
     static const long ID_MENUITEM_SELECT_EFFECT;
     static const long ID_MENUITEM_VIDEOPREVIEW;
+    static const long ID_MNU_JUKEBOX;
     static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
     static const long ID_MENUITEM_WINDOWS_DOCKALL;
     static const long ID_MENUITEM11;
@@ -695,6 +702,12 @@ private:
     static const long ID_RENDER_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
+    static const long ID_MNU_BKPPURGE_NEVER;
+    static const long ID_MNU_BKPPURGE_YEAR;
+    static const long ID_MNU_BKPPURGE_QUARTER;
+    static const long ID_MNU_BKPPURGE_MONTH;
+    static const long ID_MNU_BKPPURGE_WEEK;
+    static const long ID_MNU_BKP_PURGE;
     static const long ID_MNU_BACKUP;
     static const long ID_MNU_EXCLUDEPRESETS;
     static const long ID_MNU_EXCLUDEAUDIOPKGSEQ;
@@ -812,6 +825,7 @@ private:
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
+    wxMenu* MenuItem_BackupPurge;
     wxMenu* MenuSettings;
     wxMenu* MenuView;
     wxMenu* OpenGLMenu;
@@ -861,8 +875,14 @@ private:
     wxMenuItem* MenuItem_AutoShowHousePreview;
     wxMenuItem* MenuItem_BackupOnLaunch;
     wxMenuItem* MenuItem_BackupSubfolders;
+    wxMenuItem* MenuItem_BkpPMonth;
+    wxMenuItem* MenuItem_BkpPNever;
+    wxMenuItem* MenuItem_BkpPQuarter;
+    wxMenuItem* MenuItem_BkpPWeek;
+    wxMenuItem* MenuItem_BkpPYear;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
+    wxMenuItem* MenuItem_DownloadSequences;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;
@@ -880,6 +900,7 @@ private:
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
+    wxMenuItem* MenuItem_Jukebox;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;
@@ -987,6 +1008,8 @@ private:
 
     void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
+    int DecodeBackupPurgeDays(std::string s);
+    void DoBackupPurge();
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
     bool EnableOutputs();
@@ -1232,6 +1255,7 @@ private:
         std::list<RenderTreeData*> data;
     } renderTree;
     int AutoSaveInterval;
+    int BackupPurgeDays;
 
     Model *playModel;
     int playType;
@@ -1315,6 +1339,7 @@ private:
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
     EffectIconPanel *effectPalettePanel;
+    JukeboxPanel *jukeboxPanel;
     BufferPanel *bufferPanel;
     ViewsModelsPanel *displayElementsPanel;
     TopEffectsPanel* effectsPnl;
@@ -1457,6 +1482,7 @@ public:
     ColorManager color_mgr;
     EffectTreeDialog *EffectTreeDlg;
 
+    void LoadJukebox(wxXmlNode* node);
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
     static std::string DecodeMidi(int midi);
 

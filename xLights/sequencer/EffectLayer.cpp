@@ -355,6 +355,18 @@ Effect*  EffectLayer::GetEffectAfterEmptyTime(int ms)
     }
 }
 
+std::list<Effect*> EffectLayer::GetAllEffects()
+{
+    std::list<Effect*> res;
+
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        res.push_back(mEffects[i]);
+    }
+
+    return res;
+}
+
 bool EffectLayer::GetRangeIsClearMS(int startTimeMS, int endTimeMS, bool ignore_selected)
 {
     for (int i = 0; i < mEffects.size(); i++)
@@ -533,6 +545,48 @@ std::vector<Effect*> EffectLayer::GetAllEffectsByTime(int startTimeMS, int endTi
         }
     }
     return effs;
+}
+
+void EffectLayer::PlayEffect(Effect* effect)
+{
+    EventPlayEffectArgs playArgs;
+    wxCommandEvent eventPlayModelEffect(EVT_PLAY_MODEL_EFFECT);
+    playArgs.element = GetParentElement();
+    playArgs.effect = effect;
+    playArgs.renderEffect = false;
+    eventPlayModelEffect.SetClientData(&playArgs);
+    // Pass it this way to prevent risk of effect being deleted before pointer is used
+    GetParentElement()->GetSequenceElements()->GetXLightsFrame()->GetEventHandler()->ProcessEvent(eventPlayModelEffect);
+}
+
+bool EffectLayer::SelectEffectUsingDescription(std::string description)
+{
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetDescription() == description)
+        {
+            mEffects[i]->SetSelected(EFFECT_SELECTED);
+            PlayEffect(mEffects[i]);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool EffectLayer::SelectEffectUsingTime(int time)
+{
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (time >= mEffects[i]->GetStartTimeMS() && time <= mEffects[i]->GetEndTimeMS())
+        {
+            mEffects[i]->SetSelected(EFFECT_SELECTED);
+            PlayEffect(mEffects[i]);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int EffectLayer::GetLayerNumber()

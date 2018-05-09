@@ -55,6 +55,8 @@ public:
     int GetLayerNumberFromIndex(int index);
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
+    bool SelectEffectUsingDescription(std::string description);
+    bool SelectEffectUsingLayerTime(int layer, int time);
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);

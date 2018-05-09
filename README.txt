@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Hostnames were not usable in several places, had to use IP addresses
+   -- enh (dkulp)  FPP Connect - upload output settings for DDP outputs
    -- bug (dkulp)  Fix crash if uploading zig zag settings to FPP controller
    -- enh (scott)  Added Folder Setting dialog for Media, FSEQ, Backup, and Alt Backup Directories.
    -- bug (keith)  Fix tendril crash when movement was set to zero
@@ -31,6 +33,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add support for sparse submodel buffers and label rows more clearly
    -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the 
                    number of missed pixels and the ability to process poor video
+   -- enh (keith)  Add jukebox
+   -- enh (keith)  Add lyric track and sequence download   
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs

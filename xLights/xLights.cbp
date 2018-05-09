@@ -358,6 +358,8 @@
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Unit filename="../xSchedule/md5.cpp" />
+		<Unit filename="../xSchedule/md5.h" />
 		<Unit filename="../xSchedule/wxJSON/json_defs.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonreader.h" />
@@ -452,6 +454,8 @@
 		<Unit filename="Images_png.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
+		<Unit filename="JukeboxPanel.cpp" />
+		<Unit filename="JukeboxPanel.h" />
 		<Unit filename="KeyBindings.cpp" />
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
@@ -462,6 +466,8 @@
 		<Unit filename="LayoutGroup.h" />
 		<Unit filename="LayoutPanel.cpp" />
 		<Unit filename="LayoutPanel.h" />
+		<Unit filename="LinkJukeboxButtonDialog.cpp" />
+		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
@@ -586,6 +592,10 @@
 		<Unit filename="ValueCurveDialog.h" />
 		<Unit filename="VendorModelDialog.cpp" />
 		<Unit filename="VendorModelDialog.h" />
+		<Unit filename="VendorMusicDialog.cpp" />
+		<Unit filename="VendorMusicDialog.h" />
+		<Unit filename="VendorMusicHelpers.cpp" />
+		<Unit filename="VendorMusicHelpers.h" />
 		<Unit filename="VideoExporter.cpp" />
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
@@ -1057,11 +1067,13 @@
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
+		<Unit filename="wxsmith/JukeboxPanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
@@ -1132,6 +1144,7 @@
 		<Unit filename="wxsmith/VUMeterPanel.wxs" />
 		<Unit filename="wxsmith/ValueCurveDialog.wxs" />
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
+		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
@@ -1295,6 +1308,7 @@
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="VendorMusicDialog.cpp" hdr="VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorOptimisedDialog.wxs" src="outputs/LorOptimisedDialog.cpp" hdr="outputs/LorOptimisedDialog.h" fwddecl="0" i18n="1" name="LorOptimisedDialog" language="CPP" />
@@ -1303,6 +1317,8 @@
 					<wxPanel wxs="wxsmith/SequenceVideoPanel.wxs" src="SequenceVideoPanel.cpp" hdr="SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LayerSelectDialog.wxs" src="LayerSelectDialog.cpp" hdr="LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/FolderSelection.wxs" src="FolderSelection.cpp" hdr="FolderSelection.h" fwddecl="0" i18n="1" name="FolderSelection" language="CPP" />
+					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

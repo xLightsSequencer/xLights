@@ -9,6 +9,7 @@
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "outputs/Output.h"
+#include "UtilFunctions.h"
 
 #define retmsg(msg)  \
 { \
@@ -357,7 +358,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
                 GetNodeCoords(ii, pts);
                 if (pts.size() > 1)
                 {
-                    res.push_back(wxString::Format("    WARN: Custom model '%s' node %d has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)GetName().c_str(), ii + 1, (int)pts.size()).ToStdString());
+                    res.push_back(wxString::Format("    WARN: Custom model '%s' %s node has %d instances but multi instance nodes are rare in this model so this may be unintended.", (const char *)GetName().c_str(), Ordinal(ii + 1), (int)pts.size()).ToStdString());
                 }
             }
         }

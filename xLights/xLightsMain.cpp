@@ -46,6 +46,8 @@
 #include "VideoExporter.h"
 #include "SequenceVideoPanel.h"
 #include "FolderSelection.h"
+#include "EffectIconPanel.h"
+#include "JukeboxPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -74,7 +76,7 @@
 #include "outputs/IPOutput.h"
 #include "GenerateLyricsDialog.h"
 #include "VendorModelDialog.h"
-
+#include "VendorMusicDialog.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -204,6 +206,7 @@ const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
+const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
@@ -228,6 +231,7 @@ const long xLightsFrame::ID_MENUITEM17 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_WINDOWS_DOCKALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM11 = wxNewId();
@@ -249,6 +253,12 @@ const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
+const long xLightsFrame::ID_MNU_BKPPURGE_NEVER = wxNewId();
+const long xLightsFrame::ID_MNU_BKPPURGE_YEAR = wxNewId();
+const long xLightsFrame::ID_MNU_BKPPURGE_QUARTER = wxNewId();
+const long xLightsFrame::ID_MNU_BKPPURGE_MONTH = wxNewId();
+const long xLightsFrame::ID_MNU_BKPPURGE_WEEK = wxNewId();
+const long xLightsFrame::ID_MNU_BKP_PURGE = wxNewId();
 const long xLightsFrame::ID_MNU_BACKUP = wxNewId();
 const long xLightsFrame::ID_MNU_EXCLUDEPRESETS = wxNewId();
 const long xLightsFrame::ID_MNU_EXCLUDEAUDIOPKGSEQ = wxNewId();
@@ -810,6 +820,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_FPP_Connect);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
+    MenuItem_DownloadSequences = new wxMenuItem(Menu1, ID_MNU_DOWNLOADSEQUENCES, _("Download Sequences/Lyrics"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_DownloadSequences);
     MenuItemBatchRender = new wxMenuItem(Menu1, ID_MENU_BATCH_RENDER, _("&Batch Render"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemBatchRender);
     MenuItem_xSchedule = new wxMenuItem(Menu1, ID_MNU_XSCHEDULE, _("xSchedu&le"), wxEmptyString, wxITEM_NORMAL);
@@ -868,6 +880,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem18->Append(MenuItemSelectEffect);
     MenuItem52 = new wxMenuItem(MenuItem18, ID_MENUITEM_VIDEOPREVIEW, _("Video Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem52);
+    MenuItem_Jukebox = new wxMenuItem(MenuItem18, ID_MNU_JUKEBOX, _("Jukebox"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem_Jukebox);
     MenuItem18->AppendSeparator();
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
@@ -919,6 +933,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_BackupOnLaunch = new wxMenuItem(MenuSettings, ID_MENU_BACKUP_ON_LAUNCH, _("Backup On Launch"), _("Recommended."), wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupOnLaunch);
     MenuItem_BackupOnLaunch->Check(true);
+    MenuItem_BackupPurge = new wxMenu();
+    MenuItem_BkpPNever = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_NEVER, _("Never"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_BackupPurge->Append(MenuItem_BkpPNever);
+    MenuItem_BkpPYear = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_YEAR, _("365 Days"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_BackupPurge->Append(MenuItem_BkpPYear);
+    MenuItem_BkpPQuarter = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_QUARTER, _("90 Days"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_BackupPurge->Append(MenuItem_BkpPQuarter);
+    MenuItem_BkpPMonth = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_MONTH, _("31 Days"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_BackupPurge->Append(MenuItem_BkpPMonth);
+    MenuItem_BkpPWeek = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_WEEK, _("7 Days"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_BackupPurge->Append(MenuItem_BkpPWeek);
+    MenuSettings->Append(ID_MNU_BKP_PURGE, _("Backup Purge"), MenuItem_BackupPurge, wxEmptyString);
     MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupSubfolders);
     MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
@@ -1155,6 +1181,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
+    Connect(ID_MNU_DOWNLOADSEQUENCES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(iD_MNU_VENDORCACHEPURGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeVendorCacheSelected);
@@ -1179,6 +1206,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
+    Connect(ID_MENUITEM_VIDEOPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
+    Connect(ID_MNU_JUKEBOX,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
     Connect(ID_MENUITEM_WINDOWS_DOCKALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuDockAllSelected);
     Connect(ID_MENUITEM11,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetWindowsToDefaultPositions);
@@ -1199,6 +1228,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
+    Connect(ID_MNU_BKPPURGE_NEVER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
+    Connect(ID_MNU_BKPPURGE_YEAR,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
+    Connect(ID_MNU_BKPPURGE_QUARTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
+    Connect(ID_MNU_BKPPURGE_MONTH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
+    Connect(ID_MNU_BKPPURGE_WEEK,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
     Connect(ID_MNU_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupSubfoldersSelected);
     Connect(ID_MNU_EXCLUDEPRESETS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludePresetsFromPackagedSequencesSelected);
     Connect(ID_MNU_EXCLUDEAUDIOPKGSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExcludeAudioPackagedSequenceSelected);
@@ -1286,7 +1320,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     #endif
 
     // Suppress OSX display of a warning when reading config ... "entry %s appears more than once in group '%s'
-    wxLogNull logNo; 
+    wxLogNull logNo;
 
     logger_base.debug("xLightsFrame constructor UI code done.");
 
@@ -1673,6 +1707,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     AutoSaveIntervalSelected(asEvent);
     logger_base.debug("Autosave interval: %d.", AutoSaveInterval);
 
+    config->Read("BackupPurgeDays", &BackupPurgeDays, 0);
+    long bpid = ID_MNU_BKPPURGE_NEVER;
+    switch (BackupPurgeDays) {
+        case 365:
+            bpid = ID_MNU_BKPPURGE_YEAR;
+            break;
+        case 90:
+            bpid = ID_MNU_BKPPURGE_QUARTER;
+            break;
+        case 31:
+            bpid = ID_MNU_BKPPURGE_MONTH;
+            break;
+        case 7:
+            bpid = ID_MNU_BKPPURGE_WEEK;
+            break;
+        default:
+            break;
+    }
+    MenuItem_BackupPurge->Check(bpid, true);
+    logger_base.debug("Backup purge age: %d days.", BackupPurgeDays);
+
     int glVer = 99;
     config->Read("ForceOpenGLVer", &glVer, 99);
     if (glVer != 99) {
@@ -1828,6 +1883,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     UpdateACToolbar();
     ShowACLights();
+
+    DoBackupPurge();
 
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
@@ -2436,7 +2493,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         return;
     }
 
-    wxString newDir = wxString::Format( "%s%c%s-%s", 
+    wxString newDir = wxString::Format( "%s%c%s-%s",
 		newDirBackup, wxFileName::GetPathSeparator(),
         curTime.FormatISODate(), curTime.Format("%H%M%S"));
     if (startup)
@@ -2449,7 +2506,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     {
         logger_base.warn("Backup directory '%s' already existed ... trying again", (const char *)newDir.c_str());
 
-        newDir = wxString::Format( "%s%c%s-%s", 
+        newDir = wxString::Format( "%s%c%s-%s",
 			newDirBackup, wxFileName::GetPathSeparator(),
             curTime.FormatISODate(), curTime.Format("%H%M%S")) + "_" + char(65 + tries);
         if (startup)
@@ -2633,6 +2690,11 @@ static void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString&
     if (!value.empty()) node->AddAttribute(name, value);
 }
 
+void xLightsFrame::LoadJukebox(wxXmlNode* node)
+{
+    jukeboxPanel->Load(node);
+}
+
 //sigh; a function like this should have been built into wxWidgets
 wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create /*= false*/)
 {
@@ -2757,6 +2819,8 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 		}
 	}
 	SetAudioControls();
+
+    mSequenceElements.IncrementChangeCount(nullptr);
 }
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
@@ -7425,6 +7489,8 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
 {
     VendorModelDialog::GetCache().ClearCache();
     VendorModelDialog::GetCache().Save();
+    VendorMusicDialog::GetCache().ClearCache();
+    VendorMusicDialog::GetCache().Save();
 }
 
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
@@ -7500,4 +7566,146 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         mAltBackupDir = dlg.AltBackupDirectory;
         logger_base.debug("Alt Backup directory set to : %s.", (const char *)mAltBackupDir.c_str());
     }
+}
+
+int xLightsFrame::DecodeBackupPurgeDays(std::string s)
+{
+    if (s == "Never")
+    {
+        return 0;
+    }
+    else
+    {
+        return wxAtoi(s);
+    }
+}
+
+void xLightsFrame::DoBackupPurge()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (BackupPurgeDays <= 0)
+    {
+        logger_base.debug("Backup purging skipped as it is disabled.");
+        return;
+    }
+
+    logger_base.debug("Purging backups older than %d days.", BackupPurgeDays);
+
+    time_t cur;
+    time(&cur);
+    wxDateTime curTime(cur);
+
+    wxDateTime purgeDate = curTime.Add(wxTimeSpan(24 * BackupPurgeDays * -1));
+    purgeDate.SetHour(0);
+    purgeDate.SetMinute(0);
+    purgeDate.SetSecond(0);
+    purgeDate.SetMillisecond(0);
+
+    logger_base.debug("    Keep backups on or after %s.", (const char *)purgeDate.FormatISODate().c_str());
+
+    wxString backupDir = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
+
+    int count = 0;
+    int purged = 0;
+
+    if (wxDir::Exists(backupDir))
+    {
+        wxDir dir(backupDir);
+        wxString filename;
+
+        bool cont = dir.GetFirst(&filename);
+        while (cont)
+        {
+            auto fdc = wxSplit(filename, '-');
+
+            if (fdc.size() > 3)
+            {
+                int day = wxAtoi(fdc[2]);
+                int month = wxAtoi(fdc[1]);
+                int year = wxAtoi(fdc[0]);
+
+                if (year < 2010 || month < 1 || month > 12 || day < 1 || day > 31)
+                {
+                    // date does not look valid
+                    logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
+                }
+                else
+                {
+                    wxDateTime bd(day, (wxDateTime::Month)(month - 1), year);
+                    count++;
+
+                    if (bd < purgeDate)
+                    {
+                        logger_base.debug("    Backup purge PURGING %s!", (const char *)filename.c_str());
+                        if (!DeleteDirectory((backupDir + wxFileName::GetPathSeparator() + filename).ToStdString()))
+                        {
+                            logger_base.debug("        FAILED!");
+                        }
+                        else
+                        {
+                            purged++;
+                        }
+                    }
+                    else
+                    {
+                        //logger_base.debug("    Backup purge keeping %s.", (const char *)filename.c_str());
+                    }
+                }
+            }
+            else
+            {
+                logger_base.debug("Backup purge deleted %d of %d backups.", purged, count);
+            }
+            cont = dir.GetNext(&filename);
+        }
+        logger_base.debug("    Backup purge ignoring %s.", (const char *)filename.c_str());
+    }
+    else
+    {
+        logger_base.debug("Backup purging skipped as %s does not exist.", (const char *)backupDir.c_str());
+    }
+}
+
+void xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event)
+{
+    wxString v = MenuItem_BackupPurge->GetLabel(event.GetId());
+    MenuItem_BackupPurge->Check(event.GetId(), true);
+    int nbpi = DecodeBackupPurgeDays(v);
+
+    if (nbpi != BackupPurgeDays) {
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("BackupPurgeDays", nbpi);
+        BackupPurgeDays = nbpi;
+
+        DoBackupPurge();
+    }
+}
+
+void xLightsFrame::OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event)
+{
+    wxString downloadDir = CurrentDir + wxFileName::GetPathSeparator() + "Downloads";
+
+    if (!wxDirExists(downloadDir))
+    {
+        wxMkdir(downloadDir);
+    }
+
+    VendorMusicDialog dlg(this);
+    if (dlg.DlgInit("", downloadDir))
+    {
+        dlg.ShowModal();
+    }
+    else
+    {
+        wxMessageBox("Unable to access online repositories.");
+    }
+}
+
+void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
+{
+   wxAuiPaneInfo& pane = m_mgr->GetPane("Jukebox");
+
+   pane.IsShown() ? pane.Hide() : pane.Show();
+   m_mgr->Update();
 }

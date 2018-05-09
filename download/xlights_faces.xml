@@ -1,0 +1,2841 @@
+<faces>
+	<categories>
+		<category>
+			<id>1</id>
+			<name>Christmas</name>
+			<categories>
+				<category>
+					<id>Bulbs</id>
+					<name>Bulbs</name>
+				</category>
+				<category>
+					<id>Deer</id>
+					<name>Deer</name>
+				</category>
+				<category>
+					<id>Elves</id>
+					<name>Elves</name>
+				</category>
+				<category>
+					<id>Gingerbread</id>
+					<name>Gingerbread</name>
+				</category>
+				<category>
+					<id>Grinch</id>
+					<name>Grinch</name>
+				</category>
+				<category>
+					<id>ChristmasMegaTrees</id>
+					<name>Mega Tree Faces</name>
+				</category>
+				<category>
+					<id>MiscChristmas</id>
+					<name>Misc. Christmas</name>
+				</category>
+				<category>
+					<id>Ornaments</id>
+					<name>Ornaments</name>
+				</category>
+				<category>
+					<id>Santa</id>
+					<name>Santa</name>
+				</category>
+				<category>
+					<id>Snowmen</id>
+					<name>Snowmen</name>
+				</category>
+				<category>
+					<id>Trees</id>
+					<name>Trees</name>
+				</category>
+			</categories>
+		</category>
+		<category>
+			<id>2</id>
+			<name>Halloween</name>
+			<categories>
+				<category>
+					<id>Dracula</id>
+					<name>Dracula</name>
+				</category>
+				<category>
+					<id>Frankenstein</id>
+					<name>Frankenstein</name>
+				</category>
+				<category>
+					<id>Ghosts</id>
+					<name>Ghosts</name>
+				</category>
+				<category>
+					<id>HalloweenTrees</id>
+					<name>Mega Tre Faces</name>
+				</category>
+				<category>
+					<id>MiscHalloween</id>
+					<name>Misc. Halloween</name>
+				</category>
+				<category>
+					<id>Monsters</id>
+					<name>Monsters</name>
+				</category>
+				<category>
+					<id>Mummy</id>
+					<name>Mummy</name>
+				</category>
+				<category>
+					<id>Pumpkins</id>
+					<name>Pumpkins</name>
+				</category>
+				<category>
+					<id>Skulls</id>
+					<name>Skulls</name>
+				</category>
+				<category>
+					<id>Witches</id>
+					<name>Witches</name>
+				</category>
+				<category>
+					<id>Zombies</id>
+					<name>Zombies</name>
+				</category>
+			</categories>
+		</category>
+		<category>
+			<id>MegaTreeFaces</id>
+			<name>Misc. Mega Tree Faces</name>
+		</category>			
+		<category>
+			<id>Other</id>
+			<name>Other</name>
+		</category>
+	</categories>
+	<face>
+		<id>1</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Blue Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BlueBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BlueBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>2</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Blue Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BlueBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BlueBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>3</id>
+		<categoryid>Elves</categoryid>
+		<name>Boy Elf</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BoyElf01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BoyElf01.png</faceimage>
+		<width>302</width>
+		<height>584</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>4</id>
+		<categoryid>Elves</categoryid>
+		<categoryid>Deer</categoryid>
+		<name>Deer and Elf</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/DeerElf01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/DeerElf01.png</faceimage>
+		<width>141</width>
+		<height>123</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Low Resolution</notes>
+	</face>
+	<face>
+		<id>5</id>
+		<categoryid>Frankenstein</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Frankenstein</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>6</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank02.png</faceimage>
+		<width>312</width>
+		<height>416</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>7</id>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<name>Gingerbread Man</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GingerbreadMan.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GingerbreadMan.png</faceimage>
+		<width>20</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>8</id>
+		<categoryid>Elves</categoryid>
+		<name>Girl Elf</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GirlElf01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GirlElf01.png</faceimage>
+		<width>1106</width>
+		<height>1600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>9</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Girl Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GirlTree01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GirlTree01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>10</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Green Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GreenBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GreenBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>11</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Green Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GreenBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GreenBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>12</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Green Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GreenTree01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GreenTree01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>13</id>
+		<categoryid>Grinch</categoryid>
+		<name>Grinch</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Grinch01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Grinch01.gif</faceimage>
+		<width>1280</width>
+		<height>800</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>14</id>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<categoryid>Elves</categoryid>
+		<name>Minion Elf</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MinionElf01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MinionElf01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>15</id>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<categoryid>Santa</categoryid>
+		<name>Minion Santa</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MinionSanta01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MinionSanta01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>16</id>
+		<categoryid>Monsters</categoryid>
+		<name>Monster - Flat</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MonsterFlat01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MonsterFlat01.jpg</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>17</id>
+		<categoryid>Monsters</categoryid>
+		<name>Monster - Horn</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MonsterHorn01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MonsterHorn01.jpg</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>18</id>
+		<categoryid>Monsters</categoryid>
+		<name>Monster - Round</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MonsterRound01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MonsterRound01.jpg</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>19</id>
+		<categoryid>Monsters</categoryid>
+		<name>4 Monsters</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Monsters01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Monsters01.jpg</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>20</id>
+		<categoryid>Monsters</categoryid>
+		<categoryid>Skulls</categoryid>
+		<name>Monster - Skull</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MonsterSkull01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MonsterSkull01.jpg</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>21</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>White Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MouthOnly01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MouthOnly01.gif</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>22</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Odd Face</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OddFace01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OddFace01.jpg</faceimage>
+		<width>193</width>
+		<height>237</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>23</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Olaf</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Olaf.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Olaf.gif</faceimage>
+		<width>449</width>
+		<height>306</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>24</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Orange Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrangeBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrangeBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>25</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Orange Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrangeBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrangeBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>26</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Pineapple</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pineapple01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pineapple01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>27</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Pineapple</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pineapple02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pineapple02.png</faceimage>
+		<width>14</width>
+		<height>22</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Pink Bow</notes>
+	</face>
+	<face>
+		<id>28</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Pineapple</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pineapple03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pineapple03.png</faceimage>
+		<width>14</width>
+		<height>22</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Purple Bow</notes>
+	</face>
+	<face>
+		<id>29</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Pineapple</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pineapple04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pineapple04.png</faceimage>
+		<width>14</width>
+		<height>22</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Red Bow</notes>
+	</face>
+	<face>
+		<id>30</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Pink Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PinkBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PinkBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>31</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Pink Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PinkBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PinkBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>32</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Poppy</name>
+		<artist>Logan Carpenter</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Poppy.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Poppy.gif</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>33</id>
+		<categoryid>Monsters</categoryid>
+		<name>Purple People Eater</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PPE.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PPE.gif</faceimage>
+		<width>300</width>
+		<height>250</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>34</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pumpkin01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pumpkin01.png</faceimage>
+		<width>230</width>
+		<height>200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>35</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin 1 of 3</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pumpkin1of3.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pumpkin1of3.png</faceimage>
+		<width>150</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>36</id>
+		<categoryid>Pumpkins</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Pumpkin</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pumpkin02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pumpkin02.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>37</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin 2 of 3</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pumpkin2of3.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pumpkin2of3.png</faceimage>
+		<width>150</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>38</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin 3 of 3</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pumpkin3of3.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pumpkin3of3.png</faceimage>
+		<width>150</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>39</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Purple Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PurpleBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PurpleBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>40</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Purple Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PurpleBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PurpleBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>41</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Red Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/RedBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/RedBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>42</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Red Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/RedBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/RedBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>43</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Red Trees</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/RedTrees.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/RedTrees.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>44</id>
+		<categoryid>Santa</categoryid>
+		<name>Santa</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Santa02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Santa02.png</faceimage>
+		<width>1240</width>
+		<height>1252</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>45</id>
+		<categoryid>Santa</categoryid>
+		<name>Santa Waving</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Santa03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Santa03.jpg</faceimage>
+		<width>1200</width>
+		<height>1200</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>46</id>
+		<categoryid>Skulls</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Tree Skull</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Skull01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Skull01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>47</id>
+		<categoryid>Skulls</categoryid>
+		<name>Skull</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Skull02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Skull02.jpg</faceimage>
+		<width>977</width>
+		<height>937</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>48</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Smidge</name>
+		<artist>Logan Carpenter</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Smidge.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Smidge.gif</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>49</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman</name>
+		<artist>David Geall</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman01.jpg</faceimage>
+		<width>89</width>
+		<height>96</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>50</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman02.png</faceimage>
+		<width>50</width>
+		<height>40</height>
+		<minwidth>25</minwidth>
+		<minheight>18</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>51</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman03.png</faceimage>
+		<width>236</width>
+		<height>330</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>52</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman04.png</faceimage>
+		<width>680</width>
+		<height>800</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>53</id>
+		<categoryid>Trees</categoryid>
+		<name>Star Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/StarTree01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/StarTree01.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>54</id>
+		<categoryid>Trees</categoryid>
+		<name>Star Tree Eyes Down</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/StarTreeDown.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/StarTreeDown.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>55</id>
+		<categoryid>Trees</categoryid>
+		<name>Star Tree Eyes Left</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/StarTreeLeft.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/StarTreeLeft.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>56</id>
+		<categoryid>Trees</categoryid>
+		<name>Star Tree Eyes Right</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/StarTreeRight.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/StarTreeRight.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>57</id>
+		<categoryid>Trees</categoryid>
+		<name>Star Tree Eyes Up</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/StarTreeUp.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/StarTreeUp.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>58</id>
+		<categoryid>Trees</categoryid>
+		<name>Blue Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeBlue01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeBlue01.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>59</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Simple Tree Face</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeFace01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeFace01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>60</id>
+		<categoryid>Trees</categoryid>
+		<name>Green Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeGreen01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeGreen01.png</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>61</id>
+		<categoryid>Trees</categoryid>
+		<name>Green Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeGreen02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeGreen02.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>62</id>
+		<categoryid>Trees</categoryid>
+		<name>Light Green Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeLightGreen01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeLightGreen01.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>63</id>
+		<categoryid>Trees</categoryid>
+		<name>Red Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeRed01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeRed01.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>64</id>
+		<categoryid>Trees</categoryid>
+		<name>Tall Tree</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeTall01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeTall01.png</faceimage>
+		<width>30</width>
+		<height>96</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>65</id>
+		<categoryid>Trees</categoryid>
+		<name>Teal Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeTeal01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeTeal01.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>66</id>
+		<categoryid>Trees</categoryid>
+		<name>Yellow Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeYellow01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeYellow01.jpg</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>67</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Troll</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Troll.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Troll.gif</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>68</id>
+		<categoryid>Bulbs</categoryid>
+		<name>White Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/WhiteBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/WhiteBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>69</id>
+		<categoryid>Bulbs</categoryid>
+		<name>White Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/WhiteBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/WhiteBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>70</id>
+		<categoryid>Witches</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Witch</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch01.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>71</id>
+		<categoryid>Other</categoryid>
+		<name>Witch Doctor</name>
+		<artist>Edward Czajka</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witchdoctor.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witchdoctor.jpg</faceimage>
+		<width>350</width>
+		<height>480</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>72</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Yellow Bulb</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/YellowBulb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/YellowBulb.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>73</id>
+		<categoryid>Bulbs</categoryid>
+		<name>Yellow Bulb with Hat</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/YellowBulbHat.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/YellowBulbHat.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>74</id>
+		<categoryid>Pumpkins</categoryid>
+		<name>Pumpkin</name>
+		<artist>Gil Jones</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PumpkinGil.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PumpkinGil.png</faceimage>
+		<width>87</width>
+		<height>80</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>75</id>
+		<categoryid>Dracula</categoryid>
+		<name>Dracula</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Dracula01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Dracula01.png</faceimage>
+		<width>555</width>
+		<height>732</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>76</id>
+		<categoryid>Monsters</categoryid>
+		<name>Blue Face-Green Eyes</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/EvilEyes01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/EvilEyes01.png</faceimage>
+		<width>229</width>
+		<height>229</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>77</id>
+		<categoryid>Monsters</categoryid>
+		<name>Blue Face-Red Eyes</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/EvilEyes02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/EvilEyes02.png</faceimage>
+		<width>229</width>
+		<height>229</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>78</id>
+		<categoryid>Monsters</categoryid>
+		<name>Blue Face-Red Eyes</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/EvilEyes03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/EvilEyes03.png</faceimage>
+		<width>229</width>
+		<height>229</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>79</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank03.png</faceimage>
+		<width>204</width>
+		<height>247</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>White teeth, High Resolution</notes>
+	</face>
+	<face>
+		<id>80</id>
+		<categoryid>Other</categoryid>
+		<name>Mike Wazowski</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Mike01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Mike01.png</faceimage>
+		<width>455</width>
+		<height>455</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>81</id>
+		<categoryid>Other</categoryid>
+		<name>Mike Wazowski</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Mike02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Mike02.png</faceimage>
+		<width>589</width>
+		<height>550</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>82</id>
+		<categoryid>Other</categoryid>
+		<name>One Eyed Minion</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Minion01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Minion01.png</faceimage>
+		<width>499</width>
+		<height>592</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>83</id>
+		<categoryid>Other</categoryid>
+		<name>Two Eyed Minion</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Minion02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Minion02.png</faceimage>
+		<width>205</width>
+		<height>245</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>84</id>
+		<categoryid>Monsters</categoryid>
+		<name>Four Armed Monster</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Monster01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Monster01.png</faceimage>
+		<width>244</width>
+		<height>207</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>85</id>
+		<categoryid>Monsters</categoryid>
+		<name>Pointy Eared Monster</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Monster02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Monster02.png</faceimage>
+		<width>891</width>
+		<height>742</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>86</id>
+		<categoryid>Santa</categoryid>
+		<name>Mrs Claus</name>
+		<artist>Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MrsClaus01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MrsClaus01.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>87</id>
+		<categoryid>Other</categoryid>
+		<name>Shrek</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Shrek01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Shrek01.png</faceimage>
+		<width>242</width>
+		<height>208</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>88</id>
+		<categoryid>Other</categoryid>
+		<name>Toothless Woman</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Toothless01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Toothless01.png</faceimage>
+		<width>675</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>89</id>
+		<categoryid>Other</categoryid>
+		<name>Blonde Girl</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Child01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Child01.png</faceimage>
+		<width>130</width>
+		<height>99</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>90</id>
+		<categoryid>Other</categoryid>
+		<name>Boy</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Child02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Child02.png</faceimage>
+		<width>130</width>
+		<height>99</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>91</id>
+		<categoryid>Other</categoryid>
+		<name>Brunette Girl</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Child03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Child03.png</faceimage>
+		<width>130</width>
+		<height>99</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>92</id>
+		<categoryid>Other</categoryid>
+		<name>Boy</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Child04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Child04.png</faceimage>
+		<width>130</width>
+		<height>99</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>93</id>
+		<categoryid>Elves</categoryid>
+		<categoryid>Deer</categoryid>
+		<name>Deer and Elf</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/DeerElf02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/DeerElf02.png</faceimage>
+		<width>345</width>
+		<height>300</height>
+		<minwidth>115</minwidth>
+		<minheight>100</minheight>
+		<notes>High Resolution</notes>
+	</face>
+	<face>
+		<id>94</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank04.png</faceimage>
+		<width>163</width>
+		<height>209</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>White teeth, Low Resolution</notes>
+	</face>
+	<face>
+		<id>95</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Jack Skelton</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/JackS01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/JackS01.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Face only</notes>
+	</face>
+	<face>
+		<id>96</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Christmas Jack</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/JackS02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/JackS02.png</faceimage>
+		<width>400</width>
+		<height>400</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Jack with Hat</notes>
+	</face>
+	<face>
+		<id>97</id>
+		<categoryid>Pumpkins</categoryid>
+		<categoryid>Monsters</categoryid>
+		<name>Light Street Court Pumpkin</name>
+		<artist>Gary ODonnell Jr</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/LSC01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/LSC01.png</faceimage>
+		<width>800</width>
+		<height>600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>98</id>
+		<categoryid>Monsters</categoryid>
+		<name>Light Street Court Monster</name>
+		<artist>Gary ODonnell Jr</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/LSC02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/LSC02.png</faceimage>
+		<width>800</width>
+		<height>600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>99</id>
+		<categoryid>Monsters</categoryid>
+		<name>Light Street Court Monster</name>
+		<artist>Gary ODonnell Jr</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/LSC03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/LSC03.png</faceimage>
+		<width>800</width>
+		<height>600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>100</id>
+		<categoryid>Other</categoryid>
+		<name>Mickey Mouse</name>
+		<artist>Walt Disney - Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MM01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MM01.png</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>48</minwidth>
+		<minheight>24</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>101</id>
+		<categoryid>Monsters</categoryid>
+		<name>Pink Monster</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Monster03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Monster03.png</faceimage>
+		<width>223</width>
+		<height>226</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>102</id>
+		<categoryid>Mummy</categoryid>
+		<name>Mummy</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Mummy01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Mummy01.png</faceimage>
+		<width>493</width>
+		<height>600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>103</id>
+		<categoryid>Trees</categoryid>
+		<name>Singing Tree</name>
+		<artist>Tomas Rodriguez</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Tree01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Tree01.png</faceimage>
+		<width>253</width>
+		<height>367</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>104</id>
+		<categoryid>Other</categoryid>
+		<name>Poppy</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Poppy02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Poppy02.png</faceimage>
+		<width>344</width>
+		<height>344</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>105</id>
+		<categoryid>Other</categoryid>
+		<name>Branch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Branch01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Branch01.png</faceimage>
+		<width>513</width>
+		<height>440</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>106</id>
+		<categoryid>Witches</categoryid>0
+		<name>Witch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch02.png</faceimage>
+		<width>450</width>
+		<height>449</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>107</id>
+		<categoryid>MegaTreeFaces</categoryid>
+		<name>Minion</name>
+		<artist>Richard Maciejewski</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Minion03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Minion03.png</faceimage>
+		<width>24</width>
+		<height>52</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>From Crystal Night Light Shows</notes>
+	</face>
+	<face>
+		<id>108</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Alvin</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Alvin01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Alvin01.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes>Chipmunk</notes>
+	</face>
+	<face>
+		<id>109</id>
+		<categoryid>Other</categoryid>
+		<name>Minnie Mouse</name>
+		<artist>Walt Disney - Christopher Kovacik</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MM02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MM02.png</faceimage>
+		<width>200</width>
+		<height>200</height>
+		<minwidth>48</minwidth>
+		<minheight>24</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>110</id>
+		<categoryid>Other</categoryid>
+		<name>Green Candy</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MMGreen01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MMGreen01.png</faceimage>
+		<width>88</width>
+		<height>100</height>
+		<minwidth>25</minwidth>
+		<minheight>18</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>111</id>
+		<categoryid>Other</categoryid>
+		<name>Porky Pig</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PP01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PP01.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>112</id>
+		<categoryid>Monsters</categoryid>
+		<name>Devil</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Devil.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Devil.png</faceimage>
+		<width>85</width>
+		<height>85</height>
+		<minwidth>16</minwidth>
+		<minheight>50</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>113</id>
+		<categoryid>Other</categoryid>
+		<name>Elvis</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elvis01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elvis01.png</faceimage>
+		<width>14</width>
+		<height>20</height>
+		<minwidth>14</minwidth>
+		<minheight>20</minheight>
+		<notes>Best used on small matrix or pixel tree</notes>
+	</face>
+	<face>
+		<id>114</id>
+		<categoryid>Other</categoryid>
+		<name>Lady Liberty</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Liberty.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Liberty.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>115</id>
+		<categoryid>Witches</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Tree Witch</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreeWitch.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreeWitch.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>12</minwidth>
+		<minheight>40</minheight>
+		<notes>"Logan Carpenter" style face. This image should only be used on a "Tree."</notes>
+	</face>
+	<face>
+		<id>116</id>
+		<categoryid>Other</categoryid>
+		<name>Uncle Sam</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/UncleSam.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/UncleSam.png</faceimage>
+		<width>299</width>
+		<height>366</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>117</id>
+		<categoryid>Deer</categoryid>
+		<name>Cute Deer</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Cutedeer01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Cutedeer01.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>118</id>
+		<categoryid>Deer</categoryid>
+		<name>Cute Deer - Left</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Cutedeer02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Cutedeer02.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Leaning Left</notes>
+	</face>
+	<face>
+		<id>119</id>
+		<categoryid>Deer</categoryid>
+		<name>Cute Deer - Right</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Cutedeer03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Cutedeer03.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Leaning Left</notes>
+	</face>
+	<face>
+		<id>120</id>
+		<categoryid>Deer</categoryid>
+		<name>Reindeer</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Reindeer01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Reindeer01.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Reindeer with lights in antlers</notes>
+	</face>
+	<face>
+		<id>121</id>
+		<categoryid>Deer</categoryid>
+		<name>White Boomer</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Boomer01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Boomer01.png</faceimage>
+		<width>212</width>
+		<height>215</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Not sure if this guy can work for the "White Boomer" charcter - have at it!</notes>
+	</face>
+	<face>
+		<id>122</id>
+		<categoryid>Deer</categoryid>
+		<name>Small White Boomer</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Boomer02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Boomer02.png</faceimage>
+		<width>16</width>
+		<height>20</height>
+		<minwidth>16</minwidth>
+		<minheight>20</minheight>
+		<notes>Best used on small matrix or centered on pixel tree.</notes>
+	</face>
+	<face>
+		<id>123</id>
+		<categoryid>Ghosts</categoryid>
+		<name>Casper</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Casper.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Casper.png</faceimage>
+		<width>245</width>
+		<height>258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>124</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Polar Express Conductor</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/conductor.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/conductor.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>125</id>
+		<categoryid>Elves</categoryid>
+		<name>Elf holding Sign</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elfsign.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elfsign.png</faceimage>
+		<width>227</width>
+		<height>300</height>
+		<minwidth>16</minwidth>
+		<minheight>50</minheight>
+		<notes>SCALE this image to work on smaller matix</notes>
+	</face>
+	<face>
+		<id>126</id>
+		<categoryid>MiscChristmas</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Elsa</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elsa01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elsa01.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Forward looking and includes closed eyes</notes>
+	</face>
+	<face>
+		<id>127</id>
+		<categoryid>Other</categoryid>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Elsa Left</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elsa02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elsa02.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Looking left, does not include closed eyes</notes>
+	</face>
+	<face>
+		<id>128</id>
+		<categoryid>MiscChristmas</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Elsa Right</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elsa03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elsa03.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Looking right, does not include closed eyes</notes>
+	</face>
+	<face>
+		<id>129</id>
+		<categoryid>Ghosts</categoryid>
+		<name>Ghost</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Ghost01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Ghost01.png</faceimage>
+		<width>291</width>
+		<height>299</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>130</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Teddy Bear in Stocking</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BearStocking.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BearStocking.png</faceimage>
+		<width>300</width>
+		<height>420</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>131</id>
+		<categoryid>Other</categoryid>
+		<name>Bella</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Bella.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Bella.png</faceimage>
+		<width>440</width>
+		<height>488</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>132</id>
+		<categoryid>MiscChristmas</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Elsa for Tree</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elsa04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elsa04.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Looking forward, lower resolution for mega tree</notes>
+	</face>
+	<face>
+		<id>133</id>
+		<categoryid>Other</categoryid>
+		<name>Elvis</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elvis02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elvis02.png</faceimage>
+		<width>552</width>
+		<height>627</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>134</id>
+		<categoryid>Other</categoryid>
+		<name>Fairy Godmother</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/FairyGM01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/FairyGM01.png</faceimage>
+		<width>186</width>
+		<height>195</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>135</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein</name>
+		<artist>Unknown</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank05.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank05.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Scary Mouth</notes>
+	</face>
+	<face>
+		<id>136</id>
+		<categoryid>Other</categoryid>
+		<name>Queen Grimhilde</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Grimhilde.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Grimhilde.png</faceimage>
+		<width>204</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>137</id>
+		<categoryid>Other</categoryid>
+		<name>Heart</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Heart01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Heart01.png</faceimage>
+		<width>300</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Singing Heart - High Resolution</notes>
+	</face>
+	<face>
+		<id>138</id>
+		<categoryid>Other</categoryid>
+		<name>Heart</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Heart02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Heart02.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Singing Heart - Low Resolution</notes>
+	</face>
+	<face>
+		<id>139</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Red Ornament</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnRed01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnRed01.png</faceimage>
+		<width>475</width>
+		<height>720</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>140</id>
+		<categoryid>Other</categoryid>
+		<name>Snow White</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/SnowWhite01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/SnowWhite01.png</faceimage>
+		<width>284</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>141</id>
+		<categoryid>Other</categoryid>
+		<name>Tiana</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Tiana.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Tiana.png</faceimage>
+		<width>305</width>
+		<height>450</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>142</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Charlie Brown Face - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieFace03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieFace03.png</faceimage>
+		<width>93</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Low Resolution Image</notes>
+	</face>
+	<face>
+		<id>143</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Charlie Brown Face - Med</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieFace01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieFace01.png</faceimage>
+		<width>279</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Medium Resolution Image</notes>
+	</face>
+	<face>
+		<id>144</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Charlie Brown Face - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieFace02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieFace02.png</faceimage>
+		<width>585</width>
+		<height>629</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>High Resolution Image</notes>
+	</face>
+	<face>
+		<id>145</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Standing Charlie Brown - Small</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieStand03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieStand03.png</faceimage>
+		<width>58</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Low Resolution Image</notes>
+	</face>
+	<face>
+		<id>146</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Standing Charlie Brown - Med</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieStand01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieStand01.png</faceimage>
+		<width>291</width>
+		<height>500</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Medium Resolution Image</notes>
+	</face>
+	<face>
+		<id>147</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Standing Charlie Brown - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/CharlieStand02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/CharlieStand02.png</faceimage>
+		<width>586</width>
+		<height>1006</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>High Resolution Image</notes>
+	</face>
+	<face>
+		<id>148</id>
+		<categoryid>Other</categoryid>
+		<name>Lucy (Peanuts) - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Lucy02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Lucy02.png</faceimage>
+		<width>54</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Low Resolution Image</notes>
+	</face>
+	<face>
+		<id>149</id>
+		<categoryid>Other</categoryid>
+		<name>Lucy (Peanuts) - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Lucy01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Lucy01.png</faceimage>
+		<width>238</width>
+		<height>443</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>High Resolution Image</notes>
+	</face>
+	<face>
+		<id>150</id>
+		<categoryid>Elves</categoryid>
+		<name>Elf with Candy Cane</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfCandy01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfCandy01.png</faceimage>
+		<width>243</width>
+		<height>500</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>151</id>
+		<categoryid>Elves</categoryid>
+		<name>Elf with Gift Box - Two Handed</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfGift01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfGift01.png</faceimage>
+		<width>279</width>
+		<height>500</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>152</id>
+		<categoryid>Elves</categoryid>
+		<name>Elf with Gift Box - One Handed</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfGift02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfGift02.png</faceimage>
+		<width>322</width>
+		<height>500</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>153</id>
+		<categoryid>Other</categoryid>
+		<name>Baby New Year</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/NewYearBaby.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/NewYearBaby.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>154</id>
+		<categoryid>Trees</categoryid>
+		<name>Singing Tree</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Tree02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Tree02.png</faceimage>
+		<width>100</width>
+		<height>141</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>155</id>
+		<categoryid>HalloweenTrees</categoryid>
+		<categoryid>Dracula</categoryid>		
+		<name>Dracula Tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/DraculaTree.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/DraculaTree.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>16</minwidth>
+		<minheight>50</minheight>
+		<notes>Created for 16X50 or slightly larger tree's only</notes>
+	</face>
+	<face>
+		<id>156</id>
+		<categoryid>Bulbs</categoryid>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<name>Blue Bulb for Tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BlueBulb01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BlueBulb01.png</faceimage>
+		<width>16</width>
+		<height>33</height>
+		<minwidth>16</minwidth>
+		<minheight>33</minheight>
+		<notes>Rounds out when used on tree. Best used on pixel tree 16x33 or slightly larger</notes>
+	</face>
+	<face>
+		<id>157</id>
+		<categoryid>Bulbs</categoryid>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<name>Green Bulb for Tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GreenBulb01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GreenBulb01.png</faceimage>
+		<width>16</width>
+		<height>33</height>
+		<minwidth>16</minwidth>
+		<minheight>33</minheight>
+		<notes>Rounds out when used on tree. Best used on pixel tree 16x33 or slightly larger</notes>
+	</face>
+	<face>
+		<id>158</id>
+		<categoryid>Bulbs</categoryid>
+		<categoryid>ChristmasMegaTrees</categoryid>
+		<name>Red Bulb for Tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/RedBulb01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/RedBulb01.png</faceimage>
+		<width>16</width>
+		<height>33</height>
+		<minwidth>16</minwidth>
+		<minheight>33</minheight>
+		<notes>Rounds out when used on tree. Best used on pixel tree 16x33 or slightly larger</notes>
+	</face>
+	<face>
+		<id>159</id>
+		<categoryid>Elves</categoryid>
+		<name>Cute Elf</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elf01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elf01.png</faceimage>
+		<width>152</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>160</id>
+		<categoryid>Elves</categoryid>
+		<name>Cute Elf - Face only</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfFace01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfFace01.png</faceimage>
+		<width>152</width>
+		<height>152</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>161</id>
+		<categoryid>Elves</categoryid>
+		<name>Elf Face</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfFace02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfFace02.png</faceimage>
+		<width>98</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>162</id>
+		<categoryid>Trees</categoryid>
+		<name>Pink Tree</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TreePink01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TreePink01.png</faceimage>
+		<width>230</width>
+		<height>248</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>163</id>
+		<categoryid>Zombies</categoryid>
+		<categoryid>HalloweenTrees</categoryid>
+		<name>Zombie for tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Zombie01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Zombie01.png</faceimage>
+		<width>16</width>
+		<height>20</height>
+		<minwidth>16</minwidth>
+		<minheight>20</minheight>
+		<notes>Best for smaller mega tree's or matrices. Face "rounds" out when displayed on tree.</notes>
+	</face>
+	<face>
+		<id>164</id>
+		<categoryid>Zombies</categoryid>
+		<name>Zombie</name>
+		<artist>Todd Wright</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Zombie02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Zombie02.png</faceimage>
+		<width>100</width>
+		<height>100</height>
+		<minwidth>20</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>165</id>
+		<categoryid>Santa</categoryid>
+		<name>Aussie Santa</name>
+		<artist>Matthew Thompson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/AussieSanta.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/AussieSanta.png</faceimage>
+		<width>600</width>
+		<height>600</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>166</id>
+		<categoryid>Elves</categoryid>
+		<name>Sitting Elf - High Res</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elf02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elf02.png</faceimage>
+		<width>332</width>
+		<height>527</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>167</id>
+		<categoryid>Elves</categoryid>
+		<name>Sitting Elf - Low Res</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elf03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elf03.png</faceimage>
+		<width>63</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>168</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank06.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank06.png</faceimage>
+		<width>300</width>
+		<height>433</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>169</id>
+		<categoryid>Frankenstein</categoryid>
+		<name>Frankenstein - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Frank07.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Frank07.png</faceimage>
+		<width>50</width>
+		<height>72</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>170</id>
+		<categoryid>Ghosts</categoryid>
+		<name>Ghostbuster Logo</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/GhostBuster.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/GhostBuster.png</faceimage>
+		<width>260</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>171</id>
+		<categoryid>Gingerbread</categoryid>
+		<name>Gingerbread Man - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Ginger01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Ginger01.png</faceimage>
+		<width>239</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version.</notes>
+	</face>
+	<face>
+		<id>172</id>
+		<categoryid>Gingerbread</categoryid>
+		<name>Gingerbread Man - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Ginger02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Ginger02.png</faceimage>
+		<width>80</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version.  Includes all closed eyes.</notes>
+	</face>
+	<face>
+		<id>173</id>
+		<categoryid>Gingerbread</categoryid>
+		<name>Gingerbread Man - Frosting</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Ginger03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Ginger03.png</faceimage>
+		<width>239</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is a High Resolution version.  FROSTING is Transperate - the background will change the frosting colors on a Matrix.</notes>
+	</face>
+	<face>
+		<id>174</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Blue Ornament</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnBlue01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnBlue01.png</faceimage>
+		<width>1000</width>
+		<height>1258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>175</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Green Ornament</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnGreen01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnGreen01.png</faceimage>
+		<width>1000</width>
+		<height>1258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>176</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Pink Ornament</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnPink01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnPink01.png</faceimage>
+		<width>1000</width>
+		<height>1258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>177</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Purple Ornament</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnPurple01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnPurple01.png</faceimage>
+		<width>1000</width>
+		<height>1258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>178</id>
+		<categoryid>Ornaments</categoryid>
+		<name>Red Ornament</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/OrnRed02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/OrnRed02.png</faceimage>
+		<width>1000</width>
+		<height>1258</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>179</id>
+		<categoryid>Ghosts</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Slimer from Ghostbusters</name>
+		<artist>James Innes</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Slimer.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Slimer.png</faceimage>
+		<width>100</width>
+		<height>93</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>180</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch03.png</faceimage>
+		<width>92</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>181</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch04.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch04.png</faceimage>
+		<width>300</width>
+		<height>325</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>182</id>
+		<categoryid>Other</categoryid>
+		<name>Winnie the Pooh - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pooh01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pooh01.png</faceimage>
+		<width>77</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>183</id>
+		<categoryid>Other</categoryid>
+		<name>Winnie the Pooh - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Pooh02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Pooh02.png</faceimage>
+		<width>231</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>184</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Bear in Gift Box - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BearGift01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BearGift01.png</faceimage>
+		<width>75</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Bear in a gift box with a hat and deer antlers. This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>185</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Bear in Gift Box - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/BearGift02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/BearGift02.png</faceimage>
+		<width>224</width>
+		<height>299</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Bear in a gift box with a hat and deer antlers. This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>186</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Cat - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Cat01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Cat01.png</faceimage>
+		<width>74</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>187</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Cat - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Cat02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Cat02.png</faceimage>
+		<width>223</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>188</id>
+		<categoryid>Elves</categoryid>
+		<name>Chubby (Bashful) Elf - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfChubby01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfChubby01.png</faceimage>
+		<width>67</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>189</id>
+		<categoryid>Elves</categoryid>
+		<name>Chubby (Bashful) Elf - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfChubby02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfChubby02.png</faceimage>
+		<width>201</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>190</id>
+		<categoryid>Deer</categoryid>
+		<name>Deer with Ornament - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/DeerOrn01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/DeerOrn01.png</faceimage>
+		<width>100</width>
+		<height>93</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>191</id>
+		<categoryid>Deer</categoryid>
+		<name>Deer with Ornament - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/DeerOrn02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/DeerOrn02.png</faceimage>
+		<width>300</width>
+		<height>278</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>192</id>
+		<categoryid>Elves</categoryid>
+		<name>Girl Elf with Bell - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfBell01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfBell01.png</faceimage>
+		<width>71</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>193</id>
+		<categoryid>Elves</categoryid>
+		<name>Girl Elf with Bell - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ElfBell02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ElfBell02.png</faceimage>
+		<width>214</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>194</id>
+		<categoryid>Grinch</categoryid>
+		<name>Grinch - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Grinch02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Grinch02.png</faceimage>
+		<width>79</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>195</id>
+		<categoryid>Grinch</categoryid>
+		<name>Grinch - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Grinch03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Grinch03.png</faceimage>
+		<width>385</width>
+		<height>486</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>196</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Puppy - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Puppy01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Puppy01.png</faceimage>
+		<width>61</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>197</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Puppy - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Puppy02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Puppy02.png</faceimage>
+		<width>182</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>198</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman with Hat and Scarf - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman05.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman05.png</faceimage>
+		<width>67</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>199</id>
+		<categoryid>Snowmen</categoryid>
+		<name>Snowman with Hat and Scarf - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Snowman06.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Snowman06.png</faceimage>
+		<width>300</width>
+		<height>445</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>200</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Toddler - Low</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Toddler01.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Toddler01.png</faceimage>
+		<width>67</width>
+		<height>100</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the Low Resolution version</notes>
+	</face>
+	<face>
+		<id>201</id>
+		<categoryid>MiscChristmas</categoryid>
+		<name>Toddler - High</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Toddler02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Toddler02.png</faceimage>
+		<width>207</width>
+		<height>300</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>This is the High Resolution version</notes>
+	</face>
+	<face>
+		<id>202</id>
+		<categoryid>Deer</categoryid>
+		<categoryid>ChristmasMegaTrees</categoryid>		
+		<name>White Boomer for Tree</name>
+		<artist>Matthew Mark</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Boomer03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Boomer03.png</faceimage>
+		<width>16</width>
+		<height>50</height>
+		<minwidth>16</minwidth>
+		<minheight>50</minheight>
+		<notes>Best used on small matrix or pixel tree</notes>
+	</face>
+	<face>
+		<id>203</id>
+		<categoryid>Skulls</categoryid>
+		<name>Skull 32</name>
+		<artist></artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Skull32.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Skull32.png</faceimage>
+		<width>32</width>
+		<height>32</height>
+		<minwidth>16</minwidth>
+		<minheight>16</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>204</id>
+		<categoryid>MiscHalloween</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Scary Clown</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Clown.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Clown.png</faceimage>
+		<width>432</width>
+		<height>303</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>205</id>
+		<categoryid>Other</categoryid>
+		<name>Elvis</name>
+		<artist>Julie Mahan</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elvis03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elvis03.jpg</faceimage>
+		<width>60</width>
+		<height>104</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Best used on small matrix or pixel tree</notes>
+	</face>
+	<face>
+		<id>206</id>
+		<categoryid>MiscHalloween</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Vincent Price</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Price.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Price.png</faceimage>
+		<width>163</width>
+		<height>182</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>207</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Scream Mask</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Scream.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Scream.png</faceimage>
+		<width>347</width>
+		<height>535</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+	<face>
+		<id>208</id>
+		<categoryid>MiscHalloween</categoryid>
+		<name>Werewolf</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Werewolf.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Werewolf.png</faceimage>
+		<width>131</width>
+		<height>125</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes></notes>
+	</face>
+</faces>
