@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.12 May 11, 2018
    -- bug (dkulp)  Hostnames were not usable in several places, had to use IP addresses
    -- enh (dkulp)  FPP Connect - upload output settings for DDP outputs
    -- bug (dkulp)  Fix crash if uploading zig zag settings to FPP controller
