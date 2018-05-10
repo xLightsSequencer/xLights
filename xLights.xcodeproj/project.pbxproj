@@ -97,6 +97,11 @@
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
 		673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673930DD202B6103000A33B4 /* SelectPanel.cpp */; };
 		673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C45561C79570B00FDED47 /* BufferPanel.cpp */; };
+		673C925320A47C4C00E59F5D /* VendorMusicHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925020A47C4900E59F5D /* VendorMusicHelpers.cpp */; };
+		673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925220A47C4C00E59F5D /* VendorMusicDialog.cpp */; };
+		673C925920A47C5400E59F5D /* JukeboxPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925520A47C5400E59F5D /* JukeboxPanel.cpp */; };
+		673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */; };
+		673C925B20A47CEF00E59F5D /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
@@ -871,6 +876,14 @@
 		673930DE202B6103000A33B4 /* SelectPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SelectPanel.h; sourceTree = "<group>"; };
 		673C45551C79570B00FDED47 /* BufferPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BufferPanel.h; sourceTree = "<group>"; };
 		673C45561C79570B00FDED47 /* BufferPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BufferPanel.cpp; sourceTree = "<group>"; };
+		673C924F20A47C4800E59F5D /* VendorMusicDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VendorMusicDialog.h; sourceTree = "<group>"; };
+		673C925020A47C4900E59F5D /* VendorMusicHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorMusicHelpers.cpp; sourceTree = "<group>"; };
+		673C925120A47C4C00E59F5D /* VendorMusicHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VendorMusicHelpers.h; sourceTree = "<group>"; };
+		673C925220A47C4C00E59F5D /* VendorMusicDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorMusicDialog.cpp; sourceTree = "<group>"; };
+		673C925520A47C5400E59F5D /* JukeboxPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JukeboxPanel.cpp; sourceTree = "<group>"; };
+		673C925620A47C5400E59F5D /* JukeboxPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JukeboxPanel.h; sourceTree = "<group>"; };
+		673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinkJukeboxButtonDialog.cpp; sourceTree = "<group>"; };
+		673C925820A47C5400E59F5D /* LinkJukeboxButtonDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkJukeboxButtonDialog.h; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
 		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
@@ -2544,6 +2557,14 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				673C925520A47C5400E59F5D /* JukeboxPanel.cpp */,
+				673C925620A47C5400E59F5D /* JukeboxPanel.h */,
+				673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */,
+				673C925820A47C5400E59F5D /* LinkJukeboxButtonDialog.h */,
+				673C925220A47C4C00E59F5D /* VendorMusicDialog.cpp */,
+				673C924F20A47C4800E59F5D /* VendorMusicDialog.h */,
+				673C925020A47C4900E59F5D /* VendorMusicHelpers.cpp */,
+				673C925120A47C4C00E59F5D /* VendorMusicHelpers.h */,
 				6730747A208E737800D57F99 /* FolderSelection.cpp */,
 				6730747B208E737800D57F99 /* FolderSelection.h */,
 				67BBFD0E208BD72D00A3D5AE /* LayerSelectDialog.cpp */,
@@ -3328,6 +3349,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				673C925B20A47CEF00E59F5D /* md5.cpp in Sources */,
 				3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */,
 				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
 				67B2CF8E1C39D98A003C17CA /* WavePanel.cpp in Sources */,
@@ -3366,6 +3388,7 @@
 				67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */,
 				67B2CF991C39E5B0003C17CA /* ButterflyPanel.cpp in Sources */,
 				67DB97391B05744100FC5ADC /* SuperStarImportDialog.cpp in Sources */,
+				673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */,
 				67B2CF831C39D98A003C17CA /* ShimmerPanel.cpp in Sources */,
 				67B2CFDE1C3A186A003C17CA /* WaveEffect.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
@@ -3439,6 +3462,7 @@
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
+				673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				670827F72024C19D0002B617 /* LorControllers.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
@@ -3475,6 +3499,7 @@
 				6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */,
+				673C925320A47C4C00E59F5D /* VendorMusicHelpers.cpp in Sources */,
 				67BA42A71C93B78500D17518 /* StartChannelDialog.cpp in Sources */,
 				67B2CFEB1C3A186A003C17CA /* LifeEffect.cpp in Sources */,
 				67623E731AD2BF3F0022667B /* BitmapCache.cpp in Sources */,
@@ -3531,6 +3556,7 @@
 				67B2CFED1C3A186A003C17CA /* GarlandsEffect.cpp in Sources */,
 				675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
+				673C925920A47C5400E59F5D /* JukeboxPanel.cpp in Sources */,
 				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
 				67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
