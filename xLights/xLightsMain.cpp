@@ -1592,30 +1592,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
 
-    if (!xLightsApp::fseqDir.IsNull())
-    {
-        fseqDirectory = xLightsApp::fseqDir;
-    }
-    else if (ok && !config->Read(_("FSEQDir"), &fseqDirectory))
-    {
-        fseqDirectory = dir;
-    }
-    ObtainAccessToURL(fseqDirectory.ToStdString());
-
-    logger_base.debug("FSEQ directory %s.", (const char *)fseqDirectory.c_str());
-
-    if (!xLightsApp::backupDir.IsNull())
-    {
-        backupDirectory = xLightsApp::backupDir;
-    }
-    else if (ok && !config->Read(_("BackupDir"), &backupDirectory))
-    {
-        backupDirectory = dir;
-    }
-    ObtainAccessToURL(backupDirectory.ToStdString());
-
-    logger_base.debug("Backup directory %s.", (const char *)backupDirectory.c_str());
-
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
     {
@@ -2478,13 +2454,6 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     //  first make sure there is a Backup sub directory
 
     wxString newDirBackup = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
-
-	if (wxFileName(backupDirectory) != wxFileName(showDirectory)) {
-		//If not using the Show Folder, Create a Subfolder called "'Show Folder'_Backup" to prevent confusion for ppl who change show folders alot
-		wxFileName showDir(CurrentDir);
-		newDirBackup = wxString::Format( "%s%c%s_Backup",
-			backupDirectory, wxFileName::GetPathSeparator(), showDir.GetName());
-	}
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
@@ -7551,11 +7520,15 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), dlg.MediaDirectory);
         config->Write(_("LinkFlag"), dlg.LinkMediaDir);
-        config->Write(_("FSEQDir"), dlg.FseqDirectory);
-        config->Write(_("FSEQLinkFlag"), dlg.LinkFSEQDir);
-        config->Write(_("BackupDir"), dlg.BackupDirectory);
-        config->Write(_("BackupLinkFlag"), dlg.LinkBackupDir);
         config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
+
+        //Always set values in xgb effects setting just in case
+        //if(mediaDirectory != dlg.MediaDirectory || backupDirectory != dlg.BackupDirectory)
+        {
+            SetXmlSetting("fseqDir", dlg.FseqDirectory);
+            SetXmlSetting("backupDir", dlg.BackupDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
 
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());

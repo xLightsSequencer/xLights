@@ -243,6 +243,26 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewBackgroundImage(mBackgroundImage);
 
+    //Load FSEQ and Backup directory settings
+    fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
+    backupDirectory = GetXmlSetting("backupDir", showDirectory);
+    ObtainAccessToURL(fseqDirectory.ToStdString());
+    ObtainAccessToURL(backupDirectory.ToStdString());
+    if (!wxDir::Exists(fseqDirectory))
+    {
+        logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
+        fseqDirectory = showDirectory;
+        SetXmlSetting("fseqDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+    if (!wxDir::Exists(backupDirectory))
+    {
+        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
+        backupDirectory = showDirectory;
+        SetXmlSetting("backupDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+
     mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup","Default");
 
     // validate stored preview exists
