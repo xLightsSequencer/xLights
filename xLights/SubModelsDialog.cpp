@@ -508,9 +508,9 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
     wxString msg = "";
     int count = tokenizer.CountTokens();
     if ( count > 1) {
-        msg.Printf(wxT("Are you sure you want to delete %d sub models ?"), count);
+        msg.Printf(wxT("Are you sure you want to delete %d sub models? \n\nCurrent open sequence effects will be removed as well. "), count);
     } else {
-        msg = "Are you sure you want to delete sub model " + names + "?";
+        msg = "Are you sure you want to delete sub model " + names + "? \n\nCurrent open sequence effects will be removed as well.";
     }
     int answer = wxMessageBox(msg,
                           "Delete Model",
