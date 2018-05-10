@@ -146,9 +146,6 @@ protected:
 
     const ModelManager &modelManager;
 
-    NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const;
-
-
     virtual void InitModel();
     virtual int CalcCannelsPerString();
     virtual void SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString);
@@ -183,6 +180,7 @@ protected:
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     std::string layout_group;
     std::string controller_connection;
+    int rgbwHandlingType;
 
     unsigned long changeCount;
 
@@ -371,7 +369,7 @@ public:
     {
         static std::string Nodes(" Nodes");
         if (Nodes.size() > StrType.size()) return false;
-        return !std::equal(Nodes.rbegin(), Nodes.rend(), StrType.rbegin());
+        return StrType.find(Nodes) == std::string::npos;
     }
     // true for traditional strings
     static bool HasSingleChannel(const std::string& StrType)

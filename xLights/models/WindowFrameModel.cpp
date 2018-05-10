@@ -42,7 +42,7 @@ void WindowFrameModel::InitFrame()
     SetBufferSize(height, width);   // treat as outside of matrix
     screenLocation.SetRenderSize(width, height);
     int chan = stringStartChan[0];
-    int ChanIncr = SingleChannel ?  1 : 3;
+    int ChanIncr = GetNodeChannelCount(StringType);
 
     float top_incr = (float)(width - 1) / (float)(top + 1);
     float bot_incr = -1 * (float)(width - 1) / (float)(bottom + 1);
