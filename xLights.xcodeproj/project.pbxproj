@@ -12,11 +12,6 @@
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
 		1E3E25061E3716CF001D48E3 /* PlayListItemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */; };
 		1E3E25071E3716CF001D48E3 /* PlayListItemTestPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */; };
-		1EA54CAB20A3F9B8002D86FC /* JukeboxPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EA54CAA20A3F9B8002D86FC /* JukeboxPanel.cpp */; };
-		1EA54CB020A3F9EC002D86FC /* VendorMusicDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EA54CAD20A3F9EB002D86FC /* VendorMusicDialog.cpp */; };
-		1EA54CB120A3F9EC002D86FC /* VendorMusicHelpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EA54CAE20A3F9EB002D86FC /* VendorMusicHelpers.cpp */; };
-		1EA54CB820A3FA5F002D86FC /* LinkJukeboxButtonDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EA54CB620A3FA5E002D86FC /* LinkJukeboxButtonDialog.cpp */; };
-		1EA54CBE20A407C3002D86FC /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1EA54CBD20A407C2002D86FC /* md5.cpp */; };
 		1ECB4F631FF4D014006D57AA /* BulkEditControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */; };
 		1ECB4F641FF4D014006D57AA /* BulkEditSliderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */; };
 		1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */; };
@@ -715,16 +710,6 @@
 		1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTest.h; path = PlayList/PlayListItemTest.h; sourceTree = "<group>"; };
 		1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemTestPanel.cpp; path = PlayList/PlayListItemTestPanel.cpp; sourceTree = "<group>"; };
 		1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemTestPanel.h; path = PlayList/PlayListItemTestPanel.h; sourceTree = "<group>"; };
-		1EA54CAA20A3F9B8002D86FC /* JukeboxPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JukeboxPanel.cpp; sourceTree = "<group>"; };
-		1EA54CAD20A3F9EB002D86FC /* VendorMusicDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorMusicDialog.cpp; sourceTree = "<group>"; };
-		1EA54CAE20A3F9EB002D86FC /* VendorMusicHelpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VendorMusicHelpers.cpp; sourceTree = "<group>"; };
-		1EA54CB320A3F9F4002D86FC /* VendorMusicDialog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VendorMusicDialog.h; sourceTree = "<group>"; };
-		1EA54CB420A3F9F5002D86FC /* VendorMusicHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VendorMusicHelpers.h; sourceTree = "<group>"; };
-		1EA54CB520A3FA29002D86FC /* JukeboxPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JukeboxPanel.h; sourceTree = "<group>"; };
-		1EA54CB620A3FA5E002D86FC /* LinkJukeboxButtonDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinkJukeboxButtonDialog.cpp; sourceTree = "<group>"; };
-		1EA54CB720A3FA5F002D86FC /* LinkJukeboxButtonDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkJukeboxButtonDialog.h; sourceTree = "<group>"; };
-		1EA54CBC20A407C2002D86FC /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = xSchedule/md5.h; sourceTree = SOURCE_ROOT; };
-		1EA54CBD20A407C2002D86FC /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5.cpp; path = xSchedule/md5.cpp; sourceTree = SOURCE_ROOT; };
 		1ECB4F5F1FF4D012006D57AA /* BulkEditControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BulkEditControls.h; sourceTree = "<group>"; };
 		1ECB4F601FF4D013006D57AA /* BulkEditControls.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditControls.cpp; sourceTree = "<group>"; };
 		1ECB4F611FF4D014006D57AA /* BulkEditSliderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BulkEditSliderDialog.cpp; sourceTree = "<group>"; };
@@ -2677,16 +2662,12 @@
 				67E8F64E1E513B380096546A /* IPEntryDialog.cpp */,
 				67E8F64F1E513B380096546A /* IPEntryDialog.h */,
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
-				1EA54CAA20A3F9B8002D86FC /* JukeboxPanel.cpp */,
-				1EA54CB520A3FA29002D86FC /* JukeboxPanel.h */,
 				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
 				676D0F6A1C72BAFA009C66FC /* kiss_fft */,
 				675D1E911D0B54B800CC6C02 /* LayoutGroup.cpp */,
 				675D1E931D0B54B800CC6C02 /* LayoutGroup.h */,
 				6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */,
 				6764010A1C8FBFC30079A4CF /* LayoutPanel.h */,
-				1EA54CB620A3FA5E002D86FC /* LinkJukeboxButtonDialog.cpp */,
-				1EA54CB720A3FA5F002D86FC /* LinkJukeboxButtonDialog.h */,
 				6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */,
@@ -2767,10 +2748,6 @@
 				67278C7D1CF74A01000DCFFB /* ValueCurveDialog.h */,
 				675AB40B1B5ACEC900853A28 /* Vamp */,
 				67E42C1D1B5C32AD00CEBEC2 /* VAMPPluginDialog.cpp */,
-				1EA54CAD20A3F9EB002D86FC /* VendorMusicDialog.cpp */,
-				1EA54CAE20A3F9EB002D86FC /* VendorMusicHelpers.cpp */,
-				1EA54CB320A3F9F4002D86FC /* VendorMusicDialog.h */,
-				1EA54CB420A3F9F5002D86FC /* VendorMusicHelpers.h */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
 				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
@@ -2836,8 +2813,6 @@
 				6781B1D81AF407A300A75E59 /* LMSImportChannelMapDialog.h */,
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
 				67AAF8FE1B642E7D00585431 /* LyricsDialog.h */,
-				1EA54CBD20A407C2002D86FC /* md5.cpp */,
-				1EA54CBC20A407C2002D86FC /* md5.h */,
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */,
 				672F95191A7A6619005FF8BF /* ModelPreview.h */,
@@ -3428,7 +3403,6 @@
 				671130AE1E4EB13B00AF09A7 /* ServoPanel.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
-				1EA54CBE20A407C3002D86FC /* md5.cpp in Sources */,
 				67B2B2281E1947BE0024F0BB /* E131Dialog.cpp in Sources */,
 				675D404B1E896AFD0033C950 /* LiquidEffect.cpp in Sources */,
 				67BD732D200D0C000074208A /* ImageModel.cpp in Sources */,
@@ -3491,7 +3465,6 @@
 				673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				670827F72024C19D0002B617 /* LorControllers.cpp in Sources */,
-				1EA54CB120A3F9EC002D86FC /* VendorMusicHelpers.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
 				67B2B2291E1947BE0024F0BB /* E131Output.cpp in Sources */,
 				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
@@ -3599,7 +3572,6 @@
 				679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */,
 				673930DF202B6103000A33B4 /* SelectPanel.cpp in Sources */,
 				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
-				1EA54CB820A3FA5F002D86FC /* LinkJukeboxButtonDialog.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */,
 				675AB42F1B5ACEDA00853A28 /* PluginWrapper.cpp in Sources */,
@@ -3621,7 +3593,6 @@
 				673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */,
 				672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */,
 				6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */,
-				1EA54CAB20A3F9B8002D86FC /* JukeboxPanel.cpp in Sources */,
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67B2CFD61C3A186A003C17CA /* SnowflakesEffect.cpp in Sources */,
@@ -3647,7 +3618,6 @@
 				677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */,
 				67B2CF961C39D98A003C17CA /* ButterflyEffect.cpp in Sources */,
 				67B845081A9C0E7500564051 /* wxCheckedListCtrl.cpp in Sources */,
-				1EA54CB020A3F9EC002D86FC /* VendorMusicDialog.cpp in Sources */,
 				6719BF511CCB1DAB00899A4B /* ConvertDialog.cpp in Sources */,
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
