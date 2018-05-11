@@ -1129,7 +1129,8 @@ int ScheduleManager::CheckSchedule()
                     }
                 }
 
-                if (!found)
+                // some playlist are only allowed to start in specific minutes
+                if (!found && (*it2)->ShouldFire())
                 {
                     // is hasnt been active before now
                     RunningSchedule* rs = new RunningSchedule(*it, *it2);
@@ -1165,6 +1166,18 @@ int ScheduleManager::CheckSchedule()
                     logger_base.info("   Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                     (*it)->GetPlayList()->JumpToEndStepsAtEndOfCurrentStep();
                 }
+            }
+        }
+        else
+        {
+            // stopped but should be running
+
+            // if it shouldnt fire then that means it may fire again so we need to remove it
+            if (!(*it)->GetSchedule()->ShouldFire())
+            {
+                logger_base.info("   Scheduler removing playlist %s as it will fire again %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetFireFrequency().c_str());
+                // this shouldnt be in the list any longer
+                todelete.push_back(*it);
             }
         }
     }
