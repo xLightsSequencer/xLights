@@ -37,7 +37,7 @@ AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}
 DefaultDirName={pf64}\{#MyTitleName}
 DefaultGroupName={#MyTitleName}
-SetupIconFile=include\{#MyTitleName}.ico
+SetupIconFile=include\{#MyTitleName}64.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
