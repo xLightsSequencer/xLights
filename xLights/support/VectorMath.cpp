@@ -1,4 +1,9 @@
 #include "VectorMath.h"
+#ifdef _MSC_VER
+// required so M_PI will be defined by MSC
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
 
 void VectorMath::ScreenPosToWorldRay(
     int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
@@ -189,3 +194,102 @@ bool VectorMath::GetPlaneIntersect(
 
         return true;
     }
+
+#include <glm/gtx/quaternion.hpp>
+
+glm::quat VectorMath::rotationBetweenVectors(const glm::vec3 &start, const glm::vec3 &dest)
+{
+    // normalize the vectors
+    glm::vec3 startn = glm::normalize(start);
+    glm::vec3 destn = glm::normalize(dest);
+
+    // the rotation axis would be the cross product between the two vectors
+    glm::vec3 rotAxis;
+
+    // dot product gives us the angle between the two vectors
+    float cosTheta = glm::dot(startn, destn);
+
+    if (cosTheta >= 1.0f)
+    {
+        // if this is the case, the two vectors were parallel
+        return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+    // if the angle is -1 or less (or really close to it), then
+    // we can pick many directions to rotate since we are rotating
+    // close to 180 degrees (pi)
+    if (cosTheta < (1e-4f - 1.0f))
+    {
+        // so use the z-axis to find an axis of rotate instead
+        rotAxis = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), startn);
+
+        // if the length was close to zero, then
+        if (glm::length2(rotAxis) < 1e-6f)
+            rotAxis = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), startn);
+
+        // now normalize it and ask for a 
+        rotAxis = glm::normalize(rotAxis);
+        return glm::quat(180.0f, rotAxis);
+    }
+
+    // otherwise, the angle was fine (not close to pi rotation), so
+    // find the rotation axis which is the cross product
+    rotAxis = glm::normalize(glm::cross(startn, destn));
+
+    float s = sqrt((1 + cosTheta) * 2);
+    float invs = 1 / s;
+
+    // otherwise return the rotation
+    return glm::quat(s *.5f, rotAxis.x * invs, rotAxis.y * invs, rotAxis.z*invs);
+}
+
+glm::mat4 VectorMath::rotMatrixFromXAxisToVector(const glm::vec3 &vector)
+{
+    glm::vec3 xaxis(1.0f, 0.0f, 0.0f);
+    glm::quat rotQuat = rotationBetweenVectors(xaxis, vector);
+    return glm::mat4_cast(rotQuat/glm::length(rotQuat));
+}
+
+#include <glm/gtx/rotate_vector.hpp>
+
+glm::mat4 VectorMath::rotationMatrixFromXAxisToVector(const glm::vec3 &a)
+{
+    glm::vec3 v = glm::vec3(0, -a.z, a.y);
+    float angle = acos(a.x / glm::length(a));
+    if (angle == 0.0f) {
+        // aligned with x-axis so return identity matrix
+        return glm::mat4(1.0f);
+    }
+    else if (std::abs(angle - M_PI) < 0.0001f) {
+        // aligned with x-axis in opposite direction
+        return glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    return glm::rotate(angle, v);
+}
+
+glm::mat4 VectorMath::rotationMatrixFromXAxisToVector2(const glm::vec3 &o, const glm::vec3 &p)
+{
+    glm::vec3 a = p - o;
+    glm::vec3 b(1.0f, 0.0f, 0.0f);
+    if (o.y != p.y || o.z != p.z) {
+        glm::vec3 v = glm::vec3(0, -a.z, a.y);
+        float angle = acos(a.x / glm::length(a));
+        return glm::rotate(angle, v);
+    }
+    else
+    {
+        if (p.x < o.x) {
+            return glm::rotate(glm::mat4(1.0f), (float)glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        }
+        else {
+            return glm::mat4(1.0f);
+        }
+    }
+}
+
+glm::mat4 VectorMath::rotationMatrixBetweenVectors(const glm::vec3 &a, const glm::vec3 &b)
+{
+    glm::vec3 v = glm::cross(b, a);
+    float angle = acos(glm::dot(b, a) / (glm::length(b) * glm::length(a)));
+    return glm::rotate(angle, v);
+}
+

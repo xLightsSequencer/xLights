@@ -5,8 +5,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/mat3x3.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include "ModelScreenLocation.h"
+#include "../support/VectorMath.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 
@@ -65,7 +66,8 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type,
                 int location = seg_idx * scale + scale / 2.0;
                 for(size_t c=0; c < CoordCount; c++) {
                     newNodes[idx]->Coords[c].bufX=IsLtoR ? location : (SingleNode ? location : BufferWi-location-1);
-                    newNodes[idx]->Coords[c].bufY=m;
+                    newNodes[idx]->Coords[c].bufY = m;
+                    newNodes[idx]->Coords[c].bufZ = 0;
                 }
                 idx++;
                 seg_idx++;
@@ -106,7 +108,7 @@ void PolyLineModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, 
 
 void PolyLineModel::InsertHandle(int after_handle) {
     if( polyLineSizes.size() > after_handle ) {
-        for (int x = num_segments; x > after_handle; --x) {
+        for (int x = num_segments-1; x > after_handle; --x) {
             std::string val = ModelXml->GetAttribute(SegAttrName(x)).ToStdString();
             if (val == "") {
                 val = wxString::Format("%d", polyLineSizes[x]);
@@ -129,10 +131,12 @@ void PolyLineModel::InsertHandle(int after_handle) {
     GetModelScreenLocation().InsertHandle(after_handle);
 }
 
-void PolyLineModel::DeleteHandle(int handle) {
+void PolyLineModel::DeleteHandle(int handle_) {
+    // handle is offset by 1 due to the center handle at 0
+    int handle = handle_ - 1;
     if( polyLineSizes.size() > handle ) {
         ModelXml->DeleteAttribute(SegAttrName(handle));
-        for (int x = handle; x < num_segments; ++x) {
+        for (int x = handle; x < num_segments-1; ++x) {
             std::string val = ModelXml->GetAttribute(SegAttrName(x+1)).ToStdString();
             if (val == "") {
                 val = wxString::Format("%d", polyLineSizes[x+1]);
@@ -141,6 +145,9 @@ void PolyLineModel::DeleteHandle(int handle) {
             ModelXml->DeleteAttribute(SegAttrName(x+1));
         }
         polyLineSizes.erase(polyLineSizes.begin() + handle);
+    }
+    else {
+        ModelXml->DeleteAttribute(SegAttrName(handle-1));
     }
     GetModelScreenLocation().DeleteHandle(handle);
 }
@@ -212,26 +219,27 @@ void PolyLineModel::InitModel() {
 
     // read in the point data from xml
     std::vector<xlPolyPoint> pPos(num_points);
-    wxString point_data = ModelXml->GetAttribute("PointData", "0.4, 0.6, 0.4, 0.6");
+    wxString point_data = ModelXml->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
     wxArrayString point_array = wxSplit(point_data, ',');
     for( int i = 0; i < num_points; ++i ) {
-        pPos[i].x = wxAtof(point_array[i*2]);
-        pPos[i].y = wxAtof(point_array[i*2+1]);
+        pPos[i].x = wxAtof(point_array[i*3]);
+        pPos[i].y = wxAtof(point_array[i*3+1]);
+        pPos[i].z = wxAtof(point_array[i*3+2]);
         pPos[i].has_curve = false;
         pPos[i].curve = nullptr;
     }
     wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-    int num_curves = cpoint_array.size() / 5;
+    int num_curves = cpoint_array.size() / 7;
     for( int i = 0; i < num_curves; ++i ) {
-        int seg_num = wxAtoi(cpoint_array[i*5]);
+        int seg_num = wxAtoi(cpoint_array[i*7]);
         pPos[seg_num].has_curve = true;
-        pPos[seg_num].curve = new BezierCurveCubic();
-        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
-        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
-        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
-        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
-        pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+        pPos[seg_num].curve = new BezierCurveCubic3D();
+        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y, pPos[seg_num].z);
+        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
+        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
+        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
+        pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
         pPos[seg_num].curve->UpdatePoints();
         pPos[seg_num].curve->UpdateMatrices();
     }
@@ -243,7 +251,7 @@ void PolyLineModel::InitModel() {
             if( pPos[i].has_curve ) {
                 total_length += pPos[i].curve->GetLength();
             } else {
-                float length = std::sqrt((pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
+                float length = std::sqrt((pPos[i+1].z - pPos[i].z)*(pPos[i+1].z - pPos[i].z) + (pPos[i+1].y - pPos[i].y)*(pPos[i+1].y - pPos[i].y) + (pPos[i+1].x - pPos[i].x)*(pPos[i+1].x - pPos[i].x));
                 pPos[i].length = length;
                 total_length += length;
             }
@@ -251,56 +259,74 @@ void PolyLineModel::InitModel() {
     }
 
     // calculate min/max for the model
-    float minX = 100.0f;
-    float minY = 100.0f;
+    float minX = 100000.0f;
+    float minY = 100000.0f;
+    float minZ = 100000.0f;
     float maxX = 0.0f;
     float maxY = 0.0f;
+    float maxZ = 0.0f;
 
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].x < minX ) minX = pPos[i].x;
         if( pPos[i].y < minY ) minY = pPos[i].y;
+        if( pPos[i].z < minZ ) minZ = pPos[i].z;
         if( pPos[i].x > maxX ) maxX = pPos[i].x;
         if( pPos[i].y > maxY ) maxY = pPos[i].y;
+        if( pPos[i].z > maxZ ) maxZ = pPos[i].z;
         if( pPos[i].has_curve ) {
-            pPos[i].curve->check_min_max(minX, maxX, minY, maxY);
+            pPos[i].curve->check_min_max(minX, maxX, minY, maxY, minZ, maxZ);
         }
     }
     float deltax = maxX-minX;
     float deltay = maxY-minY;
+    float deltaz = maxZ-minZ;
 
     // normalize all points from 0.0 to 1.0 and create
     // a matrix for each line segment
     for( int i = 0; i < num_points-1; ++i ) {
-        float x1p = (pPos[i].x - minX) / deltax;
-        float x2p = (pPos[i+1].x - minX) / deltax;
-        float y1p = (pPos[i].y - minY) / deltay;
-        float y2p = (pPos[i+1].y - minY) / deltay;
-
-        float angle = (float)M_PI/2.0f;
-        if (pPos[i+1].x != pPos[i].x) {
-            float slope = (y2p - y1p)/(x2p - x1p);
-            angle = std::atan(slope);
-            if (pPos[i].x > pPos[i+1].x) {
-                angle += (float)M_PI;
-            }
-        } else if (pPos[i+1].y < pPos[i].y) {
-            angle += (float)M_PI;
+        float x1p, y1p, z1p, x2p, y2p, z2p;
+        if (deltax == 0.0f) {
+            x1p = 0.0f;
+            x2p = 0.0f;
         }
-        float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
+        else {
+            x1p = (pPos[i].x - minX) / deltax;
+            x2p = (pPos[i+1].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            y1p = 0.0f;
+            y2p = 0.0f;
+        }
+        else {
+            y1p = (pPos[i].y - minY) / deltay;
+            y2p = (pPos[i + 1].y - minY) / deltay;
+        }
+        if (deltaz == 0.0f) {
+            z1p = 0.0f;
+            z2p = 0.0f;
+        }
+        else {
+            z1p = (pPos[i].z - minZ) / deltaz;
+            z2p = (pPos[i + 1].z - minZ) / deltaz;
+        }
 
-        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, 1.0));
-        glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
-        glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1p, y1p));
-        glm::mat3 mat3 = translateMatrix * rotationMatrix * scalingMatrix;
+        glm::vec3 pt1(x1p, y1p, z1p);
+        glm::vec3 pt2(x2p, y2p, z2p);
+        glm::vec3 a = pt2 - pt1;
+        float scale = glm::length(a);
+        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
+        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
+        glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
 
         if (pPos[i].matrix != nullptr) {
             delete pPos[i].matrix;
         }
-        pPos[i].matrix = new glm::mat3(mat3);
+        pPos[i].matrix = new glm::mat4(mat);
 
         // update any curves
         if( pPos[i].has_curve ) {
-            pPos[i].curve->CreateNormalizedMatrix(minX, maxX, minY, maxY);
+            pPos[i].curve->CreateNormalizedMatrix(minX, maxX, minY, maxY, minZ, maxZ);
         }
     }
 
@@ -320,7 +346,8 @@ void PolyLineModel::InitModel() {
         size_t CoordCount=GetCoordCount(idx);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[idx]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
-            Nodes[idx]->Coords[c].bufY=0;
+            Nodes[idx]->Coords[c].bufY = 0;
+            Nodes[idx]->Coords[c].bufZ = 0;
         }
     }
 
@@ -347,10 +374,11 @@ void PolyLineModel::InitModel() {
                     loc_x = seg_idx + offset;
                 }
 
-                glm::vec3 v = *pPos[segment].matrix * glm::vec3(loc_x / (float)polyLineSizes[segment], 0, 1);
+                glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / (float)polyLineSizes[segment], 0, 0, 1));
 
                 Nodes[0]->Coords[c].screenX = v.x;
                 Nodes[0]->Coords[c].screenY = v.y;
+                Nodes[0]->Coords[c].screenZ = v.z;
                 seg_idx++;
                 if( seg_idx >= polyLineSizes[segment] ) {
                     segment++;
@@ -399,10 +427,11 @@ void PolyLineModel::InitModel() {
                                 loc_x = x_pos + offset;
                             }
 
-                            glm::vec3 v = *pPos[m].matrix * glm::vec3(loc_x / (float)polyLineSizes[m], 0, 1);
+                            glm::vec3 v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / (float)polyLineSizes[m], 0, 0, 1));
 
                             Nodes[idx]->Coords[c].screenX = v.x;
                             Nodes[idx]->Coords[c].screenY = v.y;
+                            Nodes[idx]->Coords[c].screenZ = v.z;
                         }
                         IsLtoR ? idx++ : idx--;
                         seg_idx++;
@@ -444,12 +473,13 @@ void PolyLineModel::InitModel() {
             glm::vec3 v;
             float pos = (current_pos - seg_start) / segment_length;
             if( pPos[segment].has_curve ) {
-                v = *pPos[segment].curve->GetMatrix(sub_segment) * glm::vec3(pos, 0, 1);
+                v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
             } else {
-                v = *pPos[segment].matrix * glm::vec3(pos, 0, 1);
+                v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
             }
             Nodes[idx]->Coords[c].screenX = v.x;
             Nodes[idx]->Coords[c].screenY = v.y;
+            Nodes[idx]->Coords[c].screenZ = v.z;
             if( c < coords_per_node-1 ) {
                 c++;
             } else {
@@ -494,14 +524,16 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
             segment_length = pPos[segment].curve->GetSegLength(sub_segment);
             seg_end = seg_start + segment_length;
         }
-        glm::vec3 v = *pPos[segment].curve->GetMatrix(sub_segment) * glm::vec3((current_pos - seg_start) / segment_length, 0, 1);
+        glm::vec3 v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
         if( SingleNode ) {
             Nodes[0]->Coords[idx].screenX = v.x;
             Nodes[0]->Coords[idx].screenY = v.y;
+            Nodes[0]->Coords[idx].screenZ = v.z;
             IsLtoR ? idx++ : idx--;
         } else {
             Nodes[idx]->Coords[c].screenX = v.x;
             Nodes[idx]->Coords[c].screenY = v.y;
+            Nodes[idx]->Coords[c].screenZ = v.z;
             if( c < coords_per_node-1 ) {
                 c++;
             } else {
@@ -739,43 +771,52 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             std::vector<xlPolyPoint> pPos(num_points);
             wxArrayString point_array = wxSplit(point_data, ',');
             for( int i = 0; i < num_points; ++i ) {
-                pPos[i].x = wxAtof(point_array[i*2]);
-                pPos[i].y = wxAtof(point_array[i*2+1]);
+                pPos[i].x = wxAtof(point_array[i*3]);
+                pPos[i].y = wxAtof(point_array[i*3+1]);
+                pPos[i].z = wxAtof(point_array[i*3+2]);
                 pPos[i].has_curve = false;
                 pPos[i].curve = nullptr;
             }
             wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-            int num_curves = cpoint_array.size() / 5;
+            int num_curves = cpoint_array.size() / 7;
             for( int i = 0; i < num_curves; ++i ) {
-                int seg_num = wxAtoi(cpoint_array[i*5]);
+                int seg_num = wxAtoi(cpoint_array[i*7]);
                 pPos[seg_num].has_curve = true;
-                pPos[seg_num].curve = new BezierCurveCubic();
-                pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
-                pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
-                pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
-                pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
-                pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+                pPos[seg_num].curve = new BezierCurveCubic3D();
+                pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y, pPos[seg_num].z);
+                pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
+                pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]) );
+                pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
+                pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
                 pPos[seg_num].curve->UpdatePoints();
             }
 
+            float min_z = 0.0f;
+            float max_z = 100.0f;
             float deltax = max_x-min_x;
             float deltay = max_y-min_y;
+            float deltaz = max_z-min_z;
 
             // adjust points for new min/max
             for( int i = 0; i < num_points; ++i ) {
                 pPos[i].x = (pPos[i].x * deltax) + min_x;
                 pPos[i].y = (pPos[i].y * deltay) + min_y;
+                pPos[i].z = (pPos[i].z * deltaz) + min_z;
                 if( pPos[i].has_curve ) {
                     float cp0x = pPos[i].curve->get_cp0x();
                     float cp0y = pPos[i].curve->get_cp0y();
+                    float cp0z = pPos[i].curve->get_cp0z();
                     float cp1x = pPos[i].curve->get_cp1x();
                     float cp1y = pPos[i].curve->get_cp1y();
+                    float cp1z = pPos[i].curve->get_cp1z();
                     cp0x = (cp0x * deltax) + min_x;
                     cp0y = (cp0y * deltay) + min_y;
+                    cp0z = (cp0z * deltaz) + min_z;
                     cp1x = (cp1x * deltax) + min_x;
                     cp1y = (cp1y * deltay) + min_y;
-                    pPos[i].curve->set_cp0(cp0x, cp0y);
-                    pPos[i].curve->set_cp1(cp1x, cp1y);
+                    cp1z = (cp1z * deltaz) + min_z;
+                    pPos[i].curve->set_cp0(cp0x, cp0y, cp0z);
+                    pPos[i].curve->set_cp1(cp1x, cp1y, cp1z);
                 }
             }
 
@@ -783,8 +824,9 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             ModelXml->DeleteAttribute("cPointData");
             point_data = "";
             for( int i = 0; i < num_points; ++i ) {
-                point_data += wxString::Format( "%f,", pPos[i].x );
-                point_data += wxString::Format( "%f", pPos[i].y );
+                point_data += wxString::Format("%f,", pPos[i].x );
+                point_data += wxString::Format("%f,", pPos[i].y);
+                point_data += wxString::Format("%f", pPos[i].z);
                 if( i != num_points-1 ) {
                     point_data += ",";
                 }
@@ -792,8 +834,8 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
             cpoint_data = "";
             for( int i = 0; i < num_points; ++i ) {
                 if( pPos[i].has_curve ) {
-                    cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(),
-                                                               pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y() );
+                    cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(), pPos[i].curve->get_cp0z(),
+                                                               pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y(), pPos[i].curve->get_cp1z());
                 }
             }
             ModelXml->AddAttribute("PointData", point_data);
@@ -902,58 +944,84 @@ void PolyLineModel::NormalizePointData()
     wxString point_data = ModelXml->GetAttribute("PointData");
     wxArrayString point_array = wxSplit(point_data, ',');
     for( int i = 0; i < num_points; ++i ) {
-        pPos[i].x = wxAtof(point_array[i*2]);
-        pPos[i].y = wxAtof(point_array[i*2+1]);
+        pPos[i].x = wxAtof(point_array[i*3]);
+        pPos[i].y = wxAtof(point_array[i*3+1]);
+        pPos[i].z = wxAtof(point_array[i*3+2]);
         pPos[i].has_curve = false;
         pPos[i].curve = nullptr;
     }
     wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-    int num_curves = cpoint_array.size() / 5;
+    int num_curves = cpoint_array.size() / 7;
     for( int i = 0; i < num_curves; ++i ) {
-        int seg_num = wxAtoi(cpoint_array[i*5]);
+        int seg_num = wxAtoi(cpoint_array[i*7]);
         pPos[seg_num].has_curve = true;
-        pPos[seg_num].curve = new BezierCurveCubic();
-        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y);
-        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y);
-        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*5+1]), wxAtof(cpoint_array[i*5+2]) );
-        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*5+3]), wxAtof(cpoint_array[i*5+4]) );
-        pPos[seg_num].curve->SetScale(1.0, 1.0, 1.0);
+        pPos[seg_num].curve = new BezierCurveCubic3D();
+        pPos[seg_num].curve->set_p0(pPos[seg_num].x, pPos[seg_num].y, pPos[seg_num].z);
+        pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
+        pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
+        pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
+        pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
         pPos[seg_num].curve->UpdatePoints();
     }
 
-    float minX = 100.0f;
-    float minY = 100.0f;
+    float minX = 100000.0f;
+    float minY = 100000.0f;
+    float minZ = 100000.0f;
     float maxX = 0.0f;
     float maxY = 0.0f;
+    float maxZ = 0.0f;
 
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].x < minX ) minX = pPos[i].x;
-        if( pPos[i].y < minY ) minY = pPos[i].y;
+        if (pPos[i].y < minY) minY = pPos[i].y;
+        if (pPos[i].z < minZ) minZ = pPos[i].z;
         if( pPos[i].x > maxX ) maxX = pPos[i].x;
-        if( pPos[i].y > maxY ) maxY = pPos[i].y;
+        if (pPos[i].y > maxY) maxY = pPos[i].y;
+        if (pPos[i].z > maxZ) maxZ = pPos[i].z;
         if( pPos[i].has_curve ) {
-            pPos[i].curve->check_min_max(minX, maxX, minY, maxY);
+            pPos[i].curve->check_min_max(minX, maxX, minY, maxY, minZ, maxZ);
         }
     }
     float deltax = maxX-minX;
     float deltay = maxY-minY;
+    float deltaz = maxZ-minZ;
 
     // normalize all the point data
     for( int i = 0; i < num_points; ++i ) {
-        pPos[i].x = (pPos[i].x - minX) / deltax;
-        pPos[i].y = (pPos[i].y - minY) / deltay;
+        if (deltax == 0.0f) {
+            pPos[i].x = 0.0f;
+        }
+        else {
+            pPos[i].x = (pPos[i].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            pPos[i].y = 0.0f;
+        }
+        else {
+            pPos[i].y = (pPos[i].y - minY) / deltay;
+        }
+        if (deltaz == 0.0f) {
+            pPos[i].z = 0.0f;
+        }
+        else {
+            pPos[i].z = (pPos[i].z - minZ) / deltaz;
+        }
         if( pPos[i].has_curve ) {
             float cp0x = pPos[i].curve->get_cp0x();
             float cp0y = pPos[i].curve->get_cp0y();
+            float cp0z = pPos[i].curve->get_cp0z();
             float cp1x = pPos[i].curve->get_cp1x();
             float cp1y = pPos[i].curve->get_cp1y();
+            float cp1z = pPos[i].curve->get_cp1z();
             cp0x = (cp0x - minX) / deltax;
             cp0y = (cp0y - minY) / deltay;
+            cp0z = (cp0z - minZ) / deltaz;
             cp1x = (cp1x - minX) / deltax;
             cp1y = (cp1y - minY) / deltay;
-            pPos[i].curve->set_cp0(cp0x, cp0y);
-            pPos[i].curve->set_cp1(cp1x, cp1y);
+            cp1z = (cp1z - minZ) / deltaz;
+            pPos[i].curve->set_cp0(cp0x, cp0y, cp0z);
+            pPos[i].curve->set_cp1(cp1x, cp1y, cp1z);
         }
     }
 
@@ -961,8 +1029,9 @@ void PolyLineModel::NormalizePointData()
     ModelXml->DeleteAttribute("cPointData");
     point_data = "";
     for( int i = 0; i < num_points; ++i ) {
-        point_data += wxString::Format( "%f,", pPos[i].x );
-        point_data += wxString::Format( "%f", pPos[i].y );
+        point_data += wxString::Format("%f,", pPos[i].x );
+        point_data += wxString::Format("%f,", pPos[i].y);
+        point_data += wxString::Format("%f", pPos[i].z);
         if( i != num_points-1 ) {
             point_data += ",";
         }
@@ -970,8 +1039,8 @@ void PolyLineModel::NormalizePointData()
     cpoint_data = "";
     for( int i = 0; i < num_points; ++i ) {
         if( pPos[i].has_curve ) {
-            cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(),
-                                                       pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y() );
+            cpoint_data += wxString::Format( "%d,%f,%f,%f,%f,%f,%f,", i, pPos[i].curve->get_cp0x(), pPos[i].curve->get_cp0y(), pPos[i].curve->get_cp0z(),
+                                                       pPos[i].curve->get_cp1x(), pPos[i].curve->get_cp1y(), pPos[i].curve->get_cp1z());
         }
     }
     ModelXml->AddAttribute("PointData", point_data);

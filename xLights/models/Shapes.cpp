@@ -1,8 +1,10 @@
 #include "Shapes.h"
 #include "../DrawGLUtils.h"
+#include "../support/VectorMath.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 BezierCurve::BezierCurve()
 : steps(25), old_steps(-1), width(1), height(1), num_points(0), ren_width(1.0f), matrix_valid(false)
@@ -265,5 +267,316 @@ void BezierCurve::check_min_max( float &minX, float &maxX, float &minY, float &m
         if( points[i].y < minY ) minY = points[i].y;
         if( points[i].x > maxX ) maxX = points[i].x;
         if( points[i].y > maxY ) maxY = points[i].y;
+    }
+}
+
+
+///////////////////////////////////////////////
+//////////////////   3D   /////////////////////
+///////////////////////////////////////////////
+
+BezierCurve3D::BezierCurve3D()
+    : steps(25), old_steps(-1), scale(glm::vec3(100.0)), world_pos(glm::vec3(0.0f)), num_points(0), matrix_valid(false)
+{
+}
+
+BezierCurve3D::~BezierCurve3D()
+{
+}
+
+BezierCurveCubic3D::BezierCurveCubic3D()
+    : BezierCurve3D()
+{
+}
+
+BezierCurveCubic3D::~BezierCurveCubic3D()
+{
+    clear_points();
+}
+
+void BezierCurve3D::clear_points()
+{
+    for (int j = 0; j < points.size(); ++j) {
+        if (points[j].matrix != nullptr) {
+            delete points[j].matrix;
+            points[j].matrix = nullptr;
+        }
+    }
+    points.clear();
+    num_points = 0;
+    matrix_valid = false;
+}
+
+float BezierCurve3D::interpPt(float n1, float n2, float perc)
+{
+    float diff = n2 - n1;
+    return n1 + (diff * perc);
+}
+
+float BezierCurve3D::get_px(int num)
+{
+    if (num < num_points) {
+        return points[num].x;
+    }
+    return 0.0f;
+}
+
+float BezierCurve3D::get_py(int num)
+{
+    if (num < num_points) {
+        return points[num].y;
+    }
+    return 0.0f;
+}
+
+float BezierCurve3D::get_pz(int num)
+{
+    if (num < num_points) {
+        return points[num].z;
+    }
+    return 0.0f;
+}
+
+void BezierCurve3D::OffsetX(float diff)
+{
+    cp0.x += diff;
+}
+
+void BezierCurve3D::OffsetY(float diff)
+{
+    cp0.y += diff;
+}
+
+void BezierCurve3D::OffsetZ(float diff)
+{
+    cp0.z += diff;
+}
+
+void BezierCurveCubic3D::OffsetX(float diff)
+{
+    cp0.x += diff;
+    cp1.x += diff;
+}
+
+void BezierCurveCubic3D::OffsetY(float diff)
+{
+    cp0.y += diff;
+    cp1.y += diff;
+}
+
+void BezierCurveCubic3D::OffsetZ(float diff)
+{
+    cp0.z += diff;
+    cp1.z += diff;
+}
+
+void BezierCurveCubic3D::UpdatePoints() {
+    float x, y, z, xa, xb, xc, xd, xe, ya, yb, yc, yd, ye, za, zb, zc, zd, ze;
+
+    if (p0.x == old_p0.x  && p0.y == old_p0.y  && p0.z == old_p0.z &&
+        p1.x == old_p1.x  && p1.y == old_p1.y  && p1.z == old_p1.z &&
+        cp0.x == old_cp0.x && cp0.y == old_cp0.y && cp0.z == old_cp0.z &&
+        cp1.x == old_cp1.x && cp1.y == old_cp1.y && cp1.z == old_cp1.z &&
+        steps == old_steps) {
+        return;
+    }
+
+    clear_points();
+    num_points = 0;
+
+    for (float i = 0.0f; i < 1.0f; i += 1.0f / (float)steps)
+    {
+        // Control Line Segments
+        xa = interpPt(p0.x, cp0.x, i);
+        ya = interpPt(p0.y, cp0.y, i);
+        za = interpPt(p0.z, cp0.z, i);
+        xb = interpPt(cp0.x, cp1.x, i);
+        yb = interpPt(cp0.y, cp1.y, i);
+        zb = interpPt(cp0.z, cp1.z, i);
+        xc = interpPt(cp1.x, p1.x, i);
+        yc = interpPt(cp1.y, p1.y, i);
+        zc = interpPt(cp1.z, p1.z, i);
+
+        // Between Control Lines
+        xd = interpPt(xa, xb, i);
+        yd = interpPt(ya, yb, i);
+        zd = interpPt(za, zb, i);
+        xe = interpPt(xb, xc, i);
+        ye = interpPt(yb, yc, i);
+        ze = interpPt(zb, zc, i);
+
+        // the curve points
+        x = interpPt(xd, xe, i);
+        y = interpPt(yd, ye, i);
+        z = interpPt(zd, ze, i);
+
+        xlPointf new_point(x, y, z);
+        new_point.matrix = nullptr;
+        points.push_back(new_point);
+        num_points++;
+    }
+    // add final point
+    xlPointf new_point(p1.x, p1.y, p1.z);
+    new_point.matrix = nullptr;
+    points.push_back(new_point);
+    num_points++;
+
+    old_p0.x = p0.x;
+    old_p0.y = p0.y;
+    old_p0.z = p0.z;
+    old_p1.x = p1.x;
+    old_p1.y = p1.y;
+    old_p1.z = p1.z;
+    old_cp0.x = cp0.x;
+    old_cp0.y = cp0.y;
+    old_cp0.z = cp0.z;
+    old_cp1.x = cp1.x;
+    old_cp1.y = cp1.y;
+    old_cp1.z = cp1.z;
+    old_steps = steps;
+}
+
+float BezierCurve3D::GetLength() {
+    float total_length = 0.0f;
+    if (!matrix_valid) {
+        UpdateMatrices();
+    }
+    for (int i = 0; i < num_points - 1; ++i) {
+        total_length += points[i].length;
+    }
+    return total_length;
+}
+
+float BezierCurve3D::GetSegLength(int segment) {
+    if (!matrix_valid) {
+        UpdateMatrices();
+    }
+    if (segment < num_points - 1) {
+        return points[segment].length;
+    }
+    else {
+        return 0.0f;
+    }
+}
+
+void BezierCurve3D::UpdateMatrices()
+{
+    for (int i = 0; i < num_points - 1; ++i) {
+        float x1p = points[i].x * scale.x + world_pos.x;
+        float x2p = points[i+1].x * scale.x + world_pos.x;
+        float y1p = points[i].y * scale.y + world_pos.y;
+        float y2p = points[i+1].y * scale.y + world_pos.y;
+        float z1p = points[i].z * scale.z + world_pos.z;
+        float z2p = points[i+1].z * scale.z + world_pos.z;
+
+        glm::vec3 pt1(x1p, y1p, z1p);
+        glm::vec3 pt2(x2p, y2p, z2p);
+        glm::vec3 a = pt2 - pt1;
+        float scale1 = glm::length(a);
+        points[i].length = scale1 / scale.x;
+
+        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale1));
+        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
+        glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
+
+        if (points[i].matrix != nullptr) {
+            delete points[i].matrix;
+        }
+        points[i].matrix = new glm::mat4(mat);
+    }
+    matrix_valid = true;
+}
+
+void BezierCurve3D::CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ)
+{
+    float deltax = maxX - minX;
+    float deltay = maxY - minY;
+    float deltaz = maxZ - minZ;
+    for (int i = 0; i < num_points - 1; ++i) {
+        float x1p, y1p, z1p, x2p, y2p, z2p;
+        if (deltax == 0.0f) {
+            x1p = 0.0f;
+            x2p = 0.0f;
+        }
+        else {
+            x1p = (points[i].x - minX) / deltax;
+            x2p = (points[i + 1].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            y1p = 0.0f;
+            y2p = 0.0f;
+        }
+        else {
+            y1p = (points[i].y - minY) / deltay;
+            y2p = (points[i + 1].y - minY) / deltay;
+        }
+        if (deltaz == 0.0f) {
+            z1p = 0.0f;
+            z2p = 0.0f;
+        }
+        else {
+            z1p = (points[i].z - minZ) / deltaz;
+            z2p = (points[i + 1].z - minZ) / deltaz;
+        }
+
+        glm::vec3 pt1(x1p, y1p, z1p);
+        glm::vec3 pt2(x2p, y2p, z2p);
+        glm::vec3 a = pt2 - pt1;
+        float scale = glm::length(a);
+        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
+        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
+        glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
+
+        if (points[i].matrix != nullptr) {
+            delete points[i].matrix;
+        }
+        points[i].matrix = new glm::mat4(mat);
+    }
+}
+
+bool BezierCurve3D::HitTest(int sx, int sy)
+{
+    if (!matrix_valid) {
+        UpdateMatrices();
+    }
+
+    float min_y, max_y;
+
+    // iterate through all line segments of spline for hit detection
+    for (int j = 0; j < num_points - 1; ++j) {
+        //invert the matrix, get into render space
+        glm::mat4 m = glm::inverse(*points[j].matrix);
+        glm::vec3 v = glm::vec3(m * glm::vec4(sx, sy, 1, 1));
+
+        // perform normal line segment hit detection
+
+        float sx1 = (points[j].x + points[j+1].x) * scale.x / 2.0f + world_pos.x;
+        float sy1 = (points[j].y + points[j+1].y) * scale.y / 2.0f + world_pos.y;
+
+        glm::vec3 v2 = glm::vec3(m * glm::vec4(sx1 + 3, sy1 + 3, 1, 1));
+        glm::vec3 v3 = glm::vec3(m * glm::vec4(sx1 + 3, sy1 - 3, 1, 1));
+        glm::vec3 v4 = glm::vec3(m * glm::vec4(sx1 - 3, sy1 + 3, 1, 1));
+        glm::vec3 v5 = glm::vec3(m * glm::vec4(sx1 - 3, sy1 - 3, 1, 1));
+        float max_y = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
+        float min_y = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
+
+        if (v.x >= 0.0 && v.x <= 1.0 && v.y >= min_y && v.y <= max_y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void BezierCurve3D::check_min_max(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ)
+{
+    for (int i = 0; i < num_points; ++i) {
+        if (points[i].x < minX) minX = points[i].x;
+        if (points[i].y < minY) minY = points[i].y;
+        if (points[i].z < minZ) minZ = points[i].z;
+        if (points[i].x > maxX) maxX = points[i].x;
+        if (points[i].y > maxY) maxY = points[i].y;
+        if (points[i].z < maxZ) maxZ = points[i].z;
     }
 }

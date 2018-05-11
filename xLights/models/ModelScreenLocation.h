@@ -55,11 +55,11 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
-    virtual bool HitTest(ModelPreview* preview, int x,int y) const = 0;
+    virtual bool HitTest(ModelPreview* preview, int x, int y) const = 0;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
-	virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
-	virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
-	virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
+    virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
+    virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
+    virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
     virtual void SelectHandle(int handle) = 0;
     virtual int GetSelectedHandle() = 0;
@@ -122,7 +122,6 @@ public:
     };
 
     std::vector<xlPoint>& GetHandlePositions() { return mHandlePosition; }
-    std::vector<int>& GetSelectableHandles() { return mSelectableHandles; }
     std::vector<glm::vec3>& GetHandlesAABB_Min() { return handle_aabb_min; }
     std::vector<glm::vec3>& GetHandlesAABB_Max() { return handle_aabb_max; }
     virtual void SetActiveHandle(int handle);
@@ -137,6 +136,8 @@ public:
     virtual int GetDefaultHandle() { return CENTER_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
     virtual void MouseOverHandle(int handle);
+    int GetNumSelectableHandles() { return mSelectableHandles; }
+    virtual bool IsXYTransHandle() { return false; }
 
 protected:
     ModelScreenLocation(int points);
@@ -171,7 +172,7 @@ protected:
     mutable std::vector<glm::vec3> handle_aabb_min;
     mutable std::vector<glm::vec3> handle_aabb_max;
     mutable std::vector<xlPoint> mHandlePosition;
-    std::vector<int> mSelectableHandles;
+    int mSelectableHandles;
     bool _locked;
     int active_handle;
     int highlighted_handle;
@@ -410,6 +411,7 @@ public:
     virtual void AdvanceAxisTool();
     virtual void SetAxisTool(int mode);
     virtual void SetActiveAxis(int axis);
+    virtual bool IsXYTransHandle() { return active_handle == SHEAR_HANDLE; }
 
 protected:
     virtual void ProcessOldNode(wxXmlNode *n) override;
@@ -481,25 +483,31 @@ public:
     virtual int GetMHeight() const override;
 
     virtual float GetYShear() const {return 0.0;}
+    virtual void SetActiveHandle(int handle);
+    virtual void AdvanceAxisTool();
+    virtual void SetAxisTool(int mode);
+    virtual void SetActiveAxis(int axis);
 
 protected:
     struct xlPolyPoint {
         float x;
         float y;
+        float z;
         mutable xlPoint cp0;
         mutable xlPoint cp1;
         mutable bool has_curve;
-        mutable BezierCurveCubic* curve;
-        mutable glm::mat3 *matrix;
+        mutable BezierCurveCubic3D* curve;
+        mutable glm::mat4 *matrix;
     };
     mutable std::vector<xlPolyPoint> mPos;
     int num_points;
     int selected_handle;
-    mutable float minX, minY, maxX, maxY;
+    mutable float minX, minY, maxX, maxY, minZ, maxZ;
     mutable int selected_segment;
-    mutable glm::mat3 *main_matrix;
+    mutable glm::mat4 main_matrix;
+    mutable glm::vec3 saved_point;
     void FixCurveHandles();
-
+    void AdjustAllHandles(glm::mat4& mat);
 };
 
 #endif // MODELSCREENLOCATION_H

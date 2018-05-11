@@ -2,6 +2,7 @@
 #define VECTORMATH_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace VectorMath
 {
@@ -30,6 +31,13 @@ namespace VectorMath
         glm::vec3 normal,            // Normal to the plane
         glm::vec3& intersect         // Output: intersect point
         );
+
+    glm::quat rotationBetweenVectors(const glm::vec3 &start, const glm::vec3 &dest);
+    glm::mat4 rotMatrixFromXAxisToVector(const glm::vec3 &vector);
+    glm::mat4 rotationMatrixFromXAxisToVector(const glm::vec3 &vector);
+    glm::mat4 rotationMatrixFromXAxisToVector2(const glm::vec3 &a, const glm::vec3 &b);
+    glm::mat4 rotationMatrixBetweenVectors(const glm::vec3 &a, const glm::vec3 &b);
+
 };
 
 #endif // VECTORMATH_H

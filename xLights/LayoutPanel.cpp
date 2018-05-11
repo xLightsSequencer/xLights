@@ -1839,7 +1839,6 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     glm::mat4 trans_mat = selectedModel->GetModelScreenLocation().GetTranslateMatrix();
 
     std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
-    std::vector<int> selectable_handles = selectedModel->GetModelScreenLocation().GetSelectableHandles();
     std::vector<glm::vec3> aabb_min = selectedModel->GetModelScreenLocation().GetHandlesAABB_Min();
     std::vector<glm::vec3> aabb_max = selectedModel->GetModelScreenLocation().GetHandlesAABB_Max();
 
@@ -1848,27 +1847,7 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
     int num_axis_handles = active_handle == SHEAR_HANDLE ? 4 : 3;
     glm::vec3 axisbb_min[4];
     glm::vec3 axisbb_max[4];
-    if (active_handle != SHEAR_HANDLE) {
-        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH + 3;
-    }
-    else {
+    if (selectedModel->GetModelScreenLocation().IsXYTransHandle()) {
         axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
         axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
         axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
@@ -1895,6 +1874,26 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
         axisbb_max[3].y = handles[active_handle].y - model_mat[3][1] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
         axisbb_max[3].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
     }
+    else {
+        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
+        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
+        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH + 3;
+    }
 
     // see if an axis handle is selected
     for (size_t i = 0; i < num_axis_handles; i++)
@@ -1920,9 +1919,7 @@ int LayoutPanel::SelectModelHandles3D(int x, int y)
         return which_handle | 0x100;
     }
 
-    int num_handles = selectable_handles.size();
-    if (num_handles == 0) return -1;
-    if (num_handles > 10) return -1;  // error protection
+    int num_handles = selectedModel->GetModelScreenLocation().GetNumSelectableHandles();
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
@@ -2121,9 +2118,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     if (m_polyline_active)
     {
         Model *m = newModel;
-        int y = event.GetY();
-        y = modelPreview->GetVirtualCanvasHeight() - y;
-        m->AddHandle(modelPreview, event.GetPosition().x, y);
+        m->AddHandle(modelPreview, event.GetX(), event.GetY());
         m->UpdateXmlWithScale();
         m->InitModel();
         xlights->MarkEffectsFileDirty(true);
@@ -2184,7 +2179,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 newModel->Selected = true;
                 if (wi > 0 && ht > 0)
                 {
-                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x, modelPreview->GetVirtualCanvasHeight() - y, modelPreview));
+                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                     newModel->UpdateXmlWithScale();
                 }
                 lastModelName = newModel->name;
@@ -2227,10 +2222,12 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         }
         modelPreview->SetCameraView(0, 0, true);
     }
+
     m_mouse_down = false;
-    m_moving_handle = false;
 
     if( m_polyline_active ) return;
+
+    m_moving_handle = false;
 
     int y = event.GetY();
 

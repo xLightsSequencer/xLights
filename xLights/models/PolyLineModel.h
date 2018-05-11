@@ -48,10 +48,11 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         struct xlPolyPoint {
             float x;
             float y;
+            float z;
             float length;
             mutable bool has_curve;
-            mutable BezierCurveCubic* curve;
-            mutable glm::mat3 *matrix;
+            mutable BezierCurveCubic3D* curve;
+            mutable glm::mat4 *matrix;
         };
         float total_length;
 
