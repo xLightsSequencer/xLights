@@ -17,6 +17,9 @@ class WholeHouseModel : public ModelWithScreenLocation<BoxedScreenLocation>
         WholeHouseModel(const ModelManager &manager);
         virtual void InitModel() override;
         void InitWholeHouse(const std::string &WholeHouseData);
+    
+        NodeBaseClass* createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const;
+
     private:
 };
 

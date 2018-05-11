@@ -112,7 +112,7 @@ void CircleModel::InitCircle() {
     SetBufferSize(circleSizes.size(),maxLights);
     int LastStringNum=-1;
     int chan = 0,idx;
-    int ChanIncr=SingleChannel ?  1 : 3;
+    int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
 
     size_t node = 0;

@@ -171,8 +171,6 @@ public:
     static const std::string GREEN;
     static const std::string BLUE;
     static const std::string WHITE;
-    static const std::string RGBW;
-    static const std::string WRGB;
 
     static const std::string RGB;
     static const std::string RBG;
@@ -180,6 +178,20 @@ public:
     static const std::string GRB;
     static const std::string BRG;
     static const std::string BGR;
+
+    static const std::string WRGB;
+    static const std::string WRBG;
+    static const std::string WGBR;
+    static const std::string WGRB;
+    static const std::string WBRG;
+    static const std::string WBGR;
+
+    static const std::string RGBW;
+    static const std::string RBGW;
+    static const std::string GBRW;
+    static const std::string GRBW;
+    static const std::string BRGW;
+    static const std::string BGRW;
 
     static const std::string EMPTY_STR;
 };
@@ -375,82 +387,29 @@ public:
 class NodeClassRGBW : public NodeBaseClass
 {
 public:
-    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
+    NodeClassRGBW(int StringNumber, size_t NodesPerString, const std::string &rgbOrder, bool whiteLast, int rgbwtype, const std::string &n = EMPTY_STR)
+        : NodeBaseClass(StringNumber, NodesPerString, rgbOrder)
     {
         chanCnt = NODE_RGBW_CHAN_CNT;
         SetName(n);
+        wOffset = whiteLast ? 0 : 1;
+        wIndex = whiteLast ? 3 : 0;
+        rgbwHandling = rgbwtype;
+    }
+    NodeClassRGBW(const NodeClassRGBW& c) : NodeBaseClass(c), wOffset(c.wOffset), wIndex(c.wIndex), rgbwHandling(c.rgbwHandling) {
     }
 
-    virtual void SetFromChannels(const unsigned char *buf) override {
-        if (buf[3] != 0) {
-            c[0] = c[1] = c[2] = buf[3];
-        } else {
-            for (int x = 0; x < 3; x++) {
-                if (offsets[x] != 255) {
-                    c[x] = buf[offsets[x]];
-                }
-            }
-        }
-    }
-    virtual void GetForChannels(unsigned char *buf) const override {
-        if (c[0] == c[1] && c[1] == c[2]) {
-            buf[0] = buf[1] = buf[2] = 0;
-            buf[3] = c[0];
-        } else {
-            for (int x = 0; x < 3; x++) {
-                if (offsets[x] != 255) {
-                    buf[offsets[x]] = c[x];
-                }
-            }
-            buf[3] = 0;
-        }
-    }
-    virtual const std::string &GetNodeType() const override {
-        return RGBW;
-    }
+    virtual void SetFromChannels(const unsigned char *buf) override;
+    virtual void GetForChannels(unsigned char *buf) const override;
+    virtual const std::string &GetNodeType() const override;
+    
     virtual NodeBaseClass *clone() const override {
         return new NodeClassRGBW(*this);
     }
-};
-class NodeClassWRGB : public NodeBaseClass
-{
-public:
-    NodeClassWRGB(int StringNumber, size_t NodesPerString, const std::string &n = EMPTY_STR) : NodeBaseClass(StringNumber,NodesPerString)
-    {
-        chanCnt = NODE_RGBW_CHAN_CNT;
-        SetName(n);
-    }
-    
-    virtual void SetFromChannels(const unsigned char *buf) override {
-        if (buf[0] != 0) {
-            c[0] = c[1] = c[2] = buf[0];
-        } else {
-            for (int x = 0; x < 3; x++) {
-                if (offsets[x] != 255) {
-                    c[x] = buf[offsets[x] + 1];
-                }
-            }
-        }
-    }
-    virtual void GetForChannels(unsigned char *buf) const override {
-        if (c[0] == c[1] && c[1] == c[2]) {
-            buf[1] = buf[2] = buf[3] = 0;
-            buf[0] = c[0];
-        } else {
-            for (int x = 0; x < 3; x++) {
-                if (offsets[x] != 255) {
-                    buf[offsets[x] + 1] = c[x];
-                }
-            }
-            buf[0] = 0;
-        }
-    }
-    virtual const std::string &GetNodeType() const override {
-        return WRGB;
-    }
-    virtual NodeBaseClass *clone() const override {
-        return new NodeClassWRGB(*this);
-    }
+private:
+    uint8_t wOffset;
+    uint8_t wIndex;
+    uint8_t rgbwHandling;
 };
 
 typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;

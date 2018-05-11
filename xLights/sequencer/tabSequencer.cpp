@@ -891,6 +891,14 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
+    // prevent re-entry notification of effect selected changed
+    static bool reentry = false;
+    if (reentry)
+    {
+        return;
+    }
+    reentry = true;
+
     bool OnlyChoiceBookPage = event.effect==nullptr?true:false;
     Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
@@ -962,6 +970,8 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         }
         mainSequencer->PanelEffectGrid->SetFocus();
     }
+
+    reentry = false;
 }
 
 void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)

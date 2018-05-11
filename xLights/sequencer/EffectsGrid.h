@@ -91,7 +91,7 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CopyModelEffects(int row_number);
     void PasteModelEffects(int row_number);
-    Effect* GetSelectedEffect();
+    Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string effectName) const;
     void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
 

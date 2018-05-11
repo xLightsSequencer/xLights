@@ -239,29 +239,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
 
-    if (mBackupOnLaunch)
-    {
-        logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
-        DoBackup(false, true);
-        logger_base.debug("Backup completed.");
-    }
-
-    long LinkFlag=0;
-    config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag ) {
-        mediaDirectory = CurrentDir;
-        config->Write(_("MediaDir"), mediaDirectory);
-        logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
-    }
-
-    long fseqLinkFlag = 0;
-    config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
-    if (fseqLinkFlag) {
-        fseqDirectory = CurrentDir;
-        config->Write(_("FSEQDir"), fseqDirectory);
-        logger_base.debug("FSEQ Directory set to : %s.", (const char *)fseqDirectory.c_str());
-    }
-
     while (Notebook1->GetPageCount() > FixedPages)
     {
         Notebook1->DeletePage(FixedPages);
@@ -303,8 +280,24 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
-
+    
     LoadEffectsFile();
+    
+    if (mBackupOnLaunch)
+    {
+        logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
+        DoBackup(false, true);
+        logger_base.debug("Backup completed.");
+    }
+    
+    long LinkFlag=0;
+    config->Read(_("LinkFlag"), &LinkFlag);
+    if( LinkFlag ) {
+        mediaDirectory = CurrentDir;
+        config->Write(_("MediaDir"), mediaDirectory);
+        logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
+    }
+
     EnableSequenceControls(true);
 
     Notebook1->ChangeSelection(SETUPTAB);

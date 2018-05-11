@@ -127,7 +127,7 @@ void SingleLineModel::InitLine() {
     SetBufferSize(1,SingleNode?parm1:numLights);
     int LastStringNum=-1;
     int chan = 0;
-    int ChanIncr=SingleChannel ?  1 : 3;
+    int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
 
     int idx = 0;

@@ -243,6 +243,26 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewBackgroundImage(mBackgroundImage);
 
+    //Load FSEQ and Backup directory settings
+    fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
+    backupDirectory = GetXmlSetting("backupDir", showDirectory);
+    ObtainAccessToURL(fseqDirectory.ToStdString());
+    ObtainAccessToURL(backupDirectory.ToStdString());
+    if (!wxDir::Exists(fseqDirectory))
+    {
+        logger_base.warn("FSEQ Directory not Found ... switching to Show Directory.");
+        fseqDirectory = showDirectory;
+        SetXmlSetting("fseqDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+    if (!wxDir::Exists(backupDirectory))
+    {
+        logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
+        backupDirectory = showDirectory;
+        SetXmlSetting("backupDir", showDirectory);
+        UnsavedRgbEffectsChanges = true;
+    }
+
     mStoredLayoutGroup = GetXmlSetting("storedLayoutGroup","Default");
 
     // validate stored preview exists
@@ -940,6 +960,14 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
+    // if the fseq directory is not the show directory then ensure the fseq folder is set right
+    if (fseqDirectory != showDirectory)
+    {
+        wxFileName fn(xlightsFilename);
+        fn.SetPath(fseqDirectory);
+        xlightsFilename = fn.GetFullPath();
+    }
+
     SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
     ProgressBar->Show();
     GaugeSizer->Layout();
@@ -1018,12 +1046,21 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName oName(NewFilename);
+        oName.SetPath(fseqDirectory);
         oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
 
         oName.SetExt("xml");
         CurrentSeqXmlFile->SetPath(oName.GetPath());
         CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+    }
+
+    // if the fseq directory is not the show directory then ensure the fseq folder is set right
+    if (fseqDirectory != showDirectory)
+    {
+        wxFileName fn(xlightsFilename);
+        fn.SetPath(fseqDirectory);
+        xlightsFilename = fn.GetFullPath();
     }
 
     EnableSequenceControls(false);
@@ -1070,6 +1107,7 @@ void xLightsFrame::SaveSequence()
             GaugeSizer->Layout();
 
             logger_base.info("Saving fseq file.");
+
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             logger_base.info("fseq file done.");

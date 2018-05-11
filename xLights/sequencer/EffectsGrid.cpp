@@ -1164,7 +1164,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     UpdateZoomPosition(selectedTimeMS);
 }
 
-Effect* EffectsGrid::GetSelectedEffect()
+Effect* EffectsGrid::GetSelectedEffect() const
 {
     return mSelectedEffect;
 }
