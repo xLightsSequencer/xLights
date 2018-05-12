@@ -32,6 +32,7 @@ void Schedule::Load(wxXmlNode* node)
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
     _nthDay = wxAtoi(node->GetAttribute("NthDay", "1"));
     _nthDayOffset = wxAtoi(node->GetAttribute("NthDayOffset", "0"));
+    _fireFrequency = node->GetAttribute("FireFrequency", "Fire once");
 }
 
 wxXmlNode* Schedule::Save()
@@ -47,6 +48,7 @@ wxXmlNode* Schedule::Save()
     node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
     node->AddAttribute("NthDay", wxString::Format(wxT("%i"), _nthDay));
     node->AddAttribute("NthDayOffset", wxString::Format(wxT("%i"), _nthDayOffset));
+    node->AddAttribute("FireFrequency", _fireFrequency);
     if (_loop)
     {
         node->AddAttribute("Loop", "TRUE");
@@ -88,6 +90,7 @@ Schedule::Schedule()
     _dow = "MonTueWedThuFriSatSun";
     _nthDay = 1;
     _nthDayOffset = 0;
+    _fireFrequency = "Fire once";
 }
 
 std::string Schedule::GetJSON(const std::string& reference)
@@ -139,6 +142,7 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _dow = schedule._dow;
     _nthDay = schedule._nthDay;
     _nthDayOffset = schedule._nthDayOffset;
+    _fireFrequency = schedule._fireFrequency;
 }
 
 Schedule* Schedule::Configure(wxWindow* parent)
@@ -233,6 +237,39 @@ bool Schedule::IsOkDOW(const wxDateTime& date)
 bool Schedule::CheckActive()
 {
     return CheckActiveAt(wxDateTime::Now());
+}
+
+bool Schedule::ShouldFire() const
+{
+    int minute = wxDateTime::Now().GetMinute();
+
+    if (_fireFrequency == "Fire every hour")
+    {
+        if (minute == 0) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 30 minutes")
+    {
+        if (minute == 0 || minute == 30) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 20 minutes")
+    {
+        if (minute == 0 || minute == 20 || minute == 40) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 15 minutes")
+    {
+        if (minute == 0 || minute == 15 || minute == 30 || minute == 45) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 10 minutes")
+    {
+        if (minute == 0 || minute == 10 || minute == 20 || minute == 30 || minute == 40 || minute == 50) return true;
+        return false;
+    }
+
+    return true;
 }
 
 //#define LOGCALCNEXTTRIGGERTIME

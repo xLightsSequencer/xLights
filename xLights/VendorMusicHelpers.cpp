@@ -36,7 +36,7 @@ MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 		}
 		else if (nn == "artist")
 		{
-			_creator = l->GetNodeContent().ToStdString();
+			_artist = l->GetNodeContent().ToStdString();
 		}
 		else if (nn == "notes")
 		{

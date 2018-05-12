@@ -280,10 +280,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
+        xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
+
         // load the fseq data file if it exists        
         if( fseq_file.FileExists() && fseqFound)
         {
-            xlightsFilename = fseq_file.GetFullPath();
             if (plog != nullptr)
             {
                 plog->Show(true);

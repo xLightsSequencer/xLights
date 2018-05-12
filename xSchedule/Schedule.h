@@ -27,6 +27,7 @@ class Schedule
     bool _enabled;
     int _nthDay;
     int _nthDayOffset;
+    std::string _fireFrequency;
 
     bool IsOkDOW(const wxDateTime& date);
     bool IsOkNthDay(const wxDateTime& date);
@@ -59,6 +60,8 @@ class Schedule
         bool GetEnabled() const { return _enabled; }
         void SetRandom(bool random) { if (_random != random) { _random = random; _changeCount++; } }
         bool GetRandom() const { return _random; }
+        void SetFireFrequency(std::string fireFrequency) { if (_fireFrequency != fireFrequency) { _fireFrequency = fireFrequency; _changeCount++; } }
+        std::string GetFireFrequency() const { return _fireFrequency; }
         void SetEveryYear(bool everyYear) { if (_everyYear != everyYear) { _everyYear = everyYear; _changeCount++; } }
         bool GetEveryYear() const { return _everyYear; }
         bool IsOnDOW(const std::string& dow) const;
@@ -84,6 +87,7 @@ class Schedule
         void AddMinsToEndTime(int mins);
         wxDateTime GetNextTriggerDateTime();
         static std::string GetNextNthDay(int nthDay, int nthDayOffset);
+        bool ShouldFire() const;
 };
 
 #endif

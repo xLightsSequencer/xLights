@@ -16,7 +16,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2018
-#define Version 12
+#define Version 13
 #define Bits 64
 
 [Setup]
@@ -37,7 +37,7 @@ AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}
 DefaultDirName={pf64}\{#MyTitleName}
 DefaultGroupName={#MyTitleName}
-SetupIconFile=include\{#MyTitleName}.ico
+SetupIconFile=include\{#MyTitleName}64.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2

@@ -4,6 +4,7 @@
 //(*Headers(ScheduleDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/dialog.h>
@@ -39,6 +40,7 @@ class ScheduleDialog: public wxDialog
 		wxCheckBox* CheckBox_Thu;
 		wxCheckBox* CheckBox_Tue;
 		wxCheckBox* CheckBox_Wed;
+		wxChoice* Choice_FireFrequency;
 		wxDatePickerCtrl* DatePickerCtrl_End;
 		wxDatePickerCtrl* DatePickerCtrl_Start;
 		wxSpinCtrl* SpinCtrl_MaxLoops;
@@ -53,6 +55,7 @@ class ScheduleDialog: public wxDialog
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText16;
 		wxStaticText* StaticText17;
+		wxStaticText* StaticText18;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -103,6 +106,8 @@ class ScheduleDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT19;
+		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX9;
 		static const long ID_STATICTEXT13;
 		static const long ID_SPINCTRL1;
@@ -123,11 +128,11 @@ class ScheduleDialog: public wxDialog
 		void OnTextCtrl_OffTimeText(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
-		void OnCheckBox6Click(wxCommandEvent& event);
 		void OnCheckBox_DOWClick(wxCommandEvent& event);
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		void OnSpinCtrl_NthDayChange(wxSpinEvent& event);
 		void OnSpinCtrl_NthDayOffsetChange(wxSpinEvent& event);
+		void OnChoice_FireFrequencySelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

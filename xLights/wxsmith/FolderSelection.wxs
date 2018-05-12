@@ -45,7 +45,7 @@
 					<label>FSEQ Directory</label>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_FSEQ_USE_SHOW" variable="CheckBoxFSEQUseShow" member="yes">
-							<label>Use Show Folder</label>
+							<label>Use Sequence Location</label>
 							<handler function="OnCheckBoxFSEQUseShowClick" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
@@ -142,6 +142,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_FOLDER_SELECT_OK" variable="ButtonFolderSelectOk" member="yes">
 							<label>Ok</label>
@@ -149,7 +150,6 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_FOLDER_SELECT_CANCEL" variable="ButtonFolderSelectCancel" member="yes">
@@ -158,10 +158,9 @@
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxALIGN_RIGHT</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
