@@ -114,6 +114,14 @@ std::string MSLSequenceLyric::GetDescription() const
 		desc += "\n" + _notes + "\n";
 	}
 
+    std::string find = "\\n";
+    std::string replace = "\n";
+    for (std::string::size_type i = 0; (i = desc.find(find, i)) != std::string::npos;)
+    {
+        desc.replace(i, find.length(), replace);
+        i += replace.length();
+    }
+
 	return desc;
 }
 
@@ -200,6 +208,14 @@ std::string MSLVendor::GetDescription() const
 	{
 		desc += "\n" + _notes + "\n";
 	}
+
+    std::string find = "\\n";
+    std::string replace = "\n";
+    for (std::string::size_type i = 0; (i = desc.find(find, i)) != std::string::npos;)
+    {
+        desc.replace(i, find.length(), replace);
+        i += replace.length();
+    }
 
 	return desc;
 }
