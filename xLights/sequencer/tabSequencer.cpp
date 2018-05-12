@@ -318,10 +318,21 @@ static void HandleChoices(xLightsFrame *frame,
         if (dlg.ShowModal() == wxID_OK) {
             switch (dlg.GetSelection()) {
                 case 0: {
+                    // Rename Model
                     wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
                                                  "Select Model", ToArrayString(ModelNames));
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
+
+                        // remove the existing element before we rename
+                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
+                            SubModelElement *sme = dynamic_cast<SubModelElement*>(element);
+                            sme->GetModelElement()->RemoveSubModel(newName);
+                        }
+                        else {
+                            frame->GetSequenceElements().DeleteElement(newName);
+                        }
+
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
@@ -331,6 +342,7 @@ static void HandleChoices(xLightsFrame *frame,
                 }
                     break;
                 case 1:
+                    // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
                         SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
@@ -339,15 +351,12 @@ static void HandleChoices(xLightsFrame *frame,
                     }
                     break;
                 case 2:
-                    if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                        SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
-                        toMap.push_back(sme->GetModelElement());
-                    } else {
-                        toMap.push_back(element);
-                    }
+                    // Map effects
+                    toMap.push_back(element);
                     //relo
                     break;
                 case 3:
+                    // Handle later
                     ignore.push_back(element);
                     break;
                 default:
@@ -361,7 +370,7 @@ static bool HasEffects(ModelElement *el) {
     if (el->HasEffects()) {
         return true;
     }
-    for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
+    for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); sm++) {
         SubModelElement *sme = el->GetSubModel(sm);
 
         if (sme->HasEffects()) {
@@ -394,7 +403,7 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
-    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetModelName();
             //remove the current models from the list so we don't end up with the same model represented twice
@@ -405,13 +414,22 @@ void xLightsFrame::CheckForValidModels()
 
     std::vector<Element*> mapLater;
     SeqElementMismatchDialog dialog(this);
-    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+
+    // Check each model element in the sequence
+    // We do this because we can just rename them so it is easy
+    // Strands, nodes and submodels are not so easy ... we have to delete them or map them
+    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+
+            // Find the model/model group for the element
             ModelElement *me = static_cast<ModelElement*>(mSequenceElements.GetElement(x));
             std::string name = me->GetModelName();
             Model *m = AllModels[name];
+
+            // If model is not found we need to remap
             if (m == nullptr) {
-                dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
+
+                dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                 dialog.ChoiceModels->Set(ToArrayString(AllNames));
                 dialog.Fit();
 
@@ -421,11 +439,17 @@ void xLightsFrame::CheckForValidModels()
                 }
 
                 if (cancelled || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
+                    // Just delete the element from the sequence we are opening
                     mSequenceElements.DeleteElement(name);
-                } else if (dialog.RadioButtonMap->GetValue()) {
+                }
+                else if (dialog.RadioButtonMap->GetValue()) {
+                    // add it to the list of things we will map later
                     mapLater.push_back(me);
-                } else {
+                }
+                else {
+                    // change the name of the element to the new name
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
+                    mSequenceElements.DeleteElement(newName); // delete the existing element
                     mSequenceElements.GetElement(x)->SetName(newName);
                     Remove(AllNames, newName);
                     Remove(ModelNames, newName);
@@ -433,32 +457,78 @@ void xLightsFrame::CheckForValidModels()
             }
         }
     }
+
     std::vector<Element*> toMap;
     std::vector<Element*> ignore;
+
+    // build the list of models to map
+    for (auto a = mapLater.begin(); a != mapLater.end(); ++a) {
+        toMap.push_back(*a);
+    }
+    mapLater.clear();
+
     do {
+        // If we have something to map ask the user to do so
         if (!toMap.empty()) {
-            ImportXLights(mSequenceElements, toMap, wxFileName(), true, true);
+
+            // we only map at the model level so we need to build a list of them only
+            std::vector<Element*> modelElements;
+            for (auto it = toMap.begin(); it != toMap.end(); ++it)
+            {
+                Element* me = *it;
+                if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    me = dynamic_cast<SubModelElement*>(*it)->GetModelElement();
+                }
+
+                if (std::find(modelElements.begin(), modelElements.end(), me) == modelElements.end())
+                {
+                    modelElements.push_back(me);
+                }
+            }
+
+            ImportXLights(mSequenceElements, modelElements, wxFileName(), true, true);
+
+            for (auto it = toMap.begin(); it != toMap.end(); ++it)
+            {
+                if ((*it)->GetType() == ELEMENT_TYPE_MODEL)
+                {
+                    mSequenceElements.DeleteElement((*it)->GetName());
+                }
+                else if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    SubModelElement* sme = dynamic_cast<SubModelElement*>(*it);
+                    sme->GetModelElement()->RemoveSubModel(sme->GetName());
+                }
+            }
         }
+
         toMap.clear();
-        for (auto a = mapLater.begin(); a != mapLater.end(); ++a) {
-            toMap.push_back(*a);
-        }
-        mapLater.clear();
-        for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+
+        // Now we go through everything again ... but we also look at strands and submodels and nodes
+        for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
+
             if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+
                 std::string name = mSequenceElements.GetElement(x)->GetModelName();
                 ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 Model *m = AllModels[name];
+
+                // model still doesnt exist
                 if (m == nullptr) {
+                    // If we have effects at any level
                     if (HasEffects(el)) {
                         HandleChoices(this, AllNames, ModelNames, el,
-                                      "Model " + name + " does not exist in your layout.\n"
-                                      + "How should we handle this?",
-                                      toMap, ignore);
-                    } else {
+                            "Model " + name + " does not exist in your layout.\n"
+                            + "How should we handle this?",
+                            toMap, ignore);
+                    }
+                    else {
+                        // no effects at any level so just remove it
                         mSequenceElements.DeleteElement(name);
                     }
-                } else if (m->GetDisplayAs() == "ModelGroup") {
+                }
+                else if (m->GetDisplayAs() == "ModelGroup") {
                     bool hasStrandEffects = false;
                     bool hasNodeEffects = false;
                     for (int l = 0; l < el->GetStrandCount(); l++) {
@@ -482,12 +552,13 @@ void xLightsFrame::CheckForValidModels()
                     }
                     if (hasNodeEffects || hasStrandEffects) {
                         HandleChoices(this, AllNames, ModelNames, el,
-                                      "Model " + name + " is a Model Group but has Node/Strand effects.\n"
-                                      + "How should we handle this?",
-                                      toMap, ignore);
+                            "Model " + name + " is a Model Group but has Node/Strand effects.\n"
+                            + "How should we handle this?",
+                            toMap, ignore);
                     }
-                } else {
-                    for (int x1 = 0; x1 < el->GetSubModelCount(); x1++) {
+                }
+                else {
+                    for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
                         SubModelElement *sme = el->GetSubModel(x1);
                         if (dynamic_cast<StrandElement*>(sme) == nullptr
                             && m->GetSubModel(sme->GetName()) == nullptr) {
@@ -497,14 +568,10 @@ void xLightsFrame::CheckForValidModels()
                                 AllSMNames.push_back(m->GetSubModel(z)->GetName());
                                 ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                             }
-                            for (int z = 0; z < el->GetSubModelCount(); z++) {
-                                Remove(AllSMNames, el->GetSubModel(z)->GetName());
-                                Remove(ModelSMNames, el->GetSubModel(z)->GetName());
-                            }
-                            HandleChoices(this, AllSMNames, ModelSMNames, el,
-                                          "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                          + "How should we handle this?",
-                                          toMap, ignore);
+                            HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                + "How should we handle this?",
+                                toMap, ignore);
                         }
                     }
                 }

@@ -2550,7 +2550,7 @@ void Model::ExportAsCustomXModel() const {
     f.Close();
 }
 
-std::string Model::ChannelLayoutHtml(OutputManager* outputManager) 
+std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 {
     size_t NodeCount = GetNodeCount();
 
@@ -2558,7 +2558,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     chmap.resize(BufferHt * BufferWi, 0);
 
     bool IsCustom = DisplayAs == "Custom";
-    
+
     std::string direction;
     if (IsCustom) {
         direction = "n/a";
@@ -2739,9 +2739,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     }
     va.PreAlloc(maxVertexCount);
 
-    int first = 0; 
+    int first = 0;
     int last = NodeCount;
-    int buffFirst = -1; 
+    int buffFirst = -1;
     int buffLast = -1;
     bool left = true;
 

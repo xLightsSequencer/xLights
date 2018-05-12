@@ -640,9 +640,86 @@ void xLightsFrame::CreateDefaultEffectsXml()
     UnsavedRgbEffectsChanges = true;
 }
 
+// This ensures submodels are in the right order in the sequence elements after the user
+// reorders them in the ssubmodel dialog
+bool xLightsFrame::EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder)
+{
+    ModelElement* elementToCheck = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(ModelName));
+
+    if (elementToCheck != nullptr)
+    {
+        // Check if they are already right and in the right order
+        bool identical = true;
+        if (elementToCheck->GetSubModelCount() == submodelOrder.size())
+        {
+            for (int  i = 0; i < elementToCheck->GetSubModelCount(); i++)
+            {
+                if (elementToCheck->GetSubModel(i)->GetName() != submodelOrder[i])
+                {
+                    identical = false;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            identical = false;
+        }
+
+        if (identical)
+        {
+            // no changes we can exit
+            return false;
+        }
+
+        // Grab the existing elements
+        std::list<SubModelElement*> oldList;
+        for (int i = 0; i < elementToCheck->GetSubModelCount(); i++)
+        {
+            oldList.push_back(elementToCheck->GetSubModel(i));
+        }
+
+        // remove but dont delete all submodels
+        elementToCheck->RemoveAllSubModels();
+
+        // Now add them back in the right order
+        for (auto msm = submodelOrder.begin(); msm != submodelOrder.end(); ++msm)
+        {
+            bool found = false;
+            for (auto it = oldList.begin(); it != oldList.end(); ++it)
+            {
+                if ((*it)->GetName() == *msm)
+                {
+                    elementToCheck->AddSubModel(*it);
+                    oldList.erase(it);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                // add the submodel as it didnt previously exist
+                elementToCheck->GetSubModel(*msm, true);
+            }
+        }
+
+        // delete any that are no longer there
+        for (auto it = oldList.begin(); it != oldList.end(); ++it)
+        {
+            delete *it;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 bool xLightsFrame::RenameModel(const std::string OldName, const std::string& NewName)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool internalsChanged = false;
 
     if (OldName == NewName) {
         return false;
@@ -651,13 +728,23 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     logger_base.debug("Renaming model '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
 
     Element* elem_to_rename = mSequenceElements.GetElement(OldName);
-    if( elem_to_rename != nullptr )
+    if (elem_to_rename != nullptr)
     {
         elem_to_rename->SetName(NewName);
     }
-    bool internalsChanged = AllModels.Rename(OldName, NewName);
+
+    if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end())
+    {
+        internalsChanged = AllModels.RenameSubModel(OldName, NewName);
+    }
+    else
+    {
+        internalsChanged = AllModels.Rename(OldName, NewName);
+    }
+
     RenameModelInViews(OldName, NewName);
     mSequenceElements.RenameModelInViews(OldName, NewName);
+
     UnsavedRgbEffectsChanges = true;
     return internalsChanged;
 }
@@ -691,12 +778,11 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
                                  const std::string &msg, const std::string curval) {
     wxTextEntryDialog dialog(parent, _("Enter new name"), msg, curval);
     int DlgResult;
-    std::string NewName;
     do {
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK) {
             // validate inputs
-            NewName = dialog.GetValue().Trim();
+            std::string NewName = dialog.GetValue().Trim();
             if (std::find(names.begin(), names.end(), NewName) == names.end()) {
                 return NewName;
             }
@@ -827,7 +913,7 @@ void xLightsFrame::UpdateModelsList()
     wxString msg;
 
     // Add all models to default House Preview that are set to Default or All Previews
-    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         Model *model = it->second;
         if (model->GetDisplayAs() != "ModelGroup") {
             if (model->GetLayoutGroup() == "Default" || model->GetLayoutGroup() == "All Previews") {
@@ -837,7 +923,7 @@ void xLightsFrame::UpdateModelsList()
     }
 
     // Now add all models to default House Preview that are in groups set to Default or All Previews
-    for (auto it = AllModels.begin(); it != AllModels.end(); it++) {
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         Model *model = it->second;
         if (model->GetDisplayAs() == "ModelGroup") {
             ModelGroup *grp = (ModelGroup*)model;
@@ -1148,6 +1234,7 @@ static void enableAllToolbarControls(wxAuiToolBar *parent, bool enable) {
     }
     parent->Refresh();
 }
+
 static void enableAllMenubarControls(wxMenuBar *parent, bool enable) {
     for (int x = 0; x < parent->GetMenuCount(); x++) {
         wxMenu * menu = parent->GetMenu(x);
@@ -1228,17 +1315,14 @@ std::string xLightsFrame::CreateEffectStringRandom(std::string &settings, std::s
 
 int xLightsFrame::ChooseRandomEffect()
 {
-    int eff,count=0;
-    const static int MAX_TRIES=10;
+    int eff, count = 0;
+    const static int MAX_TRIES = 10;
 
     do {
         count++;
-        eff=rand() % effectManager.size();
+        eff = rand() % effectManager.size();
     } while (!effectManager[eff]->CanBeRandom() && count < MAX_TRIES);
 
-    if(count==MAX_TRIES) eff = 0; // we failed to find a good effect after MAX_TRIES attempts
+    if (count == MAX_TRIES) eff = 0; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
 }
-
-
-

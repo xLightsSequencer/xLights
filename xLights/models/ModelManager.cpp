@@ -57,7 +57,6 @@ Model *ModelManager::GetModel(const std::string &name) const {
         if (pos != std::string::npos) {
             std::string mname = name.substr(0, pos);
             std::string smname = name.substr(pos + 1);
-            
             Model *m = GetModel(mname);
             if (m != nullptr) {
                 return m->GetSubModel(smname);
@@ -73,7 +72,7 @@ Model *ModelManager::operator[](const std::string &name) const {
 
 bool ModelManager::Rename(const std::string &oldName, const std::string &newName) {
     Model *model = GetModel(oldName);
-    if (model == nullptr) {
+    if (model == nullptr || model->GetDisplayAs() == "SubModel") {
         return false;
     }
     model->GetModelXml()->DeleteAttribute("name");
@@ -100,6 +99,22 @@ bool ModelManager::Rename(const std::string &oldName, const std::string &newName
     }
 
     return false;
+}
+
+bool ModelManager::RenameSubModel(const std::string &oldName, const std::string &newName) {
+
+    bool changed = false;
+
+    for (auto m = begin(); m != end(); ++m)
+    {
+        if (m->second->GetDisplayAs() == "ModelGroup")
+        {
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(m->second);
+            changed |= mg->SubModelRenamed(oldName, newName);
+        }
+    }
+
+    return changed;
 }
 
 bool ModelManager::RenameInListOnly(const std::string& oldName, const std::string& newName)
@@ -191,14 +206,14 @@ void ModelManager::NewRecalcStartChannels() const
     std::map<std::string, Model*> ms(models);
     std::string msg = "Could not calculate start channels for models:\n";
     bool failed = false;
-    
+
     for (auto it = models.begin(); it != models.end(); ++it) {
         it->second->CouldComputeStartChannel = false;
     }
 
     for (auto it = models.begin(); it != models.end(); ++it)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup") 
+        if (it->second->GetDisplayAs() != "ModelGroup")
         {
             std::list<std::string> used;
             if (!it->second->UpdateStartChannelFromChannelString(ms, used)) {
@@ -281,7 +296,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
     bool changed = false;
-    
+
     for (wxXmlNode* e=groupNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
         if (e->GetName() == "modelGroup") {
             std::string name = e->GetAttribute("name").ToStdString();
@@ -308,7 +323,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
             std::string msg = "Could not process model groups (possibly due to circular groups or a missing model):";
             for (auto it = toBeDone.begin(); it != toBeDone.end(); ++it) {
                 ModelGroup *g = *it;
-                
+
                 wxString orig = g->GetModelXml()->GetAttribute("models");
                 wxString newM;
                 wxArrayString mn = wxSplit(orig, ',');
@@ -649,7 +664,7 @@ Model *ModelManager::createAndAddModel(wxXmlNode *node) {
 
 void ModelManager::Delete(const std::string &name) {
 
-    if( xlights->CurrentSeqXmlFile != nullptr ) 
+    if( xlights->CurrentSeqXmlFile != nullptr )
     {
         Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
         if (elem_to_delete != nullptr)

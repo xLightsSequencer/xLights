@@ -288,6 +288,13 @@ ModelElement::~ModelElement()
     }
     mSubModels.clear();
 }
+
+// remove but dont delete all submodels ... used for submodel reordering
+void ModelElement::RemoveAllSubModels()
+{
+    mSubModels.clear();
+}
+
 void ModelElement::CleanupAfterRender() {
     for (auto &a : mStrands) {
         a->CleanupAfterRender();
@@ -456,14 +463,20 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
     return mStrands[index];
 }
 
-int ModelElement::GetSubModelCount() const {
+int ModelElement::GetSubModelAndStrandCount() const {
     return mSubModels.size() +  mStrands.size();
 }
+
+int ModelElement::GetSubModelCount() const {
+    return mSubModels.size();
+}
+
 void ModelElement::RemoveSubModel(const std::string &name) {
-    for (auto a = mSubModels.begin(); a != mSubModels.end(); a++) {
+    for (auto a = mSubModels.begin(); a != mSubModels.end(); ++a) {
         if (name == (*a)->GetName()) {
             delete *a;
             mSubModels.erase(a);
+            break;
         }
     }
 }
@@ -478,13 +491,19 @@ SubModelElement *ModelElement::GetSubModel(int i) {
     }
     return mStrands[i];
 }
+
+void ModelElement::AddSubModel(SubModelElement* sme)
+{
+    mSubModels.push_back(sme);
+}
+
 SubModelElement *ModelElement::GetSubModel(const std::string &name, bool create) {
-    for (auto a = mSubModels.begin(); a != mSubModels.end(); a++) {
+    for (auto a = mSubModels.begin(); a != mSubModels.end(); ++a) {
         if (name == (*a)->GetName()) {
             return *a;
         }
     }
-    for (auto a = mStrands.begin(); a != mStrands.end(); a++) {
+    for (auto a = mStrands.begin(); a != mStrands.end(); ++a) {
         if (name == (*a)->GetName()) {
             return *a;
         }

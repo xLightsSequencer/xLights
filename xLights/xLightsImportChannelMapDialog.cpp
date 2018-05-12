@@ -771,9 +771,23 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
         if (grp != nullptr)
         {
-            std::vector<Model*> models = grp->Models();
-            for (auto a = models.begin(); a != models.end(); ++a) {
-                AddModel(*a, ms);
+            auto modelNames = grp->ModelNames();
+
+            for (auto it = modelNames.begin(); it != modelNames.end(); ++it)
+            {
+                if (std::find(it->begin(), it->end(), '/') != it->end())
+                {
+                    // this is a submodel ... dont add it
+
+                    // The risk here is the submodel is in the group but the parent model isnt so there will be no way to
+                    // map it. Maybe we should grab the parent model and ensure it is included in the list
+                    // Given up until this change this actually crashed my guess is no one is screaming for it now
+                }
+                else
+                {
+                    Model* mdl = grp->GetModel(*it);
+                    AddModel(mdl, ms);
+                }
             }
         }
     }

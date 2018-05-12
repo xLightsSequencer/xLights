@@ -52,7 +52,7 @@ class RowHeading : public wxWindow
         void BreakdownTimingWords(TimingElement* element);
     xlColor GetHeaderColor(Row_Information_Struct* info) const;
         bool ExpandElementIfEffects(Element* e);
-        bool ModelInView(const std::string& model, int view);
+        bool ModelInView(const std::string& model, int view) const;
 
         wxBitmap papagayo_icon;
         wxBitmap papagayox_icon;

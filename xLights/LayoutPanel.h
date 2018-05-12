@@ -240,6 +240,7 @@ class LayoutPanel: public wxPanel
         bool updatingProperty;
         Model *selectedModel;
 
+        void ReloadModelList();
         void refreshModelList();
         void resetPropertyGrid();
         void clearPropGrid();
@@ -339,7 +340,7 @@ class LayoutPanel: public wxPanel
         void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style);
         int GetModelTreeIcon(Model* model, bool open);
-        int AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName = false);
+        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string new_name);
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 

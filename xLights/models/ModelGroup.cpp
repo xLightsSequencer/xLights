@@ -25,6 +25,19 @@ static const std::string PER_MODEL_SINGLE_LINE("Per Model Single Line");
 
 std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
+Model* ModelGroup::GetModel(std::string modelName)
+{
+    for (auto it = models.begin(); it != models.end(); ++it)
+    {
+        if ((*it)->GetFullName() == modelName)
+        {
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
@@ -301,6 +314,26 @@ bool ModelGroup::ModelRenamed(const std::string &oldName, const std::string &new
                 modelNames[x] = newName + "/" + modelNames[x].substr(startpos);
                 changed = true;
             }
+        }
+        if (x != 0) {
+            newVal += ",";
+        }
+        newVal += modelNames[x];
+    }
+    if (changed) {
+        ModelXml->DeleteAttribute("models");
+        ModelXml->AddAttribute("models", newVal);
+    }
+    return changed;
+}
+
+bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &newName) {
+    bool changed = false;
+    wxString newVal = "";
+    for (int x = 0; x < modelNames.size(); x++) {
+        if (modelNames[x] == oldName) {
+            modelNames[x] = newName;
+            changed = true;
         }
         if (x != 0) {
             newVal += ",";

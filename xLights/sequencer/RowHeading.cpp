@@ -248,7 +248,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
         if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
             me = dynamic_cast<SubModelElement *>(element)->GetModelElement();
         }
-        if (me->GetSubModelCount() > 0) {
+        if (me->GetSubModelAndStrandCount() > 0) {
             if (element->GetType() != ELEMENT_TYPE_SUBMODEL) {
                 canPromote = true;
             }
@@ -822,7 +822,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
             {
                 hasEffects |= ExpandElementIfEffects(me->GetStrand(i));
             }
-            for (int i = 0; i < me->GetSubModelCount(); ++i)
+            for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i)
             {
                 hasEffects |= ExpandElementIfEffects(me->GetSubModel(i));
             }
@@ -854,7 +854,7 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
     return hasEffects;
 }
 
-bool RowHeading::ModelInView(const std::string& model, int view)
+bool RowHeading::ModelInView(const std::string& model, int view) const
 {
     for (int j = 0; j < mSequenceElements->GetElementCount(view); ++j)
     {

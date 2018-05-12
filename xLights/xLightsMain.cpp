@@ -5281,7 +5281,7 @@ void xLightsFrame::CheckSequence(bool display)
                             }
                         }
                     }
-                    for (int j = 0; j < me->GetSubModelCount(); ++j)
+                    for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j)
                     {
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
@@ -5756,7 +5756,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effects += ExportElement(f, se, effectfrequency, effecttotaltime, files);
             }
@@ -5836,7 +5836,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                         }
                     }
                 }
-                for (int i = 0; i < me->GetSubModelCount(); ++i)
+                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i)
                 {
                     Element* se = me->GetSubModel(i);
                     for(int layer=0;layer<se->GetEffectLayerCount();layer++) {
@@ -6169,7 +6169,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effectfiles.merge(se->GetFileReferences(effectManager));
             }
