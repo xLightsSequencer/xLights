@@ -107,7 +107,7 @@ ModelScreenLocation::ModelScreenLocation(int sz)
 : RenderWi(0), RenderHt(0), RenderDp(0), previewW(800), previewH(600),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
-  rotatex(0), rotatey(0), rotatez(0),
+  active_handle_pos(glm::vec3(0.0f)), rotatex(0), rotatey(0), rotatez(0),
   ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
   saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), saved_rotate(0.0f),
   active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE)
@@ -145,138 +145,136 @@ void ModelScreenLocation::MouseOverHandle(int handle)
     }
 }
 
-void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const
+void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va) const
 {
     int num_points = 18;
     float os = (float)RECT_HANDLE_WIDTH;
 
     if (axis_tool == TOOL_TRANSLATE) {
-        xlColor ax1c = (highlighted_handle == 0x100) ? xlYELLOW : xlRED;
-        xlColor ax2c = (highlighted_handle == 0x101) ? xlYELLOW : xlGREEN;
-        xlColor ax3c = (highlighted_handle == 0x102) ? xlYELLOW : xlBLUE;
-        float tip = x + AXIS_ARROW_LENGTH;
+        xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
+        xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlGREEN;
+        xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlBLUE;
+        float tip = pos.x + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(tip, y, z, ax1c);
-            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax1c);
-            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax1c);
+            va.AddVertex(tip, pos.y, pos.z, ax1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u1), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u2), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax1c);
         }
-        tip = y + AXIS_ARROW_LENGTH;
+        tip = pos.y + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(x, tip, z, ax2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax2c);
+            va.AddVertex(pos.x, tip, pos.z, ax2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax2c);
         }
-        tip = z + AXIS_ARROW_LENGTH;
+        tip = pos.z + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(x, y, tip, ax3c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, ax3c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, ax3c);
+            va.AddVertex(pos.x, pos.y, tip, ax3c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u1), pos.y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, ax3c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u2), pos.y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, ax3c);
         }
         va.Finish(GL_TRIANGLES);
     }
     else if (axis_tool == TOOL_SCALE) {
-        xlColor ax1c = (highlighted_handle == 0x100) ? xlYELLOW : xlRED;
-        xlColor ax2c = (highlighted_handle == 0x101) ? xlYELLOW : xlGREEN;
-        xlColor ax3c = (highlighted_handle == 0x102) ? xlYELLOW : xlBLUE;
-        DrawGLUtils::DrawCube(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, AXIS_RADIUS * 2, ax1c, va);
-        DrawGLUtils::DrawCube(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, AXIS_RADIUS * 2, ax2c, va);
-        DrawGLUtils::DrawCube(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, ax3c, va);
+        xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
+        xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlGREEN;
+        xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlBLUE;
+        DrawGLUtils::DrawCube(pos.x + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.y, pos.z, AXIS_RADIUS * 2, ax1c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.z, AXIS_RADIUS * 2, ax2c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, ax3c, va);
         va.Finish(GL_TRIANGLES);
     }
     else if (axis_tool == TOOL_ROTATE) {
-        xlColor ax1c = (highlighted_handle == 0x100) ? xlYELLOW : xlGREEN;
-        xlColor ax2c = (highlighted_handle == 0x101) ? xlYELLOW : xlBLUE;
-        xlColor ax3c = (highlighted_handle == 0x102) ? xlYELLOW : xlRED;
+        xlColor ax1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlGREEN;
+        xlColor ax2c = (highlighted_handle == 0x2001) ? xlYELLOW : xlBLUE;
+        xlColor ax3c = (highlighted_handle == 0x2002) ? xlYELLOW : xlRED;
         float radius = AXIS_ARROW_LENGTH - AXIS_RADIUS;
         for (size_t i = 30; i <= 150; i += 5) {
             float u1 = (float)i;
             float u2 = (float)(i + 5);
-            va.AddVertex(x, y + radius * cos(glm::radians(u1)), z + radius * sin(glm::radians(u1)), xlRED);
-            va.AddVertex(x, y + radius * cos(glm::radians(u2)), z + radius * sin(glm::radians(u2)), xlRED);
+            va.AddVertex(pos.x, pos.y + radius * cos(glm::radians(u1)), pos.z + radius * sin(glm::radians(u1)), xlRED);
+            va.AddVertex(pos.x, pos.y + radius * cos(glm::radians(u2)), pos.z + radius * sin(glm::radians(u2)), xlRED);
         }
         for (size_t i = 0; i <= 120; i += 5) {
             float u1 = (float)i - 60.0f;;
             float u2 = (float)(i + 5) - 60.0f;
-            va.AddVertex(x + radius * cos(glm::radians(u1)), y, z + radius * sin(glm::radians(u1)), xlGREEN);
-            va.AddVertex(x + radius * cos(glm::radians(u2)), y, z + radius * sin(glm::radians(u2)), xlGREEN);
+            va.AddVertex(pos.x + radius * cos(glm::radians(u1)), pos.y, pos.z + radius * sin(glm::radians(u1)), xlGREEN);
+            va.AddVertex(pos.x + radius * cos(glm::radians(u2)), pos.y, pos.z + radius * sin(glm::radians(u2)), xlGREEN);
         }
         for (size_t i = 30; i <= 150; i += 5) {
             float u1 = (float)i;
             float u2 = (float)(i + 5);
-            va.AddVertex(x + radius * cos(glm::radians(u1)), y + radius * sin(glm::radians(u1)), z, xlBLUE);
-            va.AddVertex(x + radius * cos(glm::radians(u2)), y + radius * sin(glm::radians(u2)), z, xlBLUE);
+            va.AddVertex(pos.x + radius * cos(glm::radians(u1)), pos.y + radius * sin(glm::radians(u1)), pos.z, xlBLUE);
+            va.AddVertex(pos.x + radius * cos(glm::radians(u2)), pos.y + radius * sin(glm::radians(u2)), pos.z, xlBLUE);
         }
         va.Finish(GL_LINES);
 
-        DrawGLUtils::DrawCube(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, AXIS_RADIUS * 2, ax1c, va);
-        DrawGLUtils::DrawCube(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, AXIS_RADIUS * 2, ax2c, va);
-        DrawGLUtils::DrawCube(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, ax3c, va);
+        DrawGLUtils::DrawCube(pos.x + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.y, pos.z, AXIS_RADIUS * 2, ax1c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.z, AXIS_RADIUS * 2, ax2c, va);
+        DrawGLUtils::DrawCube(pos.x, pos.y, pos.z + AXIS_ARROW_LENGTH - AXIS_RADIUS, AXIS_RADIUS * 2, ax3c, va);
         va.Finish(GL_TRIANGLES);
     }
     else if (axis_tool == TOOL_XY_TRANS) {
-        xlColor a1c = (highlighted_handle == 0x100) ? xlYELLOW : xlRED;
-        xlColor a2c = (highlighted_handle == 0x101) ? xlYELLOW : xlGREEN;
-        xlColor a3c = (highlighted_handle == 0x102) ? xlYELLOW : xlRED;
-        xlColor a4c = (highlighted_handle == 0x103) ? xlYELLOW : xlGREEN;
+        xlColor a1c = (highlighted_handle == 0x2000) ? xlYELLOW : xlRED;
+        xlColor a2c = (highlighted_handle == 0x2000) ? xlYELLOW : xlGREEN;
         float arrow_length = AXIS_ARROW_LENGTH / 2.0f;
-        va.AddVertex(x, y, z, xlGREEN);
-        va.AddVertex(x, y + arrow_length, z, xlGREEN);
-        va.AddVertex(x, y, z, xlGREEN);
-        va.AddVertex(x, y - arrow_length, z, xlGREEN);
-        va.AddVertex(x, y, z, xlRED);
-        va.AddVertex(x + arrow_length, y, z, xlRED);
-        va.AddVertex(x, y, z, xlRED);
-        va.AddVertex(x - arrow_length, y, z, xlRED);
+        va.AddVertex(pos.x, pos.y, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y + arrow_length, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y - arrow_length, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x + arrow_length, pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x, pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x - arrow_length, pos.y, pos.z, xlRED);
         va.Finish(GL_LINES);
-        float tip = x + arrow_length;
+        float tip = pos.x + arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(tip, y, z, a1c);
-            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a1c);
-            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a1c);
+            va.AddVertex(tip, pos.y, pos.z, a1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u1), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u2), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a1c);
         }
-        tip = x - arrow_length;
+        tip = pos.x - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(tip, y, z, a3c);
-            va.AddVertex(tip + AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a3c);
-            va.AddVertex(tip + AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a3c);
+            va.AddVertex(tip, pos.y, pos.z, a1c);
+            va.AddVertex(tip + AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u1), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a1c);
+            va.AddVertex(tip + AXIS_HEAD_LENGTH, pos.y + AXIS_RADIUS * cos(2.0 * M_PI*u2), pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a1c);
         }
-        tip = y + arrow_length;
+        tip = pos.y + arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(x, tip, z, a2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
+            va.AddVertex(pos.x, tip, pos.z, a2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
         }
-        tip = y - arrow_length;
+        tip = pos.y - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
-            va.AddVertex(x, tip, z, a4c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip + AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a4c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip + AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a4c);
+            va.AddVertex(pos.x, tip, pos.z, a2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip + AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
+            va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip + AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
         }
 
         va.Finish(GL_TRIANGLES);
     }
 
     if (axis_tool == TOOL_TRANSLATE || axis_tool == TOOL_SCALE) {
-        va.AddVertex(x + os, y, z, xlRED);
-        va.AddVertex(x + AXIS_ARROW_LENGTH - AXIS_RADIUS, y, z, xlRED);
-        va.AddVertex(x, y + os, z, xlGREEN);
-        va.AddVertex(x, y + AXIS_ARROW_LENGTH - AXIS_RADIUS, z, xlGREEN);
-        va.AddVertex(x, y, z + os, xlBLUE);
-        va.AddVertex(x, y, z + AXIS_ARROW_LENGTH - AXIS_RADIUS, xlBLUE);
+        va.AddVertex(pos.x + os, pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.y, pos.z, xlRED);
+        va.AddVertex(pos.x, pos.y + os, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y + AXIS_ARROW_LENGTH - AXIS_RADIUS, pos.z, xlGREEN);
+        va.AddVertex(pos.x, pos.y, pos.z + os, xlBLUE);
+        va.AddVertex(pos.x, pos.y, pos.z + AXIS_ARROW_LENGTH - AXIS_RADIUS, xlBLUE);
         va.Finish(GL_LINES);
     }
 }
@@ -373,80 +371,83 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     return found;
 }
 
-wxCursor ModelScreenLocation::CheckIfOverHandles3D(ModelPreview* preview, int &handle, int x, int y) const
+wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
 {
+    wxCursor return_value = wxCURSOR_DEFAULT;
+
     if (_locked)
     {
         handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
+    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle);
 
-    VectorMath::ScreenPosToWorldRay(
-        x, preview->getHeight() - y,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
+    if (handle == NO_HANDLE) {
+        float distance = 1000000000.0f;
+
+        // Test each each Oriented Bounding Box (OBB).
+        for (size_t i = 0; i < mSelectableHandles; i++)
+        {
+            float intersection_distance; // Output of TestRayOBBIntersection()
+
+            if (VectorMath::TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                handle_aabb_min[i],
+                handle_aabb_max[i],
+                ModelMatrix,
+                intersection_distance)
+                ) {
+                if (intersection_distance < distance) {
+                    distance = intersection_distance;
+                    handle = i;
+                    return_value = wxCURSOR_HAND;
+                }
+            }
+        }
+    }
+    return return_value;
+}
+
+wxCursor ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
+{
+    wxCursor return_value = wxCURSOR_DEFAULT;
 
     float distance = 1000000000.0f;
-    handle = -1;
-    int hw = RECT_HANDLE_WIDTH;
+    handle = NO_HANDLE;
 
     // test for a selected axis first
-    int num_axis_handles = active_handle == SHEAR_HANDLE ? 4 : 3;
-    glm::vec3 axisbb_min[4];
-    glm::vec3 axisbb_max[4];
+    int num_axis_handles = (axis_tool == TOOL_XY_TRANS) ? 1 : 3;
+    glm::vec3 axisbb_min[3];
+    glm::vec3 axisbb_max[3];
     if (IsXYTransHandle()) {
-        axisbb_min[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
-        axisbb_min[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-        axisbb_min[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
-        axisbb_min[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-        axisbb_min[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - XY_ARROW_LENGTH - 3;
-        axisbb_min[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
-        axisbb_min[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-        axisbb_min[3].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
-        axisbb_min[3].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - XY_ARROW_LENGTH - 3;
-        axisbb_min[3].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-
-        axisbb_max[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + XY_ARROW_LENGTH + 3;
-        axisbb_max[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
-        axisbb_max[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
-        axisbb_max[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
-        axisbb_max[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + XY_ARROW_LENGTH + 3;
-        axisbb_max[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
-        axisbb_max[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
-        axisbb_max[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
-        axisbb_max[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
-        axisbb_max[3].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
-        axisbb_max[3].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
-        axisbb_max[3].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] - AXIS_ARROW_LENGTH/2 - 3;
+        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - AXIS_ARROW_LENGTH/2 - 3;
+        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - AXIS_ARROW_LENGTH/2 - 3;
+        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH/2 + 3;
+        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH/2 + 3;
+        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH/2 + 3;
     }
     else {
-        axisbb_min[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
-        axisbb_min[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-        axisbb_min[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
-        axisbb_min[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
-        axisbb_min[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
-        axisbb_min[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
-        axisbb_min[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_max[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
-        axisbb_max[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
-        axisbb_max[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
-        axisbb_max[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
-        axisbb_max[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
-        axisbb_max[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
-        axisbb_max[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH + 3;
+        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = active_handle_pos.x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = active_handle_pos.y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = active_handle_pos.z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = active_handle_pos.x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[2].y = active_handle_pos.y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = active_handle_pos.z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = active_handle_pos.x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = active_handle_pos.y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[1].z = active_handle_pos.z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = active_handle_pos.x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[2].y = active_handle_pos.y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = active_handle_pos.z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH + 3;
     }
 
     // see if an axis handle is selected
@@ -464,37 +465,13 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(ModelPreview* preview, int &h
             ) {
             if (intersection_distance < distance) {
                 distance = intersection_distance;
-                handle = i;
+                handle = i | 0x2000;
+                return_value = wxCURSOR_HAND;
             }
         }
     }
 
-    if (handle != -1) {
-        handle = handle | 0x100;
-        return wxCURSOR_HAND;
-    }
-
-    // Test each each Oriented Bounding Box (OBB).
-    for (size_t i = 0; i < mSelectableHandles; i++)
-    {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
-            ray_origin,
-            ray_direction,
-            handle_aabb_min[i],
-            handle_aabb_max[i],
-            ModelMatrix,
-            intersection_distance)
-            ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                handle = i;
-            }
-        }
-    }
-
-    return (handle == -1 ? wxCURSOR_DEFAULT : wxCURSOR_HAND);
+    return return_value;
 }
 
 bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const
@@ -618,21 +595,9 @@ bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     }
 }
 
-bool BoxedScreenLocation::HitTest(ModelPreview* preview, int x, int y) const {
+bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
     // NOTE:  This routine is designed for the 2D layout model selection only
-
     bool return_value = false;
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, preview->getHeight() - y,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -984,23 +949,24 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
     if (active_handle != -1) {
+        active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
         DrawGLUtils::DrawSphere(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(RECT_HANDLE_WIDTH), xlORANGE, va);
-        DrawAxisTool(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+        DrawAxisTool(active_handle_pos, va);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
             switch (active_axis)
             {
             case X_AXIS:
-                va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
-                va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
+                va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
                 break;
             case Y_AXIS:
-                va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
-                va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
                 break;
             case Z_AXIS:
-                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, -1000000.0f, xlBLUE);
-                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, +1000000.0f, xlBLUE);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
                 break;
             }
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
@@ -1303,8 +1269,13 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
                 {
                 case X_AXIS:
                     scalex = saved_scale.x * change_x;
-                    if (ShiftKeyPressed && scale_z) {
-                        scalez = scalex;
+                    if (ShiftKeyPressed) {
+                        if (scale_z) {
+                            scalez = scalex;
+                        }
+                        else {
+                            scaley = saved_scale.y * change_x;
+                        }
                     }
                     break;
                 case Y_AXIS:
@@ -1580,26 +1551,13 @@ bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     return false;
 }
 
-bool TwoPointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
+bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
     // NOTE:  This routine is designed for the 2D layout model selection only
     bool return_value = false;
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        sx, preview->getHeight() - sy,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 matrix2d = ModelMatrix2D * flipy * flipx;
-
-    PrintMatrix("ModelMatrix2D", ModelMatrix2D);
 
     float intersection_distance; // Output of TestRayOBBIntersection()
 
@@ -1676,8 +1634,6 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
             if (intersection_distance < distance) {
                 distance = intersection_distance;
                 which_handle = i + 1;
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                logger_base.warn("Over Handle: Y: %d, ROY: %6.2f", y, ray_origin.y);
             }
         }
     }
@@ -1686,7 +1642,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     if (handle == NO_HANDLE) {
         return wxCURSOR_DEFAULT;
     }
-    else if (handle == ROTATE_HANDLE) {
+    else if (handle == SHEAR_HANDLE) {
         return wxCURSOR_HAND;
     }
     else {
@@ -1778,29 +1734,30 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
 
 
         if (!_locked) {
-            DrawAxisTool(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+            active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
+            DrawAxisTool(active_handle_pos, va);
             if (active_axis != -1) {
                 LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
                 if (active_handle == SHEAR_HANDLE) {
-                    va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
-                    va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
-                    va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
-                    va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
                 }
                 else {
                     switch (active_axis)
                     {
                     case X_AXIS:
-                        va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
-                        va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
+                        va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                        va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
                         break;
                     case Y_AXIS:
-                        va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
-                        va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                        va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                        va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
                         break;
                     case Z_AXIS:
-                        va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, -1000000.0f, xlBLUE);
-                        va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, +1000000.0f, xlBLUE);
+                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
+                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
                         break;
                     }
                 }
@@ -2235,6 +2192,10 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxBLUE);
+    prop = propertyEditor->Append(new wxIntProperty("RotateX", "RotateX", rotatex));
+    prop->SetAttribute("Min", "-180");
+    prop->SetAttribute("Max", "180");
+    prop->SetEditor("SpinCtrl");
 }
 
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -2284,6 +2245,14 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         return 3;
     }
     else if (_locked && "ModelZ2" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "RotateX" == name) {
+        rotatex = event.GetValue().GetDouble();
+        return 3;
+    }
+    else if (_locked && "RotateX" == name) {
         event.Veto();
         return 0;
     }
@@ -2617,7 +2586,6 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     }
     center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
 
-    // FIXME:  rotation matrix blows up when angle nears 180.0 degrees
     glm::vec3 a = point2 - origin;
     scalex = scaley = scalez = glm::length(a) / RenderWi;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
@@ -2633,8 +2601,12 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     if (supportsShear) {
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
     }
+    glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
     TranslateMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-    matrix = TranslateMatrix * rotationMatrix * shearMatrix * scalingMatrix;
+   
+    //glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), -center);
+    //glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), center);
+    matrix = TranslateMatrix * rotationMatrix * RotateX * shearMatrix * scalingMatrix;
 
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
@@ -2680,8 +2652,8 @@ bool ThreePointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const
     return false;
 }
 
-bool ThreePointScreenLocation::HitTest(ModelPreview* preview, int sx,int sy) const {
-    return TwoPointScreenLocation::HitTest(preview, sx, sy);
+bool ThreePointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
+    return TwoPointScreenLocation::HitTest(ray_origin, ray_direction);
 }
 
 void ThreePointScreenLocation::SetMWidth(int w)
@@ -2752,9 +2724,6 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) cons
     if (active_handle != -1) {
 
         float ymax = RenderHt;
-        if (!minMaxSet) {
-            ymax = -RenderHt;
-        }
         va.PreAlloc(18);
 
         float x = RenderWi / 2;
@@ -2808,9 +2777,6 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const
     float sy1 = center.y;
 
     float ymax = RenderHt;
-    if (!minMaxSet) {
-        ymax = -RenderHt;
-    }
 
     va.PreAlloc(18);
 
@@ -2860,17 +2826,9 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
 
     float posx = ray_origin.x - center.x;
     float posy = ray_origin.y - center.y;
-    if (supportsShear) {
-        posy = -posy;
-    }
 
     if (handle == SHEAR_HANDLE) {
         float ymax = RenderHt;
-        if (!minMaxSet) {
-            if (supportsShear) {
-                ymax = -RenderHt;
-            }
-        }
         if (ymax < 0.01f) {
             ymax = 0.01f;
         }
@@ -2899,10 +2857,10 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             glm::mat4 m = glm::inverse(matrix);
             glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin, 1.0f));
             if (height < 0.0f) {
-                shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
+                shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
             }
             else {
-                shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
+                shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
             }
             if (shear < -3.0f) {
                 shear = -3.0f;
@@ -2944,18 +2902,10 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
         if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
         if (axis_tool == TOOL_XY_TRANS) {
-            float posx = saved_intersect.x + drag_delta.x - center.x;
-            float posy = saved_intersect.y + drag_delta.y - center.y;
-            if (supportsShear) {
-                posy = -posy;
-            }
+            float posx = saved_position.x + drag_delta.x - center.x;
+            float posy = saved_position.y + drag_delta.y - center.y;
 
             float ymax = RenderHt;
-            if (!minMaxSet) {
-                if (supportsShear) {
-                    ymax = -RenderHt;
-                }
-            }
             if (ymax < 0.01f) {
                 ymax = 0.01f;
             }
@@ -2982,12 +2932,12 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
             }
             else if (supportsShear) {
                 glm::mat4 m = glm::inverse(matrix);
-                glm::vec3 v = glm::vec3(m * glm::vec4(saved_intersect + drag_delta, 1.0f));
+                glm::vec3 v = glm::vec3(m * glm::vec4(saved_position + drag_delta, 1.0f));
                 if (height < 0.0f) {
-                    shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
+                    shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
                 }
                 else {
-                    shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
+                    shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
                 }
                 if (shear < -3.0f) {
                     shear = -3.0f;
@@ -3008,8 +2958,36 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                     height = 0.01f;
                 }
             }
+            return 1;
         }
-        return 1;
+    }
+    else if (handle == CENTER_HANDLE ) {
+        if (axis_tool == TOOL_ROTATE) {
+            if (latch) {
+                saved_angle = 0.0f;
+                if (handle == CENTER_HANDLE) {
+                    saved_position = center;
+                    saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+                }
+                else if (handle == END_HANDLE) {
+                    saved_position = point2;
+                    saved_point = glm::vec3(x2, y2, z2);
+                }
+                else {
+                    saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+                    saved_point = glm::vec3(x2, y2, z2);
+                }
+            }
+            double angle = 0.0f;
+            glm::vec3 start_vector = saved_intersect - saved_position;
+            glm::vec3 end_vector = start_vector + drag_delta;
+            if (active_axis == X_AXIS) {
+                double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                rotatex = saved_rotate.x - angle;
+            }
+        }
     }
     return TwoPointScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
 }
@@ -3363,33 +3341,18 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
     return false;
 }
 
-bool PolyPointScreenLocation::HitTest(ModelPreview* preview, int x,int y) const {
-    //Get a world position for the mouse
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, preview->getHeight() - y,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    float sx = ray_origin.x;
-    float sy = ray_origin.y;
+bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
 
     for( int i = 0; i < num_points-1; ++i ) {
         if( mPos[i].has_curve ) {
-            if( mPos[i].curve->HitTest(sx, sy) ) {
+            if( mPos[i].curve->HitTest(ray_origin.x, ray_origin.y) ) {
                 selected_segment = i;
                 return true;
             }
         } else {
             //invert the matrix, get into render space
             glm::mat4 m = glm::inverse(*mPos[i].matrix);
-            glm::vec3 v = glm::vec3(m * glm::vec4(sx, sy, 1, 1));
+            glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin.x, ray_origin.y, 1, 1));
 
             // perform normal line segment hit detection
             
@@ -3412,12 +3375,115 @@ bool PolyPointScreenLocation::HitTest(ModelPreview* preview, int x,int y) const 
     selected_segment = -1;
 
     // check if inside boundary handles
-    float sx1 = (sx - worldPos_x) / scalex;
-    float sy1 = (sy - worldPos_y) / scaley;
+    float sx1 = (ray_origin.x - worldPos_x) / scalex;
+    float sy1 = (ray_origin.y - worldPos_y) / scaley;
     if( sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY ) {
         return true;
     }
     return false;
+}
+
+bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const
+{
+    if (VectorMath::TestRayOBBIntersection(
+        ray_origin,
+        ray_direction,
+        aabb_min,
+        aabb_max,
+        ModelMatrix,
+        intersection_distance)
+        ) {
+        return true;
+    }
+    return false;
+}
+
+wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
+{
+    wxCursor return_value = wxCURSOR_DEFAULT;
+
+    if (_locked)
+    {
+        handle = NO_HANDLE;
+        return wxCURSOR_DEFAULT;
+    }
+
+    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle);
+
+    // test control point handles
+    if (handle == NO_HANDLE) {
+        float distance = 1000000000.0f;
+
+        if (selected_segment != -1) {
+            // add control point handles for selected segments
+            int s = selected_segment;
+            if (mPos[s].has_curve) {
+                glm::vec3 cp_handle_aabb_min[2];
+                glm::vec3 cp_handle_aabb_max[2];
+                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + RECT_HANDLE_WIDTH;
+
+                // Test each each Oriented Bounding Box (OBB).
+                for (size_t i = 0; i < 2; i++)
+                {
+                    float intersection_distance; // Output of TestRayOBBIntersection()
+
+                    if (VectorMath::TestRayOBBIntersection(
+                        ray_origin,
+                        ray_direction,
+                        cp_handle_aabb_min[i],
+                        cp_handle_aabb_max[i],
+                        ModelMatrix,
+                        intersection_distance)
+                        ) {
+                        if (intersection_distance < distance) {
+                            distance = intersection_distance;
+                            handle = ((i == 0) ? s | 0x4000 : s | 0x8000);
+                            return_value = wxCURSOR_HAND;
+                        }
+                    }
+                }
+            }
+        }
+    }
+ 
+    // test the normal handles
+    if (handle == NO_HANDLE) {
+        float distance = 1000000000.0f;
+        handle = -1;
+
+        // Test each each Oriented Bounding Box (OBB).
+        for (size_t i = 0; i < mSelectableHandles; i++)
+        {
+            float intersection_distance; // Output of TestRayOBBIntersection()
+
+            if (VectorMath::TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                handle_aabb_min[i],
+                handle_aabb_max[i],
+                ModelMatrix,
+                intersection_distance)
+                ) {
+                if (intersection_distance < distance) {
+                    distance = intersection_distance;
+                    handle = i;
+                    return_value = wxCURSOR_HAND;
+                }
+            }
+        }
+    }
+    return return_value;
 }
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
@@ -3444,13 +3510,20 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
     // check handle of selected curve first
     if( selected_segment != -1 ) {
         if( mPos[selected_segment].has_curve ) {
-            if (ray_origin.x>mPos[selected_segment].cp0.x && ray_origin.x<mPos[selected_segment].cp0.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>mPos[selected_segment].cp0.y && ray_origin.y<mPos[selected_segment].cp0.y+RECT_HANDLE_WIDTH) {
+            glm::vec3 v;
+            v.x = mPos[selected_segment].cp0.x * scalex + worldPos_x;
+            v.y = mPos[selected_segment].cp0.y * scaley + worldPos_y;
+            v.z = mPos[selected_segment].cp0.z * scalez + worldPos_z;
+            if (ray_origin.x>v.x && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
+                ray_origin.y>v.y && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
                 handle = 0x4000 | selected_segment;
                 return wxCURSOR_SIZING;
             }
-            if (ray_origin.x>mPos[selected_segment].cp1.x && ray_origin.x<mPos[selected_segment].cp1.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>mPos[selected_segment].cp1.y && ray_origin.y<mPos[selected_segment].cp1.y+RECT_HANDLE_WIDTH) {
+            v.x = mPos[selected_segment].cp1.x * scalex + worldPos_x;
+            v.y = mPos[selected_segment].cp1.y * scaley + worldPos_y;
+            v.z = mPos[selected_segment].cp1.z * scalez + worldPos_z;
+            if (ray_origin.x>v.x && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
+                ray_origin.y>v.y && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
                 handle = 0x8000 | selected_segment;
                 return wxCURSOR_SIZING;
             }
@@ -3481,7 +3554,7 @@ void PolyPointScreenLocation::SetAxisTool(int mode)
         ModelScreenLocation::SetAxisTool(mode);
     }
     else {
-        axis_tool = TOOL_TRANSLATE;
+        axis_tool = mode;
     }
 }
 
@@ -3615,7 +3688,8 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
             handle_aabb_max[hpos].z = (mPos[i+1].z - minZ)*scalez + RECT_HANDLE_WIDTH;
         }
     }
-
+ 
+    glm::vec3 cp_handle_pos[2];
     if (selected_segment != -1) {
         // add control point handles for selected segments
         int i = selected_segment;
@@ -3623,37 +3697,54 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
             float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, xlRED, va);
-            mPos[i].cp0.x = cx;
-            mPos[i].cp0.y = cy;
-            mPos[i].cp0.z = cz;
+            h2c = highlighted_handle & 0x4000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
+            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+            mPos[i].cp0.x = mPos[i].curve->get_cp0x();
+            mPos[i].cp0.y = mPos[i].curve->get_cp0y();
+            mPos[i].cp0.z = mPos[i].curve->get_cp0z();
+            cp_handle_pos[0].x = cx;
+            cp_handle_pos[0].y = cy;
+            cp_handle_pos[0].z = cz;
             cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, xlRED, va);
-            mPos[i].cp1.x = cx;
-            mPos[i].cp1.y = cy;
-            mPos[i].cp1.z = cz;
+            h2c = highlighted_handle & 0x8000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
+            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+            mPos[i].cp1.x = mPos[i].curve->get_cp1x();
+            mPos[i].cp1.y = mPos[i].curve->get_cp1y();
+            mPos[i].cp1.z = mPos[i].curve->get_cp1z();
+            cp_handle_pos[1].x = cx;
+            cp_handle_pos[1].y = cy;
+            cp_handle_pos[1].z = cz;
         }
     }
 
     if (!_locked && (active_handle != -1)) {
-        DrawAxisTool(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, va);
+        if ((active_handle & 0x4000) > 0) {
+            active_handle_pos = cp_handle_pos[0];
+        }
+        else if ((active_handle & 0x8000) > 0) {
+            active_handle_pos = cp_handle_pos[1];
+        }
+        else {
+            active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
+        }
+        DrawAxisTool(active_handle_pos, va);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
             switch (active_axis)
             {
             case X_AXIS:
-                va.AddVertex(-1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
-                va.AddVertex(+1000000.0f, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z, xlRED);
+                va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
                 break;
             case Y_AXIS:
-                va.AddVertex(mHandlePosition[active_handle].x, -1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
-                va.AddVertex(mHandlePosition[active_handle].x, +1000000.0f, mHandlePosition[active_handle].z, xlGREEN);
+                va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
                 break;
             case Z_AXIS:
-                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, -1000000.0f, xlBLUE);
-                va.AddVertex(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, +1000000.0f, xlBLUE);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
                 break;
             }
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
@@ -3774,16 +3865,16 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
             va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
-            mPos[i].cp0.x = cx;
-            mPos[i].cp0.y = cy;
-            mPos[i].cp0.z = cz;
+            mPos[i].cp0.x = mPos[i].curve->get_cp0x();
+            mPos[i].cp0.y = mPos[i].curve->get_cp0y();
+            mPos[i].cp0.z = mPos[i].curve->get_cp0z();
             cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
             va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
-            mPos[i].cp1.x = cx;
-            mPos[i].cp1.y = cy;
-            mPos[i].cp1.z = cz;
+            mPos[i].cp1.x = mPos[i].curve->get_cp1x();
+            mPos[i].cp1.y = mPos[i].curve->get_cp1y();
+            mPos[i].cp1.z = mPos[i].curve->get_cp1z();
         }
     }
 
@@ -3795,27 +3886,84 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
     if (_locked) return 0;
 
     if (handle != CENTER_HANDLE) {
-        if (latch) {
-            saved_position.x = mHandlePosition[handle].x;
-            saved_position.y = mHandlePosition[handle].y;
-            saved_position.z = mHandlePosition[handle].z;
-        }
-
-        if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
         if (axis_tool == TOOL_TRANSLATE) {
-            switch (active_axis) {
-            case X_AXIS:
-                mPos[handle-1].x = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
-                break;
-            case Y_AXIS:
-                mPos[handle-1].y = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
-                break;
-            case Z_AXIS:
-                mPos[handle-1].z = (saved_position.z + drag_delta.z - worldPos_z) / scalez;
-                break;
+            if (latch) {
+                saved_position.x = active_handle_pos.x;
+                saved_position.y = active_handle_pos.y;
+                saved_position.z = active_handle_pos.z;
+            }
+
+            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+
+            float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
+            float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
+            float newz = (saved_position.z + drag_delta.z - worldPos_z) / scalez;
+
+            // check for control point handles
+            if (handle & 0x4000) {
+                int seg = handle & 0x0FFF;
+                switch (active_axis) {
+                case X_AXIS:
+                    mPos[seg].cp0.x = newx;
+                    break;
+                case Y_AXIS:
+                    mPos[seg].cp0.y = newy;
+                    break;
+                case Z_AXIS:
+                    mPos[seg].cp0.z = newz;
+                    break;
+                }
+                mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
+            }
+            else if (handle & 0x8000) {
+                int seg = handle & 0x0FFF;
+                switch (active_axis) {
+                case X_AXIS:
+                    mPos[seg].cp1.x = newx;
+                    break;
+                case Y_AXIS:
+                    mPos[seg].cp1.y = newy;
+                    break;
+                case Z_AXIS:
+                    mPos[seg].cp1.z = newz;
+                    break;
+                }
+                mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
+                FixCurveHandles();
+            }
+            else {
+                int point = handle - 1;
+                switch (active_axis) {
+                case X_AXIS:
+                    mPos[point].x = newx;
+                    break;
+                case Y_AXIS:
+                    mPos[point].y = newy;
+                    break;
+                case Z_AXIS:
+                    mPos[point].z = newz;
+                    break;
+                }
+                FixCurveHandles();
             }
         }
+        else if (axis_tool == TOOL_XY_TRANS) {
+            if (latch) {
+                saved_position.x = mHandlePosition[1].x * scalex + worldPos_x;
+                saved_position.y = mHandlePosition[1].y * scaley + worldPos_y;
+                saved_position.z = 0.0f;
+            }
+
+            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+
+            float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
+            float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
+            int point = handle - 1;
+            mPos[point].x = newx;
+            mPos[point].y = newy;
+        }
+
     }
     else {
         if (axis_tool == TOOL_TRANSLATE) {
@@ -3943,14 +4091,14 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     // check for control point handles
     if( handle & 0x4000 ) {
         int seg = handle & 0x0FFF;
-        mPos[seg].cp0.x = newx;
-        mPos[seg].cp0.y = newy;
+        mPos[seg].cp0.x = ray_origin.x - RECT_HANDLE_WIDTH / 2;
+        mPos[seg].cp0.y = ray_origin.y - RECT_HANDLE_WIDTH / 2;
         mPos[seg].cp0.z = newz;
         mPos[seg].curve->set_cp0( newx, newy, newz );
     } else if( handle & 0x8000 ) {
         int seg = handle & 0x0FFF;
-        mPos[seg].cp1.x = newx;
-        mPos[seg].cp1.y = newy;
+        mPos[seg].cp1.x = ray_origin.x - RECT_HANDLE_WIDTH / 2;
+        mPos[seg].cp1.y = ray_origin.y - RECT_HANDLE_WIDTH / 2;
         mPos[seg].cp1.z = newz;
         mPos[seg].curve->set_cp1( newx, newy, newz );
 
@@ -4024,6 +4172,7 @@ void PolyPointScreenLocation::SelectSegment(int segment) {
 }
 
 void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
 
@@ -4040,21 +4189,33 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     new_point.x = (ray_origin.x - worldPos_x) / scalex;
     new_point.y = (ray_origin.y - worldPos_y) / scaley;
     new_point.z = 0.0f;
+
+    if (draw_3d) {
+        // use drag handle function to find plane intersection
+        glm::vec3 backup = saved_position;
+        glm::vec3 backup2 = saved_intersect;
+        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        DragHandle(preview, mouseX, mouseY, true);
+        new_point.x = (saved_intersect.x - worldPos_x) / scalex;
+        new_point.y = (saved_intersect.y - worldPos_y) / scaley;
+        saved_position = backup;
+        saved_intersect = backup2;
+    }
+
     new_point.matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
     mPos.push_back(new_point);
     xlPoint new_handle;
-    float sx = mPos[num_points-1].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-    float sy = mPos[num_points-1].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-    float sz = mPos[num_points-1].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+    float sx = new_point.x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+    float sy = new_point.y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+    float sz = new_point.z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
     new_handle.x = sx;
     new_handle.y = sy;
     new_handle.z = sz;
     mHandlePosition.insert(mHandlePosition.begin() + num_points + 1, new_handle);
     num_points++;
     mSelectableHandles++;
-
     handle_aabb_max.resize(num_points+1);
     handle_aabb_min.resize(num_points+1);
 
@@ -4122,18 +4283,6 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
 }
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-    /*//Get a world position for the mouse
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, preview->getHeight() - y,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );*/
 
     if (preview != nullptr) {
         active_axis = X_AXIS;
@@ -4151,10 +4300,6 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
     else {
         wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
     }
-
-    //worldPos_x = ray_origin.x;
-    //worldPos_y = ray_origin.y;
-    //worldPos_z = 0.0f;
 
     mPos[0].x = 0.0f;
     mPos[0].y = 0.0f;

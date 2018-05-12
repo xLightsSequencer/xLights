@@ -301,6 +301,10 @@ void BezierCurve3D::clear_points()
             delete points[j].matrix;
             points[j].matrix = nullptr;
         }
+        if (points[j].matrix2D != nullptr) {
+            delete points[j].matrix2D;
+            points[j].matrix2D = nullptr;
+        }
     }
     points.clear();
     num_points = 0;
@@ -412,12 +416,14 @@ void BezierCurveCubic3D::UpdatePoints() {
 
         xlPointf new_point(x, y, z);
         new_point.matrix = nullptr;
+        new_point.matrix2D = nullptr;
         points.push_back(new_point);
         num_points++;
     }
     // add final point
     xlPointf new_point(p1.x, p1.y, p1.z);
     new_point.matrix = nullptr;
+    new_point.matrix2D = nullptr;
     points.push_back(new_point);
     num_points++;
 
@@ -476,14 +482,20 @@ void BezierCurve3D::UpdateMatrices()
         points[i].length = scale1 / scale.x;
 
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale1));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
+        glm::mat4 translateMatrix2D = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, 0.0f));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
+        glm::mat4 mat2D = translateMatrix2D * rotationMatrix * scalingMatrix;
 
         if (points[i].matrix != nullptr) {
             delete points[i].matrix;
         }
+        if (points[i].matrix2D != nullptr) {
+            delete points[i].matrix2D;
+        }
         points[i].matrix = new glm::mat4(mat);
+        points[i].matrix2D = new glm::mat4(mat2D);
     }
     matrix_valid = true;
 }
@@ -577,6 +589,6 @@ void BezierCurve3D::check_min_max(float &minX, float &maxX, float &minY, float &
         if (points[i].z < minZ) minZ = points[i].z;
         if (points[i].x > maxX) maxX = points[i].x;
         if (points[i].y > maxY) maxY = points[i].y;
-        if (points[i].z < maxZ) maxZ = points[i].z;
+        if (points[i].z > maxZ) maxZ = points[i].z;
     }
 }

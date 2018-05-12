@@ -2654,9 +2654,9 @@ bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
     return GetModelScreenLocation().IsContained(x1, y1, x2, y2);
 }
 
-bool Model::HitTest(ModelPreview* preview, int x, int y) {
+bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
     SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().HitTest(preview, x, y);
+    return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
 wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {

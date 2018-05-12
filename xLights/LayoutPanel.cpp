@@ -1684,9 +1684,21 @@ int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned
 
 int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
 {
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        x, modelPreview->getHeight() - y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetViewMatrix(),
+        modelPreview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->HitTest(modelPreview, x, y))
+        if (modelPreview->GetModels()[i]->HitTest(modelPreview, ray_origin, ray_direction))
         {
             found.push_back(i);
         }
@@ -1826,16 +1838,27 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
     // don't mark mouse down if a selection is being made
     if (highlightedModel != nullptr) {
         if (selectionLatched) {
-            int handle = -1;
+            m_over_handle = -1;
             if (selectedModel != nullptr) {
-                selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(modelPreview, handle, event.GetX(), event.GetY());
+                glm::vec3 ray_origin;
+                glm::vec3 ray_direction;
+
+                VectorMath::ScreenPosToWorldRay(
+                    event.GetX(), modelPreview->getHeight() - event.GetY(),
+                    modelPreview->getWidth(), modelPreview->getHeight(),
+                    modelPreview->GetViewMatrix(),
+                    modelPreview->GetProjMatrix(),
+                    ray_origin,
+                    ray_direction
+                );
+                selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle);
             }
-            if (handle != -1) {
-                if (handle >= 0x100) {
+            if (m_over_handle != -1) {
+                if ((m_over_handle & 0x2000) > 0) {
                     // an axis was selected
                     if (selectedModel != nullptr) {
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                        selectedModel->GetModelScreenLocation().SetActiveAxis(handle & 0xff);
+                        selectedModel->GetModelScreenLocation().SetActiveAxis(m_over_handle & 0xff);
                         selectedModel->GetModelScreenLocation().MouseOverHandle(-1);
                         selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
                         UpdatePreview();
@@ -1844,10 +1867,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                 }
                 else {
-                    if (selectedModel->GetModelScreenLocation().GetActiveHandle() == handle) {
+                    if (selectedModel->GetModelScreenLocation().GetActiveHandle() == m_over_handle) {
                         selectedModel->GetModelScreenLocation().AdvanceAxisTool();
                     }
-                    selectedModel->GetModelScreenLocation().SetActiveHandle(handle);
+                    selectedModel->GetModelScreenLocation().SetActiveHandle(m_over_handle);
                     UpdatePreview();
                 }
             }
@@ -1911,11 +1934,6 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if (is_3d) {
-        ProcessLeftMouseClick3D(event);
-        return;
-    }
-
     if (m_polyline_active)
     {
         Model *m = newModel;
@@ -1925,6 +1943,14 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
         m_over_handle++;
+        int handle = m->GetModelScreenLocation().GetActiveHandle();
+        handle++;
+        m->GetModelScreenLocation().SetActiveHandle(handle);
+        return;
+    }
+
+    if (is_3d) {
+        ProcessLeftMouseClick3D(event);
         return;
     }
 
@@ -2016,6 +2042,11 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
+    if (m_polyline_active) {
+        m_mouse_down = false;
+        return;
+    }
+
     if (is_3d && m_mouse_down) {
         if (selectedModel != nullptr) {
             selectedModel->GetModelScreenLocation().SetActiveAxis(-1);
@@ -2025,10 +2056,8 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     }
 
     m_mouse_down = false;
-
-    if( m_polyline_active ) return;
-
     m_moving_handle = false;
+    over_handle = NO_HANDLE;
 
     int y = event.GetY();
 
@@ -2156,25 +2185,31 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             m_previous_mouse_y = event.GetY();
             UpdatePreview();
         }
-        else if (m_mouse_down) {
-            if (m_moving_handle) {
-                if (selectedModel != nullptr) {
-                    int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-                    if (selectedModel != newModel) {
-                        CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
-                    }
-                    selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
-                    SetupPropGrid(selectedModel);
-                    xlights->MarkEffectsFileDirty(true);
-                    UpdatePreview();
-                }
+        
+        if (m_mouse_down && !m_moving_handle) {
+
+            int delta_x = event.GetPosition().x - m_last_mouse_x;
+            int delta_y = event.GetPosition().y - m_last_mouse_y;
+            modelPreview->SetCameraView(delta_x, delta_y, false);
+            UpdatePreview();
+            return;
+        }
+
+        Model *m = newModel;
+        if (m == nullptr) {
+            m = selectedModel;
+            if (m == nullptr) return;
+        }
+
+        if (m_moving_handle) {
+            int active_handle = m->GetModelScreenLocation().GetActiveHandle();
+            if (m != newModel) {
+                CreateUndoPoint("SingleModel", m->name, std::to_string(active_handle));
             }
-            else {
-                int delta_x = event.GetPosition().x - m_last_mouse_x;
-                int delta_y = event.GetPosition().y - m_last_mouse_y;
-                modelPreview->SetCameraView(delta_x, delta_y, false);
-                UpdatePreview();
-            }
+            m->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, m->IsZScaleable());
+            SetupPropGrid(m);
+            xlights->MarkEffectsFileDirty(true);
+            UpdatePreview();
         }
         else {
             if (!selectionLatched) {
@@ -2223,10 +2258,21 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             else {
                 if (selectedModel != nullptr) {
                     int handle = -1;
-                    selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(modelPreview, handle, event.GetX(), event.GetY());
-                    selectedModel->GetModelScreenLocation().MouseOverHandle(handle);
-                    if (handle != over_handle) {
-                        over_handle = handle;
+                    glm::vec3 ray_origin;
+                    glm::vec3 ray_direction;
+
+                    VectorMath::ScreenPosToWorldRay(
+                        event.GetX(), modelPreview->getHeight() - event.GetY(),
+                        modelPreview->getWidth(), modelPreview->getHeight(),
+                        modelPreview->GetViewMatrix(),
+                        modelPreview->GetProjMatrix(),
+                        ray_origin,
+                        ray_direction
+                    );
+                    modelPreview->SetCursor(selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
+                    if (m_over_handle != over_handle) {
+                        selectedModel->GetModelScreenLocation().MouseOverHandle(m_over_handle);
+                        over_handle = m_over_handle;
                         UpdatePreview();
                     }
                 }

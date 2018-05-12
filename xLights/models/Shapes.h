@@ -104,8 +104,9 @@ public:
         float z;
         float length;
         glm::mat4 *matrix;
+        glm::mat4 *matrix2D;
         xlPointf() : x(0.0f), y(0.0f), z(0.0f), length(0.0f), matrix(nullptr) {}
-        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f), matrix(nullptr) {}
+        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f), matrix(nullptr), matrix2D(nullptr) {}
     };
 
     virtual void UpdatePoints() = 0;

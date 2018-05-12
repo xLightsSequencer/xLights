@@ -55,10 +55,10 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
-    virtual bool HitTest(ModelPreview* preview, int x, int y) const = 0;
+    virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const = 0;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
-    virtual wxCursor CheckIfOverHandles3D(ModelPreview* preview, int &handle, int x, int y) const;
+    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
@@ -125,7 +125,7 @@ public:
     virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
     virtual void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
-    void DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const;
+    void DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulator &va) const;
     void TranslateVector(glm::vec3& point) const;
     virtual int GetDefaultHandle() { return CENTER_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
@@ -136,6 +136,7 @@ public:
 protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
+    virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
 
     mutable float worldPos_x;
     mutable float worldPos_y;
@@ -166,6 +167,7 @@ protected:
     mutable std::vector<glm::vec3> handle_aabb_min;
     mutable std::vector<glm::vec3> handle_aabb_max;
     mutable std::vector<xlPoint> mHandlePosition;
+    mutable glm::vec3 active_handle_pos;
     int mSelectableHandles;
     bool _locked;
     int active_handle;
@@ -188,7 +190,7 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
@@ -285,7 +287,7 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
@@ -367,7 +369,7 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
     void PrepareToDraw(bool is_3d, bool allow_selected) const override;
-    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -401,6 +403,9 @@ public:
         return angle;
     }
 
+    virtual int GetDefaultHandle() { return END_HANDLE; }
+    virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+
     virtual void SetActiveHandle(int handle);
     virtual void AdvanceAxisTool();
     virtual void SetAxisTool(int mode);
@@ -433,8 +438,10 @@ public:
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
-    virtual bool HitTest(ModelPreview* preview, int x,int y) const override;
+    virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
+    virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
+    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
@@ -476,6 +483,8 @@ public:
     virtual int GetMWidth() const override;
     virtual int GetMHeight() const override;
 
+    virtual int GetDefaultHandle() { return END_HANDLE; }
+    virtual int GetDefaultTool() { return TOOL_XY_TRANS; }
     virtual float GetYShear() const {return 0.0;}
     virtual void SetActiveHandle(int handle);
     virtual void AdvanceAxisTool();
