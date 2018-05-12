@@ -8,6 +8,7 @@
 #include "OSCPacket.h"
 #include "FSEQFile.h"
 #include <wx/socket.h>
+#include <wx/thread.h>
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -55,6 +56,20 @@ public:
     size_t GetStartChannel() const { return _startChannel; }
 };
 
+class ActionMessageData
+{
+public:
+    ActionMessageData(std::string command, std::string parameters, std::string data)
+    {
+        _command = command;
+        _parameters = parameters;
+        _data = data;
+    }
+    std::string _command;
+    std::string _parameters;
+    std::string _data;
+};
+
 class ScheduleManager
 {
     SYNCMODE _mode;
@@ -74,6 +89,7 @@ class ScheduleManager
     CommandManager _commandManager;
     PlayList* _queuedSongs;
     std::list<RunningSchedule*> _activeSchedules;
+    wxThreadIdType _mainThread;
     int _brightness;
     int _lastBrightness;
     wxByte _brightnessArray[255];

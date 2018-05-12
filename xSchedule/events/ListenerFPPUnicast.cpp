@@ -109,37 +109,44 @@ void ListenerFPPUnicast::Poll()
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        if (IsValidHeader(buffer))
+        if (_socket->GetLastIOReadSize() == 0)
         {
-            static wxString lastMessage = "";
-
-            char* cr = strchr((char*)buffer, '\n');
-            if ((size_t)cr - (size_t)&buffer[0] < sizeof(buffer))
+            _socket->WaitForRead(0, 500);
+        }
+        else
+        {
+            if (IsValidHeader(buffer))
             {
-                *cr = 0x00;
-            }
+                static wxString lastMessage = "";
 
-            wxString msg = wxString(buffer);
-
-            if (msg == lastMessage)
-            {
-                // we dont want to double process
-            }
-            else
-            {
-                lastMessage = msg;
-                wxArrayString components = wxSplit(msg, ',');
-
-                if (components.size() >= 5)
+                char* cr = strchr((char*)buffer, '\n');
+                if ((size_t)cr - (size_t)&buffer[0] < sizeof(buffer))
                 {
-                    //uint8_t packetType = wxAtoi(components[3]);
-                    std::string fileName = components[4].ToStdString();
-                    if (components.size() >= 7)
+                    *cr = 0x00;
+                }
+
+                wxString msg = wxString(buffer);
+
+                if (msg == lastMessage)
+                {
+                    // we dont want to double process
+                }
+                else
+                {
+                    lastMessage = msg;
+                    wxArrayString components = wxSplit(msg, ',');
+
+                    if (components.size() >= 5)
                     {
-                        int secondsElapsed = ((float)wxAtoi(components[5]) * 1000 + (float)wxAtoi(components[6])) / 1000.0;
-                        _listenerManager->Sync(fileName, secondsElapsed * 1000, GetType());
+                        //uint8_t packetType = wxAtoi(components[3]);
+                        std::string fileName = components[4].ToStdString();
+                        if (components.size() >= 7)
+                        {
+                            int secondsElapsed = ((float)wxAtoi(components[5]) * 1000 + (float)wxAtoi(components[6])) / 1000.0;
+                            _listenerManager->Sync(fileName, secondsElapsed * 1000, GetType());
+                        }
+                        // logger_base.debug("Pkt %s.", (const char *)msg.c_str());
                     }
-                    // logger_base.debug("Pkt %s.", (const char *)msg.c_str());
                 }
             }
         }

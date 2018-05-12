@@ -295,6 +295,7 @@ wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DOACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 
@@ -306,6 +307,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
+    EVT_COMMAND(wxID_ANY, EVT_DOACTION, xScheduleFrame::DoAction)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
@@ -585,11 +587,18 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
+    Connect(wxID_ANY, EVT_DOACTION, (wxObjectEventFunction)&xScheduleFrame::DoAction);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
     SetTitle("xLights Scheduler " + xlights_version_string + " " + GetBitness());
+
+    // Force initialise sockets
+    wxIPV4address localaddr;
+    localaddr.AnyAddress();
+    auto sckt = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
+    delete sckt;
 
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
@@ -717,6 +726,7 @@ void xScheduleFrame::LoadSchedule()
         delete __schedule;
         __schedule = nullptr;
     }
+
     __schedule = new ScheduleManager(this, _showDir);
 
     _pinger = new Pinger(__schedule->GetListenerManager(), __schedule->GetOutputManager());
@@ -1493,7 +1503,6 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     Schedule* schedule = nullptr;
 
     wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-
     if (IsPlayList(treeitem))
     {
         playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
@@ -2320,6 +2329,32 @@ void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
     UpdateSchedule();
     UpdateUI();
+}
+
+void xScheduleFrame::DoAction(wxCommandEvent& event)
+{
+    ActionMessageData* amd = (ActionMessageData*)event.GetClientData();
+
+    PlayList* playlist = nullptr;
+    Schedule* schedule = nullptr;
+
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+    if (IsPlayList(treeitem))
+    {
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+    }
+    else if (IsSchedule(treeitem))
+    {
+        schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+    }
+
+    size_t rate = _timer.GetInterval();
+    std::string msg = "";
+
+    __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, schedule, rate, msg);
+
+    delete amd;
 }
 
 void xScheduleFrame::UpdateUI()
