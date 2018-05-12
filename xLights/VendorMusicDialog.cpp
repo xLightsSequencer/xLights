@@ -14,6 +14,8 @@ CachedFileDownloader VendorMusicDialog::_cache;
 
 //(*IdInit(VendorMusicDialog)
 const long VendorMusicDialog::ID_TREECTRL1 = wxNewId();
+const long VendorMusicDialog::ID_TEXTCTRL3 = wxNewId();
+const long VendorMusicDialog::ID_BUTTON2 = wxNewId();
 const long VendorMusicDialog::ID_PANEL3 = wxNewId();
 const long VendorMusicDialog::ID_STATICBITMAP1 = wxNewId();
 const long VendorMusicDialog::ID_TEXTCTRL1 = wxNewId();
@@ -50,6 +52,7 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
@@ -68,6 +71,13 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer2->AddGrowableRow(0);
 	TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
 	FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
+	TextCtrl_Search = new wxTextCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+	FlexGridSizer7->Add(TextCtrl_Search, 1, wxALL|wxEXPAND, 5);
+	Button_Search = new wxButton(Panel3, ID_BUTTON2, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer7->Add(Button_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	Panel3->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel3);
 	FlexGridSizer2->SetSizeHints(Panel3);
@@ -140,6 +150,8 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
 
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_ITEM_ACTIVATED,(wxObjectEventFunction)&VendorMusicDialog::OnTreeCtrl_NavigatorItemActivated);
 	Connect(ID_TREECTRL1,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&VendorMusicDialog::OnTreeCtrl_NavigatorSelectionChanged);
+	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&VendorMusicDialog::OnTextCtrl_SearchText);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VendorMusicDialog::OnButton_SearchClick);
 	Connect(ID_HYPERLINKCTRL4,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&VendorMusicDialog::OnHyperlinkCtrl_FacebookClick);
 	Connect(ID_HYPERLINKCTRL2,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&VendorMusicDialog::OnHyperlinkCtrl_WebsiteClick);
 	Connect(ID_HYPERLINKCTRL1,wxEVT_COMMAND_HYPERLINK,(wxObjectEventFunction)&VendorMusicDialog::OnHyperlinkCtrl_VideoLinkClick);
@@ -157,6 +169,8 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
 
     PopulateSequenceLyricPanel((MSLSequenceLyric*)nullptr);
     PopulateVendorPanel(nullptr);
+
+    Button_Search->SetDefault();
 
     ValidateWindow();
 }
@@ -475,6 +489,16 @@ void VendorMusicDialog::OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event)
 
 void VendorMusicDialog::ValidateWindow()
 {
+    wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
+    if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !current.IsOk())
+    {
+        Button_Search->Disable();
+    }
+    else
+    {
+        Button_Search->Enable();
+    }
+
     if (TreeCtrl_Navigator->GetSelection().IsOk())
     {
         wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(TreeCtrl_Navigator->GetSelection());
@@ -671,4 +695,93 @@ void VendorMusicDialog::OnHyperlinkCtrl_VideoLinkClick(wxCommandEvent& event)
 
 void VendorMusicDialog::OnInit(wxInitDialogEvent& event)
 {
+}
+
+void VendorMusicDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
+{
+    wxString searchFor = TextCtrl_Search->GetValue().Lower();
+
+    // cant search if tree is empty
+    if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
+    {
+        wxBell();
+        return;
+    }
+
+    wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
+    wxTreeItemId start = current;
+    if (current.IsOk())
+    {
+        do
+        {
+            // if this node has children got to the first child
+            if (TreeCtrl_Navigator->GetChildrenCount(current, false) > 0)
+            {
+                wxTreeItemIdValue cookie;
+                current = TreeCtrl_Navigator->GetFirstChild(current, cookie);
+            }
+            else
+            {
+                // no child ... so go to the sibling
+                auto sibling = TreeCtrl_Navigator->GetNextSibling(current);
+                if (sibling.IsOk())
+                {
+                    current = sibling;
+                }
+                else
+                {
+                    // no sibling so we need to move up until a sibling exists and then get the next one.
+                    for(;;)
+                    {
+                        auto parent = TreeCtrl_Navigator->GetItemParent(current);
+                        if (parent == TreeCtrl_Navigator->GetRootItem())
+                        {
+                            current = parent;
+                            break;
+                        }
+                        else if (parent.IsOk())
+                        {
+                            sibling = TreeCtrl_Navigator->GetNextSibling(parent);
+                            if (sibling.IsOk())
+                            {
+                                current = sibling;
+                                break;
+                            }
+                            else
+                            {
+                                current = parent;
+                                if (current == TreeCtrl_Navigator->GetRootItem())
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            wxBell();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue()))
+            {
+                TreeCtrl_Navigator->SelectItem(current);
+                TreeCtrl_Navigator->EnsureVisible(current);
+                if (current == start)
+                {
+                    wxBell();
+                }
+                return;
+            }
+
+        } while (current != start);
+        wxBell();
+    }
 }
