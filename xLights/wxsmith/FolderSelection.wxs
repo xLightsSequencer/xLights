@@ -141,13 +141,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>3</cols>
+					<cols>2</cols>
 					<growablecols>0</growablecols>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_FOLDER_SELECT_OK" variable="ButtonFolderSelectOk" member="yes">
 							<label>Ok</label>
@@ -165,7 +160,7 @@
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxALIGN_RIGHT</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

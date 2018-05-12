@@ -11,7 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2018.12 May 11, 2018
+2018.13 May 12, 2018
+   -- bug (scott)  Fix an issue with xml/fseq saving
+   -- bug (keith)  Fix music download doesnt show artist tag
+   -- enh (keith)  Add ability to periodically schedule a playlist within a time interval - hourly, half hourly, etc
+2018.12 May 11, 2018 - withdrawn
    -- enh (dkulp)  Support for 4 channel pixel strings (RGBW variants)
    -- enh (dkulp)  Allow specifying how to handle mapping of RGB -> RGBW
    -- bug (dkulp)  Hostnames were not usable in several places, had to use IP addresses
