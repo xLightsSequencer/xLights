@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add windows check for newer version
 2018.13 May 12, 2018
    -- bug (scott)  Fix an issue with xml/fseq saving
    -- bug (keith)  Fix music download doesnt show artist tag
