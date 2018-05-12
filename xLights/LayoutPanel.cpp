@@ -38,11 +38,6 @@
 #include "UtilFunctions.h"
 #include "support/VectorMath.h"
 
-static float AXIS_RADIUS = 4.0f;
-static float AXIS_ARROW_LENGTH = 60.0f;
-static float XY_ARROW_LENGTH = 30.0f;
-static float AXIS_HEAD_LENGTH = 12.0f;
-
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	wxRect r;
@@ -211,7 +206,7 @@ private:
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr), highlightedModel(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
+    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(-1),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
     ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), over_handle(-1), creating_model(false)
@@ -1747,203 +1742,6 @@ void LayoutPanel::GetWorldPosition(int& x, int& y)
     y = ray_origin.y;
 }
 
-bool LayoutPanel::SelectSingleModel3D(int x, int y)
-{
-    std::vector<int> found;
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-    static int last_selection = -1;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, (modelPreview->getHeight() - y),
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetViewMatrix(),
-        modelPreview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    float distance = 1000000000.0f;
-    int which_model = -1;
-
-    // Test each each Oriented Bounding Box (OBB).
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        glm::mat4 model_mat = modelPreview->GetModels()[i]->GetModelScreenLocation().GetModelMatrix();
-
-        if (VectorMath::TestRayOBBIntersection(
-            ray_origin,
-            ray_direction,
-            modelPreview->GetModels()[i]->GetModelScreenLocation().GetAABB_Min(),
-            modelPreview->GetModels()[i]->GetModelScreenLocation().GetAABB_Max(),
-            model_mat,
-            intersection_distance)
-            ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                which_model = i;
-            }
-        }
-    }
-
-    bool ret_value = false;
-
-    if (which_model == -1)
-    {
-        if (highlightedModel != nullptr) {
-            highlightedModel->Highlighted = false;
-            highlightedModel = nullptr;
-            UpdatePreview();
-        }
-    }
-    else
-    {
-        if (which_model != last_selection) {
-            UnSelectAllModels();
-            highlightedModel = modelPreview->GetModels()[which_model];
-            highlightedModel->Highlighted = true;
-            UpdatePreview();
-        }
-        ret_value = true;
-    }
-    last_selection = which_model;
-    return ret_value;
-}
-
-#define RECT_HANDLE_WIDTH     6
-
-int LayoutPanel::SelectModelHandles3D(int x, int y)
-{
-    if (selectedModel == nullptr) return -1;
-
-    std::vector<int> found;
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, (modelPreview->getHeight() - y),
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetViewMatrix(),
-        modelPreview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    float distance = 1000000000.0f;
-    int which_handle = -1;
-    int hw = RECT_HANDLE_WIDTH;
-
-    glm::mat4 model_mat = selectedModel->GetModelScreenLocation().GetModelMatrix();
-    glm::mat4 trans_mat = selectedModel->GetModelScreenLocation().GetTranslateMatrix();
-
-    std::vector<ModelScreenLocation::xlPoint> handles = selectedModel->GetModelScreenLocation().GetHandlePositions();
-    std::vector<glm::vec3> aabb_min = selectedModel->GetModelScreenLocation().GetHandlesAABB_Min();
-    std::vector<glm::vec3> aabb_max = selectedModel->GetModelScreenLocation().GetHandlesAABB_Max();
-
-    // test for a selected axis first
-    int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
-    int num_axis_handles = active_handle == SHEAR_HANDLE ? 4 : 3;
-    glm::vec3 axisbb_min[4];
-    glm::vec3 axisbb_max[4];
-    if (selectedModel->GetModelScreenLocation().IsXYTransHandle()) {
-        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - XY_ARROW_LENGTH - 3;
-        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[3].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[3].y = handles[active_handle].y - model_mat[3][1] - XY_ARROW_LENGTH - 3;
-        axisbb_min[3].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-
-        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + XY_ARROW_LENGTH + 3;
-        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + XY_ARROW_LENGTH + 3;
-        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
-        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[3].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[3].y = handles[active_handle].y - model_mat[3][1] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
-        axisbb_max[3].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-    }
-    else {
-        axisbb_min[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[0].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[0].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[1].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_min[1].z = handles[active_handle].z - model_mat[3][2] - AXIS_RADIUS;
-        axisbb_min[2].x = handles[active_handle].x - model_mat[3][0] - AXIS_RADIUS;
-        axisbb_min[2].y = handles[active_handle].y - model_mat[3][1] - AXIS_RADIUS;
-        axisbb_min[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
-        axisbb_max[0].x = handles[active_handle].x - model_mat[3][0] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[0].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[0].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[1].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[1].y = handles[active_handle].y - model_mat[3][1] + AXIS_ARROW_LENGTH + 3;
-        axisbb_max[1].z = handles[active_handle].z - model_mat[3][2] + AXIS_RADIUS;
-        axisbb_max[2].x = handles[active_handle].x - model_mat[3][0] + AXIS_RADIUS;
-        axisbb_max[2].y = handles[active_handle].y - model_mat[3][1] + AXIS_RADIUS;
-        axisbb_max[2].z = handles[active_handle].z - model_mat[3][2] + AXIS_ARROW_LENGTH + 3;
-    }
-
-    // see if an axis handle is selected
-    for (size_t i = 0; i < num_axis_handles; i++)
-    {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
-            ray_origin,
-            ray_direction,
-            axisbb_min[i],
-            axisbb_max[i],
-            trans_mat,      // axis is not rotated
-            intersection_distance)
-            ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                which_handle = i;
-            }
-        }
-    }
-
-    if (which_handle != -1) {
-        return which_handle | 0x100;
-    }
-
-    int num_handles = selectedModel->GetModelScreenLocation().GetNumSelectableHandles();
-
-    // Test each each Oriented Bounding Box (OBB).
-    for (size_t i = 0; i < num_handles; i++)
-    {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
-            ray_origin,
-            ray_direction,
-            aabb_min[i],
-            aabb_max[i],
-            model_mat,
-            intersection_distance)
-            ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                which_handle = i;
-            }
-        }
-    }
-
-    return which_handle;
-}
-
 void LayoutPanel::SelectAllInBoundingRect()
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
@@ -2028,7 +1826,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
     // don't mark mouse down if a selection is being made
     if (highlightedModel != nullptr) {
         if (selectionLatched) {
-            int handle = SelectModelHandles3D(event.GetX(), event.GetY());
+            int handle = -1;
+            if (selectedModel != nullptr) {
+                selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(modelPreview, handle, event.GetX(), event.GetY());
+            }
             if (handle != -1) {
                 if (handle >= 0x100) {
                     // an axis was selected
@@ -2377,11 +2178,52 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         }
         else {
             if (!selectionLatched) {
-                SelectSingleModel3D(event.GetX(), event.GetY());
+                glm::vec3 ray_origin;
+                glm::vec3 ray_direction;
+
+                VectorMath::ScreenPosToWorldRay(
+                    event.GetX(), modelPreview->getHeight() - event.GetY(),
+                    modelPreview->getWidth(), modelPreview->getHeight(),
+                    modelPreview->GetViewMatrix(),
+                    modelPreview->GetProjMatrix(),
+                    ray_origin,
+                    ray_direction
+                );
+                int which_model = -1;
+                float distance = 1000000000.0f;
+                float intersection_distance;
+                for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                {
+                    if (modelPreview->GetModels()[i]->GetModelScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                        if (intersection_distance < distance) {
+                            distance = intersection_distance;
+                            which_model = i;
+                        }
+                    }
+                }
+                if (which_model == -1)
+                {
+                    if (highlightedModel != nullptr) {
+                        highlightedModel->Highlighted = false;
+                        highlightedModel = nullptr;
+                        UpdatePreview();
+                    }
+                }
+                else
+                {
+                    if (which_model != last_selection) {
+                        UnSelectAllModels();
+                        highlightedModel = modelPreview->GetModels()[which_model];
+                        highlightedModel->Highlighted = true;
+                        UpdatePreview();
+                    }
+                }
+                last_selection = which_model;
             }
             else {
-                int handle = SelectModelHandles3D(event.GetX(), event.GetY());
                 if (selectedModel != nullptr) {
+                    int handle = -1;
+                    selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(modelPreview, handle, event.GetX(), event.GetY());
                     selectedModel->GetModelScreenLocation().MouseOverHandle(handle);
                     if (handle != over_handle) {
                         over_handle = handle;

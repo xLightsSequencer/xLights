@@ -56,7 +56,9 @@ public:
 
     virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(ModelPreview* preview, int x, int y) const = 0;
+    virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
+    virtual wxCursor CheckIfOverHandles3D(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const = 0;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
@@ -110,20 +112,12 @@ public:
     float RenderHt, RenderWi, RenderDp;  // size of the rendered output
     int previewW, previewH;
 
-    glm::mat4& GetModelMatrix() { return ModelMatrix; }
-    glm::mat4& GetTranslateMatrix() { return TranslateMatrix; }
-    glm::vec3& GetAABB_Min() { return aabb_min; }
-    glm::vec3& GetAABB_Max() { return aabb_max; }
-
     struct xlPoint {
         float x;
         float y;
         float z;
     };
 
-    std::vector<xlPoint>& GetHandlePositions() { return mHandlePosition; }
-    std::vector<glm::vec3>& GetHandlesAABB_Min() { return handle_aabb_min; }
-    std::vector<glm::vec3>& GetHandlesAABB_Max() { return handle_aabb_max; }
     virtual void SetActiveHandle(int handle);
     int GetActiveHandle() { return active_handle; }
     virtual void SetActiveAxis(int axis);
@@ -137,7 +131,7 @@ public:
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
     virtual void MouseOverHandle(int handle);
     int GetNumSelectableHandles() { return mSelectableHandles; }
-    virtual bool IsXYTransHandle() { return false; }
+    virtual bool IsXYTransHandle() const { return false; }
 
 protected:
     ModelScreenLocation(int points);
@@ -411,7 +405,7 @@ public:
     virtual void AdvanceAxisTool();
     virtual void SetAxisTool(int mode);
     virtual void SetActiveAxis(int axis);
-    virtual bool IsXYTransHandle() { return active_handle == SHEAR_HANDLE; }
+    virtual bool IsXYTransHandle() const { return active_handle == SHEAR_HANDLE; }
 
 protected:
     virtual void ProcessOldNode(wxXmlNode *n) override;

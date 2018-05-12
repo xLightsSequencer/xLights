@@ -215,8 +215,6 @@ class LayoutPanel: public wxPanel
         void SelectAllInBoundingRect();
         void SetSelectedModelToGroupSelected();
         void Nudge(int key);
-        bool SelectSingleModel3D(int x, int y);
-        int SelectModelHandles3D(int x, int y);
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
 
@@ -340,6 +338,7 @@ class LayoutPanel: public wxPanel
 
         bool is_3d;
         bool m_mouse_down;
+        int last_selection;
         int m_last_mouse_x, m_last_mouse_y;
         bool creating_model;
 

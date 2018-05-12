@@ -16,6 +16,8 @@
 
 static float AXIS_RADIUS = 4.0f;
 static float AXIS_ARROW_LENGTH = 60.0f;
+static float AXIS_HEAD_LENGTH = 12.0f;
+static float XY_ARROW_LENGTH = 30.0f;
 
 static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
     float s = sin(radians);
@@ -146,9 +148,7 @@ void ModelScreenLocation::MouseOverHandle(int handle)
 void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::xl3Accumulator &va) const
 {
     int num_points = 18;
-    float head_length = 12.0f;
     float os = (float)RECT_HANDLE_WIDTH;
-
 
     if (axis_tool == TOOL_TRANSLATE) {
         xlColor ax1c = (highlighted_handle == 0x100) ? xlYELLOW : xlRED;
@@ -159,24 +159,24 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, y, z, ax1c);
-            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax1c);
-            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax1c);
         }
         tip = y + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, tip, z, ax2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax2c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), ax2c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), ax2c);
         }
         tip = z + AXIS_ARROW_LENGTH;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, y, tip, ax3c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - head_length, ax3c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - head_length, ax3c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), y + AXIS_RADIUS * sin(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, ax3c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), y + AXIS_RADIUS * sin(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, ax3c);
         }
         va.Finish(GL_TRIANGLES);
     }
@@ -239,32 +239,32 @@ void ModelScreenLocation::DrawAxisTool(float x, float y, float z, DrawGLUtils::x
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, y, z, a1c);
-            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a1c);
-            va.AddVertex(tip - head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a1c);
+            va.AddVertex(tip - AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a1c);
         }
         tip = x - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(tip, y, z, a3c);
-            va.AddVertex(tip + head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a3c);
-            va.AddVertex(tip + head_length, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a3c);
+            va.AddVertex(tip + AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u1), z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a3c);
+            va.AddVertex(tip + AXIS_HEAD_LENGTH, y + AXIS_RADIUS * cos(2.0 * M_PI*u2), z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a3c);
         }
         tip = y + arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, tip, z, a2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip - AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
         }
         tip = y - arrow_length;
         for (size_t i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
             float u2 = (i + 1) / (float)num_points;
             va.AddVertex(x, tip, z, a4c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip + head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a4c);
-            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip + head_length, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a4c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip + AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a4c);
+            va.AddVertex(x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip + AXIS_HEAD_LENGTH, z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a4c);
         }
 
         va.Finish(GL_TRIANGLES);
@@ -371,6 +371,145 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         logger_base.warn("MoveHandle3D: Intersect not found!");
     }
     return found;
+}
+
+wxCursor ModelScreenLocation::CheckIfOverHandles3D(ModelPreview* preview, int &handle, int x, int y) const
+{
+    if (_locked)
+    {
+        handle = NO_HANDLE;
+        return wxCURSOR_DEFAULT;
+    }
+
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+
+    VectorMath::ScreenPosToWorldRay(
+        x, preview->getHeight() - y,
+        preview->getWidth(), preview->getHeight(),
+        preview->GetViewMatrix(),
+        preview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+
+    float distance = 1000000000.0f;
+    handle = -1;
+    int hw = RECT_HANDLE_WIDTH;
+
+    // test for a selected axis first
+    int num_axis_handles = active_handle == SHEAR_HANDLE ? 4 : 3;
+    glm::vec3 axisbb_min[4];
+    glm::vec3 axisbb_max[4];
+    if (IsXYTransHandle()) {
+        axisbb_min[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + XY_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - XY_ARROW_LENGTH - 3;
+        axisbb_min[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[3].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[3].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - XY_ARROW_LENGTH - 3;
+        axisbb_min[3].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+
+        axisbb_max[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + XY_ARROW_LENGTH + 3;
+        axisbb_max[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + XY_ARROW_LENGTH + 3;
+        axisbb_max[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
+        axisbb_max[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[3].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[3].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - XY_ARROW_LENGTH + AXIS_HEAD_LENGTH + 3;
+        axisbb_max[3].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+    }
+    else {
+        axisbb_min[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_min[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] - AXIS_RADIUS;
+        axisbb_min[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] - AXIS_RADIUS;
+        axisbb_min[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] - AXIS_RADIUS;
+        axisbb_min[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH - AXIS_HEAD_LENGTH - 3;
+        axisbb_max[0].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[0].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[0].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[1].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[1].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_ARROW_LENGTH + 3;
+        axisbb_max[1].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_RADIUS;
+        axisbb_max[2].x = mHandlePosition[active_handle].x - ModelMatrix[3][0] + AXIS_RADIUS;
+        axisbb_max[2].y = mHandlePosition[active_handle].y - ModelMatrix[3][1] + AXIS_RADIUS;
+        axisbb_max[2].z = mHandlePosition[active_handle].z - ModelMatrix[3][2] + AXIS_ARROW_LENGTH + 3;
+    }
+
+    // see if an axis handle is selected
+    for (size_t i = 0; i < num_axis_handles; i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
+
+        if (VectorMath::TestRayOBBIntersection(
+            ray_origin,
+            ray_direction,
+            axisbb_min[i],
+            axisbb_max[i],
+            TranslateMatrix,      // axis is not rotated
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                handle = i;
+            }
+        }
+    }
+
+    if (handle != -1) {
+        handle = handle | 0x100;
+        return wxCURSOR_HAND;
+    }
+
+    // Test each each Oriented Bounding Box (OBB).
+    for (size_t i = 0; i < mSelectableHandles; i++)
+    {
+        float intersection_distance; // Output of TestRayOBBIntersection()
+
+        if (VectorMath::TestRayOBBIntersection(
+            ray_origin,
+            ray_direction,
+            handle_aabb_min[i],
+            handle_aabb_max[i],
+            ModelMatrix,
+            intersection_distance)
+            ) {
+            if (intersection_distance < distance) {
+                distance = intersection_distance;
+                handle = i;
+            }
+        }
+    }
+
+    return (handle == -1 ? wxCURSOR_DEFAULT : wxCURSOR_HAND);
+}
+
+bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const
+{
+    if (VectorMath::TestRayOBBIntersection(
+        ray_origin,
+        ray_direction,
+        aabb_min,
+        aabb_max,
+        ModelMatrix,
+        intersection_distance)
+        ) {
+            return true;
+        }
+    return false;
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
