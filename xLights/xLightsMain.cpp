@@ -7330,37 +7330,43 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 
 bool xLightsFrame::CheckForUpdate(bool force)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool found_update = false;
-    wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
-    #ifdef LINUX
-      wxString hostname =  wxT("www.adebenham.com");
-      wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-      wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
-      MenuItem_Update->Enable(true);
-    #else
-      #ifdef  __WXOSX_MAC__
-        wxString hostname = _T("dankulp.com");
-        wxString path = _T("/xLightsLatest.php");
-        wxString downloadUrl =  wxT("http://dankulp.com/xlights/");
-        MenuItem_Update->Enable(true);
-      #else
-        wxString hostname = _T("xlights.org");
-        wxString path = _T("/xLightsLatest.php");
-        wxString downloadUrl = wxT("https://xlights.org/releases/");
-        MenuItem_Update->Enable(false);
-        return false; // No checking on windows yet
-      #endif
-    #endif
+#ifdef LINUX
+    wxString hostname = wxT("www.adebenham.com");
+    wxString path = wxT("/wp-content/uploads/xlights/latest.php");
+    wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
+    MenuItem_Update->Enable(true);
+#else
+#ifdef  __WXOSX_MAC__
+    wxString hostname = _T("dankulp.com");
+    wxString path = _T("/xLightsLatest.php");
+    wxString downloadUrl = wxT("http://dankulp.com/xlights/");
+    MenuItem_Update->Enable(true);
+#else
+    wxString hostname = _T("xlights.org");
+    wxString path = _T("/downloads/");
+    wxString downloadUrl = wxT("http://xlights.org/downloads/");
+    MenuItem_Update->Enable(false);
+    //return false; // No checking on windows yet
+#endif
+#endif
 
     wxHTTP get;
     get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
+    get.SetHeader("Cache-Control", "no-cache");
 
     if (force) {
         while (!get.Connect(hostname))  // only the server, no pages here yet ...
             wxSleep(5);
-    } else {
+    }
+    else {
         if (!get.Connect(hostname))
+        {
+            logger_base.debug("Version update check failed. Unable to connect.");
             return true;
+        }
     }
 
     wxInputStream *httpStream = get.GetInputStream(path);
@@ -7369,27 +7375,67 @@ bool xLightsFrame::CheckForUpdate(bool force)
         wxString configver = wxT("");
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
+
+#ifdef __WXMSW__
+        wxString page = wxString(out_stream.GetString());
+
+        //logger_base.debug("    Download page: %s",
+        //    (const char *)page.c_str());
+
+        // find the highest version number in the file
+        wxString urlVersion = xlights_version_string;
+
+        wxRegEx reVersion("xLights[0-9][0-9]_(2[0-9][0-9][0-9]_[0-9][0-9])\\.exe", wxRE_ADVANCED | wxRE_NEWLINE);
+        while (reVersion.Matches(page))
+        {
+            auto v = reVersion.GetMatch(page, 1);
+            size_t start = -1;
+            size_t len = -1;
+            reVersion.GetMatch(&start, &len, 1);
+            v.Replace("_", ".");
+
+            //logger_base.debug("    Found Version: %s",
+            //    (const char *)v.c_str());
+
+            if (IsVersionOlder(v, urlVersion))
+            {
+                urlVersion = v;
+            }
+            page = page.Mid(start + len);
+        }
+#else
+        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
         wxString urlVersion = wxString(out_stream.GetString());
-        reVersion.Replace(&urlVersion,"\\1",1);
+        reVersion.Replace(&urlVersion, "\\1", 1);
+#endif
+
+        logger_base.debug("Current Version: %s. Latest Available %s. Skip Version %s.",
+            (const char *)xlights_version_string.c_str(),
+            (const char *)urlVersion.c_str(),
+            (const char *)configver.c_str());
+
         wxConfigBase* config = wxConfigBase::Get();
         if (!force && (config != nullptr))
         {
-            config->Read("SkipVersion",&configver);
+            config->Read("SkipVersion", &configver);
         }
+
         if ((!urlVersion.Matches(configver))
-             && (!urlVersion.Matches(xlights_version_string))) {
-            found_update=true;
+            && (!urlVersion.Matches(xlights_version_string))) {
+            found_update = true;
             UpdaterDialog *dialog = new UpdaterDialog(this);
-            dialog->urlVersion=urlVersion;
-            dialog->force=force;
-            dialog->downloadUrl=downloadUrl;
+            dialog->urlVersion = urlVersion;
+            dialog->force = force;
+            dialog->downloadUrl = downloadUrl;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights "
-                                                       + xlights_version_string + "\n"
-                                                       + "Whereas the current release is " + urlVersion));
+                + xlights_version_string + "\n"
+                + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
-    } else {
-        wxMessageBox(_T("Unable to connect!"));
+    }
+    else {
+        logger_base.debug("Version update check failed. Unable to read available versions.");
+        //wxMessageBox(_T("Unable to connect!"));
     }
 
     wxDELETE(httpStream);
@@ -7511,12 +7557,13 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, backupDirectory, mAltBackupDir);
 
     int res = dlg.ShowModal();
 
     if (res == wxID_OK) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), dlg.MediaDirectory);
         config->Write(_("LinkFlag"), dlg.LinkMediaDir);
