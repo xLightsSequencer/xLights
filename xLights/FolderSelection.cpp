@@ -240,7 +240,7 @@ void FolderSelection::OnButtonFindMediaDirClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(MediaDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        TextCtrlMediaDirectory->SetLabel(dialog.GetPath());
+        TextCtrlMediaDirectory->SetValue(dialog.GetPath());
     }
 }
 
@@ -249,7 +249,7 @@ void FolderSelection::OnButtonFindFSEQDirClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(FseqDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        TextCtrlFSEQDirectory->SetLabel(dialog.GetPath());
+        TextCtrlFSEQDirectory->SetValue(dialog.GetPath());
     }
 }
 
@@ -258,7 +258,7 @@ void FolderSelection::OnButtonFindBackupDirectoryClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(BackupDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        TextCtrlBackupDirectory->SetLabel(dialog.GetPath());
+        TextCtrlBackupDirectory->SetValue(dialog.GetPath());
     }
 }
 
@@ -267,7 +267,7 @@ void FolderSelection::OnButtonFindAltBackupDirectoryClick(wxCommandEvent& event)
     wxDirDialog dialog(this);
     dialog.SetPath(AltBackupDirectory);
     if (dialog.ShowModal() == wxID_OK) {
-        TextCtrlAltBackupDirectory->SetLabel(dialog.GetPath());
+        TextCtrlAltBackupDirectory->SetValue(dialog.GetPath());
     }
 }
 
@@ -277,12 +277,12 @@ void FolderSelection::OnCheckBoxFSEQUseShowClick(wxCommandEvent& event)
         FseqDirectory = ShowDirectory;
         TextCtrlFSEQDirectory->Enable(false);
         ButtonFindFSEQDir->Enable(false);
-        TextCtrlFSEQDirectory->SetLabel(FseqDirectory);
+        TextCtrlFSEQDirectory->SetValue(FseqDirectory);
     } else {
 
         TextCtrlFSEQDirectory->Enable(true);
         ButtonFindFSEQDir->Enable(true);
-        TextCtrlFSEQDirectory->SetLabel(FseqDirectory);
+        TextCtrlFSEQDirectory->SetValue(FseqDirectory);
     }
 }
 
@@ -293,12 +293,12 @@ void FolderSelection::OnCheckBoxMediaUseShowClick(wxCommandEvent& event)
         MediaDirectory = ShowDirectory;
         TextCtrlMediaDirectory->Enable(false);
         ButtonFindMediaDir->Enable(false);
-        TextCtrlMediaDirectory->SetLabel(MediaDirectory);
+        TextCtrlMediaDirectory->SetValue(MediaDirectory);
     } else {
         LinkMediaDir = 0;
         TextCtrlMediaDirectory->Enable(true);
         ButtonFindMediaDir->Enable(true);
-        TextCtrlMediaDirectory->SetLabel(MediaDirectory);
+        TextCtrlMediaDirectory->SetValue(MediaDirectory);
     }
 }
 
@@ -308,11 +308,11 @@ void FolderSelection::OnCheckBoxBackupUseShowClick(wxCommandEvent& event)
         BackupDirectory = ShowDirectory;
         TextCtrlBackupDirectory->Enable(false);
         ButtonFindBackupDirectory->Enable(false);
-        TextCtrlBackupDirectory->SetLabel(BackupDirectory);
+        TextCtrlBackupDirectory->SetValue(BackupDirectory);
     } else {
         TextCtrlBackupDirectory->Enable(true);
         ButtonFindBackupDirectory->Enable(true);
-        TextCtrlBackupDirectory->SetLabel(BackupDirectory);
+        TextCtrlBackupDirectory->SetValue(BackupDirectory);
     }
 }
 
@@ -322,12 +322,12 @@ void FolderSelection::OnCheckBoxEnableAltBackupClick(wxCommandEvent& event)
         CheckBoxEnableAltBackup->SetValue(true);
         TextCtrlAltBackupDirectory->Enable(true);
         ButtonFindAltBackupDirectory->Enable(true);
-        TextCtrlAltBackupDirectory->SetLabel(AltBackupDirectory);
+        TextCtrlAltBackupDirectory->SetValue(AltBackupDirectory);
     } else {
         AltBackupDirectory = wxString();
         CheckBoxEnableAltBackup->SetValue(false);
         TextCtrlAltBackupDirectory->Enable(false);
-        TextCtrlAltBackupDirectory->SetLabel(wxString());
+        TextCtrlAltBackupDirectory->SetValue(wxString());
         ButtonFindAltBackupDirectory->Enable(false);
     }
 }
