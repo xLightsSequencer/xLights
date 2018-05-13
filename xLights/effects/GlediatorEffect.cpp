@@ -21,6 +21,8 @@
 
 GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _filename = filename;
     _size = size;
 
@@ -32,13 +34,44 @@ GlediatorReader::GlediatorReader(const std::string& filename, const wxSize& size
 
         if (_frames * GetBufferSize() != _f.Length())
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Opening glediator file %s size (%d,%d) looks suspicious as it does not match file size %ld.", (const char *)_filename.c_str(), _size.x, _size.y, (long)_f.Length());
         }
+    }
+    else
+    {
+        logger_base.warn("Failer to open file %s", (const char *)_filename.c_str());
+    }
+
+}
+
+CSVReader::CSVReader(const std::string& filename)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _line = -1;
+    _filename = filename;
+
+    _f.Open(_filename);
+
+    if (_f.IsOpened())
+    {
+
+    }
+    else
+    {
+        logger_base.warn("Failer to open file %s", (const char *)_filename.c_str());
     }
 }
 
 GlediatorReader::~GlediatorReader()
+{
+    if (_f.IsOpened())
+    {
+        _f.Close();
+    }
+}
+
+CSVReader::~CSVReader()
 {
     if (_f.IsOpened())
     {
@@ -74,6 +107,23 @@ void GlediatorReader::GetFrame(size_t frame, char* buffer, size_t size)
     }
 }
 
+void CSVReader::GetFrame(size_t frame, char* buffer, size_t size)
+{
+    wxString line = _f.GetLine(frame);
+
+    wxArrayString data = wxSplit(line, ',');
+
+    for (int i = 0; i < std::min(data.size(), size); i++)
+    {
+        *(buffer + i) = wxAtoi(data[i]);
+    }
+}
+
+size_t CSVReader::GetFrameCount() const
+{
+    return _f.GetLineCount();
+}
+
 GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator_16, glediator_64, glediator_64, glediator_64, glediator_64)
 {
     //ctor
@@ -92,11 +142,11 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
 
     if (GledFilename == "" || !wxFile::Exists(GledFilename))
     {
-        res.push_back(wxString::Format("    ERR: Glediator effect cant find glediator file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Glediator effect cant find file '%s'. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     else if (!IsFileInShowDir(xLightsFrame::CurrentDir, GledFilename.ToStdString()))
     {
-        res.push_back(wxString::Format("    WARN: Glediator effect glediator file '%s' not under show directory. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    WARN: Glediator effect file '%s' not under show directory. Model '%s', Start %s", GledFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
@@ -118,8 +168,22 @@ bool GlediatorEffect::IsGlediatorFile(std::string filename)
     auto ext = fn.GetExt().Lower().ToStdString();
 
     if (ext == "gled" ||
+        ext == "csv" ||
         ext == "out"
         )
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool GlediatorEffect::IsCSVFile(std::string filename) const
+{
+    wxFileName fn(filename);
+    auto ext = fn.GetExt().Lower().ToStdString();
+
+    if (ext == "csv")
     {
         return true;
     }
@@ -180,8 +244,9 @@ public:
     GlediatorRenderCache()
     {
         _glediatorReader = nullptr;
+        _csvReader = nullptr;
         _loops = 0;
-        _frameMS = 50;
+        _frameMS = 50.0;
     };
     virtual ~GlediatorRenderCache() {
         if (_glediatorReader != nullptr)
@@ -189,11 +254,17 @@ public:
             delete _glediatorReader;
             _glediatorReader = nullptr;
         }
+        if (_csvReader != nullptr)
+        {
+            delete _csvReader;
+            _csvReader = nullptr;
+        }
     };
 
     GlediatorReader* _glediatorReader;
+    CSVReader* _csvReader;
     int _loops;
-    int _frameMS;
+    float _frameMS;
 };
 
 void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
@@ -203,8 +274,6 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     std::string glediatorFilename = SettingsMap["FILEPICKERCTRL_Glediator_Filename"];
     std::string durationTreatment = SettingsMap["CHOICE_Glediator_DurationTreatment"];
 
-    bool rendered = false;
-
     GlediatorRenderCache *cache = (GlediatorRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new GlediatorRenderCache();
@@ -213,7 +282,8 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
 
     int &_loops = cache->_loops;
     GlediatorReader* &_glediatorReader = cache->_glediatorReader;
-    int& _frameMS = cache->_frameMS;
+    CSVReader* &_csvReader = cache->_csvReader;
+    float& _frameMS = cache->_frameMS;
 
     if (buffer.needToInit)
     {
@@ -226,28 +296,60 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             delete _glediatorReader;
             _glediatorReader = nullptr;
         }
+        if (_csvReader != nullptr)
+        {
+            delete _csvReader;
+            _csvReader = nullptr;
+        }
 
         if (wxFileExists(glediatorFilename))
         {
-            // have to open the file
-            _glediatorReader = new GlediatorReader(glediatorFilename, wxSize(buffer.BufferWi, buffer.BufferHt));
-
-            if (_glediatorReader == nullptr)
+            if (IsCSVFile(glediatorFilename))
             {
-                logger_base.warn("GlediatorEffect: Failed to load glediator file %s.", (const char *)glediatorFilename.c_str());
+                _csvReader = new CSVReader(glediatorFilename);
+
+                if (_csvReader == nullptr)
+                {
+                    logger_base.warn("GlediatorEffect: Failed to load csv file %s.", (const char *)glediatorFilename.c_str());
+                }
+                else
+                {
+                    size_t glediatorFrames = _csvReader->GetFrameCount();
+                    if (durationTreatment == "Slow/Accelerate")
+                    {
+                        size_t effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                        float speedFactor = (float)glediatorFrames / (float)effectFrames;
+                        _frameMS = ((float)buffer.frameTimeInMs * speedFactor);
+                    }
+                    logger_base.debug("Glediator effect length: %d, glediator length: %d, duration treatment: %s.",
+                        (int)(((float)(buffer.curEffEndPer - buffer.curEffStartPer + 1)) * _frameMS), 
+                        (int)((float)glediatorFrames * _frameMS),
+                        (const char *)durationTreatment.c_str());
+                }
             }
             else
             {
-                if (durationTreatment == "Slow/Accelerate")
+                // have to open the file
+                _glediatorReader = new GlediatorReader(glediatorFilename, wxSize(buffer.BufferWi, buffer.BufferHt));
+
+                if (_glediatorReader == nullptr)
                 {
-                    size_t effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
-                    size_t glediatorFrames = _glediatorReader->GetFrameCount();
-                    float speedFactor = (float)glediatorFrames / (float)effectFrames;
-                    _frameMS = (int)((float)buffer.frameTimeInMs * speedFactor);
+                    logger_base.warn("GlediatorEffect: Failed to load glediator file %s.", (const char *)glediatorFilename.c_str());
                 }
-                logger_base.debug("Glediator effect length: %d, glediator length: %d, duration treatment: %s.",
-                    (buffer.curEffEndPer - buffer.curEffStartPer + 1) * _frameMS, _glediatorReader->GetFrameCount() * _frameMS,
-                    (const char *)durationTreatment.c_str());
+                else
+                {
+                    if (durationTreatment == "Slow/Accelerate")
+                    {
+                        size_t effectFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+                        size_t glediatorFrames = _glediatorReader->GetFrameCount();
+                        float speedFactor = (float)glediatorFrames / (float)effectFrames;
+                        _frameMS = ((float)buffer.frameTimeInMs * speedFactor);
+                    }
+                    logger_base.debug("Glediator effect length: %d, glediator length: %d, duration treatment: %s.",
+                        (int)(((float)(buffer.curEffEndPer - buffer.curEffStartPer + 1)) * _frameMS), 
+                        (int)((float)_glediatorReader->GetFrameCount() * _frameMS),
+                        (const char *)durationTreatment.c_str());
+                }
             }
         }
         else
@@ -256,16 +358,63 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         }
     }
 
-    if (_glediatorReader != nullptr)
+    if (_csvReader != nullptr)
     {
-        size_t frame = ((buffer.curPeriod - buffer.curEffStartPer) - _loops * (_glediatorReader->GetFrameCount())) * _frameMS / buffer.frameTimeInMs;
+        size_t frameCount = _csvReader->GetFrameCount();
+        size_t frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * frameCount) * _frameMS / (float)(buffer.frameTimeInMs);
+
+        // if we have reached the end and we are to loop
+        if (frame >= frameCount && durationTreatment == "Loop")
+        {
+            // jump back to start and try to read frame again
+            _loops++;
+            frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * frameCount) * _frameMS / (float)buffer.frameTimeInMs;
+            logger_base.debug("Glediator effect loop #%d at frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer);
+        }
+
+        if (frame >= frameCount)
+        {
+            // do nothing
+        }
+        else
+        {
+            size_t bufsize = buffer.BufferWi * buffer.BufferHt;
+            char *frameBuffer = new char[bufsize];
+            memset(frameBuffer, 0x00, bufsize);
+
+            if (frameBuffer != nullptr)
+            {
+                _csvReader->GetFrame(frame, frameBuffer, bufsize);
+                xlColor color;
+
+                for (size_t j = 0; j < bufsize; j++)
+                {
+                    // Loop thru all channels
+                    color.Set(frameBuffer[j], frameBuffer[j], frameBuffer[j]);
+                    int x = j % buffer.BufferWi;
+                    int y = (buffer.BufferHt - 1) - (j / buffer.BufferWi);
+                    if (x < buffer.BufferWi && y < buffer.BufferHt && y >= 0)
+                    {
+                        buffer.SetPixel(x, y, color);
+                    }
+                }
+
+                delete[] frameBuffer;
+            }
+        }
+    }
+    else if (_glediatorReader != nullptr)
+    {
+        bool rendered = false;
+
+        size_t frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * (_glediatorReader->GetFrameCount())) * _frameMS / (float)buffer.frameTimeInMs;
 
         // if we have reached the end and we are to loop
         if (frame >= _glediatorReader->GetFrameCount() && durationTreatment == "Loop")
         {
             // jump back to start and try to read frame again
             _loops++;
-            frame = ((buffer.curPeriod - buffer.curEffStartPer) - _loops * (_glediatorReader->GetFrameCount())) * _frameMS / buffer.frameTimeInMs;
+            frame = (float)((buffer.curPeriod - buffer.curEffStartPer) - _loops * (_glediatorReader->GetFrameCount())) * _frameMS / (float)buffer.frameTimeInMs;
             logger_base.debug("Glediator effect loop #%d at frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer);
         }
 
@@ -275,7 +424,7 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             {
                 for (int x = 0; x < buffer.BufferWi; x++)
                 {
-                    buffer.SetPixel(x, y, xlBLUE);
+                    buffer.SetPixel(x, y, xlBLACK);
                 }
             }
             rendered = true;
@@ -306,16 +455,16 @@ void GlediatorEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                 rendered = true;
             }
         }
-    }
 
-    // display a red background to show we have a problem
-    if (!rendered)
-    {
-        for (int y = 0; y < buffer.BufferHt; y++)
+        // display a red background to show we have a problem
+        if (!rendered)
         {
-            for (int x = 0; x < buffer.BufferWi; x++)
+            for (int y = 0; y < buffer.BufferHt; y++)
             {
-                buffer.SetPixel(x, y, xlRED);
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    buffer.SetPixel(x, y, xlRED);
+                }
             }
         }
     }

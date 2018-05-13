@@ -5431,7 +5431,14 @@ void EffectsGrid::DrawEffects()
                 for (size_t n = 0; n < xs.size(); n++) {
                     int x2 = xs[n];
                     if (x2 >= 0) {
-                        backgrounds.AddRect(x, y1a, x2, y2a, colors[n]);
+                        if (colors.size() < n)
+                        {
+                            // that wont work
+                        }
+                        else
+                        {
+                            backgrounds.AddRect(x, y1a, x2, y2a, colors[n]);
+                        }
                     }
                     x = x2;
                     if (x > width) {

@@ -3,6 +3,7 @@
 
 #include "RenderableEffect.h"
 #include <wx/file.h>
+#include <wx/textfile.h>
 
 class GlediatorReader
 {
@@ -18,6 +19,25 @@ public:
     void GetFrame(size_t frame, char* buffer, size_t size);
     size_t GetFrameCount() const { return _frames; };
     size_t GetBufferSize() const { return _size.x * _size.y * 3; }
+};
+
+// CSV Files have one line per frame.
+// On each line is a list of comma separated values
+// Each value is between 0 and 255
+// Each value is applied to create a shade of white r=g=b which is then applied to a node
+// Multiple values are applied to multiple nodes
+class CSVReader
+{
+    std::string _filename;
+    wxTextFile _f;
+    int _line;
+
+public:
+    CSVReader(const std::string& filename);
+    virtual ~CSVReader();
+    std::string GetFilename() const { return _filename; }
+    void GetFrame(size_t frame, char* buffer, size_t size);
+    size_t GetFrameCount() const;
 };
 
 class GlediatorEffect : public RenderableEffect
@@ -40,7 +60,7 @@ class GlediatorEffect : public RenderableEffect
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
+        bool IsCSVFile(std::string filename) const;
 };
 
 #endif // GLEDIATOREFFECT_H
