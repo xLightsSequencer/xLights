@@ -518,7 +518,8 @@ bool xLightsFrame::CloseSequence()
         wxConfigBase* config = wxConfigBase::Get();
         wxString machinePerspective = m_mgr->SavePerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
-        logger_base.debug("Save perspective: %s", (const char *)machinePerspective.c_str());
+        logger_base.debug("AutoSave perspective");
+        LogPerspective(machinePerspective);
     }
 
     if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() && !_renderMode)

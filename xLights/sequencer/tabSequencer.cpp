@@ -202,17 +202,17 @@ void xLightsFrame::InitSequencer()
         }
     }
 
-    if(EffectsPanel1 == nullptr || timingPanel == nullptr)
+    if (EffectsPanel1 == nullptr || timingPanel == nullptr)
     {
         return;
     }
 
-    if(mSequencerInitialize)
+    if (mSequencerInitialize)
     {
         return;
     }
 
-    if(mCurrentPerpective!=nullptr)
+    if (mCurrentPerpective != nullptr)
     {
         DoLoadPerspective(mCurrentPerpective);
     }
@@ -225,7 +225,8 @@ void xLightsFrame::InitSequencer()
         if (machinePerspective != "")
         {
             m_mgr->LoadPerspective(machinePerspective);
-            logger_base.debug("Loaded machine perspective.");
+            logger_base.debug("Loaded AutoSave perspective.");
+            LogPerspective(machinePerspective);
         }
     }
 
@@ -250,6 +251,8 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxXmlNode* prospectives = PerspectivesNode->GetChildren();
     mCurrentPerpective = nullptr;
     if (prospectives==nullptr)
@@ -261,7 +264,11 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         PerspectivesNode->AddAttribute("current", "Default Perspective");
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
-        p->AddAttribute("settings", m_mgr->SavePerspective());
+        wxString perspective = m_mgr->SavePerspective();
+        p->AddAttribute("settings", perspective);
+        logger_base.debug("Saved perspective.");
+        LogPerspective(perspective);
+
         p->AddAttribute("version", "2.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
@@ -2327,7 +2334,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     if (name != PerspectivesNode->GetAttribute("current")) {
         PerspectivesNode->DeleteAttribute("current");
         PerspectivesNode->AddAttribute("current", name);
-        UnsavedRgbEffectsChanges=true;
+        UnsavedRgbEffectsChanges = true;
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0)
@@ -2336,9 +2343,14 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings", settings);
         mCurrentPerpective->AddAttribute("version", "2.0");
+        logger_base.debug("Saved perspective.");
+        LogPerspective(settings);
     }
 
-    m_mgr->LoadPerspective(settings,true);
+    m_mgr->LoadPerspective(settings, true);
+    logger_base.debug("Loaded perspective");
+    LogPerspective(settings);
+
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
@@ -2353,33 +2365,36 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         perspective->DeleteAttribute("settings");
         perspective->DeleteAttribute("version");
         perspective->AddAttribute("version", "2.0");
-        perspective->AddAttribute("settings", m_mgr->SavePerspective());
-    } else {
+        wxString p = m_mgr->SavePerspective();
+        perspective->AddAttribute("settings", p);
+        logger_base.debug("Saved perspective.");
+        LogPerspective(p);
+    }
+    else {
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
     }
 
-    if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
+    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF)
     {
         SetEffectAssistWindowState(false);
     }
-    else if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON )
+    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON)
     {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-        if( !visible )
+        if (!visible)
         {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
             MenuItemEffectAssistAlwaysOn->Check(false);
         }
     }
 
-    for (int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++) {
         if (perspectives[i].p == perspective) {
             MenuItemPerspectives->Check(perspectives[i].id, true);
         }
     }
-
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
@@ -2391,18 +2406,23 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    if(mCurrentPerpective != nullptr)
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mCurrentPerpective != nullptr)
     {
-        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES|wxNO);
+        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES | wxNO);
         if (confirm.ShowModal() == wxID_YES)
         {
-            if(mCurrentPerpective->HasAttribute("settings"))
+            if (mCurrentPerpective->HasAttribute("settings"))
             {
                 mCurrentPerpective->DeleteAttribute("settings");
             }
-            mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
+            wxString p = m_mgr->SavePerspective();
+            mCurrentPerpective->AddAttribute("settings", p);
             mCurrentPerpective->DeleteAttribute("version");
             mCurrentPerpective->AddAttribute("version", "2.0");
+            logger_base.debug("Saved perspective.");
+            LogPerspective(p);
             SaveEffectsFile();
         }
     }
@@ -2410,16 +2430,16 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event)
 {
-    wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
-    if(name.size()>0) {
-        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=nullptr; p=p->GetNext() )
+    wxString name = wxGetTextFromUser("Enter name of perspective", "Perspective Name");
+    if (name.size() > 0) {
+        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext())
         {
             if (p->GetName() == "perspective")
             {
-                wxString check_name=p->GetAttribute("name");
+                wxString check_name = p->GetAttribute("name");
                 if (check_name == name)
                 {
-                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO );
+                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
                     if (answer == wxYES) {
                         OnMenuItemViewSaveAsPerspectiveSelected(event);
                     }
@@ -2428,11 +2448,11 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
             }
         }
 
-        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", name);
-        p->AddAttribute("settings","");
+        p->AddAttribute("settings", "");
         PerspectivesNode->AddChild(p);
-        mCurrentPerpective=p;
+        mCurrentPerpective = p;
         OnMenuItemViewSavePerspectiveSelected(event);
         PerspectivesChanged(event);
         DoLoadPerspective(mCurrentPerpective);

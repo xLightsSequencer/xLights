@@ -1015,6 +1015,7 @@ private:
     bool EnableOutputs();
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
+    void LogPerspective(const wxString& perspective) const;
 
     // setup
     void OnMenuMRU(wxCommandEvent& event);

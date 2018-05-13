@@ -2037,6 +2037,15 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->CurrentDir = &CurrentDir;
 }
 
+void xLightsFrame::LogPerspective(const wxString & perspective) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxArrayString entries = wxSplit(perspective, '|');
+    for (auto it = entries.begin(); it != entries.end(); ++it)
+    {
+        logger_base.debug("    %s", (const char *)it->c_str());
+    }
+}
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
