@@ -1866,6 +1866,13 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         m_mouse_down = true;
                     }
                 }
+                else if ((m_over_handle & 0x10000) > 0) {
+                    // a segment was selected
+                    if (selectedModel != nullptr) {
+                        selectedModel->GetModelScreenLocation().SelectSegment(m_over_handle & 0xFFF);
+                        UpdatePreview();
+                    }
+                }
                 else {
                     if (selectedModel->GetModelScreenLocation().GetActiveHandle() == m_over_handle) {
                         selectedModel->GetModelScreenLocation().AdvanceAxisTool();
@@ -2185,31 +2192,25 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             m_previous_mouse_y = event.GetY();
             UpdatePreview();
         }
-        
-        if (m_mouse_down && !m_moving_handle) {
-
-            int delta_x = event.GetPosition().x - m_last_mouse_x;
-            int delta_y = event.GetPosition().y - m_last_mouse_y;
-            modelPreview->SetCameraView(delta_x, delta_y, false);
-            UpdatePreview();
-            return;
-        }
-
-        Model *m = newModel;
-        if (m == nullptr) {
-            m = selectedModel;
-            if (m == nullptr) return;
-        }
-
-        if (m_moving_handle) {
-            int active_handle = m->GetModelScreenLocation().GetActiveHandle();
-            if (m != newModel) {
-                CreateUndoPoint("SingleModel", m->name, std::to_string(active_handle));
+        else if (m_mouse_down) {
+            if (m_moving_handle) {
+                if (selectedModel != nullptr) {
+                    int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
+                    if (selectedModel != newModel) {
+                        CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
+                    }
+                    selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
+                    SetupPropGrid(selectedModel);
+                    xlights->MarkEffectsFileDirty(true);
+                    UpdatePreview();
+                }
             }
-            m->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, m->IsZScaleable());
-            SetupPropGrid(m);
-            xlights->MarkEffectsFileDirty(true);
-            UpdatePreview();
+            else {
+                int delta_x = event.GetPosition().x - m_last_mouse_x;
+                int delta_y = event.GetPosition().y - m_last_mouse_y;
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                UpdatePreview();
+            }
         }
         else {
             if (!selectionLatched) {
@@ -2226,7 +2227,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 );
                 int which_model = -1;
                 float distance = 1000000000.0f;
-                float intersection_distance;
+                float intersection_distance = 1000000000.0f;
                 for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                 {
                     if (modelPreview->GetModels()[i]->GetModelScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
@@ -2254,6 +2255,22 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     }
                 }
                 last_selection = which_model;
+            }
+            if (m_moving_handle)
+            {
+                Model *m = newModel;
+                if (m == nullptr) {
+                    m = selectedModel;
+                    if (m == nullptr) return;
+                }
+                int active_handle = m->GetModelScreenLocation().GetActiveHandle();
+                if (m != newModel) {
+                    CreateUndoPoint("SingleModel", m->name, std::to_string(active_handle));
+                }
+                m->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, m->IsZScaleable());
+                SetupPropGrid(m);
+                xlights->MarkEffectsFileDirty(true);
+                UpdatePreview();
             }
             else {
                 if (selectedModel != nullptr) {

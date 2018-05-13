@@ -182,7 +182,7 @@ void BezierCurve::UpdateMatrices()
         scale /= ren_width;
         points[i].length = scale;
 
-        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale));
+        glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, 1.0f));
         glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
         glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1p, y1p));
         glm::mat3 mat3 = translateMatrix * rotationMatrix * scalingMatrix;
@@ -482,7 +482,7 @@ void BezierCurve3D::UpdateMatrices()
         points[i].length = scale1 / scale.x;
 
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale1, 1.0f, 1.0f));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 translateMatrix2D = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, 0.0f));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
@@ -553,8 +553,6 @@ bool BezierCurve3D::HitTest(int sx, int sy)
     if (!matrix_valid) {
         UpdateMatrices();
     }
-
-    float min_y, max_y;
 
     // iterate through all line segments of spline for hit detection
     for (int j = 0; j < num_points - 1; ++j) {

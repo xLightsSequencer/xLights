@@ -33,6 +33,7 @@ class wxPropertyGridInterface;
 class wxPropertyGridEvent;
 class wxCursor;
 
+#include <shared_mutex>
 #include <vector>
 #include "Node.h"
 #include "Shapes.h"
@@ -137,6 +138,7 @@ protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
     virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
+    void ModelScreenLocation::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va) const;
 
     mutable float worldPos_x;
     mutable float worldPos_y;
@@ -501,12 +503,18 @@ protected:
         mutable bool has_curve;
         mutable BezierCurveCubic3D* curve;
         mutable glm::mat4 *matrix;
+        mutable glm::mat4 *mod_matrix;
+        mutable glm::mat4 *mod2D_matrix;
+        mutable float seg_scale;
     };
     mutable std::vector<xlPolyPoint> mPos;
     int num_points;
     int selected_handle;
+    mutable std::mutex _mutex;
     mutable float minX, minY, maxX, maxY, minZ, maxZ;
     mutable int selected_segment;
+    mutable std::vector<glm::vec3> seg_aabb_min;
+    mutable std::vector<glm::vec3> seg_aabb_max;
     mutable glm::mat4 main_matrix;
     mutable glm::vec3 saved_point;
     void FixCurveHandles();

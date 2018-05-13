@@ -18,6 +18,7 @@ static float AXIS_RADIUS = 4.0f;
 static float AXIS_ARROW_LENGTH = 60.0f;
 static float AXIS_HEAD_LENGTH = 12.0f;
 static float XY_ARROW_LENGTH = 30.0f;
+static float BB_OFF = 5.0f;
 
 static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
     float s = sin(radians);
@@ -38,7 +39,7 @@ static inline int toDegrees(float radians) {
 static void PrintMatrix(std::string name, glm::mat4& matrix)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Matrix Info: %s", name);
+    logger_base.debug("Matrix Info: %s", name.c_str());
     logger_base.debug("Row 0: %6.2f  %6.2f  %6.2f  %6.2f", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
     logger_base.debug("Row 1: %6.2f  %6.2f  %6.2f  %6.2f", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
     logger_base.debug("Row 2: %6.2f  %6.2f  %6.2f  %6.2f", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
@@ -264,7 +265,6 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
             va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u1), tip + AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u1), a2c);
             va.AddVertex(pos.x + AXIS_RADIUS * cos(2.0 * M_PI*u2), tip + AXIS_HEAD_LENGTH, pos.z + AXIS_RADIUS * sin(2.0 * M_PI*u2), a2c);
         }
-
         va.Finish(GL_TRIANGLES);
     }
 
@@ -487,6 +487,56 @@ bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direct
             return true;
         }
     return false;
+}
+
+void ModelScreenLocation::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va) const
+{
+    glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c3(max_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c4(min_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c5(min_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c6(max_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c7(max_pt.x, min_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c8(min_pt.x, min_pt.y, max_pt.z, 1.0f);
+
+    c1 = bound_matrix * c1;
+    c2 = bound_matrix * c2;
+    c3 = bound_matrix * c3;
+    c4 = bound_matrix * c4;
+    c5 = bound_matrix * c5;
+    c6 = bound_matrix * c6;
+    c7 = bound_matrix * c7;
+    c8 = bound_matrix * c8;
+
+    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
@@ -1602,20 +1652,18 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     int hw = RECT_HANDLE_WIDTH;
 
     int num_handles = mHandlePosition.size()-1; // 2D doesn't use center handle
-    glm::vec3 aabb_min[3];
-    glm::vec3 aabb_max[3];
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 matrix2D = flipy * flipx;
 
     for (size_t h = 0; h < num_handles; h++) {
-        aabb_min[h].x = mHandlePosition[h + 1].x - hw;
-        aabb_min[h].y = mHandlePosition[h + 1].y - hw;
-        aabb_min[h].z = 0.0f;
-        aabb_max[h].x = mHandlePosition[h + 1].x + hw;
-        aabb_max[h].y = mHandlePosition[h + 1].y + hw;
-        aabb_max[h].z = 0.0f;
+        handle_aabb_min[h].x = mHandlePosition[h + 1].x - hw;
+        handle_aabb_min[h].y = mHandlePosition[h + 1].y - hw;
+        handle_aabb_min[h].z = 0.0f;
+        handle_aabb_max[h].x = mHandlePosition[h + 1].x + hw;
+        handle_aabb_max[h].y = mHandlePosition[h + 1].y + hw;
+        handle_aabb_max[h].z = 0.0f;
     }
 
     // Test each each Oriented Bounding Box (OBB).
@@ -1626,8 +1674,8 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
         if (VectorMath::TestRayOBBIntersection(
             ray_origin,
             ray_direction,
-            aabb_min[i],
-            aabb_max[i],
+            handle_aabb_min[i],
+            handle_aabb_max[i],
             matrix2D,
             intersection_distance)
             ) {
@@ -1679,7 +1727,7 @@ void TwoPointScreenLocation::AdvanceAxisTool()
 void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.PreAlloc(10);
 
-    if (active_handle != -1) {
+    if (active_handle != NO_HANDLE) {
         xlColor h1c = xlBLUE;
         xlColor h2c = xlBLUE;
         xlColor h3c = xlORANGE;
@@ -1765,55 +1813,9 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
             }
         }
     }
-
-    // the bounding box is so close to a single line don't draw it once it's selected
-    if (active_handle == -1) {
-        glm::vec4 c1(aabb_min.x, aabb_max.y, aabb_min.z, 1.0f);
-        glm::vec4 c2(aabb_max.x, aabb_max.y, aabb_min.z, 1.0f);
-        glm::vec4 c3(aabb_max.x, aabb_min.y, aabb_min.z, 1.0f);
-        glm::vec4 c4(aabb_min.x, aabb_min.y, aabb_min.z, 1.0f);
-        glm::vec4 c5(aabb_min.x, aabb_max.y, aabb_max.z, 1.0f);
-        glm::vec4 c6(aabb_max.x, aabb_max.y, aabb_max.z, 1.0f);
-        glm::vec4 c7(aabb_max.x, aabb_min.y, aabb_max.z, 1.0f);
-        glm::vec4 c8(aabb_min.x, aabb_min.y, aabb_max.z, 1.0f);
-
-        c1 = ModelMatrix * c1;
-        c2 = ModelMatrix * c2;
-        c3 = ModelMatrix * c3;
-        c4 = ModelMatrix * c4;
-        c5 = ModelMatrix * c5;
-        c6 = ModelMatrix * c6;
-        c7 = ModelMatrix * c7;
-        c8 = ModelMatrix * c8;
-
-        LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-        va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-        va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-        va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-        va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-        va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-        va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-        va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-        va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-
-        va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-        va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-        va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-        va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-        va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-        va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-        va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-        va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-
-        va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-        va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-        va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-        va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-        va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-        va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-        va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-        va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-        va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+    else {
+        // the bounding box is so close to a single line don't draw it once it's selected
+        DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
     }
 }
 
@@ -2267,7 +2269,6 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
-    glm::vec3 a = point2 - origin;
     aabb_min = glm::vec3(0.0f);
     aabb_max = glm::vec3(RenderWi, 0.0f, 0.0f);
 
@@ -2603,9 +2604,6 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     }
     glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
     TranslateMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
-   
-    //glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), -center);
-    //glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), center);
     matrix = TranslateMatrix * rotationMatrix * RotateX * shearMatrix * scalingMatrix;
 
     if (allow_selected) {
@@ -3013,6 +3011,13 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
         aabb_max = glm::vec3(0.0f, 0.0f, 0.0f);
 
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
+        glm::mat4 scalingMatrix;
+        if (modelHandlesHeight) {
+            scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
+        }
+        else {
+            scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley * height, scalez));
+        }
 
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
@@ -3021,7 +3026,7 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
                 float sy = coord->screenY;
                 float sz = coord->screenZ;
 
-                glm::vec3 shear_point = glm::vec3(shearMatrix * glm::vec4(glm::vec3(sx, sy, sz), 1.0f));
+                glm::vec3 shear_point = glm::vec3(shearMatrix * scalingMatrix * glm::vec4(glm::vec3(sx, sy, sz), 1.0f));
                 sx = shear_point.x;
                 sy = shear_point.y;
                 sz = shear_point.z;
@@ -3047,13 +3052,6 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
                 }
             }
         }
-        // scale the bounding box for selection logic
-        aabb_min.x = aabb_min.x * scalex;
-        aabb_min.y = aabb_min.y * scaley * height;
-        aabb_min.z = aabb_min.z * scalez;
-        aabb_max.x = aabb_max.x * scalex;
-        aabb_max.y = aabb_max.y * scaley * height;
-        aabb_max.z = aabb_max.z * scalez;
 
         // Set minimum bounding rectangle
         if (aabb_max.y - aabb_min.y < 4) {
@@ -3102,16 +3100,22 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[0].y = 0.0f;
     mPos[0].z = 0.0f;
     mPos[0].matrix = nullptr;
+    mPos[0].mod_matrix = nullptr;
+    mPos[0].mod2D_matrix = nullptr;
     mPos[0].curve = nullptr;
     mPos[0].has_curve = false;
     mPos[1].x = 0.0f;
     mPos[1].y = 0.0f;
     mPos[1].z = 0.0f;
     mPos[1].matrix = nullptr;
+    mPos[1].mod_matrix = nullptr;
+    mPos[1].mod2D_matrix = nullptr;
     mPos[1].curve = nullptr;
     mPos[1].has_curve = false;
     handle_aabb_max.resize(3);
     handle_aabb_min.resize(3);
+    seg_aabb_min.resize(1);
+    seg_aabb_max.resize(1);
     mSelectableHandles = 3;
 }
 
@@ -3119,6 +3123,12 @@ PolyPointScreenLocation::~PolyPointScreenLocation() {
     for( int i = 0; i < mPos.size(); ++i ) {
         if (mPos[i].matrix != nullptr) {
             delete mPos[i].matrix;
+        }
+        if (mPos[i].mod_matrix != nullptr) {
+            delete mPos[i].mod_matrix;
+        }
+        if (mPos[i].mod2D_matrix != nullptr) {
+            delete mPos[i].mod2D_matrix;
         }
         if (mPos[i].curve != nullptr) {
             delete mPos[i].curve;
@@ -3182,6 +3192,8 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     mSelectableHandles = num_points + 1;
     handle_aabb_min.resize(mSelectableHandles);
     handle_aabb_max.resize(mSelectableHandles);
+    seg_aabb_min.resize(num_points - 1);
+    seg_aabb_max.resize(num_points - 1);
     wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
     int num_curves = cpoint_array.size() / 7;
@@ -3245,6 +3257,7 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
 }
 
 void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
+    std::unique_lock<std::mutex> locker(_mutex);
     minX = 100000.0;
     minY = 100000.0;
     minZ = 100000.0;
@@ -3285,7 +3298,7 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
         glm::vec3 a = pt2 - pt1;
         float scale = glm::length(a) / RenderWi;
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
 
@@ -3293,6 +3306,21 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
             delete mPos[i].matrix;
         }
         mPos[i].matrix = new glm::mat4(mat);
+
+        if (allow_selected) {
+            glm::mat4 mod_mat = translateMatrix * rotationMatrix;
+            if (mPos[i].mod_matrix != nullptr) {
+                delete mPos[i].mod_matrix;
+            }
+            mPos[i].mod_matrix = new glm::mat4(mod_mat);
+            glm::mat4 translateMatrix2D = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, 0.0f));
+            glm::mat4 mod2D_mat = translateMatrix2D * rotationMatrix;
+            if (mPos[i].mod2D_matrix != nullptr) {
+                delete mPos[i].mod2D_matrix;
+            }
+            mPos[i].mod2D_matrix = new glm::mat4(mod2D_mat);
+            mPos[i].seg_scale = scale;
+        }
 
         // update curve points
         if( mPos[i].has_curve ) {
@@ -3343,59 +3371,88 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
 
 bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
 
-    for( int i = 0; i < num_points-1; ++i ) {
-        if( mPos[i].has_curve ) {
-            if( mPos[i].curve->HitTest(ray_origin.x, ray_origin.y) ) {
-                selected_segment = i;
-                return true;
-            }
-        } else {
-            //invert the matrix, get into render space
-            glm::mat4 m = glm::inverse(*mPos[i].matrix);
-            glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin.x, ray_origin.y, 1, 1));
+    float distance = 1000000000.0f;
+    float intersection_distance = 1000000000.0f;
+    bool ret_value = false;
 
+    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    
+    // FIXME: Speed up by having initial check for overall boundaries
+
+    selected_segment = -1;
+    for (int i = 0; i < num_points - 1; ++i) {
+        if (mPos[i].has_curve) {
+            /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
+            selected_segment = i;
+            return true;
+            }*/
+        }
+        else {
+            glm::mat4 matrix2d = *mPos[i].mod2D_matrix * flipy * flipx;
             // perform normal line segment hit detection
-            
-            float sx1 = (mPos[i].x + mPos[i+1].x) * scalex / 2.0f + worldPos_x;
-            float sy1 = (mPos[i].y + mPos[i+1].y) * scaley / 2.0f + worldPos_y;
-
-            glm::vec3 v2 = glm::vec3(m * glm::vec4(sx1 + 3, sy1 + 3, 1, 1));
-            glm::vec3 v3 = glm::vec3(m * glm::vec4(sx1 + 3, sy1 - 3, 1, 1));
-            glm::vec3 v4 = glm::vec3(m * glm::vec4(sx1 - 3, sy1 + 3, 1, 1));
-            glm::vec3 v5 = glm::vec3(m * glm::vec4(sx1 - 3, sy1 - 3, 1, 1));
-            float max_y = std::max(std::max(v2.y, v3.y), std::max(v4.y, v5.y));
-            float min_y = std::min(std::min(v2.y, v3.y), std::min(v4.y, v5.y));
-
-            if (v.x >= 0.0 && v.x <= 1.0 && v.y >= min_y && v.y <= max_y) {
-                selected_segment = i;
-                return true;
+            if (VectorMath::TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                seg_aabb_min[i],
+                seg_aabb_max[i],
+                matrix2d,
+                distance)
+                ) {
+                if (distance < intersection_distance) {
+                    intersection_distance = distance;
+                    selected_segment = i;
+                }
+                ret_value = true;
             }
         }
     }
-    selected_segment = -1;
+
 
     // check if inside boundary handles
     float sx1 = (ray_origin.x - worldPos_x) / scalex;
     float sy1 = (ray_origin.y - worldPos_y) / scaley;
     if( sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY ) {
-        return true;
+        ret_value = true;
     }
-    return false;
+    return ret_value;
 }
 
 bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const
 {
-    if (VectorMath::TestRayOBBIntersection(
-        ray_origin,
-        ray_direction,
-        aabb_min,
-        aabb_max,
-        ModelMatrix,
-        intersection_distance)
-        ) {
-        return true;
+    float distance = 1000000000.0f;
+    bool ret_value = false;
+
+    // FIXME: Speed up by having initial check for overall boundaries
+
+    selected_segment = -1;
+    for (int i = 0; i < num_points - 1; ++i) {
+        if (mPos[i].has_curve) {
+           /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
+                selected_segment = i;
+                return true;
+            }*/
+        }
+        else {
+            // perform normal line segment hit detection
+            if (VectorMath::TestRayOBBIntersection(
+                ray_origin,
+                ray_direction,
+                seg_aabb_min[i],
+                seg_aabb_max[i],
+                *mPos[i].mod_matrix,
+                distance)
+                ) {
+                if (distance < intersection_distance) {
+                    intersection_distance = distance;
+                    selected_segment = i;
+                }
+                ret_value = true;
+            }
+        }
     }
-    return false;
+
+    return ret_value;
 }
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
@@ -3483,6 +3540,40 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
             }
         }
     }
+
+    // test for clicking a new segment
+    if (handle == NO_HANDLE) {
+        float distance = 1000000000.0f;
+        float intersection_distance = 1000000000.0f;
+        // FIXME: Speed up by having initial check for overall boundaries
+
+        for (int i = 0; i < num_points - 1; ++i) {
+            if (mPos[i].has_curve) {
+                /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
+                selected_segment = i;
+                return true;
+                }*/
+            }
+            else {
+                // perform normal line segment hit detection
+                if (VectorMath::TestRayOBBIntersection(
+                    ray_origin,
+                    ray_direction,
+                    seg_aabb_min[i],
+                    seg_aabb_max[i],
+                    *mPos[i].mod_matrix,
+                    distance)
+                    ) {
+                    if (distance < intersection_distance) {
+                        intersection_distance = distance;
+                        handle = i | 0x10000;
+                    }
+                }
+            }
+        }
+
+    }
+
     return return_value;
 }
 
@@ -3514,16 +3605,16 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
             v.x = mPos[selected_segment].cp0.x * scalex + worldPos_x;
             v.y = mPos[selected_segment].cp0.y * scaley + worldPos_y;
             v.z = mPos[selected_segment].cp0.z * scalez + worldPos_z;
-            if (ray_origin.x>v.x && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>v.y && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
+            if (ray_origin.x>v.x - RECT_HANDLE_WIDTH && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
+                ray_origin.y>v.y - RECT_HANDLE_WIDTH && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
                 handle = 0x4000 | selected_segment;
                 return wxCURSOR_SIZING;
             }
             v.x = mPos[selected_segment].cp1.x * scalex + worldPos_x;
             v.y = mPos[selected_segment].cp1.y * scaley + worldPos_y;
             v.z = mPos[selected_segment].cp1.z * scalez + worldPos_z;
-            if (ray_origin.x>v.x && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>v.y && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
+            if (ray_origin.x>v.x - RECT_HANDLE_WIDTH && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
+                ray_origin.y>v.y - RECT_HANDLE_WIDTH && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
                 handle = 0x8000 | selected_segment;
                 return wxCURSOR_SIZING;
             }
@@ -3574,180 +3665,195 @@ void PolyPointScreenLocation::SetActiveAxis(int axis)
 }
 
 void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
-    va.PreAlloc(10 * num_points + 12);
+    std::unique_lock<std::mutex> locker(_mutex);
 
-    xlColor h1c, h2c, h3c;
-    if (_locked)
-    {
-        h1c = xlRED;
-        h2c = xlRED;
-        h3c = xlRED;
-    }
-    else {
-        h1c = (highlighted_handle == START_HANDLE) ? xlYELLOW : xlGREEN;
-        h2c = xlBLUE;
-        h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOW : xlORANGE;
-    }
-
-    // add center handle
-    float cx = (maxX+minX) * scalex / 2.0f + worldPos_x;
-    float cy = (maxY+minY) * scaley / 2.0f + worldPos_y;
-    float cz = (maxZ+minZ) * scalez / 2.0f + worldPos_z;
-    DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h3c, va);
-    mHandlePosition[CENTER_HANDLE].x = cx;
-    mHandlePosition[CENTER_HANDLE].y = cy;
-    mHandlePosition[CENTER_HANDLE].z = cz;
-    handle_aabb_min[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f - RECT_HANDLE_WIDTH;
-    handle_aabb_min[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f - RECT_HANDLE_WIDTH;
-    handle_aabb_min[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f - RECT_HANDLE_WIDTH;
-    handle_aabb_max[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f + RECT_HANDLE_WIDTH;
-    handle_aabb_max[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f + RECT_HANDLE_WIDTH;
-    handle_aabb_max[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f + RECT_HANDLE_WIDTH;
-
-    for (int i = 0; i < num_points - 1; ++i) {
-        int x1_pos = mPos[i].x * scalex + worldPos_x;
-        int x2_pos = mPos[i+1].x * scalex + worldPos_x;
-        int y1_pos = mPos[i].y * scaley + worldPos_y;
-        int y2_pos = mPos[i+1].y * scaley + worldPos_y;
-        int z1_pos = mPos[i].z * scalez + worldPos_z;
-        int z2_pos = mPos[i+1].z * scalez + worldPos_z;
-
-        if (i == selected_segment) {
-            va.Finish(GL_TRIANGLES);
-            if (!mPos[i].has_curve) {
-                va.AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                va.AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-            }
-            else {
-                // draw bezier curve
-                x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
-                for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
-                    x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
-                    va.AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                    va.AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-                    x1_pos = x2_pos;
-                    y1_pos = y2_pos;
-                    z1_pos = z2_pos;
-                }
-                // draw control lines
-                x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
-                va.AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                va.AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-                x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
-                va.AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                va.AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-            }
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+    if (active_handle != NO_HANDLE) {
+        va.PreAlloc(10 * num_points + 12);
+        xlColor h1c, h2c, h3c;
+        if (_locked)
+        {
+            h1c = xlRED;
+            h2c = xlRED;
+            h3c = xlRED;
+        }
+        else {
+            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOW : xlGREEN;
+            h2c = xlBLUE;
+            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOW : xlORANGE;
         }
 
-        // add handle for start of this vector
-        float sx = mPos[i].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-        float sy = mPos[i].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-        float sz = mPos[i].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-        int hpos = i + 1;
-        DrawGLUtils::DrawSphere(sx, sy, sz, RECT_HANDLE_WIDTH, i == 0 ? h1c : (hpos == highlighted_handle ? xlYELLOW: h2c), va);
-        mHandlePosition[hpos].x = sx;
-        mHandlePosition[hpos].y = sy;
-        mHandlePosition[hpos].z = sz;
-        handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - RECT_HANDLE_WIDTH;
-        handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - RECT_HANDLE_WIDTH;
-        handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - RECT_HANDLE_WIDTH;
-        handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + RECT_HANDLE_WIDTH;
-        handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + RECT_HANDLE_WIDTH;
-        handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + RECT_HANDLE_WIDTH;
+        // add center handle
+        float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
+        float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
+        float cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
+        DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h3c, va);
+        mHandlePosition[CENTER_HANDLE].x = cx;
+        mHandlePosition[CENTER_HANDLE].y = cy;
+        mHandlePosition[CENTER_HANDLE].z = cz;
+        handle_aabb_min[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f - RECT_HANDLE_WIDTH;
+        handle_aabb_min[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f - RECT_HANDLE_WIDTH;
+        handle_aabb_min[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f - RECT_HANDLE_WIDTH;
+        handle_aabb_max[CENTER_HANDLE].x = (maxX - minX)*scalex / 2.0f + RECT_HANDLE_WIDTH;
+        handle_aabb_max[CENTER_HANDLE].y = (maxY - minY)*scaley / 2.0f + RECT_HANDLE_WIDTH;
+        handle_aabb_max[CENTER_HANDLE].z = (maxZ - minZ)*scalez / 2.0f + RECT_HANDLE_WIDTH;
 
-        // add final handle
-        if (i == num_points - 2) {
-            hpos++;
-            sx = mPos[i+1].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-            sy = mPos[i+1].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-            sz = mPos[i+1].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            DrawGLUtils::DrawSphere(sx, sy, sz, RECT_HANDLE_WIDTH, (hpos == highlighted_handle ? xlYELLOW : h2c), va);
+        for (int i = 0; i < num_points - 1; ++i) {
+            int x1_pos = mPos[i].x * scalex + worldPos_x;
+            int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
+            int y1_pos = mPos[i].y * scaley + worldPos_y;
+            int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
+            int z1_pos = mPos[i].z * scalez + worldPos_z;
+            int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
+
+            if (i == selected_segment) {
+                va.Finish(GL_TRIANGLES);
+                if (!mPos[i].has_curve) {
+                    va.AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                    va.AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+                }
+                else {
+                    // draw bezier curve
+                    x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
+                    y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
+                    z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
+                    for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
+                        x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
+                        y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
+                        z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
+                        va.AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                        va.AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+                        x1_pos = x2_pos;
+                        y1_pos = y2_pos;
+                        z1_pos = z2_pos;
+                    }
+                    // draw control lines
+                    x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
+                    y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
+                    z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
+                    x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
+                    y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
+                    z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
+                    va.AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
+                    va.AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
+                    x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
+                    y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
+                    z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
+                    x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
+                    y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
+                    z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
+                    va.AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
+                    va.AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
+                }
+                va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+            }
+
+            // add handle for start of this vector
+            float sx = mPos[i].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+            float sy = mPos[i].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+            float sz = mPos[i].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+            int hpos = i + 1;
+            DrawGLUtils::DrawSphere(sx, sy, sz, RECT_HANDLE_WIDTH, i == 0 ? h1c : (hpos == highlighted_handle ? xlYELLOW : h2c), va);
             mHandlePosition[hpos].x = sx;
             mHandlePosition[hpos].y = sy;
             mHandlePosition[hpos].z = sz;
-            handle_aabb_min[hpos].x = (mPos[i+1].x - minX)*scalex - RECT_HANDLE_WIDTH;
-            handle_aabb_min[hpos].y = (mPos[i+1].y - minY)*scaley - RECT_HANDLE_WIDTH;
-            handle_aabb_min[hpos].z = (mPos[i+1].z - minZ)*scalez - RECT_HANDLE_WIDTH;
-            handle_aabb_max[hpos].x = (mPos[i+1].x - minX)*scalex + RECT_HANDLE_WIDTH;
-            handle_aabb_max[hpos].y = (mPos[i+1].y - minY)*scaley + RECT_HANDLE_WIDTH;
-            handle_aabb_max[hpos].z = (mPos[i+1].z - minZ)*scalez + RECT_HANDLE_WIDTH;
-        }
-    }
- 
-    glm::vec3 cp_handle_pos[2];
-    if (selected_segment != -1) {
-        // add control point handles for selected segments
-        int i = selected_segment;
-        if (mPos[i].has_curve) {
-            float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-            float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-            float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            h2c = highlighted_handle & 0x4000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
-            mPos[i].cp0.x = mPos[i].curve->get_cp0x();
-            mPos[i].cp0.y = mPos[i].curve->get_cp0y();
-            mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-            cp_handle_pos[0].x = cx;
-            cp_handle_pos[0].y = cy;
-            cp_handle_pos[0].z = cz;
-            cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-            cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-            cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            h2c = highlighted_handle & 0x8000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-            DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
-            mPos[i].cp1.x = mPos[i].curve->get_cp1x();
-            mPos[i].cp1.y = mPos[i].curve->get_cp1y();
-            mPos[i].cp1.z = mPos[i].curve->get_cp1z();
-            cp_handle_pos[1].x = cx;
-            cp_handle_pos[1].y = cy;
-            cp_handle_pos[1].z = cz;
-        }
-    }
+            handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - RECT_HANDLE_WIDTH;
+            handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - RECT_HANDLE_WIDTH;
+            handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + RECT_HANDLE_WIDTH;
 
-    if (!_locked && (active_handle != -1)) {
-        if ((active_handle & 0x4000) > 0) {
-            active_handle_pos = cp_handle_pos[0];
-        }
-        else if ((active_handle & 0x8000) > 0) {
-            active_handle_pos = cp_handle_pos[1];
-        }
-        else {
-            active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
-        }
-        DrawAxisTool(active_handle_pos, va);
-        if (active_axis != -1) {
-            LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-            switch (active_axis)
-            {
-            case X_AXIS:
-                va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                break;
-            case Y_AXIS:
-                va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
-                break;
-            case Z_AXIS:
-                va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
-                va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
-                break;
+            // add final handle
+            if (i == num_points - 2) {
+                hpos++;
+                sx = mPos[i + 1].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+                sy = mPos[i + 1].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+                sz = mPos[i + 1].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+                DrawGLUtils::DrawSphere(sx, sy, sz, RECT_HANDLE_WIDTH, (hpos == highlighted_handle ? xlYELLOW : h2c), va);
+                mHandlePosition[hpos].x = sx;
+                mHandlePosition[hpos].y = sy;
+                mHandlePosition[hpos].z = sz;
+                handle_aabb_min[hpos].x = (mPos[i + 1].x - minX)*scalex - RECT_HANDLE_WIDTH;
+                handle_aabb_min[hpos].y = (mPos[i + 1].y - minY)*scaley - RECT_HANDLE_WIDTH;
+                handle_aabb_min[hpos].z = (mPos[i + 1].z - minZ)*scalez - RECT_HANDLE_WIDTH;
+                handle_aabb_max[hpos].x = (mPos[i + 1].x - minX)*scalex + RECT_HANDLE_WIDTH;
+                handle_aabb_max[hpos].y = (mPos[i + 1].y - minY)*scaley + RECT_HANDLE_WIDTH;
+                handle_aabb_max[hpos].z = (mPos[i + 1].z - minZ)*scalez + RECT_HANDLE_WIDTH;
             }
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+        }
+
+        glm::vec3 cp_handle_pos[2];
+        if (selected_segment != -1) {
+            // add control point handles for selected segments
+            int i = selected_segment;
+            if (mPos[i].has_curve) {
+                float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+                float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+                float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+                h2c = highlighted_handle & 0x4000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
+                DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+                mPos[i].cp0.x = mPos[i].curve->get_cp0x();
+                mPos[i].cp0.y = mPos[i].curve->get_cp0y();
+                mPos[i].cp0.z = mPos[i].curve->get_cp0z();
+                cp_handle_pos[0].x = cx;
+                cp_handle_pos[0].y = cy;
+                cp_handle_pos[0].z = cz;
+                cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+                cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+                cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+                h2c = highlighted_handle & 0x8000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
+                DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+                mPos[i].cp1.x = mPos[i].curve->get_cp1x();
+                mPos[i].cp1.y = mPos[i].curve->get_cp1y();
+                mPos[i].cp1.z = mPos[i].curve->get_cp1z();
+                cp_handle_pos[1].x = cx;
+                cp_handle_pos[1].y = cy;
+                cp_handle_pos[1].z = cz;
+            }
+        }
+
+        if (!_locked) {
+            if ((active_handle & 0x4000) > 0) {
+                active_handle_pos = cp_handle_pos[0];
+            }
+            else if ((active_handle & 0x8000) > 0) {
+                active_handle_pos = cp_handle_pos[1];
+            }
+            else {
+                active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
+            }
+            DrawAxisTool(active_handle_pos, va);
+            if (active_axis != -1) {
+                LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+                if (axis_tool == TOOL_XY_TRANS) {
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                }
+                switch (active_axis)
+                {
+                case X_AXIS:
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    break;
+                case Y_AXIS:
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                    break;
+                case Z_AXIS:
+                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
+                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
+                    break;
+                }
+                va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+            }
+        }
+    }
+    else {
+        // draw bounding box for each segment if model is highlighted
+        for (int i = 0; i < num_points - 1; ++i) {
+            DrawBoundingBox(seg_aabb_min[i], seg_aabb_max[i], *mPos[i].mod_matrix, va);
         }
     }
 
@@ -3755,6 +3861,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
 }
 
 void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
+    std::unique_lock<std::mutex> locker(_mutex);
     va.PreAlloc(10*num_points+12);
 
     // add boundary handles
@@ -4172,6 +4279,7 @@ void PolyPointScreenLocation::SelectSegment(int segment) {
 }
 
 void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int mouseY) {
+    std::unique_lock<std::mutex> locker(_mutex);
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -4203,8 +4311,11 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     }
 
     new_point.matrix = nullptr;
+    new_point.mod_matrix = nullptr;
+    new_point.mod2D_matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
+    new_point.seg_scale = 1.0f;
     mPos.push_back(new_point);
     xlPoint new_handle;
     float sx = new_point.x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
@@ -4218,6 +4329,8 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     mSelectableHandles++;
     handle_aabb_max.resize(num_points+1);
     handle_aabb_min.resize(num_points+1);
+    seg_aabb_min.resize(num_points - 1);
+    seg_aabb_max.resize(num_points - 1);
 
     handle_aabb_min[num_points].x = sx - RECT_HANDLE_WIDTH;
     handle_aabb_min[num_points].y = sy - RECT_HANDLE_WIDTH;
@@ -4228,6 +4341,8 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
 }
 
 void PolyPointScreenLocation::InsertHandle(int after_handle) {
+    std::unique_lock<std::mutex> locker(_mutex);
+
     int pos = after_handle;
     float x1_pos = mPos[pos].x;
     float x2_pos = mPos[pos+1].x;
@@ -4240,6 +4355,8 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
     new_point.y = (y1_pos+y2_pos)/2.0;
     new_point.z = (z1_pos+z2_pos)/2.0;
     new_point.matrix = nullptr;
+    new_point.mod_matrix = nullptr;
+    new_point.mod2D_matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
     mPos.insert(mPos.begin() + pos + 1, new_point);
@@ -4254,6 +4371,18 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
     num_points++;
     selected_handle = after_handle+1;
     selected_segment = -1;
+    mSelectableHandles++;
+    handle_aabb_max.resize(num_points + 1);
+    handle_aabb_min.resize(num_points + 1);
+    seg_aabb_min.resize(num_points - 1);
+    seg_aabb_max.resize(num_points - 1);
+
+    handle_aabb_min[num_points].x = sx - RECT_HANDLE_WIDTH;
+    handle_aabb_min[num_points].y = sy - RECT_HANDLE_WIDTH;
+    handle_aabb_min[num_points].z = sz - RECT_HANDLE_WIDTH;
+    handle_aabb_max[num_points].x = sx + RECT_HANDLE_WIDTH;
+    handle_aabb_max[num_points].y = sy + RECT_HANDLE_WIDTH;
+    handle_aabb_max[num_points].z = sz + RECT_HANDLE_WIDTH;
 }
 
 void PolyPointScreenLocation::DeleteHandle(int handle) {
@@ -4392,6 +4521,27 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
 
 void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
+    for (int i = 0; i < num_points - 1; ++i) {
+        if (mPos[i].has_curve) {
+            /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
+            selected_segment = i;
+            return true;
+            }*/
+        }
+        else {
+            // create normal line segment bounding boxes
+            seg_aabb_min[i] = glm::vec3(0.0f);
+            seg_aabb_max[i] = glm::vec3(RenderWi, 0.0f, 0.0f);
+
+            // scale the bounding box for selection logic
+            seg_aabb_min[i].x = seg_aabb_min[i].x * mPos[i].seg_scale - BB_OFF;
+            seg_aabb_min[i].y = seg_aabb_min[i].y - BB_OFF;
+            seg_aabb_min[i].z = seg_aabb_min[i].z - BB_OFF;
+            seg_aabb_max[i].x = seg_aabb_max[i].x * mPos[i].seg_scale + BB_OFF;
+            seg_aabb_max[i].y = seg_aabb_max[i].y + BB_OFF;
+            seg_aabb_max[i].z = seg_aabb_max[i].z + BB_OFF;
+        }
+    }
 }
 
 void PolyPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
