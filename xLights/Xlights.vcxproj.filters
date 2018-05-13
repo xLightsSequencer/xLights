@@ -344,6 +344,7 @@
     <ClCompile Include="VideoRenderCacher.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
+    <ClCompile Include="WarpPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -683,6 +684,7 @@
     <ClInclude Include="VideoRenderCacher.h" />
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="OpenGLShaders.h" />
+    <ClInclude Include="WarpPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

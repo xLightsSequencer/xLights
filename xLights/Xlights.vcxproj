@@ -506,6 +506,7 @@
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
+    <ClCompile Include="WarpPanel.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
@@ -843,6 +844,7 @@
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
+    <ClInclude Include="WarpPanel.h" />
     <ClInclude Include="wininet.h" />
     <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
