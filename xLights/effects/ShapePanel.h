@@ -63,6 +63,7 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_LifetimeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
+		wxCheckBox* CheckBox_Shape_RandomInitial;
 		wxFontPickerCtrl* FontPickerCtrl_Font;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText176;
@@ -100,6 +101,7 @@ class ShapePanel: public wxPanel
 		static const long ID_SLIDER_Shape_StartSize;
 		static const long ID_VALUECURVE_Shape_StartSize;
 		static const long IDD_TEXTCTRL_Shape_StartSize;
+		static const long ID_CHECKBOX_Shape_RandomInitial;
 		static const long ID_STATICTEXT_Shape_Lifetime;
 		static const long ID_SLIDER_Shape_Lifetime;
 		static const long ID_VALUECURVE_Shape_Lifetime;
