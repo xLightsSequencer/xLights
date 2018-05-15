@@ -7,6 +7,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include "ModelScreenLocation.h"
+#include "Shapes.h"
 #include "../support/VectorMath.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"

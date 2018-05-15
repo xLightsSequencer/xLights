@@ -36,7 +36,6 @@ class wxCursor;
 #include <shared_mutex>
 #include <vector>
 #include "Node.h"
-#include "Shapes.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
 
@@ -44,6 +43,8 @@ namespace DrawGLUtils {
     class xlAccumulator;
     class xl3Accumulator;
 }
+
+class BezierCurveCubic3D;
 
 class ModelScreenLocation
 {
@@ -138,7 +139,6 @@ protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
     virtual wxCursor CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
-    void ModelScreenLocation::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va) const;
 
     mutable float worldPos_x;
     mutable float worldPos_y;

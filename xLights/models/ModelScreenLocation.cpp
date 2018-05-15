@@ -6,6 +6,7 @@
 
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
+#include "Shapes.h"
 #include "../support/VectorMath.h"
 #include <log4cpp/Category.hh>
 #include <glm/glm.hpp>
@@ -487,56 +488,6 @@ bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direct
             return true;
         }
     return false;
-}
-
-void ModelScreenLocation::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va) const
-{
-    glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c3(max_pt.x, min_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c4(min_pt.x, min_pt.y, min_pt.z, 1.0f);
-    glm::vec4 c5(min_pt.x, max_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c6(max_pt.x, max_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c7(max_pt.x, min_pt.y, max_pt.z, 1.0f);
-    glm::vec4 c8(min_pt.x, min_pt.y, max_pt.z, 1.0f);
-
-    c1 = bound_matrix * c1;
-    c2 = bound_matrix * c2;
-    c3 = bound_matrix * c3;
-    c4 = bound_matrix * c4;
-    c5 = bound_matrix * c5;
-    c6 = bound_matrix * c6;
-    c7 = bound_matrix * c7;
-    c8 = bound_matrix * c8;
-
-    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
@@ -2270,24 +2221,16 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
     aabb_min = glm::vec3(0.0f);
-    aabb_max = glm::vec3(RenderWi, 0.0f, 0.0f);
-
-    // scale the bounding box for selection logic
-    aabb_min.x = aabb_min.x * scalex;
-    aabb_min.y = aabb_min.y * scaley;
-    aabb_min.z = aabb_min.z * scalez;
-    aabb_max.x = aabb_max.x * scalex;
-    aabb_max.y = aabb_max.y * scaley;
-    aabb_max.z = aabb_max.z * scalez;
+    aabb_max = glm::vec3(RenderWi * scalex, 0.0f, 0.0f);
 
     // Set minimum bounding rectangle
-    if (aabb_max.y - aabb_min.y < 8) {
-        aabb_max.y += 10;
-        aabb_min.y -= 10;
-    }
     if (aabb_max.x - aabb_min.x < 8) {
         aabb_max.x += 10;
         aabb_min.x -= 10;
+    }
+    if (aabb_max.y - aabb_min.y < 8) {
+        aabb_max.y += 10;
+        aabb_min.y -= 10;
     }
     if (aabb_max.z - aabb_min.z < 8) {
         aabb_max.z += 10;
@@ -3273,6 +3216,12 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
         float z1p = mPos[i].z * scalez + worldPos_z;
         float z2p = mPos[i+1].z * scalez + worldPos_z;
 
+        if (!is_3d) {
+            // allows 2D selection to work
+            z1p = 0.0f;
+            z2p = 0.0f;
+        }
+
         if( mPos[i].x < minX ) minX = mPos[i].x;
         if (mPos[i].y < minY) minY = mPos[i].y;
         if (mPos[i].z < minZ) minZ = mPos[i].z;
@@ -3374,19 +3323,21 @@ bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dire
     float distance = 1000000000.0f;
     float intersection_distance = 1000000000.0f;
     bool ret_value = false;
+    selected_segment = -1;
 
     glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    
-    // FIXME: Speed up by having initial check for overall boundaries
 
-    selected_segment = -1;
+    // check if inside boundary handles
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve) {
-            /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
-            selected_segment = i;
-            return true;
-            }*/
+            if (mPos[i].curve->HitTest(ray_origin, ray_origin, distance)) {
+                if (distance < intersection_distance) {
+                    intersection_distance = distance;
+                    selected_segment = i;
+                }
+                ret_value = true;
+            }
         }
         else {
             glm::mat4 matrix2d = *mPos[i].mod2D_matrix * flipy * flipx;
@@ -3407,12 +3358,9 @@ bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dire
             }
         }
     }
-
-
-    // check if inside boundary handles
     float sx1 = (ray_origin.x - worldPos_x) / scalex;
     float sy1 = (ray_origin.y - worldPos_y) / scaley;
-    if( sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY ) {
+    if (sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY) {
         ret_value = true;
     }
     return ret_value;
@@ -3428,10 +3376,13 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     selected_segment = -1;
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve) {
-           /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
-                selected_segment = i;
-                return true;
-            }*/
+            if (mPos[i].curve->HitTest3D(ray_origin, ray_direction, distance)) {
+                if (distance < intersection_distance) {
+                    intersection_distance = distance;
+                    selected_segment = i;
+                }
+                ret_value = true;
+            }
         }
         else {
             // perform normal line segment hit detection
@@ -3853,7 +3804,12 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
     else {
         // draw bounding box for each segment if model is highlighted
         for (int i = 0; i < num_points - 1; ++i) {
-            DrawBoundingBox(seg_aabb_min[i], seg_aabb_max[i], *mPos[i].mod_matrix, va);
+            if (mPos[i].has_curve) {
+                mPos[i].curve->DrawBoundingBoxes(va);
+            }
+            else {
+                DrawGLUtils::DrawBoundingBox(seg_aabb_min[i], seg_aabb_max[i], *mPos[i].mod_matrix, va);
+            }
         }
     }
 
@@ -4523,23 +4479,12 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
 {
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve) {
-            /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
-            selected_segment = i;
-            return true;
-            }*/
+            mPos[i].curve->UpdateBoundingBox();
         }
         else {
             // create normal line segment bounding boxes
-            seg_aabb_min[i] = glm::vec3(0.0f);
-            seg_aabb_max[i] = glm::vec3(RenderWi, 0.0f, 0.0f);
-
-            // scale the bounding box for selection logic
-            seg_aabb_min[i].x = seg_aabb_min[i].x * mPos[i].seg_scale - BB_OFF;
-            seg_aabb_min[i].y = seg_aabb_min[i].y - BB_OFF;
-            seg_aabb_min[i].z = seg_aabb_min[i].z - BB_OFF;
-            seg_aabb_max[i].x = seg_aabb_max[i].x * mPos[i].seg_scale + BB_OFF;
-            seg_aabb_max[i].y = seg_aabb_max[i].y + BB_OFF;
-            seg_aabb_max[i].z = seg_aabb_max[i].z + BB_OFF;
+            seg_aabb_min[i] = glm::vec3(-BB_OFF, -BB_OFF, -BB_OFF);
+            seg_aabb_max[i] = glm::vec3(RenderWi * mPos[i].seg_scale, BB_OFF, BB_OFF);
         }
     }
 }

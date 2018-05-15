@@ -1582,3 +1582,53 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
 
     va.Finish(GL_TRIANGLES);
 }
+
+void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
+{
+    glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c3(max_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c4(min_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c5(min_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c6(max_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c7(max_pt.x, min_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c8(min_pt.x, min_pt.y, max_pt.z, 1.0f);
+
+    c1 = bound_matrix * c1;
+    c2 = bound_matrix * c2;
+    c3 = bound_matrix * c3;
+    c4 = bound_matrix * c4;
+    c5 = bound_matrix * c5;
+    c6 = bound_matrix * c6;
+    c7 = bound_matrix * c7;
+    c8 = bound_matrix * c8;
+
+    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+
+    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
+    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
+    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
+    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
+    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
+    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+}

@@ -9,6 +9,7 @@
 #include "wx/glcanvas.h"
 #include "Color.h"
 #include <glm/mat4x4.hpp>
+#include <glm/mat3x3.hpp>
 
 class xlGLCanvas;
 
@@ -626,7 +627,7 @@ namespace DrawGLUtils
 
     void DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
-
+    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
 }
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <glm/mat3x3.hpp>
+#include "../DrawGLUtils.h"
 
 class BezierCurve
 {
@@ -32,7 +33,7 @@ class BezierCurve
 
         void check_min_max( float &minX, float &maxX, float &minY, float &maxY );
 
-        bool HitTest(int sx,int sy);
+        bool HitTest(int sx, int sy);
 
         virtual void OffsetX(float diff);
         virtual void OffsetY(float diff);
@@ -104,13 +105,23 @@ public:
         float z;
         float length;
         glm::mat4 *matrix;
-        glm::mat4 *matrix2D;
-        xlPointf() : x(0.0f), y(0.0f), z(0.0f), length(0.0f), matrix(nullptr) {}
-        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f), matrix(nullptr), matrix2D(nullptr) {}
+        glm::mat4 *mod_matrix;
+        glm::mat4 *mod_matrix2D;
+        glm::vec3 aabb_min;
+        glm::vec3 aabb_max;
+        xlPointf() : x(0.0f), y(0.0f), z(0.0f), length(0.0f),
+            matrix(nullptr), mod_matrix(nullptr), mod_matrix2D(nullptr),
+            aabb_min(glm::vec3(0.0f)), aabb_max(glm::vec3(1.0f)) {}
+        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f),
+            matrix(nullptr), mod_matrix(nullptr), mod_matrix2D(nullptr),
+            aabb_min(glm::vec3(0.0f)), aabb_max(glm::vec3(1.0f)) {}
     };
 
     virtual void UpdatePoints() = 0;
     void UpdateMatrices();
+    void UpdateMatrices2D();
+    void UpdateBoundingBox();
+    void DrawBoundingBoxes(DrawGLUtils::xl3Accumulator &va);
     void CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
     float GetLength();
     float GetSegLength(int segment);
@@ -123,7 +134,8 @@ public:
 
     void check_min_max(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
 
-    bool HitTest(int sx, int sy);
+    bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance);
+    bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance);
 
     virtual void OffsetX(float diff);
     virtual void OffsetY(float diff);
@@ -154,6 +166,8 @@ protected:
     int steps;
     int num_points;
     bool matrix_valid;
+    bool matrix2D_valid;
+    float total_length;
     glm::vec3 scale;
     glm::vec3 world_pos;
 
