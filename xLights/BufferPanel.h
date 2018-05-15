@@ -39,6 +39,7 @@ public:
 
         wxString GetBufferString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
+        void UpdateBufferStyles(const Model* model);
         void ValidateWindow();
     
 		//(*Declarations(BufferPanel)

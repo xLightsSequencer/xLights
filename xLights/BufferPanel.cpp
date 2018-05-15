@@ -169,7 +169,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferStyleChoice = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_BufferStyle, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferStyle"));
 	BufferStyleChoice->SetSelection( BufferStyleChoice->Append(_("Default")) );
 	BufferStyleChoice->Append(_("Per Preview"));
-	BufferSizer->Add(BufferStyleChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BufferSizer->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 2);
 	BitmapButtonBufferStyle = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferStyle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
 	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -183,7 +183,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferTransform->Append(_("Rotate 180"));
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
-	BufferSizer->Add(BufferTransform, 1, wxALL, 2);
+	BufferSizer->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_BufferTransform = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
 	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_BufferTransform->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
@@ -704,6 +704,22 @@ wxString BufferPanel::GetBufferString() {
         }
     }
     return s;
+}
+
+void BufferPanel::UpdateBufferStyles(const Model* model)
+{
+    auto sel = BufferStyleChoice->GetStringSelection();
+    BufferStyleChoice->Clear();
+    if (model != nullptr) {
+        const std::vector<std::string> &types = model->GetBufferStyles();
+        for (auto it = types.begin(); it != types.end(); ++it) {
+            BufferStyleChoice->Append(*it);
+        }
+    }
+    if (BufferStyleChoice->IsEmpty()) {
+        BufferStyleChoice->Append("Default");
+    }
+    BufferStyleChoice->SetStringSelection(sel);
 }
 
 void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
