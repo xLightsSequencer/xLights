@@ -406,6 +406,7 @@
 		<Unit filename="DimmingCurve.h" />
 		<Unit filename="DimmingCurvePanel.cpp" />
 		<Unit filename="DimmingCurvePanel.h" />
+		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
 		<Unit filename="DrawGLUtils21.cpp" />
