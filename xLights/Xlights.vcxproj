@@ -198,6 +198,7 @@
     <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
@@ -540,6 +541,7 @@
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
+    <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />
