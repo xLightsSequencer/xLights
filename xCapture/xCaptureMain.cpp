@@ -820,7 +820,7 @@ void xCaptureFrame::CreateArtNETListener()
                 logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
                 mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
                 mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
-                if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+                if (!_artNETSocket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
                 {
                     logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
                 }
