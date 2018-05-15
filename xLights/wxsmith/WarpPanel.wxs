@@ -21,8 +21,8 @@
 					<object class="sizeritem">
 						<object class="wxComboBox" name="ID_CHOICE_Warp_Effect" variable="Choice_Warp_Effect" member="yes">
 							<content>
-								<item>radial blur</item>
 								<item>ripple</item>
+								<item>dissolve</item>
 							</content>
 							<style>wxCB_READONLY</style>
 						</object>

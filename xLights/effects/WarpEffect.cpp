@@ -7,8 +7,13 @@
 #include "../UtilClasses.h"
 #include "../xLightsMain.h" //xLightsFrame
 #include "../OpenGLShaders.h"
+#include "../DissolveTransitionPattern.h"
 
-#include "../../include/On.xpm"
+#include "../../include/warp-64.xpm"
+#include "../../include/warp-48.xpm"
+#include "../../include/warp-32.xpm"
+#include "../../include/warp-24.xpm"
+#include "../../include/warp-16.xpm"
 
 namespace
 {
@@ -87,57 +92,73 @@ namespace
       return cb.GetPixel( x, y );
    }
 
+   xlColor dissolveTex( double s, double t )
+   {
+      const unsigned char *data = DissolveTransitonPattern;
+      s = CLAMP( 0., s, 1. );
+      t = CLAMP( 0., t, 1. );
+
+      int x = int( s * (DissolvePatternWidth - 1 ) );
+      int y = int( t * (DissolvePatternHeight -1 ) );
+
+      const unsigned char *val = data + y * DissolvePatternWidth + x;
+      return xlColor( *val, *val, *val );
+   }
+
    xlColor rippleIn( const ColorBuffer& cb, double s, double t, double progress )
    {
       const Vec2D center( 0.5, 0.5 );
       const double frequency = 20;
       const double speed = 10;
-      const double amplitude = 0.05;
+      const double amplitude = /*0.05*/0.15;
 
       Vec2D toUV( s - center.x, t - center.y );
       double distanceFromCenter = toUV.Len();
       Vec2D normToUV = toUV / distanceFromCenter;
 
       double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
-      double offset2 = ( 1 - progress ) * wave * amplitude;
+      double offset = progress * wave * amplitude;
 
-      Vec2D newUV2 = center + normToUV * ( distanceFromCenter + offset2 );
+      Vec2D newUV2 = center + normToUV * ( distanceFromCenter + offset );
 
-      xlColor c1 = xlBLACK;
+      xlColor c1 = tex2D( cb, s, t );
+      xlColor c2 = tex2D( cb, newUV2.x, newUV2.y );
+
+      return lerp( c2, c1, progress );
+   }
+   xlColor rippleOut( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      const Vec2D center( 0.5, 0.5 );
+      const double frequency = 20;
+      const double speed = 10;
+      const double amplitude = /*0.05*/0.15;
+
+      Vec2D toUV( s - center.x, t - center.y );
+      double distanceFromCenter = toUV.Len();
+      Vec2D normToUV = toUV / distanceFromCenter;
+
+      double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
+      double offset = progress * wave * amplitude;
+
+      Vec2D newUV2 = center + normToUV * ( distanceFromCenter + offset );
+
+      xlColor c1 = tex2D( cb, s, t );
       xlColor c2 = tex2D( cb, newUV2.x, newUV2.y );
 
       return lerp( c1, c2, progress );
    }
 
-   xlColor radialBlurOut( const ColorBuffer& cb, double s, double t, double progress )
+   xlColor dissolveIn( const ColorBuffer& cb, double s, double t, double progress )
    {
-      const Vec2D center( 0.5, 0.5 );
-      Vec2D uv( s, t );
-      Vec2D toUV( uv - center );
-
-      double prog = progress * 0.10;
-      const int Count = 5;
-      double red = 0, green = 0, blue = 0, alpha = 0;
-      for ( int i = 0; i < Count; ++i )
-      {
-          Vec2D foo = uv - toUV * prog * i;
-          xlColor rgba = tex2D( cb, foo.x, foo.y );
-
-          red += rgba.red;
-          green += rgba.green;
-          blue += rgba.blue;
-          alpha += rgba.alpha;
-      }
-
-      const double Divisor = 255 * Count;
-      red /= Divisor;
-      green /= Divisor;
-      blue /= Divisor;
-      alpha /= Divisor;
-
-      xlColor c1 = xlColor  ( uint8_t( red*255 ), uint8_t( green*255 ), uint8_t( blue*255 ), uint8_t( alpha*255 ) );
-      xlColor c2 = xlBLACK;
-      return lerp( c1, c2, progress );
+      xlColor dissolveColor = dissolveTex( s, t );
+      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      return (dissolveColor.red <= byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
+   }
+   xlColor dissolveOut( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      xlColor dissolveColor = dissolveTex( s, t );
+      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
 
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, double progress );
@@ -159,7 +180,7 @@ namespace
    }
 }
 
-WarpEffect::WarpEffect(int i) : RenderableEffect(i, "Warp", On, On, On, On, On)
+WarpEffect::WarpEffect(int i) : RenderableEffect(i, "Warp", warp_16_xpm, warp_24_xpm, warp_32_xpm, warp_48_xpm, warp_64_xpm)
 {
 
 }
@@ -177,7 +198,7 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
 void WarpEffect::SetDefaultParameters(Model *cls)
 {
     WarpPanel *p = (WarpPanel *)panel;
-    p->Choice_Warp_Effect->SetValue( "radial blur" );
+    p->Choice_Warp_Effect->SetValue( "ripple" );
     p->Choice_Warp_Type->SetValue( "in" );
 }
 
@@ -199,7 +220,7 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 {
     SettingsMap &settingsMap = effect->GetSettings();
 
-    if ( settingsMap.Get( "CHOICE_Warp_Effect", "" )== "radial blur" )
+    if ( settingsMap.Get( "CHOICE_Warp_Effect", "" )== "ripple" )
       settingsMap.erase( "CHOICE_Warp_Effect" );
     if ( settingsMap.Get( "CHOICE_Warp_Type", "" )== "in" )
       settingsMap.erase( "CHOICE_Warp_Type" );
@@ -209,17 +230,14 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-    bool canUseShaders = OpenGLShaders::HasShaderSupport();
-    std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "radial blur" );
+    //bool canUseShaders = OpenGLShaders::HasShaderSupport();
+    std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "ripple" );
     std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "in");
 
-    // todo - act on "ripple" vs. "radial blur" and "in" vs. "out"
+    double adjust = buffer.GetEffectTimeIntervalPosition(1.f);
 
-    int ms = eff->GetStartTimeMS();
-    float cycles = /*SettingsMap.GetDouble(TEXTCTRL_On_Cycles, 1.0)*/1.f;
-    double adjust = buffer.GetEffectTimeIntervalPosition(cycles);
-    if ( ms )
-        RenderPixelTransform( radialBlurOut, adjust, buffer );
-    else
-        RenderPixelTransform( rippleIn, adjust, buffer );
+    if ( warpEffect == "ripple" )
+      RenderPixelTransform( warpType == "in" ? rippleIn : rippleOut, adjust, buffer );
+    else if ( warpEffect == "dissolve" )
+      RenderPixelTransform( warpType == "in" ? dissolveIn : dissolveOut, adjust, buffer );
 }
