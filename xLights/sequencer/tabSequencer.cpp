@@ -1173,12 +1173,12 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
 
 void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt());
+    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString() == "All");
 }
 
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt());
+    mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)

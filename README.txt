@@ -11,7 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version
+   -- enh (keith)  Add search to sequences/lyrics download
+   -- enh (keith)  Add CSV format to Glediator effect. Each line is a frame, each column is a channel.
+   -- bug (keith)  Fix image model does not work in a group correctly
+   -- enh (keith)  Add ability to syncronise shape effects
+   -- bug (keith)  Add fixes to keep available render buffers correct
 2018.13 May 12, 2018
    -- bug (scott)  Fix an issue with xml/fseq saving
    -- bug (keith)  Fix music download doesnt show artist tag

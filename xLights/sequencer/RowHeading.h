@@ -80,10 +80,13 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_CONVERT_TO_EFFECTS;
         static const long ID_ROW_MNU_PROMOTE_EFFECTS;
         static const long ID_ROW_MNU_COPY_ROW;
+        static const long ID_ROW_MNU_COPY_MODEL;
         static const long ID_ROW_MNU_PASTE_ROW;
+        static const long ID_ROW_MNU_PASTE_MODEL;
         static const long ID_ROW_MNU_DELETE_ROW_EFFECTS;
         static const long ID_ROW_MNU_DELETE_MODEL_EFFECTS;
         static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
+        static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_RENAME_TIMING_TRACK;

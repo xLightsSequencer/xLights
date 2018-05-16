@@ -39,10 +39,13 @@ const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
+const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
 
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
@@ -239,10 +242,6 @@ void RowHeading::rightClick( wxMouseEvent& event)
             }
             mnuLayer.AppendSeparator();
         }
-        mnuLayer.Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
-        mnuLayer.Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
-        mnuLayer.Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export Model");
-        mnuLayer.AppendSeparator();
         bool canPromote = false;
         ModelElement *me = dynamic_cast<ModelElement *>(element);
         if (element->GetType()==ELEMENT_TYPE_STRAND || element->GetType()==ELEMENT_TYPE_SUBMODEL) {
@@ -271,15 +270,28 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer.Append(ID_ROW_MNU_PROMOTE_EFFECTS, "Promote Node Effects");
         }
         mnuLayer.AppendSeparator();
-        mnuLayer.Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Row Effects");
-        mnuLayer.AppendSeparator();
-        mnuLayer.Append(ID_ROW_MNU_COPY_ROW,"Copy Row");
-        wxMenuItem* menu_paste = mnuLayer.Append(ID_ROW_MNU_PASTE_ROW,"Paste Row");
+
+        wxMenu* rowMenu = new wxMenu();
+        wxMenu* modelMenu = new wxMenu();
+        modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export");
+        modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export");
+        rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
+        modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
+        rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
+        modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
+        wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
+        wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
         if (!mCanPaste) {
             menu_paste->Enable(false);
+            menu_pastem->Enable(false);
         }
-        mnuLayer.Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Row Effects");
-        mnuLayer.Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Model Effects");
+        rowMenu->Append(ID_ROW_MNU_DELETE_ROW_EFFECTS, "Delete Effects");
+        modelMenu->Append(ID_ROW_MNU_DELETE_MODEL_EFFECTS, "Delete Effects");
+        mnuLayer.AppendSubMenu(modelMenu, "Model");
+        mnuLayer.AppendSubMenu(rowMenu, "Row");
+        rowMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+        modelMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
     }
     else
     {
@@ -663,6 +675,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_COPY_MODEL) {
+        wxCommandEvent copyRowEvent(EVT_COPY_MODEL_EFFECTS);
+        copyRowEvent.SetInt(mSelectedRow);
+        copyRowEvent.SetString("All");
+        wxPostEvent(GetParent(), copyRowEvent);
+        mCanPaste = true;
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
@@ -677,6 +695,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         {
             element->GetEffectLayer(layer_index)->SelectAllEffects();
         }
+    } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
+        for (int i = 0; i < element->GetEffectLayerCount(); i++)
+        {
+            element->GetEffectLayer(i)->SelectAllEffects();
+        }
     } else if (id == ID_ROW_MNU_DELETE_MODEL_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
@@ -690,6 +713,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         }
     } else if (id == ID_ROW_MNU_PASTE_ROW) {
         wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
+        pasteRowEvent.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), pasteRowEvent);
+    } else if (id == ID_ROW_MNU_PASTE_MODEL) {
+        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
+        pasteRowEvent.SetString("All");
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if(id==ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {

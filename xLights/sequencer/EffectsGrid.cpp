@@ -6103,37 +6103,61 @@ void EffectsGrid::StretchAllSelectedEffects(int deltaMS, bool offset) const
     }
 }
 
-void EffectsGrid::CopyModelEffects(int row_number)
+void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 {
-    mSequenceElements->UnSelectAllEffects();
-    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
-    Effect* effect = effectLayer->GetEffect(0);
-    if( effect != nullptr)
+    if (!allLayers)
     {
-        mDropStartTimeMS = effect->GetStartTimeMS();
+        mSequenceElements->UnSelectAllEffects();
+        EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row_number);
+        Effect* effect = effectLayer->GetEffect(0);
+        if (effect != nullptr)
+        {
+            mDropStartTimeMS = effect->GetStartTimeMS();
+            mRangeCursorRow = mRangeStartRow;
+            mRangeCursorCol = mRangeStartCol;
+            mRangeStartCol = -1;
+            mRangeEndCol = -1;
+            mRangeStartRow = -1;
+            mRangeEndRow = -1;
+            mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number, row_number, mDropStartTimeMS, mSequenceElements->GetSequenceEnd());
+            ((MainSequencer*)mParent)->CopySelectedEffects();
+            mCanPaste = true;
+            effectLayer->UnSelectAllEffects();
+            mPartialCellSelected = true;
+            mCellRangeSelected = false;
+            SetRCToolTip();
+        }
+        else
+        {
+            ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
+        }
+    }
+    else
+    {
+        Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
+        mSequenceElements->UnSelectAllEffects();
+        for (int i = 0; i < e->GetEffectLayerCount(); i++)
+        {
+            e->GetEffectLayer(i)->SelectAllEffects();
+        }
+        ((MainSequencer*)mParent)->CopySelectedEffects();
+        mCanPaste = true;
+        mSequenceElements->UnSelectAllEffects();
+        mPartialCellSelected = true;
+        mCellRangeSelected = false;
         mRangeCursorRow = mRangeStartRow;
         mRangeCursorCol = mRangeStartCol;
         mRangeStartCol = -1;
         mRangeEndCol = -1;
         mRangeStartRow = -1;
         mRangeEndRow = -1;
-        mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number, row_number, mDropStartTimeMS, mSequenceElements->GetSequenceEnd());
-        ((MainSequencer*)mParent)->CopySelectedEffects();
-        mCanPaste = true;
-        effectLayer->UnSelectAllEffects();
-        mPartialCellSelected = true;
-        mCellRangeSelected = false;
         SetRCToolTip();
-    }
-    else
-    {
-        ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
     }
 }
 
-void EffectsGrid::PasteModelEffects(int row_number)
+void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
 {
-    mDropRow = row_number;
+    mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
