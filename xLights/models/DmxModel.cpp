@@ -301,6 +301,11 @@ void DmxModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxUIntProperty("White Channel", "DmxWhiteChannel", white_channel));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 512);
+    p->SetEditor("SpinCtrl");
+
     if( dmx_style_val != DMX_STYLE_SKULLTRONIX_SKULL && dmx_style_val != DMX_STYLE_BASIC_FLOOD ) {
         p = grid->Append(new wxUIntProperty("Shutter Channel", "DmxShutterChannel", shutter_channel));
         p->SetAttribute("Min", 0);
@@ -532,6 +537,11 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return 3;
+    } else if ("DmxWhiteChannel" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DmxWhiteChannel");
+        ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     } else if ("DmxShutterChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxShutterChannel");
         ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
@@ -614,6 +624,7 @@ void DmxModel::InitModel() {
 	red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "0"));
 	green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "0"));
 	blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "0"));
+	white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
 	shutter_channel = wxAtoi(ModelXml->GetAttribute("DmxShutterChannel", "0"));
 	shutter_threshold = wxAtoi(ModelXml->GetAttribute("DmxShutterOpen", "1"));
 	beam_length = wxAtof(ModelXml->GetAttribute("DmxBeamLength", "4.0"));
@@ -645,6 +656,7 @@ void DmxModel::InitModel() {
             red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "16"));
             green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "17"));
             blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
+            white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
             tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
             tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
             pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));
@@ -677,6 +689,7 @@ void DmxModel::InitModel() {
             red_channel = 16;
             green_channel = 17;
             blue_channel = 18;
+            white_channel = 0;
             tilt_min_limit = 442;
             tilt_max_limit = 836;
             pan_min_limit = 250;
@@ -756,6 +769,8 @@ void DmxModel::InitModel() {
             ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", green_channel));
             ModelXml->DeleteAttribute("DmxBlueChannel");
             ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", blue_channel));
+            ModelXml->DeleteAttribute("DmxWhiteChannel");
+            ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", white_channel));
         }
     }
 }
@@ -829,7 +844,8 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     if( red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount )
+        blue_channel > NodeCount ||
+        white_channel > NodeCount )
     {
         return;
     }
@@ -844,21 +860,39 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 	int trans = color == xlBLACK ? blackTransparency : transparency;
 	if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
-		xlColor proxy;
-		Nodes[red_channel - 1]->GetColor(proxy);
-		beam_color.red = proxy.red;
-		Nodes[green_channel - 1]->GetColor(proxy);
-		beam_color.green = proxy.red;
-		Nodes[blue_channel - 1]->GetColor(proxy);
-		beam_color.blue = proxy.red;
+
+        xlColor proxy = xlBLACK;
+        if (white_channel > 0)
+        {
+            Nodes[white_channel - 1]->GetColor(proxy);
+            beam_color = proxy;
+        }
+
+        if (proxy == xlBLACK)
+        {
+            Nodes[red_channel - 1]->GetColor(proxy);
+            beam_color.red = proxy.red;
+            Nodes[green_channel - 1]->GetColor(proxy);
+            beam_color.green = proxy.red;
+            Nodes[blue_channel - 1]->GetColor(proxy);
+            beam_color.blue = proxy.red;
+        }
 	}
+    else if (white_channel > 0)
+    {
+        xlColor proxy;
+        Nodes[white_channel - 1]->GetColor(proxy);
+        beam_color.red = proxy.red;
+        beam_color.green = proxy.red;
+        beam_color.blue = proxy.red;
+    }
+
 	if (!active) {
 		beam_color = color;
 	}
 
 	ApplyTransparency(beam_color, trans);
     ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
-
 
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
@@ -878,7 +912,8 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         tilt_channel > NodeCount ||
         red_channel > NodeCount ||
         green_channel > NodeCount ||
-        blue_channel > NodeCount )
+        blue_channel > NodeCount ||
+        white_channel > NodeCount)
     {
         return;
     }
@@ -900,13 +935,32 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     xlColor color_angle;
 
     int trans = color == xlBLACK ? blackTransparency : transparency;
-    if( red_channel > 0 && green_channel > 0 && blue_channel > 0 ) {
+
+    if (red_channel > 0 && green_channel > 0 && blue_channel > 0) {
+
+        xlColor proxy = xlBLACK;
+        if (white_channel > 0)
+        {
+            Nodes[white_channel - 1]->GetColor(proxy);
+            beam_color = proxy;
+        }
+
+        if (proxy == xlBLACK)
+        {
+            Nodes[red_channel - 1]->GetColor(proxy);
+            beam_color.red = proxy.red;
+            Nodes[green_channel - 1]->GetColor(proxy);
+            beam_color.green = proxy.red;
+            Nodes[blue_channel - 1]->GetColor(proxy);
+            beam_color.blue = proxy.red;
+        }
+    }
+    else if (white_channel > 0)
+    {
         xlColor proxy;
-        Nodes[red_channel-1]->GetColor(proxy);
+        Nodes[white_channel - 1]->GetColor(proxy);
         beam_color.red = proxy.red;
-        Nodes[green_channel-1]->GetColor(proxy);
         beam_color.green = proxy.red;
-        Nodes[blue_channel-1]->GetColor(proxy);
         beam_color.blue = proxy.red;
     }
 
@@ -1122,6 +1176,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         xlColor red(xlRED);
         xlColor green(xlGREEN);
         xlColor blue(xlBLUE);
+        xlColor white(xlWHITE);
         xlColor pink(255,51,255);
         xlColor turqoise(64,224,208);
         ApplyTransparency(red, trans);
@@ -1149,6 +1204,8 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
                 proxy = green;
             } else if( i == blue_channel ) {
                 proxy = blue;
+            } else if( i == white_channel ) {
+                proxy = white;
             } else {
                 proxy = ccolor;
             }
@@ -1822,6 +1879,7 @@ void DmxModel::ExportXlightsModel()
     wxString rc = ModelXml->GetAttribute("DmxRedChannel","0");
     wxString gc = ModelXml->GetAttribute("DmxGreenChannel","0");
     wxString bc = ModelXml->GetAttribute("DmxBlueChannel","0");
+    wxString wc = ModelXml->GetAttribute("DmxWhiteChannel","0");
     wxString sc = ModelXml->GetAttribute("DmxShutterChannel","0");
     wxString so = ModelXml->GetAttribute("DmxShutterOpen","1");
 
@@ -1887,6 +1945,7 @@ void DmxModel::ExportXlightsModel()
     f.Write(wxString::Format("DmxRedChannel=\"%s\" ", rc));
     f.Write(wxString::Format("DmxGreenChannel=\"%s\" ", gc));
     f.Write(wxString::Format("DmxBlueChannel=\"%s\" ", bc));
+    f.Write(wxString::Format("DmxWhiteChannel=\"%s\" ", wc));
     f.Write(wxString::Format("DmxShutterChannel=\"%s\" ", sc));
     f.Write(wxString::Format("DmxShutterOpen=\"%s\" ", so));
 
@@ -1962,6 +2021,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             wxString rc = root->GetAttribute("DmxRedChannel");
             wxString gc = root->GetAttribute("DmxGreenChannel");
             wxString bc = root->GetAttribute("DmxBlueChannel");
+            wxString wc = root->GetAttribute("DmxWhiteChannel");
             wxString sc = root->GetAttribute("DmxShutterChannel");
             wxString so = root->GetAttribute("DmxShutterOpen");
             wxString bl = root->GetAttribute("DmxBeamLimit");
@@ -2015,6 +2075,7 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
             SetProperty("DmxRedChannel", rc);
             SetProperty("DmxGreenChannel", gc);
             SetProperty("DmxBlueChannel", bc);
+            SetProperty("DmxWhiteChannel", wc);
             SetProperty("DmxShutterChannel", sc);
             SetProperty("DmxShutterOpen", so);
             SetProperty("DmxBeamLimit", bl);

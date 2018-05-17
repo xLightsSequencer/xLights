@@ -100,7 +100,8 @@ void ServoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     int red_channel = dmx->GetRedChannel();
                     int grn_channel = dmx->GetGreenChannel();
                     int blu_channel = dmx->GetBlueChannel();
-                    if( red_channel == (i+1) || grn_channel == (i+1) || blu_channel == (i+1) || brt_channel == (i+1) ) {
+                    int white_channel = dmx->GetWhiteChannel();
+                    if( red_channel == (i+1) || grn_channel == (i+1) || blu_channel == (i+1) || white_channel == (i+1) || brt_channel == (i+1) ) {
                         min_limit = 0;
                         max_limit = 255;
                     }

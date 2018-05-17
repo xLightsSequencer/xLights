@@ -18,6 +18,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix image model does not work in a group correctly
    -- enh (keith)  Add ability to syncronise shape effects
    -- bug (keith)  Add fixes to keep available render buffers correct
+   -- enh (keith)  Add white channel support to the DMX model
 2018.13 May 12, 2018
    -- bug (scott)  Fix an issue with xml/fseq saving
    -- bug (keith)  Fix music download doesnt show artist tag
