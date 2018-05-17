@@ -4014,7 +4014,7 @@ void xLightsFrame::ExportModels(wxString filename)
     long minchannel = 99999999;
     long maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
@@ -4034,13 +4034,16 @@ void xLightsFrame::ExportModels(wxString filename)
                     models += ", " + *it;
                 }
             }
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%s,,,,,,,,\n",
+            int w, h;
+            model->GetBufferSize("Default", "None", w, h);
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
                 model->GetChanCount(),
                 model->NodeStartChannel(0) + 1,
                 model->NodeStartChannel(0) + 1 + model->GetChanCount() - 1,
+                w, h,
                 model->GetLayoutGroup()
             ));
         }
@@ -4076,7 +4079,10 @@ void xLightsFrame::ExportModels(wxString filename)
                 current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
             }
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
+            int w, h;
+            model->GetBufferSize("Default", "None", w, h);
+
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -4090,6 +4096,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 stch,
                 ch,
                 model->GetLastChannel() + 1,
+                w, h,
                 model->GetLayoutGroup(),
                 model->GetControllerConnection(),
                 type,
