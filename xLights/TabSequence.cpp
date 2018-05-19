@@ -1045,14 +1045,15 @@ void xLightsFrame::SaveSequence()
             }
         }
         while (!ok);
-        wxFileName oName(NewFilename);
-        oName.SetPath(fseqDirectory);
-        oName.SetExt("fseq");
-        DisplayXlightsFilename(oName.GetFullPath());
+        wxFileName xmlFileName(NewFilename);//set XML Path based on user input
+        xmlFileName.SetExt("xml");
+        CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
+        CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
 
-        oName.SetExt("xml");
-        CurrentSeqXmlFile->SetPath(oName.GetPath());
-        CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+        wxFileName fseqFileName(NewFilename);//create FSEQ file name in fseq folder
+        fseqFileName.SetPath(fseqDirectory);
+        fseqFileName.SetExt("fseq");
+        DisplayXlightsFilename(fseqFileName.GetFullPath());
     }
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right

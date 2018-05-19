@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -20,6 +20,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Add fixes to keep available render buffers correct
    -- enh (keith)  Add white channel support to the DMX model
    -- enh (keith)  Add video render caching to eliminate the need to continually shrink large videos
+   -- bug (scott)  Fix for new sequence files saving in the FSEQ folder not the show folder
 2018.13 May 12, 2018
    -- bug (scott)  Fix an issue with xml/fseq saving
    -- bug (keith)  Fix music download doesnt show artist tag
