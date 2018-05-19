@@ -14,7 +14,6 @@ class SphereModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
-        virtual bool IsZScaleable() const override { return false; }
 
     protected:
         virtual void InitModel() override;

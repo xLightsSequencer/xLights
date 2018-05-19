@@ -1843,7 +1843,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         int active_handle = selectedModel->GetModelScreenLocation().GetActiveHandle();
                         selectedModel->GetModelScreenLocation().SetActiveAxis(m_over_handle & 0xff);
                         selectedModel->GetModelScreenLocation().MouseOverHandle(-1);
-                        selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
+                        bool z_scale = selectedModel->GetModelScreenLocation().GetSupportsZScaling();
+                        // this is designed to pretend the control and shift keys are down when creating models to
+                        // make them scale from the desired handle depending on model type
+                        selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
                         UpdatePreview();
                         m_moving_handle = true;
                         m_mouse_down = true;
@@ -1910,7 +1913,10 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
                 newModel->UpdateXmlWithScale();
             }
-            selectedModel->MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), event.GetY(), true, selectedModel->IsZScaleable());
+            bool z_scale = selectedModel->GetModelScreenLocation().GetSupportsZScaling();
+            // this is designed to pretend the control and shift keys are down when creating models to
+            // make them scale from the desired handle depending on model type
+            selectedModel->MoveHandle3D(modelPreview, selectedModel->GetModelScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
             lastModelName = newModel->name;
             modelPreview->GetModels().push_back(newModel);
         }
@@ -2191,7 +2197,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     if (selectedModel != newModel) {
                         CreateUndoPoint("SingleModel", selectedModel->name, std::to_string(active_handle));
                     }
-                    selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, selectedModel->IsZScaleable());
+                    bool z_scale = selectedModel->GetModelScreenLocation().GetSupportsZScaling();
+                    // this is designed to pretend the control and shift keys are down when creating models to
+                    // make them scale from the desired handle depending on model type
+                    selectedModel->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), y, false, z_scale);
                     SetupPropGrid(selectedModel);
                     xlights->MarkEffectsFileDirty(true);
                     UpdatePreview();
@@ -2259,7 +2268,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (m != newModel) {
                     CreateUndoPoint("SingleModel", m->name, std::to_string(active_handle));
                 }
-                m->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | creating_model, event.GetX(), y, false, m->IsZScaleable());
+                bool z_scale = m->GetModelScreenLocation().GetSupportsZScaling();
+                // this is designed to pretend the control and shift keys are down when creating models to
+                // make them scale from the desired handle depending on model type
+                m->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), y, false, z_scale);
                 SetupPropGrid(m);
                 xlights->MarkEffectsFileDirty(true);
                 UpdatePreview();

@@ -14,7 +14,6 @@ class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
         virtual bool SupportsExportAsCustom() const override { return true; } 
         virtual bool SupportsWiringView() const override { return true; }
-        virtual bool IsZScaleable() const override { return false; }
 
     protected:
         virtual void InitModel() override;

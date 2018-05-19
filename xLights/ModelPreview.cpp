@@ -34,6 +34,8 @@ EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
 EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
+static glm::mat4 Identity(glm::mat4(1.0f));
+
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
 	if (m_mouse_down) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
@@ -499,98 +501,74 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
+    /*****************************   2D   ********************************/
+    if (!is_3d) {
+        //glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
+        //glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, ((float)mWindowHeight - (float)virtualHeight + pany2D)*zoom2D - zoom_corry2D, 0.0f));
+        //ViewMatrix = ViewTranslate * ViewScale;
+        //ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);
+
+        prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
+        LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+        DrawGLUtils::PushMatrix();
+        // Rotate Axis and translate
+        DrawGLUtils::Rotate(180, 0, 0, 1);
+        DrawGLUtils::Rotate(180, 0, 1, 0);
+        accumulator.PreAlloc(maxVertexCount);
+        currentPixelScaleFactor = 1.0;
+        if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
+            && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
+            int i = (int)mWindowHeight;
+            DrawGLUtils::Translate(0, -i, 0);
+            double scaleh = double(mWindowHeight) / double(virtualHeight);
+            double scalew = double(mWindowWidth) / double(virtualWidth);
+            DrawGLUtils::Scale(scalew, scaleh, 1.0);
+
+            if (scalew < scaleh) {
+                scaleh = scalew;
+            }
+            currentPixelScaleFactor = scaleh;
+            LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
+            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+            accumulator.Finish(GL_TRIANGLES);
+        }
+        else if (virtualWidth == 0 && virtualHeight == 0) {
+            int i = (int)mWindowHeight;
+            DrawGLUtils::Translate(0, -i, 0);
+        }
+        else {
+            DrawGLUtils::Translate(0, -virtualHeight, 0);
+            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+            accumulator.Finish(GL_TRIANGLES);
+        }
+    }
+
+    /*****************************   3D   ********************************/
     if (is_3d) {
         glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX + (panx * zoom), cameraPosY + (pany * zoom), cameraDistance * zoom));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
-        }
-    else {
-        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, ((float)mWindowHeight-(float)virtualHeight + pany2D)*zoom2D - zoom_corry2D, 0.0f));
-        ViewMatrix = ViewTranslate * ViewScale;
-        ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);
-    }
 
-    if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
-        && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
-		if (is_3d)
-		{
-            prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
-			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-			DrawGLUtils::PushMatrix();
-            DrawGLUtils::SetCamera(ViewMatrix);
-            accumulator.PreAlloc(maxVertexCount);
-			currentPixelScaleFactor = 1.0;
-			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-			accumulator.Finish(GL_TRIANGLES);
-			drawGrid(mWindowWidth, mWindowWidth / 40);
-		}
-		else
-		{
-			prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-            DrawGLUtils::SetCamera(glm::mat4(1.0));
-			LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-			DrawGLUtils::PushMatrix();
-            DrawGLUtils::SetCamera(ViewMatrix);
-			accumulator.PreAlloc(maxVertexCount);
-			currentPixelScaleFactor = 1.0;
-			//int i = (int)mWindowHeight;
-			//DrawGLUtils::Translate(0,-i,0);
-			//double scaleh= double(mWindowHeight) / double(virtualHeight);
-			//double scalew = double(mWindowWidth) / double(virtualWidth);
-			//DrawGLUtils::Scale(scalew, scaleh, 1.0);
+        /*
+        // FIXME: commented out for debugging speed
+        // FIXME: transparent background does not draw correctly when depth testing enabled
+        // enables depth testing to draw things in proper order
+        glEnable(GL_DEPTH_TEST);
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        glDepthFunc(GL_LESS);*/
 
-			//if (scalew < scaleh) {
-		//		scaleh = scalew;
-			//}
-			//currentPixelScaleFactor = scaleh;
-			LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
-			accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-			accumulator.Finish(GL_TRIANGLES);
-
-		}
-    } else if (virtualWidth == 0 && virtualHeight == 0) {
-        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        DrawGLUtils::SetCamera(glm::mat4(1.0));
-
+        prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::PushMatrix();
-        // Rotate Axis and translate
-        DrawGLUtils::Rotate(180,0,0,1);
-        DrawGLUtils::Rotate(180,0,1,0);
+        DrawGLUtils::SetCamera(ViewMatrix);
         accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
-        int i = (int)mWindowHeight;
-        DrawGLUtils::Translate(0, -i, 0);
-    } else {
-        if (is_3d) {
-            //glEnable(GL_DEPTH_TEST);
-            //LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-            //glDepthFunc(GL_LESS);
-
-            prepare3DViewport(0,0,mWindowWidth, mWindowHeight);
-            LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-            DrawGLUtils::PushMatrix();
-            DrawGLUtils::SetCamera(ViewMatrix);
-		    accumulator.PreAlloc(maxVertexCount);
-            currentPixelScaleFactor = 1.0;
-		    accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-		    accumulator.Finish(GL_TRIANGLES);
-		    drawGrid(mWindowWidth, mWindowWidth / 40);
-        }
-        else {
-            prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
-            LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-            DrawGLUtils::PushMatrix();
-            DrawGLUtils::SetCamera(ViewMatrix);
-            accumulator.PreAlloc(maxVertexCount);
-            currentPixelScaleFactor = 1.0;
-            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-            accumulator.Finish(GL_TRIANGLES);
-        }
-	}
+        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        accumulator.Finish(GL_TRIANGLES);
+        drawGrid(mWindowWidth, mWindowWidth / 40);
+    }
 
     if (mBackgroundImageExists)
     {

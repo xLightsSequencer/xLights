@@ -337,7 +337,6 @@ public:
 
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
-    virtual bool IsZScaleable() const { return true; }
     virtual int GetStrandLength(int strand) const;
 
     virtual int GetNumStrands() const;

@@ -135,6 +135,10 @@ public:
     virtual void MouseOverHandle(int handle);
     int GetNumSelectableHandles() { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
+    bool GetSupportsZScaling() { return supportsZScaling; }
+    void SetSupportsZScaling(bool b) {
+        supportsZScaling = b;
+    }
 
 protected:
     ModelScreenLocation(int points);
@@ -156,7 +160,7 @@ protected:
     mutable glm::vec3 aabb_max;
 
     // used for handle movement
-    glm::vec3 saved_intersect;  
+    glm::vec3 saved_intersect;
     glm::vec3 saved_position;
     glm::vec3 saved_size;
     glm::vec3 saved_scale;
@@ -175,6 +179,7 @@ protected:
     int highlighted_handle;
     int active_axis;
     int axis_tool;
+    bool supportsZScaling;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -235,7 +240,7 @@ public:
         scalex = x;
         scaley = y;
     }
-    void BoxedScreenLocation::AddOffset(float xPct, float yPct, float zPct);
+    void AddOffset(float xPct, float yPct, float zPct);
 
     void SetRotation(int r) {
         rotatez = r;

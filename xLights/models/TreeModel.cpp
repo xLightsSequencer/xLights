@@ -16,6 +16,7 @@ TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBase
 {
     treeType = 0;
     degrees = 360;
+    screenLocation.SetSupportsZScaling(true);
     SetFromXml(node, zeroBased);
 }
 

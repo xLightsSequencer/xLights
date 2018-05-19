@@ -232,6 +232,8 @@ void PolyLineModel::InitModel() {
     wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
     int num_curves = cpoint_array.size() / 7;
+    glm::vec3 def_scaling(100.0f, 100.0f, 100.0f);
+    glm::vec3 def_pos(0.0f, 0.0f, 0.0f);
     for( int i = 0; i < num_curves; ++i ) {
         int seg_num = wxAtoi(cpoint_array[i*7]);
         pPos[seg_num].has_curve = true;
@@ -240,7 +242,7 @@ void PolyLineModel::InitModel() {
         pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
         pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
         pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-        pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
+        pPos[seg_num].curve->SetPositioning(def_scaling, def_pos);
         pPos[seg_num].curve->UpdatePoints();
         pPos[seg_num].curve->UpdateMatrices();
     }
@@ -779,6 +781,8 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 pPos[i].curve = nullptr;
             }
             wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+            glm::vec3 def_scaling(100.0f, 100.0f, 100.0f);
+            glm::vec3 def_pos(0.0f, 0.0f, 0.0f);
             int num_curves = cpoint_array.size() / 7;
             for( int i = 0; i < num_curves; ++i ) {
                 int seg_num = wxAtoi(cpoint_array[i*7]);
@@ -788,7 +792,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
                 pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]) );
                 pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-                pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
+                pPos[seg_num].curve->SetPositioning(def_scaling, def_pos);
                 pPos[seg_num].curve->UpdatePoints();
             }
 
@@ -953,6 +957,8 @@ void PolyLineModel::NormalizePointData()
     }
     wxString cpoint_data = ModelXml->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+    glm::vec3 def_scaling(100.0f, 100.0f, 100.0f);
+    glm::vec3 def_pos(0.0f, 0.0f, 0.0f);
     int num_curves = cpoint_array.size() / 7;
     for( int i = 0; i < num_curves; ++i ) {
         int seg_num = wxAtoi(cpoint_array[i*7]);
@@ -962,7 +968,7 @@ void PolyLineModel::NormalizePointData()
         pPos[seg_num].curve->set_p1(pPos[seg_num+1].x, pPos[seg_num+1].y, pPos[seg_num+1].z);
         pPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
         pPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-        pPos[seg_num].curve->SetPositioning(glm::vec3(100.0f), glm::vec3(0.0f));
+        pPos[seg_num].curve->SetPositioning(def_scaling, def_pos);
         pPos[seg_num].curve->UpdatePoints();
     }
 

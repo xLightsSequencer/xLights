@@ -22,7 +22,6 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
             int &BufferWi, int &BufferHi) const override;
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual bool IsZScaleable() const override { return false; }
 
     protected:
         SpinnerModel(const ModelManager &manager);

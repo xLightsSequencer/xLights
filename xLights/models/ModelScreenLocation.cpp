@@ -21,6 +21,8 @@ static float AXIS_HEAD_LENGTH = 12.0f;
 static float XY_ARROW_LENGTH = 30.0f;
 static float BB_OFF = 5.0f;
 
+static glm::mat4 Identity(glm::mat4(1.0f));
+
 static inline void TranslatePointDoubles(float radians,float x, float y,float &x1, float &y1) {
     float s = sin(radians);
     float c = cos(radians);
@@ -118,9 +120,10 @@ ModelScreenLocation::ModelScreenLocation(int sz)
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   active_handle_pos(glm::vec3(0.0f)), rotatex(0), rotatey(0), rotatez(0),
-  ModelMatrix(glm::mat4(1.0f)), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
+  ModelMatrix(Identity), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
   saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), saved_rotate(0.0f),
-  active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE)
+  active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE),
+  supportsZScaling(false)
 {
     draw_3d = false;
     _locked = false;
@@ -584,7 +587,7 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
     // Give 2D tree model its perspective
     if (!draw_3d) {
         glm::vec4 position = glm::vec4(glm::vec3(sx, sy, sz), 1.0);
-        glm::mat4 rm = glm::rotate(glm::mat4(1.0f), perspective, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 rm = glm::rotate(Identity, perspective, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::vec4 model_position = rm * position;
         sx = model_position.x;
         sy = model_position.y;
@@ -669,7 +672,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
             ray_origin,
             aabb_min[i],
             aabb_max[i],
-            glm::mat4(1.0f))
+            Identity)
             ) {
             handle = i + 1;
             break;
@@ -693,16 +696,27 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     glm::vec3 ray_direction;
     if (preview != nullptr) {
         if (preview->Is3D()) {
-            // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-            // of the mouse click with the ground plane
-            active_axis = Z_AXIS;
-            saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-            DragHandle(preview, x, y, true);
-            worldPos_x = saved_intersect.x;
-            worldPos_y = RenderHt / 2.0f;
-            worldPos_z = saved_intersect.z;
-            handle = CENTER_HANDLE;
-            active_axis = Y_AXIS;
+            if (supportsZScaling) {
+                // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
+                // of the mouse click with the ground plane
+                active_axis = Z_AXIS;
+                saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+                DragHandle(preview, x, y, true);
+                worldPos_x = saved_intersect.x;
+                worldPos_y = RenderHt / 2.0f;
+                worldPos_z = saved_intersect.z;
+                handle = CENTER_HANDLE;
+                active_axis = Y_AXIS;
+            }
+            else {
+                active_axis = X_AXIS;
+                saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+                DragHandle(preview, x, y, true);
+                worldPos_x = saved_intersect.x;
+                worldPos_y = saved_intersect.y;
+                worldPos_z = 0.0f;
+                handle = CENTER_HANDLE;
+            }
         }
         else {;
             handle = R_BOT_HANDLE;
@@ -787,10 +801,10 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     centery = worldPos_y;
     draw_3d = is_3d;
     if (allow_selected) {
-        glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 RotateY = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+        glm::mat4 RotateX = glm::rotate(Identity, glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 RotateY = glm::rotate(Identity, glm::radians((float)rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 RotateZ = glm::rotate(Identity, glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 Translate = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         ModelMatrix = Translate * RotateZ * RotateY * RotateX;
         TranslateMatrix = Translate;
     }
@@ -1170,7 +1184,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
 }
 
 int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
-    
+
     if (latch) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
     }
@@ -1496,8 +1510,8 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
     glm::vec3 a = point2 - origin;
     glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector2(origin, point2);
     scalex = scaley = scalez = glm::length(a) / RenderWi;
-    glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
-    TranslateMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     matrix = TranslateMatrix * rotationMatrix * scalingMatrix;
 
     if (allow_selected) {
@@ -1600,7 +1614,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
             ray_origin,
             handle_aabb_min[i],
             handle_aabb_max[i],
-            glm::mat4(1.0f))
+            Identity)
             ) {
             handle = i + 1;
         }
@@ -1823,9 +1837,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             glm::vec3 end_vector = start_vector + drag_delta;
             glm::vec3 start_pt = origin;
             glm::vec3 end_pt = point2;
-            glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), -center);
-            glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), center);
-            glm::mat4 Rotate = glm::mat4(1.0f);
+            glm::mat4 translateToOrigin = glm::translate(Identity, -center);
+            glm::mat4 translateBack = glm::translate(Identity, center);
+            glm::mat4 Rotate = Identity;
 
             switch (active_axis)
             {
@@ -1835,7 +1849,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = saved_angle - angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
             }
             break;
             case Y_AXIS:
@@ -1844,7 +1858,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             }
             break;
             case Z_AXIS:
@@ -1853,7 +1867,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
             }
             break;
             }
@@ -1892,9 +1906,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
             glm::vec3 end_pt = point2;
-            glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), -origin);
-            glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), origin);
-            glm::mat4 Rotate = glm::mat4(1.0f);
+            glm::mat4 translateToOrigin = glm::translate(Identity, -origin);
+            glm::mat4 translateBack = glm::translate(Identity, origin);
+            glm::mat4 Rotate = Identity;
 
             switch (active_axis)
             {
@@ -1904,7 +1918,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = saved_angle - angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
             }
             break;
             case Y_AXIS:
@@ -1913,7 +1927,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             }
             break;
             case Z_AXIS:
@@ -1922,7 +1936,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
             }
             break;
             }
@@ -1955,9 +1969,9 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
             glm::vec3 end_vector = start_vector + drag_delta;
             glm::vec3 start_pt = origin;
             glm::vec3 end_pt = point2;
-            glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), -point2);
-            glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), point2);
-            glm::mat4 Rotate = glm::mat4(1.0f);
+            glm::mat4 translateToOrigin = glm::translate(Identity, -point2);
+            glm::mat4 translateBack = glm::translate(Identity, point2);
+            glm::mat4 Rotate = Identity;
 
             switch (active_axis)
             {
@@ -1967,7 +1981,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = saved_angle - angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
             }
             break;
             case Y_AXIS:
@@ -1976,7 +1990,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             }
             break;
             case Z_AXIS:
@@ -1985,7 +1999,7 @@ int TwoPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
                 angle = end_angle - start_angle;
                 float new_angle = angle - saved_angle;
-                Rotate = glm::rotate(glm::mat4(1.0f), glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
             }
             break;
             }
@@ -2528,17 +2542,17 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
 
     glm::mat4 scalingMatrix;
     if (modelHandlesHeight) {
-        scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
+        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
     }
     else {
-        scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley * height, scalez));
+        scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
     }
-    shearMatrix = glm::mat4(1.0f);
+    shearMatrix = Identity;
     if (supportsShear) {
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
     }
-    glm::mat4 RotateX = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-    TranslateMatrix = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    glm::mat4 RotateX = glm::rotate(Identity, glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+    TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     matrix = TranslateMatrix * rotationMatrix * RotateX * shearMatrix * scalingMatrix;
 
     if (allow_selected) {
@@ -2815,7 +2829,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
 
         return 1;
     }
- 
+
     return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
 }
 
@@ -2936,10 +2950,10 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
         glm::mat4 scalingMatrix;
         if (modelHandlesHeight) {
-            scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley, scalez));
+            scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
         }
         else {
-            scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, scaley * height, scalez));
+            scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
         }
 
         for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -3115,6 +3129,8 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
     wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
     int num_curves = cpoint_array.size() / 7;
+    glm::vec3 scaling(scalex, scaley, scalez);
+    glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
     for( int i = 0; i < num_curves; ++i ) {
         int seg_num = wxAtoi(cpoint_array[i*7]);
         mPos[seg_num].has_curve = true;
@@ -3125,7 +3141,7 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
         mPos[seg_num].curve->set_p1( mPos[seg_num+1].x, mPos[seg_num+1].y, mPos[seg_num+1].z );
         mPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
         mPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-        mPos[seg_num].curve->SetPositioning(glm::vec3(scalex, scaley, scalez), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+        mPos[seg_num].curve->SetPositioning(scaling, world_pos);
         mPos[seg_num].curve->UpdatePoints();
     }
     _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
@@ -3195,6 +3211,9 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
     maxY = 0.0;
     maxZ = 0.0;
 
+    glm::vec3 scaling(scalex, scaley, scalez);
+    glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
+
     for( int i = 0; i < num_points-1; ++i ) {
         float x1p = mPos[i].x * scalex + worldPos_x;
         float x2p = mPos[i+1].x * scalex + worldPos_x;
@@ -3234,8 +3253,8 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
         glm::vec3 a = pt2 - pt1;
         float scale = glm::length(a) / RenderWi;
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
-        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
+        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scale, 1.0f, 1.0f));
+        glm::mat4 translateMatrix = glm::translate(Identity, glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
 
         if (mPos[i].matrix != nullptr) {
@@ -3254,12 +3273,12 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
 
         // update curve points
         if( mPos[i].has_curve ) {
-            mPos[i].curve->SetPositioning(glm::vec3(scalex, scaley, scalez), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+            mPos[i].curve->SetPositioning(scaling, world_pos);
             mPos[i].curve->UpdatePoints();
         }
     }
-    glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3((maxX - minX) * scalex, (maxY - minY) * scaley, (maxZ - minZ) * scalez));
-    TranslateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(minX * scalex + worldPos_x, minY * scaley + worldPos_y, minZ * scalez + worldPos_z));
+    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3((maxX - minX) * scalex, (maxY - minY) * scaley, (maxZ - minZ) * scalez));
+    TranslateMatrix = glm::translate(Identity, glm::vec3(minX * scalex + worldPos_x, minY * scaley + worldPos_y, minZ * scalez + worldPos_z));
     main_matrix = TranslateMatrix * scalingMatrix;
 
     if (allow_selected) {
@@ -3431,7 +3450,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
             }
         }
     }
- 
+
     // test the normal handles
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
@@ -3621,7 +3640,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
                 ray_origin,
                 handle_aabb_min[h],
                 handle_aabb_max[h],
-                glm::mat4(1.0f))
+                Identity)
                 ) {
                 handle = h;
                 return_value = wxCURSOR_HAND;
@@ -4274,8 +4293,8 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
             return 0;
         }
 
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x, scale_y, 1.0f));
-        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3( minX + trans_x, minY + trans_y, 0.0f));
+        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scale_x, scale_y, 1.0f));
+        glm::mat4 translateMatrix = glm::translate(Identity, glm::vec3( minX + trans_x, minY + trans_y, 0.0f));
         glm::mat4 mat4 = translateMatrix * scalingMatrix;
 
         AdjustAllHandles(mat4);

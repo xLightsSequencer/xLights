@@ -13,7 +13,6 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
         virtual int NodesPerString() override;
-        virtual bool IsZScaleable() const override { return false; }
 
     protected:
         virtual void InitModel() override;
