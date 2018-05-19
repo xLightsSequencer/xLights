@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */; };
 		1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F61E371555001D48E3 /* UserButton.cpp */; };
 		1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */; };
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
@@ -700,6 +701,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoRenderCacher.h; sourceTree = "<group>"; };
+		1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoRenderCacher.cpp; sourceTree = "<group>"; };
 		1E3E24F61E371555001D48E3 /* UserButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserButton.cpp; sourceTree = "<group>"; };
 		1E3E24F71E371555001D48E3 /* UserButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserButton.h; sourceTree = "<group>"; };
 		1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURL.cpp; path = PlayList/PlayListItemCURL.cpp; sourceTree = "<group>"; };
@@ -2557,6 +2560,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */,
+				1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */,
 				673C925520A47C5400E59F5D /* JukeboxPanel.cpp */,
 				673C925620A47C5400E59F5D /* JukeboxPanel.h */,
 				673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */,
@@ -3458,6 +3463,7 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
+				1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */,
 				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
