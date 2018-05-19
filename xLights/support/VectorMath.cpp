@@ -47,7 +47,6 @@ bool VectorMath::TestRayOBBIntersection(
     glm::mat4 ModelMatrix,       // Transformation applied to the mesh (which will thus be also applied to its bounding box)
     float& intersection_distance // Output : distance between ray_origin and the intersection with the OBB
 ) {
-
     // Intersection method from Real-Time Rendering and Essential Mathematics for Games
 
     float tMin = 0.0f;
@@ -71,7 +70,7 @@ bool VectorMath::TestRayOBBIntersection(
 
                                              // We want t1 to represent the nearest intersection, 
                                              // so if it's not the case, invert t1 and t2
-            if (t1>t2) {
+            if (t1 > t2) {
                 float w = t1; t1 = t2; t2 = w; // swap t1 and t2
             }
 
@@ -90,7 +89,7 @@ bool VectorMath::TestRayOBBIntersection(
 
         }
         else { // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
-            if (-e + aabb_min.x > 0.0f || -e + aabb_max.x < 0.0f)
+            if (e + aabb_min.x > 0.0f || e + aabb_max.x < 0.0f)
                 return false;
         }
     }
@@ -108,7 +107,7 @@ bool VectorMath::TestRayOBBIntersection(
             float t1 = (e + aabb_min.y) / f;
             float t2 = (e + aabb_max.y) / f;
 
-            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
+            if (t1 > t2) { float w = t1; t1 = t2; t2 = w; }
 
             if (t2 < tMax)
                 tMax = t2;
@@ -119,7 +118,7 @@ bool VectorMath::TestRayOBBIntersection(
 
         }
         else {
-            if (-e + aabb_min.y > 0.0f || -e + aabb_max.y < 0.0f)
+            if (e + aabb_min.y > 0.0f || e + aabb_max.y < 0.0f)
                 return false;
         }
     }
@@ -137,7 +136,7 @@ bool VectorMath::TestRayOBBIntersection(
             float t1 = (e + aabb_min.z) / f;
             float t2 = (e + aabb_max.z) / f;
 
-            if (t1>t2) { float w = t1; t1 = t2; t2 = w; }
+            if (t1 > t2) { float w = t1; t1 = t2; t2 = w; }
 
             if (t2 < tMax)
                 tMax = t2;
@@ -148,12 +147,38 @@ bool VectorMath::TestRayOBBIntersection(
 
         }
         else {
-            if (-e + aabb_min.z > 0.0f || -e + aabb_max.z < 0.0f)
+            if (e + aabb_min.z > 0.0f || e + aabb_max.z < 0.0f)
                 return false;
         }
     }
 
     intersection_distance = tMin;
+    return true;
+}
+
+bool VectorMath::TestRayOBBIntersection2D(
+    glm::vec3 ray_origin,        // Ray origin, in world space
+    glm::vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
+    glm::vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+    glm::mat4 ModelMatrix        // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+) {
+    glm::vec3 OBBposition_worldspace(ModelMatrix[3].x, ModelMatrix[3].y, 0.0f);
+    glm::vec3 delta = OBBposition_worldspace - ray_origin;
+
+    // Test intersection with the OBB's X axis
+    glm::vec3 xaxis(ModelMatrix[0].x, ModelMatrix[0].y, ModelMatrix[0].z);
+    float ex = glm::dot(xaxis, delta);
+
+    if (ex + aabb_min.x > 0.0f || ex + aabb_max.x < 0.0f)
+        return false;
+
+    // Test intersection with the OBB's Y axis
+    glm::vec3 yaxis(ModelMatrix[1].x, ModelMatrix[1].y, ModelMatrix[1].z);
+    float ey = glm::dot(yaxis, delta);
+
+    if (ey + aabb_min.y > 0.0f || ey + aabb_max.y < 0.0f)
+        return false;
+
     return true;
 }
 
@@ -292,4 +317,3 @@ glm::mat4 VectorMath::rotationMatrixBetweenVectors(const glm::vec3 &a, const glm
     float angle = acos(glm::dot(b, a) / (glm::length(b) * glm::length(a)));
     return glm::rotate(angle, v);
 }
-

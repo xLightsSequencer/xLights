@@ -276,7 +276,7 @@ void BezierCurve::check_min_max( float &minX, float &maxX, float &minY, float &m
 ///////////////////////////////////////////////
 
 BezierCurve3D::BezierCurve3D()
-    : steps(25), old_steps(-1), scale(glm::vec3(100.0)), world_pos(glm::vec3(0.0f)), num_points(0), matrix_valid(false), matrix2D_valid(false), total_length(0.0f)
+    : steps(25), old_steps(-1), scale(glm::vec3(100.0)), world_pos(glm::vec3(0.0f)), num_points(0), matrix_valid(false), total_length(0.0f)
 {
 }
 
@@ -305,15 +305,14 @@ void BezierCurve3D::clear_points()
             delete points[j].mod_matrix;
             points[j].mod_matrix = nullptr;
         }
-        if (points[j].mod_matrix2D != nullptr) {
-            delete points[j].mod_matrix2D;
-            points[j].mod_matrix2D = nullptr;
+        if (points[j].mod_matrix2d != nullptr) {
+            delete points[j].mod_matrix2d;
+            points[j].mod_matrix2d = nullptr;
         }
     }
     points.clear();
     num_points = 0;
     matrix_valid = false;
-    matrix2D_valid = false;
 }
 
 float BezierCurve3D::interpPt(float n1, float n2, float perc)
@@ -386,7 +385,7 @@ void BezierCurveCubic3D::UpdatePoints() {
         p1.x == old_p1.x  && p1.y == old_p1.y  && p1.z == old_p1.z &&
         cp0.x == old_cp0.x && cp0.y == old_cp0.y && cp0.z == old_cp0.z &&
         cp1.x == old_cp1.x && cp1.y == old_cp1.y && cp1.z == old_cp1.z &&
-        steps == old_steps) {
+        steps == old_steps && old_world == world_pos && old_scale == scale ) {
         return;
     }
 
@@ -422,7 +421,7 @@ void BezierCurveCubic3D::UpdatePoints() {
         xlPointf new_point(x, y, z);
         new_point.matrix = nullptr;
         new_point.mod_matrix = nullptr;
-        new_point.mod_matrix2D = nullptr;
+        new_point.mod_matrix2d = nullptr;
         points.push_back(new_point);
         num_points++;
     }
@@ -430,7 +429,7 @@ void BezierCurveCubic3D::UpdatePoints() {
     xlPointf new_point(p1.x, p1.y, p1.z);
     new_point.matrix = nullptr;
     new_point.mod_matrix = nullptr;
-    new_point.mod_matrix2D = nullptr;
+    new_point.mod_matrix2d = nullptr;
     points.push_back(new_point);
     num_points++;
 
@@ -447,6 +446,8 @@ void BezierCurveCubic3D::UpdatePoints() {
     old_cp1.y = cp1.y;
     old_cp1.z = cp1.z;
     old_steps = steps;
+    old_world = world_pos;
+    old_scale = scale;
 }
 
 float BezierCurve3D::GetLength() {
@@ -484,6 +485,7 @@ void BezierCurve3D::UpdateMatrices()
 
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
+
         glm::vec3 a = pt2 - pt1;
         points[i].length = glm::length(a);
 
@@ -501,35 +503,21 @@ void BezierCurve3D::UpdateMatrices()
         }
         points[i].matrix = new glm::mat4(mat);
         points[i].mod_matrix = new glm::mat4(mod_mat);
+
+        {  // need to calculate matrix without Z axis to allow hit testing to work in 2D
+            pt1.z = 0.0f;
+            pt2.z = 0.0f;
+            glm::vec3 a = pt2 - pt1;
+            points[i].length2d = glm::length(a);
+            glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+            glm::mat4 mod_mat = translateMatrix * rotationMatrix;
+            if (points[i].mod_matrix2d != nullptr) {
+                delete points[i].mod_matrix2d;
+            }
+            points[i].mod_matrix2d = new glm::mat4(mod_mat);
+        }
     }
     matrix_valid = true;
-}
-
-void BezierCurve3D::UpdateMatrices2D()
-{
-    for (int i = 0; i < num_points - 1; ++i) {
-        float x1p = points[i].x;
-        float x2p = points[i + 1].x;
-        float y1p = points[i].y;
-        float y2p = points[i + 1].y;
-        float z1p = 0.0f;
-        float z2p = 0.0f;
-
-        glm::vec3 pt1(x1p, y1p, z1p);
-        glm::vec3 pt2(x2p, y2p, z2p);
-        glm::vec3 a = pt2 - pt1;
-        points[i].length = glm::length(a);
-
-        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 translateMatrix2D = glm::translate(glm::mat4(1.0f), glm::vec3(x1p * scale.x + world_pos.x, y1p* scale.y + world_pos.y, 0.0f));
-        glm::mat4 mod_mat2D = translateMatrix2D * rotationMatrix;
-
-        if (points[i].mod_matrix2D != nullptr) {
-            delete points[i].mod_matrix2D;
-        }
-        points[i].mod_matrix2D = new glm::mat4(mod_mat2D);
-    }
-    matrix2D_valid = true;
 }
 
 void BezierCurve3D::CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ)
@@ -567,9 +555,9 @@ void BezierCurve3D::CreateNormalizedMatrix(float &minX, float &maxX, float &minY
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
         glm::vec3 a = pt2 - pt1;
-        float scale = glm::length(a);
+        float scalex = glm::length(a);
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f, 1.0f));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scalex, 1.0f, 1.0f));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
 
@@ -580,31 +568,22 @@ void BezierCurve3D::CreateNormalizedMatrix(float &minX, float &maxX, float &minY
     }
 }
 
-bool BezierCurve3D::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance)
+bool BezierCurve3D::HitTest(glm::vec3& ray_origin)
 {
-    if (!matrix2D_valid) {
-        UpdateMatrices2D();
+    if (!matrix_valid) {
+        UpdateMatrices();
     }
-
-    float distance = 1000000000.0f;
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // iterate through all line segments of spline for hit detection
     for (int j = 0; j < num_points - 1; ++j) {
-        glm::mat4 matrix2d = *points[j].mod_matrix2D * flipy * flipx;
-        if (VectorMath::TestRayOBBIntersection(
+        if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,
-            ray_direction,
             points[j].aabb_min,
             points[j].aabb_max,
-            matrix2d,
-            distance)
+            *points[j].mod_matrix2d)
             ) {
-            if (distance < intersection_distance) {
-                intersection_distance = distance;
-                return true;
-            }
+            sub_segment = j;
+            return true;
         }
     }
     return false;
@@ -640,7 +619,7 @@ bool BezierCurve3D::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, f
 
 static float BB_OFF = 5.0f;
 
-void BezierCurve3D::UpdateBoundingBox()
+void BezierCurve3D::UpdateBoundingBox(bool is_3d)
 {
     if (!matrix_valid) {
         UpdateMatrices();
@@ -648,7 +627,12 @@ void BezierCurve3D::UpdateBoundingBox()
     for (int i = 0; i < num_points - 1; ++i) {
         // create normal line segment bounding boxes
         points[i].aabb_min = glm::vec3(0.0f, -BB_OFF, -BB_OFF);
-        points[i].aabb_max = glm::vec3(points[i].length * scale.x, BB_OFF, BB_OFF);
+        if (is_3d) {
+            points[i].aabb_max = glm::vec3(points[i].length * scale.x, BB_OFF, BB_OFF);
+        }
+        else {
+            points[i].aabb_max = glm::vec3(points[i].length2d * scale.x, BB_OFF, BB_OFF);
+        }
     }
 }
 
@@ -662,6 +646,14 @@ void BezierCurve3D::check_min_max(float &minX, float &maxX, float &minY, float &
         if (points[i].y > maxY) maxY = points[i].y;
         if (points[i].z > maxZ) maxZ = points[i].z;
     }
+}
+
+void BezierCurve3D::DrawBoundingBox(DrawGLUtils::xlAccumulator &va)
+{
+    if (!matrix_valid) {
+        UpdateMatrices();
+    }
+    DrawGLUtils::DrawBoundingBox(points[sub_segment].aabb_min, points[sub_segment].aabb_max, *points[sub_segment].mod_matrix2d, va);
 }
 
 void BezierCurve3D::DrawBoundingBoxes(DrawGLUtils::xl3Accumulator &va)

@@ -361,7 +361,6 @@ class LayoutPanel: public wxPanel
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
         void Unselect3DItems();
-        void GetWorldPosition(int& x, int& y);
         void SelectModel3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();

@@ -157,8 +157,13 @@ void ModelPreview::Render()
             }
             if (is_3d )
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
-            else
+            else {
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
+                /* FIXME:  Delete when not needed for debugging
+                if ((*PreviewModels)[i]->Highlighted) {
+                    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
+                }*/
+            }
         }
     }
 }
@@ -500,14 +505,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
-    }
+        }
     else {
         glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, (-(float)virtualHeight + pany2D)*zoom2D + zoom_corry2D, 0.0f));
-        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 ViewRotateZ = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ViewMatrix = ViewRotateZ * ViewRotateY * ViewTranslate * ViewScale;
-        ProjMatrix = glm::ortho((float)0, (float)mWindowWidth, (float)mWindowHeight, (float)0);
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, ((float)mWindowHeight-(float)virtualHeight + pany2D)*zoom2D - zoom_corry2D, 0.0f));
+        ViewMatrix = ViewTranslate * ViewScale;
+        ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);
     }
 
     if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
@@ -578,7 +581,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 		    drawGrid(mWindowWidth, mWindowWidth / 40);
         }
         else {
-            prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
+            prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
             LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
             DrawGLUtils::PushMatrix();
             DrawGLUtils::SetCamera(ViewMatrix);

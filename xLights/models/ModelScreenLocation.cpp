@@ -47,6 +47,14 @@ static void PrintMatrix(std::string name, glm::mat4& matrix)
     logger_base.debug("Row 3: %6.2f  %6.2f  %6.2f  %6.2f", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
 }
 
+static void PrintRay(std::string name, glm::vec3& origin, glm::vec3& direction)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Ray Info: %s", name.c_str());
+    logger_base.debug("Ray Origin: %6.2f  %6.2f  %6.2f", origin.x, origin.y, origin.z);
+    logger_base.debug("Ray Direct: %6.2f  %6.2f  %6.2f", direction.x, direction.y, direction.z);
+}
+
 static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
     int angleState;
     //LeftTop and RightBottom
@@ -278,6 +286,11 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
         va.AddVertex(pos.x, pos.y, pos.z + AXIS_ARROW_LENGTH - AXIS_RADIUS, xlBLUE);
         va.Finish(GL_LINES);
     }
+}
+
+void ModelScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+{
+    DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
 }
 
 void ModelScreenLocation::TranslateVector(glm::vec3& point) const
@@ -600,19 +613,11 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
     // NOTE:  This routine is designed for the 2D layout model selection only
     bool return_value = false;
 
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix = ModelMatrix2D * flipy * flipx;
-
-    float intersection_distance; // Output of TestRayOBBIntersection()
-
-    if (VectorMath::TestRayOBBIntersection(
+    if (VectorMath::TestRayOBBIntersection2D(
         ray_origin,
-        ray_direction,
         aabb_min,
         aabb_max,
-        matrix,
-        intersection_distance)
+        ModelMatrix)
         ) {
         return_value = true;
     }
@@ -641,47 +646,34 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
         ray_direction
     );
 
-    float distance = 1000000000.0f;
-    int which_handle = NO_HANDLE;
     int hw = RECT_HANDLE_WIDTH;
 
     int num_handles = 5;
     glm::vec3 aabb_min[5];
     glm::vec3 aabb_max[5];
 
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix = flipy * flipx;
-
     for (size_t h = 0; h < num_handles; h++) {
         aabb_min[h].x = mHandlePosition[h+1].x - hw;
-        aabb_min[h].y = mHandlePosition[h + 1].y - hw;
-        aabb_min[h].z = 0.0f;
-        aabb_max[h].x = mHandlePosition[h + 1].x + hw;
-        aabb_max[h].y = mHandlePosition[h + 1].y + hw;
-        aabb_max[h].z = 0.0f;
+        aabb_min[h].y = mHandlePosition[h+1].y - hw;
+        aabb_min[h].z = mHandlePosition[h+1].z - hw;
+        aabb_max[h].x = mHandlePosition[h+1].x + hw;
+        aabb_max[h].y = mHandlePosition[h+1].y + hw;
+        aabb_max[h].z = mHandlePosition[h+1].z + hw;
     }
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
     {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
+        if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,
-            ray_direction,
             aabb_min[i],
             aabb_max[i],
-            matrix,
-            intersection_distance)
+            glm::mat4(1.0f))
             ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                which_handle = i+1;
-            }
+            handle = i + 1;
+            break;
         }
     }
-    handle = which_handle;
 
     if (handle == NO_HANDLE) {
         return wxCURSOR_DEFAULT;
@@ -690,7 +682,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
         return wxCURSOR_HAND;
     }
     else {
-        return GetResizeCursor(which_handle, rotatez);
+        return GetResizeCursor(handle, rotatez);
     }
 }
 
@@ -717,8 +709,10 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
             active_axis = Y_AXIS;
             DragHandle(preview, x, y, true);
             worldPos_x = saved_intersect.x;
-            worldPos_y = (float)previewH - saved_intersect.y;
+            worldPos_y = saved_intersect.y;
             worldPos_z = 0.0f;
+            centery = worldPos_y;
+            centerx = worldPos_x;
         }
     }
     else {
@@ -797,8 +791,6 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
         glm::mat4 RotateZ = glm::rotate(glm::mat4(1.0f), glm::radians((float)rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 Translate = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         ModelMatrix = Translate * RotateZ * RotateY * RotateX;
-        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-        ModelMatrix2D = Translate2D * RotateZ * RotateY * RotateX;
         TranslateMatrix = Translate;
     }
 }
@@ -973,6 +965,7 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
         }
     }
+
 }
 
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
@@ -1509,8 +1502,6 @@ void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) cons
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
         ModelMatrix = TranslateMatrix * rotationMatrix;
-        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-        ModelMatrix2D = Translate2D * rotationMatrix;
         glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
         center = glm::vec3(ctr);
     }
@@ -1556,19 +1547,11 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
     // NOTE:  This routine is designed for the 2D layout model selection only
     bool return_value = false;
 
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix2d = ModelMatrix2D * flipy * flipx;
-
-    float intersection_distance; // Output of TestRayOBBIntersection()
-
-    if (VectorMath::TestRayOBBIntersection(
+    if (VectorMath::TestRayOBBIntersection2D(
         ray_origin,
-        ray_direction,
         aabb_min,
         aabb_max,
-        matrix2d,
-        intersection_distance)
+        ModelMatrix)
         ) {
         return_value = true;
     }
@@ -1598,45 +1581,29 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
         ray_direction
     );
 
-    float distance = 1000000000.0f;
-    int which_handle = NO_HANDLE;
-    int hw = RECT_HANDLE_WIDTH;
-
     int num_handles = mHandlePosition.size()-1; // 2D doesn't use center handle
 
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 matrix2D = flipy * flipx;
-
     for (size_t h = 0; h < num_handles; h++) {
-        handle_aabb_min[h].x = mHandlePosition[h + 1].x - hw;
-        handle_aabb_min[h].y = mHandlePosition[h + 1].y - hw;
-        handle_aabb_min[h].z = 0.0f;
-        handle_aabb_max[h].x = mHandlePosition[h + 1].x + hw;
-        handle_aabb_max[h].y = mHandlePosition[h + 1].y + hw;
-        handle_aabb_max[h].z = 0.0f;
+        handle_aabb_min[h].x = mHandlePosition[h + 1].x - RECT_HANDLE_WIDTH;
+        handle_aabb_min[h].y = mHandlePosition[h + 1].y - RECT_HANDLE_WIDTH;
+        handle_aabb_min[h].z = mHandlePosition[h + 1].z - RECT_HANDLE_WIDTH;
+        handle_aabb_max[h].x = mHandlePosition[h + 1].x + RECT_HANDLE_WIDTH;
+        handle_aabb_max[h].y = mHandlePosition[h + 1].y + RECT_HANDLE_WIDTH;
+        handle_aabb_max[h].z = mHandlePosition[h + 1].z + RECT_HANDLE_WIDTH;
     }
 
     // Test each each Oriented Bounding Box (OBB).
     for (size_t i = 0; i < num_handles; i++)
     {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
+        if (VectorMath::TestRayOBBIntersection2D(
             ray_origin,
-            ray_direction,
             handle_aabb_min[i],
             handle_aabb_max[i],
-            matrix2D,
-            intersection_distance)
+            glm::mat4(1.0f))
             ) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                which_handle = i + 1;
-            }
+            handle = i + 1;
         }
     }
-    handle = which_handle;
 
     if (handle == NO_HANDLE) {
         return wxCURSOR_DEFAULT;
@@ -1645,7 +1612,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
         return wxCURSOR_HAND;
     }
     else {
-        return GetResizeCursor(which_handle, rotatez);
+        return GetResizeCursor(handle, rotatez);
     }
 }
 
@@ -1766,7 +1733,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
     }
     else {
         // the bounding box is so close to a single line don't draw it once it's selected
-        DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
+        DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
     }
 }
 
@@ -2221,21 +2188,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
     aabb_min = glm::vec3(0.0f);
-    aabb_max = glm::vec3(RenderWi * scalex, 0.0f, 0.0f);
-
-    // Set minimum bounding rectangle
-    if (aabb_max.x - aabb_min.x < 8) {
-        aabb_max.x += 10;
-        aabb_min.x -= 10;
-    }
-    if (aabb_max.y - aabb_min.y < 8) {
-        aabb_max.y += 10;
-        aabb_min.y -= 10;
-    }
-    if (aabb_max.z - aabb_min.z < 8) {
-        aabb_max.z += 10;
-        aabb_min.z -= 10;
-    }
+    aabb_max = glm::vec3(RenderWi * scalex, 10.0f, 10.0f);
 }
 
 void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
@@ -2552,8 +2505,6 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
         ModelMatrix = TranslateMatrix * rotationMatrix;
-        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-        ModelMatrix2D = Translate2D * rotationMatrix;
         glm::vec4 ctr = matrix * glm::vec4(center, 1.0f);
         center = glm::vec3(ctr);
     }
@@ -3044,7 +2995,6 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[0].z = 0.0f;
     mPos[0].matrix = nullptr;
     mPos[0].mod_matrix = nullptr;
-    mPos[0].mod2D_matrix = nullptr;
     mPos[0].curve = nullptr;
     mPos[0].has_curve = false;
     mPos[1].x = 0.0f;
@@ -3052,11 +3002,10 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[1].z = 0.0f;
     mPos[1].matrix = nullptr;
     mPos[1].mod_matrix = nullptr;
-    mPos[1].mod2D_matrix = nullptr;
     mPos[1].curve = nullptr;
     mPos[1].has_curve = false;
-    handle_aabb_max.resize(3);
-    handle_aabb_min.resize(3);
+    handle_aabb_max.resize(7);
+    handle_aabb_min.resize(7);
     seg_aabb_min.resize(1);
     seg_aabb_max.resize(1);
     mSelectableHandles = 3;
@@ -3069,9 +3018,6 @@ PolyPointScreenLocation::~PolyPointScreenLocation() {
         }
         if (mPos[i].mod_matrix != nullptr) {
             delete mPos[i].mod_matrix;
-        }
-        if (mPos[i].mod2D_matrix != nullptr) {
-            delete mPos[i].mod2D_matrix;
         }
         if (mPos[i].curve != nullptr) {
             delete mPos[i].curve;
@@ -3133,8 +3079,8 @@ void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
     }
     mHandlePosition.resize(num_points+5);
     mSelectableHandles = num_points + 1;
-    handle_aabb_min.resize(mSelectableHandles);
-    handle_aabb_max.resize(mSelectableHandles);
+    handle_aabb_min.resize(num_points + 5);
+    handle_aabb_max.resize(num_points + 5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
     wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
@@ -3196,6 +3142,18 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
     if (_locked)
     {
         node->AddAttribute("Locked", "1");
+    }
+}
+
+void PolyPointScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+{
+    if (selected_segment != -1) {
+        if (mPos[selected_segment].has_curve) {
+            mPos[selected_segment].curve->DrawBoundingBox(va);
+        }
+        else {
+            DrawGLUtils::DrawBoundingBox(seg_aabb_min[selected_segment], seg_aabb_max[selected_segment], *mPos[selected_segment].mod_matrix, va);
+        }
     }
 }
 
@@ -3262,12 +3220,6 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
                 delete mPos[i].mod_matrix;
             }
             mPos[i].mod_matrix = new glm::mat4(mod_mat);
-            glm::mat4 translateMatrix2D = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, 0.0f));
-            glm::mat4 mod2D_mat = translateMatrix2D * rotationMatrix;
-            if (mPos[i].mod2D_matrix != nullptr) {
-                delete mPos[i].mod2D_matrix;
-            }
-            mPos[i].mod2D_matrix = new glm::mat4(mod2D_mat);
             mPos[i].seg_scale = scale;
         }
 
@@ -3284,8 +3236,6 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
     if (allow_selected) {
         // save processing time by skipping items not needed for view only preview
         ModelMatrix = TranslateMatrix;
-        glm::mat4 Translate2D = translate(glm::mat4(1.0f), glm::vec3(worldPos_x, worldPos_y, 0.0f));
-        ModelMatrix2D = Translate2D; // *rotationMatrix;
     }
 
     draw_3d = is_3d;
@@ -3320,44 +3270,32 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
 
 bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
 
-    float distance = 1000000000.0f;
-    float intersection_distance = 1000000000.0f;
     bool ret_value = false;
     selected_segment = -1;
 
-    glm::mat4 flipy = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 flipx = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    // check if inside boundary handles
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve) {
-            if (mPos[i].curve->HitTest(ray_origin, ray_origin, distance)) {
-                if (distance < intersection_distance) {
-                    intersection_distance = distance;
-                    selected_segment = i;
-                }
+            if (mPos[i].curve->HitTest(ray_origin)) {
+                selected_segment = i;
                 ret_value = true;
+                break;
             }
         }
         else {
-            glm::mat4 matrix2d = *mPos[i].mod2D_matrix * flipy * flipx;
             // perform normal line segment hit detection
-            if (VectorMath::TestRayOBBIntersection(
+            if (VectorMath::TestRayOBBIntersection2D(
                 ray_origin,
-                ray_direction,
                 seg_aabb_min[i],
                 seg_aabb_max[i],
-                matrix2d,
-                distance)
+                *mPos[i].mod_matrix)
                 ) {
-                if (distance < intersection_distance) {
-                    intersection_distance = distance;
-                    selected_segment = i;
-                }
+                selected_segment = i;
                 ret_value = true;
+                break;
             }
         }
     }
+    // check if inside boundary handles
     float sx1 = (ray_origin.x - worldPos_x) / scalex;
     float sy1 = (ray_origin.y - worldPos_y) / scaley;
     if (sx1 >= minX && sx1 <= maxX && sy1 >= minY && sy1 <= maxY) {
@@ -3409,10 +3347,10 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
 wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
 {
     wxCursor return_value = wxCURSOR_DEFAULT;
+    handle = NO_HANDLE;
 
     if (_locked)
     {
-        handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
@@ -3500,10 +3438,10 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
 
         for (int i = 0; i < num_points - 1; ++i) {
             if (mPos[i].has_curve) {
-                /* if (mPos[i].curve->HitTest3D(ray_origin.x, ray_origin.y, float& intersection_distance)) {
-                selected_segment = i;
-                return true;
-                }*/
+                if (mPos[i].curve->HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                    handle = i | 0x10000;
+                    return_value = wxCURSOR_DEFAULT;
+                }
             }
             else {
                 // perform normal line segment hit detection
@@ -3518,6 +3456,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
                     if (distance < intersection_distance) {
                         intersection_distance = distance;
                         handle = i | 0x10000;
+                        return_value = wxCURSOR_DEFAULT;
                     }
                 }
             }
@@ -3530,9 +3469,11 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
 
 wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
+    wxCursor return_value = wxCURSOR_DEFAULT;
+    handle = NO_HANDLE;
+
     if (_locked)
     {
-        handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
@@ -3549,38 +3490,118 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
         ray_direction
     );
 
-    // check handle of selected curve first
-    if( selected_segment != -1 ) {
-        if( mPos[selected_segment].has_curve ) {
-            glm::vec3 v;
-            v.x = mPos[selected_segment].cp0.x * scalex + worldPos_x;
-            v.y = mPos[selected_segment].cp0.y * scaley + worldPos_y;
-            v.z = mPos[selected_segment].cp0.z * scalez + worldPos_z;
-            if (ray_origin.x>v.x - RECT_HANDLE_WIDTH && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>v.y - RECT_HANDLE_WIDTH && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
-                handle = 0x4000 | selected_segment;
-                return wxCURSOR_SIZING;
-            }
-            v.x = mPos[selected_segment].cp1.x * scalex + worldPos_x;
-            v.y = mPos[selected_segment].cp1.y * scaley + worldPos_y;
-            v.z = mPos[selected_segment].cp1.z * scalez + worldPos_z;
-            if (ray_origin.x>v.x - RECT_HANDLE_WIDTH && ray_origin.x<v.x+RECT_HANDLE_WIDTH &&
-                ray_origin.y>v.y - RECT_HANDLE_WIDTH && ray_origin.y<v.y+RECT_HANDLE_WIDTH) {
-                handle = 0x8000 | selected_segment;
-                return wxCURSOR_SIZING;
+    // test control point handles
+    if (handle == NO_HANDLE) {
+        if (selected_segment != -1) {
+            int s = selected_segment;
+            if (mPos[s].has_curve) {
+                glm::vec3 cp_handle_aabb_min[2];
+                glm::vec3 cp_handle_aabb_max[2];
+                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX)*scalex + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY)*scaley + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ)*scalez + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez - RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX)*scalex + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY)*scaley + RECT_HANDLE_WIDTH;
+                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ)*scalez + RECT_HANDLE_WIDTH;
+
+                // Test each each Oriented Bounding Box (OBB).
+                for (size_t i = 0; i < 2; i++)
+                {
+                    if (VectorMath::TestRayOBBIntersection2D(
+                        ray_origin,
+                        cp_handle_aabb_min[i],
+                        cp_handle_aabb_max[i],
+                        ModelMatrix)
+                        ) {
+                        handle = ((i == 0) ? s | 0x4000 : s | 0x8000);
+                        return_value = wxCURSOR_HAND;
+                        break;
+                    }
+                }
             }
         }
     }
 
-    for (size_t h = 0; h < mHandlePosition.size(); h++) {
-        if (ray_origin.x>mHandlePosition[h].x && ray_origin.x<mHandlePosition[h].x+RECT_HANDLE_WIDTH &&
-            ray_origin.y>mHandlePosition[h].y && ray_origin.y<mHandlePosition[h].y+RECT_HANDLE_WIDTH) {
-            handle = h;
-            return wxCURSOR_SIZING;
+    // test the normal handles
+    if (handle == NO_HANDLE) {
+        // Test each each Oriented Bounding Box (OBB).
+        for (size_t i = 1; i < mSelectableHandles; i++)
+        {
+            if (VectorMath::TestRayOBBIntersection2D(
+                ray_origin,
+                handle_aabb_min[i],
+                handle_aabb_max[i],
+                ModelMatrix)
+                ) {
+                handle = i;
+                return_value = wxCURSOR_HAND;
+                break;
+            }
         }
     }
-    handle = -1;
-    return wxCURSOR_DEFAULT;
+
+    // test for over a segment
+    if (handle == NO_HANDLE) {
+        for (int i = 0; i < num_points - 1; ++i) {
+            if (mPos[i].has_curve) {
+                if (mPos[i].curve->HitTest(ray_origin)) {
+                    if (i != selected_segment) {
+                        handle = i | 0x10000;
+                        return_value = wxCURSOR_BULLSEYE;
+                    }
+                    break;
+                }
+            }
+            else {
+                if (VectorMath::TestRayOBBIntersection2D(
+                    ray_origin,
+                    seg_aabb_min[i],
+                    seg_aabb_max[i],
+                    *mPos[i].mod_matrix)
+                    ) {
+                    if (i != selected_segment) {
+                        handle = i | 0x10000;
+                        return_value = wxCURSOR_BULLSEYE;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // test for clicking a boundary handle
+    if (handle == NO_HANDLE) {
+        float distance = 1000000000.0f;
+
+        for (size_t h = num_points + 1; h < num_points + 5; h++) {
+            handle_aabb_min[h].x = mHandlePosition[h].x - RECT_HANDLE_WIDTH;
+            handle_aabb_min[h].y = mHandlePosition[h].y - RECT_HANDLE_WIDTH;
+            handle_aabb_min[h].z = mHandlePosition[h].z - RECT_HANDLE_WIDTH;
+            handle_aabb_max[h].x = mHandlePosition[h].x + RECT_HANDLE_WIDTH;
+            handle_aabb_max[h].y = mHandlePosition[h].y + RECT_HANDLE_WIDTH;
+            handle_aabb_max[h].z = mHandlePosition[h].z + RECT_HANDLE_WIDTH;
+
+            // Test each each Oriented Bounding Box (OBB).
+            if (VectorMath::TestRayOBBIntersection2D(
+                ray_origin,
+                handle_aabb_min[h],
+                handle_aabb_max[h],
+                glm::mat4(1.0f))
+                ) {
+                handle = h;
+                return_value = wxCURSOR_HAND;
+                break;
+            }
+        }
+    }
+
+    return return_value;
 }
 
 void PolyPointScreenLocation::SetActiveHandle(int handle)
@@ -3904,9 +3925,16 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         float sy = mPos[i].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
         float sz = mPos[i].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
         va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == (selected_handle-1) ? xlMAGENTA : (i == 0 ? xlGREEN : handleColor));
-        mHandlePosition[i+1].x = sx;
-        mHandlePosition[i+1].y = sy;
-        mHandlePosition[i+1].z = sz;
+        int hpos = i + 1;
+        mHandlePosition[hpos].x = sx;
+        mHandlePosition[hpos].y = sy;
+        mHandlePosition[hpos].z = sz;
+        handle_aabb_min[hpos].x = (mPos[i].x - minX)*scalex - RECT_HANDLE_WIDTH;
+        handle_aabb_min[hpos].y = (mPos[i].y - minY)*scaley - RECT_HANDLE_WIDTH;
+        handle_aabb_min[hpos].z = (mPos[i].z - minZ)*scalez - RECT_HANDLE_WIDTH;
+        handle_aabb_max[hpos].x = (mPos[i].x - minX)*scalex + RECT_HANDLE_WIDTH;
+        handle_aabb_max[hpos].y = (mPos[i].y - minY)*scaley + RECT_HANDLE_WIDTH;
+        handle_aabb_max[hpos].z = (mPos[i].z - minZ)*scalez + RECT_HANDLE_WIDTH;
 
         // add final handle
         if( i == num_points-2 ) {
@@ -3914,9 +3942,16 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             sy = mPos[i+1].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             sz = mPos[i+1].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
             va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == (selected_handle - 1) ? xlMAGENTA : handleColor);
-            mHandlePosition[i+2].x = sx;
-            mHandlePosition[i+2].y = sy;
-            mHandlePosition[i+2].z = sz;
+            hpos++;
+            mHandlePosition[hpos].x = sx;
+            mHandlePosition[hpos].y = sy;
+            mHandlePosition[hpos].z = sz;
+            handle_aabb_min[hpos].x = (mPos[i+1].x - minX)*scalex - RECT_HANDLE_WIDTH;
+            handle_aabb_min[hpos].y = (mPos[i+1].y - minY)*scaley - RECT_HANDLE_WIDTH;
+            handle_aabb_min[hpos].z = (mPos[i+1].z - minZ)*scalez - RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].x = (mPos[i+1].x - minX)*scalex + RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].y = (mPos[i+1].y - minY)*scaley + RECT_HANDLE_WIDTH;
+            handle_aabb_max[hpos].z = (mPos[i+1].z - minZ)*scalez + RECT_HANDLE_WIDTH;
         }
     }
 
@@ -4268,7 +4303,6 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
 
     new_point.matrix = nullptr;
     new_point.mod_matrix = nullptr;
-    new_point.mod2D_matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
     new_point.seg_scale = 1.0f;
@@ -4283,8 +4317,8 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     mHandlePosition.insert(mHandlePosition.begin() + num_points + 1, new_handle);
     num_points++;
     mSelectableHandles++;
-    handle_aabb_max.resize(num_points+1);
-    handle_aabb_min.resize(num_points+1);
+    handle_aabb_max.resize(num_points+5);
+    handle_aabb_min.resize(num_points+5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
@@ -4312,7 +4346,6 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
     new_point.z = (z1_pos+z2_pos)/2.0;
     new_point.matrix = nullptr;
     new_point.mod_matrix = nullptr;
-    new_point.mod2D_matrix = nullptr;
     new_point.curve = nullptr;
     new_point.has_curve = false;
     mPos.insert(mPos.begin() + pos + 1, new_point);
@@ -4328,8 +4361,8 @@ void PolyPointScreenLocation::InsertHandle(int after_handle) {
     selected_handle = after_handle+1;
     selected_segment = -1;
     mSelectableHandles++;
-    handle_aabb_max.resize(num_points + 1);
-    handle_aabb_min.resize(num_points + 1);
+    handle_aabb_max.resize(num_points+5);
+    handle_aabb_min.resize(num_points+5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
@@ -4479,11 +4512,11 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
 {
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve) {
-            mPos[i].curve->UpdateBoundingBox();
+            mPos[i].curve->UpdateBoundingBox(draw_3d);
         }
         else {
             // create normal line segment bounding boxes
-            seg_aabb_min[i] = glm::vec3(-BB_OFF, -BB_OFF, -BB_OFF);
+            seg_aabb_min[i] = glm::vec3(0.0f, -BB_OFF, -BB_OFF);
             seg_aabb_max[i] = glm::vec3(RenderWi * mPos[i].seg_scale, BB_OFF, BB_OFF);
         }
     }

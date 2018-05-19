@@ -1737,23 +1737,6 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
     return false;
 }
 
-void LayoutPanel::GetWorldPosition(int& x, int& y)
-{
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, (modelPreview->getHeight() - y),
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetViewMatrix(),
-        modelPreview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
-    x = ray_origin.x;
-    y = ray_origin.y;
-}
-
 void LayoutPanel::SelectAllInBoundingRect()
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
@@ -1981,10 +1964,20 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     }
     else if (m_over_handle != -1)
     {
-        m_moving_handle = true;
-        if (selectedModel != nullptr) {
-            selectedModel->SelectHandle(m_over_handle);
-            UpdatePreview();
+        if ((m_over_handle & 0x10000) > 0) {
+            // a segment was selected
+            if (selectedModel != nullptr) {
+                selectedModel->GetModelScreenLocation().SelectSegment(m_over_handle & 0xFFF);
+                modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                UpdatePreview();
+            }
+        }
+        else {
+            m_moving_handle = true;
+            if (selectedModel != nullptr) {
+                selectedModel->SelectHandle(m_over_handle);
+                UpdatePreview();
+            }
         }
     }
     else if (selectedButton != nullptr)
@@ -2297,6 +2290,32 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         }
         return;
     }
+
+    /* FIXME:  Delete when not needed for debugging
+    /////////////////////////////////////
+    // temporary for debugging
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    VectorMath::ScreenPosToWorldRay(
+        event.GetX(), modelPreview->getHeight() - event.GetY(),
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetViewMatrix(),
+        modelPreview->GetProjMatrix(),
+        ray_origin,
+        ray_direction
+    );
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        Model* whichModel = modelPreview->GetModels()[i];
+        if (modelPreview->GetModels()[i]->GetModelScreenLocation().HitTest(ray_origin, ray_direction)) {
+            whichModel->Highlighted = true;
+        }
+        else {
+            whichModel->Highlighted = false;
+        }
+        UpdatePreview();
+    }
+    /////////////////////////////////////*/
 
     if (m_creating_bound_rect)
     {

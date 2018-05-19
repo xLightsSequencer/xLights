@@ -104,24 +104,25 @@ public:
         float y;
         float z;
         float length;
+        float length2d;
         glm::mat4 *matrix;
         glm::mat4 *mod_matrix;
-        glm::mat4 *mod_matrix2D;
+        glm::mat4 *mod_matrix2d;
         glm::vec3 aabb_min;
         glm::vec3 aabb_max;
-        xlPointf() : x(0.0f), y(0.0f), z(0.0f), length(0.0f),
-            matrix(nullptr), mod_matrix(nullptr), mod_matrix2D(nullptr),
+        xlPointf() : x(0.0f), y(0.0f), z(0.0f), length(0.0f), length2d(0.0f),
+            matrix(nullptr), mod_matrix(nullptr),
             aabb_min(glm::vec3(0.0f)), aabb_max(glm::vec3(1.0f)) {}
-        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f),
-            matrix(nullptr), mod_matrix(nullptr), mod_matrix2D(nullptr),
+        xlPointf(float x_, float y_, float z_) : x(x_), y(y_), z(z_), length(0.0f), length2d(0.0f),
+            matrix(nullptr), mod_matrix(nullptr),
             aabb_min(glm::vec3(0.0f)), aabb_max(glm::vec3(1.0f)) {}
     };
 
     virtual void UpdatePoints() = 0;
     void UpdateMatrices();
-    void UpdateMatrices2D();
-    void UpdateBoundingBox();
+    void UpdateBoundingBox(bool is_3d);
     void DrawBoundingBoxes(DrawGLUtils::xl3Accumulator &va);
+    void DrawBoundingBox(DrawGLUtils::xlAccumulator &va); // used for debugging hit testing
     void CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
     float GetLength();
     float GetSegLength(int segment);
@@ -134,7 +135,7 @@ public:
 
     void check_min_max(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
 
-    bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance);
+    bool HitTest(glm::vec3& ray_origin);
     bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance);
 
     virtual void OffsetX(float diff);
@@ -166,16 +167,18 @@ protected:
     int steps;
     int num_points;
     bool matrix_valid;
-    bool matrix2D_valid;
     float total_length;
     glm::vec3 scale;
     glm::vec3 world_pos;
+    int sub_segment;
 
     std::vector<xlPointf> points;
 
     xlPointf old_p0;
     xlPointf old_p1;
     xlPointf old_cp0;
+    glm::vec3 old_world;
+    glm::vec3 old_scale;
     int old_steps;
 
     float interpPt(float n1, float n2, float perc);

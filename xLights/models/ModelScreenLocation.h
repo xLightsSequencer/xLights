@@ -77,6 +77,7 @@ public:
     virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
+    virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;
@@ -150,8 +151,6 @@ protected:
     int rotatey;
     int rotatez;
     mutable glm::mat4 ModelMatrix;
-    mutable glm::mat4 ModelMatrix2D;
-    mutable glm::mat4 ModelMatrix3D;
     mutable glm::mat4 TranslateMatrix;
     mutable glm::vec3 aabb_min;
     mutable glm::vec3 aabb_max;
@@ -446,6 +445,7 @@ public:
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
+    virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     virtual void SelectHandle(int handle) override;
@@ -504,7 +504,6 @@ protected:
         mutable BezierCurveCubic3D* curve;
         mutable glm::mat4 *matrix;
         mutable glm::mat4 *mod_matrix;
-        mutable glm::mat4 *mod2D_matrix;
         mutable float seg_scale;
     };
     mutable std::vector<xlPolyPoint> mPos;
