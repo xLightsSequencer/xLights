@@ -388,10 +388,10 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
 wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
 {
     wxCursor return_value = wxCURSOR_DEFAULT;
+    handle = NO_HANDLE;
 
     if (_locked)
     {
-        handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
@@ -628,9 +628,10 @@ bool BoxedScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_directio
 wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
+    handle = NO_HANDLE;
+
     if (_locked)
     {
-        handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
@@ -1562,10 +1563,10 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
 wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const
 {
     // NOTE:  This routine is designed for the 2D layout handle selection only
+    handle = NO_HANDLE;
 
     if (_locked)
     {
-        handle = NO_HANDLE;
         return wxCURSOR_DEFAULT;
     }
 
@@ -2052,11 +2053,12 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
 
     return 0;
 }
+
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
     if (preview != nullptr) {
-        active_axis = X_AXIS;
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        active_axis = X_AXIS;
         DragHandle(preview, x, y, true);
         worldPos_x = saved_intersect.x;
         worldPos_y = saved_intersect.y;
@@ -2379,6 +2381,43 @@ ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesH
 }
 
 ThreePointScreenLocation::~ThreePointScreenLocation() {
+}
+
+wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
+
+    if (preview != nullptr) {
+        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
+            // place Arch models on the ground in 3D mode
+            active_axis = Z_AXIS;
+            DragHandle(preview, x, y, true);
+            worldPos_x = saved_intersect.x;
+            worldPos_y = 0.0f;
+            worldPos_z = saved_intersect.z;
+            active_axis = X_AXIS;
+            point2 = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
+        }
+        else {
+            active_axis = X_AXIS;
+            DragHandle(preview, x, y, true);
+            worldPos_x = saved_intersect.x;
+            worldPos_y = saved_intersect.y;
+            worldPos_z = 0.0f;
+        }
+        if (preview->Is3D()) {
+            // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
+            // of the mouse click with the ground plane
+            saved_point = glm::vec3(0.0f);
+            active_handle = END_HANDLE;
+        }
+    }
+    else {
+        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
+    }
+    x2 = y2 = z2 = 0.0f;
+    handle = END_HANDLE;
+    SetPreviewSize(previewW, previewH, Nodes);
+    return wxCURSOR_SIZING;
 }
 
 void ThreePointScreenLocation::Read(wxXmlNode *node) {
@@ -2857,18 +2896,8 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
         if (axis_tool == TOOL_ROTATE) {
             if (latch) {
                 saved_angle = 0.0f;
-                if (handle == CENTER_HANDLE) {
-                    saved_position = center;
-                    saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-                }
-                else if (handle == END_HANDLE) {
-                    saved_position = point2;
-                    saved_point = glm::vec3(x2, y2, z2);
-                }
-                else {
-                    saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-                    saved_point = glm::vec3(x2, y2, z2);
-                }
+                saved_position = center;
+                saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             }
             double angle = 0.0f;
             glm::vec3 start_vector = saved_intersect - saved_position;

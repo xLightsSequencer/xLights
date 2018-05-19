@@ -2085,6 +2085,7 @@ void LayoutPanel::FinalizeModel()
     m_dragging = false;
     m_polyline_active = false;
     creating_model = false;
+    m_over_handle = NO_HANDLE;
 
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
@@ -2097,7 +2098,6 @@ void LayoutPanel::FinalizeModel()
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
             if (cancelled) {
                 newModel = nullptr;
-                m_over_handle = -1;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 if (selectedButton != nullptr) {
                     selectedButton->SetState(0);
@@ -2119,7 +2119,6 @@ void LayoutPanel::FinalizeModel()
 
         newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
-        m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         if (selectedButton->GetState() == 1) {
             std::string name = newModel->name;
