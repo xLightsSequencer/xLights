@@ -257,10 +257,10 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 
     subBufferPanel = new SubBufferPanel(SubBufferPanelHolder, false, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    wxSize s(100,100);
-    subBufferPanel->SetMinSize(s);
-    SubBufferSizer->Insert(0, subBufferPanel,1, wxALL|wxEXPAND, 2);
+    subBufferPanel->SetMinSize(SubBufferSizer->GetSize());
+    SubBufferSizer->Add(subBufferPanel, 1, wxALL|wxEXPAND, 2);
     SubBufferSizer->Fit(SubBufferPanelHolder);
+    SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
 
     FlexGridSizer1->Fit(this);
