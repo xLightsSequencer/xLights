@@ -74,6 +74,8 @@ PlayListItemTextPanel::PlayListItemTextPanel(wxWindow* parent, PlayListItemText*
 	Choice_Type = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	Choice_Type->SetSelection( Choice_Type->Append(_("Normal")) );
 	Choice_Type->Append(_("Countdown"));
+	Choice_Type->Append(_("File Read"));
+	Choice_Type->Append(_("HTTP Get"));
 	FlexGridSizer1->Add(Choice_Type, 1, wxALL|wxEXPAND, 5);
 	StaticText_Text = new wxStaticText(this, ID_STATICTEXT1, _("Text:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText_Text, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -209,6 +211,14 @@ void PlayListItemTextPanel::ValidateWindow()
     if (Choice_Type->GetStringSelection() == "Normal")
     {
         StaticText_Text->SetLabel("Text");
+    }
+    else if (Choice_Type->GetStringSelection() == "File Read")
+    {
+        StaticText_Text->SetLabel("File Path");
+    }
+    else if (Choice_Type->GetStringSelection() == "HTTP Get")
+    {
+        StaticText_Text->SetLabel("HTTP URL");
     }
     else
     {

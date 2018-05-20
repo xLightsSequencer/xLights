@@ -46,6 +46,8 @@
 					<content>
 						<item>Normal</item>
 						<item>Countdown</item>
+						<item>File Read</item>
+						<item>HTTP Get</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnChoice_TypeSelect" entry="EVT_CHOICE" />
