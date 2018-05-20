@@ -703,7 +703,7 @@ public:
         if (matrix) {
             delete matrix;
         }
-        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(bottomright_y-topleft_y), 1.0f, 10000.0f);
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
         matrix = new glm::mat4(m);
     }
 

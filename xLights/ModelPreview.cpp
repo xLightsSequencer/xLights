@@ -503,41 +503,43 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 
     /*****************************   2D   ********************************/
     if (!is_3d) {
-        //glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D, zoom2D, 1.0f));
-        //glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D, ((float)mWindowHeight - (float)virtualHeight + pany2D)*zoom2D - zoom_corry2D, 0.0f));
-        //ViewMatrix = ViewTranslate * ViewScale;
-        //ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);
+        float scale2d = 1.0f;
+        float scale_corrx = 0.0f;
+        float scale_corry = 0.0f;
+        if (virtualWidth != 0 && virtualHeight != 0) {
+            float scale2dh = (float)mWindowHeight / (float)virtualHeight;
+            float scale2dw = (float)mWindowWidth / (float)virtualWidth;
+            // maintain aspect ratio.... FIXME: maybe add as an option
+            // centers the direction that is smaller
+            if (scale2dh < scale2dw) {
+                scale2d = scale2dh;
+                scale_corrx = ((scale2dw*(float)virtualWidth - (scale2d*(float)virtualWidth)) * zoom2D) / 2.0f;
+            }
+            else {
+                scale2d = scale2dw;
+                scale_corry = ((scale2dh*(float)virtualHeight - (scale2d*(float)virtualHeight)) * zoom2D) / 2.0f;
+            }
+        }
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D * scale2d, zoom2D * scale2d, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D + scale_corrx, pany2D*zoom2D - zoom_corry2D + scale_corry, 0.0f));
+        ViewMatrix = ViewTranslate * ViewScale;
+        ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
 
-        prepare2DViewport(0, 0, mWindowWidth, mWindowHeight);
+        prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
+        DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        // Rotate Axis and translate
-        DrawGLUtils::Rotate(180, 0, 0, 1);
-        DrawGLUtils::Rotate(180, 0, 1, 0);
         accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
         if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
             && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
-            int i = (int)mWindowHeight;
-            DrawGLUtils::Translate(0, -i, 0);
-            double scaleh = double(mWindowHeight) / double(virtualHeight);
-            double scalew = double(mWindowWidth) / double(virtualWidth);
-            DrawGLUtils::Scale(scalew, scaleh, 1.0);
-
-            if (scalew < scaleh) {
-                scaleh = scalew;
-            }
-            currentPixelScaleFactor = scaleh;
+            currentPixelScaleFactor = scale2d;
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
         }
-        else if (virtualWidth == 0 && virtualHeight == 0) {
-            int i = (int)mWindowHeight;
-            DrawGLUtils::Translate(0, -i, 0);
-        }
+
         else {
-            DrawGLUtils::Translate(0, -virtualHeight, 0);
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
         }
@@ -549,8 +551,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
-        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)(mWindowWidth - 0.0f) / (float)(mWindowHeight - 0.0f), 1.0f, 10000.0f);
-
+        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 10000.0f);  // this must match prepare3DViewport call
+        
         /*
         // FIXME: commented out for debugging speed
         // FIXME: transparent background does not draw correctly when depth testing enabled
@@ -558,11 +560,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glEnable(GL_DEPTH_TEST);
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         glDepthFunc(GL_LESS);*/
-
-        prepare3DViewport(0, 0, mWindowWidth, mWindowHeight);
+        
+        prepare3DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
-        DrawGLUtils::PushMatrix();
         DrawGLUtils::SetCamera(ViewMatrix);
+        DrawGLUtils::PushMatrix();
         accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
         accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
