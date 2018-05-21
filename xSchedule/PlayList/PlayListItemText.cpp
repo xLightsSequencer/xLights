@@ -3,9 +3,6 @@
 #include <wx/notebook.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
-#include <wx/sstream.h>
-#include <wx/protocol/http.h>
-#include <wx/url.h>
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
@@ -250,12 +247,6 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
         tt += "    File Read Data\n";
         tt += "        %FILE_DATA% - Text File Data\n\n";
     }
-    else if(type == "HTTP Get")
-    {
-        tt += "    HTTP Get Data\n";
-        tt += "        %HTTP_STATUS% - HTTP Responce Code\n";
-        tt += "        %HTTP_DATA% - HTTP Data\n\n";
-    }
 
     tt += "    Time until playlist item end\n";
     tt += "        %CD_DAYS%, %CD_HOURS%, %CD_MINS%, %CD_SECS%, %CD_MS%\n";
@@ -321,36 +312,6 @@ std::string PlayListItemText::GetText(size_t ms)
         }
         fileData = fileData.Trim().Trim(false);
         working.Replace("%FILE_DATA%", fileData);
-    }
-    else if (_type == "HTTP Get")
-    {
-        wxURL url(_text);
-        if (url.GetError() == wxURL_NOERR)
-        {
-            wxHTTP get;
-            get.SetTimeout(10);
-            bool success = get.Connect(url.GetServer());
-            if (success)
-            {
-                wxInputStream *httpStream = get.GetInputStream(url.GetPath());
-                if (get.GetError() == wxPROTO_NOERR)
-                {
-                    wxString res;
-                    wxStringOutputStream out_stream(&res);
-                    httpStream->Read(out_stream);
-
-                    working.Replace("%HTTP_DATA%", res.Trim().Trim(false));
-                }
-                else
-                {
-                    working.Replace("%HTTP_DATA%", "Unable to connect!");
-                }
-                wxDELETE(httpStream);
-            }
-            working.Replace("%HTTP_STATUS%", wxString::Format(wxT("%i"), get.GetResponse()));
-            get.Close();
-        }
-
     }
 
     working.Replace("%TEXT%", _text);
