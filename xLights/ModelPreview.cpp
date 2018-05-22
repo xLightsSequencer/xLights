@@ -161,10 +161,10 @@ void ModelPreview::Render()
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
             else {
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
-                /* FIXME:  Delete when not needed for debugging
+                // FIXME:  Delete when not needed for debugging
                 if ((*PreviewModels)[i]->Highlighted) {
                     (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                }*/
+                }//
             }
         }
     }
@@ -618,17 +618,17 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     if (accumulator.count > maxVertexCount) {
         maxVertexCount = accumulator.count;
     }
-	DrawGLUtils::Draw(gridlines, xlColor(0, 128, 0), GL_LINES);
-	DrawGLUtils::Draw(accumulator);
-	DrawGLUtils::Draw(accumulator3d);
-	DrawGLUtils::PopMatrix();
-	 if (swapBuffers)
-	 {
-		 LOG_GL_ERRORV(SwapBuffers());
-	 }
-	 gridlines.Reset();
-	 accumulator3d.Reset();
-	 accumulator.Reset();
+    DrawGLUtils::Draw(gridlines, xlColor(0, 128, 0), GL_LINES);
+    DrawGLUtils::Draw(accumulator);
+    DrawGLUtils::Draw(accumulator3d);
+    DrawGLUtils::PopMatrix();
+    if (swapBuffers)
+    {
+        LOG_GL_ERRORV(SwapBuffers());
+    }
+    gridlines.Reset();
+    accumulator3d.Reset();
+    accumulator.Reset();
     mIsDrawing = false;
 }
 

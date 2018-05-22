@@ -16,6 +16,7 @@ class wxStaticText;
 #include "wxCheckedListCtrl.h"
 #include <wx/treelist.h>
 #include <wx/xml/xml.h>
+#include <glm/glm.hpp>
 
 #include <vector>
 #include <list>
@@ -217,6 +218,7 @@ class LayoutPanel: public wxPanel
         void Nudge(int key);
 
         int FindModelsClicked(int x,int y, std::vector<int> &found);
+        void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
 
         int ModelsSelectedCount() const;
         int GetSelectedModelIndex() const;

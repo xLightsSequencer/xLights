@@ -1566,7 +1566,7 @@ bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direc
         ray_origin,
         aabb_min,
         aabb_max,
-        ModelMatrix)
+        mSelectableHandles == 4 ? TranslateMatrix : ModelMatrix)
         ) {
         return_value = true;
     }
@@ -2203,8 +2203,8 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
 
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
-    aabb_min = glm::vec3(0.0f);
-    aabb_max = glm::vec3(RenderWi * scalex, 10.0f, 10.0f);
+    aabb_min = glm::vec3(0.0f, -BB_OFF, -BB_OFF);
+    aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
 }
 
 void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
@@ -2531,8 +2531,8 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     point2 = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
     if (!is_3d) {
         // allows 2D selection to work
-        origin.z = 0.0f;
-        point2.z = 0.0f;
+        //origin.z = 0.0f;
+        //point2.z = 0.0f;
     }
     center = glm::vec3(RenderWi / 2.0f, 0.0f, 0.0f);
 
@@ -2941,69 +2941,104 @@ float ThreePointScreenLocation::GetYShear() const {
     return 0.0;
 }
 
+void ThreePointScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+{
+    DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, va);
+}
+
 void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
     if (Nodes.size() > 0) {
         aabb_min = glm::vec3(100000.0f, 100000.0f, 100000.0f);
         aabb_max = glm::vec3(0.0f, 0.0f, 0.0f);
 
-        shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
-        glm::mat4 scalingMatrix;
-        if (modelHandlesHeight) {
-            scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+        if (draw_3d) {
+            shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
+            glm::mat4 scalingMatrix;
+            if (modelHandlesHeight) {
+                scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+            }
+            else {
+                scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
+            }
+
+            for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+                for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
+
+                    float sx = coord->screenX;
+                    float sy = coord->screenY;
+                    float sz = coord->screenZ;
+
+                    glm::vec3 shear_point = glm::vec3(shearMatrix * scalingMatrix * glm::vec4(glm::vec3(sx, sy, sz), 1.0f));
+                    sx = shear_point.x;
+                    sy = shear_point.y;
+                    sz = shear_point.z;
+
+                    //aabb vectors need to be the untranslated / unrotated
+                    if (sx < aabb_min.x) {
+                        aabb_min.x = sx;
+                    }
+                    if (sy < aabb_min.y) {
+                        aabb_min.y = sy;
+                    }
+                    if (sz < aabb_min.z) {
+                        aabb_min.z = sz;
+                    }
+                    if (sx > aabb_max.x) {
+                        aabb_max.x = sx;
+                    }
+                    if (sy > aabb_max.y) {
+                        aabb_max.y = sy;
+                    }
+                    if (sz > aabb_max.z) {
+                        aabb_max.z = sz;
+                    }
+                }
+            }
         }
         else {
-            scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley * height, scalez));
-        }
+            aabb_min.z = 0.0f;
+            aabb_max.z = 0.0f;
+            for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+                for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
 
-        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-            for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
+                    float sx = coord->screenX;
+                    float sy = coord->screenY;
+                    float sz = coord->screenZ;
+                    glm::vec4 v = matrix * glm::vec4(glm::vec3(sx, sy, sz), 1.0f);
+                    v.x -= worldPos_x;
+                    v.y -= worldPos_y;
 
-                float sx = coord->screenX;
-                float sy = coord->screenY;
-                float sz = coord->screenZ;
-
-                glm::vec3 shear_point = glm::vec3(shearMatrix * scalingMatrix * glm::vec4(glm::vec3(sx, sy, sz), 1.0f));
-                sx = shear_point.x;
-                sy = shear_point.y;
-                sz = shear_point.z;
-
-                //aabb vectors need to be the untranslated / unrotated
-                if (sx < aabb_min.x) {
-                    aabb_min.x = sx;
-                }
-                if (sy < aabb_min.y) {
-                    aabb_min.y = sy;
-                }
-                if (sz < aabb_min.z) {
-                    aabb_min.z = sz;
-                }
-                if (sx > aabb_max.x) {
-                    aabb_max.x = sx;
-                }
-                if (sy > aabb_max.y) {
-                    aabb_max.y = sy;
-                }
-                if (sz > aabb_max.z) {
-                    aabb_max.z = sz;
+                    //aabb vectors need to be the untranslated / unrotated
+                    if (v.x < aabb_min.x) {
+                        aabb_min.x = v.x;
+                    }
+                    if (v.y < aabb_min.y) {
+                        aabb_min.y = v.y;
+                    }
+                    if (v.x > aabb_max.x) {
+                        aabb_max.x = v.x;
+                    }
+                    if (v.y > aabb_max.y) {
+                        aabb_max.y = v.y;
+                    }
                 }
             }
         }
 
         // Set minimum bounding rectangle
-        if (aabb_max.y - aabb_min.y < 4) {
-            aabb_max.y += 5;
-            aabb_min.y -= 5;
-        }
         if (aabb_max.x - aabb_min.x < 4) {
             aabb_max.x += 5;
             aabb_min.x -= 5;
+        }
+        if (aabb_max.y - aabb_min.y < 4) {
+            aabb_max.y += 5;
+            aabb_min.y -= 5;
         }
         if (aabb_max.z - aabb_min.z < 4) {
             aabb_max.z += 5;
             aabb_min.z -= 5;
         }
-
     }
 }
 

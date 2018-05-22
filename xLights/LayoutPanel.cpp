@@ -1682,11 +1682,8 @@ int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned
     return SortElementsFunction(treelist, first, second, column);
 }
 
-int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
+void LayoutPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
     VectorMath::ScreenPosToWorldRay(
         x, modelPreview->getHeight() - y,
         modelPreview->getWidth(), modelPreview->getHeight(),
@@ -1695,6 +1692,13 @@ int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
         ray_origin,
         ray_direction
     );
+}
+
+int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(x, y, ray_origin, ray_direction);
 
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
@@ -1825,15 +1829,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             if (selectedModel != nullptr) {
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
-
-                VectorMath::ScreenPosToWorldRay(
-                    event.GetX(), modelPreview->getHeight() - event.GetY(),
-                    modelPreview->getWidth(), modelPreview->getHeight(),
-                    modelPreview->GetViewMatrix(),
-                    modelPreview->GetProjMatrix(),
-                    ray_origin,
-                    ray_direction
-                );
+                GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle);
             }
             if (m_over_handle != -1) {
@@ -1965,8 +1961,11 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (event.ShiftDown())
     {
         m_creating_bound_rect = true;
-        m_bound_start_x = event.GetX();
-        m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_start_x = ray_origin.x;
+        m_bound_start_y = ray_origin.y;
     }
     else if (m_over_handle != -1)
     {
@@ -2040,8 +2039,11 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         else
         {
             m_creating_bound_rect = true;
-            m_bound_start_x = event.GetX();
-            m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+            GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+            m_bound_start_x = ray_origin.x;
+            m_bound_start_y = ray_origin.y;
         }
     }
 }
@@ -2069,8 +2071,11 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 
     if (m_creating_bound_rect)
     {
-        m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
@@ -2217,15 +2222,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             if (!selectionLatched) {
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
-
-                VectorMath::ScreenPosToWorldRay(
-                    event.GetX(), modelPreview->getHeight() - event.GetY(),
-                    modelPreview->getWidth(), modelPreview->getHeight(),
-                    modelPreview->GetViewMatrix(),
-                    modelPreview->GetProjMatrix(),
-                    ray_origin,
-                    ray_direction
-                );
+                GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 int which_model = -1;
                 float distance = 1000000000.0f;
                 float intersection_distance = 1000000000.0f;
@@ -2281,15 +2278,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     int handle = -1;
                     glm::vec3 ray_origin;
                     glm::vec3 ray_direction;
-
-                    VectorMath::ScreenPosToWorldRay(
-                        event.GetX(), modelPreview->getHeight() - event.GetY(),
-                        modelPreview->getWidth(), modelPreview->getHeight(),
-                        modelPreview->GetViewMatrix(),
-                        modelPreview->GetProjMatrix(),
-                        ray_origin,
-                        ray_direction
-                    );
+                    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                     modelPreview->SetCursor(selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
                     if (m_over_handle != over_handle) {
                         selectedModel->GetModelScreenLocation().MouseOverHandle(m_over_handle);
@@ -2302,19 +2291,12 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         return;
     }
 
-    /* FIXME:  Delete when not needed for debugging
+    // FIXME:  Delete when not needed for debugging
     /////////////////////////////////////
     // temporary for debugging
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
-    VectorMath::ScreenPosToWorldRay(
-        event.GetX(), modelPreview->getHeight() - event.GetY(),
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetViewMatrix(),
-        modelPreview->GetProjMatrix(),
-        ray_origin,
-        ray_direction
-    );
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         Model* whichModel = modelPreview->GetModels()[i];
@@ -2326,12 +2308,15 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         }
         UpdatePreview();
     }
-    /////////////////////////////////////*/
+    //////////////////////////////////////
 
     if (m_creating_bound_rect)
     {
-        m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
         UpdatePreview();
         return;
     }
