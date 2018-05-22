@@ -43,6 +43,7 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
+#include "City.h"
 
 //#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
@@ -678,6 +679,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     // Uncomment this to run the MatrixMapper tests
     //MatrixMapper::Test(__schedule->GetOutputManager());
+
+    // Uncomment this to run the sunrise/sunset tests
+    // City::Test();
 
     // Uncomment this to run the schedule date tests
     //Schedule::Test();
@@ -1392,6 +1396,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     if (dlg.ShowModal() == wxID_OK)
     {
+        Schedule::SetCity(__schedule->GetOptions()->GetCity());
+
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
             delete _webServer;

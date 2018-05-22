@@ -344,6 +344,8 @@
 		<Unit filename="Blend.h" />
 		<Unit filename="ButtonDetailsDialog.cpp" />
 		<Unit filename="ButtonDetailsDialog.h" />
+		<Unit filename="City.cpp" />
+		<Unit filename="City.h" />
 		<Unit filename="ColourOrderDialog.cpp" />
 		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />

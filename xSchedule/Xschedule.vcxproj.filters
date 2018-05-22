@@ -446,6 +446,7 @@
     <ClCompile Include="PlayList\PlayListItemProjectorPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="City.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -870,6 +871,7 @@
     <ClInclude Include="ProjectorCodes.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="City.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

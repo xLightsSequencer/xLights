@@ -210,6 +210,7 @@
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
+    <ClCompile Include="City.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
@@ -389,6 +390,7 @@
     <ClInclude Include="BackgroundPlaylistDialog.h" />
     <ClInclude Include="Blend.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
+    <ClInclude Include="City.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ConfigureOSC.h" />

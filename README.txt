@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Add fixes to keep available render buffers correct
    -- enh (keith)  Add white channel support to the DMX model
    -- enh (keith)  Add video render caching to eliminate the need to continually shrink large videos
+   -- enh (keith)  Add support for sunrise and sunset to schedule
+   -- bug (keith)  Fix some anomalies with resetting schedules
    -- bug (scott)  Fix for new sequence files saving in the FSEQ folder not the show folder
    -- enh (scott)  Added File Read option to Text Playlist Item in xSchedule
 2018.13 May 12, 2018

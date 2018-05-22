@@ -9,6 +9,7 @@ class wxXmlNode;
 
 class Schedule
 {
+    static std::string __city;
     wxUint32 _id;
     std::string _name;
     std::string _dow;
@@ -17,7 +18,9 @@ class Schedule
 	wxDateTime _startDate;
 	wxDateTime _endDate;
 	wxDateTime _startTime;
+    std::string _startTimeString;
 	wxDateTime _endTime;
+    std::string _endTimeString;
 	bool _loop;
 	int _loops;
 	bool _random;
@@ -29,6 +32,7 @@ class Schedule
     int _nthDayOffset;
     std::string _fireFrequency;
 
+    void SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString) const;
     bool IsOkDOW(const wxDateTime& date);
     bool IsOkNthDay(const wxDateTime& date);
     bool CheckActiveAt(const wxDateTime& now);
@@ -37,6 +41,7 @@ class Schedule
 
         static void Test();
 
+        static void SetCity(std::string city) { __city = city; }
         wxUint32 GetId() const { return _id; }
         bool operator<(const Schedule& rhs) const { return _priority < rhs._priority; }
         bool operator==(const Schedule& rhs) const { return _id == rhs._id; }
@@ -44,10 +49,10 @@ class Schedule
         void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
-        std::string GetStartTimeAsString() const { return _startTime.FormatTime().ToStdString(); }
-        std::string GetEndTimeAsString() const { return _endTime.FormatTime().ToStdString(); }
-        void SetStartTime(const std::string& start) { wxDateTime dt; dt.ParseTime(start); if (dt != _startTime) { _startTime.ParseTime(start); _changeCount++; } }
-        void SetEndTime(const std::string& end) { wxDateTime dt; dt.ParseTime(end); if (dt != _endTime) { _endTime.ParseTime(end); _changeCount++; } }
+        std::string GetStartTimeAsString() const { if (_startTimeString == "") return _startTime.FormatTime().ToStdString(); else return _startTimeString; }
+        std::string GetEndTimeAsString() const { if (_endTimeString == "") return _endTime.FormatTime().ToStdString(); else return _endTimeString; }
+        void SetStartTime(const std::string& start);
+        void SetEndTime(const std::string& end);
         void SetLoops(int loops) { if (_loops != loops) { _loops = loops; _changeCount++; } }
         int GetLoops() const { return _loops; }
         void SetLoop(bool loop) { if (_loop != loop) { _loop = loop; _changeCount++; } }

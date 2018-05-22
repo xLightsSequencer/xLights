@@ -8,6 +8,7 @@
 #include <wx/xml/xml.h>
 #include <wx/file.h>
 #include "../xLights/AudioManager.h"
+#include "City.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
@@ -39,6 +40,8 @@ const long OptionsDialog::ID_STATICTEXT5 = wxNewId();
 const long OptionsDialog::ID_TEXTCTRL2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL2 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
+const long OptionsDialog::ID_CHOICE3 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -137,6 +140,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	SpinCtrl_PasswordTimeout = new wxSpinCtrl(this, ID_SPINCTRL2, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 1, 1440, 30, _T("ID_SPINCTRL2"));
 	SpinCtrl_PasswordTimeout->SetValue(_T("30"));
 	FlexGridSizer8->Add(SpinCtrl_PasswordTimeout, 1, wxALL|wxEXPAND, 5);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Location:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Location = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+	FlexGridSizer8->Add(Choice_Location, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -169,6 +176,12 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
         Choice_AudioDevice->Append(*it);
     }
 
+    auto cities = City::GetCities();
+    for (auto it = cities.begin(); it != cities.end(); ++it)
+    {
+        Choice_Location->Append(*it);
+    }
+
     ListView_Buttons->AppendColumn("Label");
     ListView_Buttons->AppendColumn("Command");
     ListView_Buttons->AppendColumn("Parameters");
@@ -188,6 +201,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     TextCtrl_wwwRoot->SetValue(options->GetWWWRoot());
     StaticText4->SetToolTip("Root Directory: " + options->GetDefaultRoot());
     TextCtrl_Password->SetValue(options->GetPassword());
+    Choice_Location->SetStringSelection(options->GetCity());
     Choice_AudioDevice->SetStringSelection(options->GetAudioDevice());
     if (Choice_AudioDevice->GetSelection() == -1)
     {
@@ -257,6 +271,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
     _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
+    _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

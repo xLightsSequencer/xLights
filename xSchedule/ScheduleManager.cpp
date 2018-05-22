@@ -92,6 +92,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             else if (n->GetName() == "Options")
             {
                 _scheduleOptions = new ScheduleOptions(_outputManager, n);
+                Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")
             {
@@ -124,6 +125,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     if (_scheduleOptions == nullptr)
     {
         _scheduleOptions = new ScheduleOptions();
+        Schedule::SetCity(_scheduleOptions->GetCity());
     }
 
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
@@ -2117,11 +2119,15 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         {
                             if ((*it)->GetSchedule()->GetId() == selschedule->GetId())
                             {
-                                (*it)->Reset();
+                                auto todelete = *it;
+                                _activeSchedules.erase(it);
+                                todelete->GetPlayList()->Stop();
+                                delete todelete;
                                 wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                                 wxPostEvent(wxGetApp().GetTopWindow(), event);
                                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
                                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                                break;
                             }
                         }
                     }
@@ -2131,8 +2137,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 {
                     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
                     {
-                        (*it)->Reset();
+                        delete *it;
                     }
+                    _activeSchedules.clear();
                     wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                     wxPostEvent(wxGetApp().GetTopWindow(), event);
                     scheduleChanged = true;
