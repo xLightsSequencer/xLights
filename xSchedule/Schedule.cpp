@@ -97,7 +97,7 @@ Schedule::Schedule()
     _id = __scheduleid++;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
-    _loop = false;
+    _loop = true;
     _endDate.ParseDate("2099-01-01");
     _startDate.ParseDate("2017-01-01");
     _startTime.ParseTime("19:00");
