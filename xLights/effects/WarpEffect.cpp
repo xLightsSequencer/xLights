@@ -8,6 +8,44 @@
 #include "../xLightsMain.h" //xLightsFrame
 #include "../OpenGLShaders.h"
 #include "../DissolveTransitionPattern.h"
+#include "../DrawGLUtils.h"
+
+#ifndef __WXMAC__
+#include <GL/gl.h>
+#ifdef _MSC_VER
+#include "GL\glext.h"
+#else
+#include <GL/glext.h>
+#endif
+
+extern PFNGLGENBUFFERSPROC glGenBuffers;
+extern PFNGLBINDBUFFERPROC glBindBuffer;
+extern PFNGLBUFFERDATAPROC glBufferData;
+extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix4fv;
+extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+extern PFNGLUNIFORM1IPROC glUniform1i;
+extern PFNGLUNIFORM1FPROC glUniform1f;
+#else
+#include "OpenGL/gl.h"
+#endif
 
 #include "../../include/warp-64.xpm"
 #include "../../include/warp-48.xpm"
@@ -110,7 +148,7 @@ namespace
       const Vec2D center( 0.5, 0.5 );
       const double frequency = 20;
       const double speed = 10;
-      const double amplitude = /*0.05*/0.15;
+      const double amplitude = 0.15;
 
       Vec2D toUV( s - center.x, t - center.y );
       double distanceFromCenter = toUV.Len();
@@ -119,10 +157,10 @@ namespace
       double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
       double offset = progress * wave * amplitude;
 
-      Vec2D newUV2 = center + normToUV * ( distanceFromCenter + offset );
+      Vec2D newUV = center + normToUV * ( distanceFromCenter + offset );
 
       xlColor c1 = tex2D( cb, s, t );
-      xlColor c2 = tex2D( cb, newUV2.x, newUV2.y );
+      xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
       return lerp( c2, c1, progress );
    }
@@ -131,7 +169,7 @@ namespace
       const Vec2D center( 0.5, 0.5 );
       const double frequency = 20;
       const double speed = 10;
-      const double amplitude = /*0.05*/0.15;
+      const double amplitude = 0.15;
 
       Vec2D toUV( s - center.x, t - center.y );
       double distanceFromCenter = toUV.Len();
@@ -140,10 +178,10 @@ namespace
       double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
       double offset = progress * wave * amplitude;
 
-      Vec2D newUV2 = center + normToUV * ( distanceFromCenter + offset );
+      Vec2D newUV = center + normToUV * ( distanceFromCenter + offset );
 
       xlColor c1 = tex2D( cb, s, t );
-      xlColor c2 = tex2D( cb, newUV2.x, newUV2.y );
+      xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
       return lerp( c1, c2, progress );
    }
@@ -178,7 +216,165 @@ namespace
          }
       }
    }
+
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
+   GLuint RenderBufferTexture( int w, int h )
+   {
+      GLuint texId = 0;
+
+      glGenTextures( 1, &texId );
+      glBindTexture( GL_TEXTURE_2D, texId );
+
+      glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+      glBindTexture( GL_TEXTURE_2D, 0 );
+
+      return texId;
+   }
+
+   GLuint NoiseTexture()
+   {
+      GLuint texId = 0;
+
+      glGenTextures( 1, &texId );
+      glBindTexture( GL_TEXTURE_2D, texId );
+
+      glTexImage2D( GL_TEXTURE_2D, 0, GL_R8, DissolvePatternWidth, DissolvePatternHeight, 0, GL_RED, GL_UNSIGNED_BYTE, DissolveTransitonPattern );
+
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+      glBindTexture( GL_TEXTURE_2D, 0 );
+
+      return texId;
+   }
+
+   bool createOpenGLRenderBuffer( int width, int height, GLuint *rbID, GLuint *fbID )
+   {
+      glGenRenderbuffers(1, rbID);
+      glBindRenderbuffer(GL_RENDERBUFFER, *rbID);
+      glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height );
+
+      glGenFramebuffers(1, fbID );
+      glBindFramebuffer(GL_FRAMEBUFFER, *fbID);
+      glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
+      glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
+
+      glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+      return *rbID != 0 && *fbID != 0;
+   }
+
+   const char *vsSrc =
+      "#version 330 core\n"
+      "in vec2 vpos;\n"
+      "in vec2 tpos;\n"
+      "out vec2 texCoord;\n"
+      "void main(){\n"
+      "    gl_Position = vec4(vpos,0,1);\n"
+      "    texCoord = tpos;\n"
+      "}\n";
+
+   const char *psDissolveIn =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "uniform sampler2D noiseSampler;\n"
+      "in vec2 texCoord;\n"
+      "void main(){\n"
+      "    float red = texture( noiseSampler, texCoord).r;\n"
+      "    gl_FragColor = (red <= progress )\n"
+      "        ? texture( texSampler, texCoord )\n"
+      "        : vec4( 0, 0, 0, 1 );\n"
+      "}\n";
+   const char *psDissolveOut =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "uniform sampler2D noiseSampler;\n"
+      "in vec2 texCoord;\n"
+      "void main(){\n"
+      "    float red = texture( noiseSampler, texCoord).r;\n"
+      "    gl_FragColor = (red > progress )\n"
+      "        ? texture( texSampler, texCoord )\n"
+      "        : vec4( 0, 0, 0, 1 );\n"
+      "}\n";
+
+   const char *psRippleIn =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main() {\n"
+      "    vec2 center = vec2( 0.5, 0.5 );\n"
+      "    float frequency = 20;\n"
+      "    float speed = 10;\n"
+      "    float amplitude = 0.15;\n"
+      "\n"
+      "    vec2 toUV = texCoord - center;\n"
+      "    float distanceFromCenter = length(toUV);\n"
+      "    vec2 normToUV = toUV / distanceFromCenter;\n"
+      "\n"
+      "    float wave = cos(frequency * distanceFromCenter - speed * progress);\n"
+      "    float offset = progress * wave * amplitude;\n"
+      "    vec2 newUV = center + normToUV * (distanceFromCenter + offset);\n"
+      "\n"
+      "    vec4 c1 = texture(texSampler, texCoord);\n"
+      "    vec4 c2 = texture(texSampler, newUV);\n"
+      "\n"
+      "    gl_FragColor = mix( c2, c1, progress );\n"
+      "}\n";
+      const char *psRippleOut =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main() {\n"
+      "    vec2 center = vec2( 0.5, 0.5 );\n"
+      "    float frequency = 20;\n"
+      "    float speed = 10;\n"
+      "    float amplitude = 0.15;\n"
+      "\n"
+      "    vec2 toUV = texCoord - center;\n"
+      "    float distanceFromCenter = length(toUV);\n"
+      "    vec2 normToUV = toUV / distanceFromCenter;\n"
+      "\n"
+      "    float wave = cos(frequency * distanceFromCenter - speed * progress);\n"
+      "    float offset = progress * wave * amplitude;\n"
+      "    vec2 newUV = center + normToUV * (distanceFromCenter + offset);\n"
+      "\n"
+      "    vec4 c1 = texture(texSampler, texCoord);\n"
+      "    vec4 c2 = texture(texSampler, newUV);\n"
+      "\n"
+      "    gl_FragColor = mix( c1, c2, progress );\n"
+      "}\n";
+
+   bool useOpenGL = false;
 }
+
+bool WarpEffect::s_shadersInit = false;
+unsigned WarpEffect::s_programId_dissolve_in = 0;
+unsigned WarpEffect::s_programId_dissolve_out = 0;
+unsigned WarpEffect::s_programId_ripple_in = 0;
+unsigned WarpEffect::s_programId_ripple_out = 0;
+unsigned WarpEffect::s_noiseTexId = 0;
+unsigned WarpEffect::s_vertexArrayId = 0;
+unsigned WarpEffect::s_vertexBufferId = 0;
+unsigned WarpEffect::s_fbId = 0;
+unsigned WarpEffect::s_rbId = 0;
+unsigned WarpEffect::s_rbTex = 0;
+int WarpEffect::s_rbWidth = 0;
+int WarpEffect::s_rbHeight = 0;
 
 WarpEffect::WarpEffect(int i) : RenderableEffect(i, "Warp", warp_16_xpm, warp_24_xpm, warp_32_xpm, warp_48_xpm, warp_64_xpm)
 {
@@ -230,14 +426,136 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-    //bool canUseShaders = OpenGLShaders::HasShaderSupport();
-    std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "ripple" );
-    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "in");
+   std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "ripple" );
+   std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "in");
+   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
-    double adjust = buffer.GetEffectTimeIntervalPosition(1.f);
+   if ( useOpenGL && OpenGLShaders::HasShaderSupport() && OpenGLShaders::HasFramebufferObjects() )
+   {
+      WarpPanel *p = (WarpPanel *)panel;
+      p->_preview->SetCurrentGLContext();
 
-    if ( warpEffect == "ripple" )
-      RenderPixelTransform( warpType == "in" ? rippleIn : rippleOut, adjust, buffer );
-    else if ( warpEffect == "dissolve" )
-      RenderPixelTransform( warpType == "in" ? dissolveIn : dissolveOut, adjust, buffer );
+      sizeForRenderBuffer( buffer );
+
+      glBindFramebuffer( GL_FRAMEBUFFER, /*fbId*/s_fbId );
+      glViewport( 0, 0, buffer.BufferWi, buffer.BufferHt );
+
+      glClearColor( 0.f, 0.f, 0.f, 0.f );
+      glClear( GL_COLOR_BUFFER_BIT );
+
+      glActiveTexture( GL_TEXTURE0 );
+      glBindTexture( GL_TEXTURE_2D, s_rbTex );
+      glTexSubImage2D( GL_TEXTURE_2D, 0, 0,0, buffer.BufferWi,buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &buffer.pixels[0] );
+
+      glActiveTexture( GL_TEXTURE0+1 );
+      glBindTexture( GL_TEXTURE_2D, s_noiseTexId );
+
+      glBindVertexArray( s_vertexArrayId );
+      glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
+
+      GLuint programId = 0;
+      if ( warpEffect == "ripple" )
+         programId = warpType == "in" ? s_programId_ripple_in : s_programId_ripple_out;
+      else if ( warpEffect == "dissolve" )
+         programId = warpType == "in" ? s_programId_dissolve_in : s_programId_dissolve_out;
+
+      glUseProgram( programId );
+
+      int loc = glGetUniformLocation( programId, "texSampler" );
+      glUniform1i( loc, 0 );
+
+      loc = glGetUniformLocation( programId, "progress" );
+      glUniform1f( loc, progress );
+
+      loc = glGetUniformLocation( programId, "noiseSampler" );
+      if ( loc >= 0 )
+         glUniform1i( loc, 1 );
+
+      GLuint vattrib = glGetAttribLocation( programId, "vpos" );
+      glVertexAttribPointer( vattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, v) ) );
+      glEnableVertexAttribArray( vattrib );
+
+      GLuint tattrib = glGetAttribLocation( programId, "tpos" );
+      glVertexAttribPointer( tattrib, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTex), reinterpret_cast<void *>( offsetof(VertexTex, t ) ) );
+      glEnableVertexAttribArray( tattrib );
+
+      glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+
+      glDisableVertexAttribArray( vattrib );
+      glDisableVertexAttribArray( tattrib );
+
+      glBindVertexArray( 0 );
+      glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+      xlColorVector& cv( buffer.pixels );
+      glReadPixels( 0, 0, buffer.BufferWi, buffer.BufferHt, GL_RGBA, GL_UNSIGNED_BYTE, &cv[0] );
+   }
+   else
+   {
+      double adjust = buffer.GetEffectTimeIntervalPosition(1.f);
+      if ( warpEffect == "ripple" )
+         RenderPixelTransform( warpType == "in" ? rippleIn : rippleOut, adjust, buffer );
+      else if ( warpEffect == "dissolve" )
+         RenderPixelTransform( warpType == "in" ? dissolveIn : dissolveOut, adjust, buffer );
+   }
+}
+
+bool WarpEffect::CanRenderOnBackgroundThread( Effect *effect, const SettingsMap &settings, RenderBuffer &buffer )
+{
+   return !( useOpenGL && OpenGLShaders::HasShaderSupport() && OpenGLShaders::HasFramebufferObjects() );
+}
+
+void WarpEffect::sizeForRenderBuffer( const RenderBuffer& rb )
+{
+   if ( !s_shadersInit )
+   {
+      s_programId_dissolve_in = OpenGLShaders::compile( vsSrc, psDissolveIn );
+      s_programId_dissolve_out = OpenGLShaders::compile( vsSrc, psDissolveOut );
+      s_programId_ripple_in = OpenGLShaders::compile( vsSrc, psRippleIn );
+      s_programId_ripple_out = OpenGLShaders::compile( vsSrc, psRippleOut );
+      s_noiseTexId = NoiseTexture();
+
+      VertexTex vt[4] =
+      {
+         { {  1.f, -1.f }, { 1.f, 0.f } },
+         { { -1.f, -1.f }, { 0.f, 0.f } },
+         { {  1.f,  1.f }, { 1.f, 1.f } },
+         { { -1.f,  1.f }, { 0.f, 1.f } }
+      };
+      glGenVertexArrays( 1, &s_vertexArrayId );
+      glGenBuffers( 1, &s_vertexBufferId );
+
+      glBindVertexArray( s_vertexArrayId );
+      glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
+      glBufferData( GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW );
+
+      glBindVertexArray( 0 );
+      glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+      createOpenGLRenderBuffer( rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId );
+
+      s_rbTex = RenderBufferTexture( rb.BufferWi, rb.BufferHt );
+
+      s_rbWidth = rb.BufferWi;
+      s_rbHeight = rb.BufferHt;
+      s_shadersInit = true;
+   }
+   else if ( rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight )
+   {
+      glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+      if ( s_fbId )
+         glDeleteFramebuffers( 1, &s_fbId );
+      if ( s_rbId )
+      {
+         glBindRenderbuffer( GL_RENDERBUFFER, 0 );
+         glDeleteRenderbuffers( 1, &s_rbId );
+      }
+      if ( s_rbTex )
+         glDeleteTextures( 1, &s_rbTex );
+      createOpenGLRenderBuffer( rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId );
+      s_rbTex = RenderBufferTexture( rb.BufferWi, rb.BufferHt );
+
+      s_rbWidth = rb.BufferWi;
+      s_rbHeight = rb.BufferHt;
+   }
 }

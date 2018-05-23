@@ -9,7 +9,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
-					<rows>2</rows>
+					<rows>3</rows>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Warp Effect</label>
@@ -47,6 +47,15 @@
 							<style>wxCB_READONLY</style>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="PreviewSizer" member="no">
+							<cols>1</cols>
+							<rows>1</rows>
+						</object>
+						<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

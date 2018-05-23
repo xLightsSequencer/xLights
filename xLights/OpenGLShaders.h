@@ -7,8 +7,8 @@ class OpenGLShaders
 {
 public:
    static bool HasShaderSupport();
+   static bool HasFramebufferObjects();
 
-protected:
    static unsigned compile( const std::string& vertexSource, const std::string& fragmentSource );
 };
 

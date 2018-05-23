@@ -24,6 +24,15 @@ extern PFNGLDELETEPROGRAMPROC     glDeleteProgram;
 extern PFNGLGETPROGRAMIVPROC      glGetProgramiv;
 extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 
+extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+
 static bool canUseShaders()
 {
    return glCreateShader != nullptr
@@ -40,10 +49,25 @@ static bool canUseShaders()
       && glGetProgramiv != nullptr
       && glGetProgramInfoLog != nullptr;
 }
+static bool canUseFramebufferObjects()
+{
+	return glGenFramebuffers != nullptr
+		&& glBindFramebuffer != nullptr
+		&& glDeleteFramebuffers != nullptr
+		&& glGenRenderbuffers != nullptr
+		&& glDeleteRenderbuffers != nullptr
+		&& glBindRenderbuffer != nullptr
+		&& glRenderbufferStorage != nullptr
+		&& glFramebufferRenderbuffer != nullptr;
+}
 #else
 #include "OpenGL/gl.h"
 
 static bool canUseShaders()
+{
+   return true;
+}
+static bool canUseFramebufferObjects()
 {
    return true;
 }
@@ -96,23 +120,16 @@ namespace
       }
       return result == GL_TRUE;
    }
-
-   const char* mediaRenderVertexFromUniformSource = "    \n\
-      in vec4 pos;                                       \n\
-      in vec2 texCoordIn;                                \n\
-      out vec2 texCoord;                                 \n\
-      uniform mat4 MVP;                                  \n\
-      void main( void )                                  \n\
-      {                                                  \n\
-         gl_Position = MVP * pos;                        \n\
-         texCoord = texCoordIn;                          \n\
-      }                                                  \n\
-";
 }
 
 bool OpenGLShaders::HasShaderSupport()
 {
    return canUseShaders();
+}
+
+bool OpenGLShaders::HasFramebufferObjects()
+{
+   return canUseFramebufferObjects();
 }
 
 unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
@@ -131,6 +148,9 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
    bool fragCompileSuccess = shaderCompileSuceeded( fragmentShader );
    if ( !fragCompileSuccess )
    {
+      char buff[1024];
+      glGetShaderInfoLog( fragmentShader, 1024, nullptr, buff );
+      printf("%s\n", buff );
       glDeleteShader( vertexShader );
       return 0;
    }
