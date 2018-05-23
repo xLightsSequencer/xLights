@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.14 May 23, 2018
    -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version
    -- enh (keith)  Add search to sequences/lyrics download
