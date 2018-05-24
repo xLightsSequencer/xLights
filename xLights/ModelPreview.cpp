@@ -57,12 +57,14 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         wxString tip =_model->GetNodeNear(this, event.GetPosition());
         SetToolTip(tip);
     }
+    Refresh();
 
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
+    SetFocus();
 	m_mouse_down = true;
 	m_last_mouse_x = event.GetX();
 	m_last_mouse_y = event.GetY();
@@ -92,6 +94,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         delta *= -1.0f;
     }
     SetZoomDelta(delta);
+    Refresh();
 
     event.ResumePropagation(1);
     event.Skip(); // continue the event
@@ -161,10 +164,10 @@ void ModelPreview::Render()
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
             else {
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
-                // FIXME:  Delete when not needed for debugging
+                /*/ FIXME:  Delete when not needed for debugging
                 if ((*PreviewModels)[i]->Highlighted) {
                     (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                }//
+                }/*/
             }
         }
     }
@@ -231,14 +234,13 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
-      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
+      image(nullptr), PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
       m_mouse_down(false), m_wheel_down(false), is_3d(false)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
-    image = nullptr;
     sprite = nullptr;
     _model = nullptr;
     cameraAngleX = 20;
@@ -438,10 +440,10 @@ void ModelPreview::SetCameraView(int camerax, int cameray, bool latch)
         last_offsety = 0;
     }
 	else {
-		cameraAngleX = latched_x + cameray;
-		cameraAngleY = latched_y + camerax;
-		last_offsetx = cameray;
-		last_offsety = camerax;
+		cameraAngleX = latched_x + cameray / 2;
+		cameraAngleY = latched_y + camerax / 2;
+		last_offsetx = cameray / 2;
+		last_offsety = camerax / 2;
 	}
 }
 

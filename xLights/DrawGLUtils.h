@@ -417,7 +417,7 @@ namespace DrawGLUtils
             AddVertex(x2, y1, 0, c);
             AddVertex(x1, y1, 0, c);
         }
-        void AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor &c);
+        void AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &c);
         void AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset = 0);
         void AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2);
         void AddTrianglesCircle(float x, float y, float radius, const xlColor &color);

@@ -245,7 +245,6 @@ bool ModelGroup::Reset(bool zeroBased) {
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
     screenLocation.SetOffset(0.5, 0.5);
 
-    SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
     return true;
 }
 

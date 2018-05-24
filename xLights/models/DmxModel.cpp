@@ -896,7 +896,7 @@ void DmxModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         color = *c;
     }
 
-    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX() * screenLocation.previewW;
+    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX(); // FIXME:  figure out what this needs to be * screenLocation.previewW;
     float radius = (float)(dmx_size) / 2.0f;
     xlColor color_angle;
 
@@ -1266,7 +1266,7 @@ void DmxModel::DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
         color = *c;
     }
 
-    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX() * screenLocation.previewW;
+    int dmx_size = ((BoxedScreenLocation)screenLocation).GetScaleX(); // FIXME:  figure out what this needs to be *screenLocation.previewW;
     float radius = (float)(dmx_size) / 2.0f;
     xlColor color_angle;
 

@@ -147,7 +147,6 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
             if (!name.empty()) {
                 Model *m = createAndAddModel(e);
                 if (m != nullptr) {
-                    m->SetMinMaxModelScreenCoordinates(previewW, previewH);
                     countValid += m->CouldComputeStartChannel ? 1 : 0;
                 }
             }
@@ -554,9 +553,6 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
     }
-    if (model != nullptr) {
-        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
-    }
     return model;
 }
 
@@ -607,9 +603,6 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
     } else {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
-    }
-    if (model != nullptr) {
-        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
     }
     return model;
 }

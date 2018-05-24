@@ -239,8 +239,10 @@ class LayoutPanel: public wxPanel
         bool m_creating_bound_rect;
         int m_bound_start_x;
         int m_bound_start_y;
+        int m_bound_start_z;
         int m_bound_end_x;
         int m_bound_end_y;
+        int m_bound_end_z;
         int m_over_handle;
         bool m_moving_handle;
         bool m_wheel_down;
@@ -362,7 +364,6 @@ class LayoutPanel: public wxPanel
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
-        void Unselect3DItems();
         void SelectModel3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();

@@ -281,9 +281,7 @@ public:
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     void Lock(bool lock);
-    bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
-    void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
-    void SetMinMaxModelScreenCoordinates(int w, int y);
+    bool IsContained(int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString();
@@ -317,23 +315,23 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
-    void SetTop(ModelPreview* preview,int y);
-    void SetBottom(ModelPreview* preview,int y);
-    void SetLeft(ModelPreview* preview,int x);
-    void SetRight(ModelPreview* preview,int x);
+    void SetTop(int y);
+    void SetBottom(int y);
+    void SetLeft(int x);
+    void SetRight(int x);
     void SetHcenterOffset(float offset);
     void SetVcenterOffset(float offset);
-    void SetWidth(ModelPreview* preview, int w);
-    void SetHeight(ModelPreview* preview, int h);
+    void SetWidth(int w);
+    void SetHeight(int h);
 
-    int GetTop(ModelPreview* preview);
-    int GetBottom(ModelPreview* preview);
-    int GetLeft(ModelPreview* preview);
-    int GetRight(ModelPreview* preview);
+    int GetTop();
+    int GetBottom();
+    int GetLeft();
+    int GetRight();
     float GetHcenterOffset();
     float GetVcenterOffset();
-    int GetWidth(ModelPreview* preview);
-    int GetHeight(ModelPreview* preview);
+    int GetWidth();
+    int GetHeight();
 
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}

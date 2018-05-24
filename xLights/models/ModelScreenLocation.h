@@ -52,7 +52,6 @@ public:
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
 
-    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) = 0;
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
 
@@ -85,7 +84,7 @@ public:
     virtual float GetVScaleFactor() const {return 1.0;}
 
     virtual void SetOffset(float xPct, float yPct) = 0;
-    virtual void AddOffset(float xPct, float yPct, float zPct) = 0;
+    virtual void AddOffset(float deltax, float deltay, float deltaz);
 
     virtual float GetHcenterOffset() const = 0;
     virtual float GetVcenterOffset() const = 0;
@@ -191,7 +190,6 @@ public:
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
 
-    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
@@ -240,7 +238,6 @@ public:
         scalex = x;
         scaley = y;
     }
-    void AddOffset(float xPct, float yPct, float zPct);
 
     void SetRotation(int r) {
         rotatez = r;
@@ -288,7 +285,6 @@ public:
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
 
-    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
@@ -322,7 +318,6 @@ public:
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetOffset(float xPct, float yPct) override;
-    virtual void AddOffset(float xPct, float yPct, float zPct) override;
     virtual int GetTop() const override;
     virtual int GetLeft() const override;
     virtual int GetRight() const override;
@@ -337,7 +332,6 @@ public:
     virtual int GetMHeight() const override;
 
     virtual float GetYShear() const {return 0.0;}
-    void FlipCoords();
 
     virtual int GetDefaultHandle() { return END_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
@@ -441,7 +435,6 @@ public:
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
 
-    virtual void SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) override;
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
@@ -478,7 +471,6 @@ public:
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetOffset(float xPct, float yPct) override;
-    virtual void AddOffset(float xPct, float yPct, float zPct) override;
     virtual int GetTop() const override;
     virtual int GetLeft() const override;
     virtual int GetRight() const override;

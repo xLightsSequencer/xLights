@@ -840,26 +840,26 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddDottedLinesRect(float x1, float y1, float x2, float y2, const xlColor &color) {
+void DrawGLUtils::xlVertex3ColorAccumulator::AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &color) {
     // Line 1
     float xs = x1<x2?x1:x2;
     float xf = x1>x2?x1:x2;
     for(float x = xs; x <= xf; x += 8)
     {
-        AddVertex(x, y1, 0, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y1, 0, color);
-        AddVertex(x, y2, 0, color);
-        AddVertex(x + 4 < xf ? x + 4 : xf, y2, 0, color);
+        AddVertex(x, y1, z1, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y1, z1, color);
+        AddVertex(x, y2, z2, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y2, z2, color);
     }
     // Line 2
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
     for(int y=ys;y<=yf;y+=8)
     {
-        AddVertex(x1, y, 0, color);
-        AddVertex(x1, y + 4 < yf ? y + 4 : yf, 0, color);
-        AddVertex(x2, y, 0, color);
-        AddVertex(x2, y + 4 < yf ? y + 4 : yf, 0, color);
+        AddVertex(x1, y, z1, color);
+        AddVertex(x1, y + 4 < yf ? y + 4 : yf, z1, color);
+        AddVertex(x2, y, z2, color);
+        AddVertex(x2, y + 4 < yf ? y + 4 : yf, z2, color);
     }
 }
 

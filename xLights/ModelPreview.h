@@ -93,7 +93,8 @@ public:
 
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
-    DrawGLUtils::xlAccumulator &GetAccumulator() {return accumulator;}
+    DrawGLUtils::xlAccumulator &GetAccumulator() { return accumulator; }
+    DrawGLUtils::xl3Accumulator &GetAccumulator3d() { return accumulator3d; }
 protected:
     virtual void InitializeGLCanvas() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -128,7 +129,7 @@ private:
     wxDouble mPointSize = 2.0;
     int virtualWidth, virtualHeight;
 
-    Image* image = nullptr;
+    Image* image;
     bool scaleImage = false;
     xLightsDrawable* sprite;
     std::vector<Model*> previewModels;

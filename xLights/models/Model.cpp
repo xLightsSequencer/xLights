@@ -2649,13 +2649,11 @@ void Model::UpdateXmlWithScale() {
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
-bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
-    SetMinMaxModelScreenCoordinates(preview);
+bool Model::IsContained(int x1, int y1, int x2, int y2) {
     return GetModelScreenLocation().IsContained(x1, y1, x2, y2);
 }
 
 bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
-    SetMinMaxModelScreenCoordinates(preview);
     return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
@@ -2686,7 +2684,6 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     preview->GetVirtualCanvasSize(w, h);
 
 	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
-	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
 
     screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
     screenLocation.PrepareToDraw(is_3d, allowSelected);
@@ -2817,7 +2814,6 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     preview->GetVirtualCanvasSize(w, h);
 
 	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
-	 screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
 
     screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
     screenLocation.PrepareToDraw(is_3d, allowSelected);
@@ -3156,16 +3152,6 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     }
 }
 
-void Model::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-    SetMinMaxModelScreenCoordinates(w, h);
-}
-
-void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
-    GetModelScreenLocation().SetPreviewSize(w, h, Nodes);
-}
-
 void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
 
     if (GetModelScreenLocation().IsLocked()) return;
@@ -3232,71 +3218,62 @@ void Model::DeleteHandle(int handle) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
-void Model::SetTop(ModelPreview* preview,int y) {
+void Model::SetTop(int y) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetTop(y);
     IncrementChangeCount();
 }
 
-void Model::SetBottom(ModelPreview* preview,int y) {
+void Model::SetBottom(int y) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetBottom(y);
     IncrementChangeCount();
 }
 
-void Model::SetLeft(ModelPreview* preview,int x) {
+void Model::SetLeft(int x) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetLeft(x);
     IncrementChangeCount();
 }
 
-void Model::SetRight(ModelPreview* preview,int x) {
+void Model::SetRight(int x) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetRight(x);
     IncrementChangeCount();
 }
 
-int Model::GetTop(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetTop() {
     return GetModelScreenLocation().GetTop();
 }
 
-int Model::GetWidth(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetWidth() {
     return GetModelScreenLocation().GetMWidth();
 }
 
-int Model::GetHeight(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetHeight() {
     return GetModelScreenLocation().GetMHeight();
 }
 
-void Model::SetWidth(ModelPreview* preview, int w) {
+void Model::SetWidth(int w) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetMWidth(w);
     IncrementChangeCount();
 }
 
-void Model::SetHeight(ModelPreview* preview, int h) {
+void Model::SetHeight(int h) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetMHeight(h);
 
     // this is necessary for three point models
@@ -3306,18 +3283,15 @@ void Model::SetHeight(ModelPreview* preview, int h) {
     IncrementChangeCount();
 }
 
-int Model::GetBottom(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetBottom() {
     return GetModelScreenLocation().GetBottom();
 }
 
-int Model::GetLeft(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetLeft() {
     return GetModelScreenLocation().GetLeft();
 }
 
-int Model::GetRight(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
+int Model::GetRight() {
     return GetModelScreenLocation().GetRight();
 }
 

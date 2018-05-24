@@ -116,7 +116,7 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 }
 
 ModelScreenLocation::ModelScreenLocation(int sz)
-: RenderWi(0), RenderHt(0), RenderDp(0), previewW(800), previewH(600),
+: RenderWi(0), RenderHt(0), RenderDp(0),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   active_handle_pos(glm::vec3(0.0f)), rotatex(0), rotatey(0), rotatez(0),
@@ -289,6 +289,15 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, DrawGLUtils::xl3Accumulat
         va.AddVertex(pos.x, pos.y, pos.z + AXIS_ARROW_LENGTH - AXIS_RADIUS, xlBLUE);
         va.Finish(GL_LINES);
     }
+}
+
+void ModelScreenLocation::AddOffset(float deltax, float deltay, float deltaz) {
+
+    if (_locked) return;
+
+    worldPos_x += deltax;
+    worldPos_y += deltay;
+    worldPos_z += deltaz;
 }
 
 void ModelScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
@@ -604,8 +613,11 @@ bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
+    
+    glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
+    glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
 
-    if (aabb_min.x >= xs && aabb_max.x <= xf && aabb_min.y >= ys && aabb_max.y <= yf) {
+    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
         return true;
     } else {
         return false;
@@ -733,7 +745,6 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     else {
         wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
     }
-    SetPreviewSize(previewW, previewH, Nodes);
     return wxCURSOR_SIZING;
 }
 
@@ -807,24 +818,6 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
         glm::mat4 Translate = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
         ModelMatrix = Translate * RotateZ * RotateY * RotateX;
         TranslateMatrix = Translate;
-    }
-}
-
-void BoxedScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
-    previewW = w;
-    previewH = h;
-
-    PrepareToDraw(draw_3d, false);
-
-    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
-        for (auto coord = it->get()->Coords.begin(); coord != it->get()->Coords.end(); ++coord) {
-            // draw node on screen
-            float sx = coord->screenX;
-            float sy = coord->screenY;
-            float sz = coord->screenZ;
-
-            TranslatePoint(sx, sy, sz);
-        }
     }
 }
 
@@ -1391,15 +1384,6 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return 0;
 }
 
-void BoxedScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
-
-    if (_locked) return;
-
-    worldPos_x += xPct * previewW;
-    worldPos_y += yPct * previewH;
-    worldPos_z += zPct * previewH;
-}
-
 int BoxedScreenLocation::GetTop() const {
     return centery+(RenderHt*scaley/2);
 }
@@ -1423,12 +1407,12 @@ int BoxedScreenLocation::GetMHeight() const {
 
 void BoxedScreenLocation::SetMWidth(int w)
 {
-    scalex = (float)w / (float)previewW;
+    scalex = (float)w / RenderWi;
 }
 
 void BoxedScreenLocation::SetMHeight(int h)
 {
-    scaley = (float)h / (float)previewH;
+    scaley = (float)h / RenderHt;
 }
 
 void BoxedScreenLocation::SetLeft(int x) {
@@ -1459,7 +1443,7 @@ TwoPointScreenLocation::~TwoPointScreenLocation() {
 }
 
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    if (!ModelNode->HasAttribute("X1") && ModelNode->HasAttribute("worldPos_x")) {
+    if (!ModelNode->HasAttribute("WorldPosX") && ModelNode->HasAttribute("X1")) {
         old = ModelNode;
     } else {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
@@ -1531,31 +1515,21 @@ void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const 
     z = v.z;
 }
 
-bool TwoPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
- /*   float min = ymin;
-    float max = ymax;
-    if (!minMaxSet) {
-        min = 0;
-        max = RenderHt;
+bool TwoPointScreenLocation::IsContained(int x1_, int y1_, int x2_, int y2_) const {
+    int xs = x1_ < x2_ ? x1_ : x2_;
+    int xf = x1_ > x2_ ? x1_ : x2_;
+    int ys = y1_ < y2_ ? y1_ : y2_;
+    int yf = y1_ > y2_ ? y1_ : y2_;
+
+    glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
+    glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
+
+    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
+        return true;
     }
-    //invert the matrix, get into render space
-    glm::vec4 v1 = *matrix * glm::vec4(glm::vec3(0, min, ), 1.0f);
-    glm::vec4 v2 = *matrix * glm::vec4(glm::vec3(0, max, 1), 1.0f);
-    glm::vec4 v3 = *matrix * glm::vec4(glm::vec3(RenderWi, min, 1), 1.0f);
-    glm::vec4 v4 = *matrix * glm::vec4(glm::vec3(RenderWi, max, 1), 1.0f);
-
-    int xsi = x1<x2?x1:x2;
-    int xfi = x1>x2?x1:x2;
-    int ysi = y1<y2?y1:y2;
-    int yfi = y1>y2?y1:y2;
-
-    float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
-    float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
-    float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
-    float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
-
-    return xsi < xs && xfi > xf && ysi < ys && yfi > yf;*/
-    return false;
+    else {
+        return false;
+    }
 }
 
 bool TwoPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
@@ -2089,7 +2063,6 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    SetPreviewSize(previewW, previewH, Nodes);
     return wxCURSOR_SIZING;
 }
 
@@ -2207,44 +2180,7 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
 }
 
-void TwoPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
-    previewH = h;
-    previewW = w;
-
-    if (old) {
-        //need to update to latest code
-        ProcessOldNode(old);
-        Write(old);
-        old = nullptr;
-    }
-}
 void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
-    BoxedScreenLocation box;
-    box.Read(old);
-    std::vector<NodeBaseClassPtr> Nodes;
-    box.SetPreviewSize(previewW, previewH, Nodes);
-    box.SetRenderSize(RenderWi, RenderHt);
-    box.PrepareToDraw(false, false);
-
-    float sx = - float(RenderWi) / 2.0;
-    float sy = 0;
-    float sz = 0;
-    box.TranslatePoint(sx, sy, sz);
-    worldPos_x = sx / (float)previewW;
-    worldPos_y = sy / (float)previewH;
-
-    sx = float(RenderWi) / 2.0;
-    sy = 0;
-    box.TranslatePoint(sx, sy, sz);
-
-    x2 = sx / (float)previewW;
-    y2 = sy / (float)previewH;
-
-    old->DeleteAttribute("worldPos_x");
-    old->DeleteAttribute("worldPos_y");
-    old->DeleteAttribute("scalex");
-    old->DeleteAttribute("scaley");
-    old->DeleteAttribute("PreviewRotation");
 }
 
 float TwoPointScreenLocation::GetHcenterOffset() const {
@@ -2272,15 +2208,6 @@ void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
 
     worldPos_y -= diffy;
     worldPos_x -= diffx;
-}
-
-void TwoPointScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
-
-    if (_locked) return;
-
-    worldPos_x += xPct * previewW;
-    worldPos_y += yPct * previewH;
-    worldPos_z += zPct * previewH;
 }
 
 int TwoPointScreenLocation::GetTop() const {
@@ -2320,7 +2247,7 @@ void TwoPointScreenLocation::SetTop(int i) {
     }
 }
 void TwoPointScreenLocation::SetLeft(int i) {
-    float newx = (float)i / (float)previewW;
+    float newx = (float)i;
     if (worldPos_x < x2) {
         float diff = worldPos_x - newx;
         worldPos_x = newx;
@@ -2332,7 +2259,7 @@ void TwoPointScreenLocation::SetLeft(int i) {
     }
 }
 void TwoPointScreenLocation::SetRight(int i) {
-    float newx = (float)i / (float)previewW;
+    float newx = (float)i;
     if (worldPos_x > x2) {
         float diff = worldPos_x - newx;
         worldPos_x = newx;
@@ -2348,11 +2275,11 @@ void TwoPointScreenLocation::SetMWidth(int w)
 {
     if (worldPos_x > x2)
     {
-        worldPos_x = x2 + (float)w / previewW;
+        worldPos_x = x2 + (float)w / RenderWi;
     }
     else
     {
-        x2 = worldPos_x + (float)w / previewW;
+        x2 = worldPos_x + (float)w / RenderWi;
     }
 }
 
@@ -2360,16 +2287,16 @@ void TwoPointScreenLocation::SetMHeight(int h)
 {
     if (worldPos_y > y2)
     {
-        worldPos_y = y2 + (float)h / previewH;
+        worldPos_y = y2 + (float)h / RenderHt;
     }
     else
     {
-        y2 = worldPos_y + (float)h / previewH;
+        y2 = worldPos_y + (float)h / RenderHt;
     }
 }
 
 void TwoPointScreenLocation::SetBottom(int i) {
-    float newbot = (float)i / (float)previewH;
+    float newbot = (float)i;
     if (worldPos_y < y2) {
         float diff = worldPos_y - newbot;
         worldPos_y = newbot;
@@ -2380,12 +2307,6 @@ void TwoPointScreenLocation::SetBottom(int i) {
         worldPos_y -= diff;
     }
 }
-
-void TwoPointScreenLocation::FlipCoords() {
-    std::swap(worldPos_x, x2);
-    std::swap(worldPos_y, y2);
-}
-
 
 ThreePointScreenLocation::ThreePointScreenLocation(): height(1.0), modelHandlesHeight(false), supportsShear(false), supportsAngle(false), angle(0), shear(0.0) {
     mHandlePosition.resize(4);
@@ -2430,7 +2351,6 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
-    SetPreviewSize(previewW, previewH, Nodes);
     return wxCURSOR_SIZING;
 }
 
@@ -2565,36 +2485,21 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     draw_3d = is_3d;
 }
 
-bool ThreePointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
-  /*  float min = ymin;
-    float max = ymax;
-    if (!minMaxSet) {
-        if( angle > -270 && angle < -90 ) {
-            min = -RenderHt;
-            max = 0;
-        } else {
-            min = 0;
-            max = RenderHt;
-        }
+bool ThreePointScreenLocation::IsContained(int x1_, int y1_, int x2_, int y2_) const {
+    int xs = x1_ < x2_ ? x1_ : x2_;
+    int xf = x1_ > x2_ ? x1_ : x2_;
+    int ys = y1_ < y2_ ? y1_ : y2_;
+    int yf = y1_ > y2_ ? y1_ : y2_;
+
+    glm::vec3 min = glm::vec3(TranslateMatrix * glm::vec4(aabb_min, 1.0f));
+    glm::vec3 max = glm::vec3(TranslateMatrix * glm::vec4(aabb_max, 1.0f));
+
+    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
+        return true;
     }
-    //invert the matrix, get into render space
-    glm::vec3 v1 = *matrix * glm::vec3(0, min, 1);
-    glm::vec3 v2 = *matrix * glm::vec3(0, max, 1);
-    glm::vec3 v3 = *matrix * glm::vec3(RenderWi, min, 1);
-    glm::vec3 v4 = *matrix * glm::vec3(RenderWi, max, 1);
-
-    int xsi = x1<x2?x1:x2;
-    int xfi = x1>x2?x1:x2;
-    int ysi = y1<y2?y1:y2;
-    int yfi = y1>y2?y1:y2;
-
-    float xs = std::min(std::min(v1.x, v2.x), std::min(v3.x, v4.x));
-    float xf = std::max(std::max(v1.x, v2.x), std::max(v3.x, v4.x));
-    float ys = std::min(std::min(v1.y, v2.y), std::min(v3.y, v4.y));
-    float yf = std::max(std::max(v1.y, v2.y), std::max(v3.y, v4.y));
-
-    return xsi < xs && xfi > xf && ysi < ys && yfi > yf;*/
-    return false;
+    else {
+        return false;
+    }
 }
 
 bool ThreePointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const {
@@ -3043,26 +2948,6 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
 }
 
 void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
-    BoxedScreenLocation box;
-    box.Read(old);
-    std::vector<NodeBaseClassPtr> Nodes;
-    box.SetPreviewSize(previewW, previewH, Nodes);
-    box.SetRenderSize(RenderWi, RenderHt);
-    box.PrepareToDraw(false, false);
-
-    float x1 = RenderWi / 2.0;
-    float y1 = RenderHt;
-    float z1 = 0;
-    box.TranslatePoint(x1, y1, z1);
-
-    TwoPointScreenLocation::ProcessOldNode(old);
-
-    height = 1.0;
-    PrepareToDraw(false, false);
-    glm::mat4 m = glm::inverse(matrix);
-    glm::vec4 v = m * glm::vec4(glm::vec3(x1, y1, 1), 1.0f);
-    height = height * v.y / RenderHt;
-
 }
 
 PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
@@ -3700,7 +3585,12 @@ void PolyPointScreenLocation::SetAxisTool(int mode)
         ModelScreenLocation::SetAxisTool(mode);
     }
     else {
-        axis_tool = mode;
+        if (mode == TOOL_TRANSLATE || mode == TOOL_XY_TRANS) {
+            axis_tool = mode;
+        }
+        else {
+            axis_tool = TOOL_TRANSLATE;
+        }
     }
 }
 
@@ -4535,24 +4425,34 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
 void PolyPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
     prop->SetAttribute("UseCheckbox", 1);
-    prop = propertyEditor->Append(new wxFloatProperty("X1 (%)", "ModelX1", mPos[0].x * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", mPos[0].x * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
-    prop = propertyEditor->Append(new wxFloatProperty("Y1 (%)", "ModelY1", mPos[0].y * 100.0));
+    prop = propertyEditor->Append(new wxFloatProperty("Y1", "ModelY1", mPos[0].y * 100.0));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
+    prop->SetTextColour(*wxGREEN);
+    prop = propertyEditor->Append(new wxFloatProperty("Z1", "ModelZ1", mPos[0].z * 100.0));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop->SetTextColour(*wxGREEN);
 
     for( int i = 1; i < num_points; ++i ) {
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d (%%)",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x * 100.0));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("X%d",i+1), wxString::Format("ModelX%d",i+1), mPos[i].x * 100.0));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
         prop->SetTextColour(*wxBLUE);
-        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d (%%)",i+1), wxString::Format("ModelY%d",i+1), mPos[i].y * 100.0));
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Y%d", i+1), wxString::Format("ModelY%d", i+1), mPos[i].y * 100.0));
+        prop->SetAttribute("Precision", 2);
+        prop->SetAttribute("Step", 0.5);
+        prop->SetEditor("SpinCtrl");
+        prop->SetTextColour(*wxBLUE);
+        prop = propertyEditor->Append(new wxFloatProperty(wxString::Format("Z%d", i+1), wxString::Format("ModelZ%d", i+1), mPos[i].z * 100.0));
         prop->SetAttribute("Precision", 2);
         prop->SetAttribute("Step", 0.5);
         prop->SetEditor("SpinCtrl");
@@ -4605,11 +4505,6 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
     }
 }
 
-void PolyPointScreenLocation::SetPreviewSize(int w, int h, const std::vector<NodeBaseClassPtr> &Nodes) {
-    previewH = h;
-    previewW = w;
-}
-
 float PolyPointScreenLocation::GetHcenterOffset() const {
     float x_total = 0.0f;
     for(int i = 0; i < num_points; ++i ) {
@@ -4656,26 +4551,19 @@ void PolyPointScreenLocation::SetOffset(float xPct, float yPct) {
     SetVcenterOffset(yPct);
 }
 
-void PolyPointScreenLocation::AddOffset(float xPct, float yPct, float zPct) {
-    if (_locked) return;
-
-    worldPos_x += xPct * previewW;
-    worldPos_y += yPct * previewH;
-    worldPos_z += zPct * previewH;
-}
 int PolyPointScreenLocation::GetTop() const {
-    int topy = std::round(mPos[0].y * previewH);
+    int topy = std::round(mPos[0].y * scaley + worldPos_y);
     for(int i = 1; i < num_points; ++i ) {
-        int newy = std::round(mPos[i].y * previewH);
+        int newy = std::round(mPos[i].y * scaley + worldPos_y);
         topy = std::max(topy, newy);
     }
     return topy;
 }
 
 int PolyPointScreenLocation::GetLeft() const {
-    int leftx = std::round(mPos[0].x * previewH);
+    int leftx = std::round(mPos[0].x * scalex + worldPos_x);
     for(int i = 1; i < num_points; ++i ) {
-        int newx = std::round(mPos[i].x * previewW);
+        int newx = std::round(mPos[i].x * scalex + worldPos_x);
         leftx = std::min(leftx, newx);
     }
     return leftx;
@@ -4687,7 +4575,7 @@ int PolyPointScreenLocation::GetMHeight() const
     int miny = 0xFFFF;
 
     for (int i = 0; i < num_points; ++i) {
-        int y = std::round(mPos[i].y * previewH);
+        int y = std::round(mPos[i].y * scaley + worldPos_y);
         if (y > maxy) maxy = y;
         if (y < miny) miny = y;
     }
@@ -4701,7 +4589,7 @@ int PolyPointScreenLocation::GetMWidth() const
     int minx = 0xFFFF;
 
     for (int i = 0; i < num_points; ++i) {
-        int x = std::round(mPos[i].x * previewW);
+        int x = std::round(mPos[i].x * scalex + worldPos_x);
         if (x > maxx) maxx = x;
         if (x < minx) minx = x;
     }
@@ -4734,17 +4622,17 @@ void PolyPointScreenLocation::SetMHeight(int h)
 }
 
 int PolyPointScreenLocation::GetRight() const {
-    int rightx = std::round(mPos[0].x * previewH);
+    int rightx = std::round(mPos[0].x * scaley + worldPos_y);
     for(int i = 1; i < num_points; ++i ) {
-        int newx = std::round(mPos[i].x * previewW);
+        int newx = std::round(mPos[i].x * scalex + worldPos_x);
         rightx = std::max(rightx, newx);
     }
     return rightx;
 }
 int PolyPointScreenLocation::GetBottom() const {
-    int boty = std::round(mPos[0].y * previewH);
+    int boty = std::round(mPos[0].y * scaley + worldPos_y);
     for(int i = 1; i < num_points; ++i ) {
-        int newy = std::round(mPos[i].y * previewH);
+        int newy = std::round(mPos[i].y * scalex + worldPos_x);
         boty = std::min(boty, newy);
     }
     return boty;
@@ -4754,10 +4642,10 @@ void PolyPointScreenLocation::SetTop(int i) {
 
     if (_locked) return;
 
-    float newtop = (float)i / (float)previewH;
-    float topy = mPos[0].y * (float)previewH;
+    float newtop = (float)i;
+    float topy = mPos[0].y * scaley + worldPos_y;
     for(int j = 1; j < num_points; ++j ) {
-        float newy = mPos[j].y * (float)previewH;
+        float newy = mPos[j].y * scaley + worldPos_y;
         topy = std::max(topy, newy);
     }
     float diff = topy - newtop;
@@ -4768,10 +4656,10 @@ void PolyPointScreenLocation::SetLeft(int i) {
 
     if (_locked) return;
 
-    float newleft = (float)i / (float)previewW;
-    float leftx = mPos[0].x * (float)previewW;
+    float newleft = (float)i;
+    float leftx = mPos[0].x * scalex + worldPos_x;
     for(int j = 1; j < num_points; ++j ) {
-        float newx = mPos[j].x * (float)previewW;
+        float newx = mPos[j].x * scalex + worldPos_x;
         leftx = std::max(leftx, newx);
     }
     float diff = leftx - newleft;
@@ -4782,10 +4670,10 @@ void PolyPointScreenLocation::SetRight(int i) {
 
     if (_locked) return;
 
-    float newright = (float)i / (float)previewW;
-    float rightx = mPos[0].x * (float)previewW;
+    float newright = (float)i;
+    float rightx = mPos[0].x * scalex + worldPos_x;
     for(int j = 1; j < num_points; ++j ) {
-        float newx = mPos[j].x * (float)previewW;
+        float newx = mPos[j].x * scalex + worldPos_x;
         rightx = std::max(rightx, newx);
     }
     float diff = rightx - newright;
@@ -4796,10 +4684,10 @@ void PolyPointScreenLocation::SetBottom(int i) {
 
     if (_locked) return;
 
-    float newbot = (float)i / (float)previewH;
-    float boty = mPos[0].y * (float)previewH;
+    float newbot = (float)i;
+    float boty = mPos[0].y * scaley + worldPos_y;
     for(int j = 1; j < num_points; ++j ) {
-        float newy = mPos[j].y * (float)previewH;
+        float newy = mPos[j].y * scaley + worldPos_y;
         boty = std::max(boty, newy);
     }
     float diff = boty - newbot;

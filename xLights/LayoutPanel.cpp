@@ -751,9 +751,16 @@ void LayoutPanel::RenderLayout()
     modelPreview->Render();
     if (m_creating_bound_rect)
     {
-        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
-            ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
-        modelPreview->GetAccumulator().Finish(GL_LINES);
+        if (is_3d) {
+            modelPreview->GetAccumulator3d().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_start_z, m_bound_end_x, m_bound_end_y, m_bound_end_z,
+                ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+            modelPreview->GetAccumulator3d().Finish(GL_LINES);
+        }
+        else {
+            modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
+                ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+            modelPreview->GetAccumulator().Finish(GL_LINES);
+        }
     }
     modelPreview->EndDrawing();
 }
@@ -1393,9 +1400,10 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
-    if (is_3d) {
-        selectionLatched = false;
-        highlightedModel = nullptr;
+    highlightedModel = nullptr;
+    selectionLatched = false;
+    if (selectedModel != nullptr) {
+        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);
     }
 
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
@@ -1745,8 +1753,7 @@ void LayoutPanel::SelectAllInBoundingRect()
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
-        if(modelPreview->GetModels()[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
-                                         m_bound_end_x,m_bound_end_y))
+        if(modelPreview->GetModels()[i]->IsContained(m_bound_start_x,m_bound_start_y, m_bound_end_x,m_bound_end_y))
         {
             // if we dont have a selected model make the first one we find the selected model so alignment etc works
             if (selectedModel == nullptr)
@@ -1806,17 +1813,8 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
 
 void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
-    Unselect3DItems();
-    m_mouse_down = false;
-}
-
-void LayoutPanel::Unselect3DItems()
-{
-    if (selectedModel != nullptr) {
-        selectionLatched = false;
-        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);
-    }
     UnSelectAllModels();
+    m_mouse_down = false;
 }
 
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
@@ -1896,7 +1894,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
-            Unselect3DItems();
+            UnSelectAllModels();
             newModel->Selected = true;
             newModel->GetModelScreenLocation().SetActiveHandle(newModel->GetModelScreenLocation().GetDefaultHandle());
             newModel->GetModelScreenLocation().SetAxisTool(newModel->GetModelScreenLocation().GetDefaultTool());
@@ -1917,11 +1915,31 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             modelPreview->GetModels().push_back(newModel);
         }
     }
+
     ShowPropGrid(true);
     modelPreview->SetFocus();
 
-    m_creating_bound_rect = false;
-    m_dragging = false;
+    if (event.ControlDown())
+    {
+    }
+    else if (event.ShiftDown())
+    {
+        // FIXME: Need a different method for 3D
+        m_creating_bound_rect = true;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_start_x = ray_origin.x;
+        m_bound_start_y = ray_origin.y;
+        m_bound_start_z = ray_origin.z;
+        m_bound_end_x = m_bound_start_x;
+        m_bound_end_y = m_bound_start_y;
+        m_bound_end_z = m_bound_start_z;
+    }
+    else {
+        m_creating_bound_rect = false;
+        m_dragging = false;
+    }
 }
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
@@ -1941,13 +1959,13 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         return;
     }
 
+    ShowPropGrid(true);
+    modelPreview->SetFocus();
+
     if (is_3d) {
         ProcessLeftMouseClick3D(event);
         return;
     }
-
-    ShowPropGrid(true);
-    modelPreview->SetFocus();
 
     int y = event.GetY();
     if (event.ControlDown())
@@ -1966,6 +1984,10 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_start_x = ray_origin.x;
         m_bound_start_y = ray_origin.y;
+        m_bound_start_z = ray_origin.z;
+        m_bound_end_x = m_bound_start_x;
+        m_bound_end_y = m_bound_start_y;
+        m_bound_end_z = m_bound_start_z;
     }
     else if (m_over_handle != -1)
     {
@@ -2007,7 +2029,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                 if (model_type == "Poly Line") {
                     m_polyline_active = true;
                 }
-                Unselect3DItems();
+                UnSelectAllModels();
                 newModel->Selected = true;
                 if (wi > 0 && ht > 0)
                 {
@@ -2044,6 +2066,10 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
             m_bound_start_x = ray_origin.x;
             m_bound_start_y = ray_origin.y;
+            m_bound_start_z = ray_origin.z;
+            m_bound_end_x = m_bound_start_x;
+            m_bound_end_y = m_bound_start_y;
+            m_bound_end_z = m_bound_start_z;
         }
     }
 }
@@ -2076,6 +2102,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_bound_end_z = ray_origin.z;
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
@@ -2101,10 +2128,10 @@ void LayoutPanel::FinalizeModel()
     if (newModel != nullptr) {
         if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
         {
-            float min_x = (float)(newModel->GetModelScreenLocation().GetLeft()) / (float)(newModel->GetModelScreenLocation().previewW);
-            float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
-            float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
-            float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
+            float min_x = (float)(newModel->GetModelScreenLocation().GetLeft());
+            float max_x = (float)(newModel->GetModelScreenLocation().GetRight());
+            float min_y = (float)(newModel->GetModelScreenLocation().GetBottom());
+            float max_y = (float)(newModel->GetModelScreenLocation().GetTop());
             bool cancelled = false;
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
             if (cancelled) {
@@ -2138,6 +2165,7 @@ void LayoutPanel::FinalizeModel()
                 selectedButton->SetState(0);
                 selectedButton = nullptr;
             }
+            selectedModel = nullptr;
             xlights->UpdateModelsList();
             SelectModel(name);
             SelectModel3D();
@@ -2184,7 +2212,19 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     int y = event.GetY();
 
     if (is_3d) {
-        if (m_wheel_down)
+        if (m_creating_bound_rect)
+        {
+            // FIXME:  Need different method for 3D
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+            GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+            m_bound_end_x = ray_origin.x;
+            m_bound_end_y = ray_origin.y;
+            m_bound_end_z = ray_origin.z;
+            UpdatePreview();
+            return;
+        }
+        else if (m_wheel_down)
         {
             float delta_x = event.GetX() - m_previous_mouse_x;
             float delta_y = -(event.GetY() - m_previous_mouse_y);
@@ -2291,7 +2331,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         return;
     }
 
-    // FIXME:  Delete when not needed for debugging
+    /*/ FIXME:  Delete when not needed for debugging
     /////////////////////////////////////
     // temporary for debugging
     glm::vec3 ray_origin;
@@ -2308,7 +2348,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         }
         UpdatePreview();
     }
-    //////////////////////////////////////
+    /////////////////////////////////////*/
 
     if (m_creating_bound_rect)
     {
@@ -2317,6 +2357,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_bound_end_z = ray_origin.z;
         UpdatePreview();
         return;
     }
@@ -2363,7 +2404,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
                     CreateUndoPoint("SingleModel", m->name, "location");
-                    modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht, 0.0);
+                    modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->MarkEffectsFileDirty(true);
@@ -2695,12 +2736,12 @@ void LayoutPanel::PreviewModelAlignTops()
     if (selectedindex<0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int top = modelPreview->GetModels()[selectedindex]->GetTop(modelPreview);
+    int top = modelPreview->GetModels()[selectedindex]->GetTop();
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetTop(modelPreview, top);
+            modelPreview->GetModels()[i]->SetTop(top);
         }
     }
     UpdatePreview();
@@ -2712,12 +2753,12 @@ void LayoutPanel::PreviewModelAlignBottoms()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int bottom = modelPreview->GetModels()[selectedindex]->GetBottom(modelPreview);
+    int bottom = modelPreview->GetModels()[selectedindex]->GetBottom();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetBottom(modelPreview, bottom);
+            modelPreview->GetModels()[i]->SetBottom(bottom);
         }
     }
     UpdatePreview();
@@ -2729,12 +2770,12 @@ void LayoutPanel::PreviewModelAlignLeft()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int left = modelPreview->GetModels()[selectedindex]->GetLeft(modelPreview);
+    int left = modelPreview->GetModels()[selectedindex]->GetLeft();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetLeft(modelPreview, left);
+            modelPreview->GetModels()[i]->SetLeft(left);
         }
     }
     UpdatePreview();
@@ -2749,24 +2790,24 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
 
     if (sameWidth)
     {
-        int width = modelPreview->GetModels()[selectedindex]->GetWidth(modelPreview);
+        int width = modelPreview->GetModels()[selectedindex]->GetWidth();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                modelPreview->GetModels()[i]->SetWidth(modelPreview, width);
+                modelPreview->GetModels()[i]->SetWidth(width);
             }
         }
     }
 
     if (sameHeight)
     {
-        int height = modelPreview->GetModels()[selectedindex]->GetHeight(modelPreview);
+        int height = modelPreview->GetModels()[selectedindex]->GetHeight();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                modelPreview->GetModels()[i]->SetHeight(modelPreview, height);
+                modelPreview->GetModels()[i]->SetHeight(height);
             }
         }
     }
@@ -2779,12 +2820,12 @@ void LayoutPanel::PreviewModelAlignRight()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int right = modelPreview->GetModels()[selectedindex]->GetRight(modelPreview);
+    int right = modelPreview->GetModels()[selectedindex]->GetRight();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetRight(modelPreview, right);
+            modelPreview->GetModels()[i]->SetRight(right);
         }
     }
     UpdatePreview();
@@ -3077,24 +3118,22 @@ void LayoutPanel::Nudge(int key)
 
         for (auto it = selectedModels.begin(); it != selectedModels.end(); ++it)
         {
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi, ht);
-            float xpct = 0;
-            float ypct = 0;
+            float deltax = 0;
+            float deltay = 0;
             if (key == WXK_UP) {
-                ypct = 1.0 / ht;
+                deltay = 1.0;
             }
             else if (key == WXK_DOWN) {
-                ypct = -1.0 / ht;
+                deltay = -1.0;
             }
             else if (key == WXK_LEFT) {
-                xpct = -1.0 / wi;
+                deltax = -1.0;
             }
             else if (key == WXK_RIGHT) {
-                xpct = 1.0 / wi;
+                deltax = 1.0;
             }
             // FIXME:  Only nudges in X/Z plane currently
-            (*it)->AddOffset(xpct, 0.0, ypct);
+            (*it)->AddOffset(deltax, 0.0, deltay);
 
             (*it)->UpdateXmlWithScale();
             SetupPropGrid(*it);
@@ -3198,7 +3237,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
                 FinalizeModel();
             }
             else if (is_3d) {
-                Unselect3DItems();
+                UnSelectAllModels();
             }
             break;
 
@@ -4355,7 +4394,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
             selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
         }
         else {
-            Unselect3DItems();
+            UnSelectAllModels();
         }
     }
 
