@@ -561,16 +561,18 @@ public:
                 RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
                 // I have to calc the output here to apply blend, rotozoom and transitions
-                buffer->CalcOutput(frame, vl);
-
-                // Now copy the result into the current layer
-                for (int y = 0; y < rb.BufferHt; y++)
-                {
-                    for (int x = 0; x < rb.BufferWi; x++)
-                    {
-                        xlColor c = xlBLACK;
-                        buffer->GetMixedColor(x, y, c, vl, frame);
-                        rb.SetPixel(x, y, c);
+                buffer->CalcOutput(frame, vl, layer);
+                std::vector<bool> done;
+                done.resize(rb.pixels.size());
+                rb.CopyNodeColorsToPixels(done);
+                // now fill in any spaces in the buffer that don't have nodes mapped to them
+                for (int y = 0; y < rb.BufferHt; y++) {
+                    for (int x = 0; x < rb.BufferWi; x++) {
+                        if (!done[y*rb.BufferWi+x]) {
+                            xlColor c = xlBLACK;
+                            buffer->GetMixedColor(x, y, c, vl, frame);
+                            rb.SetPixel(x, y, c);
+                        }
                     }
                 }
             }

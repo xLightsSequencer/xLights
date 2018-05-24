@@ -411,6 +411,7 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void SetNodePixel(int nodeNum, const xlColor &color);
+    void CopyNodeColorsToPixels(std::vector<bool> &done);
     
     void CopyPixel(int srcx, int srcy, int destx, int desty);
     void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x);

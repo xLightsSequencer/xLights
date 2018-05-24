@@ -44,6 +44,7 @@
 		670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82831C45C48B000AA5D8 /* ModelManager.cpp */; };
 		670C828B1C45C48B000AA5D8 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82851C45C48B000AA5D8 /* Model.cpp */; };
 		670C828E1C45CCCF000AA5D8 /* Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C828D1C45CCCF000AA5D8 /* Color.cpp */; };
+		670E0C2C20B641D70055F891 /* City.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E0C2B20B641D70055F891 /* City.cpp */; };
 		670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E473E1C62A901008F4C60 /* ModelGroup.cpp */; };
 		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 670F163E1CDBC53F0039D4DB /* xlights.mac.properties */; };
@@ -763,6 +764,8 @@
 		670C82861C45C48B000AA5D8 /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Model.h; path = models/Model.h; sourceTree = "<group>"; };
 		670C828C1C45C70B000AA5D8 /* Node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Node.h; path = models/Node.h; sourceTree = "<group>"; };
 		670C828D1C45CCCF000AA5D8 /* Color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Color.cpp; sourceTree = "<group>"; };
+		670E0C2A20B641D60055F891 /* City.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = City.h; sourceTree = "<group>"; };
+		670E0C2B20B641D70055F891 /* City.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = City.cpp; sourceTree = "<group>"; };
 		670E473D1C62A901008F4C60 /* ModelGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelGroup.h; path = models/ModelGroup.h; sourceTree = "<group>"; };
 		670E473E1C62A901008F4C60 /* ModelGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelGroup.cpp; path = models/ModelGroup.cpp; sourceTree = "<group>"; };
 		670E47401C62F4AD008F4C60 /* CircleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CircleModel.h; path = models/CircleModel.h; sourceTree = "<group>"; };
@@ -2866,6 +2869,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				670E0C2B20B641D70055F891 /* City.cpp */,
+				670E0C2A20B641D60055F891 /* City.h */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
 				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
 				67F23F291E32994400F8B985 /* Assets.xcassets */,
@@ -3781,6 +3786,7 @@
 				1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */,
 				676CFAF8207D2BBE002EB5E7 /* jsonwriter.cpp in Sources */,
 				67F2400F1E32A03F00F8B985 /* OpenDMXOutput.cpp in Sources */,
+				670E0C2C20B641D70055F891 /* City.cpp in Sources */,
 				67F240101E32A03F00F8B985 /* OpenPixelNetOutput.cpp in Sources */,
 				67F240111E32A03F00F8B985 /* Output.cpp in Sources */,
 				67F240121E32A03F00F8B985 /* OutputManager.cpp in Sources */,

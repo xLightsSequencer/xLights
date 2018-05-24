@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Big speedup for Canvas mode
 2018.14 May 23, 2018
    -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version
