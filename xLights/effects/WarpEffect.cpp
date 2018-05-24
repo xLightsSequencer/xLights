@@ -199,6 +199,35 @@ namespace
       return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
 
+   xlColor circleRevealIn( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      const float FuzzyAmount = 0.04f;
+      const float CircleSize = 0.60f;
+      const Vec2D CenterPt( 0.5, 0.5 );
+
+      float radius = -FuzzyAmount + progress * (CircleSize + 2.0 * FuzzyAmount);
+      float fromCenter = ( Vec2D(s,t) - CenterPt).Len();
+      float distFromCircle = fromCenter - radius;
+
+      xlColor c = tex2D( cb, s, t );
+      float p = CLAMP((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0., 1. );
+      return lerp( c, xlBLACK, p );
+   }
+   xlColor circleRevealOut( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      const float FuzzyAmount = 0.04f;
+      const float CircleSize = 0.60f;
+      const Vec2D CenterPt( 0.5, 0.5 );
+
+      float radius = -FuzzyAmount + (1-progress) * (CircleSize + 2.0 * FuzzyAmount);
+      float fromCenter = ( Vec2D(s,t) - CenterPt).Len();
+      float distFromCircle = fromCenter - radius;
+
+      xlColor c = tex2D( cb, s, t );
+      float p = CLAMP((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0., 1. );
+      return lerp( c, xlBLACK, p );
+   }
+
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, double progress );
 
    void RenderPixelTransform( PixelTransform transform, double progress, RenderBuffer& rb )
@@ -310,6 +339,43 @@ namespace
       "        : vec4( 0, 0, 0, 1 );\n"
       "}\n";
 
+   const char *psCircleRevealIn =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main(){\n"
+      "    float FuzzyAmount = 0.04;\n"
+      "    float CircleSize = 0.60;\n"
+      "    vec2 CenterPt = vec2(0.5, 0.5);\n"
+      "\n"
+      "    float radius = -FuzzyAmount + progress * (CircleSize + 2.0 * FuzzyAmount);\n"
+      "    float fromCenter = length(texCoord - CenterPt);\n"
+      "    float distFromCircle = fromCenter - radius;\n"
+      "\n"
+      "    vec4 c = texture(texSampler, texCoord);\n"
+      "    float p = clamp((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0, 1 );\n"
+      "    gl_FragColor = mix( c, vec4(0,0,0,1), p );\n"
+      "}\n";
+   const char *psCircleRevealOut =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main(){\n"
+      "    float FuzzyAmount = 0.04;\n"
+      "    float CircleSize = 0.60;\n"
+      "    vec2 CenterPt = vec2(0.5, 0.5);\n"
+      "\n"
+      "    float radius = -FuzzyAmount + (1-progress) * (CircleSize + 2.0 * FuzzyAmount);\n"
+      "    float fromCenter = length(texCoord - CenterPt);\n"
+      "    float distFromCircle = fromCenter - radius;\n"
+      "\n"
+      "    vec4 c = texture(texSampler, texCoord);\n"
+      "    float p = clamp((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0, 1 );\n"
+      "    gl_FragColor = mix( c, vec4(0,0,0, 1), p );\n"
+      "}\n";
+
    const char *psRippleIn =
       "#version 330\n"
       "uniform sampler2D texSampler;\n"
@@ -365,6 +431,8 @@ namespace
 bool WarpEffect::s_shadersInit = false;
 unsigned WarpEffect::s_programId_dissolve_in = 0;
 unsigned WarpEffect::s_programId_dissolve_out = 0;
+unsigned WarpEffect::s_programId_circleReveal_in = 0;
+unsigned WarpEffect::s_programId_circleReveal_out = 0;
 unsigned WarpEffect::s_programId_ripple_in = 0;
 unsigned WarpEffect::s_programId_ripple_out = 0;
 unsigned WarpEffect::s_noiseTexId = 0;
@@ -394,7 +462,7 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
 void WarpEffect::SetDefaultParameters(Model *cls)
 {
     WarpPanel *p = (WarpPanel *)panel;
-    p->Choice_Warp_Effect->SetValue( "ripple" );
+    p->Choice_Warp_Effect->SetValue( "dissolve" );
     p->Choice_Warp_Type->SetValue( "in" );
 }
 
@@ -416,7 +484,7 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 {
     SettingsMap &settingsMap = effect->GetSettings();
 
-    if ( settingsMap.Get( "CHOICE_Warp_Effect", "" )== "ripple" )
+    if ( settingsMap.Get( "CHOICE_Warp_Effect", "" )== "dissolve" )
       settingsMap.erase( "CHOICE_Warp_Effect" );
     if ( settingsMap.Get( "CHOICE_Warp_Type", "" )== "in" )
       settingsMap.erase( "CHOICE_Warp_Type" );
@@ -426,7 +494,7 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-   std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "ripple" );
+   std::string warpEffect = SettingsMap.Get( "CHOICE_Warp_Effect", "dissolve" );
    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "in");
    float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
@@ -454,10 +522,12 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
       glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
 
       GLuint programId = 0;
-      if ( warpEffect == "ripple" )
-         programId = warpType == "in" ? s_programId_ripple_in : s_programId_ripple_out;
-      else if ( warpEffect == "dissolve" )
+      if ( warpEffect == "dissolve" )
          programId = warpType == "in" ? s_programId_dissolve_in : s_programId_dissolve_out;
+      else if ( warpEffect == "circle reveal" )
+         programId = warpType == "in" ? s_programId_circleReveal_in : s_programId_circleReveal_out;
+      else if ( warpEffect == "ripple" )
+         programId = warpType == "in" ? s_programId_ripple_in : s_programId_ripple_out;
 
       glUseProgram( programId );
 
@@ -497,6 +567,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          RenderPixelTransform( warpType == "in" ? rippleIn : rippleOut, adjust, buffer );
       else if ( warpEffect == "dissolve" )
          RenderPixelTransform( warpType == "in" ? dissolveIn : dissolveOut, adjust, buffer );
+      else if ( warpEffect == "circle reveal" )
+         RenderPixelTransform( warpType == "in" ? circleRevealIn : circleRevealOut, adjust, buffer );
    }
 }
 
@@ -511,6 +583,8 @@ void WarpEffect::sizeForRenderBuffer( const RenderBuffer& rb )
    {
       s_programId_dissolve_in = OpenGLShaders::compile( vsSrc, psDissolveIn );
       s_programId_dissolve_out = OpenGLShaders::compile( vsSrc, psDissolveOut );
+      s_programId_circleReveal_in = OpenGLShaders::compile( vsSrc, psCircleRevealIn );
+      s_programId_circleReveal_out = OpenGLShaders::compile( vsSrc, psCircleRevealOut );
       s_programId_ripple_in = OpenGLShaders::compile( vsSrc, psRippleIn );
       s_programId_ripple_out = OpenGLShaders::compile( vsSrc, psRippleOut );
       s_noiseTexId = NoiseTexture();

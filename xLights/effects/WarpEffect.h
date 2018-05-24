@@ -30,6 +30,8 @@ class WarpEffect : public RenderableEffect
         static bool s_shadersInit;
         static unsigned s_programId_dissolve_in;
         static unsigned s_programId_dissolve_out;
+        static unsigned s_programId_circleReveal_in;
+        static unsigned s_programId_circleReveal_out;
         static unsigned s_programId_ripple_in;
         static unsigned s_programId_ripple_out;
         static unsigned s_noiseTexId;
