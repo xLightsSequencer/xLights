@@ -242,7 +242,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_RandomInitial" variable="CheckBox_Shape_RandomInitial" member="yes">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_RandomInitial" subclass="BulkEditCheckBox" variable="CheckBox_Shape_RandomInitial" member="yes">
 					<label>Random initial shape sizes</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

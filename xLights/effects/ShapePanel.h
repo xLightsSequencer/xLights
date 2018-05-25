@@ -37,6 +37,7 @@ class ShapePanel: public wxPanel
 		//(*Declarations(ShapePanel)
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
 		BulkEditCheckBox* CheckBox_Shape_FireTiming;
+		BulkEditCheckBox* CheckBox_Shape_RandomInitial;
 		BulkEditCheckBox* CheckBox_Shape_RandomLocation;
 		BulkEditCheckBox* CheckBox_Shape_UseMusic;
 		BulkEditChoice* Choice_Shape_ObjectToDraw;
@@ -63,7 +64,6 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_LifetimeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
-		wxCheckBox* CheckBox_Shape_RandomInitial;
 		wxFontPickerCtrl* FontPickerCtrl_Font;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText176;
