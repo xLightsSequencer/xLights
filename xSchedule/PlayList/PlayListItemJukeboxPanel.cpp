@@ -11,7 +11,7 @@
 const long PlayListItemJukeboxPanel::ID_STATICTEXT3 = wxNewId();
 const long PlayListItemJukeboxPanel::ID_TEXTCTRL3 = wxNewId();
 const long PlayListItemJukeboxPanel::ID_STATICTEXT4 = wxNewId();
-const long PlayListItemJukeboxPanel::ID_TEXTCTRL1 = wxNewId();
+const long PlayListItemJukeboxPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemJukeboxPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemJukeboxPanel::ID_SPINCTRL1 = wxNewId();
 const long PlayListItemJukeboxPanel::ID_STATICTEXT2 = wxNewId();
@@ -37,10 +37,12 @@ PlayListItemJukeboxPanel::PlayListItemJukeboxPanel(wxWindow* parent, PlayListIte
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_JukeboxName = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_JukeboxName, 1, wxALL|wxEXPAND, 5);
-	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sequence:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Port:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Sequence = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer1->Add(TextCtrl_Sequence, 1, wxALL|wxEXPAND, 5);
+	Choice_Port = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_Port->SetSelection( Choice_Port->Append(_("A")) );
+	Choice_Port->Append(_("B"));
+	FlexGridSizer1->Add(Choice_Port, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Button:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Button = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 50, 1, _T("ID_SPINCTRL1"));
@@ -60,7 +62,7 @@ PlayListItemJukeboxPanel::PlayListItemJukeboxPanel(wxWindow* parent, PlayListIte
 
     SpinCtrl_Button->SetValue(jukebox->GetButton());
     TextCtrl_JukeboxName->SetValue(jukebox->GetRawName());
-    TextCtrl_Sequence->SetValue(jukebox->GetSequence());
+    Choice_Port->SetStringSelection(jukebox->GetPortName());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)jukebox->GetDelay() / 1000.0));
 
     ValidateWindow();
@@ -71,7 +73,7 @@ PlayListItemJukeboxPanel::~PlayListItemJukeboxPanel()
 	//(*Destroy(PlayListItemJukeboxPanel)
 	//*)
     _jukebox->SetName(TextCtrl_JukeboxName->GetValue().ToStdString());
-    _jukebox->SetSequence(TextCtrl_Sequence->GetValue().ToStdString());
+    _jukebox->SetPortName(Choice_Port->GetStringSelection().ToStdString());
     _jukebox->SetButton(SpinCtrl_Button->GetValue());
     _jukebox->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
 }

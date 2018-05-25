@@ -136,7 +136,7 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
             }
             else if (socket->Error())
             {
-                logger_base.error("Error opening datagram for FPP Event send. %d : %s", socket->LastError(), (const char*)IPOutput::DecodeError(socket->LastError()).c_str());
+                logger_base.error("Error opening datagram for FPP Event send. %d : %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str());
                 delete socket;
                 socket = nullptr;
             }

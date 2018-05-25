@@ -147,37 +147,6 @@ void IPOutput::Save(wxXmlNode* node)
     Output::Save(node);
 }
 
-std::string IPOutput::DecodeError(wxSocketError err)
-{
-    switch (err)
-    {
-    case wxSOCKET_NOERROR:
-        return "No Error";
-    case wxSOCKET_INVOP:
-        return "Invalid Operation";
-    case wxSOCKET_IOERR:
-        return "IO Error";
-    case wxSOCKET_INVADDR:
-        return "Invalid Address";
-    case wxSOCKET_INVSOCK:
-        return "Invalid Socket";
-    case wxSOCKET_NOHOST:
-        return "No Host";
-    case wxSOCKET_INVPORT:
-        return "Invalid Port";
-    case wxSOCKET_WOULDBLOCK:
-        return "Would Block";
-    case wxSOCKET_TIMEDOUT:
-        return "Timeout";
-    case wxSOCKET_MEMERR:
-        return "Memory Error";
-    case wxSOCKET_OPTERR:
-        return "Option Error";
-    default:
-        return "God knows what happened";
-    }
-}
-
 std::string IPOutput::GetPingDescription() const
 {
     return GetIP() + " " + GetDescription();

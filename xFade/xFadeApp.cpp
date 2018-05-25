@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      xCrossFadeApp.cpp
+ * Name:      xFadeApp.cpp
  * Purpose:   Code for Application Class
  * Author:    xLights ()
  * Created:   2016-12-30
@@ -7,10 +7,10 @@
  * License:
  **************************************************************/
 
-#include "xCrossFadeApp.h"
+#include "xFadeApp.h"
 
 //(*AppHeaders
-#include "xCrossFadeMain.h"
+#include "xFadeMain.h"
 #include <wx/image.h>
 //*)
 
@@ -27,7 +27,7 @@
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 
-IMPLEMENT_APP(xCrossFadeApp)
+IMPLEMENT_APP(xFadeApp)
 
 std::string DecodeOS(wxOperatingSystemId o)
 {
@@ -125,11 +125,11 @@ void InitialiseLogging(bool fromMain)
     {
 
 #ifdef __WXMSW__
-        std::string initFileName = "xCrossFade.windows.properties";
+        std::string initFileName = "xFade.windows.properties";
 #endif
 #ifdef __WXOSX_MAC__
-        std::string initFileName = "xCrossFade.mac.properties";
-        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xCrossFade.mac.properties";
+        std::string initFileName = "xFade.mac.properties";
+        std::string resourceName = wxStandardPaths::Get().GetResourcesDir().ToStdString() + "/xFade.mac.properties";
         if (!wxFile::Exists(initFileName)) {
             if (fromMain) {
                 return;
@@ -141,7 +141,7 @@ void InitialiseLogging(bool fromMain)
 
 #endif
 #ifdef __LINUX__
-        std::string initFileName = "/usr/share/xLights/xCrossFade.linux.properties";
+        std::string initFileName = "/usr/share/xLights/xFade.linux.properties";
 #endif
 
         if (!wxFile::Exists(initFileName))
@@ -168,7 +168,7 @@ void InitialiseLogging(bool fromMain)
     }
 }
 
-xCrossFadeFrame *topFrame = nullptr;
+xFadeFrame *topFrame = nullptr;
 
 #ifndef __WXMSW__
 #include <execinfo.h>
@@ -180,9 +180,9 @@ void handleCrash(void *data) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
     wxDebugReportCompress *report = new wxDebugReportCompress();
-    //if (xCrossFadeFrame::GetCaptureManager() != nullptr)
+    //if (xFadeFrame::GetCaptureManager() != nullptr)
     //{
-    //    report->SetCompressedFileDirectory(xCrossFadeFrame::GetCaptureManager()->GetShowDir());
+    //    report->SetCompressedFileDirectory(xFadeFrame::GetCaptureManager()->GetShowDir());
     //}
 
 #ifndef __WXMSW__
@@ -191,19 +191,19 @@ void handleCrash(void *data) {
     //report->AddAll(wxDebugReport::Context_Current);
 #endif
 
-    //if (xCrossFadeFrame::GetCaptureManager() != nullptr)
+    //if (xFadeFrame::GetCaptureManager() != nullptr)
     //{
-    //    wxFileName fn(xCrossFadeFrame::GetCaptureManager()->GetShowDir(), OutputManager::GetNetworksFileName());
+    //    wxFileName fn(xFadeFrame::GetCaptureManager()->GetShowDir(), OutputManager::GetNetworksFileName());
     //    if (fn.Exists()) {
     //        report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
     //    }
 
-    //    if (wxFileName(xCrossFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).Exists()) {
-    //        report->AddFile(wxFileName(xCrossFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).GetFullPath(), CaptureManager::GetCaptureFile());
+    //    if (wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).Exists()) {
+    //        report->AddFile(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), CaptureManager::GetCaptureFile()).GetFullPath(), CaptureManager::GetCaptureFile());
     //    }
     //}
 
-    wxString trace = wxString::Format("xCrossFade version %s %s\n\n", xlights_version_string, GetBitness());
+    wxString trace = wxString::Format("xFade version %s %s\n\n", xlights_version_string, GetBitness());
 
 #ifndef __WXMSW__
     void* callstack[128];
@@ -228,38 +228,38 @@ void handleCrash(void *data) {
     wxString dir;
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
-    std::string filename = std::string(dir.c_str()) + "/xCrossFade_l4cpp.log";
+    std::string filename = std::string(dir.c_str()) + "/xFade_l4cpp.log";
 #endif
 #ifdef __WXOSX_MAC__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
-    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xCrossFade_l4cpp.log";
+    std::string filename = std::string(dir.c_str()) + "/Library/Logs/xFade_l4cpp.log";
 #endif
 #ifdef __LINUX__
-    std::string filename = "/tmp/xCrossFade_l4cpp.log";
+    std::string filename = "/tmp/xFade_l4cpp.log";
 #endif
 
     if (wxFile::Exists(filename))
     {
-        report->AddFile(filename, "xCrossFade_l4cpp.log");
+        report->AddFile(filename, "xFade_l4cpp.log");
     }
-    //else if (wxFile::Exists(wxFileName(xCrossFadeFrame::GetCaptureManager()->GetShowDir(), "xCrossFade_l4cpp.log").GetFullPath()))
+    //else if (wxFile::Exists(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), "xFade_l4cpp.log").GetFullPath()))
     //{
-    //    report->AddFile(wxFileName(xCrossFadeFrame::GetCaptureManager()->GetShowDir(), "xCrossFade_l4cpp.log").GetFullPath(), "xCrossFade_l4cpp.log");
+    //    report->AddFile(wxFileName(xFadeFrame::GetCaptureManager()->GetShowDir(), "xFade_l4cpp.log").GetFullPath(), "xFade_l4cpp.log");
     //}
-    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xCrossFade_l4cpp.log").GetFullPath()))
+    else if (wxFile::Exists(wxFileName(wxGetCwd(), "xFade_l4cpp.log").GetFullPath()))
     {
-        report->AddFile(wxFileName(wxGetCwd(), "xCrossFade_l4cpp.log").GetFullPath(), "xCrossFade_l4cpp.log");
+        report->AddFile(wxFileName(wxGetCwd(), "xFade_l4cpp.log").GetFullPath(), "xFade_l4cpp.log");
     }
 
-    //if (xCrossFadeFrame::GetCaptureManager() != nullptr)
+    //if (xFadeFrame::GetCaptureManager() != nullptr)
     //{
-    //    xCrossFadeFrame::GetCaptureManager()->CheckCaptureIntegrity(false);
+    //    xFadeFrame::GetCaptureManager()->CheckCaptureIntegrity(false);
     //}
 
     if (!wxThread::IsMain() && topFrame != nullptr) {
-        topFrame->CallAfter(&xCrossFadeFrame::CreateDebugReport, report);
+        topFrame->CallAfter(&xFadeFrame::CreateDebugReport, report);
         wxSleep(600000);
     }
     else {
@@ -276,7 +276,7 @@ LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 }
 #endif
 
-void xCrossFadeApp::WipeSettings()
+void xFadeApp::WipeSettings()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.warn("------ Wiping settings ------");
@@ -285,15 +285,15 @@ void xCrossFadeApp::WipeSettings()
     config->DeleteAll();
 }
 
-int xCrossFadeApp::OnExit()
+int xFadeApp::OnExit()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("xCrossFade exiting.");
+    logger_base.info("xFade exiting.");
 
     return 0;
 }
 
-bool xCrossFadeApp::OnInit()
+bool xFadeApp::OnInit()
 {
     wxLog::SetLogLevel(wxLOG_FatalError);
 
@@ -314,7 +314,7 @@ bool xCrossFadeApp::OnInit()
 
     InitialiseLogging(false);
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("******* OnInit: xCrossFade started.");
+    logger_base.info("******* OnInit: xFade started.");
 
     DumpConfig();
 
@@ -358,7 +358,7 @@ bool xCrossFadeApp::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	xCrossFadeFrame* Frame = new xCrossFadeFrame(0);
+    	xFadeFrame* Frame = new xFadeFrame(0);
     	Frame->Show();
     	SetTopWindow(Frame);
     }
@@ -368,6 +368,6 @@ bool xCrossFadeApp::OnInit()
 
 // CODE COPIED FROM XLIGHTS TO DUMP STACK TRACES
 
-void xCrossFadeApp::OnFatalException() {
+void xFadeApp::OnFatalException() {
     handleCrash(nullptr);
 }

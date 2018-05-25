@@ -24,14 +24,20 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>Sequence:</label>
+					<label>Port:</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Sequence" member="yes" />
+				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Port" member="yes">
+					<content>
+						<item>A</item>
+						<item>B</item>
+					</content>
+					<selection>0</selection>
+				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>

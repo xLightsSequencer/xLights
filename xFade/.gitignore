@@ -1,11 +1,9 @@
-.objs/
-.objs*/
-*.depend
 *.layout
-*.psess
-*.vsp
-*.vspx
-x64/
+.vs/
+.objs*/
+bin/
 Debug/
 Release/
-.vs/
+obj/
+x64/
+*.depend

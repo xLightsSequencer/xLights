@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>xCapture</RootNamespace>
+    <RootNamespace>xFade</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -163,20 +163,23 @@
   <ItemGroup>
     <ClCompile Include="..\xLights\IPEntryDialog.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
+    <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
-    <ClCompile Include="ResultDialog.cpp" />
+    <ClCompile Include="Emitter.cpp" />
     <ClCompile Include="UniverseEntryDialog.cpp" />
-    <ClCompile Include="xCaptureApp.cpp" />
-    <ClCompile Include="xCaptureMain.cpp" />
+    <ClCompile Include="xFadeApp.cpp" />
+    <ClCompile Include="xFadeMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\IPEntryDialog.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
+    <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
-    <ClInclude Include="ResultDialog.h" />
+    <ClInclude Include="Emitter.h" />
+    <ClInclude Include="PacketData.h" />
     <ClInclude Include="UniverseEntryDialog.h" />
-    <ClInclude Include="xCaptureApp.h" />
-    <ClInclude Include="xCaptureMain.h" />
+    <ClInclude Include="xFadeApp.h" />
+    <ClInclude Include="xFadeMain.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -2,13 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="xCrossFade" />
+		<Option title="xFade" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xCrossFade" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin/xFade" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_wd32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -29,7 +29,7 @@
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
-					<Add directory="../xCrossFade" />
+					<Add directory="../xFade" />
 					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
@@ -39,7 +39,7 @@
 				<Linker>
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xCrossFade.map" />
+					<Add option="-Wl,-Map=../bin/xFade.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
@@ -53,7 +53,7 @@
 			</Target>
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xCrossFade" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin/xFade" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_wr32" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -77,7 +77,7 @@
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
-					<Add directory="../xCrossFade" />
+					<Add directory="../xFade" />
 					<Add directory="../include" />
 				</Compiler>
 				<ResourceCompiler>
@@ -88,7 +88,7 @@
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
-					<Add option="-Wl,-Map=../bin/xCrossFade.map" />
+					<Add option="-Wl,-Map=../bin/xFade.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
@@ -102,7 +102,7 @@
 			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
-				<Option output="../bin/xCrossFade" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin/xFade" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_ld" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -120,7 +120,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option='-D__cdecl=&quot;&quot;' />
 					<Add directory="include" />
-					<Add directory="../xCrossFade" />
+					<Add directory="../xFade" />
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
@@ -134,7 +134,7 @@
 			</Target>
 			<Target title="Linux_Release">
 				<Option platforms="Unix;" />
-				<Option output="../bin/xCrossFade" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin/xFade" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_lr" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -151,7 +151,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
-					<Add directory="../xCrossFade" />
+					<Add directory="../xFade" />
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
@@ -166,7 +166,7 @@
 			</Target>
 			<Target title="64bit_MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../bin64/xCrossFade" prefix_auto="1" extension_auto="1" />
+				<Option output="../bin64/xFade" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_wr64" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_64bit_compiler" />
@@ -188,7 +188,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="include" />
-					<Add directory="../xCrossFade" />
+					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</Compiler>
@@ -199,7 +199,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="-m64" />
-					<Add option="-Wl,-Map=../bin64/xCrossFade.map" />
+					<Add option="-Wl,-Map=../bin64/xFade.map" />
 					<Add option="-lpthread" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
@@ -223,28 +223,35 @@
 		<Unit filename="../xLights/IPEntryDialog.h" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
+		<Unit filename="../xLights/xLightsTimer.cpp" />
+		<Unit filename="../xLights/xLightsTimer.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
+		<Unit filename="Emitter.cpp" />
+		<Unit filename="Emitter.h" />
+		<Unit filename="UniverseEntryDialog.cpp" />
+		<Unit filename="UniverseEntryDialog.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
 			<Option target="MinGW_Release" />
 			<Option target="64bit_MinGW_Release" />
 		</Unit>
-		<Unit filename="wxsmith/xCrossFadeframe.wxs" />
-		<Unit filename="xCrossFadeApp.cpp" />
-		<Unit filename="xCrossFadeApp.h" />
-		<Unit filename="xCrossFadeMain.cpp" />
-		<Unit filename="xCrossFadeMain.h" />
+		<Unit filename="wxsmith/xFadeframe.wxs" />
+		<Unit filename="xFadeApp.cpp" />
+		<Unit filename="xFadeApp.h" />
+		<Unit filename="xFadeMain.cpp" />
+		<Unit filename="xFadeMain.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<debugger />
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
-				<gui name="wxWidgets" src="xCrossFadeApp.cpp" main="xCrossFadeFrame" init_handlers="necessary" language="CPP" />
+				<gui name="wxWidgets" src="xFadeApp.cpp" main="xFadeFrame" init_handlers="necessary" language="CPP" />
 				<resources>
-					<wxFrame wxs="wxsmith/xCrossFadeframe.wxs" src="xCrossFadeMain.cpp" hdr="xCrossFadeMain.h" fwddecl="0" i18n="1" name="xCrossFadeFrame" language="CPP" />
+					<wxFrame wxs="wxsmith/xFadeframe.wxs" src="xFadeMain.cpp" hdr="xFadeMain.h" fwddecl="0" i18n="1" name="xFadeFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/UniverseEntryDialog.wxs" src="UniverseEntryDialog.cpp" hdr="UniverseEntryDialog.h" fwddecl="0" i18n="1" name="UniverseEntryDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

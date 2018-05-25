@@ -3503,7 +3503,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
         msg += addr.IPAddress();
         msg += "'. Is the network connected?    ";
         if (testSocket != nullptr && testSocket->IsOk()) {
-            msg = msg + wxString::Format("Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError());
+            msg = msg + wxString::Format("Error %d : ", testSocket->LastError()) + DecodeIPError(testSocket->LastError());
         }
         LogAndWrite(f, msg.ToStdString());
         errcount++;
@@ -4907,7 +4907,7 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     }
     else if (_fppSyncMaster->Error())
     {
-        logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppSyncMaster->LastError(), (const char*)IPOutput::DecodeError(_fppSyncMaster->LastError()).c_str());
+        logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppSyncMaster->LastError(), (const char*)DecodeIPError(_fppSyncMaster->LastError()).c_str());
         delete _fppSyncMaster;
         _fppSyncMaster = nullptr;
     }
@@ -4933,7 +4933,7 @@ void ScheduleManager::OpenFPPSyncSendSocket()
         }
         else if (_fppSyncMasterUnicast->Error())
         {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s", _fppSyncMasterUnicast->LastError(), (const char*)IPOutput::DecodeError(_fppSyncMasterUnicast->LastError()).c_str());
+            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s", _fppSyncMasterUnicast->LastError(), (const char*)DecodeIPError(_fppSyncMasterUnicast->LastError()).c_str());
             delete _fppSyncMasterUnicast;
             _fppSyncMasterUnicast = nullptr;
         }
@@ -4975,7 +4975,7 @@ void ScheduleManager::OpenOSCSyncSendSocket()
     {
         logger_base.error("Error opening datagram for OSC Sync as master. %d : %s", 
             _oscSyncMaster->LastError(), 
-            (const char*)IPOutput::DecodeError(_oscSyncMaster->LastError()).c_str());
+            (const char*)DecodeIPError(_oscSyncMaster->LastError()).c_str());
         delete _oscSyncMaster;
         _oscSyncMaster = nullptr;
     }
@@ -5016,7 +5016,7 @@ void ScheduleManager::OpenARTNetSyncSendSocket()
     {
         logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s", 
             _artNetSyncMaster->LastError(), 
-            (const char*)IPOutput::DecodeError(_artNetSyncMaster->LastError()).c_str());
+            (const char*)DecodeIPError(_artNetSyncMaster->LastError()).c_str());
         delete _artNetSyncMaster;
         _artNetSyncMaster = nullptr;
     }

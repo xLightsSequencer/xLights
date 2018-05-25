@@ -391,7 +391,7 @@ void OSCPacket::Send(const std::string& ip, int port)
     {
         logger_base.error("Error opening datagram for OSC send. %d : %s",
             socket.LastError(),
-            (const char*)IPOutput::DecodeError(socket.LastError()).c_str());
+            (const char*)DecodeIPError(socket.LastError()).c_str());
         return;
     }
 

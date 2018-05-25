@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      xCrossFadeApp.h
+ * Name:      xFadeApp.h
  * Purpose:   Defines Application Class
  * Author:    xLights ()
  * Created:   2016-12-30
@@ -7,8 +7,8 @@
  * License:
  **************************************************************/
 
-#ifndef XCROSSFADEAPP_H
-#define XCROSSFADEAPP_H
+#ifndef XFADEAPP_H
+#define XFADEAPP_H
 
 #ifdef _MSC_VER
 #include <stdlib.h>
@@ -21,7 +21,7 @@
 
 #include <wx/app.h>
 
-class xCrossFadeApp : public wxApp
+class xFadeApp : public wxApp
 {
     public:
         virtual bool OnInit();
@@ -30,6 +30,6 @@ class xCrossFadeApp : public wxApp
         virtual int OnExit();
 };
 
-DECLARE_APP(xCrossFadeApp)
+DECLARE_APP(xFadeApp)
 
-#endif // xCrossFadeAPP_H
+#endif // XFADEAPP_H

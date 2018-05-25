@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include "ArtNetDialog.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #pragma region Static Variables
 int ArtNetOutput::__ip1 = -1;
@@ -107,7 +108,7 @@ void ArtNetOutput::SendSync()
         }
         else if (syncdatagram->Error())
         {
-            logger_base.error("Error creating Artnet sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error creating Artnet sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -181,7 +182,7 @@ bool ArtNetOutput::Open()
     }
     else if (_datagram->Error())
     {
-        logger_base.error("Error creating Artnet datagram => %d : %s.", _datagram->LastError(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+        logger_base.error("Error creating Artnet datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

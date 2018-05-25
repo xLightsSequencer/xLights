@@ -3,6 +3,7 @@
 #include <wx/socket.h>
 #include "../../xLights/outputs/E131Output.h"
 #include "ListenerManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 bool ListenerE131::IsValidHeader(wxByte* buffer)
 {
@@ -73,7 +74,7 @@ void ListenerE131::StartProcess()
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for E131 reception. %d : %s", _socket->LastError(), (const char*)IPOutput::DecodeError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for E131 reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
         delete _socket;
         _socket = nullptr;
     }
