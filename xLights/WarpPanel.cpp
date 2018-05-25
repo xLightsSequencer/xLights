@@ -54,6 +54,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	Choice_Warp_Effect = new wxComboBox(this, ID_CHOICE_Warp_Effect, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_READONLY, wxDefaultValidator, _T("ID_CHOICE_Warp_Effect"));
 	Choice_Warp_Effect->Append(_("dissolve"));
 	Choice_Warp_Effect->Append(_("circle reveal"));
+	Choice_Warp_Effect->Append(_("banded swirl"));
 	Choice_Warp_Effect->Append(_("ripple"));
 	FlexGridSizer2->Add(Choice_Warp_Effect, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Warp Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));

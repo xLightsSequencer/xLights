@@ -228,6 +228,47 @@ namespace
       return lerp( c, xlBLACK, p );
    }
 
+   xlColor bandedSwirlIn( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      const Vec2D Center( 0.5, 0.5 );
+      const double Frequency = 20.;
+      const double TwistAmount = 1.6;
+
+      Vec2D toUV( Vec2D( s, t ) - Center );
+      double distanceFromCenter = toUV.Len();
+      Vec2D normToUV( toUV / distanceFromCenter );
+      float angle = ::atan2( normToUV.y, normToUV.x );
+
+      angle += RenderBuffer::sin( distanceFromCenter * Frequency ) * TwistAmount * (1 - progress);
+      Vec2D newUV( RenderBuffer::cos( angle ), RenderBuffer::sin( angle ) );
+      newUV = newUV * distanceFromCenter + Center;
+
+      xlColor c1 = tex2D( cb, s, t );
+      xlColor c2 = tex2D( cb, newUV.x, newUV.y );
+
+      return lerp( c1, c2, progress );
+   }
+   xlColor bandedSwirlOut( const ColorBuffer& cb, double s, double t, double progress )
+   {
+      const Vec2D Center( 0.5, 0.5 );
+      const double Frequency = 20.;
+      const double TwistAmount = 1.6;
+
+      Vec2D toUV( Vec2D( s, t ) - Center );
+      double distanceFromCenter = toUV.Len();
+      Vec2D normToUV( toUV / distanceFromCenter );
+      float angle = ::atan2( normToUV.y, normToUV.x );
+
+      angle += RenderBuffer::sin( distanceFromCenter * Frequency ) * TwistAmount * progress;
+      Vec2D newUV( RenderBuffer::cos( angle ), RenderBuffer::sin( angle ) );
+      newUV = newUV * distanceFromCenter + Center;
+
+      xlColor c1 = tex2D( cb, s, t );
+      xlColor c2 = tex2D( cb, newUV.x, newUV.y );
+
+      return lerp( c2, c1, progress );
+   }
+
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, double progress );
 
    void RenderPixelTransform( PixelTransform transform, double progress, RenderBuffer& rb )
@@ -376,6 +417,53 @@ namespace
       "    gl_FragColor = mix( c, vec4(0,0,0, 1), p );\n"
       "}\n";
 
+   const char *psBandedSwirlIn =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main() {\n"
+      "    vec2 center = vec2( 0.5, 0.5);\n"
+      "    float frequency = 20.f;\n"
+      "    float twistAmount = 1.6f;\n"
+      "\n"
+      "    vec2 toUV = vec2( texCoord - center );\n"
+      "    float distanceFromCenter = length(toUV);\n"
+      "    vec2 normToUV = toUV / distanceFromCenter;\n"
+      "    float angle = atan(normToUV.y, normToUV.x);\n"
+      "\n"
+      "    angle += sin(distanceFromCenter * frequency) * twistAmount * (1-progress);\n"
+      "    vec2 newUV = vec2( cos(angle), sin(angle) );\n"
+      "    newUV = newUV * distanceFromCenter + center;\n"
+      "\n"
+      "    vec4 c1 = texture(texSampler, fract(newUV));\n"
+      "    vec4 c2 = texture(texSampler, texCoord);\n"
+      "    gl_FragColor = mix(c1, c2, 1-progress);\n"
+      "}\n";
+   const char *psBandedSwirlOut =
+      "#version 330\n"
+      "uniform sampler2D texSampler;\n"
+      "uniform float progress;\n"
+      "in vec2 texCoord;\n"
+      "void main() {\n"
+      "    vec2 center = vec2( 0.5, 0.5);\n"
+      "    float frequency = 20.f;\n"
+      "    float twistAmount = 1.6f;\n"
+      "\n"
+      "    vec2 toUV = vec2( texCoord - center );\n"
+      "    float distanceFromCenter = length(toUV);\n"
+      "    vec2 normToUV = toUV / distanceFromCenter;\n"
+      "    float angle = atan(normToUV.y, normToUV.x);\n"
+      "\n"
+      "    angle += sin(distanceFromCenter * frequency) * twistAmount * progress;\n"
+      "    vec2 newUV = vec2( cos(angle), sin(angle) );\n"
+      "    newUV = newUV * distanceFromCenter + center;\n"
+      "\n"
+      "    vec4 c1 = texture(texSampler, fract(newUV));\n"
+      "    vec4 c2 = texture(texSampler, texCoord);\n"
+      "    gl_FragColor = mix(c2, c1, progress);\n"
+      "}\n";
+
    const char *psRippleIn =
       "#version 330\n"
       "uniform sampler2D texSampler;\n"
@@ -433,6 +521,8 @@ unsigned WarpEffect::s_programId_dissolve_in = 0;
 unsigned WarpEffect::s_programId_dissolve_out = 0;
 unsigned WarpEffect::s_programId_circleReveal_in = 0;
 unsigned WarpEffect::s_programId_circleReveal_out = 0;
+unsigned WarpEffect::s_programId_bandedSwirl_in = 0;
+unsigned WarpEffect::s_programId_bandedSwirl_out = 0;
 unsigned WarpEffect::s_programId_ripple_in = 0;
 unsigned WarpEffect::s_programId_ripple_out = 0;
 unsigned WarpEffect::s_noiseTexId = 0;
@@ -526,6 +616,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          programId = warpType == "in" ? s_programId_dissolve_in : s_programId_dissolve_out;
       else if ( warpEffect == "circle reveal" )
          programId = warpType == "in" ? s_programId_circleReveal_in : s_programId_circleReveal_out;
+      else if ( warpEffect == "banded swirl" )
+         programId = warpType == "in" ? s_programId_bandedSwirl_in : s_programId_bandedSwirl_out;
       else if ( warpEffect == "ripple" )
          programId = warpType == "in" ? s_programId_ripple_in : s_programId_ripple_out;
 
@@ -567,6 +659,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          RenderPixelTransform( warpType == "in" ? rippleIn : rippleOut, adjust, buffer );
       else if ( warpEffect == "dissolve" )
          RenderPixelTransform( warpType == "in" ? dissolveIn : dissolveOut, adjust, buffer );
+      else if ( warpEffect == "banded swirl" )
+         RenderPixelTransform( warpType == "in" ? bandedSwirlIn : bandedSwirlOut, adjust, buffer );
       else if ( warpEffect == "circle reveal" )
          RenderPixelTransform( warpType == "in" ? circleRevealIn : circleRevealOut, adjust, buffer );
    }
@@ -585,6 +679,8 @@ void WarpEffect::sizeForRenderBuffer( const RenderBuffer& rb )
       s_programId_dissolve_out = OpenGLShaders::compile( vsSrc, psDissolveOut );
       s_programId_circleReveal_in = OpenGLShaders::compile( vsSrc, psCircleRevealIn );
       s_programId_circleReveal_out = OpenGLShaders::compile( vsSrc, psCircleRevealOut );
+      s_programId_bandedSwirl_in = OpenGLShaders::compile( vsSrc, psBandedSwirlIn );
+      s_programId_bandedSwirl_out = OpenGLShaders::compile( vsSrc, psBandedSwirlOut );
       s_programId_ripple_in = OpenGLShaders::compile( vsSrc, psRippleIn );
       s_programId_ripple_out = OpenGLShaders::compile( vsSrc, psRippleOut );
       s_noiseTexId = NoiseTexture();

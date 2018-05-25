@@ -145,15 +145,8 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
    const GLchar* fragmentShaders[] = { fragmentSource.c_str() };
    glShaderSource( fragmentShader, 1, fragmentShaders, NULL );
    glCompileShader( fragmentShader );
-   bool fragCompileSuccess = shaderCompileSuceeded( fragmentShader );
-   if ( !fragCompileSuccess )
-   {
-      char buff[1024];
-      glGetShaderInfoLog( fragmentShader, 1024, nullptr, buff );
-      printf("%s\n", buff );
-      glDeleteShader( vertexShader );
+   if ( !shaderCompileSuceeded( fragmentShader ) )
       return 0;
-   }
 
    GLuint program = glCreateProgram();
    glAttachShader( program, vertexShader );

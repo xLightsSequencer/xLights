@@ -23,6 +23,7 @@
 							<content>
 								<item>dissolve</item>
 								<item>circle reveal</item>
+								<item>banded swirl</item>
 								<item>ripple</item>
 							</content>
 							<style>wxCB_READONLY</style>

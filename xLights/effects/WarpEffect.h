@@ -26,12 +26,13 @@ class WarpEffect : public RenderableEffect
         };
 
         static void sizeForRenderBuffer( const RenderBuffer& rb );
-
         static bool s_shadersInit;
         static unsigned s_programId_dissolve_in;
         static unsigned s_programId_dissolve_out;
         static unsigned s_programId_circleReveal_in;
         static unsigned s_programId_circleReveal_out;
+        static unsigned s_programId_bandedSwirl_in;
+        static unsigned s_programId_bandedSwirl_out;
         static unsigned s_programId_ripple_in;
         static unsigned s_programId_ripple_out;
         static unsigned s_noiseTexId;
