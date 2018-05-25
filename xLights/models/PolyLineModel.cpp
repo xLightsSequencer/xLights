@@ -187,6 +187,7 @@ void PolyLineModel::InitModel() {
     // reset node information
     Nodes.clear();
     SetNodeCount(1,numLights,rgbOrder);
+    if (num_points == 1) return;  // TODO:  Should we even allow this creation
 
     // process our own start channels
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();

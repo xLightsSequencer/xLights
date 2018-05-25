@@ -315,6 +315,11 @@ void ModelScreenLocation::TranslateVector(glm::vec3& point) const
     point.y = sy;
     point.z = sz;
 }
+void ModelScreenLocation::SetDefaultMatrices()
+{
+    TranslateMatrix = glm::translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    ModelMatrix = TranslateMatrix;
+}
 
 bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch) {
 
@@ -1385,16 +1390,16 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
 }
 
 int BoxedScreenLocation::GetTop() const {
-    return centery+(RenderHt*scaley/2);
+    return worldPos_y+(RenderHt*scaley/2);
 }
 int BoxedScreenLocation::GetLeft() const {
-    return centerx-(RenderWi*scalex/2);
+    return worldPos_x-(RenderWi*scalex/2);
 }
 int BoxedScreenLocation::GetRight() const {
-    return centerx+(RenderWi*scalex/2);
+    return worldPos_x+(RenderWi*scalex/2);
 }
 int BoxedScreenLocation::GetBottom() const {
-    return centery-(RenderHt*scaley/2);
+    return worldPos_y-(RenderHt*scaley/2);
 }
 
 int BoxedScreenLocation::GetMWidth() const {
@@ -1416,16 +1421,16 @@ void BoxedScreenLocation::SetMHeight(int h)
 }
 
 void BoxedScreenLocation::SetLeft(int x) {
-    worldPos_x = x + RenderWi / 2;
+    worldPos_x = x + (RenderWi*scalex / 2.0f);
 }
-void BoxedScreenLocation::SetRight(int i) {
-    worldPos_x = i - RenderWi / 2;
+void BoxedScreenLocation::SetRight(int x) {
+    worldPos_x = x - (RenderWi*scalex / 2.0f);
 }
 void BoxedScreenLocation::SetTop(int y) {
-    worldPos_y = y - RenderHt / 2;
+    worldPos_y = y - (RenderHt*scaley / 2.0f);
 }
 void BoxedScreenLocation::SetBottom(int y) {
-    worldPos_y = y + RenderHt / 2;
+    worldPos_y = y + (RenderHt*scaley / 2.0f);
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
@@ -2183,31 +2188,29 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
 void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 }
 
-float TwoPointScreenLocation::GetHcenterOffset() const {
-    return x2 / 2.0;
+float TwoPointScreenLocation::GetHcenterPos() const {
+    return worldPos_x + (x2 / 2.0f);
 }
-float TwoPointScreenLocation::GetVcenterOffset() const {
-    return y2 / 2.0;
-}
-
-void TwoPointScreenLocation::SetHcenterOffset(float f) {
-    float diffx = x2 / 2.0 - f;
-    worldPos_x -= diffx;
-}
-void TwoPointScreenLocation::SetVcenterOffset(float f) {
-    float diffy = y2 / 2.0 - f;
-    worldPos_y -= diffy;
+float TwoPointScreenLocation::GetVcenterPos() const {
+    return worldPos_y + (y2 / 2.0f);
 }
 
-void TwoPointScreenLocation::SetOffset(float xPct, float yPct) {
+void TwoPointScreenLocation::SetHcenterPos(float f) {
+    worldPos_x = f - (x2 / 2.0f);
+}
+void TwoPointScreenLocation::SetVcenterPos(float f) {
+    worldPos_y = f - (y2 / 2.0f);
+}
+
+void TwoPointScreenLocation::SetPosition(float posx, float posy) {
 
     if (_locked) return;
 
-    float diffx = x2 / 2.0 - xPct;
-    float diffy = y2 / 2.0 - yPct;
+    float diffx = x2 / 2.0 - posx;
+    float diffy = y2 / 2.0 - posy;
 
-    worldPos_y -= diffy;
     worldPos_x -= diffx;
+    worldPos_y -= diffy;
 }
 
 int TwoPointScreenLocation::GetTop() const {
@@ -2220,12 +2223,12 @@ int TwoPointScreenLocation::GetLeft() const {
 
 int TwoPointScreenLocation::GetMWidth() const
 {
-    return std::abs(x2 / 2);
+    return RenderWi * scalex;
 }
 
 int TwoPointScreenLocation::GetMHeight() const
 {
-    return std::abs(y2 / 2);
+    return RenderHt * scaley;
 }
 
 int TwoPointScreenLocation::GetRight() const {
@@ -2236,75 +2239,60 @@ int TwoPointScreenLocation::GetBottom() const {
 }
 void TwoPointScreenLocation::SetTop(int i) {
     float newtop = (float)i;
-    if (worldPos_y > y2 + worldPos_y) {
-        float diff = worldPos_y - newtop;
+    if (y2 < 0) {
         worldPos_y = newtop;
-        y2 -= diff;
     } else {
-        float diff = y2 - newtop;
-        y2 = newtop;
-        worldPos_y -= diff;
-    }
-}
-void TwoPointScreenLocation::SetLeft(int i) {
-    float newx = (float)i;
-    if (worldPos_x < x2) {
-        float diff = worldPos_x - newx;
-        worldPos_x = newx;
-        x2 -= diff;
-    } else {
-        float diff = x2 - newx;
-        x2 = newx;
-        worldPos_x -= diff;
-    }
-}
-void TwoPointScreenLocation::SetRight(int i) {
-    float newx = (float)i;
-    if (worldPos_x > x2) {
-        float diff = worldPos_x - newx;
-        worldPos_x = newx;
-        x2 -= diff;
-    } else {
-        float diff = x2 - newx;
-        x2 = newx;
-        worldPos_x -= diff;
-    }
-}
-
-void TwoPointScreenLocation::SetMWidth(int w)
-{
-    if (worldPos_x > x2)
-    {
-        worldPos_x = x2 + (float)w / RenderWi;
-    }
-    else
-    {
-        x2 = worldPos_x + (float)w / RenderWi;
-    }
-}
-
-void TwoPointScreenLocation::SetMHeight(int h)
-{
-    if (worldPos_y > y2)
-    {
-        worldPos_y = y2 + (float)h / RenderHt;
-    }
-    else
-    {
-        y2 = worldPos_y + (float)h / RenderHt;
+        worldPos_y = newtop - y2;
     }
 }
 
 void TwoPointScreenLocation::SetBottom(int i) {
     float newbot = (float)i;
-    if (worldPos_y < y2) {
-        float diff = worldPos_y - newbot;
+    if (y2 > 0) {
         worldPos_y = newbot;
-        y2 -= diff;
+    }
+    else {
+        worldPos_y = newbot - y2;
+    }
+}
+
+void TwoPointScreenLocation::SetLeft(int i) {
+    float newx = (float)i;
+    if (x2 > 0) {
+        worldPos_x = newx;
     } else {
-        float diff = y2 - newbot;
-        y2 = newbot;
-        worldPos_y -= diff;
+        worldPos_x = newx - x2;
+    }
+}
+
+void TwoPointScreenLocation::SetRight(int i) {
+    float newx = (float)i;
+    if (x2 < 0) {
+        worldPos_x = newx;
+    } else {
+        worldPos_x = newx - x2;
+    }
+}
+
+void TwoPointScreenLocation::SetMWidth(int w)
+{
+    if (x2 > 0) {
+        x2 = float(w);
+    }
+    else {
+        worldPos_x += (float)w + x2;
+        x2 = -float(w);
+    }
+}
+
+void TwoPointScreenLocation::SetMHeight(int h)
+{
+    if (y2 > 0) {
+        y2 = float(h);
+    }
+    else {
+        worldPos_y += (float)h + y2;
+        y2 = -float(h);
     }
 }
 
@@ -2513,8 +2501,7 @@ void ThreePointScreenLocation::SetMWidth(int w)
 
 void ThreePointScreenLocation::SetMHeight(int h)
 {
-    SetHeight((float)h / RenderHt);
-    //TwoPointScreenLocation::SetMHeight(h);
+    SetHeight((float)h / (RenderHt * scaley));
 }
 
 int ThreePointScreenLocation::GetMWidth() const
@@ -2524,7 +2511,7 @@ int ThreePointScreenLocation::GetMWidth() const
 
 int ThreePointScreenLocation::GetMHeight() const
 {
-    return GetHeight() * RenderHt;
+    return GetHeight() * RenderHt * scaley;
 }
 
 void ThreePointScreenLocation::SetActiveHandle(int handle)
@@ -3955,6 +3942,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
 int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
 {
     if (_locked) return 0;
+    std::unique_lock<std::mutex> locker(_mutex);
 
     if (handle != CENTER_HANDLE) {
 
@@ -4054,6 +4042,72 @@ int PolyPointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, boo
                 worldPos_z = saved_position.z + drag_delta.z;
                 break;
             }
+        }
+        else if (axis_tool == TOOL_ROTATE) {
+            if (latch) {
+                center.x = mHandlePosition[CENTER_HANDLE].x;
+                center.y = mHandlePosition[CENTER_HANDLE].y;
+                center.z = mHandlePosition[CENTER_HANDLE].z;
+                saved_position = center;
+                saved_angle = 0.0f;
+            }
+            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
+            double angle = 0.0f;
+            glm::vec3 start_vector = saved_intersect - saved_position;
+            glm::vec3 end_vector = start_vector + drag_delta;
+            glm::mat4 translateToOrigin = glm::translate(Identity, -center);
+            glm::mat4 translateBack = glm::translate(Identity, center);
+            glm::mat4 Rotate = Identity;
+
+            switch (active_axis)
+            {
+            case X_AXIS:
+            {
+                double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                float new_angle = saved_angle - angle;
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+            }
+            break;
+            case Y_AXIS:
+            {
+                double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                float new_angle = angle - saved_angle;
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            break;
+            case Z_AXIS:
+            {
+                double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
+                double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
+                angle = end_angle - start_angle;
+                float new_angle = angle - saved_angle;
+                Rotate = glm::rotate(Identity, glm::radians((float)new_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+            }
+            break;
+            }
+            // Rotate all the points
+            glm::vec3 pt(worldPos_x, worldPos_y, worldPos_z);
+            pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(pt, 1.0f));
+            glm::vec3 world_new(pt.x, pt.y, pt.z);
+            for (int i = 0; i < num_points; ++i) {
+                if (mPos[i].has_curve) {
+                }
+                else {
+                    pt = glm::vec3(mPos[i].x * scalex + worldPos_x, mPos[i].y * scaley + worldPos_y, mPos[i].z * scalez + worldPos_z);
+                    pt = glm::vec3(translateBack * Rotate * translateToOrigin* glm::vec4(pt, 1.0f));
+                    mPos[i].x = (pt.x - world_new.x) / scalex;
+                    mPos[i].y = (pt.y - world_new.y) / scaley;
+                    mPos[i].z = (pt.z - world_new.z) / scalez;
+                }
+            }
+            worldPos_x = world_new.x;
+            worldPos_y = world_new.y;
+            worldPos_z = world_new.z;
+            saved_angle = angle;
         }
         else if (axis_tool == TOOL_SCALE) {
             if (latch) {
@@ -4505,151 +4559,74 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
     }
 }
 
-float PolyPointScreenLocation::GetHcenterOffset() const {
-    float x_total = 0.0f;
-    for(int i = 0; i < num_points; ++i ) {
-        x_total += mPos[i].x;
-    }
-    return x_total / (float)num_points;
+float PolyPointScreenLocation::GetHcenterPos() const {
+    return mHandlePosition[CENTER_HANDLE].x;
 }
 
-float PolyPointScreenLocation::GetVcenterOffset() const {
-    float y_total = 0.0f;
-    for(int i = 0; i < num_points; ++i ) {
-        y_total += mPos[i].y;
-    }
-    return y_total / (float)num_points;
+float PolyPointScreenLocation::GetVcenterPos() const {
+    return mHandlePosition[CENTER_HANDLE].y;
 }
 
-void PolyPointScreenLocation::SetHcenterOffset(float f) {
-    float diffx = GetHcenterOffset() - f;
-    for(int i = 0; i < num_points; ++i ) {
-        mPos[i].x -= diffx;
-        if( mPos[i].has_curve ) {
-            mPos[i].curve->OffsetX(-diffx);
-        }
-    }
-    FixCurveHandles();
+void PolyPointScreenLocation::SetHcenterPos(float f) {
+    worldPos_x += f - GetHcenterPos();
 }
 
-void PolyPointScreenLocation::SetVcenterOffset(float f) {
-    float diffy = GetVcenterOffset() - f;
-    for(int i = 0; i < num_points; ++i ) {
-        mPos[i].y -= diffy;
-        if( mPos[i].has_curve ) {
-            mPos[i].curve->OffsetY(-diffy);
-        }
-    }
-    FixCurveHandles();
+void PolyPointScreenLocation::SetVcenterPos(float f) {
+    worldPos_y += f - GetVcenterPos();
 }
 
-void PolyPointScreenLocation::SetOffset(float xPct, float yPct) {
+void PolyPointScreenLocation::SetPosition(float posx, float posy) {
 
     if (_locked) return;
 
-    SetHcenterOffset(xPct);
-    SetVcenterOffset(yPct);
+    SetHcenterPos(posx);
+    SetVcenterPos(posy);
 }
 
 int PolyPointScreenLocation::GetTop() const {
-    int topy = std::round(mPos[0].y * scaley + worldPos_y);
-    for(int i = 1; i < num_points; ++i ) {
-        int newy = std::round(mPos[i].y * scaley + worldPos_y);
-        topy = std::max(topy, newy);
-    }
-    return topy;
+    return maxY * scaley + worldPos_y;
 }
 
 int PolyPointScreenLocation::GetLeft() const {
-    int leftx = std::round(mPos[0].x * scalex + worldPos_x);
-    for(int i = 1; i < num_points; ++i ) {
-        int newx = std::round(mPos[i].x * scalex + worldPos_x);
-        leftx = std::min(leftx, newx);
-    }
-    return leftx;
+    return minX * scalex + worldPos_x;
 }
 
 int PolyPointScreenLocation::GetMHeight() const
 {
-    int maxy = 0;
-    int miny = 0xFFFF;
-
-    for (int i = 0; i < num_points; ++i) {
-        int y = std::round(mPos[i].y * scaley + worldPos_y);
-        if (y > maxy) maxy = y;
-        if (y < miny) miny = y;
-    }
-
-    return maxy - miny;
+    return maxY - minY;
 }
 
 int PolyPointScreenLocation::GetMWidth() const
 {
-    int maxx = 0;
-    int minx = 0xFFFF;
-
-    for (int i = 0; i < num_points; ++i) {
-        int x = std::round(mPos[i].x * scalex + worldPos_x);
-        if (x > maxx) maxx = x;
-        if (x < minx) minx = x;
-    }
-
-    return maxx - minx;
+    return maxX - minX;
 }
 
 void PolyPointScreenLocation::SetMWidth(int w)
 {
-    int currw = GetMWidth();
-    float scale = w / currw;
-
-    for (int i = 1; i < num_points; ++i)
-    {
-        float diff = mPos[i].x - mPos[0].x;
-        mPos[i].x = mPos[0].x + diff * scale;
-    }
+    scalex = (float)w / (maxX - minX);
 }
 
 void PolyPointScreenLocation::SetMHeight(int h)
 {
-    int currh = GetMHeight();
-    float scale = h / currh;
-
-    for (int i = 1; i < num_points; ++i)
-    {
-        float diff = mPos[i].y - mPos[0].y;
-        mPos[i].y = mPos[0].y + diff * scale;
-    }
+    scaley = (float)h / (maxY - minY);
 }
 
 int PolyPointScreenLocation::GetRight() const {
-    int rightx = std::round(mPos[0].x * scaley + worldPos_y);
-    for(int i = 1; i < num_points; ++i ) {
-        int newx = std::round(mPos[i].x * scalex + worldPos_x);
-        rightx = std::max(rightx, newx);
-    }
-    return rightx;
+    return maxX * scalex + worldPos_x;
 }
-int PolyPointScreenLocation::GetBottom() const {
-    int boty = std::round(mPos[0].y * scaley + worldPos_y);
-    for(int i = 1; i < num_points; ++i ) {
-        int newy = std::round(mPos[i].y * scalex + worldPos_x);
-        boty = std::min(boty, newy);
-    }
-    return boty;
 
+int PolyPointScreenLocation::GetBottom() const {
+    return minY * scaley + worldPos_y;
 }
+
 void PolyPointScreenLocation::SetTop(int i) {
 
     if (_locked) return;
 
     float newtop = (float)i;
-    float topy = mPos[0].y * scaley + worldPos_y;
-    for(int j = 1; j < num_points; ++j ) {
-        float newy = mPos[j].y * scaley + worldPos_y;
-        topy = std::max(topy, newy);
-    }
-    float diff = topy - newtop;
-    SetVcenterOffset(diff);
+    float topy = maxY * scaley + worldPos_y;
+    float diff = newtop - topy;
+    worldPos_y += diff;
 }
 
 void PolyPointScreenLocation::SetLeft(int i) {
@@ -4657,13 +4634,9 @@ void PolyPointScreenLocation::SetLeft(int i) {
     if (_locked) return;
 
     float newleft = (float)i;
-    float leftx = mPos[0].x * scalex + worldPos_x;
-    for(int j = 1; j < num_points; ++j ) {
-        float newx = mPos[j].x * scalex + worldPos_x;
-        leftx = std::max(leftx, newx);
-    }
-    float diff = leftx - newleft;
-    SetHcenterOffset(diff);
+    float leftx = minX * scalex + worldPos_x;
+    float diff = newleft - leftx;
+    worldPos_x += diff;
 }
 
 void PolyPointScreenLocation::SetRight(int i) {
@@ -4671,13 +4644,9 @@ void PolyPointScreenLocation::SetRight(int i) {
     if (_locked) return;
 
     float newright = (float)i;
-    float rightx = mPos[0].x * scalex + worldPos_x;
-    for(int j = 1; j < num_points; ++j ) {
-        float newx = mPos[j].x * scalex + worldPos_x;
-        rightx = std::max(rightx, newx);
-    }
-    float diff = rightx - newright;
-    SetHcenterOffset(diff);
+    float rightx = maxX * scalex + worldPos_x;
+    float diff = newright - rightx;
+    worldPos_x += diff;
 }
 
 void PolyPointScreenLocation::SetBottom(int i) {
@@ -4685,13 +4654,9 @@ void PolyPointScreenLocation::SetBottom(int i) {
     if (_locked) return;
 
     float newbot = (float)i;
-    float boty = mPos[0].y * scaley + worldPos_y;
-    for(int j = 1; j < num_points; ++j ) {
-        float newy = mPos[j].y * scaley + worldPos_y;
-        boty = std::max(boty, newy);
-    }
-    float diff = boty - newbot;
-    SetVcenterOffset(diff);
+    float boty = minY * scaley + worldPos_y;
+    float diff = newbot - boty;
+    worldPos_y += diff;
 }
 
 void PolyPointScreenLocation::FixCurveHandles() {

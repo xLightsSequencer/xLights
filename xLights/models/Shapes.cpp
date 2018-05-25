@@ -476,22 +476,22 @@ float BezierCurve3D::GetSegLength(int segment) {
 void BezierCurve3D::UpdateMatrices()
 {
     for (int i = 0; i < num_points - 1; ++i) {
-        float x1p = points[i].x;
-        float x2p = points[i + 1].x;
-        float y1p = points[i].y;
-        float y2p = points[i + 1].y;
-        float z1p = points[i].z;
-        float z2p = points[i + 1].z;
+        float x1p = points[i].x * scale.x + world_pos.x;
+        float x2p = points[i + 1].x * scale.x + world_pos.x;
+        float y1p = points[i].y* scale.y + world_pos.y;
+        float y2p = points[i + 1].y* scale.y + world_pos.y;
+        float z1p = points[i].z * scale.z + world_pos.z;
+        float z2p = points[i + 1].z * scale.z + world_pos.z;
 
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
 
         glm::vec3 a = pt2 - pt1;
-        points[i].length = glm::length(a);
+        points[i].length = glm::length(a) / scale.x;
 
         glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, 1.0f, 1.0f));
-        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p * scale.x + world_pos.x, y1p* scale.y + world_pos.y, z1p * scale.z + world_pos.z));
+        glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(points[i].length * scale.x, 1.0f, 1.0f));
+        glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
         glm::mat4 mod_mat = translateMatrix * rotationMatrix;
 
@@ -508,7 +508,7 @@ void BezierCurve3D::UpdateMatrices()
             pt1.z = 0.0f;
             pt2.z = 0.0f;
             glm::vec3 a = pt2 - pt1;
-            points[i].length2d = glm::length(a);
+            points[i].length2d = glm::length(a) / scale.x;
             glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
             glm::mat4 mod_mat = translateMatrix * rotationMatrix;
             if (points[i].mod_matrix2d != nullptr) {

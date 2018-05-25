@@ -1672,11 +1672,11 @@ unsigned int Model::GetNumChannels() {
     return GetLastChannel() - GetFirstChannel() + 1;
 }
 
-void Model::SetOffset(double xPct, double yPct) {
+void Model::SetPosition(double posx, double posy) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().SetOffset(xPct, yPct);
+    GetModelScreenLocation().SetPosition(posx, posy);
     IncrementChangeCount();
 }
 
@@ -1691,11 +1691,11 @@ void Model::Lock(bool lock)
     IncrementChangeCount();
 }
 
-void Model::AddOffset(double xPct, double yPct, double zPct) {
+void Model::AddOffset(double deltax, double deltay, double deltaz) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().AddOffset(xPct, yPct, zPct);
+    GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
     IncrementChangeCount();
 }
 
@@ -2917,7 +2917,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 int trans = color == xlBLACK ? blackTransparency : transparency;
                 ApplyTransparency(ccolor, trans);
                 ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
-                va.AddTrianglesCircle(sx, sy, ((float)pixelSize) / 2.0f, ccolor, ecolor);
+                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor);
             }
         }
     }
@@ -3295,26 +3295,26 @@ int Model::GetRight() {
     return GetModelScreenLocation().GetRight();
 }
 
-float Model::GetHcenterOffset() {
-    return GetModelScreenLocation().GetHcenterOffset();
+float Model::GetHcenterPos() {
+    return GetModelScreenLocation().GetHcenterPos();
 }
 
-float Model::GetVcenterOffset() {
-    return GetModelScreenLocation().GetVcenterOffset();
+float Model::GetVcenterPos() {
+    return GetModelScreenLocation().GetVcenterPos();
 }
-void Model::SetHcenterOffset(float offset) {
+void Model::SetHcenterPos(float pos) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().SetHcenterOffset(offset);
+    GetModelScreenLocation().SetHcenterPos(pos);
     IncrementChangeCount();
 }
 
-void Model::SetVcenterOffset(float offset) {
+void Model::SetVcenterPos(float pos) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().SetVcenterOffset(offset);
+    GetModelScreenLocation().SetVcenterPos(pos);
     IncrementChangeCount();
 }
 
@@ -3441,8 +3441,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3451,8 +3451,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3485,8 +3485,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3495,8 +3495,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3506,8 +3506,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3516,8 +3516,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3527,8 +3527,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3537,8 +3537,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("DMX", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;

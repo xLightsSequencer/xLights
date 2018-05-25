@@ -490,6 +490,9 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 }
             }
 
+            GetModelScreenLocation().SetMWidth(max_x - min_x);
+            GetModelScreenLocation().SetMHeight(max_y - min_y);
+
             xlights->MarkEffectsFileDirty(true);
         }
         else

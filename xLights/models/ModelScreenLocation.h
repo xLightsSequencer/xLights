@@ -83,13 +83,13 @@ public:
     virtual bool IsCenterBased() const = 0;
     virtual float GetVScaleFactor() const {return 1.0;}
 
-    virtual void SetOffset(float xPct, float yPct) = 0;
+    virtual void SetPosition(float posx, float posy) = 0;
     virtual void AddOffset(float deltax, float deltay, float deltaz);
 
-    virtual float GetHcenterOffset() const = 0;
-    virtual float GetVcenterOffset() const = 0;
-    virtual void SetHcenterOffset(float f) = 0;
-    virtual void SetVcenterOffset(float f) = 0;
+    virtual float GetHcenterPos() const = 0;
+    virtual float GetVcenterPos() const = 0;
+    virtual void SetHcenterPos(float f) = 0;
+    virtual void SetVcenterPos(float f) = 0;
 
     //in screen coordinates
     virtual int GetTop() const = 0;
@@ -120,6 +120,7 @@ public:
         float z;
     };
 
+    void SetDefaultMatrices();  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
     int GetActiveHandle() { return active_handle; }
     virtual void SetActiveAxis(int axis);
@@ -217,22 +218,22 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool IsCenterBased() const override {return true;};
 
-    virtual float GetHcenterOffset() const override {
+    virtual float GetHcenterPos() const override {
         return (float)worldPos_x;
     }
-    virtual float GetVcenterOffset() const override {
+    virtual float GetVcenterPos() const override {
         return (float)worldPos_y;
     }
-    virtual void SetHcenterOffset(float f) override {
+    virtual void SetHcenterPos(float f) override {
 		worldPos_x = f;
     }
-    virtual void SetVcenterOffset(float f) override {
+    virtual void SetVcenterPos(float f) override {
 		worldPos_y = f;
     }
 
-    virtual void SetOffset(float xPct, float yPct) override {
-		worldPos_x =xPct;
-		worldPos_y =yPct;
+    virtual void SetPosition(float posx, float posy) override {
+		worldPos_x = posx;
+		worldPos_y = posy;
     }
     void SetScale(float x, float y) {
         scalex = x;
@@ -311,13 +312,13 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual float GetHcenterOffset() const override;
-    virtual float GetVcenterOffset() const override;
-    virtual void SetHcenterOffset(float f) override;
-    virtual void SetVcenterOffset(float f) override;
+    virtual float GetHcenterPos() const override;
+    virtual float GetVcenterPos() const override;
+    virtual void SetHcenterPos(float f) override;
+    virtual void SetVcenterPos(float f) override;
     virtual bool IsCenterBased() const override {return false;};
 
-    virtual void SetOffset(float xPct, float yPct) override;
+    virtual void SetPosition(float posx, float posy) override;
     virtual int GetTop() const override;
     virtual int GetLeft() const override;
     virtual int GetRight() const override;
@@ -464,13 +465,13 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-    virtual float GetHcenterOffset() const override;
-    virtual float GetVcenterOffset() const override;
-    virtual void SetHcenterOffset(float f) override;
-    virtual void SetVcenterOffset(float f) override;
+    virtual float GetHcenterPos() const override;
+    virtual float GetVcenterPos() const override;
+    virtual void SetHcenterPos(float f) override;
+    virtual void SetVcenterPos(float f) override;
     virtual bool IsCenterBased() const override {return false;};
 
-    virtual void SetOffset(float xPct, float yPct) override;
+    virtual void SetPosition(float posx, float posy) override;
     virtual int GetTop() const override;
     virtual int GetLeft() const override;
     virtual int GetRight() const override;
@@ -515,6 +516,8 @@ protected:
     mutable std::vector<glm::vec3> seg_aabb_max;
     mutable glm::mat4 main_matrix;
     mutable glm::vec3 saved_point;
+    mutable glm::vec3 center;
+    float saved_angle;
     void FixCurveHandles();
     void AdjustAllHandles(glm::mat4& mat);
 };

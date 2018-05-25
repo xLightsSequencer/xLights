@@ -2837,12 +2837,12 @@ void LayoutPanel::PreviewModelAlignHCenter()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    float center = modelPreview->GetModels()[selectedindex]->GetHcenterOffset();
+    float center = modelPreview->GetModels()[selectedindex]->GetHcenterPos();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetHcenterOffset(center);
+            modelPreview->GetModels()[i]->SetHcenterPos(center);
         }
     }
     UpdatePreview();
@@ -2850,16 +2850,16 @@ void LayoutPanel::PreviewModelAlignHCenter()
 
 bool SortModelX(const Model* first, const Model* second)
 {
-    float firstmodelX = first->GetModelScreenLocation().GetHcenterOffset();
-    float secondmodelX = second->GetModelScreenLocation().GetHcenterOffset();
+    float firstmodelX = first->GetModelScreenLocation().GetHcenterPos();
+    float secondmodelX = second->GetModelScreenLocation().GetHcenterPos();
 
     return firstmodelX < secondmodelX;
 }
 
 bool SortModelY(const Model* first, const Model* second)
 {
-    float firstmodelY = first->GetModelScreenLocation().GetVcenterOffset();
-    float secondmodelY = second->GetModelScreenLocation().GetVcenterOffset();
+    float firstmodelY = first->GetModelScreenLocation().GetVcenterPos();
+    float secondmodelY = second->GetModelScreenLocation().GetVcenterPos();
 
     return firstmodelY < secondmodelY;
 }
@@ -2878,7 +2878,7 @@ void LayoutPanel::PreviewModelHDistribute()
         if (m->GroupSelected)
         {
             count++;
-            float x = m->GetHcenterOffset();
+            float x = m->GetHcenterPos();
 
             if (x < minx) minx = x;
             if (x > maxx) maxx = x;
@@ -2899,7 +2899,7 @@ void LayoutPanel::PreviewModelHDistribute()
     {
         if (it == models.begin())
         {
-            x = (*it)->GetHcenterOffset() + space;
+            x = (*it)->GetHcenterPos() + space;
         }
         else if (*it == models.back())
         {
@@ -2907,7 +2907,7 @@ void LayoutPanel::PreviewModelHDistribute()
         }
         else
         {
-            (*it)->SetHcenterOffset(x);
+            (*it)->SetHcenterPos(x);
             x += space;
         }
     }
@@ -2928,7 +2928,7 @@ void LayoutPanel::PreviewModelVDistribute()
         if (m->GroupSelected)
         {
             count++;
-            float y = m->GetVcenterOffset();
+            float y = m->GetVcenterPos();
 
             if (y < miny) miny = y;
             if (y > maxy) maxy = y;
@@ -2949,7 +2949,7 @@ void LayoutPanel::PreviewModelVDistribute()
     {
         if (it == models.begin())
         {
-            y = (*it)->GetVcenterOffset() + space;
+            y = (*it)->GetVcenterPos() + space;
         }
         else if (*it == models.back())
         {
@@ -2957,7 +2957,7 @@ void LayoutPanel::PreviewModelVDistribute()
         }
         else
         {
-            (*it)->SetVcenterOffset(y);
+            (*it)->SetVcenterPos(y);
             y += space;
         }
     }
@@ -2970,12 +2970,12 @@ void LayoutPanel::PreviewModelAlignVCenter()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    float center = modelPreview->GetModels()[selectedindex]->GetVcenterOffset();
+    float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetVcenterOffset(center);
+            modelPreview->GetModels()[i]->SetVcenterPos(center);
         }
     }
     UpdatePreview();
@@ -3384,6 +3384,11 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd != nullptr)
                 {
+                    if (selectedModel != nullptr) {
+                        selectedModel->GetModelScreenLocation().SetActiveHandle(-1);
+                        selectedModel = nullptr;
+                    }
+
                     if (xlights->AllModels[lastModelName] != nullptr
                         && nd->GetAttribute("Advanced", "0") != "1") {
                         std::string startChannel = ">" + lastModelName + ":1";

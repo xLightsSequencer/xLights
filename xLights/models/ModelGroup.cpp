@@ -243,7 +243,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
-    screenLocation.SetOffset(0.5, 0.5);
+    screenLocation.SetPosition(BufferWi / 2.0f, BufferHt / 2.0f);
 
     return true;
 }

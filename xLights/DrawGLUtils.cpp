@@ -943,8 +943,8 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y,
     AddTrianglesCircle(x, y, radius, color, color);
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
-    AddTrianglesCircle(x, y, radius, color, color);
+void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color) {
+    AddTrianglesCircle(x, y, z, radius, color, color);
 }
 
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
@@ -978,7 +978,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
+void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -992,7 +992,7 @@ void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float 
     float y = 0;
 
     for(int ii = 0; ii < num_segments; ii++) {
-        AddVertex(x + cx, y + cy, 0, edge);
+        AddVertex(x + cx, y + cy, cz, edge);
         //calculate the tangential vector
         //remember, the radial vector is (x, y)
         //to get the tangential vector we flip those coordinates and negate one of them
@@ -1004,8 +1004,8 @@ void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float 
         y += ty * tangetial_factor;
         x *= radial_factor;
         y *= radial_factor;
-        AddVertex(x + cx, y + cy, 0, edge);
-        AddVertex(cx, cy, 0, center);
+        AddVertex(x + cx, y + cy, cz, edge);
+        AddVertex(cx, cy, cz, center);
     }
 }
 

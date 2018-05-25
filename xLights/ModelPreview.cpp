@@ -183,7 +183,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                     (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
                 }
                 if (is_3d)
-                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d, false);
+                    (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator3d, true);
                 else
                     (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator, false);
             }
@@ -555,13 +555,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 10000.0f);  // this must match prepare3DViewport call
         
-        /*
         // FIXME: commented out for debugging speed
         // FIXME: transparent background does not draw correctly when depth testing enabled
         // enables depth testing to draw things in proper order
-        glEnable(GL_DEPTH_TEST);
-        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        glDepthFunc(GL_LESS);*/
+        //glEnable(GL_DEPTH_TEST);
+        //LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        //glDepthFunc(GL_LESS);
         
         prepare3DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));

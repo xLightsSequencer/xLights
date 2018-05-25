@@ -240,8 +240,8 @@ public:
     size_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale();
-    void SetOffset(double xPct, double yPct);
-    void AddOffset(double xPct, double yPct, double zPct);
+    void SetPosition(double posx, double posy);
+    void AddOffset(double deltax, double deltay, double deltaz);
     unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
@@ -319,8 +319,8 @@ public:
     void SetBottom(int y);
     void SetLeft(int x);
     void SetRight(int x);
-    void SetHcenterOffset(float offset);
-    void SetVcenterOffset(float offset);
+    void SetHcenterPos(float pos);
+    void SetVcenterPos(float pos);
     void SetWidth(int w);
     void SetHeight(int h);
 
@@ -328,8 +328,8 @@ public:
     int GetBottom();
     int GetLeft();
     int GetRight();
-    float GetHcenterOffset();
-    float GetVcenterOffset();
+    float GetHcenterPos();
+    float GetVcenterPos();
     int GetWidth();
     int GetHeight();
 
