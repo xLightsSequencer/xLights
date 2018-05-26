@@ -55,7 +55,7 @@ public:
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
 
-    virtual bool IsContained(int x1, int y1, int x2, int y2) const = 0;
+    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const = 0;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const = 0;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const = 0;
@@ -92,18 +92,23 @@ public:
     virtual void SetVcenterPos(float f) = 0;
 
     //in screen coordinates
-    virtual int GetTop() const = 0;
-    virtual int GetLeft() const = 0;
-    virtual int GetRight() const = 0;
-    virtual int GetBottom() const = 0;
-    virtual void SetTop(int i) = 0;
-    virtual void SetLeft(int i) = 0;
-    virtual void SetRight(int i) = 0;
-    virtual void SetBottom(int i) = 0;
-    virtual void SetMWidth(int w) = 0;
-    virtual void SetMHeight(int h) = 0;
-    virtual int GetMWidth() const = 0;
-    virtual int GetMHeight() const = 0;
+    virtual float GetTop() const = 0;
+    virtual float GetLeft() const = 0;
+    virtual float GetRight() const = 0;
+    virtual float GetBottom() const = 0;
+    virtual float GetFront() const = 0;
+    virtual float GetBack() const = 0;
+    virtual void SetTop(float i) = 0;
+    virtual void SetLeft(float i) = 0;
+    virtual void SetRight(float i) = 0;
+    virtual void SetBottom(float i) = 0;
+    virtual void SetFront(float i) = 0;
+    virtual void SetBack(float i) = 0;
+    virtual void SetMWidth(float w) = 0;
+    virtual void SetMHeight(float h) = 0;
+    virtual void SetMDepth(float d) = 0;
+    virtual float GetMWidth() const = 0;
+    virtual float GetMHeight() const = 0;
 
     void SetRenderSize(float NewWi, float NewHt, float NewDp = 0.0f);
     bool IsLocked() const { return _locked; }
@@ -139,6 +144,8 @@ public:
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
+    glm::vec3 GetWorldPosition() { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
+    glm::vec3 GetRotation() { return glm::vec3(rotatex, rotatey, rotatez); }
 
 protected:
     ModelScreenLocation(int points);
@@ -194,7 +201,7 @@ public:
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
-    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
@@ -247,18 +254,23 @@ public:
         perspective = p;
     }
 
-    virtual int GetTop() const override;
-    virtual int GetLeft() const override;
-    virtual int GetRight() const override;
-    virtual int GetBottom() const override;
-    virtual void SetTop(int i) override;
-    virtual void SetLeft(int i) override;
-    virtual void SetRight(int i) override;
-    virtual void SetBottom(int i) override;
-    virtual void SetMWidth(int w) override;
-    virtual void SetMHeight(int h) override;
-    virtual int GetMWidth() const override;
-    virtual int GetMHeight() const override;
+    virtual float GetTop() const override;
+    virtual float GetLeft() const override;
+    virtual float GetRight() const override;
+    virtual float GetBottom() const override;
+    virtual float GetFront() const override;
+    virtual float GetBack() const override;
+    virtual void SetTop(float i) override;
+    virtual void SetLeft(float i) override;
+    virtual void SetRight(float i) override;
+    virtual void SetBottom(float i) override;
+    virtual void SetFront(float i) override;
+    virtual void SetBack(float i) override;
+    virtual void SetMWidth(float w) override;
+    virtual void SetMHeight(float h) override;
+    virtual void SetMDepth(float d) override;
+    virtual float GetMWidth() const override;
+    virtual float GetMHeight() const override;
 
     int GetRotation() const {
         return rotatez;
@@ -289,7 +301,7 @@ public:
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
-    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
@@ -319,18 +331,23 @@ public:
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetPosition(float posx, float posy) override;
-    virtual int GetTop() const override;
-    virtual int GetLeft() const override;
-    virtual int GetRight() const override;
-    virtual int GetBottom() const override;
-    virtual void SetTop(int i) override;
-    virtual void SetLeft(int i) override;
-    virtual void SetRight(int i) override;
-    virtual void SetBottom(int i) override;
-    virtual void SetMWidth(int w) override;
-    virtual void SetMHeight(int h) override;
-    virtual int GetMWidth() const override;
-    virtual int GetMHeight() const override;
+    virtual float GetTop() const override;
+    virtual float GetLeft() const override;
+    virtual float GetRight() const override;
+    virtual float GetBottom() const override;
+    virtual float GetFront() const override;
+    virtual float GetBack() const override;
+    virtual void SetTop(float i) override;
+    virtual void SetLeft(float i) override;
+    virtual void SetRight(float i) override;
+    virtual void SetBottom(float i) override;
+    virtual void SetFront(float i) override;
+    virtual void SetBack(float i) override;
+    virtual void SetMWidth(float w) override;
+    virtual void SetMHeight(float h) override;
+    virtual float GetMWidth() const override;
+    virtual float GetMHeight() const override;
+    virtual void SetMDepth(float d) override;
 
     virtual float GetYShear() const {return 0.0;}
 
@@ -370,7 +387,7 @@ public:
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
     virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
 
-    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
@@ -386,10 +403,10 @@ public:
     float GetHeight() const {
         return height;
     }
-    virtual void SetMWidth(int w) override;
-    virtual void SetMHeight(int h) override;
-    virtual int GetMWidth() const override;
-    virtual int GetMHeight() const override;
+    virtual void SetMWidth(float w) override;
+    virtual void SetMHeight(float h) override;
+    virtual float GetMWidth() const override;
+    virtual float GetMHeight() const override;
     void SetModelHandleHeight(bool b) {
         modelHandlesHeight = b;
     }
@@ -439,7 +456,7 @@ public:
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
 
-    virtual bool IsContained(int x1, int y1, int x2, int y2) const override;
+    virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
     virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
@@ -472,18 +489,23 @@ public:
     virtual bool IsCenterBased() const override {return false;};
 
     virtual void SetPosition(float posx, float posy) override;
-    virtual int GetTop() const override;
-    virtual int GetLeft() const override;
-    virtual int GetRight() const override;
-    virtual int GetBottom() const override;
-    virtual void SetTop(int i) override;
-    virtual void SetLeft(int i) override;
-    virtual void SetRight(int i) override;
-    virtual void SetBottom(int i) override;
-    virtual void SetMWidth(int w) override;
-    virtual void SetMHeight(int h) override;
-    virtual int GetMWidth() const override;
-    virtual int GetMHeight() const override;
+    virtual float GetTop() const override;
+    virtual float GetLeft() const override;
+    virtual float GetRight() const override;
+    virtual float GetBottom() const override;
+    virtual float GetFront() const override;
+    virtual float GetBack() const override;
+    virtual void SetTop(float i) override;
+    virtual void SetLeft(float i) override;
+    virtual void SetRight(float i) override;
+    virtual void SetBottom(float i) override;
+    virtual void SetFront(float i) override;
+    virtual void SetBack(float i) override;
+    virtual void SetMWidth(float w) override;
+    virtual void SetMHeight(float h) override;
+    virtual void SetMDepth(float d) override;
+    virtual float GetMWidth() const override;
+    virtual float GetMHeight() const override;
 
     virtual int GetDefaultHandle() { return END_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_XY_TRANS; }

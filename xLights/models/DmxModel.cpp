@@ -877,7 +877,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
         DrawSkullModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
     }
     else if (dmx_style_val == DMX_STYLE_BASIC_FLOOD) {
-        //DrawFloodOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawFloodOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
     }
     else {
         DrawModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
@@ -972,7 +972,10 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     float rh = ((BoxedScreenLocation)screenLocation).GetMWidth();
     float rw = ((BoxedScreenLocation)screenLocation).GetMHeight();
     float min_size = (float)(std::min(rh, rw));
-    va.AddTrianglesCircle(sx, sy, sz, min_size / 2.0f, beam_color, ecolor);
+
+    glm::vec3 rotation = GetModelScreenLocation().GetRotation();
+   
+    va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor);
     va.Finish(GL_TRIANGLES);
 }
 

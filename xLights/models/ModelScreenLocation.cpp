@@ -336,8 +336,7 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -613,19 +612,30 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
 	sz += worldPos_z;
 }
 
-bool BoxedScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
+bool BoxedScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const {
     int xs = x1<x2?x1:x2;
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
     
-    glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
-    glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
+    if (draw_3d) {
+        return VectorMath::TestVolumeOBBIntersection(
+            xs, ys, xf, yf,
+            preview->getWidth(),
+            preview->getHeight(),
+            aabb_min, aabb_max,
+            preview->GetProjViewMatrix(),
+            ModelMatrix);
+    }
+    else {
+        glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
+        glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
 
-    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
-        return true;
-    } else {
-        return false;
+        if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -661,8 +671,7 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
     VectorMath::ScreenPosToWorldRay(
         x, preview->getHeight() - y,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -1317,8 +1326,7 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -1389,48 +1397,65 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return 0;
 }
 
-int BoxedScreenLocation::GetTop() const {
+float BoxedScreenLocation::GetTop() const {
     return worldPos_y+(RenderHt*scaley/2);
 }
-int BoxedScreenLocation::GetLeft() const {
+float BoxedScreenLocation::GetLeft() const {
     return worldPos_x-(RenderWi*scalex/2);
 }
-int BoxedScreenLocation::GetRight() const {
+float BoxedScreenLocation::GetRight() const {
     return worldPos_x+(RenderWi*scalex/2);
 }
-int BoxedScreenLocation::GetBottom() const {
-    return worldPos_y-(RenderHt*scaley/2);
+float BoxedScreenLocation::GetBottom() const {
+    return worldPos_y - (RenderHt*scaley / 2);
+}
+float BoxedScreenLocation::GetFront() const {
+    return worldPos_z + (RenderWi*scalez / 2);
+}
+float BoxedScreenLocation::GetBack() const {
+    return worldPos_z - (RenderWi*scalez / 2);
 }
 
-int BoxedScreenLocation::GetMWidth() const {
+float BoxedScreenLocation::GetMWidth() const {
     return RenderWi*scalex;
 }
 
-int BoxedScreenLocation::GetMHeight() const {
+float BoxedScreenLocation::GetMHeight() const {
     return RenderHt*scaley;
 }
 
-void BoxedScreenLocation::SetMWidth(int w)
+void BoxedScreenLocation::SetMWidth(float w)
 {
-    scalex = (float)w / RenderWi;
+    scalex = w / RenderWi;
 }
 
-void BoxedScreenLocation::SetMHeight(int h)
+void BoxedScreenLocation::SetMDepth(float d)
 {
-    scaley = (float)h / RenderHt;
+    scalez = d / RenderWi;
 }
 
-void BoxedScreenLocation::SetLeft(int x) {
+void BoxedScreenLocation::SetMHeight(float h)
+{
+    scaley = h / RenderHt;
+}
+
+void BoxedScreenLocation::SetLeft(float x) {
     worldPos_x = x + (RenderWi*scalex / 2.0f);
 }
-void BoxedScreenLocation::SetRight(int x) {
+void BoxedScreenLocation::SetRight(float x) {
     worldPos_x = x - (RenderWi*scalex / 2.0f);
 }
-void BoxedScreenLocation::SetTop(int y) {
+void BoxedScreenLocation::SetTop(float y) {
     worldPos_y = y - (RenderHt*scaley / 2.0f);
 }
-void BoxedScreenLocation::SetBottom(int y) {
+void BoxedScreenLocation::SetBottom(float y) {
     worldPos_y = y + (RenderHt*scaley / 2.0f);
+}
+void BoxedScreenLocation::SetFront(float z) {
+    worldPos_z = z - (RenderWi*scalez / 2.0f);
+}
+void BoxedScreenLocation::SetBack(float z) {
+    worldPos_z = z + (RenderWi*scalez / 2.0f);
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
@@ -1520,20 +1545,31 @@ void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const 
     z = v.z;
 }
 
-bool TwoPointScreenLocation::IsContained(int x1_, int y1_, int x2_, int y2_) const {
+bool TwoPointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
     int yf = y1_ > y2_ ? y1_ : y2_;
 
-    glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
-    glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
-
-    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
-        return true;
+    if (draw_3d) {
+        return VectorMath::TestVolumeOBBIntersection(
+            xs, ys, xf, yf,
+            preview->getWidth(),
+            preview->getHeight(),
+            aabb_min, aabb_max,
+            preview->GetProjViewMatrix(),
+            ModelMatrix);
     }
     else {
-        return false;
+        glm::vec3 min = glm::vec3(ModelMatrix * glm::vec4(aabb_min, 1.0f));
+        glm::vec3 max = glm::vec3(ModelMatrix * glm::vec4(aabb_max, 1.0f));
+
+        if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
 
@@ -1569,8 +1605,7 @@ wxCursor TwoPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &
     VectorMath::ScreenPosToWorldRay(
         x, preview->getHeight() - y,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -2005,8 +2040,7 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -2213,32 +2247,42 @@ void TwoPointScreenLocation::SetPosition(float posx, float posy) {
     worldPos_y -= diffy;
 }
 
-int TwoPointScreenLocation::GetTop() const {
-    return std::max(std::round(worldPos_y), std::round(y2 + worldPos_y));
+float TwoPointScreenLocation::GetTop() const {
+    return std::max(worldPos_y, y2 + worldPos_y);
 }
 
-int TwoPointScreenLocation::GetLeft() const {
-    return std::min(std::round(worldPos_x), std::round(x2 + worldPos_x));
+float TwoPointScreenLocation::GetLeft() const {
+    return std::min(worldPos_x, x2 + worldPos_x);
 }
 
-int TwoPointScreenLocation::GetMWidth() const
+float TwoPointScreenLocation::GetMWidth() const
 {
     return RenderWi * scalex;
 }
 
-int TwoPointScreenLocation::GetMHeight() const
+float TwoPointScreenLocation::GetMHeight() const
 {
     return RenderHt * scaley;
 }
 
-int TwoPointScreenLocation::GetRight() const {
-    return std::max(std::round(worldPos_x), std::round(x2 + worldPos_x));
+float TwoPointScreenLocation::GetRight() const {
+    return std::max(worldPos_x, x2 + worldPos_x);
 }
-int TwoPointScreenLocation::GetBottom() const {
-    return std::min(std::round(worldPos_y), std::round(y2 + worldPos_y));
+
+float TwoPointScreenLocation::GetBottom() const {
+    return std::min(worldPos_y, y2 + worldPos_y);
 }
-void TwoPointScreenLocation::SetTop(int i) {
-    float newtop = (float)i;
+
+float TwoPointScreenLocation::GetFront() const {
+    return std::max(worldPos_z, z2 + worldPos_z);
+}
+
+float TwoPointScreenLocation::GetBack() const {
+    return std::min(worldPos_z, z2 + worldPos_z);
+}
+
+void TwoPointScreenLocation::SetTop(float i) {
+    float newtop = i;
     if (y2 < 0) {
         worldPos_y = newtop;
     } else {
@@ -2246,8 +2290,8 @@ void TwoPointScreenLocation::SetTop(int i) {
     }
 }
 
-void TwoPointScreenLocation::SetBottom(int i) {
-    float newbot = (float)i;
+void TwoPointScreenLocation::SetBottom(float i) {
+    float newbot = i;
     if (y2 > 0) {
         worldPos_y = newbot;
     }
@@ -2256,8 +2300,8 @@ void TwoPointScreenLocation::SetBottom(int i) {
     }
 }
 
-void TwoPointScreenLocation::SetLeft(int i) {
-    float newx = (float)i;
+void TwoPointScreenLocation::SetLeft(float i) {
+    float newx = i;
     if (x2 > 0) {
         worldPos_x = newx;
     } else {
@@ -2265,8 +2309,8 @@ void TwoPointScreenLocation::SetLeft(int i) {
     }
 }
 
-void TwoPointScreenLocation::SetRight(int i) {
-    float newx = (float)i;
+void TwoPointScreenLocation::SetRight(float i) {
+    float newx = i;
     if (x2 < 0) {
         worldPos_x = newx;
     } else {
@@ -2274,25 +2318,49 @@ void TwoPointScreenLocation::SetRight(int i) {
     }
 }
 
-void TwoPointScreenLocation::SetMWidth(int w)
-{
-    if (x2 > 0) {
-        x2 = float(w);
+void TwoPointScreenLocation::SetFront(float i) {
+    float newfront = i;
+    if (z2 < 0) {
+        worldPos_z = newfront;
     }
     else {
-        worldPos_x += (float)w + x2;
-        x2 = -float(w);
+        worldPos_z = newfront - z2;
     }
 }
 
-void TwoPointScreenLocation::SetMHeight(int h)
-{
-    if (y2 > 0) {
-        y2 = float(h);
+void TwoPointScreenLocation::SetBack(float i) {
+    float newback = i;
+    if (z2 > 0) {
+        worldPos_z = newback;
     }
     else {
-        worldPos_y += (float)h + y2;
-        y2 = -float(h);
+        worldPos_z = newback - z2;
+    }
+}
+
+void TwoPointScreenLocation::SetMWidth(float w)
+{
+    if (x2 > 0) {
+        x2 = w;
+    }
+    else {
+        worldPos_x += w + x2;
+        x2 = -w;
+    }
+}
+
+void TwoPointScreenLocation::SetMDepth(float w)
+{
+}
+
+void TwoPointScreenLocation::SetMHeight(float h)
+{
+    if (y2 > 0) {
+        y2 = h;
+    }
+    else {
+        worldPos_y += h + y2;
+        y2 = -h;
     }
 }
 
@@ -2473,20 +2541,31 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     draw_3d = is_3d;
 }
 
-bool ThreePointScreenLocation::IsContained(int x1_, int y1_, int x2_, int y2_) const {
+bool ThreePointScreenLocation::IsContained(ModelPreview* preview, int x1_, int y1_, int x2_, int y2_) const {
     int xs = x1_ < x2_ ? x1_ : x2_;
     int xf = x1_ > x2_ ? x1_ : x2_;
     int ys = y1_ < y2_ ? y1_ : y2_;
     int yf = y1_ > y2_ ? y1_ : y2_;
 
-    glm::vec3 min = glm::vec3(TranslateMatrix * glm::vec4(aabb_min, 1.0f));
-    glm::vec3 max = glm::vec3(TranslateMatrix * glm::vec4(aabb_max, 1.0f));
-
-    if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
-        return true;
+    if (draw_3d) {
+        return VectorMath::TestVolumeOBBIntersection(
+            xs, ys, xf, yf,
+            preview->getWidth(),
+            preview->getHeight(),
+            aabb_min, aabb_max,
+            preview->GetProjViewMatrix(),
+            TranslateMatrix);
     }
     else {
-        return false;
+        glm::vec3 min = glm::vec3(TranslateMatrix * glm::vec4(aabb_min, 1.0f));
+        glm::vec3 max = glm::vec3(TranslateMatrix * glm::vec4(aabb_max, 1.0f));
+
+        if (min.x >= xs && max.x <= xf && min.y >= ys && max.y <= yf) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
 
@@ -2494,22 +2573,22 @@ bool ThreePointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dir
     return TwoPointScreenLocation::HitTest(ray_origin, ray_direction);
 }
 
-void ThreePointScreenLocation::SetMWidth(int w)
+void ThreePointScreenLocation::SetMWidth(float w)
 {
     TwoPointScreenLocation::SetMWidth(w);
 }
 
-void ThreePointScreenLocation::SetMHeight(int h)
+void ThreePointScreenLocation::SetMHeight(float h)
 {
-    SetHeight((float)h / (RenderHt * scaley));
+    SetHeight(h / (RenderHt * scaley));
 }
 
-int ThreePointScreenLocation::GetMWidth() const
+float ThreePointScreenLocation::GetMWidth() const
 {
     return TwoPointScreenLocation::GetMWidth();
 }
 
-int ThreePointScreenLocation::GetMHeight() const
+float ThreePointScreenLocation::GetMHeight() const
 {
     return GetHeight() * RenderHt * scaley;
 }
@@ -2655,8 +2734,7 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -3203,7 +3281,7 @@ void PolyPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const
     z = v.z;
 }
 
-bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const {
+bool PolyPointScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const {
     int sx1 = std::min(x1,x2);
     int sx2 = std::max(x1,x2);
     int sy1 = std::min(y1,y2);
@@ -3213,13 +3291,25 @@ bool PolyPointScreenLocation::IsContained(int x1, int y1, int x2, int y2) const 
     float y1p = minY * scaley + worldPos_y;
     float y2p = maxY * scaley + worldPos_y;
 
-    if( x1p >= sx1 && x1p <= sx2 &&
-        x2p >= sx1 && x2p <= sx2 &&
-        y1p >= sy1 && y1p <= sy2 &&
-        y2p >= sy1 && y2p <= sy2 ) {
-        return true;
+    if (draw_3d) {
+        glm::vec3 aabb_min_pp(x1p, y1p, 0.0f);
+        glm::vec3 aabb_max_pp(x2p, y2p, 0.0f);
+        return VectorMath::TestVolumeOBBIntersection(
+            sx1, sy1, sx2, sy2,
+            preview->getWidth(),
+            preview->getHeight(),
+            aabb_min_pp, aabb_max_pp,
+            preview->GetProjViewMatrix(),
+            Identity);
     }
-
+    else {
+        if( x1p >= sx1 && x1p <= sx2 &&
+            x2p >= sx1 && x2p <= sx2 &&
+            y1p >= sy1 && y1p <= sy2 &&
+            y2p >= sy1 && y2p <= sy2 ) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -3439,8 +3529,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles(ModelPreview* preview, int 
     VectorMath::ScreenPosToWorldRay(
         x, preview->getHeight() - y,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -4203,8 +4292,7 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -4305,8 +4393,7 @@ void PolyPointScreenLocation::AddHandle(ModelPreview* preview, int mouseX, int m
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
         preview->getWidth(), preview->getHeight(),
-        preview->GetViewMatrix(),
-        preview->GetProjMatrix(),
+        preview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
@@ -4583,80 +4670,113 @@ void PolyPointScreenLocation::SetPosition(float posx, float posy) {
     SetVcenterPos(posy);
 }
 
-int PolyPointScreenLocation::GetTop() const {
+float PolyPointScreenLocation::GetTop() const {
     return maxY * scaley + worldPos_y;
 }
 
-int PolyPointScreenLocation::GetLeft() const {
+float PolyPointScreenLocation::GetLeft() const {
     return minX * scalex + worldPos_x;
 }
 
-int PolyPointScreenLocation::GetMHeight() const
+float PolyPointScreenLocation::GetMHeight() const
 {
     return maxY - minY;
 }
 
-int PolyPointScreenLocation::GetMWidth() const
+float PolyPointScreenLocation::GetMWidth() const
 {
     return maxX - minX;
 }
 
-void PolyPointScreenLocation::SetMWidth(int w)
+void PolyPointScreenLocation::SetMWidth(float w)
 {
-    scalex = (float)w / (maxX - minX);
+    scalex = w / (maxX - minX);
 }
 
-void PolyPointScreenLocation::SetMHeight(int h)
+void PolyPointScreenLocation::SetMDepth(float d)
 {
-    scaley = (float)h / (maxY - minY);
+    scalez = d / (maxZ - minZ);
 }
 
-int PolyPointScreenLocation::GetRight() const {
+void PolyPointScreenLocation::SetMHeight(float h)
+{
+    scaley = h / (maxY - minY);
+}
+
+float PolyPointScreenLocation::GetRight() const {
     return maxX * scalex + worldPos_x;
 }
 
-int PolyPointScreenLocation::GetBottom() const {
+float PolyPointScreenLocation::GetBottom() const {
     return minY * scaley + worldPos_y;
 }
 
-void PolyPointScreenLocation::SetTop(int i) {
+float PolyPointScreenLocation::GetFront() const {
+    return maxZ * scalez + worldPos_z;
+}
+
+float PolyPointScreenLocation::GetBack() const {
+    return minZ * scalez + worldPos_z;
+}
+
+void PolyPointScreenLocation::SetTop(float i) {
 
     if (_locked) return;
 
-    float newtop = (float)i;
+    float newtop = i;
     float topy = maxY * scaley + worldPos_y;
     float diff = newtop - topy;
     worldPos_y += diff;
 }
 
-void PolyPointScreenLocation::SetLeft(int i) {
+void PolyPointScreenLocation::SetLeft(float i) {
 
     if (_locked) return;
 
-    float newleft = (float)i;
+    float newleft = i;
     float leftx = minX * scalex + worldPos_x;
     float diff = newleft - leftx;
     worldPos_x += diff;
 }
 
-void PolyPointScreenLocation::SetRight(int i) {
+void PolyPointScreenLocation::SetRight(float i) {
 
     if (_locked) return;
 
-    float newright = (float)i;
+    float newright = i;
     float rightx = maxX * scalex + worldPos_x;
     float diff = newright - rightx;
     worldPos_x += diff;
 }
 
-void PolyPointScreenLocation::SetBottom(int i) {
+void PolyPointScreenLocation::SetBottom(float i) {
 
     if (_locked) return;
 
-    float newbot = (float)i;
+    float newbot = i;
     float boty = minY * scaley + worldPos_y;
     float diff = newbot - boty;
     worldPos_y += diff;
+}
+
+void PolyPointScreenLocation::SetFront(float i) {
+
+    if (_locked) return;
+
+    float newfront = i;
+    float frontz = maxZ * scalez + worldPos_z;
+    float diff = newfront - frontz;
+    worldPos_z += diff;
+}
+
+void PolyPointScreenLocation::SetBack(float i) {
+
+    if (_locked) return;
+
+    float newback = i;
+    float backz = minZ * scalez + worldPos_z;
+    float diff = newback - backz;
+    worldPos_z += diff;
 }
 
 void PolyPointScreenLocation::FixCurveHandles() {

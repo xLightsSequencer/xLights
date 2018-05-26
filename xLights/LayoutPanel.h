@@ -123,10 +123,13 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
+        static const long ID_PREVIEW_ALIGN_GROUND;
         static const long ID_PREVIEW_ALIGN_LEFT;
         static const long ID_PREVIEW_ALIGN_RIGHT;
         static const long ID_PREVIEW_ALIGN_H_CENTER;
         static const long ID_PREVIEW_ALIGN_V_CENTER;
+        static const long ID_PREVIEW_ALIGN_FRONT;
+        static const long ID_PREVIEW_ALIGN_BACK;
         static const long ID_PREVIEW_DISTRIBUTE;
         static const long ID_PREVIEW_H_DISTRIBUTE;
         static const long ID_PREVIEW_V_DISTRIBUTE;
@@ -151,6 +154,7 @@ class LayoutPanel: public wxPanel
         void OnPreviewLeftDClick(wxMouseEvent& event);
 		void OnPreviewRightDown(wxMouseEvent& event);
         void OnPreviewMouseMove(wxMouseEvent& event);
+        void OnPreviewMouseMove3D(wxMouseEvent& event);
         void OnPreviewMouseWheel(wxMouseEvent& event);
         void OnPreviewMouseWheelDown(wxMouseEvent& event);
         void OnPreviewMouseWheelUp(wxMouseEvent& event);
@@ -214,6 +218,7 @@ class LayoutPanel: public wxPanel
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect();
+        void HighlightAllInBoundingRect();
         void SetSelectedModelToGroupSelected();
         void Nudge(int key);
 
@@ -223,10 +228,13 @@ class LayoutPanel: public wxPanel
         int ModelsSelectedCount() const;
         int GetSelectedModelIndex() const;
         std::list<Model*> GetSelectedModels() const;
+        void PreviewModelAlignWithGround();
         void PreviewModelAlignTops();
         void PreviewModelAlignBottoms();
         void PreviewModelAlignLeft();
         void PreviewModelAlignRight();
+        void PreviewModelAlignFronts();
+        void PreviewModelAlignBacks();
         void PreviewModelAlignHCenter();
         void PreviewModelAlignVCenter();
         void PreviewModelHDistribute();
@@ -239,10 +247,8 @@ class LayoutPanel: public wxPanel
         bool m_creating_bound_rect;
         int m_bound_start_x;
         int m_bound_start_y;
-        int m_bound_start_z;
         int m_bound_end_x;
         int m_bound_end_y;
-        int m_bound_end_z;
         int m_over_handle;
         bool m_moving_handle;
         bool m_wheel_down;
@@ -261,6 +267,7 @@ class LayoutPanel: public wxPanel
         Model *highlightedModel;
         bool selectionLatched;
         int over_handle;
+        glm::vec3 last_worldpos;
 
         void refreshModelList();
         void resetPropertyGrid();
@@ -338,7 +345,6 @@ class LayoutPanel: public wxPanel
         int previewBackgroundBrightness;
         wxPanel* main_sequencer;
         wxImageList* m_imageList;
-        bool ignore_next_event;
 
         bool is_3d;
         bool m_mouse_down;

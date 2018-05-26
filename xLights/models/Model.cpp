@@ -1696,6 +1696,7 @@ void Model::AddOffset(double deltax, double deltay, double deltaz) {
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -2649,8 +2650,8 @@ void Model::UpdateXmlWithScale() {
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
-bool Model::IsContained(int x1, int y1, int x2, int y2) {
-    return GetModelScreenLocation().IsContained(x1, y1, x2, y2);
+bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
+    return GetModelScreenLocation().IsContained(preview, x1, y1, x2, y2);
 }
 
 bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
@@ -3218,81 +3219,111 @@ void Model::DeleteHandle(int handle) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
-void Model::SetTop(int y) {
+void Model::SetTop(float y) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetTop(y);
+    GetModelScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+
     IncrementChangeCount();
 }
 
-void Model::SetBottom(int y) {
+void Model::SetBottom(float y) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetBottom(y);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
-void Model::SetLeft(int x) {
+void Model::SetLeft(float x) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetLeft(x);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
-void Model::SetRight(int x) {
+void Model::SetRight(float x) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetRight(x);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
-int Model::GetTop() {
+void Model::SetFront(float z) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
+    GetModelScreenLocation().SetFront(z);
+    GetModelScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void Model::SetBack(float z) {
+
+    if (GetModelScreenLocation().IsLocked()) return;
+
+    GetModelScreenLocation().SetBack(z);
+    GetModelScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+float Model::GetTop() {
     return GetModelScreenLocation().GetTop();
 }
 
-int Model::GetWidth() {
+float Model::GetWidth() {
     return GetModelScreenLocation().GetMWidth();
 }
 
-int Model::GetHeight() {
+float Model::GetHeight() {
     return GetModelScreenLocation().GetMHeight();
 }
 
-void Model::SetWidth(int w) {
+void Model::SetWidth(float w) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetMWidth(w);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
-void Model::SetHeight(int h) {
+void Model::SetHeight(float h) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetMHeight(h);
-
-    // this is necessary for three point models
     GetModelScreenLocation().Write(ModelXml);
     SetFromXml(ModelXml);
-
     IncrementChangeCount();
 }
 
-int Model::GetBottom() {
+float Model::GetBottom() {
     return GetModelScreenLocation().GetBottom();
 }
 
-int Model::GetLeft() {
+float Model::GetLeft() {
     return GetModelScreenLocation().GetLeft();
 }
 
-int Model::GetRight() {
+float Model::GetRight() {
     return GetModelScreenLocation().GetRight();
+}
+
+float Model::GetFront() {
+    return GetModelScreenLocation().GetFront();
+}
+
+float Model::GetBack() {
+    return GetModelScreenLocation().GetBack();
 }
 
 float Model::GetHcenterPos() {
@@ -3307,6 +3338,7 @@ void Model::SetHcenterPos(float pos) {
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetHcenterPos(pos);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3315,6 +3347,7 @@ void Model::SetVcenterPos(float pos) {
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetVcenterPos(pos);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 

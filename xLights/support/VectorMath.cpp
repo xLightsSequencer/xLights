@@ -8,8 +8,7 @@
 void VectorMath::ScreenPosToWorldRay(
     int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
     int screenWidth, int screenHeight,  // Window size, in pixels
-    glm::mat4 ViewMatrix,               // Camera position and orientation
-    glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
+    glm::mat4 ProjViewMatrix,           // Projection / View matrix
     glm::vec3& out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
     glm::vec3& out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
 ) {
@@ -28,7 +27,7 @@ void VectorMath::ScreenPosToWorldRay(
         1.0f
     );
 
-    glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
+    glm::mat4 M = glm::inverse(ProjViewMatrix);
     glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world /= lRayStart_world.w;
     glm::vec4 lRayEnd_world = M * lRayEnd_NDC; lRayEnd_world /= lRayEnd_world.w;
 
@@ -180,6 +179,28 @@ bool VectorMath::TestRayOBBIntersection2D(
         return false;
 
     return true;
+}
+
+bool VectorMath::TestVolumeOBBIntersection(
+    int mouseX1, int mouseY1,    // Mouse position, in pixels, from bottom-left corner of the window
+    int mouseX2, int mouseY2,    // Mouse position, in pixels, from bottom-left corner of the window
+    int screenWidth, int screenHeight,  // Window size, in pixels
+    glm::vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
+    glm::vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+    glm::mat4 ProjViewMatrix,    // Projection / View matrix
+    glm::mat4 ModelMatrix        // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+) {
+    glm::mat4 MVP = ProjViewMatrix * ModelMatrix;
+    glm::vec4 clipSpacePos = MVP * glm::vec4(aabb_min, 1.0);
+    if (clipSpacePos.w == 0.0f) return false;
+    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos.x / clipSpacePos.w, clipSpacePos.y / clipSpacePos.w, clipSpacePos.z / clipSpacePos.w);
+    glm::vec2 min_pos(((ndcSpacePos.x + 1.0) / 2.0) * screenWidth, ((1.0 - ndcSpacePos.y) / 2.0) * screenHeight);
+    clipSpacePos = MVP * glm::vec4(aabb_max, 1.0);
+    if (clipSpacePos.w == 0.0f) return false;
+    ndcSpacePos = glm::vec3(clipSpacePos.x / clipSpacePos.w, clipSpacePos.y / clipSpacePos.w, clipSpacePos.z / clipSpacePos.w);
+    glm::vec2 max_pos(((ndcSpacePos.x + 1.0) / 2.0) * screenWidth, ((1.0 - ndcSpacePos.y) / 2.0) * screenHeight);
+
+    return (min_pos.x >= mouseX1 && max_pos.x <= mouseX2 && min_pos.y >= mouseY1 && max_pos.y <= mouseY2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

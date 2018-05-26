@@ -41,6 +41,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
+        Render();
     }
     else if (m_wheel_down) {
         float delta_x = event.GetX() - m_last_mouse_x;
@@ -50,6 +51,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         SetPan(delta_x, delta_y);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
+        Render();
     }
 
     if (_model != nullptr)
@@ -57,7 +59,6 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         wxString tip =_model->GetNodeNear(this, event.GetPosition());
         SetToolTip(tip);
     }
-    Refresh();
 
     event.ResumePropagation(1);
     event.Skip (); // continue the event
@@ -94,7 +95,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         delta *= -1.0f;
     }
     SetZoomDelta(delta);
-    Refresh();
+    Render();
 
     event.ResumePropagation(1);
     event.Skip(); // continue the event
@@ -160,14 +161,15 @@ void ModelPreview::Render()
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
-            if (is_3d )
+            if (is_3d) {
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
+            }
             else {
                 (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
-                /*/ FIXME:  Delete when not needed for debugging
-                if ((*PreviewModels)[i]->Highlighted) {
-                    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
-                }/*/
+                // FIXME:  Delete when not needed for debugging
+                //if ((*PreviewModels)[i]->Highlighted) {
+                //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
+                //}
             }
         }
     }
@@ -526,6 +528,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D + scale_corrx, pany2D*zoom2D - zoom_corry2D + scale_corry, 0.0f));
         ViewMatrix = ViewTranslate * ViewScale;
         ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
+        ProjViewMatrix = ProjMatrix * ViewMatrix;
 
         prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
@@ -554,7 +557,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 10000.0f);  // this must match prepare3DViewport call
-        
+        ProjViewMatrix = ProjMatrix * ViewMatrix;
+
         // FIXME: commented out for debugging speed
         // FIXME: transparent background does not draw correctly when depth testing enabled
         // enables depth testing to draw things in proper order

@@ -281,7 +281,7 @@ public:
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     void Lock(bool lock);
-    bool IsContained(int x1, int y1, int x2, int y2);
+    bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString();
@@ -315,23 +315,27 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
-    void SetTop(int y);
-    void SetBottom(int y);
-    void SetLeft(int x);
-    void SetRight(int x);
+    void SetTop(float y);
+    void SetBottom(float y);
+    void SetLeft(float x);
+    void SetRight(float x);
+    void SetFront(float y);
+    void SetBack(float y);
     void SetHcenterPos(float pos);
     void SetVcenterPos(float pos);
-    void SetWidth(int w);
-    void SetHeight(int h);
+    void SetWidth(float w);
+    void SetHeight(float h);
 
-    int GetTop();
-    int GetBottom();
-    int GetLeft();
-    int GetRight();
+    float GetTop();
+    float GetBottom();
+    float GetLeft();
+    float GetRight();
+    float GetFront();
+    float GetBack();
     float GetHcenterPos();
     float GetVcenterPos();
-    int GetWidth();
-    int GetHeight();
+    float GetWidth();
+    float GetHeight();
 
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}

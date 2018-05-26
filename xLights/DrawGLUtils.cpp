@@ -1009,6 +1009,48 @@ void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float 
     }
 }
 
+void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
+{
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+
+    float x = radius;//we start at angle = 0
+    float y = 0;
+
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-cx, -cy, -cz));
+    glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(cx, cy, cz));
+
+    for (int ii = 0; ii < num_segments; ii++) {
+        glm::vec4 position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        AddVertex(position.x, position.y, position.z, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        AddVertex(position.x, position.y, position.z, edge);
+        AddVertex(cx, cy, cz, center);
+    }
+}
+
+
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,
                                   const DrawGLUtils::xlDisplayList & dl,

@@ -88,8 +88,7 @@ public:
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
-    glm::mat4& GetViewMatrix() { return ViewMatrix; }
-    glm::mat4& GetProjMatrix() { return ProjMatrix; }
+    glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
 
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
@@ -163,6 +162,7 @@ private:
     int m_last_mouse_x, m_last_mouse_y;
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;
+    glm::mat4 ProjViewMatrix;
 
     double currentPixelScaleFactor = 1.0;
 
