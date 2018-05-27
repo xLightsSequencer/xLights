@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 #include "PlayListItemVideo.h"
 #include "PlayListItemImage.h"
+#include "PlayListItemJukebox.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
@@ -202,6 +203,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIImage")
         {
             _items.push_back(new PlayListItemImage(n));
+        }
+        else if (n->GetName() == "PLIJukebox")
+        {
+            _items.push_back(new PlayListItemJukebox(n));
         }
         else if (n->GetName() == "PLIAllSet")
         {

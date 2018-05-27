@@ -178,7 +178,7 @@ const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
 const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_PANEL7 = wxNewId();
+const long xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
 const long xLightsFrame::ID_GAUGE1 = wxNewId();
@@ -717,7 +717,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
-    PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
+    PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
@@ -1331,6 +1331,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
 
+    SetPanelSequencerLabel("");
+
 	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
@@ -1816,6 +1818,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     }
 
     MixTypeChanged=true;
+
+    // This is used by xSchedule
+    Notebook1->SetLabel("XLIGHTS_NOTEBOOK");
 
     Notebook1->ChangeSelection(SETUPTAB);
     EnableNetworkChanges();

@@ -97,6 +97,7 @@ class PlayListDialog: public wxDialog
         static const long ID_MNU_ADDVIDEO;
         static const long ID_MNU_ADDAUDIO;
         static const long ID_MNU_ADDIMAGE;
+        static const long ID_MNU_ADDJUKEBOX;
         static const long ID_MNU_ADDDELAY;
         static const long ID_MNU_DELETE;
         static const long ID_MNU_REMOVEEMPTYSTEPS;

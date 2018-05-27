@@ -25,6 +25,7 @@
 #include "PlayListItemAudio.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemImage.h"
+#include "PlayListItemJukebox.h"
 #include "PlayListItemDelay.h"
 #include "PlayListItemProjector.h"
 
@@ -73,6 +74,7 @@ const long PlayListDialog::ID_MNU_ADDPROJECTOR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
 const long PlayListDialog::ID_MNU_ADDSETCOLOUR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
+const long PlayListDialog::ID_MNU_ADDJUKEBOX = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
@@ -552,6 +554,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
     mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
     mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
+    mnu.Append(ID_MNU_ADDJUKEBOX, "Add xLights Jukebox");
     mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
     mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
     mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
@@ -618,6 +621,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDIMAGE)
     {
         PlayListItemImage* pli = new PlayListItemImage();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDJUKEBOX)
+    {
+        PlayListItemJukebox* pli = new PlayListItemJukebox();
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDALLOFF)

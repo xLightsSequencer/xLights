@@ -1173,6 +1173,8 @@ void xLightsFrame::SaveAsSequence()
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
+    SetPanelSequencerLabel(oName.GetName().ToStdString());
+
     oName.SetExt("xml");
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());

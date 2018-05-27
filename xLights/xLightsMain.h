@@ -627,7 +627,7 @@ private:
     static const long ID_LISTCTRL_NETWORKS;
     static const long ID_PANEL_SETUP;
     static const long ID_PANEL_PREVIEW;
-    static const long ID_PANEL7;
+    static const long XLIGHTS_SEQUENCER_TAB;
     static const long ID_NOTEBOOK1;
     static const long ID_STATICTEXT6;
     static const long ID_GAUGE1;
@@ -1123,6 +1123,7 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
+    void SetPanelSequencerLabel(const std::string& sequence);
 
     void DisplayXlightsFilename(const wxString& filename) const;
     int ChooseRandomEffect();

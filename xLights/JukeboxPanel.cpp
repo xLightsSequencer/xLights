@@ -118,7 +118,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
         wxButton* button = new wxButton(this, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
-            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB"));
+            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
@@ -127,6 +127,9 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
         if (i == 0)
             _defaultColour = button->GetBackgroundColour();
     }
+
+    // This is used by xSchedule
+    SetLabel("XLIGHTS_JUKEBOX");
 
     wxSizeEvent evt;
     OnResize(evt);

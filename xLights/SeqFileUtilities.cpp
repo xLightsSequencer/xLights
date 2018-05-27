@@ -181,6 +181,11 @@ static wxFileName mapFileName(const wxFileName &orig) {
     return orig;
 }
 
+void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
+{
+    PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
+}
+
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -245,7 +250,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
-        
+
+        SetPanelSequencerLabel(selected_file.GetName().ToStdString());
+
         wxFileName xml_file = selected_file;
         xml_file.SetExt("xml");
         wxFileName media_file;
@@ -282,7 +289,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
 
-        // load the fseq data file if it exists        
+        // load the fseq data file if it exists
         if( fseq_file.FileExists() && fseqFound)
         {
             if (plog != nullptr)
@@ -584,6 +591,8 @@ bool xLightsFrame::CloseSequence()
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
+
+    SetPanelSequencerLabel("");
 
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0,0,50);
