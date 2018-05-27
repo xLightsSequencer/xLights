@@ -116,7 +116,7 @@ static wxCursor GetResizeCursor(int cornerIndex, int PreviewRotation) {
 }
 
 ModelScreenLocation::ModelScreenLocation(int sz)
-: RenderWi(0), RenderHt(0), RenderDp(0),
+: RenderWi(0), RenderHt(0), RenderDp(0), previewW(-1), previewH(-1),
   worldPos_x(0.0f), worldPos_y(0.0f), worldPos_z(0.0f),
   scalex(1.0f), scaley(1.0f), scalez(1.0f), mHandlePosition(sz),
   active_handle_pos(glm::vec3(0.0f)), rotatex(0), rotatey(0), rotatez(0),
@@ -527,40 +527,89 @@ BoxedScreenLocation::BoxedScreenLocation()
     handle_aabb_max.push_back(glm::vec3(0.0f));
 }
 
+int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
+{
+    // check for upgrade to world positioning
+    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
+    if (version < 2) {
+        // skip first upgrade call since preview size is not set
+        node->DeleteAttribute("versionNumber");
+        node->AddAttribute("versionNumber", "2");
+        return UPGRADE_SKIPPED;
+    }
+    else if (version == 2) {
+        if (node->HasAttribute("offsetXpct")) {
+            float offsetXpct = wxAtof(node->GetAttribute("offsetXpct", "0"));
+            float offsetYpct = wxAtof(node->GetAttribute("offsetYpct", "0"));
+            float previewScaleX = wxAtof(node->GetAttribute("PreviewScaleX", "0"));
+            float previewScaleY = wxAtof(node->GetAttribute("PreviewScaleY", "0"));
+            worldPos_x = previewW * offsetXpct;
+            worldPos_y = previewH * offsetYpct;
+            worldPos_z = 0.0f;
+            scalex = previewW / RenderWi * previewScaleX;
+            scaley = previewH / RenderHt * previewScaleY;
+            scalez = scaley;
+            rotatex = 0.0f;
+            rotatey = 0.0f;
+            rotatez = wxAtof(node->GetAttribute("PreviewRotation", "0"));
+            node->DeleteAttribute("offsetXpct");
+            node->DeleteAttribute("offsetYpct");
+            node->DeleteAttribute("PreviewScaleX");
+            node->DeleteAttribute("PreviewScaleY");
+            node->DeleteAttribute("PreviewRotation");
+            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
+            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
+            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
+            node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
+            node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
+            node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
+            node->AddAttribute("RotateX", wxString::Format("%6.4f", rotatex));
+            node->AddAttribute("RotateY", wxString::Format("%6.4f", rotatey));
+            node->AddAttribute("RotateZ", wxString::Format("%6.4f", rotatez));
+            node->DeleteAttribute("versionNumber");
+            node->AddAttribute("versionNumber", "3");
+        }
+        return UPGRADE_EXEC_DONE;
+    }
+    return UPGRADE_NOT_NEEDED;
+}
+
 void BoxedScreenLocation::Read(wxXmlNode *ModelNode) {
-    worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
-    worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
-    worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
+    int upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == UPGRADE_NOT_NEEDED) {
+        worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "200.0"));
+        worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
+        worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
 
-    scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
-	scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
-	scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "1.0"));
+        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "1.0"));
+        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "1.0"));
+        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "1.0"));
 
-	if (scalex<0) {
-		scalex = 1.0f;
-	}
-	if (scaley<0) {
-		scaley = 1.0f;
-	}
-	if (scalez<0) {
-		scalez = 1.0f;
-	}
+        if (scalex < 0) {
+            scalex = 1.0f;
+        }
+        if (scaley < 0) {
+            scaley = 1.0f;
+        }
+        if (scalez < 0) {
+            scalez = 1.0f;
+        }
 
-    rotatex = wxAtoi(ModelNode->GetAttribute("RotateX", "0"));
-    rotatey = wxAtoi(ModelNode->GetAttribute("RotateY", "0"));
-    rotatez = wxAtoi(ModelNode->GetAttribute("RotateZ", "0"));
+        rotatex = wxAtoi(ModelNode->GetAttribute("RotateX", "0"));
+        rotatey = wxAtoi(ModelNode->GetAttribute("RotateY", "0"));
+        rotatez = wxAtoi(ModelNode->GetAttribute("RotateZ", "0"));
 
-    if (rotatex < -180 || rotatex > 180) {
-        rotatex = 0;
+        if (rotatex < -180 || rotatex > 180) {
+            rotatex = 0;
+        }
+        if (rotatey < -180 || rotatey > 180) {
+            rotatey = 0;
+        }
+        if (rotatez < -180 || rotatez > 180) {
+            rotatez = 0;
+        }
+        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
     }
-    if (rotatey < -180 || rotatey > 180) {
-        rotatey = 0;
-    }
-    if (rotatez < -180 || rotatez > 180) {
-        rotatez = 0;
-    }
-
-    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
 
 void BoxedScreenLocation::Write(wxXmlNode *ModelXml) {
@@ -1472,18 +1521,58 @@ TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
 TwoPointScreenLocation::~TwoPointScreenLocation() {
 }
 
+int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
+{
+    // check for upgrade to world positioning
+    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
+    if (version < 2) {
+        // skip first upgrade call since preview size is not set
+        node->DeleteAttribute("versionNumber");
+        node->AddAttribute("versionNumber", "2");
+        return UPGRADE_SKIPPED;
+    }
+    else if (version == 2) {
+        if (node->HasAttribute("X1")) {  // Two Point model
+            float old_x1 = wxAtof(node->GetAttribute("X1", "0"));
+            float old_y1 = wxAtof(node->GetAttribute("Y1", "0"));
+            float old_x2 = wxAtof(node->GetAttribute("X2", "0"));
+            float old_y2 = wxAtof(node->GetAttribute("Y2", "0"));
+            worldPos_x = previewW * old_x1;
+            worldPos_y = previewH * old_y1;
+            worldPos_z = 0.0f;
+            x2 = previewW * old_x2 - worldPos_x;
+            y2 = previewH * old_y2 - worldPos_y;
+            z2 = 0.0f;
+            node->DeleteAttribute("X1");
+            node->DeleteAttribute("Y1");
+            node->DeleteAttribute("X2");
+            node->DeleteAttribute("Y2");
+            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
+            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
+            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
+            node->AddAttribute("X2", wxString::Format("%6.4f", x2));
+            node->AddAttribute("Y2", wxString::Format("%6.4f", y2));
+            node->AddAttribute("Z2", wxString::Format("%6.4f", z2));
+        }
+        node->DeleteAttribute("versionNumber");
+        node->AddAttribute("versionNumber", "3");
+        return UPGRADE_EXEC_DONE;
+    }
+    return UPGRADE_NOT_NEEDED;
+}
+
+
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    if (!ModelNode->HasAttribute("WorldPosX") && ModelNode->HasAttribute("X1")) {
-        old = ModelNode;
-    } else {
+    int upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == UPGRADE_NOT_NEEDED) {
         worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
         worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
         worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
         x2 = wxAtof(ModelNode->GetAttribute("X2", "0.0"));
         y2 = wxAtof(ModelNode->GetAttribute("Y2", "0.0"));
         z2 = wxAtof(ModelNode->GetAttribute("Z2", "0.0"));
+        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
     }
-    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
 }
 
 void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
@@ -2217,9 +2306,6 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
 {
     aabb_min = glm::vec3(0.0f, -BB_OFF, -BB_OFF);
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
-}
-
-void TwoPointScreenLocation::ProcessOldNode(wxXmlNode *old) {
 }
 
 float TwoPointScreenLocation::GetHcenterPos() const {
@@ -3012,9 +3098,6 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
     }
 }
 
-void ThreePointScreenLocation::ProcessOldNode(wxXmlNode *old) {
-}
-
 PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
    num_points(2), selected_handle(-1), selected_segment(-1) {
     mPos.resize(2);
@@ -3076,60 +3159,165 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create) {
     }
 }
 
-void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
-    worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
-    worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
-    worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
-
-    scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "100.0"));
-    scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "100.0"));
-    scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "100.0"));
-
-    if (scalex<=0) {
-        scalex = 1.0f;
-    }
-    if (scaley<=0) {
-        scaley = 1.0f;
-    }
-    if (scalez<=0) {
-        scalez = 1.0f;
-    }
-
-    num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
-    mPos.resize(num_points);
-    wxString point_data = ModelNode->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
-    wxArrayString point_array = wxSplit(point_data, ',');
-    for( int i = 0; i < num_points; ++i ) {
-        mPos[i].x = wxAtof(point_array[i*3]);
-        mPos[i].y = wxAtof(point_array[i*3+1]);
-        mPos[i].z = wxAtof(point_array[i*3+2]);
-        mPos[i].has_curve = false;
-    }
-    mHandlePosition.resize(num_points+5);
-    mSelectableHandles = num_points + 1;
-    handle_aabb_min.resize(num_points + 5);
-    handle_aabb_max.resize(num_points + 5);
-    seg_aabb_min.resize(num_points - 1);
-    seg_aabb_max.resize(num_points - 1);
-    wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
-    wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
-    int num_curves = cpoint_array.size() / 7;
-    glm::vec3 scaling(scalex, scaley, scalez);
-    glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
-    for( int i = 0; i < num_curves; ++i ) {
-        int seg_num = wxAtoi(cpoint_array[i*7]);
-        mPos[seg_num].has_curve = true;
-        if( mPos[seg_num].curve == nullptr ) {
-            mPos[seg_num].curve = new BezierCurveCubic3D();
+int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
+{
+    // check for upgrade to world positioning
+    int version = wxAtoi(node->GetAttribute("versionNumber", "0"));
+    if (version < 2) {
+        // on first upgrade call need to fix point data so init model won't crash
+        if (node->HasAttribute("NumPoints")) {
+            int num_points = wxAtoi(node->GetAttribute("NumPoints", "2"));
+            wxString point_data = node->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
+            wxArrayString point_array = wxSplit(point_data, ',');
+            wxString new_point_data = "";
+            for (int i = 0; i < num_points; ++i) {
+                float posx = wxAtof(point_array[i * 2]);
+                float posy = wxAtof(point_array[i * 2 + 1]);
+                new_point_data += wxString::Format("%f,", posx);
+                new_point_data += wxString::Format("%f,", posy);
+                new_point_data += wxString::Format("%f", 0.0f);
+                if (i != num_points - 1) {
+                    new_point_data += ",";
+                }
+            }
+            wxString cpoint_data = node->GetAttribute("cPointData", "");
+            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+            int num_curves = cpoint_array.size() / 5;
+            wxString new_cpoint_data = "";
+            for (int i = 0; i < num_curves; ++i) {
+                int seg_num = wxAtoi(cpoint_array[i * 5]);
+                float cp0x = wxAtof(cpoint_array[i * 5 + 1]);
+                float cp0y = wxAtof(cpoint_array[i * 5 + 2]);
+                float cp1x = wxAtof(cpoint_array[i * 5 + 3]);
+                float cp1y = wxAtof(cpoint_array[i * 5 + 4]);
+                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
+            }
+            node->DeleteAttribute("PointData");
+            node->DeleteAttribute("cPointData");
+            node->AddAttribute("PointData", new_point_data);
+            node->AddAttribute("cPointData", new_cpoint_data);
         }
-        mPos[seg_num].curve->set_p0( mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z );
-        mPos[seg_num].curve->set_p1( mPos[seg_num+1].x, mPos[seg_num+1].y, mPos[seg_num+1].z );
-        mPos[seg_num].curve->set_cp0( wxAtof(cpoint_array[i*7+1]), wxAtof(cpoint_array[i*7+2]), wxAtof(cpoint_array[i*7+3]));
-        mPos[seg_num].curve->set_cp1( wxAtof(cpoint_array[i*7+4]), wxAtof(cpoint_array[i*7+5]), wxAtof(cpoint_array[i*7+6]));
-        mPos[seg_num].curve->SetPositioning(scaling, world_pos);
-        mPos[seg_num].curve->UpdatePoints();
+        node->DeleteAttribute("versionNumber");
+        node->AddAttribute("versionNumber", "2");
+        return UPGRADE_SKIPPED;
     }
-    _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
+    else if (version == 2) {
+        if (node->HasAttribute("NumPoints")) {
+            float worldPos_x, worldPos_y;
+            int num_points = wxAtoi(node->GetAttribute("NumPoints", "2"));
+            wxString point_data = node->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
+            wxArrayString point_array = wxSplit(point_data, ',');
+            wxString new_point_data = "";
+            for (int i = 0; i < num_points; ++i) {
+                float posx = wxAtof(point_array[i * 3]);
+                float posy = wxAtof(point_array[i * 3 + 1]);
+                if (i == 0) {
+                    worldPos_x = previewW * posx;
+                    worldPos_y = previewH * posy;
+                    worldPos_z = 0.0f;
+                    new_point_data += wxString::Format("%f,", 0.0f);
+                    new_point_data += wxString::Format("%f,", 0.0f);
+                    new_point_data += wxString::Format("%f", 0.0f);
+                }
+                else {
+                    posx = (previewW * posx - worldPos_x) / 100.0f;
+                    posy = (previewH * posy - worldPos_y) / 100.0f;
+                    new_point_data += wxString::Format("%f,", posx);
+                    new_point_data += wxString::Format("%f,", posy);
+                    new_point_data += wxString::Format("%f", 0.0f);
+                }
+                if (i != num_points - 1) {
+                    new_point_data += ",";
+                }
+            }
+            wxString cpoint_data = node->GetAttribute("cPointData", "");
+            wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+            int num_curves = cpoint_array.size() / 7;
+            wxString new_cpoint_data = "";
+            for (int i = 0; i < num_curves; ++i) {
+                int seg_num = wxAtoi(cpoint_array[i * 7]);
+                float cp0x = wxAtof(cpoint_array[i * 7 + 1]);
+                float cp0y = wxAtof(cpoint_array[i * 7 + 2]);
+                float cp1x = wxAtof(cpoint_array[i * 7 + 4]);
+                float cp1y = wxAtof(cpoint_array[i * 7 + 5]);
+                cp0x = (previewW * cp0x - worldPos_x) / 100.0f;
+                cp0y = (previewH * cp0y - worldPos_y) / 100.0f;
+                cp1x = (previewW * cp1x - worldPos_x) / 100.0f;
+                cp1y = (previewH * cp1y - worldPos_y) / 100.0f;
+                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
+            }
+            node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
+            node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
+            node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
+            node->DeleteAttribute("PointData");
+            node->DeleteAttribute("cPointData");
+            node->AddAttribute("PointData", new_point_data);
+            node->AddAttribute("cPointData", new_cpoint_data);
+        }
+        node->DeleteAttribute("versionNumber");
+        node->AddAttribute("versionNumber", "3");
+        return UPGRADE_EXEC_READ;
+    }
+    return UPGRADE_NOT_NEEDED;
+}
+
+void PolyPointScreenLocation::Read(wxXmlNode *ModelNode) {
+    int upgrade_result = CheckUpgrade(ModelNode);
+    if (upgrade_result == UPGRADE_NOT_NEEDED) {
+        worldPos_x = wxAtof(ModelNode->GetAttribute("WorldPosX", "0.0"));
+        worldPos_y = wxAtof(ModelNode->GetAttribute("WorldPosY", "0.0"));
+        worldPos_z = wxAtof(ModelNode->GetAttribute("WorldPosZ", "0.0"));
+
+        scalex = wxAtof(ModelNode->GetAttribute("ScaleX", "100.0"));
+        scaley = wxAtof(ModelNode->GetAttribute("ScaleY", "100.0"));
+        scalez = wxAtof(ModelNode->GetAttribute("ScaleZ", "100.0"));
+
+        if (scalex <= 0) {
+            scalex = 1.0f;
+        }
+        if (scaley <= 0) {
+            scaley = 1.0f;
+        }
+        if (scalez <= 0) {
+            scalez = 1.0f;
+        }
+
+        num_points = wxAtoi(ModelNode->GetAttribute("NumPoints", "2"));
+        mPos.resize(num_points);
+        wxString point_data = ModelNode->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
+        wxArrayString point_array = wxSplit(point_data, ',');
+        for (int i = 0; i < num_points; ++i) {
+            mPos[i].x = wxAtof(point_array[i * 3]);
+            mPos[i].y = wxAtof(point_array[i * 3 + 1]);
+            mPos[i].z = wxAtof(point_array[i * 3 + 2]);
+            mPos[i].has_curve = false;
+        }
+        mHandlePosition.resize(num_points + 5);
+        mSelectableHandles = num_points + 1;
+        handle_aabb_min.resize(num_points + 5);
+        handle_aabb_max.resize(num_points + 5);
+        seg_aabb_min.resize(num_points - 1);
+        seg_aabb_max.resize(num_points - 1);
+        wxString cpoint_data = ModelNode->GetAttribute("cPointData", "");
+        wxArrayString cpoint_array = wxSplit(cpoint_data, ',');
+        int num_curves = cpoint_array.size() / 7;
+        glm::vec3 scaling(scalex, scaley, scalez);
+        glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
+        for (int i = 0; i < num_curves; ++i) {
+            int seg_num = wxAtoi(cpoint_array[i * 7]);
+            mPos[seg_num].has_curve = true;
+            if (mPos[seg_num].curve == nullptr) {
+                mPos[seg_num].curve = new BezierCurveCubic3D();
+            }
+            mPos[seg_num].curve->set_p0(mPos[seg_num].x, mPos[seg_num].y, mPos[seg_num].z);
+            mPos[seg_num].curve->set_p1(mPos[seg_num + 1].x, mPos[seg_num + 1].y, mPos[seg_num + 1].z);
+            mPos[seg_num].curve->set_cp0(wxAtof(cpoint_array[i * 7 + 1]), wxAtof(cpoint_array[i * 7 + 2]), wxAtof(cpoint_array[i * 7 + 3]));
+            mPos[seg_num].curve->set_cp1(wxAtof(cpoint_array[i * 7 + 4]), wxAtof(cpoint_array[i * 7 + 5]), wxAtof(cpoint_array[i * 7 + 6]));
+            mPos[seg_num].curve->SetPositioning(scaling, world_pos);
+            mPos[seg_num].curve->UpdatePoints();
+        }
+        _locked = (wxAtoi(ModelNode->GetAttribute("Locked", "0")) == 1);
+    }
 }
 
 void PolyPointScreenLocation::Write(wxXmlNode *node) {

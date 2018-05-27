@@ -45,10 +45,10 @@ class ModelManager
         unsigned int size() const;
 
         //Make sure the Model is deleted when done with
-        Model *CreateModel(wxXmlNode *node, bool zeroBased = false) const;
+        Model *CreateModel(wxXmlNode *node, int previewW = 0, int previewH = 0, bool zeroBased = false) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
     protected:
-        Model *createAndAddModel(wxXmlNode *node);
+        Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
     private:
 
     wxXmlNode *modelNode;

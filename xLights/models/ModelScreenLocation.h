@@ -27,6 +27,11 @@
 #define TOOL_XY_TRANS  3
 #define NUM_TOOLS      4
 
+#define UPGRADE_NOT_NEEDED 0
+#define UPGRADE_SKIPPED    1
+#define UPGRADE_EXEC_DONE  2
+#define UPGRADE_EXEC_READ  3
+
 class wxXmlNode;
 class ModelPreview;
 class wxPropertyGridInterface;
@@ -51,6 +56,7 @@ class ModelScreenLocation
 public:
     virtual void Read(wxXmlNode *node) = 0;
     virtual void Write(wxXmlNode *node) = 0;
+    virtual int CheckUpgrade(wxXmlNode *node) = 0;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const = 0;
     virtual void TranslatePoint(float &x, float &y, float &z) const = 0;
@@ -197,6 +203,7 @@ public:
 
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
+    virtual int CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
@@ -297,6 +304,7 @@ public:
 
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
+    virtual int CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
@@ -359,8 +367,6 @@ public:
     virtual void SetAxisTool(int mode);
 
 protected:
-    virtual void ProcessOldNode(wxXmlNode *n);
-
     float x2, y2, z2;
     mutable glm::vec3 origin;
     mutable glm::vec3 point2;
@@ -432,8 +438,6 @@ public:
     virtual void SetActiveAxis(int axis);
     virtual bool IsXYTransHandle() const { return active_handle == SHEAR_HANDLE; }
 
-protected:
-    virtual void ProcessOldNode(wxXmlNode *n) override;
 private:
     bool modelHandlesHeight;
     bool supportsAngle;
@@ -452,6 +456,7 @@ public:
 
     virtual void Read(wxXmlNode *node) override;
     virtual void Write(wxXmlNode *node) override;
+    virtual int CheckUpgrade(wxXmlNode *node) override;
 
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
