@@ -3,7 +3,9 @@
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
 #include <log4cpp/Category.hh>
+#ifdef __WXMSW__
 #include <wx/msw/private.h>
+#endif
 
 PlayListItemJukebox::PlayListItemJukebox(wxXmlNode* node) : PlayListItem(node)
 {
