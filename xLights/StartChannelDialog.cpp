@@ -211,7 +211,7 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
 }
 
 std::string StartChannelDialog::Get() {
-    if (OutputButton->GetValue() && OutputChoice->GetStringSelection() != "1") {
+    if (OutputButton->GetValue()) {
         return std::string(OutputChoice->GetStringSelection().c_str()) + ":" + std::to_string(StartChannel->GetValue());
     }
     else if (UniverseButton->GetValue())
